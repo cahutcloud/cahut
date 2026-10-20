@@ -159,7 +159,7 @@ Cahut is written in **Go**: a new, clean codebase built for Cahut, which one per
 ### Repository layout
 
 ```
-docs/   Project documents (the project brief, in French, for now)
+docs/   Project documents, in French for now: the project brief and the brand guidelines
 ```
 
 Code, build and test instructions will be added with the first prototype.
@@ -185,6 +185,7 @@ Success criteria for the launch:
 ## Documentation
 
 - [Project brief](docs/brief-projet.md) (French): vision, positioning, scope, governance, technical choices and open questions.
+- [Brand guidelines](docs/charte-graphique/README.md) (French): logo, colors, typography, icons, illustrations, photography, interface kit and templates, with all source files. A visual version opens from [docs/charte-graphique/index.html](docs/charte-graphique/index.html).
 
 ## License
 

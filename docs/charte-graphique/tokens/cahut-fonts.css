@@ -1,0 +1,40 @@
+/*
+ * Cahut, polices web (sous-ensemble latin, suffisant pour le français et l'anglais)
+ * Plus Jakarta Sans et IBM Plex Mono, licence SIL Open Font License 1.1.
+ * Chemins relatifs à ce fichier : docs/charte-graphique/tokens/
+ */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../typographie/polices/web/plus-jakarta-sans-latin-variable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: italic;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../typographie/polices/web/plus-jakarta-sans-latin-variable-italic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../typographie/polices/web/ibm-plex-mono-latin-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../typographie/polices/web/ibm-plex-mono-latin-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../typographie/polices/web/ibm-plex-mono-latin-600.woff2") format("woff2");
+}

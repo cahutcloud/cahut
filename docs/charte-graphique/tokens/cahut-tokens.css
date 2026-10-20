@@ -1,0 +1,227 @@
+/*
+ * Cahut, jetons de design (design tokens), version 1.0
+ * Source : docs/charte-graphique/README.md
+ * Préfixe --cahut-* : valeurs brutes. Préfixe --color-* : rôles, à utiliser dans les interfaces.
+ */
+
+:root {
+  /* Couleurs de marque */
+  --cahut-ink: #1F2A33; /* Ink : Texte, logo, traits */
+  --cahut-paper: #F7F5F0; /* Paper : Fond principal */
+  --cahut-sky: #5FA8D3; /* Sky : Accent, icône, éléments actifs */
+  --cahut-light-grey: #D9DCDF; /* Light Grey : Bordures, séparateurs, illustrations */
+  --cahut-soft-yellow: #F4D27A; /* Soft Yellow : Touche chaleureuse, lumière, attention */
+  --cahut-white: #FFFFFF;
+  --cahut-paper-200: #ECE9E3;
+
+  /* Échelle ink */
+  --cahut-ink-50: #F4F7F9;
+  --cahut-ink-100: #E9EDF1;
+  --cahut-ink-200: #D9DCDF;
+  --cahut-ink-300: #BCC2C7;
+  --cahut-ink-400: #96A0A8;
+  --cahut-ink-500: #76828B;
+  --cahut-ink-600: #5C6872;
+  --cahut-ink-700: #45525C;
+  --cahut-ink-800: #303C46;
+  --cahut-ink-900: #1F2A33;
+  --cahut-ink-950: #111B22;
+
+  /* Échelle sky */
+  --cahut-sky-50: #F0F8FE;
+  --cahut-sky-100: #DBF1FF;
+  --cahut-sky-200: #B9E1FB;
+  --cahut-sky-300: #8BC6EB;
+  --cahut-sky-400: #5FA8D3;
+  --cahut-sky-500: #458EBB;
+  --cahut-sky-600: #3375A0;
+  --cahut-sky-700: #245D83;
+  --cahut-sky-800: #1B4664;
+  --cahut-sky-900: #113147;
+  --cahut-sky-950: #0A1F2E;
+
+  /* Échelle yellow */
+  --cahut-yellow-50: #FFFAE8;
+  --cahut-yellow-100: #FFF3CE;
+  --cahut-yellow-200: #FEE6A6;
+  --cahut-yellow-300: #F4D27A;
+  --cahut-yellow-400: #EDBC51;
+  --cahut-yellow-500: #DEA132;
+  --cahut-yellow-600: #BA7E23;
+  --cahut-yellow-700: #96621E;
+  --cahut-yellow-800: #724816;
+  --cahut-yellow-900: #543514;
+  --cahut-yellow-950: #3A230B;
+
+  /* Couleurs fonctionnelles */
+  --cahut-success-600: #267B4C;
+  --cahut-success-50: #E7F9EC;
+  --cahut-success-300: #8ECFA4;
+  --cahut-danger-600: #BA3E38;
+  --cahut-danger-50: #FFEFEC;
+  --cahut-danger-300: #EDAAA2;
+
+  /* Rôles, thème clair */
+  --color-bg: var(--cahut-paper);
+  --color-surface: var(--cahut-white);
+  --color-surface-muted: var(--cahut-paper-200);
+  --color-border: var(--cahut-ink-200);
+  --color-border-strong: var(--cahut-ink-300);
+  --color-text: var(--cahut-ink-900);
+  --color-text-muted: var(--cahut-ink-600);
+  --color-text-disabled: var(--cahut-ink-400);
+  --color-accent: var(--cahut-sky-400);
+  --color-accent-hover: var(--cahut-sky-500);
+  --color-accent-soft: var(--cahut-sky-100);
+  --color-on-accent: var(--cahut-ink-900);
+  --color-link: var(--cahut-sky-700);
+  --color-focus: var(--cahut-sky-500);
+  --color-primary: var(--cahut-ink-900);
+  --color-primary-hover: var(--cahut-ink-800);
+  --color-on-primary: var(--cahut-paper);
+  --color-highlight: var(--cahut-yellow-300);
+  --color-highlight-soft: var(--cahut-yellow-100);
+  --color-success: var(--cahut-success-600);
+  --color-success-bg: var(--cahut-success-50);
+  --color-success-border: var(--cahut-success-300);
+  --color-warning: var(--cahut-yellow-700);
+  --color-warning-bg: var(--cahut-yellow-50);
+  --color-warning-border: var(--cahut-yellow-300);
+  --color-danger: var(--cahut-danger-600);
+  --color-danger-bg: var(--cahut-danger-50);
+  --color-danger-border: var(--cahut-danger-300);
+  --color-info: var(--cahut-sky-700);
+  --color-info-bg: var(--cahut-sky-50);
+  --color-info-border: var(--cahut-sky-200);
+
+  /* Typographie */
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --text-xs: 0.75rem; --leading-xs: 1rem; /* 12/16 px */
+  --text-sm: 0.875rem; --leading-sm: 1.25rem; /* 14/20 px */
+  --text-base: 1rem; --leading-base: 1.5rem; /* 16/24 px */
+  --text-lg: 1.125rem; --leading-lg: 1.75rem; /* 18/28 px */
+  --text-xl: 1.25rem; --leading-xl: 1.75rem; /* 20/28 px */
+  --text-2xl: 1.5rem; --leading-2xl: 2rem; /* 24/32 px */
+  --text-3xl: 2rem; --leading-3xl: 2.5rem; /* 32/40 px */
+  --text-4xl: 2.5rem; --leading-4xl: 3rem; /* 40/48 px */
+  --text-5xl: 3.5rem; --leading-5xl: 4rem; /* 56/64 px */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+  --tracking-display: -0.02em;
+  --tracking-title: -0.01em;
+  --tracking-label: 0.12em;
+
+  /* Espacements, grille de 4 px */
+  --space-1: 0.25rem; /* 4 px */
+  --space-2: 0.5rem; /* 8 px */
+  --space-3: 0.75rem; /* 12 px */
+  --space-4: 1rem; /* 16 px */
+  --space-5: 1.25rem; /* 20 px */
+  --space-6: 1.5rem; /* 24 px */
+  --space-8: 2rem; /* 32 px */
+  --space-10: 2.5rem; /* 40 px */
+  --space-12: 3rem; /* 48 px */
+  --space-16: 4rem; /* 64 px */
+  --space-20: 5rem; /* 80 px */
+  --space-24: 6rem; /* 96 px */
+
+  /* Rayons */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  /* Traits et ombres */
+  --border-width: 1px;
+  --icon-stroke: 2px;
+  --shadow-sm: 0 1px 2px rgb(31 42 51 / 0.06);
+  --shadow-md: 0 4px 14px rgb(31 42 51 / 0.08);
+  --shadow-lg: 0 16px 40px rgb(31 42 51 / 0.12);
+  --ring: 0 0 0 3px rgb(95 168 211 / 0.45);
+
+  /* Mouvement */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+}
+
+/* Thème sombre, sur demande */
+[data-theme="dark"] {
+  --color-bg: var(--cahut-ink-950);
+  --color-surface: var(--cahut-ink-900);
+  --color-surface-muted: var(--cahut-ink-800);
+  --color-border: var(--cahut-ink-700);
+  --color-border-strong: var(--cahut-ink-600);
+  --color-text: var(--cahut-paper);
+  --color-text-muted: var(--cahut-ink-300);
+  --color-text-disabled: var(--cahut-ink-500);
+  --color-accent: var(--cahut-sky-400);
+  --color-accent-hover: var(--cahut-sky-300);
+  --color-accent-soft: var(--cahut-sky-900);
+  --color-on-accent: var(--cahut-ink-950);
+  --color-link: var(--cahut-sky-300);
+  --color-focus: var(--cahut-sky-400);
+  --color-primary: var(--cahut-paper);
+  --color-primary-hover: var(--cahut-ink-100);
+  --color-on-primary: var(--cahut-ink-900);
+  --color-highlight: var(--cahut-yellow-300);
+  --color-highlight-soft: var(--cahut-yellow-950);
+  --color-success: var(--cahut-success-300);
+  --color-success-bg: #13291D;
+  --color-success-border: var(--cahut-success-600);
+  --color-warning: var(--cahut-yellow-300);
+  --color-warning-bg: var(--cahut-yellow-950);
+  --color-warning-border: var(--cahut-yellow-700);
+  --color-danger: var(--cahut-danger-300);
+  --color-danger-bg: #3A1716;
+  --color-danger-border: var(--cahut-danger-600);
+  --color-info: var(--cahut-sky-300);
+  --color-info-bg: var(--cahut-sky-950);
+  --color-info-border: var(--cahut-sky-800);
+  --shadow-md: 0 4px 14px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.45);
+}
+
+/* Thème sombre, selon le système */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: var(--cahut-ink-950);
+    --color-surface: var(--cahut-ink-900);
+    --color-surface-muted: var(--cahut-ink-800);
+    --color-border: var(--cahut-ink-700);
+    --color-border-strong: var(--cahut-ink-600);
+    --color-text: var(--cahut-paper);
+    --color-text-muted: var(--cahut-ink-300);
+    --color-text-disabled: var(--cahut-ink-500);
+    --color-accent: var(--cahut-sky-400);
+    --color-accent-hover: var(--cahut-sky-300);
+    --color-accent-soft: var(--cahut-sky-900);
+    --color-on-accent: var(--cahut-ink-950);
+    --color-link: var(--cahut-sky-300);
+    --color-focus: var(--cahut-sky-400);
+    --color-primary: var(--cahut-paper);
+    --color-primary-hover: var(--cahut-ink-100);
+    --color-on-primary: var(--cahut-ink-900);
+    --color-highlight: var(--cahut-yellow-300);
+    --color-highlight-soft: var(--cahut-yellow-950);
+    --color-success: var(--cahut-success-300);
+    --color-success-bg: #13291D;
+    --color-success-border: var(--cahut-success-600);
+    --color-warning: var(--cahut-yellow-300);
+    --color-warning-bg: var(--cahut-yellow-950);
+    --color-warning-border: var(--cahut-yellow-700);
+    --color-danger: var(--cahut-danger-300);
+    --color-danger-bg: #3A1716;
+    --color-danger-border: var(--cahut-danger-600);
+    --color-info: var(--cahut-sky-300);
+    --color-info-bg: var(--cahut-sky-950);
+    --color-info-border: var(--cahut-sky-800);
+  }
+}

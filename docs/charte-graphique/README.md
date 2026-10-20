@@ -1,0 +1,397 @@
+# Cahut · Charte graphique
+
+Version 1.0 · 20 octobre 2026 · Olivier Durand
+
+![Cahut, la maison ouverte](illustrations/maison-ouverte.png)
+
+Cette charte fixe l'identité visuelle de Cahut : logo, couleurs, typographie, pictogrammes, illustrations, photographie, interface et applications. Elle part de la [planche retenue](planche-reference.png) et la rend utilisable : fichiers vectoriels, exports, jetons de design et règles d'usage.
+
+- **Version visuelle** : [`index.html`](index.html), à ouvrir dans un navigateur, et sa version imprimable [`charte-graphique-cahut.pdf`](charte-graphique-cahut.pdf).
+- **Fichiers** : tout est dans ce dossier, rangé par usage (voir [Fichiers](#13-fichiers)).
+- **Langue** : la charte est rédigée en français ; les textes du produit et des visuels sont en anglais, langue du lancement.
+
+## Sommaire
+
+1. [La marque](#1-la-marque)
+2. [Le logo](#2-le-logo)
+3. [Couleurs](#3-couleurs)
+4. [Typographie](#4-typographie)
+5. [Pictogrammes et icônes](#5-pictogrammes-et-icônes)
+6. [Illustrations et motif](#6-illustrations-et-motif)
+7. [Photographie](#7-photographie)
+8. [Mise en page](#8-mise-en-page)
+9. [Interface](#9-interface)
+10. [Applications](#10-applications)
+11. [Voix et ton](#11-voix-et-ton)
+12. [Cahut chez les autres](#12-cahut-chez-les-autres)
+13. [Fichiers](#13-fichiers)
+
+## 1. La marque
+
+**Le nom.** Cahut vient de « cahute », la petite cabane qu'on se construit soi-même. C'est un abri simple et à soi, posé dans le nuage : *cloud* et *hut* à la fois.
+
+**La promesse.** Vos IA fabriquent, Cahut fait vivre. Tout ce qu'elles produisent est publié, partagé, rangé et protégé au même endroit, à vos couleurs, chez vous, quelle que soit l'IA.
+
+**La signature.** *Your own cloud for everything your AI makes.* Elle accompagne le logo sur le site, les visuels de partage et les présentations.
+
+**Les valeurs.**
+
+| Valeur | Ce qu'elle veut dire | Ce qu'on voit |
+| --- | --- | --- |
+| Chez soi | Les données restent sur votre serveur | Le nuage est une maison, avec sa porte |
+| Neutre | Toutes les IA, aucun fournisseur favori | Aucune couleur ni forme empruntée à une IA |
+| Simple | Une commande pour installer, un lien pour partager | Peu d'éléments, beaucoup d'air |
+| Prudent | L'IA frappe avant toute action irréversible (*knock first*) | La porte, le jaune réservé à ce qui attend une décision |
+| Accueillant | Clair, chaleureux, sans jargon | Arrondis, papier chaud, touche de soleil |
+
+**La personnalité.**
+
+| Cahut est | Cahut n'est pas |
+| --- | --- |
+| calme | froid |
+| précis | technique |
+| chaleureux | mignon |
+| sûr de lui | autoritaire |
+| ouvert | bavard |
+
+## 2. Le logo
+
+### Le symbole
+
+Un nuage dessiné d'un seul trait, dont la base s'ouvre sur une porte. Le nuage dit « votre cloud », la porte dit « chez vous » : on y entre, et on frappe avant. Trait régulier, jonctions arrondies, aucune pointe : un abri, pas une forteresse.
+
+![Construction du symbole](logos/construction.png)
+
+| Élément | Règle |
+| --- | --- |
+| Grille | 236 × 135 unités, rapport 1,75 |
+| Trait | 14 unités (6 % de la largeur), jonctions arrondies |
+| Dôme | Cercle de rayon 58 |
+| Lobes | Rayons 37 et 38, tangents à la ligne de base |
+| Porte | Arc de rayon 21 centré sur l'axe, environ un tiers de la hauteur |
+| Logotype | « cahut » en minuscules, Plus Jakarta Sans ExtraBold, interlettrage -1 %, vectorisé |
+| Assemblage | Logotype de même largeur que le symbole, 20 unités sous lui |
+
+### Les versions
+
+| Version | Usage | Fichiers |
+| --- | --- | --- |
+| Logo principal | Par défaut, sur fond clair | [`cahut-logo.svg`](logos/cahut-logo.svg) |
+| Logo inversé | Sur Ink ou fond sombre | [`cahut-logo-inverse.svg`](logos/cahut-logo-inverse.svg) |
+| Monochrome | Impression une couleur, gravure, tampon | [`cahut-logo-noir.svg`](logos/cahut-logo-noir.svg), [`cahut-logo-blanc.svg`](logos/cahut-logo-blanc.svg) |
+| Logo horizontal | En-têtes, barres de navigation, pieds de page | [`cahut-logo-horizontal.svg`](logos/cahut-logo-horizontal.svg) et ses variantes |
+| Symbole seul | Avatar, petits espaces, filigrane | [`cahut-symbole.svg`](logos/cahut-symbole.svg) et ses variantes |
+| Symbole petites tailles | Sous 64 px, trait renforcé | [`cahut-symbole-petites-tailles.svg`](logos/cahut-symbole-petites-tailles.svg) |
+| Logotype seul | Quand le symbole figure déjà à côté | [`cahut-logotype.svg`](logos/cahut-logotype.svg) |
+| Icône d'application | Sky, symbole blanc | [`cahut-icone-app.svg`](logos/cahut-icone-app.svg), variante [Ink](logos/cahut-icone-app-ink.svg) |
+| Favicon | Dessiné sur la grille de 16 px | [`cahut-favicon.svg`](logos/cahut-favicon.svg), [`favicon/`](logos/favicon/) |
+
+<p>
+<img src="logos/cahut-logo.svg" alt="Logo principal" height="120">&nbsp;&nbsp;&nbsp;
+<img src="logos/cahut-logo-horizontal.svg" alt="Logo horizontal" height="48">&nbsp;&nbsp;&nbsp;
+<img src="logos/cahut-icone-app.svg" alt="Icône d'application" height="96">
+</p>
+
+Les exports PNG transparents sont dans [`logos/png/`](logos/png/), en plusieurs largeurs. Le logo horizontal utilise le symbole renforcé, aligné sur la ligne de base du logotype, à 1,2 fois la hauteur des ascendantes.
+
+### Zone de protection et tailles minimales
+
+Autour du logo, gardez un espace libre au moins égal à **p**, la largeur extérieure de la porte (environ un quart de la largeur du symbole).
+
+![Zone de protection](logos/zone-protection.png)
+
+| Version | Écran | Impression |
+| --- | --- | --- |
+| Logo principal | 96 px de large | 25 mm |
+| Logo horizontal | 100 px de large | 25 mm |
+| Symbole | 24 px (version petites tailles) | 6 mm |
+| Favicon | 16 px | non concerné |
+
+### À ne pas faire
+
+![Interdits](logos/interdits.png)
+
+Ne pas déformer, recolorer, incliner, ombrer, recomposer ou remplir le logo. Ne pas le poser sur un fond qui ne lui laisse pas 4,5:1 de contraste ni sur une photo chargée. Ne pas redessiner le logotype dans une autre police.
+
+## 3. Couleurs
+
+![Palette](couleurs/palette.png)
+
+| Couleur | Rôle | HEX | RVB | CMJN | TSL |
+| --- | --- | --- | --- | --- | --- |
+| **Ink** | Texte, logo, traits, fonds sombres | `#1F2A33` | 31 42 51 | 39 18 0 80 | 207° 24 % 16 % |
+| **Paper** | Fond principal | `#F7F5F0` | 247 245 240 | 0 1 3 3 | 43° 30 % 95 % |
+| **Sky** | Accent, icône d'app, états actifs | `#5FA8D3` | 95 168 211 | 55 20 0 17 | 202° 57 % 60 % |
+| **Light Grey** | Bordures, séparateurs, reliefs | `#D9DCDF` | 217 220 223 | 3 1 0 13 | 210° 9 % 86 % |
+| **Soft Yellow** | Lumière, chaleur, attention | `#F4D27A` | 244 210 122 | 0 14 50 4 | 43° 85 % 72 % |
+
+Les valeurs CMJN sont des conversions indicatives : faites une épreuve avec l'imprimeur (profil Fogra 39 ou ISO Coated v2) avant toute impression importante. Aucune référence Pantone n'est fixée à ce stade.
+
+**Proportions indicatives** : Paper 60 %, Ink 22 %, Sky 10 %, Light Grey 5 %, Soft Yellow 3 %. Le jaune reste rare : il signale la lumière, la présence ou ce qui attend une décision (*knock first*).
+
+### Nuances
+
+![Échelles](couleurs/echelles.png)
+
+Pour l'interface, chaque couleur est déclinée en échelle de 50 à 950, calculée en OKLCH à teinte constante. Les couleurs de la planche sont des repères fixes : Light Grey = Ink 200, Ink = Ink 900, Sky = Sky 400, Soft Yellow = Yellow 300. Les couleurs fonctionnelles (succès, avertissement, erreur, information) sont accordées à la palette.
+
+### Accessibilité
+
+![Accessibilité](couleurs/accessibilite.png)
+
+Objectif WCAG 2.2 niveau AA : 4,5:1 pour le texte courant, 3:1 pour le grand texte et les éléments d'interface.
+
+| Combinaison | Contraste | Usage |
+| --- | --- | --- |
+| Ink sur Paper | 13,4:1 | Texte courant |
+| Ink 600 sur Paper | 5,2:1 | Texte secondaire |
+| Sky 700 sur Paper | 6,5:1 | Liens |
+| Ink sur Sky | 5,6:1 | Texte sur bouton accent |
+| Ink sur Soft Yellow | 10,0:1 | Badge, surlignage |
+| Paper sur Ink 950 | 16,0:1 | Texte en mode sombre |
+| Sky sur Ink 950 | 6,7:1 | Accent en mode sombre |
+| Sky sur Paper | 2,4:1 | Jamais pour du texte, décor et grandes formes seulement |
+| Blanc sur Sky | 2,6:1 | Icône d'application seulement, jamais de texte |
+
+Règle simple : sur Sky, on écrit en Ink, jamais en blanc. Sky et Soft Yellow ne portent jamais de texte sur Paper. Une information ne passe jamais par la couleur seule : on l'accompagne d'une icône ou d'un mot.
+
+### Mode sombre
+
+Fond Ink 950 (`#111B22`), surfaces Ink 900 et 800, texte Paper, texte secondaire Ink 300, accent Sky 400, liens Sky 300. Le logo passe en version inversée. Les jetons gèrent la bascule (voir [Interface](#9-interface)).
+
+### Fichiers couleur
+
+- [`tokens/cahut-tokens.css`](tokens/cahut-tokens.css) : variables CSS (valeurs brutes `--cahut-*` et rôles `--color-*`, thèmes clair et sombre).
+- [`tokens/cahut-tokens.json`](tokens/cahut-tokens.json) : jetons au format Design Tokens Community Group (Figma Tokens, Style Dictionary).
+- [`couleurs/cahut-palette.ase`](couleurs/cahut-palette.ase) : nuancier Adobe (Illustrator, InDesign, Photoshop).
+- [`couleurs/cahut-palette.gpl`](couleurs/cahut-palette.gpl) : palette GIMP et Inkscape.
+
+## 4. Typographie
+
+![Spécimen](typographie/specimen.png)
+
+| Police | Rôle | Graisses | Licence |
+| --- | --- | --- | --- |
+| **Plus Jakarta Sans** | Police principale : titres, texte, interface | 400, 500, 600, 700, 800 | SIL OFL 1.1 |
+| **IBM Plex Mono** | Police secondaire : adresses, code, données, étiquettes | 400, 500, 600 | SIL OFL 1.1 |
+
+Les deux sont sur Google Fonts. Les fichiers sont fournis dans [`typographie/polices/`](typographie/polices/) : TTF pour la bureautique et le design, WOFF2 (sous-ensemble latin, français et anglais) pour le web, chargés par [`tokens/cahut-fonts.css`](tokens/cahut-fonts.css).
+
+En secours : `ui-sans-serif, system-ui, "Segoe UI", sans-serif` et `ui-monospace, Menlo, Consolas, monospace`. Dans une présentation PowerPoint destinée à un poste sans les polices, utiliser Arial et Consolas.
+
+### Hiérarchie
+
+![Hiérarchie typographique](typographie/hierarchie.png)
+
+| Niveau | Taille / interligne | Graisse | Interlettrage |
+| --- | --- | --- | --- |
+| Display | 56 / 64 px | 800 | -2 % |
+| Titre 1 | 40 / 48 px | 800 | -1 % |
+| Titre 2 | 32 / 40 px | 700 | -1 % |
+| Titre 3 | 24 / 32 px | 700 | 0 |
+| Titre 4 | 20 / 28 px | 600 | 0 |
+| Texte large | 18 / 28 px | 400 | 0 |
+| Texte | 16 / 24 px | 400 | 0 |
+| Petit texte | 14 / 20 px | 400 | 0 |
+| Étiquette | Mono 12 / 16 px, capitales | 500 | +12 % |
+| Code | Mono 14 / 20 px | 400 | 0 |
+
+**Règles.** Titres en casse de phrase, sans point final sauf pour une phrase d'accroche. Texte aligné à gauche, jamais justifié. Lignes de 60 à 80 caractères. IBM Plex Mono pour tout ce qui se tape ou se copie : adresses (`cahut.cloud`), commandes, codes couleur, horodatages du *logbook*. Pas plus de deux graisses dans un même bloc.
+
+## 5. Pictogrammes et icônes
+
+![Pictogrammes](icones/planche-pictogrammes.png)
+
+**Les pictogrammes** illustrent le vocabulaire de la maison : [Home](icones/home.svg), [Room](icones/room.svg), [Window](icones/window.svg), [Door](icones/door.svg), [Key](icones/key.svg), [House style](icones/house-style.svg), [Knock first](icones/knock-first.svg), [Logbook](icones/logbook.svg).
+
+- Grille de 64 px, trait de 3 px, extrémités et angles arrondis.
+- Trait en Ink (`currentColor`, modifiable en CSS), une seule couleur d'accent : Sky 300 pour les surfaces, Sky 400 pour les objets, Soft Yellow pour la lumière ou l'attente.
+- Usage : site, documentation, écrans vides, accueil. Taille minimale 32 px.
+
+**Les icônes d'interface** viennent de [Lucide](https://lucide.dev) (licence ISC) : grille de 24 px, trait de 2 px, extrémités arrondies, couleur du texte. Tailles 16, 20 ou 24 px. Une action importante a toujours une étiquette texte à côté de son icône.
+
+## 6. Illustrations et motif
+
+| Illustration | Usage |
+| --- | --- |
+| [`maison-ouverte.svg`](illustrations/maison-ouverte.svg) | Héros du site, visuels de partage : les Windows des IA rejoignent la maison |
+| [`paysage.svg`](illustrations/paysage.svg) | Emplacement d'image, fond de diapositive, aperçu de présentation |
+| [`etat-vide.svg`](illustrations/etat-vide.svg) | Écran vide : « No Windows yet » |
+| [`motif-nuages.svg`](illustrations/motif-nuages.svg) | Fond discret raccordable (variantes [Sky](illustrations/motif-nuages-sky.svg) et [blanche](illustrations/motif-nuages-blanc.svg)) |
+
+<p>
+<img src="illustrations/paysage.png" alt="Paysage" width="360">&nbsp;&nbsp;
+<img src="illustrations/etat-vide.png" alt="État vide" width="300">
+</p>
+
+**Style.** Aplats sans dégradé ni ombre. Traits Ink arrondis, d'épaisseur régulière. Collines en Ink 100 et Ink 200, soleil en Soft Yellow, accents en Sky. Beaucoup d'air. La porte éclairée en jaune signifie « quelqu'un est là ».
+
+**À éviter.** Robots, cerveaux, circuits lumineux, étincelles « magiques », personnages en 3D : Cahut ne fait pas l'IA, il l'accueille.
+
+## 7. Photographie
+
+![Sélection photo](photos/planche-photos.jpg)
+
+**Direction.** Lumière naturelle du jour, tons clairs et doux (blanc cassé, bois, bleu ciel), lieux réels et calmes, échelle humaine. Quatre familles :
+
+- **Ciel** : nuages, ciel dégagé, proches de Sky.
+- **Maison** : cabanes, abris, refuges dans le paysage.
+- **Lumière** : fenêtres, portes ouvertes, intérieurs clairs.
+- **Travail** : des gens qui travaillent sereinement, seuls ou à plusieurs, écrans présents mais secondaires.
+
+**À éviter.** Ambiances sombres et néons, robots et visualisations abstraites de l'IA, poignées de main de banque d'images, filtres appuyés, scènes encombrées.
+
+**Traitement.** Pas de filtre de couleur. Coins arrondis de 16 px dans l'interface. Texte sur photo seulement dans une zone calme, sur un bandeau Paper ou un voile Ink à 60 %, avec 4,5:1 de contraste.
+
+**Sélection Unsplash.** Les aperçus (400 px) sont dans [`photos/apercus/`](photos/apercus/). Le domaine d'images d'Unsplash n'était pas accessible depuis l'environnement de travail : lancez [`photos/telecharger-photos.sh`](photos/telecharger-photos.sh) pour récupérer les fichiers en 2400 px. Licence [Unsplash](https://unsplash.com/license) : usage libre, crédit apprécié (« Photo : Nom / Unsplash »).
+
+| Fichier | Thème | Photographe |
+| --- | --- | --- |
+| `ciel-cumulus` | Ciel | [Zbyněk Skrčený](https://unsplash.com/@skrcenyz) · [photo](https://unsplash.com/photos/MSrUdvVrKEE) |
+| `ciel-voile` | Ciel | [Geri Mis](https://unsplash.com/@gerimis) · [photo](https://unsplash.com/photos/ZaCPb3xIqrg) |
+| `cabane-alpage` | Maison | [Ruben Hanssen](https://unsplash.com/@rhfhanssen) · [photo](https://unsplash.com/photos/D3GYSD-eHUw) |
+| `cabane-nuages` | Maison | [Iglucraft](https://unsplash.com/@iglucraft) · [photo](https://unsplash.com/photos/uTuAzjMjYww) |
+| `interieur-lumiere` | Lumière | [Deconovo](https://unsplash.com/@deconovo) · [photo](https://unsplash.com/photos/lZfBkUqknEI) |
+| `porte-ouverte` | Lumière | [Connie de Vries](https://unsplash.com/@conniedevries) · [photo](https://unsplash.com/photos/piU592i7ocY) |
+| `chaise-lumiere` | Lumière | [Ellen Qin](https://unsplash.com/@ellenqin) · [photo](https://unsplash.com/photos/bOOQ3z2WjOs) |
+| `bureau-maison` | Travail | [Hanna Lazar](https://unsplash.com/@potokvarte) · [photo](https://unsplash.com/photos/Nwj_ESx66Zk) |
+| `equipe-relecture` | Travail | [Jud Mackrill](https://unsplash.com/@judmackrill) · [photo](https://unsplash.com/photos/Of_m3hMsoAA) |
+| `duo-ecran` | Travail | [Walls.io](https://unsplash.com/@walls_io) · [photo](https://unsplash.com/photos/dYfN5RZY1B8) |
+
+## 8. Mise en page
+
+- **Grille** : 12 colonnes, gouttières de 24 px, marges de 32 px (16 px sur mobile). Largeur de lecture maximale 720 px.
+- **Espacements** : multiples de 4 px (4, 8, 12, 16, 24, 32, 48, 64, 96).
+- **Rayons** : 6 px pour les petits contrôles, 10 px pour les boutons et champs, 16 px pour les cartes, 24 px pour les grands panneaux.
+- **Bordures** : 1 px en Light Grey (Ink 200). Ombres très légères, jamais de lueur colorée.
+- **Fond** : Paper par défaut, cartes en blanc. Ink pour les moments forts (section, citation, pied de page).
+- **Respiration** : laisser au moins un tiers de vide dans une composition. Un seul accent Sky par écran, un seul jaune.
+
+## 9. Interface
+
+![Console, thème clair](ui/console-clair.png)
+
+La console web et les pages servies par Cahut partagent les mêmes jetons. Le kit d'interface est fourni en HTML et CSS :
+
+- [`ui/cahut-ui.css`](ui/cahut-ui.css) : boutons, champs, badges de Door, messages, cartes Window, demande *knock first*, *logbook*, navigation.
+- [`ui/composants.html`](ui/composants.html) : la page de référence des composants (bouton de bascule clair et sombre).
+- [`ui/console.html`](ui/console.html) : maquette d'une Room. Ajoutez `#dark` à l'adresse pour le mode sombre.
+
+| Composant | Règle |
+| --- | --- |
+| Bouton principal | Fond Ink, texte Paper. Un seul par zone |
+| Bouton accent | Fond Sky, texte Ink. Pour publier ou connecter |
+| Doors | Public (Sky), Password (jaune), Internal (neutre), invités (vert), toujours avec icône et mot |
+| *Knock first* | Carte avec liseré Soft Yellow, l'IA, ce qu'elle demande, au nom de qui, l'échéance, Approve et Decline |
+| *Logbook* | Heure en mono, IA, action, résultat |
+| Focus | Anneau Sky de 3 px, toujours visible au clavier |
+
+<p>
+<img src="ui/composants-clair.png" alt="Composants, thème clair" width="49%">
+<img src="ui/console-sombre.png" alt="Console, thème sombre" width="49%">
+</p>
+
+## 10. Applications
+
+Chaque visuel a son gabarit HTML modifiable dans [`applications/gabarits/`](applications/gabarits/) et son rendu PNG.
+
+| Visuel | Format | Fichier |
+| --- | --- | --- |
+| Image de partage (Open Graph) | 1200 × 630 | [`og-image.png`](applications/og-image.png) |
+| Aperçu du dépôt GitHub | 1280 × 640 | [`github-social-preview.png`](applications/github-social-preview.png) |
+| Bannière LinkedIn | 1584 × 396 | [`banniere-linkedin.png`](applications/banniere-linkedin.png) |
+| Bannière X | 1500 × 500 | [`banniere-x.png`](applications/banniere-x.png) |
+| Avatar des réseaux | 400 × 400 | [`avatar-reseaux.png`](applications/avatar-reseaux.png) |
+| Diapositive de titre | 1920 × 1080 | [`diapo-titre.png`](applications/diapo-titre.png) |
+| Diapositive de section | 1920 × 1080 | [`diapo-section.png`](applications/diapo-section.png) |
+| Diapositive de contenu | 1920 × 1080 | [`diapo-contenu.png`](applications/diapo-contenu.png) |
+| Signature e-mail | HTML | [`signature-email.html`](applications/gabarits/signature-email.html) |
+
+![Image de partage](applications/og-image.png)
+
+<p>
+<img src="applications/diapo-titre.png" alt="Diapositive de titre" width="32%">
+<img src="applications/diapo-section.png" alt="Diapositive de section" width="32%">
+<img src="applications/diapo-contenu.png" alt="Diapositive de contenu" width="32%">
+</p>
+
+Pour les bannières, gardez le coin inférieur gauche libre : la photo de profil s'y superpose. Pour la signature e-mail, remplacez l'image par une adresse publique avant usage.
+
+**Favicon et icônes web**, à placer à la racine du site :
+
+```html
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+```
+
+## 11. Voix et ton
+
+Cahut parle la langue de la maison, en anglais simple. Chaque notion technique a un mot que tout le monde comprend.
+
+| Mot | Ce qu'il désigne | Pictogramme |
+| --- | --- | --- |
+| Home | L'instance Cahut, sur votre serveur | [home](icones/home.svg) |
+| Room | Un espace personnel ou d'équipe | [room](icones/room.svg) |
+| Window | Une page vivante : document, présentation, tableau de bord, appli | [window](icones/window.svg) |
+| Door | Le lien de partage et son niveau d'accès | [door](icones/door.svg) |
+| Key | Le mot de passe ou l'invitation | [key](icones/key.svg) |
+| House style | La charte de l'organisation, appliquée par toutes les IA | [house-style](icones/house-style.svg) |
+| Knock first | L'IA frappe avant toute action irréversible | [knock-first](icones/knock-first.svg) |
+| Logbook | Le registre de toutes les actions | [logbook](icones/logbook.svg) |
+
+**Principes.**
+
+- Phrases courtes, verbes concrets : *publish*, *share*, *approve*, *roll back*.
+- Dire qui agit : quelle IA, au nom de qui, avec quel résultat.
+- Rassurer sans alarmer : jamais de capitales, de points d'exclamation ou d'emoji d'alerte.
+- Pas de promesse magique sur l'IA : Cahut accueille le travail, il ne le crée pas.
+- Casse de phrase pour les titres, boutons et menus. Chiffres en chiffres.
+- Le nom s'écrit **Cahut** dans le texte, avec une capitale, et « cahut » en minuscules seulement dans le logo. Jamais « CAHUT ».
+
+| Écrire | Éviter |
+| --- | --- |
+| Claude wants to make *Q3 review* public. | AI ACTION REQUIRED!! |
+| Share a link, not a file. | Revolutionize your AI workflow. |
+| Published. The previous version is kept. | Success! Your content has been deployed. |
+| This Door closed yesterday. | Error 403: access forbidden. |
+
+## 12. Cahut chez les autres
+
+Cahut porte la charte de chaque organisation (*house style*). Sur les pages publiées, la marque de l'organisation passe toujours en premier ; Cahut reste discret.
+
+- Mention facultative en pied de page avec le badge [`cahut-badge-hosted.svg`](logos/cahut-badge-hosted.svg) (variante [inversée](logos/cahut-badge-hosted-inverse.svg)), 32 px de haut au plus.
+- Jamais le logo Cahut au-dessus ou à côté du logo d'un client.
+- Dans les écrans de Cahut lui-même (console, connexion, e-mails), la charte Cahut s'applique entièrement.
+
+## 13. Fichiers
+
+```
+charte-graphique/
+├── README.md                    La charte (ce document)
+├── index.html                   Version visuelle, à ouvrir dans un navigateur
+├── charte-graphique-cahut.pdf   Version imprimable (A4 paysage)
+├── planche-reference.png        La planche d'origine
+├── logos/                       SVG maîtres, construction, protection, interdits
+│   ├── png/                     Exports PNG transparents
+│   └── favicon/                 favicon.ico, favicon.svg, icônes d'app, manifeste
+├── couleurs/                    Planches, nuanciers .ase et .gpl
+├── tokens/                      Jetons CSS et JSON, polices web
+├── typographie/                 Spécimen, hiérarchie, polices TTF et WOFF2 (OFL)
+├── icones/                      Pictogrammes SVG (64 px)
+├── illustrations/               Illustrations et motifs SVG
+├── photos/                      Planche, aperçus, crédits, script de téléchargement
+├── ui/                          Kit d'interface CSS, composants, console
+└── applications/                Réseaux, diapositives, signature, gabarits HTML
+```
+
+**Formats.** Toujours partir des SVG : ils sont la source de vérité. Les PNG servent quand le SVG n'est pas accepté. Le logotype est vectorisé : il ne dépend d'aucune police installée.
+
+**Évolutions.** Toute modification du logo, de la palette ou des jetons passe par cette charte et change son numéro de version.
+
+| Version | Date | Changement |
+| --- | --- | --- |
+| 1.0 | 20 octobre 2026 | Première version, à partir de la planche retenue |
+
+**Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.
