@@ -12,6 +12,7 @@ Read before working on anything substantial:
 
 - [README.md](README.md): the public pitch, scope, governance model and technical choices.
 - [docs/brief-projet.md](docs/brief-projet.md): the full project brief, in French, with the open questions.
+- [docs/plan-v0.md](docs/plan-v0.md): the development plan for the V0 (the MVP), in French: scope, batches, milestones and decisions to make.
 - [docs/charte-graphique/README.md](docs/charte-graphique/README.md): the brand guidelines, in French.
 
 The implementation language is **Go** (decided, see the README). The brief still lists Go or Rust as open: the README is the current reference.
@@ -20,7 +21,7 @@ The implementation language is **Go** (decided, see the README). The brief still
 
 - Talk with Olivier in French.
 - Write in English everything that will be public at launch: README, code, comments, commit messages, pull requests, product copy, interface text.
-- `docs/` stays in French for now (brief and brand guidelines). Use correct French spelling with all accents.
+- `docs/` stays in French for now (brief, V0 plan and brand guidelines). Use correct French spelling with all accents.
 
 ## Product rules that shape the code
 
@@ -67,6 +68,7 @@ Changing the logo, the palette or the tokens is a change to the brand guidelines
 ```
 docs/
   brief-projet.md      Project brief (French)
+  plan-v0.md           V0 development plan (French)
   charte-graphique/    Brand guidelines with all source files (French)
 .claude/skills/
   charte-graphique-cahut/   Project skill for the brand
