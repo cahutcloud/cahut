@@ -217,14 +217,16 @@ say "$("$bin_path" version) is running"
 as_cahut domain list | awk 'NR > 1 { print "  https://" $2 "/" }'
 [ -n "$domain" ] || domain=$(as_cahut domain list | awk 'NR == 2 { print $2 }')
 [ -n "$domain" ] || die "this server holds no Cahut yet: run the script again with --domain"
+# The commands name the binary by its full path: sudo searches only its
+# secure_path, which leaves out /usr/local/bin on AlmaLinux.
 cat <<EOF
 
 Next steps for the Cahut of $domain:
 
   1. Create your account, as an administrator:
-       sudo -u cahut cahut user create --domain $domain --handle you --name "Your Name" --admin
+       sudo -u cahut $bin_path user create --domain $domain --handle you --name "Your Name" --admin
   2. Create a token for your AI:
-       sudo -u cahut cahut token create --domain $domain --user you --name "Claude Code"
+       sudo -u cahut $bin_path token create --domain $domain --user you --name "Claude Code"
   3. Add the Cahut to Claude Code:
        claude mcp add --transport http cahut https://$domain/mcp --header "Authorization: Bearer <token>"
 
