@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Cahut, hiérarchie typographique</title>
+<link rel="stylesheet" href="../../tokens/cahut-fonts.css">
+<link rel="stylesheet" href="../../tokens/cahut-tokens.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+body{width:1600px;height:790px;padding:51px 70px 0;background:var(--color-bg);color:var(--color-text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+.kicker{font-family:var(--font-mono);font-size:13px;line-height:16px;font-weight:400;letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--color-text-muted)}
+h1{margin:14px 0 23px;font-size:var(--text-4xl);line-height:var(--leading-4xl);font-weight:800;letter-spacing:var(--tracking-title)}
+.row{display:grid;grid-template-columns:258px 1fr;align-items:center;padding:10px 0;border-top:1px solid var(--color-border)}
+.name{font-size:15px;line-height:19px;font-weight:700}
+.meta{font-family:var(--font-mono);font-size:12.5px;line-height:16px;color:var(--color-text-muted)}
+/* Pas d’overflow:hidden sur les exemples : les jambages (g, p, y) dépassent la hauteur de ligne. */
+.s{margin:0;white-space:nowrap}
+.display{font-size:var(--text-5xl);line-height:var(--leading-5xl);font-weight:800;letter-spacing:var(--tracking-display)}
+.t1{font-size:var(--text-4xl);line-height:var(--leading-4xl);font-weight:800;letter-spacing:var(--tracking-title)}
+.t2{font-size:var(--text-3xl);line-height:var(--leading-3xl);font-weight:700;letter-spacing:var(--tracking-title)}
+.t3{font-size:var(--text-2xl);line-height:var(--leading-2xl);font-weight:700}
+.t4{font-size:var(--text-xl);line-height:var(--leading-xl);font-weight:600}
+.lg{font-size:var(--text-lg);line-height:var(--leading-lg);font-weight:400}
+.base{font-size:var(--text-base);line-height:var(--leading-base);font-weight:400}
+.sm{font-size:var(--text-sm);line-height:var(--leading-sm);font-weight:400;color:var(--color-text-muted)}
+.label{font-family:var(--font-mono);font-size:var(--text-xs);line-height:var(--leading-xs);font-weight:500;letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--color-text-muted)}
+.code{font-family:var(--font-mono);font-size:var(--text-sm);line-height:var(--leading-sm);font-weight:400}
+</style>
+</head>
+<body>
+<div class="kicker">Hiérarchie typographique</div>
+<h1>Une échelle courte et nette.</h1>
+<div class="row"><div><div class="name">Display</div><div class="meta">56/64 · 800 · -2 %</div></div><p class="s display">Everything your AI makes</p></div>
+<div class="row"><div><div class="name">Titre 1</div><div class="meta">40/48 · 800 · -1 %</div></div><p class="s t1">Share a link, not a file</p></div>
+<div class="row"><div><div class="name">Titre 2</div><div class="meta">32/40 · 700 · -1 %</div></div><p class="s t2">Your Rooms and Windows</p></div>
+<div class="row"><div><div class="name">Titre 3</div><div class="meta">24/32 · 700</div></div><p class="s t3">Knock first, every time</p></div>
+<div class="row"><div><div class="name">Titre 4</div><div class="meta">20/28 · 600</div></div><p class="s t4">Pending approvals</p></div>
+<div class="row"><div><div class="name">Texte large</div><div class="meta">18/28 · 400</div></div><p class="s lg">Cahut keeps what your AIs make alive, in your colors, on your server.</p></div>
+<div class="row"><div><div class="name">Texte</div><div class="meta">16/24 · 400</div></div><p class="s base">Readers open the page in a browser and comment on it. The AI updates it on request.</p></div>
+<div class="row"><div><div class="name">Petit texte</div><div class="meta">14/20 · 400</div></div><p class="s sm">Published 2 minutes ago by Claude, on behalf of Olivier.</p></div>
+<div class="row"><div><div class="name">Étiquette</div><div class="meta">Mono 12/16 · 500 · +12 %</div></div><p class="s label">Logbook · Today</p></div>
+<div class="row"><div><div class="name">Code</div><div class="meta">Mono 14/20 · 400</div></div><p class="s code">cahut.cloud/r/team/q3-review</p></div>
+</body>
+</html>
