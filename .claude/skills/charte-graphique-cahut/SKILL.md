@@ -1,11 +1,11 @@
 ---
 name: charte-graphique-cahut
-description: Charte graphique et ton de Cahut, la maison auto-hébergée de ce que fabriquent les IA. Logo SVG et ses versions, palette Ink, Paper, Sky, Light Grey et Soft Yellow avec échelles et règles de contraste, polices Plus Jakarta Sans et IBM Plex Mono, jetons CSS (thèmes clair et sombre), kit d'interface de la console (classes c-), pictogrammes du vocabulaire (Home, Room, Window, Door, Key, House style, Knock first, Logbook), icônes Lucide, illustrations, photos Unsplash, gabarits HTML de diapositives et de visuels de réseaux avec un script de rendu en PNG ; voix calme et précise en anglais simple pour les textes du produit. À utiliser dès qu'il faut créer, habiller ou relire un support de Cahut (site cahut.cloud, landing page, écran ou composant de la console, maquette, présentation, diapositive, image de partage, bannière, e-mail, signature, illustration, documentation) ou écrire un texte du produit (interface, message d'erreur, site, annonce), même si le mot « charte » n'est pas prononcé.
+description: Charte graphique et ton de Cahut, la maison auto-hébergée de ce que fabriquent les IA. Logo SVG et ses versions, palette Ink, Paper, Sky, Light Grey et Soft Yellow avec échelles et règles de contraste, polices Plus Jakarta Sans et IBM Plex Mono, jetons CSS (thèmes clair et sombre), kit d'interface de la console (classes c-), pictogrammes du vocabulaire (Cahut, Room, Window, Key, House style, Knock first, Logbook), icônes Lucide, illustrations, photos Unsplash, gabarits HTML de diapositives et de visuels de réseaux avec un script de rendu en PNG ; voix calme et précise en anglais simple pour les textes du produit. À utiliser dès qu'il faut créer, habiller ou relire un support de Cahut (site cahut.cloud, landing page, écran ou composant de la console, maquette, présentation, diapositive, image de partage, bannière, e-mail, signature, illustration, documentation) ou écrire un texte du produit (interface, message d'erreur, site, annonce), même si le mot « charte » n'est pas prononcé.
 ---
 
 # Charte graphique Cahut
 
-Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.0 du 20 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
+Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.1 du 21 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
 
 Dans ce document, les chemins partent de la racine du dépôt et **`charte/`** désigne `docs/charte-graphique/`.
 
@@ -15,7 +15,7 @@ Un abri simple et à soi, posé dans le nuage : **papier chaud, encre bleu-gris,
 
 ## Périmètre : la charte Cahut, ou celle du client
 
-- **Charte Cahut** : tout ce qui est à Cahut lui-même (site, documentation, console, écran de connexion, e-mails envoyés par l'instance, présentations, réseaux sociaux).
+- **Charte Cahut** : tout ce qui est à Cahut lui-même (site, documentation, console, écran de connexion, e-mails envoyés par un Cahut, présentations, réseaux sociaux).
 - **Charte de l'organisation (*house style*)** : les pages que Cahut publie pour ses utilisateurs. La marque de l'organisation passe en premier ; Cahut s'efface. Mention facultative en pied de page avec `charte/logos/cahut-badge-hosted.svg` (ou `-inverse`), 32 px de haut au plus. Jamais le logo Cahut au-dessus ou à côté de celui d'un client.
 
 ## Comment travailler
@@ -92,7 +92,7 @@ Un abri simple et à soi, posé dans le nuage : **papier chaud, encre bleu-gris,
 - Photos à la lumière naturelle, tons clairs et doux, lieux réels et calmes, en quatre familles : ciel, maison, lumière, travail. Sélection et crédits dans `charte/photos/`. Coins arrondis de 16 px dans l'interface ; texte sur photo seulement sur un bandeau Paper ou un voile Ink à 60 %.
 - **Jamais** : robots, cerveaux, circuits lumineux, étincelles « magiques », personnages 3D, ambiances sombres et néons, poignées de main de banque d'images, filtres appuyés.
 
-**Composants de la console** (`cahut-ui.css`) : bouton principal Ink (`c-btn--primary`, un seul par zone) ; bouton accent Sky avec texte Ink (`c-btn--accent`) pour publier ou connecter ; badges de Door toujours avec icône et mot (`c-badge--public` Sky, `--password` jaune, `--internal` neutre, `--invited` vert) ; carte *knock first* à liseré Soft Yellow (`c-knock`) qui dit quelle IA, quoi, au nom de qui, l'échéance, avec Approve et Decline ; *logbook* (`c-log`) avec l'heure en mono, l'IA, l'action, le résultat ; anneau de focus Sky de 3 px toujours visible au clavier.
+**Composants de la console** (`cahut-ui.css`) : bouton principal Ink (`c-btn--primary`, un seul par zone) ; bouton accent Sky avec texte Ink (`c-btn--accent`) pour publier ou connecter ; badges d'accès d'une Window toujours avec icône et mot (`c-badge--public` Sky, `--key` jaune, `--internal` neutre, `--room` neutre atténué avec cadenas) ; carte *knock first* à liseré Soft Yellow (`c-knock`) qui dit quelle IA, quoi, au nom de qui, l'échéance, avec Approve et Decline ; *logbook* (`c-log`) avec l'heure en mono, l'IA, l'action, le résultat ; anneau de focus Sky de 3 px toujours visible au clavier.
 
 ## Voix et ton
 
@@ -100,16 +100,16 @@ Les textes du produit, du site et des visuels sont **en anglais**, langue du lan
 
 | Mot | Ce qu'il désigne |
 |---|---|
-| Home | L'instance Cahut, sur le serveur de l'utilisateur |
-| Room | Un espace personnel ou d'équipe |
-| Window | Une page vivante : document, présentation, tableau de bord, appli |
-| Door | Le lien de partage et son niveau d'accès |
-| Key | Le mot de passe ou l'invitation |
+| Cahut | Une instance sur le serveur de l'utilisateur, à son propre domaine ; un serveur peut en porter plusieurs |
+| Room | Un espace personnel ou d'équipe, à l'adresse `<domaine>/<room>` |
+| Window | Une page vivante : document, présentation, tableau de bord, appli, à l'adresse `<domaine>/<room>/<window>` |
+| Key | Le mot de passe qui ouvre une Window protégée |
 | House style | La charte de l'organisation, appliquée par toutes les IA |
 | Knock first | L'IA frappe avant toute action irréversible |
 | Logbook | Le registre de toutes les actions |
 
-- Room, Window, Door et Key prennent une capitale dans le texte courant (« 12 Windows, 4 members »).
+- Une Window s'ouvre à sa Room seulement (*Room only*, par défaut), à tout le Cahut (*Internal*), à qui a sa Key, ou au public (*Public*). Le mot Door n'existe plus : on parle de l'accès d'une Window.
+- Cahut, Room, Window et Key prennent une capitale dans le texte courant (« 12 Windows, 4 members », « 3 Rooms in your Cahut »).
 - Phrases courtes, verbes concrets : *publish*, *share*, *approve*, *roll back*. Dire qui agit : quelle IA, au nom de qui, avec quel résultat.
 - Rassurer sans alarmer : ni capitales d'insistance, ni point d'exclamation, ni emoji d'alerte. Pas de promesse magique sur l'IA.
 - Casse de phrase pour les titres, boutons et menus. Chiffres en chiffres.
@@ -121,7 +121,7 @@ Les textes du produit, du site et des visuels sont **en anglais**, langue du lan
 | Claude wants to make *Q3 review* public. | AI ACTION REQUIRED!! |
 | Share a link, not a file. | Revolutionize your AI workflow. |
 | Published. The previous version is kept. | Success! Your content has been deployed. |
-| This Door closed yesterday. | Error 403: access forbidden. |
+| This Window closed yesterday. | Error 403: access forbidden. |
 
 ## Liste de contrôle avant de livrer
 
@@ -156,3 +156,4 @@ Les textes du produit, du site et des visuels sont **en anglais**, langue du lan
 | `charte/applications/gabarits/` | Gabarits HTML : diapositives titre, section et contenu, image de partage, aperçu GitHub, bannières LinkedIn et X, signature e-mail | Présentation, réseaux, e-mail |
 | [`references/recettes.md`](references/recettes.md) | Recettes : page dans le dépôt, page autonome, e-mail, icônes, gabarits et rendu PNG, photos, présentation, modification de la charte | Avant de produire |
 | `scripts/rendre-gabarit.sh` | Rend une page HTML de taille fixe en PNG avec Chrome sans interface | Après chaque gabarit modifié ou créé |
+| `scripts/imprimer-charte.mjs` | Réimprime `charte-graphique-cahut.pdf` depuis `index.html` avec Chrome sans interface (Node 22 ou plus) | Après chaque changement de la charte |

@@ -84,9 +84,9 @@ body {
 .c-badge .i { width: 14px; height: 14px; }
 .c-badge--neutral { background: var(--color-surface-muted); color: var(--color-text-muted); }
 .c-badge--public { background: var(--color-info-bg); color: var(--color-info); border-color: var(--color-info-border); }
-.c-badge--password { background: var(--color-highlight-soft); color: var(--color-warning); border-color: var(--color-warning-border); }
+.c-badge--key { background: var(--color-highlight-soft); color: var(--color-warning); border-color: var(--color-warning-border); }
 .c-badge--internal { background: var(--color-surface-muted); color: var(--color-text); border-color: var(--color-border); }
-.c-badge--invited { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success-border); }
+.c-badge--room { background: var(--color-surface-muted); color: var(--color-text-muted); border-color: var(--color-border); }
 .c-badge--success { background: var(--color-success-bg); color: var(--color-success); }
 .c-badge--warning { background: var(--color-warning-bg); color: var(--color-warning); }
 .c-badge--danger { background: var(--color-danger-bg); color: var(--color-danger); }
