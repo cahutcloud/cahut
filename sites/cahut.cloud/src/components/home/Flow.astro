@@ -876,6 +876,7 @@ const done = [
 	.flow__col {
 		position: relative;
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		align-content: center;
 		gap: var(--space-3);
 		min-width: 0;
@@ -996,6 +997,7 @@ const done = [
 	.flow__cahut {
 		position: relative;
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: var(--space-4);
 		padding: var(--space-5);
 		transition: opacity var(--duration-slow) var(--ease-out);
@@ -1068,8 +1070,9 @@ const done = [
 
 	.flow__cahut-head {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
-		gap: var(--space-3);
+		gap: var(--space-2) var(--space-3);
 	}
 	.flow__picto {
 		display: block;
@@ -1742,6 +1745,13 @@ const done = [
 			font-size: var(--text-mini);
 		}
 		.flow__comment :global(.i) {
+			display: none;
+		}
+	}
+
+	/* The smallest screens keep the numbers: the caption below names the step. */
+	@media (max-width: 420px) {
+		.flow__tab.is-current .flow__tab-title {
 			display: none;
 		}
 	}
