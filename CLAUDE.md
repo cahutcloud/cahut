@@ -8,12 +8,14 @@ Cahut is a self-hosted, open source home for what AIs make: documents, decks, da
 
 The V0 is under way, batch by batch, following the V0 plan. Batch 1 is the first vertical slice: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at `<domain>/<room>/<window>/` in a CSP sandbox, and the call goes to the Logbook. A server already holds several Cahuts, each declared by its domain. There are no sign-in, console or access levels yet: anyone with a Window's address can read it.
 
+The website (`cahut.cloud`) and the documentation (`docs.cahut.cloud`) are Astro sites in [sites/](sites/README.md), built on the brand guidelines ([ADR 12](docs/adr/0012-website-and-docs-as-astro-sites.md)). The website's `/brand` page gives access to the brand.
+
 Read before working on anything substantial:
 
 - [README.md](README.md): the public pitch, scope, governance model and technical choices.
 - [docs/brief-projet.md](docs/brief-projet.md): the full project brief, in French, with the open questions.
 - [docs/plan-v0.md](docs/plan-v0.md): the development plan for the V0 (the MVP), in French: scope, batches, milestones and decisions to make.
-- [docs/adr/README.md](docs/adr/README.md): the architecture decision records, in English. They settle the web server and TLS, the database, the console, OAuth, the module path and releases, then several Cahuts per server, the addresses of Rooms and Windows, the Window sandbox and the console's port.
+- [docs/adr/README.md](docs/adr/README.md): the architecture decision records, in English. They settle the web server and TLS, the database, the console, OAuth, the module path and releases, then several Cahuts per server, the addresses of Rooms and Windows, the Window sandbox, the console's port, and the website and documentation.
 - [docs/charte-graphique/README.md](docs/charte-graphique/README.md): the brand guidelines, in French.
 
 The implementation language is **Go** (decided, see the README). The brief still lists Go or Rust as open: the README and the ADRs are the current reference.
@@ -21,7 +23,7 @@ The implementation language is **Go** (decided, see the README). The brief still
 ## Languages
 
 - Talk with Olivier in French.
-- Write in English everything that will be public at launch: README, code, comments, commit messages, pull requests, product copy, interface text.
+- Write in English everything that will be public at launch: README, code, comments, commit messages, pull requests, product copy, interface text, the website and the documentation.
 - `docs/` stays in French for now (brief, V0 plan and brand guidelines), except `docs/adr/`, in English because the records are public at launch. Use correct French spelling with all accents.
 
 ## Build and test
@@ -38,8 +40,11 @@ The Go version is set by the `toolchain` line of `go.mod`; the `go` command down
 | `make check` | Lint and tests, as CI runs them: run it before pushing |
 | `make snapshot` | Builds the release archives into `dist/`, without publishing |
 | `make release-check` | Validates `.goreleaser.yaml` |
+| `make site-dev` | Serves cahut.cloud on http://localhost:4321 |
+| `make docs-dev` | Serves docs.cahut.cloud on http://localhost:4322 |
+| `make sites` | Builds both sites, as CI does: run it after changing `sites/` or the brand |
 
-golangci-lint and GoReleaser run through `go run`, at the versions pinned in the Makefile: nothing needs installing.
+golangci-lint and GoReleaser run through `go run`, at the versions pinned in the Makefile: nothing needs installing. The sites need Node.js at the version of [.nvmrc](.nvmrc) (`nvm use`); their tasks install the npm packages on first run. The Go tasks never need Node.js.
 
 To try a Cahut on this machine, run `make dev`, then, in another terminal:
 
@@ -54,7 +59,7 @@ Windows open at `http://localhost:8080/<room>/<window>/`. To try a second Cahut,
 
 On a server, [install.sh](install.sh) installs a release, or a binary given with `--binary`, as the `cahut` systemd service, and declares the Cahut of `--domain`; run it with `--help`. Administration commands run as the service user, with the binary's full path, since sudo on AlmaLinux does not search `/usr/local/bin`: `sudo -u cahut /usr/local/bin/cahut token create ...`.
 
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on `main`: lint, tests, and a GoReleaser snapshot build that checks the linux/amd64 and linux/arm64 binaries are static. Pushing a `v*` tag runs [release.yml](.github/workflows/release.yml), which drafts a GitHub release with the archives and checksums; a person reviews and publishes it.
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on `main`: lint, tests, and a GoReleaser snapshot build that checks the linux/amd64 and linux/arm64 binaries are static. [sites.yml](.github/workflows/sites.yml) builds the sites on pull requests that touch them or the brand, and on `main` uploads them to the web server with rsync over SSH, once the repository's variables name it ([sites/README.md](sites/README.md#deployment)). Pushing a `v*` tag runs [release.yml](.github/workflows/release.yml), which drafts a GitHub release with the archives and checksums; a person reviews and publishes it.
 
 ## Code conventions
 
@@ -67,7 +72,8 @@ CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull req
 - Never put a token, a password or file contents in a Logbook entry (`Call.Log`).
 - Schema changes are new numbered files in `internal/store/migrations/cahut/` or `internal/store/migrations/server/`. Never edit a migration that has been released.
 - A new architecture decision is a new record in `docs/adr/`. Never rewrite an accepted record: supersede it.
-- Versions to keep in step: golangci-lint and GoReleaser are pinned both in the Makefile and in the workflows. Actions are pinned by commit hash, with the version in a comment; Dependabot updates them. Raise the `toolchain` line of `go.mod` when Go ships a patch release.
+- The sites follow the same rule for npm packages: a reason in the pull request, an exact version, and no install scripts ([sites/.npmrc](sites/.npmrc)). Add them with `npm install <package> --workspace <site>` in `sites/`, never in another folder.
+- Versions to keep in step: golangci-lint and GoReleaser are pinned both in the Makefile and in the workflows. Actions are pinned by commit hash, with the version in a comment; Dependabot updates them, and the npm packages of the sites too. Raise the `toolchain` line of `go.mod` when Go ships a patch release. `.nvmrc` holds the Node.js LTS line for the whole repository.
 
 ## Product rules that shape the code
 
@@ -107,6 +113,7 @@ For anything visual (site, console, mockup, slide, social image, e-mail, illustr
 - Use the logo SVG files as they are. Never redraw, recolor or rebuild the logotype.
 - Interface components come from [docs/charte-graphique/ui/cahut-ui.css](docs/charte-graphique/ui/cahut-ui.css) (`c-` classes).
 - Pages that Cahut serves for an organization carry that organization's house style, not Cahut's. Cahut's own brand applies to its own screens: console, sign-in, e-mails, site.
+- The sites import brand files through the `@charte` alias (`@charte/tokens/cahut-tokens.css`), which points to `docs/charte-graphique`. Never copy a token, a font or a logo into `sites/`.
 
 Changing the logo, the palette, the tokens or the vocabulary is a change to the brand guidelines: update the guidelines README, `index.html`, both token files (CSS and JSON, kept in sync by hand) when tokens change, the PNG renders, the PDF (`node .claude/skills/charte-graphique-cahut/scripts/imprimer-charte.mjs`), and bump the version in the changelog table.
 
@@ -130,13 +137,18 @@ docs/
   brief-projet.md      Project brief (French)
   plan-v0.md           V0 development plan (French)
   charte-graphique/    Brand guidelines with all source files (French)
+sites/                 npm workspace of the sites (ADR 12)
+  cahut.cloud/         The website, Astro, with the brand at /brand
+  docs.cahut.cloud/    The documentation, Astro with Starlight
+  brand/               @cahut/brand: the brand of docs/charte-graphique for the sites
 .github/
-  workflows/           CI and release
-  dependabot.yml       Weekly updates of Go modules and actions
+  workflows/           CI, sites and release
+  dependabot.yml       Weekly updates of Go modules, npm packages and actions
 .claude/skills/
   charte-graphique-cahut/   Project skill for the brand
 install.sh             Installs Cahut on a server as a systemd service
 Makefile               Development tasks
+.nvmrc                 Node.js version, for the sites
 .golangci.yml          Linter configuration
 .goreleaser.yaml       Release build
 ```

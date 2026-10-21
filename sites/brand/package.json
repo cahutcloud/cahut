@@ -1,0 +1,10 @@
+{
+	"name": "@cahut/brand",
+	"version": "0.0.0",
+	"private": true,
+	"description": "The brand of docs/charte-graphique for the sites, as an Astro integration",
+	"type": "module",
+	"exports": {
+		".": "./index.js"
+	}
+}

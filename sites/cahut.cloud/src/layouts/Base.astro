@@ -1,0 +1,86 @@
+---
+// The frame of every page of cahut.cloud: head, header and footer.
+import '@charte/tokens/cahut-fonts.css';
+import '@charte/tokens/cahut-tokens.css';
+import '@charte/ui/cahut-ui.css';
+import logo from '@charte/logos/cahut-logo-horizontal.svg?url';
+import logoInverse from '@charte/logos/cahut-logo-horizontal-inverse.svg?url';
+
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+		<link rel="icon" href="/favicon.ico" sizes="32x32" />
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="manifest" href="/site.webmanifest" />
+	</head>
+	<body>
+		<header>
+			<a href="/" class="logo">
+				<img src={logo} alt="Cahut" class="light" height="32" />
+				<img src={logoInverse} alt="Cahut" class="dark" height="32" />
+			</a>
+			<nav>
+				<a href="https://docs.cahut.cloud">Docs</a>
+				<a href="/brand/">Brand</a>
+			</nav>
+		</header>
+		<main>
+			<slot />
+		</main>
+		<footer>
+			<p class="c-small c-muted">Cahut is a personal open source project by Olivier Durand.</p>
+		</footer>
+	</body>
+</html>
+
+<style>
+	header,
+	main,
+	footer {
+		max-width: 72rem;
+		margin: 0 auto;
+		padding: var(--space-6) var(--space-4);
+	}
+	header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+	nav {
+		display: flex;
+		gap: var(--space-6);
+	}
+	nav a {
+		color: var(--color-text);
+	}
+	.logo img {
+		display: block;
+		height: 32px;
+		width: auto;
+	}
+	.logo .dark {
+		display: none;
+	}
+	@media (prefers-color-scheme: dark) {
+		.logo .light {
+			display: none;
+		}
+		.logo .dark {
+			display: block;
+		}
+	}
+</style>

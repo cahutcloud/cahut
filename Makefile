@@ -11,7 +11,10 @@ GORELEASER    ?= go run github.com/goreleaser/goreleaser/v2@$(GORELEASER_VERSION
 
 .DEFAULT_GOAL := help
 
-.PHONY: help build dev test lint fmt check snapshot release-check clean
+# The sites need Node.js at the version of .nvmrc: run "nvm use" first.
+SITES_DEPS := sites/node_modules/.package-lock.json
+
+.PHONY: help build dev test lint fmt check snapshot release-check sites site-dev docs-dev clean
 
 help: ## List the tasks
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -40,5 +43,18 @@ snapshot: ## Build the release archives into dist/, without publishing
 release-check: ## Validate the GoReleaser configuration
 	$(GORELEASER) check
 
+sites: $(SITES_DEPS) ## Build cahut.cloud and docs.cahut.cloud into sites/*/dist
+	cd sites && npm run build
+
+site-dev: $(SITES_DEPS) ## Serve cahut.cloud on http://localhost:4321
+	cd sites && npm run dev --workspace cahut.cloud
+
+docs-dev: $(SITES_DEPS) ## Serve docs.cahut.cloud on http://localhost:4322
+	cd sites && npm run dev --workspace docs.cahut.cloud
+
+$(SITES_DEPS): sites/package.json sites/package-lock.json $(wildcard sites/*/package.json)
+	cd sites && npm ci
+	touch $@
+
 clean: ## Remove the build output and the development data
-	rm -rf bin dist tmp
+	rm -rf bin dist tmp sites/node_modules sites/*/dist sites/*/.astro

@@ -1,0 +1,19 @@
+/*
+ * Starlight in the type and colors of the brand. The values come from the
+ * brand tokens (docs/charte-graphique/tokens), never retyped. Starlight's
+ * dark theme is its default, and its light theme sets data-theme="light".
+ */
+
+:root {
+	--sl-font: var(--font-sans);
+	--sl-font-mono: var(--font-mono);
+	--sl-color-accent-low: var(--cahut-sky-950);
+	--sl-color-accent: var(--cahut-sky-400);
+	--sl-color-accent-high: var(--cahut-sky-200);
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: var(--cahut-sky-100);
+	--sl-color-accent: var(--cahut-sky-700);
+	--sl-color-accent-high: var(--cahut-sky-900);
+}
