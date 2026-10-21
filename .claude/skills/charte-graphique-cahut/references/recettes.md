@@ -60,7 +60,7 @@ Les clients de messagerie ignorent les variables CSS, les SVG et souvent les pol
 - `font-family:'Plus Jakarta Sans',Arial,sans-serif` et `'IBM Plex Mono',Consolas,monospace` : la police de secours doit suffire.
 - Logo et images en PNG (`charte/logos/png/`) servis depuis une adresse publique, jamais en SVG ni en chemin local.
 - Signature : partir de `charte/applications/gabarits/signature-email.html`, remplacer nom, rôle et adresse de l'image.
-- E-mails envoyés par l'instance (demande *knock first* par exemple) : dire quelle IA, quelle action, au nom de qui, quelle échéance, comme la carte `c-knock` de la console.
+- E-mails envoyés par un Cahut (demande *knock first* par exemple) : dire quelle IA, quelle action, au nom de qui, quelle échéance, comme la carte `c-knock` de la console.
 
 ## Icônes et pictogrammes
 
@@ -116,11 +116,11 @@ Formats en place : image de partage 1200 × 630, aperçu GitHub 1280 × 640, ban
 
 ## Modifier la charte
 
-Toute modification du logo, de la palette ou des jetons change la version de la charte. À mettre à jour ensemble :
+Toute modification du logo, de la palette, des jetons ou du vocabulaire change la version de la charte. À mettre à jour ensemble :
 
 1. `charte/README.md` : la section concernée, la version en tête et le tableau des évolutions du § 13.
 2. `charte/index.html`, la version visuelle.
 3. `charte/tokens/cahut-tokens.css` **et** `cahut-tokens.json` : aucun générateur ne les relie, ils se tiennent à jour à la main.
 4. Si une couleur change : `charte/couleurs/cahut-palette.ase` et `.gpl`, les planches de `charte/couleurs/`, et les contrastes du § 3.
-5. Les PNG qui en dépendent : planches, gabarits rendus, exports de logos.
-6. `charte/charte-graphique-cahut.pdf` (A4 paysage, 20 pages). Le procédé qui l'a produit n'est pas consigné : une impression directe de `index.html` par Chrome sans interface (`--print-to-pdf`) donne 28 pages, donc contrôler la mise en page avant de remplacer le fichier.
+5. Les PNG qui en dépendent : planches (celle des pictogrammes a son gabarit, `charte/icones/gabarits/planche-pictogrammes.html`), gabarits rendus, captures de `ui/`, exports de logos.
+6. `charte/charte-graphique-cahut.pdf` (A4 paysage, 19 pages) : le réimprimer avec `node .claude/skills/charte-graphique-cahut/scripts/imprimer-charte.mjs`, qui imprime `index.html` à l'échelle 0,75 par Chrome sans interface. Une impression directe par `--print-to-pdf` donne 28 pages. Ouvrir le PDF et contrôler la mise en page avant de livrer.

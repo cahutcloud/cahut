@@ -1,6 +1,6 @@
 # Cahut · Charte graphique
 
-Version 1.0 · 20 octobre 2026 · Olivier Durand
+Version 1.1 · 21 octobre 2026 · Olivier Durand
 
 ![Cahut, la maison ouverte](illustrations/maison-ouverte.png)
 
@@ -202,7 +202,7 @@ En secours : `ui-sans-serif, system-ui, "Segoe UI", sans-serif` et `ui-monospace
 
 ![Pictogrammes](icones/planche-pictogrammes.png)
 
-**Les pictogrammes** illustrent le vocabulaire de la maison : [Home](icones/home.svg), [Room](icones/room.svg), [Window](icones/window.svg), [Door](icones/door.svg), [Key](icones/key.svg), [House style](icones/house-style.svg), [Knock first](icones/knock-first.svg), [Logbook](icones/logbook.svg).
+**Les pictogrammes** illustrent le vocabulaire de la maison : [Cahut](icones/cahut.svg), [Room](icones/room.svg), [Window](icones/window.svg), [Key](icones/key.svg), [House style](icones/house-style.svg), [Knock first](icones/knock-first.svg), [Logbook](icones/logbook.svg). La planche se refait depuis son gabarit, [`icones/gabarits/planche-pictogrammes.html`](icones/gabarits/planche-pictogrammes.html).
 
 - Grille de 64 px, trait de 3 px, extrémités et angles arrondis.
 - Trait en Ink (`currentColor`, modifiable en CSS), une seule couleur d'accent : Sky 300 pour les surfaces, Sky 400 pour les objets, Soft Yellow pour la lumière ou l'attente.
@@ -273,7 +273,7 @@ En secours : `ui-sans-serif, system-ui, "Segoe UI", sans-serif` et `ui-monospace
 
 La console web et les pages servies par Cahut partagent les mêmes jetons. Le kit d'interface est fourni en HTML et CSS :
 
-- [`ui/cahut-ui.css`](ui/cahut-ui.css) : boutons, champs, badges de Door, messages, cartes Window, demande *knock first*, *logbook*, navigation.
+- [`ui/cahut-ui.css`](ui/cahut-ui.css) : boutons, champs, badges d'accès, messages, cartes Window, demande *knock first*, *logbook*, navigation.
 - [`ui/composants.html`](ui/composants.html) : la page de référence des composants (bouton de bascule clair et sombre).
 - [`ui/console.html`](ui/console.html) : maquette d'une Room. Ajoutez `#dark` à l'adresse pour le mode sombre.
 
@@ -281,7 +281,7 @@ La console web et les pages servies par Cahut partagent les mêmes jetons. Le ki
 | --- | --- |
 | Bouton principal | Fond Ink, texte Paper. Un seul par zone |
 | Bouton accent | Fond Sky, texte Ink. Pour publier ou connecter |
-| Doors | Public (Sky), Password (jaune), Internal (neutre), invités (vert), toujours avec icône et mot |
+| Accès d'une Window | Public (Sky), Key (jaune), Internal (neutre), Room only (neutre atténué, cadenas), toujours avec icône et mot |
 | *Knock first* | Carte avec liseré Soft Yellow, l'IA, ce qu'elle demande, au nom de qui, l'échéance, Approve et Decline |
 | *Logbook* | Heure en mono, IA, action, résultat |
 | Focus | Anneau Sky de 3 px, toujours visible au clavier |
@@ -332,11 +332,10 @@ Cahut parle la langue de la maison, en anglais simple. Chaque notion technique a
 
 | Mot | Ce qu'il désigne | Pictogramme |
 | --- | --- | --- |
-| Home | L'instance Cahut, sur votre serveur | [home](icones/home.svg) |
+| Cahut | Une instance sur votre serveur, à son propre domaine | [cahut](icones/cahut.svg) |
 | Room | Un espace personnel ou d'équipe | [room](icones/room.svg) |
 | Window | Une page vivante : document, présentation, tableau de bord, appli | [window](icones/window.svg) |
-| Door | Le lien de partage et son niveau d'accès | [door](icones/door.svg) |
-| Key | Le mot de passe ou l'invitation | [key](icones/key.svg) |
+| Key | Le mot de passe qui ouvre une Window protégée | [key](icones/key.svg) |
 | House style | La charte de l'organisation, appliquée par toutes les IA | [house-style](icones/house-style.svg) |
 | Knock first | L'IA frappe avant toute action irréversible | [knock-first](icones/knock-first.svg) |
 | Logbook | Le registre de toutes les actions | [logbook](icones/logbook.svg) |
@@ -348,14 +347,15 @@ Cahut parle la langue de la maison, en anglais simple. Chaque notion technique a
 - Rassurer sans alarmer : jamais de capitales, de points d'exclamation ou d'emoji d'alerte.
 - Pas de promesse magique sur l'IA : Cahut accueille le travail, il ne le crée pas.
 - Casse de phrase pour les titres, boutons et menus. Chiffres en chiffres.
-- Le nom s'écrit **Cahut** dans le texte, avec une capitale, et « cahut » en minuscules seulement dans le logo. Jamais « CAHUT ».
+- Le nom s'écrit **Cahut** dans le texte, avec une capitale, et « cahut » en minuscules seulement dans le logo. Jamais « CAHUT ». Une instance est un Cahut, avec la même capitale : *your Cahut*, *3 Rooms in this Cahut*.
+- Une Window s'ouvre à sa Room seulement, à tout le Cahut (*internal*), à qui a sa Key, ou au public : on parle de son accès.
 
 | Écrire | Éviter |
 | --- | --- |
 | Claude wants to make *Q3 review* public. | AI ACTION REQUIRED!! |
 | Share a link, not a file. | Revolutionize your AI workflow. |
 | Published. The previous version is kept. | Success! Your content has been deployed. |
-| This Door closed yesterday. | Error 403: access forbidden. |
+| This Window closed yesterday. | Error 403: access forbidden. |
 
 ## 12. Cahut chez les autres
 
@@ -379,7 +379,7 @@ charte-graphique/
 ├── couleurs/                    Planches, nuanciers .ase et .gpl
 ├── tokens/                      Jetons CSS et JSON, polices web
 ├── typographie/                 Spécimen, hiérarchie, polices TTF et WOFF2 (OFL)
-├── icones/                      Pictogrammes SVG (64 px)
+├── icones/                      Pictogrammes SVG (64 px), planche et son gabarit
 ├── illustrations/               Illustrations et motifs SVG
 ├── photos/                      Planche, aperçus, crédits, script de téléchargement
 ├── ui/                          Kit d'interface CSS, composants, console
@@ -388,10 +388,11 @@ charte-graphique/
 
 **Formats.** Toujours partir des SVG : ils sont la source de vérité. Les PNG servent quand le SVG n'est pas accepté. Le logotype est vectorisé : il ne dépend d'aucune police installée.
 
-**Évolutions.** Toute modification du logo, de la palette ou des jetons passe par cette charte et change son numéro de version.
+**Évolutions.** Toute modification du logo, de la palette, des jetons ou du vocabulaire passe par cette charte et change son numéro de version.
 
 | Version | Date | Changement |
 | --- | --- | --- |
 | 1.0 | 20 octobre 2026 | Première version, à partir de la planche retenue |
+| 1.1 | 21 octobre 2026 | Vocabulaire : Cahut remplace Home, Door disparaît, chaque Window a son accès. Pictogramme `cahut.svg`, plus de `door.svg`, gabarit de la planche. Badges d'accès `c-badge--key` et `c-badge--room` à la place de `--password` et `--invited`. Maquettes, hiérarchie typographique et diapositive de contenu mises à jour |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.
