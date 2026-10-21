@@ -19,11 +19,11 @@ Elle se construit en neuf lots, du lot 0 au lot 8, pour environ 13 à 16 semaine
 | Serveur MCP (HTTP, OAuth) et jeton personnel pour les IA de terminal | Accès SSH à commande forcée |
 | Windows statiques : documents, présentations, tableaux de bord, sites (HTML et ressources) | Commentaires, recherche |
 | Deux versions par Window, retour à la précédente | Export PDF et PowerPoint |
-| Doors : interne, mot de passe, publique, avec durée de vie | Invitations par e-mail, et l'envoi d'e-mails en général |
-| Utilisateurs, Rooms personnelles et d'équipe | Sauvegardes S3 ou SFTP et restauration |
-| House style : couleurs, polices, logo, un gabarit par type de Window | Autres clients IA (Mistral, Copilot) |
-| Knock first et Logbook complets | Tâches planifiées |
-| Console web | |
+| Accès de chaque Window : Room seulement, interne, Key, public, avec date de fin | SSO par OpenID Connect pour chaque Cahut |
+| Plusieurs Cahuts par serveur, comptes propres à chaque Cahut, Rooms personnelles et d'équipe | L'envoi d'e-mails |
+| House style par Cahut : couleurs, polices, logo, un gabarit par type de Window | Sauvegardes S3 ou SFTP et restauration |
+| Knock first et Logbook complets | Autres clients IA (Mistral, Copilot) |
+| Console web sur son propre port | Tâches planifiées, quotas par Cahut |
 | Mises à jour depuis les releases GitHub, avec retour arrière | |
 | Claude et un deuxième client IA (ChatGPT ou Le Chat) | |
 
@@ -48,7 +48,7 @@ Elle se construit en neuf lots, du lot 0 au lot 8, pour environ 13 à 16 semaine
 | 1 | Tranche verticale : publier par MCP, servir en HTTPS | 2 semaines |
 | 2 | Comptes, Rooms et console | 2 semaines |
 | 3 | Brancher les IA : OAuth | 1,5 à 2 semaines |
-| 4 | Windows complètes : versions et Doors | 1,5 semaine |
+| 4 | Windows complètes : versions et accès | 1,5 semaine |
 | 5 | Knock first | 1 semaine |
 | 6 | House style et skill Claude | 1,5 semaine |
 | 7 | Installation, premier démarrage, mises à jour | 2 semaines |
@@ -70,9 +70,10 @@ Les durées sont comptées à temps plein ; elles s'étirent selon la disponibil
 C'est la première tranche verticale de la feuille de route.
 
 - Registre d'opérations, Logbook, SQLite avec migrations, stockage des fichiers des Windows sur disque.
+- Plusieurs Cahuts par serveur dès le modèle de données : une base par Cahut et une base du serveur, un Cahut déclaré par son domaine en ligne de commande (ADR 8).
 - Opérations `publish_window`, `get_window` et `list_windows`, exposées en outils MCP (Streamable HTTP) avec le SDK Go officiel.
 - Jeton personnel créé en ligne de commande, pour Claude Code ; il servira ensuite aux IA de terminal.
-- Service des Windows en HTTPS, certificats ACME automatiques, Windows isolées de la console (voir l'ADR sur l'origine des Windows).
+- Service des Windows en HTTPS à `<domaine>/<room>/<window>/` (ADR 9), chacune dans un bac à sable CSP (ADR 10), un certificat ACME automatique par Cahut.
 - Script `install.sh` rudimentaire : télécharge la release, crée l'utilisateur système et le service systemd.
 - Mesure de la taille maximale d'une publication passée en argument d'outil.
 
@@ -80,30 +81,32 @@ C'est la première tranche verticale de la feuille de route.
 
 ### Lot 2 · Comptes, Rooms et console
 
-- Administrateur et utilisateurs, mot de passe haché en argon2id, sessions. L'administrateur crée un compte et transmet un lien d'activation à usage unique : pas d'e-mail en V0.
-- Room personnelle créée d'office pour chaque utilisateur, Rooms d'équipe avec propriétaires et membres ; les droits sont appliqués par le registre d'opérations.
-- Coquille de la console : connexion, navigation, liste des Rooms et des Windows, lecture du Logbook. Application légère embarquée dans le binaire, construite avec `cahut-ui.css`, qui n'appelle que l'API publique.
+- Administrateurs du serveur, qui déclarent les Cahuts, et administrateurs de chaque Cahut, qui en gèrent les personnes ; mot de passe haché en argon2id, sessions. L'administrateur crée un compte et transmet un lien d'activation à usage unique : pas d'e-mail en V0.
+- Room personnelle créée d'office pour chaque personne, au nom de son handle ; Rooms d'équipe avec propriétaires et membres ; les droits sont appliqués par le registre d'opérations.
+- Coquille de la console : connexion, navigation, liste des Rooms et des Windows, lecture du Logbook, déclaration des Cahuts. Application légère embarquée dans le binaire, construite avec `cahut-ui.css`, qui n'appelle que l'API publique. Servie sur le port 8443 de chaque domaine, cloisonnée par Cahut, authentifiée par jeton et non par cookie (ADR 11).
 
-**Fin de lot** : deux comptes et une Room d'équipe ; chacun ne voit que ses Windows ; le Logbook se lit dans la console.
+**Fin de lot** : deux Cahuts sur le même serveur ; dans l'un, deux comptes et une Room d'équipe ; chacun ne voit que ses Windows ; le Logbook se lit dans la console.
 
 ### Lot 3 · Brancher les IA : OAuth
 
-- Serveur d'autorisation OAuth 2.1 : métadonnées de découverte, enregistrement dynamique des clients ou Client ID Metadata Documents selon ce qu'exigent les clients, code d'autorisation avec PKCE, jetons de rafraîchissement, révocation.
+- Serveur d'autorisation OAuth 2.1, un par Cahut, sur le port de la console : métadonnées de découverte, enregistrement dynamique des clients ou Client ID Metadata Documents selon ce qu'exigent les clients, code d'autorisation avec PKCE, jetons de rafraîchissement, révocation.
 - Écran de consentement : l'utilisateur choisit les Rooms et la portée qu'il donne à l'IA.
 - Écran des IA connectées : chaque IA, au nom de qui elle agit, sa portée, révocation en un clic.
 - Test de fumée avec ChatGPT dès ce lot, pour lever tôt le risque du deuxième client.
 
 **Fin de lot, jalon PoC** : Cahut ajouté comme connecteur dans claude.ai, une présentation publiée dans une Room d'équipe, visible dans la console.
 
-### Lot 4 · Windows complètes : versions et Doors
+### Lot 4 · Windows complètes : versions et accès
 
 - `update_window` garde la version précédente ; `rollback_window` y revient.
-- Par défaut, une Window n'est visible que des membres de sa Room. Doors : interne (membres de l'instance), mot de passe, publique ; durée de vie réglable et prolongeable.
-- La Key d'une Door à mot de passe est hachée et s'ouvre par une page d'accès à la house style de l'organisation.
+- Accès de chaque Window : Room seulement (par défaut), interne (les personnes connectées du Cahut), Key (un mot de passe), public ; date de fin réglable et prolongeable.
+- La Key d'une Window est hachée et s'ouvre par une page d'accès à la house style du Cahut. Les lecteurs d'une Window interne se connectent sur le port 443 en passant par la connexion de la console (ADR 11).
+- Les Windows protégées sont servies dans un cadre (iframe) en bac à sable, par une adresse à capacité (ADR 10) ; tests sous Chrome, Firefox et Safari.
+- La page d'une Room liste les Windows que son lecteur peut ouvrir ; une Window fermée répond comme une Window absente.
 - La déclaration de l'IA (scripts, appels vers l'extérieur, formulaires) est enregistrée, affichée dans la console et appliquée par une politique CSP : une Window qui déclare ne rien appeler ne peut rien appeler.
 - Mise à la corbeille, réversible.
-- Console : fiche d'une Window avec ses versions, sa Door et sa déclaration.
-- En attendant le lot 5, l'IA ne peut pas ouvrir de Door publique.
+- Console : fiche d'une Window avec ses versions, son accès et sa déclaration.
+- En attendant le lot 5, l'IA ne peut pas rendre une Window publique.
 
 **Fin de lot** : une personne non technique partage une présentation avec une Key depuis la console, le lien s'ouvre en navigation privée, puis on revient à la version précédente.
 
@@ -111,24 +114,24 @@ C'est la première tranche verticale de la feuille de route.
 
 - Une opération irréversible demandée par une IA crée un Knock : une demande en attente, avec une expiration. L'IA reçoit le statut et le lien d'approbation, qu'elle transmet à l'utilisateur.
 - Boîte des Knocks dans la console : approuver ou refuser. L'exécution est tracée avec l'IA, l'humain qui a approuvé et le résultat.
-- Liste proposée pour la V0 : purger une Window, rendre public un contenu interne, élargir la portée d'une IA, changer les droits d'un utilisateur, supprimer une Room.
+- Liste proposée pour la V0 : purger une Window, rendre une Window publique, élargir la portée d'une IA, changer les droits d'un utilisateur, supprimer une Room.
 - Notification dans la console ; les notifications par e-mail viendront avec l'envoi d'e-mails.
 
 **Fin de lot** : Claude demande à rendre une Window publique, la demande apparaît dans la console, l'approbation l'exécute, le Logbook montre les deux étapes.
 
 ### Lot 6 · House style et skill Claude
 
-- House style de l'organisation : couleurs, polices, logo, gabarits HTML pour document, présentation et tableau de bord, avec un petit moteur de présentation servi par Cahut.
-- Exposée aux IA par un outil `get_house_style`, car tous les clients ne lisent pas les ressources MCP, et par une feuille CSS à adresse stable.
+- House style de chaque Cahut : couleurs, polices, logo, gabarits HTML pour document, présentation et tableau de bord, avec un petit moteur de présentation servi par Cahut.
+- Exposée aux IA par un outil `get_house_style`, car tous les clients ne lisent pas les ressources MCP, et par une feuille CSS à adresse stable, sous `/-/`.
 - Écran House style dans la console. Une house style neutre par défaut, distincte de la marque Cahut.
-- Skill Claude empaquetée en plugin : formats, house style, Doors, Knock first. Instructions du serveur MCP pour les clients sans skill.
+- Skill Claude empaquetée en plugin : formats, house style, accès, liens relatifs, bac à sable (pas de `localStorage`), Knock first. Instructions du serveur MCP pour les clients sans skill.
 
 **Fin de lot** : un même brief donne une présentation aux couleurs de l'organisation, publiée en une seule demande.
 
 ### Lot 7 · Installation, premier démarrage, mises à jour
 
-- Une commande sur AlmaLinux et Ubuntu vierges : utilisateur système, service systemd avec `CAP_NET_BIND_SERVICE`, pare-feu (firewalld ou ufw), contextes SELinux sur AlmaLinux, commande `cahut doctor` pour diagnostiquer.
-- Premier démarrage guidé dans le navigateur, ouvert par un lien à usage unique affiché en fin d'installation : compte administrateur, domaine ou adresse de repli, house style de base, première IA (adresse MCP à copier, pas à pas pour chaque client).
+- Une commande sur AlmaLinux et Ubuntu vierges : utilisateur système, service systemd avec `CAP_NET_BIND_SERVICE`, pare-feu (firewalld ou ufw) pour les ports 80, 443 et 8443, contextes SELinux sur AlmaLinux, commande `cahut doctor` pour diagnostiquer, rappel d'ouvrir le port 8443 chez l'hébergeur.
+- Premier démarrage guidé dans le navigateur, ouvert par un lien à usage unique affiché en fin d'installation : administrateur du serveur, premier Cahut et son domaine, house style de base, première IA (adresse MCP à copier, pas à pas pour chaque client). Adresse de repli sans domaine à trancher : un certificat d'adresse IP est une piste.
 - Mises à jour : vérification des releases GitHub signées, remplacement du binaire, contrôle de santé, retour arrière automatique.
 - Test d'installation automatisé sur machines virtuelles vierges (Lima en local).
 
@@ -137,7 +140,7 @@ C'est la première tranche verticale de la feuille de route.
 ### Lot 8 · Deuxième client IA et recette
 
 - ChatGPT (mode développeur) ou Le Chat de bout en bout, avec les ajustements que chaque client demande : schémas d'outils, taille des contenus, consignes.
-- Revue de sécurité : OAuth, isolation des Windows, CSRF, limites de taille et de débit.
+- Revue de sécurité : OAuth, bac à sable des Windows, cloisonnement entre Cahuts, sessions de la console et des lecteurs, limites de taille et de débit.
 - Recette sur les cinq critères de réussite du README, ramenés au périmètre de la V0.
 - README : section Installation réelle.
 
@@ -150,7 +153,7 @@ C'est la première tranche verticale de la feuille de route.
 | Installation sur un VPS vierge | Moins de 10 minutes, une commande, sur AlmaLinux et sur Ubuntu |
 | Première publication par une IA | Moins de 5 minutes après le premier démarrage, sans toucher au serveur |
 | Partage par une personne non technique | Une présentation partagée par lien, avec une Key, en quelques minutes |
-| IA prises en charge | La même instance fonctionne avec Claude et un deuxième client |
+| IA prises en charge | Le même Cahut fonctionne avec Claude et un deuxième client |
 | Gouvernance | Toute action d'une IA figure au Logbook, et s'annule ou a été approuvée |
 
 ## Décisions à prendre au lot 0
@@ -158,7 +161,7 @@ C'est la première tranche verticale de la feuille de route.
 | Sujet | Recommandation |
 | --- | --- |
 | Web et TLS | Intégré au binaire avec certmagic plutôt que Caddy à côté : un seul binaire à installer et à mettre à jour |
-| Origine des Windows | Une origine par Window (`<window>.home.example.com`) dès qu'un wildcard existe, certificats à la demande. Sinon une CSP `sandbox`, qui protège la console mais casse `localStorage` dans les pages. Le premier démarrage demande donc un wildcard, avec une adresse de repli de type sslip.io, à vérifier |
+| Origine des Windows | Une origine par Window (`<window>.home.example.com`) dès qu'un wildcard existe, certificats à la demande. Sinon une CSP `sandbox`, qui protège la console mais casse `localStorage` dans les pages. Le premier démarrage demande donc un wildcard, avec une adresse de repli de type sslip.io, à vérifier. Revu ensuite : un domaine par Cahut sans wildcard, les Windows en chemins dans un bac à sable CSP, la console sur son propre port (ADR 8 à 11) |
 | Base de données | SQLite en pur Go (`modernc.org/sqlite`), pour garder un binaire statique |
 | Console | Petite application TypeScript (Preact ou Svelte, construite avec Vite) embarquée par `go:embed`, cliente de l'API publique : la règle d'une seule API se vérifie d'elle-même |
 | OAuth | Bibliothèque éprouvée (fosite) ou implémentation minimale bien testée : à comparer |
@@ -168,20 +171,23 @@ C'est la première tranche verticale de la feuille de route.
 
 - **Taille des publications.** Une présentation avec des images passe mal en argument d'outil. À mesurer au lot 1 ; repli : un envoi en plusieurs opérations (ouvrir, ajouter des fichiers, valider).
 - **Différences entre clients MCP.** OAuth, schémas d'outils et limites varient d'un client à l'autre, d'où le test avec ChatGPT dès le lot 3.
-- **HTML non maîtrisé.** Une Window peut contenir n'importe quel script : l'isolation d'origine est la protection principale de la console et des sessions.
+- **HTML non maîtrisé.** Une Window peut contenir n'importe quel script : le bac à sable CSP est la protection principale des autres Windows, de la console et des sessions. Il casse `localStorage` dans les pages : les consignes aux IA doivent le dire.
+- **Cloisonnement entre Cahuts.** Une fuite d'un Cahut vers un autre serait grave pour un hébergeur ; une base par Cahut la rend structurellement difficile.
+- **Port 8443.** Certains réseaux d'entreprise ne laissent sortir que le port 443 : la console y est inaccessible, les Windows non.
 - **SELinux et pare-feu sur AlmaLinux.** C'est le principal danger pour le critère des 10 minutes.
 
 ## Après la V0
 
 Proposition d'ordre pour atteindre le périmètre complet du lancement, en réponse à la question ouverte du brief :
 
-1. Compléter les pages : commentaires, recherche, invitations par e-mail, sauvegardes et restauration.
-2. Les applis, le plus gros morceau : conteneurs sans privilèges, runtimes, mode Dockerfile, bases, secrets, journaux, limites, une origine par appli.
+1. Compléter les pages : commentaires, recherche, SSO par Cahut, envoi d'e-mails, sauvegardes et restauration, quotas par Cahut.
+2. Les applis, le plus gros morceau : conteneurs sans privilèges, runtimes, mode Dockerfile, bases, secrets, journaux, limites. Sans sous-domaine, une appli n'a pas d'origine propre : une décision d'architecture à prendre avant ce lot.
 3. Avant l'ouverture : export PDF et PowerPoint, accès SSH à commande forcée, autres clients IA.
 
 ## Questions ouvertes
 
-- [ ] Une Door à mot de passe ouverte par l'IA doit-elle frapper (Knock first) ?
+- [ ] Une Window ouverte par l'IA en interne ou avec une Key doit-elle frapper (Knock first) ?
+- [ ] Quelle adresse de repli pour essayer Cahut sans domaine ?
 - [ ] La liste des actions irréversibles de la V0 est-elle la bonne ?
 - [ ] Quelle expiration par défaut pour un Knock ?
 - [ ] Le deuxième client de la recette : ChatGPT ou Le Chat ?

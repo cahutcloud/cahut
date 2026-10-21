@@ -44,7 +44,7 @@ flowchart LR
     P[Copilot]
   end
   subgraph CAHUT["Cahut, on your server"]
-    H["The home: publish, share, permissions, versions, comments, search, PDF and PPTX export, logbook, irreversible actions approved by you"]
+    H["Your Cahut: publish, share, permissions, versions, comments, search, PDF and PPTX export, logbook, irreversible actions approved by you"]
     S["The house style: your colors and formats, followed by every AI"]
   end
   subgraph READ["Read"]
@@ -58,8 +58,8 @@ flowchart LR
 
 1. **Connect.** Add Cahut to your AI (MCP connector and skill) and authorize it once with OAuth, with the scope you choose.
 2. **Create.** Ask your AI for a document, a deck, a dashboard or an app. The skill gives it your formats and house style.
-3. **Publish.** The AI publishes to a Room, declares what the publication does, and gets an address back. The previous version is kept.
-4. **Share.** You, or the AI within the limits you set, choose who gets in: public, password, internal or invited guests. Anything irreversible waits for approval in the console.
+3. **Publish.** The AI publishes a Window to a Room, declares what it does, and gets its address back, such as `cahut.example.com/marketing/q3-review`. The previous version is kept.
+4. **Share.** You, or the AI within the limits you set, choose who opens each Window: its Room only, everyone in your Cahut, anyone with its Key, or the public. Anything irreversible waits for approval in the console.
 5. **Live.** Readers open the page in a browser and comment on it. The AI updates it on request. Everything goes to the logbook.
 
 ## Features
@@ -70,17 +70,18 @@ The full scope ships at launch, with no reduced trial version.
 | --- | --- |
 | Installation | One command on a fresh VPS or dedicated server (AlmaLinux or Ubuntu), guided first start, linking of the admin and their first AI |
 | AI access | Native MCP server (HTTP, OAuth), one skill per AI client packaged as a plugin where the client allows it, Claude first then ChatGPT, Mistral, Copilot and others, SSH access limited to the same operations for terminal AIs |
-| Pages | Documents, decks, dashboards and static sites, each at its own address |
+| Pages | Documents, decks, dashboards and static sites, each at its own address in its Room |
 | Apps | Predefined runtimes (Node, Python...) and an advanced Dockerfile mode, variables and secrets, PostgreSQL or SQLite databases, runtime logs, resource limits |
-| Sharing | By link: public, password, internal (instance members) or guests invited by email, with an adjustable lifetime |
+| Sharing | By link, Window by Window: its Room only, internal (everyone in the Cahut), a Key (a password) or public, with an optional end date |
 | Versions | Two versions kept per publication, roll back in one gesture |
 | Comments | Reader feedback directly on the pages |
 | Search | Find any page, deck or dashboard across everything published |
 | Export | PDF and PowerPoint, for recipients still on Office |
 | House style | The organization's colors, fonts, logos and templates, given to every AI so everything comes out on brand |
-| Users and Rooms | Admin, users, personal and team Rooms, owners and members |
-| Web console | See what is published, share, comment, approve irreversible actions, administer the instance |
-| Domains and TLS | A domain or a wildcard, automatic certificates, fallback address without a domain |
+| Users and Rooms | The people of each Cahut and its admins, a personal Room for each person, team Rooms with owners and members |
+| Sign-in | Accounts of each Cahut, and single sign-on with OpenID Connect (Google, Microsoft Entra, Okta...) |
+| Web console | See what is published, share, comment, approve irreversible actions, administer the server and its Cahuts, on its own HTTPS port |
+| Domains and TLS | Several Cahuts per server, each at its own domain or subdomain, no wildcard needed, automatic certificates |
 | Logbook | History of every action: who, which AI, on whose behalf, with what result |
 | Backups | Optional, to external S3 or SFTP storage, restore from the console |
 | Updates | Automatic, checked against the releases published on GitHub, with rollback |
@@ -91,7 +92,7 @@ What Cahut does **not** do:
 - Run an AI model on the server: the AIs stay outside and connect to it.
 - Depend on one AI vendor, or lock work into a proprietary format.
 - Give an AI free access to the server.
-- Run across several machines: one instance, one machine.
+- Run across several machines: one server holds one or more Cahuts.
 
 ## Governance: knock first
 
@@ -102,37 +103,39 @@ The AI is the intended operator of Cahut, but never without guardrails.
 3. **The AI declares what it publishes.** Each publication states what it contains and what it does (an app that collects data, calls out, opens a form).
 4. **Per-agent permissions.** Each AI acts on behalf of a person, with the scope that person grants, revocable at any time.
 5. **Everything is logged.** Which AI, on whose behalf, which action, which result: the logbook is readable in the console.
-6. **Data stays home.** Everything lives on the instance's server. Backups only go to the external storage you choose.
-7. **Isolation.** Each app runs in an unprivileged container with its own resource limits, and on its own web origin as soon as a wildcard domain exists.
+6. **Data stays home.** Everything lives on your server. Backups only go to the external storage you choose.
+7. **Isolation.** Each Window runs in a sandbox: its scripts cannot read the other Windows, the console or the reader's session. Each app runs in an unprivileged container with its own resource limits. The Cahuts of one server share nothing but the machine.
 
 | The AI does it alone (reversible) | A human approves (irreversible) |
 | --- | --- |
-| Publish or update a page (the previous version is kept) | Permanently delete a page, an app or a database |
-| Restrict access, extend a lifetime | Make internal content public |
-| Deploy an app within the set limits | Invite an outside person |
+| Publish or update a Window (the previous version is kept) | Permanently delete a Window, an app or a database |
+| Restrict access, extend a lifetime | Make a Window public |
+| Deploy an app within the set limits | Add a person to a Cahut |
 | Roll back to the previous version | Change the permissions of a user or an AI |
 | Run a backup | Erase backups or change their destination |
 
 ## Vocabulary
 
-Cahut speaks the language of the home, in plain English.
+Cahut speaks the language of the house, in plain English.
 
 | Word | What it means |
 | --- | --- |
-| Home | The Cahut instance, on your server |
-| Room | A personal or team space, with its members |
-| Window | A living page: document, deck, dashboard or app |
-| Door | The share link, and its access level |
-| Key | The password or invitation that opens a protected page |
+| Cahut | An instance on your server, at its own domain. One server can hold several |
+| Room | A personal or team space, with its members, at `<domain>/<room>` |
+| Window | A living page: document, deck, dashboard or app, at `<domain>/<room>/<window>` |
+| Key | The password that opens a protected Window |
 | House style | The organization's brand, applied by every AI |
 | Knock first | The governance rule: the AI knocks before any irreversible action |
 | Logbook | The record of every action |
 
+Each Window opens to its Room only, to everyone in the Cahut, to anyone with its Key, or to the public.
+
 ## Requirements
 
-- One machine per instance: a VPS or a dedicated server.
+- One server, a VPS or a dedicated machine, for one or more Cahuts.
 - Minimum 2 vCPU, 4 GB of RAM, 40 GB of disk.
 - AlmaLinux or Ubuntu, from the provider's standard image.
+- One domain or subdomain per Cahut, pointing to the server. Ports 80, 443 and 8443 open.
 
 ## Installation
 
@@ -147,11 +150,12 @@ Cahut is written in **Go**: a new, clean codebase built for Cahut, which one per
 | Topic | Choice | Status |
 | --- | --- | --- |
 | Nature | A platform on a standard Linux, not an operating system | Decided |
+| Hosting | One server holds one or more Cahuts, each with its own domain, people and data | Decided |
 | Language | Go | Decided |
 | AI interface | MCP over HTTP with OAuth, forced-command SSH for the same operations | Decided |
-| Web console | A Preact app embedded in the binary, using the same API as the AIs: no capability is reserved for it | Decided |
-| Web and TLS | Built into the binary, automatic certificates with CertMagic, one subdomain per Window when a wildcard exists | Decided |
-| Database | SQLite in pure Go, so the binary stays static | Decided |
+| Web console | A Preact app embedded in the binary, on its own HTTPS port, using the same API as the AIs: no capability is reserved for it | Decided |
+| Web and TLS | Built into the binary, automatic certificates with CertMagic, Windows at paths of their Cahut's domain, each in a CSP sandbox | Decided |
+| Database | SQLite in pure Go, so the binary stays static, one database per Cahut | Decided |
 | Authorization | Cahut's own minimal OAuth 2.1 server, built for MCP clients | Decided |
 | Updates | Automatic, latest version checked on GitHub, rollback possible | Decided |
 | Backups | Optional, to external S3 or SFTP | Decided |
@@ -190,7 +194,7 @@ Success criteria for the launch:
 | Install on a fresh VPS | Under 10 minutes, one command |
 | First publication by an AI | Under 5 minutes, without touching the server |
 | Sharing by a non-technical person | A deck shared by link in a few minutes |
-| Supported AIs | The same instance works with at least two different AI clients |
+| Supported AIs | The same Cahut works with at least two different AI clients |
 | Governance | Every AI action is in the logbook, and is either reversible or was approved |
 
 ## Documentation
