@@ -52,7 +52,7 @@ claude mcp add --transport http cahut-dev http://localhost:8080/mcp --header "Au
 
 Windows open at `http://localhost:8080/<room>/<window>/`. To try a second Cahut, declare `beta.localhost` too: Chrome, Firefox and curl resolve `*.localhost` to this machine. Once the server holds several Cahuts, the commands that act in one take `--domain`. `go run ./cmd/cahut logbook --data tmp/dev` prints the Logbook of a Cahut.
 
-On a server, [install.sh](install.sh) installs a release, or a binary given with `--binary`, as the `cahut` systemd service, and declares the Cahut of `--domain`; run it with `--help`. Administration commands run as the service user: `sudo -u cahut cahut token create ...`.
+On a server, [install.sh](install.sh) installs a release, or a binary given with `--binary`, as the `cahut` systemd service, and declares the Cahut of `--domain`; run it with `--help`. Administration commands run as the service user, with the binary's full path, since sudo on AlmaLinux does not search `/usr/local/bin`: `sudo -u cahut /usr/local/bin/cahut token create ...`.
 
 CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on `main`: lint, tests, and a GoReleaser snapshot build that checks the linux/amd64 and linux/arm64 binaries are static. Pushing a `v*` tag runs [release.yml](.github/workflows/release.yml), which drafts a GitHub release with the archives and checksums; a person reviews and publishes it.
 
