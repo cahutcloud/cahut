@@ -1,0 +1,79 @@
+---
+// The rule of the house style: the pages a Cahut serves for an organization
+// carry the brand of that organization, and Cahut steps aside.
+import Download from './Download.astro';
+import Icon from './Icon.astro';
+import Section from './Section.astro';
+import { url } from './files';
+
+const badges = [
+	{ name: 'Hosted on Cahut', file: 'cahut-badge-hosted', background: 'white', use: 'On light footers' },
+	{ name: 'Hosted on Cahut, inverse', file: 'cahut-badge-hosted-inverse', background: 'ink', use: 'On dark footers' },
+];
+---
+
+<Section id="house-style" number="07" label="House style" title="Their brand comes first">
+	<Fragment slot="lead">
+		Cahut carries the house style of each organization. The pages a Cahut serves for an organization wear the brand of
+		that organization, not the brand of Cahut. Cahut's own brand is for its own screens: the console, the sign-in, the
+		e-mails it sends, and this site.
+	</Fragment>
+
+	<div class="b-house">
+		<figure class="c-card b-mock">
+			<div class="b-mock__page" aria-hidden="true">
+				<div class="b-mock__bar">
+					<span class="b-mock__logo">Their logo</span>
+					<span class="b-mock__line b-mock__line--short"></span>
+				</div>
+				<div class="b-mock__content">
+					<span class="b-mock__line b-mock__line--title"></span>
+					<span class="b-mock__line"></span>
+					<span class="b-mock__line"></span>
+					<span class="b-mock__line b-mock__line--half"></span>
+				</div>
+				<div class="b-mock__foot">
+					<span class="b-mock__line b-mock__line--short"></span>
+					<img src={url('logos/cahut-badge-hosted.svg')} alt="" height="24" />
+				</div>
+			</div>
+			<figcaption class="c-small c-muted">
+				A Window of an organization: its logo and its house style, and the badge in the footer if it wants one.
+			</figcaption>
+		</figure>
+
+		<div class="b-house__rules">
+			<ul class="b-list b-list--marks" role="list">
+				<li>
+					<Icon name="check" size={20} class="b-yes" />
+					<span>
+						A mention in the footer is optional. It uses the Hosted on Cahut badge, 32 px high at most.
+					</span>
+				</li>
+				<li>
+					<Icon name="cross" size={20} class="b-no" />
+					<span>Never put the Cahut logo above or next to the logo of the organization.</span>
+				</li>
+			</ul>
+
+			<ul class="b-grid b-grid--2" role="list">
+				{
+					badges.map((badge) => (
+						<li class="c-card b-tile">
+							<div class={`b-art b-art--${badge.background} b-art--small`}>
+								<img src={url(`logos/${badge.file}.svg`)} alt={badge.name} height="32" />
+							</div>
+							<div class="b-tile__body">
+								<p class="c-small c-muted">{badge.use}</p>
+								<p class="b-dls">
+									<Download file={`logos/${badge.file}.svg`} label="SVG" of={badge.name} />
+									<Download file={`logos/png/${badge.file}.png`} label="PNG" of={badge.name} />
+								</p>
+							</div>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</div>
+</Section>

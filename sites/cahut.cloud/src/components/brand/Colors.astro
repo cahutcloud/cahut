@@ -1,0 +1,249 @@
+---
+// The colors: the five of the brand with their roles and shares, their
+// scales, the contrast rules and the dark theme. Every value comes from
+// cahut-tokens.json; the swatches paint with the CSS variables of the tokens.
+import Icon from './Icon.astro';
+import Section from './Section.astro';
+import { cmyk, colorName, contrast, hex, rgb, scaleName, scales, stepOf, steps, target, textOn } from './tokens';
+
+const brand = [
+	{ key: 'paper', role: 'The main background.', share: 60 },
+	{ key: 'ink', role: 'Text, the logo, lines and dark backgrounds.', share: 22 },
+	{ key: 'sky', role: 'The accent: the app icon and active states.', share: 10 },
+	{ key: 'light-grey', role: 'Borders, dividers and relief.', share: 5 },
+	{ key: 'soft-yellow', role: 'Light, presence, and what waits for a decision.', share: 3 },
+].map((color) => {
+	const value = hex(`color.brand.${color.key}`);
+	return { ...color, name: colorName(`color.brand.${color.key}`), value, step: stepOf(value) };
+});
+
+// The pairs of the guidelines, from text that reads well to color that
+// should never carry text.
+const pairs = [
+	{ text: 'color.brand.ink', on: 'color.brand.paper', use: 'Body text' },
+	{ text: 'color.ink.600', on: 'color.brand.paper', use: 'Secondary text' },
+	{ text: 'color.sky.700', on: 'color.brand.paper', use: 'Links' },
+	{ text: 'color.brand.ink', on: 'color.brand.sky', use: 'Text on an accent button' },
+	{ text: 'color.brand.ink', on: 'color.brand.soft-yellow', use: 'Badges and highlights' },
+	{ text: 'color.brand.paper', on: 'color.ink.950', use: 'Text in the dark theme' },
+	{ text: 'color.brand.sky', on: 'color.ink.950', use: 'The accent in the dark theme' },
+	{ text: 'color.brand.sky', on: 'color.brand.paper', use: 'Never text: decoration and large shapes only' },
+	{ text: 'color.neutral.white', on: 'color.brand.sky', use: 'Never text: the app icon only' },
+].map((pair) => ({
+	...pair,
+	ratio: contrast(hex(pair.text), hex(pair.on)),
+	textName: colorName(pair.text),
+	onName: colorName(pair.on),
+}));
+
+// The main roles of the interface, and the colors they take in each theme.
+const roles = ['bg', 'surface', 'border', 'text', 'text-muted', 'accent', 'link', 'highlight'].map((role) => ({
+	role,
+	light: target(`role.light.${role}`),
+	dark: target(`role.dark.${role}`),
+}));
+
+/** The CSS variable of a color token, such as --cahut-ink-600 for color.ink.600. */
+function variable(reference: string): string {
+	const [, group, key] = reference.split('.');
+	return group === 'brand' || group === 'neutral' ? `var(--cahut-${key})` : `var(--cahut-${group}-${key})`;
+}
+---
+
+<Section id="colors" number="04" label="Colors" title="Warm paper, blue-grey ink, a touch of sky">
+	<Fragment slot="lead">
+		Five colors. Paper carries the page and Ink the text; Sky is the accent. Soft Yellow stays rare: it marks light,
+		presence, and what waits for a decision.
+	</Fragment>
+
+	<ul class="b-grid b-grid--5 b-swatches" role="list">
+		{
+			brand.map((color) => (
+				<li class="c-card b-swatch">
+					<div
+						class="b-swatch__chip"
+						style={`background: var(--cahut-${color.key}); color: ${textOn(color.value)}`}
+					>
+						<span class="b-swatch__name">{color.name}</span>
+						{color.step && <span class="c-small">{color.step}</span>}
+					</div>
+					<div class="b-swatch__body">
+						<p class="c-small">{color.role}</p>
+						<dl class="b-values">
+							<div>
+								<dt>HEX</dt>
+								<dd>
+									<button type="button" class="b-copy" data-copy={color.value}>
+										<span class="c-mono">{color.value}</span>
+										<span class="b-copy__state">
+											<Icon name="copy" size={14} />
+											<span class="b-sr">Copy</span>
+										</span>
+									</button>
+								</dd>
+							</div>
+							<div>
+								<dt>RGB</dt>
+								<dd class="c-mono">{rgb(color.value).join(' ')}</dd>
+							</div>
+							<div>
+								<dt>CMYK</dt>
+								<dd class="c-mono">{cmyk(color.value).join(' ')}</dd>
+							</div>
+							<div>
+								<dt>Share</dt>
+								<dd class="c-mono">{color.share}%</dd>
+							</div>
+						</dl>
+					</div>
+				</li>
+			))
+		}
+	</ul>
+	<p id="b-copied" class="b-sr" aria-live="polite"></p>
+	<p class="b-note c-small c-muted">
+		CMYK values are indicative conversions: ask the printer for a proof before an important print run. No Pantone
+		reference is set yet.
+	</p>
+
+	<div class="b-sub">
+		<h3 class="c-h3">Proportions</h3>
+		<p class="b-text">
+			On a page, the colors keep roughly these shares. One Sky accent per screen, and one yellow at most.
+		</p>
+		<div class="b-shares" aria-hidden="true">
+			{brand.map((color) => <span style={`flex-grow: ${color.share}; background: var(--cahut-${color.key})`} />)}
+		</div>
+		<ul class="b-legend" role="list">
+			{
+				brand.map((color) => (
+					<li>
+						<span class="b-dot" style={`background: var(--cahut-${color.key})`} />
+						{color.name} <span class="c-mono c-muted">{color.share}%</span>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+
+	<div class="b-sub">
+		<h3 class="c-h3">Shades</h3>
+		<p class="b-text">
+			For the interface, each color has a scale from 50 to 950, computed in OKLCH at a constant hue. The colors of the
+			brand are fixed points on these scales.
+		</p>
+		{
+			scales.map((scale) => (
+				<div class="b-scale">
+					<h4 class="b-family__name">{scaleName(scale)}</h4>
+					<ul class="b-scale__steps" role="list">
+						{steps(scale).map(({ step, hex: value }) => {
+							const anchor = brand.find((color) => color.value.toLowerCase() === value.toLowerCase());
+							return (
+								<li>
+									<span
+										class="b-scale__chip"
+										style={`background: var(--cahut-${scale}-${step}); color: ${textOn(value)}`}
+									>
+										<span class="c-mono">{step}</span>
+										{anchor && <span class="b-scale__anchor">{anchor.name}</span>}
+									</span>
+									<span class="c-mono b-scale__hex">{value}</span>
+								</li>
+							);
+						})}
+					</ul>
+				</div>
+			))
+		}
+	</div>
+
+	<div class="b-sub">
+		<h3 class="c-h3">Contrast</h3>
+		<p class="b-text">
+			The target is WCAG 2.2 level AA: 4.5:1 for body text, 3:1 for large text and interface elements. On Sky, write in
+			Ink, never in white. Sky and Soft Yellow never carry text on Paper. Information never relies on color alone: add
+			an icon or a word.
+		</p>
+		<ul class="c-card b-pairs" role="list">
+			{
+				pairs.map((pair) => {
+					const readable = pair.ratio >= 4.5;
+					return (
+						<li>
+							<span class="b-pairs__sample" style={`background: ${variable(pair.on)}; color: ${variable(pair.text)}`}>
+								Aa
+							</span>
+							<span class="b-pairs__what">
+								<b>
+									{pair.textName} on {pair.onName}
+								</b>
+								<span class="c-small c-muted">
+									<Icon name={readable ? 'check' : 'cross'} size={14} class={readable ? 'b-yes' : 'b-no'} />
+									{pair.use}
+								</span>
+							</span>
+							<span class="c-mono b-pairs__ratio">{pair.ratio.toFixed(1)}:1</span>
+						</li>
+					);
+				})
+			}
+		</ul>
+	</div>
+
+	<div class="b-sub">
+		<h3 class="c-h3">Dark theme</h3>
+		<p class="b-text">
+			In the dark theme, the background turns to Ink 950, surfaces to Ink 900 and 800, text to Paper and secondary text
+			to Ink 300. The accent stays Sky 400 and links turn to Sky 300. The logo switches to its inverse version. The
+			tokens switch on their own, with the system setting or <code class="c-mono">data-theme="dark"</code>.
+		</p>
+		<div class="c-card b-roles">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">Role</th>
+						<th scope="col">Light</th>
+						<th scope="col">Dark</th>
+					</tr>
+				</thead>
+				<tbody>
+					{
+						roles.map(({ role, light, dark }) => (
+							<tr>
+								<th scope="row" class="c-mono">
+									--color-{role}
+								</th>
+								{[light, dark].map((color) => (
+									<td>
+										<span class="b-dot" style={`background: ${variable(color)}`} />
+										{colorName(color)}
+									</td>
+								))}
+							</tr>
+						))
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</Section>
+
+<script>
+	// Copies a color code, and says so for a moment.
+	for (const button of document.querySelectorAll<HTMLButtonElement>('.b-copy')) {
+		button.addEventListener('click', async () => {
+			try {
+				await navigator.clipboard.writeText(button.dataset.copy ?? '');
+			} catch {
+				return;
+			}
+			button.dataset.copied = '';
+			const status = document.getElementById('b-copied');
+			if (status) {
+				status.textContent = `Copied ${button.dataset.copy}`;
+			}
+			setTimeout(() => delete button.dataset.copied, 1600);
+		});
+	}
+</script>

@@ -1,0 +1,84 @@
+---
+// The name, how to write it, and the voice of the house.
+import Icon from './Icon.astro';
+import Section from './Section.astro';
+
+const principles = [
+	'Short sentences and concrete verbs: publish, share, approve, roll back.',
+	'Say who acts: which AI, on whose behalf, with what result.',
+	'Reassure without alarm: no capitals for emphasis, no exclamation marks, no alert emoji.',
+	'No promises of AI magic: Cahut hosts the work, it does not create it.',
+	'Sentence case for titles, buttons and menus. Numbers in figures.',
+];
+
+const examples = [
+	{ write: 'Claude wants to make Q3 review public.', avoid: 'AI ACTION REQUIRED!!' },
+	{ write: 'Share a link, not a file.', avoid: 'Revolutionize your AI workflow.' },
+	{ write: 'Published. The previous version is kept.', avoid: 'Success! Your content has been deployed.' },
+	{ write: 'This Window closed yesterday.', avoid: 'Error 403: access forbidden.' },
+];
+---
+
+<Section id="name" number="01" label="The name" title="Cahut, with one capital">
+	<Fragment slot="lead">
+		Cahut comes from <i lang="fr">cahute</i>, the French word for a small hut you build yourself. It is a simple shelter
+		of your own, set in the cloud: cloud and hut at once.
+	</Fragment>
+
+	<ul class="b-grid b-grid--3 b-rules" role="list">
+		<li class="c-card b-rule">
+			<p class="b-rule__word"><Icon name="check" size={20} class="b-yes" /><span>Cahut</span></p>
+			<p class="c-small">
+				In running text, with a capital. An instance is a Cahut too: your Cahut, 3 Rooms in this Cahut.
+			</p>
+		</li>
+		<li class="c-card b-rule">
+			<p class="b-rule__word"><Icon name="cross" size={20} class="b-no" /><span>CAHUT</span></p>
+			<p class="c-small">Never in capitals, not even in a heading or on a button.</p>
+		</li>
+		<li class="c-card b-rule">
+			<p class="b-rule__word"><Icon name="check" size={20} class="b-yes" /><span class="c-mono">cahut</span></p>
+			<p class="c-small">
+				In lowercase only in the logo, which is drawn, not typed, and in commands such as
+				<code class="c-mono">cahut domain add</code>.
+			</p>
+		</li>
+	</ul>
+
+	<figure class="b-signature">
+		<p class="c-label">Signature</p>
+		<blockquote><p>Your own cloud for everything your AI makes.</p></blockquote>
+		<figcaption class="c-small">It goes with the logo on the site, on share images and on slides.</figcaption>
+	</figure>
+
+	<div class="b-sub">
+		<h3 class="c-h3">Voice</h3>
+		<p class="b-text">
+			Calm, precise and welcoming. Cahut speaks the language of the house, in plain English, and every technical idea
+			has a word that everyone understands.
+		</p>
+		<ul class="b-list">
+			{principles.map((principle) => <li>{principle}</li>)}
+		</ul>
+		<div class="c-card b-examples">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col"><Icon name="check" class="b-yes" />Write</th>
+						<th scope="col"><Icon name="cross" class="b-no" />Avoid</th>
+					</tr>
+				</thead>
+				<tbody>
+					{
+						examples.map(({ write, avoid }) => (
+							<tr>
+								<td>{write}</td>
+								<td>{avoid}</td>
+							</tr>
+						))
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</Section>

@@ -1,0 +1,21 @@
+---
+// A link to a file of the guidelines, copied into the build.
+import { name, url } from './files';
+
+interface Props {
+	/** The path of the file in docs/charte-graphique. */
+	file: string;
+	/** What the link shows, such as "SVG" or "PNG 1200". */
+	label: string;
+	/** What the file is, for screen readers, such as "Inverse logo". */
+	of?: string;
+	/** False to open the file in the browser instead of saving it. */
+	save?: boolean;
+}
+
+const { file, label, of, save = true } = Astro.props;
+---
+
+<a class="b-dl" href={url(file)} download={save ? name(file) : undefined}>
+	{of && <span class="b-sr">{of}, </span>}{label}
+</a>

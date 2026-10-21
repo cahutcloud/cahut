@@ -1,0 +1,192 @@
+---
+// The two typefaces and the hierarchy, with sizes and weights read from
+// cahut-tokens.json and samples set with the classes of the interface kit.
+import Download from './Download.astro';
+import Icon from './Icon.astro';
+import Section from './Section.astro';
+import { pixels, tokens } from './tokens';
+
+const weights = tokens.font.weight;
+
+const families = [
+	{
+		name: 'Plus Jakarta Sans',
+		by: 'Tokotype',
+		role: 'Headings, text and interface.',
+		sample: 'Aa',
+		class: 'b-face--sans',
+		weights: [
+			['Regular', weights.regular.$value],
+			['Medium', weights.medium.$value],
+			['SemiBold', weights.semibold.$value],
+			['Bold', weights.bold.$value],
+			['ExtraBold', weights.extrabold.$value],
+		],
+		fonts: 'https://fonts.google.com/specimen/Plus+Jakarta+Sans',
+		license: 'typographie/polices/OFL-PlusJakartaSans.txt',
+	},
+	{
+		name: 'IBM Plex Mono',
+		by: 'IBM',
+		role: 'Addresses, commands, color codes, timestamps and labels: what people type or copy.',
+		sample: 'Aa',
+		class: 'b-face--mono',
+		weights: [
+			['Regular', weights.regular.$value],
+			['Medium', weights.medium.$value],
+			['SemiBold', weights.semibold.$value],
+		],
+		fonts: 'https://fonts.google.com/specimen/IBM+Plex+Mono',
+		license: 'typographie/polices/OFL-IBMPlexMono.txt',
+	},
+];
+
+// The levels of the guidelines, with the size token each one uses.
+const levels = [
+	{
+		name: 'Display',
+		size: '5xl',
+		weight: weights.extrabold.$value,
+		tracking: '−2%',
+		class: 'c-display',
+		sample: 'Your own cloud',
+	},
+	{
+		name: 'Heading 1',
+		size: '4xl',
+		weight: weights.extrabold.$value,
+		tracking: '−1%',
+		class: 'c-h1',
+		sample: 'Windows in this Room',
+	},
+	{
+		name: 'Heading 2',
+		size: '3xl',
+		weight: weights.bold.$value,
+		tracking: '−1%',
+		class: 'c-h2',
+		sample: 'Knock first',
+	},
+	{
+		name: 'Heading 3',
+		size: '2xl',
+		weight: weights.bold.$value,
+		class: 'c-h3',
+		sample: 'Claude wants to make Q3 review public',
+	},
+	{ name: 'Heading 4', size: 'xl', weight: weights.semibold.$value, class: 'c-h4', sample: 'Logbook' },
+	{
+		name: 'Large text',
+		size: 'lg',
+		weight: weights.regular.$value,
+		class: 'b-level--lg',
+		sample: 'Published. The previous version is kept.',
+	},
+	{
+		name: 'Text',
+		size: 'base',
+		weight: weights.regular.$value,
+		class: 'b-level--base',
+		sample: 'Share a link, not a file. A Window opens to its Room only, unless you give it a Key.',
+	},
+	{
+		name: 'Small text',
+		size: 'sm',
+		weight: weights.regular.$value,
+		class: 'c-small',
+		sample: 'Updated 2 hours ago by Claude, for Ana.',
+	},
+	{
+		name: 'Label',
+		size: 'xs',
+		weight: weights.medium.$value,
+		tracking: '+12%',
+		mono: true,
+		class: 'c-label',
+		sample: 'Room only',
+	},
+	{
+		name: 'Code',
+		size: 'sm',
+		weight: weights.regular.$value,
+		mono: true,
+		class: 'c-mono c-small',
+		sample: 'cahut token create --user you',
+	},
+].map((level) => ({ ...level, px: pixels('size', level.size), leading: pixels('line-height', level.size) }));
+---
+
+<Section id="type" number="05" label="Type" title="Two open typefaces">
+	<Fragment slot="lead">
+		Plus Jakarta Sans for headings, text and interface, IBM Plex Mono for what people type or copy. Both are free
+		under the SIL Open Font License.
+	</Fragment>
+
+	<ul class="b-grid b-grid--2" role="list">
+		{
+			families.map((family) => (
+				<li class="c-card b-face">
+					<p class:list={['b-face__sample', family.class]} aria-hidden="true">
+						{family.sample}
+					</p>
+					<h3 class="c-h3">{family.name}</h3>
+					<p class="c-small c-muted">
+						{family.role} By {family.by}.
+					</p>
+					<ul class:list={['b-face__weights', family.class]} role="list">
+						{family.weights.map(([name, weight]) => (
+							<li style={`font-weight: ${weight}`}>
+								{name} <span class="c-mono c-muted">{weight}</span>
+							</li>
+						))}
+					</ul>
+					<p class="b-dls">
+						<a class="b-dl" href={family.fonts}>
+							Google Fonts <Icon name="external" size={14} />
+						</a>
+						<Download file={family.license} label="License, SIL OFL 1.1" of={family.name} />
+					</p>
+				</li>
+			))
+		}
+	</ul>
+
+	<div class="b-sub">
+		<h3 class="c-h3">Hierarchy</h3>
+		<ul class="c-card b-levels" role="list">
+			{
+				levels.map((level) => (
+					<li>
+						<p class="b-levels__spec">
+							<b>{level.name}</b>
+							<span class="c-mono c-muted c-small">
+								{level.mono && 'Mono '}
+								{level.px}/{level.leading} px · {level.weight}
+								{level.tracking && ` · ${level.tracking}`}
+							</span>
+						</p>
+						<p class={level.class}>{level.sample}</p>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+
+	<div class="b-sub">
+		<h3 class="c-h3">Rules</h3>
+		<ul class="b-list">
+			<li>Titles in sentence case, with no final period, except for a tagline.</li>
+			<li>Text aligned left, never justified, in lines of 60 to 80 characters.</li>
+			<li>
+				IBM Plex Mono for addresses, commands, color codes and Logbook timestamps: <code class="c-mono"
+					>cahut.cloud</code
+				>.
+			</li>
+			<li>Two weights at most in one block.</li>
+			<li>
+				Fallbacks: <code class="c-mono">system-ui</code> and <code class="c-mono">ui-monospace</code> on the web, Arial
+				and Consolas in a slide deck for a computer without the fonts.
+			</li>
+		</ul>
+	</div>
+</Section>

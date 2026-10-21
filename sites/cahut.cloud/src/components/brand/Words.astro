@@ -1,0 +1,97 @@
+---
+// The vocabulary of the house, with its pictograms, and the access of a Window.
+import Download from './Download.astro';
+import Icon from './Icon.astro';
+import Section from './Section.astro';
+import { source } from './files';
+
+const words = [
+	{
+		word: 'Cahut',
+		file: 'cahut',
+		meaning: 'An instance on your server, at its own domain. One server can hold several.',
+		address: '<domain>',
+	},
+	{ word: 'Room', file: 'room', meaning: 'A personal or team space, with its members.', address: '<domain>/<room>' },
+	{
+		word: 'Window',
+		file: 'window',
+		meaning: 'A living page: a document, a deck, a dashboard or an app.',
+		address: '<domain>/<room>/<window>',
+	},
+	{ word: 'Key', file: 'key', meaning: 'The password that opens a protected Window.' },
+	{ word: 'House style', file: 'house-style', meaning: 'The brand of the organization, applied by every AI.' },
+	{ word: 'Knock first', file: 'knock-first', meaning: 'The AI asks before any action that cannot be undone.' },
+	{ word: 'Logbook', file: 'logbook', meaning: 'The record of every action.' },
+];
+
+const access = [
+	{ badge: 'room', icon: 'lock', label: 'Room only', meaning: 'Its Room, the default' },
+	{ badge: 'internal', icon: 'users', label: 'Internal', meaning: 'Everyone signed in to its Cahut' },
+	{ badge: 'key', icon: 'key', label: 'Key', meaning: 'Anyone with its Key' },
+	{ badge: 'public', icon: 'globe', label: 'Public', meaning: 'The public' },
+] as const;
+---
+
+<Section id="words" number="02" label="The words of the house" title="One plain word for each idea">
+	<Fragment slot="lead">
+		Use these words in the interface, the docs and the site. Cahut, Room, Window and Key take a capital in running
+		text: 3 Rooms in your Cahut.
+	</Fragment>
+
+	<ul class="b-grid b-words" role="list">
+		{
+			words.map(({ word, file, meaning, address }) => (
+				<li class="c-card b-word">
+					<span class="b-pictogram" aria-hidden="true" set:html={source(`icones/${file}.svg`)} />
+					<h3 class="b-word__name">{word}</h3>
+					<p class="c-small c-muted">{meaning}</p>
+					{address && <p class="b-word__address c-mono">{address}</p>}
+					<p class="b-dls">
+						<Download file={`icones/${file}.svg`} label="SVG" of={`${word} pictogram`} />
+					</p>
+				</li>
+			))
+		}
+	</ul>
+
+	<div class="b-sub">
+		<h3 class="c-h3">The access of a Window</h3>
+		<p class="b-text">
+			A Window opens to its Room only, to everyone signed in to its Cahut, to anyone with its Key, or to the public.
+			The word Door is gone: speak of the access of a Window. Each access always shows an icon and a word, never a
+			color alone.
+		</p>
+		<ul class="b-access" role="list">
+			{
+				access.map(({ badge, icon, label, meaning }) => (
+					<li>
+						<span class={`c-badge c-badge--${badge}`}>
+							<Icon name={icon} size={14} />
+							{label}
+						</span>
+						<span class="c-small c-muted">{meaning}</span>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+
+	<div class="b-sub">
+		<h3 class="c-h3">Pictograms and icons</h3>
+		<ul class="b-list">
+			<li>
+				The pictograms above illustrate the words of the house on the site, in the docs, on empty screens and on the
+				welcome page. Never below 32 px.
+			</li>
+			<li>
+				They sit on a 64 px grid, with a 3 px line and rounded ends. The line takes the color of the text; each
+				pictogram has one accent: Sky for surfaces and objects, Soft Yellow for light or waiting.
+			</li>
+			<li>
+				Interface icons come from <a class="c-link" href="https://lucide.dev">Lucide</a>: a 24 px grid, a 2 px line,
+				the color of the text, at 16, 20 or 24 px. An important action always has a text label next to its icon.
+			</li>
+		</ul>
+	</div>
+</Section>
