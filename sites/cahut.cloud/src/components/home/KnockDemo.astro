@@ -1,0 +1,256 @@
+---
+// A request that knocks first, as the console shows it. The visitor approves
+// or declines it, and the answer goes to the Logbook.
+import Icon from '../Icon.astro';
+---
+
+<div class="knock" data-knock>
+	<div class="knock__head">
+		<span class="knock__bell"><Icon name="bell" size={16} /></span>
+		<p><b>Knock first</b> <span class="c-muted">· the console of your Cahut</span></p>
+		<span class="c-badge c-badge--neutral knock__count" data-knock-count>1 waiting</span>
+	</div>
+
+	<div class="c-card c-knock knock__card" data-knock-card>
+		<div class="c-knock__head">
+			<span class="c-ai"><span class="c-ai__mark">Cl</span>Claude</span>
+			<span class="c-badge c-badge--warning knock__state" data-knock-state><span class="c-dot"></span>Waiting</span>
+		</div>
+		<p>Wants to make <b>Q3 review</b> public. Today it opens to anyone with its Key.</p>
+		<p class="c-mono c-muted knock__meta">expires in 23 h · on behalf of Olivier</p>
+		<div class="c-knock__actions knock__actions" data-knock-actions>
+			<button type="button" class="c-btn c-btn--primary c-btn--sm" data-knock-answer="approve">
+				<Icon name="check" size={14} />Approve
+			</button>
+			<button type="button" class="c-btn c-btn--secondary c-btn--sm" data-knock-answer="decline">Decline</button>
+		</div>
+		<p class="knock__result" data-knock-result role="status"></p>
+	</div>
+
+	<div class="knock__log">
+		<p class="c-label">Logbook · today</p>
+		<ol class="c-log" role="list" data-knock-log>
+			<li class="c-log__row">
+				<span class="c-log__time">09:31</span>
+				<span><span class="c-ai"><span class="c-ai__mark">Cl</span>Claude</span> asked to make <b>Q3 review</b> public</span>
+				<span class="c-badge c-badge--warning">Waiting</span>
+			</li>
+			<li class="c-log__row">
+				<span class="c-log__time">09:20</span>
+				<span><span class="c-ai"><span class="c-ai__mark">Cl</span>Claude</span> gave <b>Q3 review</b> a Key</span>
+				<span class="c-badge c-badge--success">Done</span>
+			</li>
+			<li class="c-log__row">
+				<span class="c-log__time">09:14</span>
+				<span><span class="c-ai"><span class="c-ai__mark">Cl</span>Claude</span> published <b>Q3 review</b></span>
+				<span class="c-badge c-badge--success">Done</span>
+			</li>
+		</ol>
+	</div>
+
+	<button type="button" class="c-btn c-btn--ghost c-btn--sm knock__again" data-knock-again hidden>
+		<Icon name="undo-2" size={14} />Ask again
+	</button>
+</div>
+
+<script>
+	document.querySelectorAll<HTMLElement>('[data-knock]').forEach((root) => {
+		const card = root.querySelector<HTMLElement>('[data-knock-card]')!;
+		const state = root.querySelector<HTMLElement>('[data-knock-state]')!;
+		const count = root.querySelector<HTMLElement>('[data-knock-count]')!;
+		const actions = root.querySelector<HTMLElement>('[data-knock-actions]')!;
+		const result = root.querySelector<HTMLElement>('[data-knock-result]')!;
+		const log = root.querySelector<HTMLOListElement>('[data-knock-log]')!;
+		const again = root.querySelector<HTMLButtonElement>('[data-knock-again]')!;
+		const waiting = log.firstElementChild!.querySelector('.c-badge')!;
+		const initial = { state: state.innerHTML, count: count.textContent, waiting: waiting.outerHTML };
+
+		const answers = {
+			approve: {
+				badge: '<span class="c-badge c-badge--success">Approved</span>',
+				state: 'c-badge--success',
+				result: 'Approved. Q3 review is public, and Claude knows it.',
+				log: 'approved making <b>Q3 review</b> public',
+				done: '<span class="c-badge c-badge--success">Done</span>',
+			},
+			decline: {
+				badge: '<span class="c-badge c-badge--danger">Declined</span>',
+				state: 'c-badge--danger',
+				result: 'Declined. Q3 review keeps its Key, and Claude knows it.',
+				log: 'declined making <b>Q3 review</b> public',
+				done: '<span class="c-badge c-badge--danger">Declined</span>',
+			},
+		};
+
+		root.querySelectorAll<HTMLButtonElement>('[data-knock-answer]').forEach((button) =>
+			button.addEventListener('click', () => {
+				const answer = answers[button.dataset.knockAnswer as keyof typeof answers];
+				state.className = `c-badge ${answer.state} knock__state`;
+				state.textContent = answer.badge.replace(/<[^>]+>/g, '');
+				count.textContent = 'Nothing waits';
+				root.classList.add('is-answered');
+				card.classList.add(`is-${button.dataset.knockAnswer}`);
+				result.textContent = answer.result;
+
+				log.firstElementChild!.querySelector('.c-badge')!.outerHTML = answer.badge;
+				const row = document.createElement('li');
+				row.className = 'c-log__row knock__new';
+				row.innerHTML = `<span class="c-log__time">09:33</span><span><span class="c-ai"><span class="c-ai__mark">OD</span>Olivier</span> ${answer.log}</span>${answer.done}`;
+				log.prepend(row);
+				again.hidden = false;
+				again.focus({ preventScroll: true });
+			}),
+		);
+
+		again.addEventListener('click', () => {
+			root.classList.remove('is-answered');
+			card.classList.remove('is-approve', 'is-decline');
+			state.className = 'c-badge c-badge--warning knock__state';
+			state.innerHTML = initial.state;
+			count.textContent = initial.count;
+			result.textContent = '';
+			log.querySelector('.knock__new')?.remove();
+			log.firstElementChild!.querySelector('.c-badge')!.outerHTML = initial.waiting;
+			again.hidden = true;
+			root.querySelector<HTMLButtonElement>('[data-knock-answer="approve"]')!.focus({ preventScroll: true });
+		});
+	});
+</script>
+
+<style>
+	.knock {
+		display: grid;
+		gap: var(--space-4);
+		padding: var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-xl);
+		background: var(--color-surface-muted);
+	}
+	.knock p {
+		margin: 0;
+	}
+	.knock__head {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	.knock__bell {
+		display: grid;
+		place-items: center;
+		width: var(--space-8);
+		height: var(--space-8);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: 50%;
+		background: var(--color-surface);
+		color: var(--color-text);
+	}
+	.knock__count {
+		margin-left: auto;
+	}
+	.knock__card {
+		padding: var(--space-5);
+		box-shadow: var(--shadow-md);
+		transition: border-color var(--duration-slow) var(--ease-out);
+	}
+	.knock__card.is-approve {
+		border-left-color: var(--color-success);
+	}
+	.knock__card.is-decline {
+		border-left-color: var(--color-border-strong);
+	}
+	.knock__state {
+		margin-left: auto;
+	}
+	.knock__meta {
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+	}
+	.knock__actions .c-btn {
+		height: 36px;
+		padding-inline: var(--space-4);
+		font-size: var(--text-sm);
+	}
+	.is-answered .knock__actions {
+		display: none;
+	}
+	.knock__result {
+		display: none;
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+		font-weight: var(--weight-semibold);
+	}
+	.is-answered .knock__result {
+		display: block;
+	}
+	.knock__log {
+		display: grid;
+		gap: var(--space-2);
+		padding: var(--space-4) var(--space-5);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+	.knock__log .c-log {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.knock__again {
+		justify-self: start;
+	}
+
+	/* The bell rings now and then while the request waits. */
+	@media (prefers-reduced-motion: no-preference) {
+		.knock:not(.is-answered) .knock__bell :global(.i) {
+			transform-origin: 50% 10%;
+			animation: ring 4s var(--ease-out) 1s infinite;
+		}
+		.knock :global(.knock__new) {
+			animation: arrive 600ms var(--ease-out);
+		}
+		.knock__result {
+			animation: arrive 500ms var(--ease-out);
+		}
+	}
+	@keyframes ring {
+		0%,
+		30%,
+		100% {
+			rotate: 0deg;
+		}
+		5%,
+		15% {
+			rotate: 14deg;
+		}
+		10%,
+		20% {
+			rotate: -12deg;
+		}
+	}
+	@keyframes arrive {
+		from {
+			opacity: 0;
+			translate: 0 calc(-1 * var(--space-2));
+		}
+	}
+
+	@media (max-width: 640px) {
+		.knock {
+			padding: var(--space-4);
+		}
+		.knock__head .c-muted {
+			display: none;
+		}
+		.knock__card {
+			padding: var(--space-4);
+		}
+		.knock__log {
+			padding: var(--space-3) var(--space-4);
+		}
+		.knock__log .c-log__row {
+			grid-template-columns: 40px 1fr auto;
+		}
+	}
+</style>

@@ -1,0 +1,238 @@
+---
+// The address of a Window, read part by part: the domain is the Cahut, then
+// the Room, then the Window. The parts light up in turn once in view, and on
+// hover or focus.
+import cahutPicto from '@charte/icones/cahut.svg?raw';
+import roomPicto from '@charte/icones/room.svg?raw';
+import windowPicto from '@charte/icones/window.svg?raw';
+
+const parts = [
+	{
+		id: 'cahut',
+		text: 'cahut.example.com',
+		word: 'Cahut',
+		picto: cahutPicto,
+		meaning: 'Your instance, at its own domain. One server can hold several, each with its own people and database.',
+	},
+	{
+		id: 'room',
+		text: 'marketing',
+		word: 'Room',
+		picto: roomPicto,
+		meaning: 'A personal or team space, with its members. Each person has their own Room.',
+	},
+	{
+		id: 'window',
+		text: 'q3-review',
+		word: 'Window',
+		picto: windowPicto,
+		meaning: 'A living page: document, deck, dashboard or app. It keeps its previous version.',
+	},
+];
+---
+
+<div class="address" data-address>
+	<p class="address__line c-mono">
+		<span class="address__scheme">https://</span>
+		{
+			parts.map(({ id, text }, index) => (
+				<>
+					{index > 0 && <span class="address__slash">/</span>}
+					<button type="button" class="address__part" data-part={id} aria-describedby={`address-${id}`}>
+						{text}
+					</button>
+				</>
+			))
+		}
+	</p>
+	<ol class="address__parts" role="list">
+		{
+			parts.map(({ id, word, picto, meaning }) => (
+				<li class="address__meaning" data-meaning={id} id={`address-${id}`}>
+					<span class="address__picto" aria-hidden="true" set:html={picto} />
+					<span>
+						<strong>{word}</strong>
+						<span class="c-muted">{meaning}</span>
+					</span>
+				</li>
+			))
+		}
+	</ol>
+</div>
+
+<script>
+	document.querySelectorAll<HTMLElement>('[data-address]').forEach((root) => {
+		const ids = [...root.querySelectorAll<HTMLElement>('[data-part]')].map((part) => part.dataset.part!);
+		const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		let timer = 0;
+		let index = -1;
+
+		const light = (id: string | null) => {
+			root.dataset.lit = id ?? '';
+		};
+		const step = () => {
+			index = (index + 1) % ids.length;
+			light(ids[index]);
+		};
+		const stop = () => clearInterval(timer);
+
+		root.querySelectorAll<HTMLElement>('[data-part], [data-meaning]').forEach((element) => {
+			const id = element.dataset.part ?? element.dataset.meaning!;
+			const enter = () => {
+				stop();
+				light(id);
+			};
+			element.addEventListener('pointerenter', enter);
+			element.addEventListener('focus', enter);
+			element.addEventListener('click', enter);
+		});
+
+		if (reduced) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (!entry.isIntersecting) return;
+				observer.disconnect();
+				step();
+				timer = window.setInterval(step, 2400);
+			},
+			{ threshold: 0.6 },
+		);
+		observer.observe(root);
+	});
+</script>
+
+<style>
+	.address {
+		display: grid;
+		gap: var(--space-8);
+	}
+	.address p {
+		margin: 0;
+	}
+	.address__line {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		row-gap: var(--space-2);
+		padding: var(--space-5) var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+		box-shadow: var(--shadow-md);
+		font-size: clamp(var(--text-base), 2.6vw, var(--text-2xl));
+		line-height: var(--leading-2xl);
+	}
+	.address__scheme,
+	.address__slash {
+		color: var(--color-text-disabled);
+	}
+	.address__slash {
+		padding-inline: 0.15em;
+	}
+	.address__part {
+		position: relative;
+		padding: 0 0.15em;
+		border: 0;
+		border-radius: var(--radius-sm);
+		background: none;
+		color: var(--color-text);
+		font: inherit;
+		cursor: pointer;
+		transition:
+			background var(--duration-slow) var(--ease-out),
+			color var(--duration-slow) var(--ease-out);
+	}
+	/* A line draws under the part that is lit. */
+	.address__part::after {
+		content: '';
+		position: absolute;
+		left: 0.15em;
+		right: 0.15em;
+		bottom: -0.2em;
+		height: 3px;
+		border-radius: var(--radius-pill);
+		background: var(--color-accent);
+		transform: scaleX(0);
+		transform-origin: left;
+		transition: transform 500ms var(--ease-out);
+	}
+	[data-lit='cahut'] [data-part='cahut'],
+	[data-lit='room'] [data-part='room'],
+	[data-lit='window'] [data-part='window'] {
+		background: var(--color-accent-soft);
+	}
+	[data-lit='cahut'] [data-part='cahut']::after,
+	[data-lit='room'] [data-part='room']::after,
+	[data-lit='window'] [data-part='window']::after {
+		transform: none;
+	}
+
+	.address__parts {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--space-6);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.address__meaning {
+		display: grid;
+		grid-template-columns: var(--space-12) minmax(0, 1fr);
+		align-items: start;
+		gap: var(--space-4);
+		padding: var(--space-4);
+		border: var(--border-width) solid transparent;
+		border-radius: var(--radius-lg);
+		transition:
+			background var(--duration-slow) var(--ease-out),
+			border-color var(--duration-slow) var(--ease-out),
+			opacity var(--duration-slow) var(--ease-out);
+	}
+	.address__meaning > span:last-child {
+		display: grid;
+		gap: var(--space-1);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	.address__meaning strong {
+		font-size: var(--text-xl);
+		line-height: var(--leading-xl);
+	}
+	[data-lit]:not([data-lit='']) .address__meaning {
+		opacity: 0.55;
+	}
+	[data-lit='cahut'] [data-meaning='cahut'],
+	[data-lit='room'] [data-meaning='room'],
+	[data-lit='window'] [data-meaning='window'] {
+		border-color: var(--color-border);
+		background: var(--color-surface);
+		opacity: 1;
+	}
+	.address__picto {
+		display: block;
+		width: var(--space-12);
+		height: var(--space-12);
+		color: var(--color-text);
+	}
+	.address__picto :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		color: inherit;
+	}
+
+	@media (max-width: 900px) {
+		.address__parts {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-2);
+		}
+	}
+	@media (max-width: 640px) {
+		.address__line {
+			padding: var(--space-4);
+		}
+		.address__scheme {
+			display: none;
+		}
+	}
+</style>

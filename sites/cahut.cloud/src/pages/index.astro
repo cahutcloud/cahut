@@ -1,37 +1,45 @@
 ---
-import Icon from '../components/Icon.astro';
+import Icon, { type IconName } from '../components/Icon.astro';
+import Address from '../components/home/Address.astro';
+import Flow from '../components/home/Flow.astro';
+import Hero from '../components/home/Hero.astro';
+import KnockDemo from '../components/home/KnockDemo.astro';
+import LinkNotFile from '../components/home/LinkNotFile.astro';
 import Base from '../layouts/Base.astro';
 import cahutPicto from '@charte/icones/cahut.svg?raw';
 import houseStylePicto from '@charte/icones/house-style.svg?raw';
 import keyPicto from '@charte/icones/key.svg?raw';
 import knockFirstPicto from '@charte/icones/knock-first.svg?raw';
 import logbookPicto from '@charte/icones/logbook.svg?raw';
-import roomPicto from '@charte/icones/room.svg?raw';
-import windowPicto from '@charte/icones/window.svg?raw';
-import openHouse from '@charte/illustrations/maison-ouverte.svg?url';
+import symbol from '@charte/logos/cahut-symbole.svg?raw';
 
 const github = 'https://github.com/getcahut/cahut';
 const docs = 'https://docs.cahut.cloud';
 
-const problems = [
+const problems: { title: string; text: string; icon: IconName }[] = [
 	{
 		title: 'Scattered',
+		icon: 'shuffle',
 		text: 'A Claude link here, a ChatGPT link there, a Gamma deck somewhere else. Each AI keeps what it makes on its own service.',
 	},
 	{
 		title: 'Converted back',
+		icon: 'undo-2',
 		text: 'For lack of anything better, the result is turned back into a PowerPoint or a Word file so it can be shared and filed.',
 	},
 	{
 		title: 'Uncontrolled',
+		icon: 'eye-off',
 		text: 'Who has access, until when, which version is the right one, where the data lives. Nobody really knows.',
 	},
 	{
 		title: 'Inconsistent',
+		icon: 'palette',
 		text: "Every AI has its own style, and the organization's brand gets lost.",
 	},
 	{
 		title: 'Unguarded',
+		icon: 'terminal',
 		text: 'Handing a server to an AI means giving it a root shell, or going through a platform built for humans that it can barely use.',
 	},
 ];
@@ -41,78 +49,122 @@ const layers = [
 		layer: 'Create',
 		who: 'The AIs',
 		what: 'Claude, ChatGPT, Mistral, Copilot and others make the content: documents, decks, dashboards, apps.',
+		tags: ['Claude', 'ChatGPT', 'Mistral', 'Copilot'],
 	},
 	{
 		layer: 'Keep and share',
 		who: 'Cahut, on your server',
-		what: 'Publishing, links, permissions, versions, comments, search, export and the logbook.',
+		what: 'Publishing, links, permissions, versions, comments, search, export and the Logbook.',
+		tags: ['Publish', 'Share', 'Versions', 'Comments', 'Search', 'Export', 'Logbook'],
+		home: true,
 	},
 	{
 		layer: 'Look and feel',
 		who: 'The house style, carried by Cahut',
 		what: 'Your colors and formats, given to every AI as templates and skills.',
+		tags: ['Colors', 'Fonts', 'Logos', 'Templates'],
 	},
 ];
 
-const features = [
+type Feature = { area: string; text: string; icon: IconName };
+
+const featureGroups: { title: string; text: string; features: Feature[] }[] = [
 	{
-		area: 'Installation',
-		text: 'One command on a fresh VPS or dedicated server (AlmaLinux or Ubuntu), a guided first start, and the linking of the admin and their first AI.',
+		title: 'Publish',
+		text: 'What the AIs make, online at its own address.',
+		features: [
+			{
+				area: 'Pages',
+				icon: 'file-text',
+				text: 'Documents, decks, dashboards and static sites, each at its own address in its Room.',
+			},
+			{
+				area: 'Apps',
+				icon: 'box',
+				text: 'Predefined runtimes, such as Node and Python, and an advanced Dockerfile mode. Variables and secrets, PostgreSQL or SQLite databases, runtime logs, resource limits.',
+			},
+			{
+				area: 'Versions',
+				icon: 'history',
+				text: 'Two versions kept per publication. Roll back in one gesture.',
+			},
+			{ area: 'Search', icon: 'search', text: 'Find any page, deck or dashboard across everything published.' },
+			{ area: 'Export', icon: 'file-down', text: 'PDF and PowerPoint, for recipients still on Office.' },
+		],
 	},
 	{
-		area: 'AI access',
-		text: 'A native MCP server (HTTP, OAuth) and one skill per AI client, packaged as a plugin where the client allows it: Claude first, then ChatGPT, Mistral, Copilot and others. SSH access limited to the same operations, for terminal AIs.',
+		title: 'Connect',
+		text: 'Every AI, one door, your style.',
+		features: [
+			{
+				area: 'AI access',
+				icon: 'plug',
+				text: 'A native MCP server (HTTP, OAuth) and one skill per AI client, packaged as a plugin where the client allows it: Claude first, then ChatGPT, Mistral, Copilot and others. SSH access limited to the same operations, for terminal AIs.',
+			},
+			{
+				area: 'House style',
+				icon: 'palette',
+				text: "The organization's colors, fonts, logos and templates, given to every AI so everything comes out on brand.",
+			},
+		],
 	},
 	{
-		area: 'Pages',
-		text: 'Documents, decks, dashboards and static sites, each at its own address in its Room.',
+		title: 'Share',
+		text: 'A link, opened to the right people.',
+		features: [
+			{
+				area: 'Sharing',
+				icon: 'link',
+				text: 'By link, Window by Window: its Room only, internal (everyone in the Cahut), a Key (a password) or public, with an optional end date.',
+			},
+			{ area: 'Comments', icon: 'message-square', text: 'Reader feedback directly on the pages.' },
+			{
+				area: 'Users and Rooms',
+				icon: 'users',
+				text: 'The people of each Cahut and its admins, a personal Room for each person, team Rooms with owners and members.',
+			},
+			{
+				area: 'Sign-in',
+				icon: 'log-in',
+				text: 'Accounts of each Cahut, and single sign-on with OpenID Connect: Google, Microsoft Entra, Okta and others.',
+			},
+		],
 	},
 	{
-		area: 'Apps',
-		text: 'Predefined runtimes, such as Node and Python, and an advanced Dockerfile mode. Variables and secrets, PostgreSQL or SQLite databases, runtime logs, resource limits.',
-	},
-	{
-		area: 'Sharing',
-		text: 'By link, Window by Window: its Room only, internal (everyone in the Cahut), a Key (a password) or public, with an optional end date.',
-	},
-	{
-		area: 'Versions',
-		text: 'Two versions kept per publication. Roll back in one gesture.',
-	},
-	{ area: 'Comments', text: 'Reader feedback directly on the pages.' },
-	{ area: 'Search', text: 'Find any page, deck or dashboard across everything published.' },
-	{ area: 'Export', text: 'PDF and PowerPoint, for recipients still on Office.' },
-	{
-		area: 'House style',
-		text: "The organization's colors, fonts, logos and templates, given to every AI so everything comes out on brand.",
-	},
-	{
-		area: 'Users and Rooms',
-		text: 'The people of each Cahut and its admins, a personal Room for each person, team Rooms with owners and members.',
-	},
-	{
-		area: 'Sign-in',
-		text: 'Accounts of each Cahut, and single sign-on with OpenID Connect: Google, Microsoft Entra, Okta and others.',
-	},
-	{
-		area: 'Web console',
-		text: 'See what is published, share, comment, approve irreversible actions, administer the server and its Cahuts, on its own HTTPS port.',
-	},
-	{
-		area: 'Domains and TLS',
-		text: 'Several Cahuts per server, each at its own domain or subdomain. No wildcard needed, automatic certificates.',
-	},
-	{
-		area: 'Logbook',
-		text: 'The history of every action: who, which AI, on whose behalf, with what result.',
-	},
-	{
-		area: 'Backups',
-		text: 'Optional, to external S3 or SFTP storage. Restore from the console.',
-	},
-	{
-		area: 'Updates',
-		text: 'Automatic, checked against the releases published on GitHub, with rollback.',
+		title: 'Run',
+		text: 'One server of your own, kept in order.',
+		features: [
+			{
+				area: 'Installation',
+				icon: 'terminal',
+				text: 'One command on a fresh VPS or dedicated server (AlmaLinux or Ubuntu), a guided first start, and the linking of the admin and their first AI.',
+			},
+			{
+				area: 'Web console',
+				icon: 'monitor-cog',
+				text: 'See what is published, share, comment, approve irreversible actions, administer the server and its Cahuts, on its own HTTPS port.',
+			},
+			{
+				area: 'Domains and TLS',
+				icon: 'globe',
+				text: 'Several Cahuts per server, each at its own domain or subdomain. No wildcard needed, automatic certificates.',
+			},
+			{
+				area: 'Logbook',
+				icon: 'scroll-text',
+				text: 'The history of every action: who, which AI, on whose behalf, with what result.',
+			},
+			{
+				area: 'Backups',
+				icon: 'hard-drive-upload',
+				text: 'Optional, to external S3 or SFTP storage. Restore from the console.',
+			},
+			{
+				area: 'Updates',
+				icon: 'refresh-cw',
+				text: 'Automatic, checked against the releases published on GitHub, with rollback.',
+			},
+		],
 	},
 ];
 
@@ -140,55 +192,45 @@ const approved = [
 	'Erase backups or change their destination',
 ];
 
-const principles = [
+const principles: { title: string; text: string; icon: IconName }[] = [
 	{
 		title: 'Bounded operations',
+		icon: 'box',
 		text: 'The AI acts through typed operations (publish a page, create a database, share a link), never through a free shell, over MCP as over SSH.',
 	},
 	{
 		title: 'Reversible or approved',
+		icon: 'undo-2',
 		text: 'What can be undone, the AI does alone. What cannot waits for a human to approve it in the console, with a notification and an expiry.',
 	},
 	{
 		title: 'The AI declares what it publishes',
+		icon: 'file-text',
 		text: 'Each publication states what it contains and what it does: an app that collects data, calls out, opens a form.',
 	},
 	{
 		title: 'Per-agent permissions',
+		icon: 'key-round',
 		text: 'Each AI acts on behalf of a person, with the scope that person grants, revocable at any time.',
 	},
 	{
 		title: 'Everything is logged',
-		text: 'Which AI, on whose behalf, which action, which result: the logbook is readable in the console.',
+		icon: 'scroll-text',
+		text: 'Which AI, on whose behalf, which action, which result: the Logbook is readable in the console.',
 	},
 	{
 		title: 'Data stays home',
+		icon: 'server',
 		text: 'Everything lives on your server. Backups only go to the external storage you choose.',
 	},
 	{
 		title: 'Isolation',
+		icon: 'shield-check',
 		text: "Each Window runs in a sandbox: its scripts cannot read the other Windows, the console or the reader's session. Each app runs in an unprivileged container with its own resource limits. The Cahuts of one server share nothing but the machine.",
 	},
 ];
 
-const vocabulary = [
-	{
-		word: 'Cahut',
-		picto: cahutPicto,
-		meaning: 'An instance on your server, at its own domain. One server can hold several.',
-	},
-	{
-		word: 'Room',
-		picto: roomPicto,
-		meaning: 'A personal or team space, with its members, at',
-		address: '<domain>/<room>',
-	},
-	{
-		word: 'Window',
-		picto: windowPicto,
-		meaning: 'A living page: document, deck, dashboard or app, at',
-		address: '<domain>/<room>/<window>',
-	},
+const words = [
 	{ word: 'Key', picto: keyPicto, meaning: 'The password that opens a protected Window.' },
 	{ word: 'House style', picto: houseStylePicto, meaning: "The organization's brand, applied by every AI." },
 	{
@@ -197,6 +239,13 @@ const vocabulary = [
 		meaning: 'The governance rule: the AI knocks before any irreversible action.',
 	},
 	{ word: 'Logbook', picto: logbookPicto, meaning: 'The record of every action.' },
+];
+
+const access: { badge: string; icon: IconName; label: string; text: string }[] = [
+	{ badge: 'room', icon: 'lock', label: 'Room only', text: 'The members of its Room. The default.' },
+	{ badge: 'internal', icon: 'users', label: 'Internal', text: 'Everyone signed in to your Cahut.' },
+	{ badge: 'key', icon: 'key-round', label: 'Key', text: 'Anyone who has its Key.' },
+	{ badge: 'public', icon: 'globe', label: 'Public', text: 'Anyone with the link. Knocks first.' },
 ];
 
 const roadmap = [
@@ -217,9 +266,11 @@ const criteria = [
 	{ criterion: 'Supported AIs', threshold: 'The same Cahut works with at least two different AI clients' },
 	{
 		criterion: 'Governance',
-		threshold: 'Every AI action is in the logbook, and is either reversible or was approved',
+		threshold: 'Every AI action is in the Logbook, and is either reversible or was approved',
 	},
 ];
+
+const currentStep = roadmap.findIndex(({ current }) => current);
 ---
 
 <Base
@@ -227,59 +278,35 @@ const criteria = [
 	description="Documents, slide decks, dashboards and small apps live online as living pages, in your house style, on your own server, whichever AI made them. Cahut is in early development."
 	fullWidth
 >
-	<section class="hero container" aria-labelledby="hero-title">
-		<div class="hero__text">
-			<p class="c-badge c-badge--neutral status"><span class="c-dot"></span>In early development</p>
-			<h1 id="hero-title" class="c-display">The home for everything your AIs make.</h1>
-			<p class="lead">
-				Documents, slide decks, dashboards and small apps live online as living pages, in your house style, on your
-				own server, whichever AI made them.
-			</p>
-			<p>
-				Cahut installs with one command on a Linux server. Claude, ChatGPT, Mistral or Copilot publish to it over MCP,
-				and you share a link instead of sending a file. The AI does on its own what can be undone, a human approves
-				the rest, and every action is logged.
-			</p>
-			<div class="c-alert c-alert--info notice" role="note">
-				<Icon name="info" size={20} />
-				<p>
-					<strong>Nothing is usable yet.</strong>
-					Cahut is in early development. This page describes the target for the public launch.
-				</p>
-			</div>
-			<div class="actions">
-				<a class="c-btn c-btn--primary" href={github}>Follow the work on GitHub <Icon name="arrow-right" /></a>
-				<a class="c-btn c-btn--secondary" href={docs}>Read the docs</a>
-			</div>
-		</div>
-		<figure class="hero__art">
-			<img
-				src={openHouse}
-				alt="A document, a dashboard, a site and a picture join a cloud with an open door, lit from inside."
-				width="1200"
-				height="800"
-			/>
-		</figure>
-	</section>
+	<Hero github={github} />
 
 	<section id="why" class="section container" aria-labelledby="why-title">
-		<header class="section__head">
-			<p class="c-label">Why Cahut</p>
-			<h2 id="why-title" class="c-h1">The file is going away.</h2>
-			<p class="lead">
-				Word, PowerPoint and Excel were designed for humans who write, lay out and calculate by hand. When an AI
-				produces the content, it naturally produces living pages, each with its own address.
-			</p>
-			<p>
-				You no longer send an attachment, you share a link: the page updates, takes comments, keeps its versions, and
-				exports to PDF or PowerPoint for whoever still needs a file.
-			</p>
-		</header>
-		<h3 class="c-h3 subhead">Today, what AIs make has no home.</h3>
-		<ul class="problems" role="list">
+		<div class="why">
+			<header class="section__head why__head" data-reveal>
+				<p class="c-label">Why Cahut</p>
+				<h2 id="why-title" class="c-h1">The file is going away.</h2>
+				<p class="lead">
+					Word, PowerPoint and Excel were designed for humans who write, lay out and calculate by hand. When an AI
+					produces the content, it naturally produces living pages, each with its own address.
+				</p>
+				<p class="c-muted">
+					You no longer send an attachment, you share a link: the page updates, takes comments, keeps its versions, and
+					exports to PDF or PowerPoint for whoever still needs a file.
+				</p>
+			</header>
+			<div data-reveal>
+				<LinkNotFile />
+			</div>
+		</div>
+
+		<h3 class="c-h3 subhead" data-reveal>Today, what AIs make has no home.</h3>
+		<ul class="problems" role="list" data-reveal-group>
 			{
-				problems.map(({ title, text }) => (
-					<li>
+				problems.map(({ title, text, icon }) => (
+					<li class="problem" data-reveal>
+						<span class="problem__icon">
+							<Icon name={icon} size={20} />
+						</span>
 						<h4 class="c-h4">{title}</h4>
 						<p class="c-muted">{text}</p>
 					</li>
@@ -289,25 +316,36 @@ const criteria = [
 	</section>
 
 	<section class="statement" data-theme="dark" aria-labelledby="statement-title">
-		<div class="container">
-			<div class="statement__text">
+		<div class="container statement__grid">
+			<div class="statement__text" data-reveal>
+				<p class="c-label">The idea</p>
 				<h2 id="statement-title" class="c-h1">Your AIs make it, Cahut keeps it alive.</h2>
 				<p class="lead">
 					Everything they produce is published, shared, organized and protected in one place, in your colors, on your
 					server, whatever the AI.
 				</p>
 				<p class="c-muted">
-					Cahut does not create content, it hosts it. It does not compete with AIs or creation tools: it is the
-					neutral, self-hosted home where their work lives.
+					Cahut does not create content, it hosts it. It does not compete with AIs or creation tools: it is the neutral,
+					self-hosted home where their work lives.
 				</p>
 			</div>
-			<ol class="layers" role="list">
+			<ol class="layers" role="list" data-reveal-group>
 				{
-					layers.map(({ layer, who, what }) => (
-						<li class="c-card">
-							<p class="c-label">{layer}</p>
-							<h3 class="c-h4">{who}</h3>
-							<p class="c-muted">{what}</p>
+					layers.map(({ layer, who, what, tags, home }) => (
+						<li class:list={['layer', { 'layer--home': home }]} data-reveal>
+							<div class="layer__head">
+								<div>
+									<p class="c-label">{layer}</p>
+									<h3 class="c-h4">{who}</h3>
+								</div>
+								{home && <span class="layer__picto" aria-hidden="true" set:html={cahutPicto} />}
+							</div>
+							<p class="c-muted c-small">{what}</p>
+							<ul class="layer__tags" role="list">
+								{tags.map((tag) => (
+									<li>{tag}</li>
+								))}
+							</ul>
 						</li>
 					))
 				}
@@ -316,211 +354,218 @@ const criteria = [
 	</section>
 
 	<section id="how-it-works" class="section container" aria-labelledby="how-title">
-		<header class="section__head">
+		<header class="section__head" data-reveal>
 			<p class="c-label">How it works</p>
-			<h2 id="how-title" class="c-h1">The AIs stay outside.</h2>
+			<h2 id="how-title" class="c-h1">From a request to a link, in five steps.</h2>
 			<p class="lead">
-				They connect to Cahut over MCP, drop their work through bounded operations, then disconnect. No AI model runs
-				on the server.
+				The AIs stay outside. They connect to Cahut over MCP, drop their work through bounded operations, then
+				disconnect. Your readers open it in a browser.
 			</p>
 		</header>
-
-		<div class="flow" role="group" aria-label="From the AIs to the readers">
-			<div class="flow__node">
-				<p class="c-label">Create</p>
-				<p class="flow__title">The AIs</p>
-				<p class="c-small c-muted">Claude, ChatGPT, Mistral, Copilot</p>
-			</div>
-			<p class="flow__link"><span class="c-mono">MCP</span><Icon name="arrow-right" size={20} /></p>
-			<div class="flow__node flow__node--home">
-				<p class="c-label">On your server</p>
-				<p class="flow__title">Your Cahut</p>
-				<p class="c-small c-muted">
-					Publish, share, versions, comments, search, export, logbook. Irreversible actions wait for you. Your house
-					style, followed by every AI.
-				</p>
-			</div>
-			<p class="flow__link"><span class="c-mono">a link</span><Icon name="arrow-right" size={20} /></p>
-			<div class="flow__node">
-				<p class="c-label">Read</p>
-				<p class="flow__title">Your readers</p>
-				<p class="c-small c-muted">Your team, your clients, the public</p>
-			</div>
+		<div data-reveal>
+			<Flow />
 		</div>
-
-		<ol class="steps" role="list">
-			<li>
-				<h3 class="c-h4">Connect</h3>
-				<p>
-					Add Cahut to your AI (MCP connector and skill) and authorize it once with OAuth, with the scope you choose.
-				</p>
-			</li>
-			<li>
-				<h3 class="c-h4">Create</h3>
-				<p>
-					Ask your AI for a document, a deck, a dashboard or an app. The skill gives it your formats and house style.
-				</p>
-			</li>
-			<li>
-				<h3 class="c-h4">Publish</h3>
-				<p>
-					The AI publishes a Window to a Room, declares what it does, and gets its address back, such as{' '}
-					<code>cahut.example.com/<wbr />marketing/<wbr />q3-review</code>. The previous version is kept.
-				</p>
-			</li>
-			<li>
-				<h3 class="c-h4">Share</h3>
-				<p>
-					You, or the AI within the limits you set, choose who opens each Window: its Room only, everyone in your
-					Cahut, anyone with its Key, or the public. Anything irreversible waits for approval in the console.
-				</p>
-			</li>
-			<li>
-				<h3 class="c-h4">Live</h3>
-				<p>
-					Readers open the page in a browser and comment on it. The AI updates it on request. Everything goes to the
-					logbook.
-				</p>
-			</li>
-		</ol>
 	</section>
 
-	<section id="features" class="section section--muted" aria-labelledby="features-title">
+	<section id="knock-first" class="section section--muted" aria-labelledby="knock-title">
 		<div class="container">
-			<header class="section__head">
-				<p class="c-label">Features</p>
-				<h2 id="features-title" class="c-h1">What ships at launch</h2>
-				<p class="lead">
-					The full scope ships at launch, with no reduced trial version. None of it is usable yet: this is the target.
-				</p>
-			</header>
-			<dl class="features">
-				{
-					features.map(({ area, text }) => (
-						<div>
-							<dt class="c-h4">{area}</dt>
-							<dd class="c-muted">{text}</dd>
-						</div>
-					))
-				}
-			</dl>
-			<div class="c-card not-done">
-				<h3 class="c-h3">What Cahut does not do</h3>
-				<ul>
-					{notDone.map((item) => <li>{item}</li>)}
-				</ul>
-			</div>
-		</div>
-	</section>
-
-	<section id="knock-first" class="section container" aria-labelledby="knock-title">
-		<header class="section__head">
-			<p class="c-label">Governance</p>
-			<h2 id="knock-title" class="c-h1">Knock first</h2>
-			<p class="lead">
-				The AI is the intended operator of Cahut, but never without guardrails. What can be undone, it does alone.
-				What cannot waits for a human.
-			</p>
-		</header>
-
-		<div class="rules">
-			<div class="c-card rule">
-				<p class="c-label">Reversible</p>
-				<h3 class="c-h3">The AI does it alone</h3>
-				<ul>
-					{alone.map((item) => <li>{item}</li>)}
-				</ul>
-			</div>
-			<div class="c-card c-knock rule">
-				<p class="c-label">Irreversible</p>
-				<h3 class="c-h3">A human approves</h3>
-				<ul>
-					{approved.map((item) => <li>{item}</li>)}
-				</ul>
-				<p class="c-small c-muted">
-					The request waits in the console, with a notification and an expiry. It says which AI asks, for what, and on
-					whose behalf.
-				</p>
-			</div>
-		</div>
-
-		<ol class="principles" role="list">
-			{
-				principles.map(({ title, text }) => (
-					<li>
-						<h3 class="c-h4">{title}</h3>
-						<p class="c-muted">{text}</p>
-					</li>
-				))
-			}
-		</ol>
-	</section>
-
-	<section id="vocabulary" class="section section--muted" aria-labelledby="vocabulary-title">
-		<div class="container">
-			<header class="section__head">
-				<p class="c-label">Vocabulary</p>
-				<h2 id="vocabulary-title" class="c-h1">The language of the house</h2>
-				<p class="lead">Cahut speaks the language of the house, in plain English.</p>
-			</header>
-			<ul class="vocabulary" role="list">
-				{
-					vocabulary.map(({ word, picto, meaning, address }) => (
-						<li class="c-card word">
-							<span class="picto" aria-hidden="true" set:html={picto} />
-							<h3 class="c-h4">{word}</h3>
-							<p>
-								{meaning}
-								{address && (
-									<>
-										{' '}
-										<code>{address}</code>
-									</>
-								)}
+			<div class="knock-first">
+				<div class="knock-first__text">
+					<header class="section__head" data-reveal>
+						<p class="c-label">Governance</p>
+						<h2 id="knock-title" class="c-h1">Knock first</h2>
+						<p class="lead">
+							The AI is the intended operator of Cahut, but never without guardrails. What can be undone, it does alone.
+							What cannot waits for a human.
+						</p>
+					</header>
+					<div class="rules" data-reveal-group>
+						<div class="rule" data-reveal>
+							<p class="rule__title">
+								<span class="rule__icon"><Icon name="check" size={16} /></span>
+								<span>
+									<span class="c-label">Reversible</span>
+									<span class="c-h4">The AI does it alone</span>
+								</span>
 							</p>
-						</li>
-					))
-				}
-				<li class="c-card word access">
-					<h3 class="c-h4">Access</h3>
-					<p>Each Window opens to its Room only, to everyone in the Cahut, to anyone with its Key, or to the public.</p>
-					<ul class="badges" role="list">
-						<li class="c-badge c-badge--room"><Icon name="lock" size={14} />Room only</li>
-						<li class="c-badge c-badge--internal"><Icon name="users" size={14} />Internal</li>
-						<li class="c-badge c-badge--key"><Icon name="key-round" size={14} />Key</li>
-						<li class="c-badge c-badge--public"><Icon name="globe" size={14} />Public</li>
-					</ul>
-				</li>
-			</ul>
-		</div>
-	</section>
+							<ul>
+								{alone.map((item) => <li>{item}</li>)}
+							</ul>
+						</div>
+						<div class="rule rule--knock" data-reveal>
+							<p class="rule__title">
+								<span class="rule__icon"><Icon name="bell" size={16} /></span>
+								<span>
+									<span class="c-label">Irreversible</span>
+									<span class="c-h4">A human approves</span>
+								</span>
+							</p>
+							<ul>
+								{approved.map((item) => <li>{item}</li>)}
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="knock-first__demo" data-reveal>
+					<p class="c-small c-muted try"><Icon name="mouse-pointer" size={16} />Try it: answer the request.</p>
+					<KnockDemo />
+				</div>
+			</div>
 
-	<section id="roadmap" class="section container" aria-labelledby="roadmap-title">
-		<header class="section__head">
-			<p class="c-label">Roadmap</p>
-			<h2 id="roadmap-title" class="c-h1">Where Cahut stands</h2>
-			<p class="lead">
-				Cahut is a personal project by Olivier Durand, independent of any company and of any AI vendor. It is written
-				in Go, in the open, one step at a time.
-			</p>
-		</header>
-		<div class="roadmap">
-			<ol class="milestones" role="list">
+			<h3 class="c-h3 subhead" data-reveal>Seven principles hold it together.</h3>
+			<ol class="principles" role="list" data-reveal-group>
 				{
-					roadmap.map(({ step, current }) => (
-						<li aria-current={current ? 'step' : undefined}>
-							<p>{step}</p>
-							{current && (
-								<p class="c-badge c-badge--neutral">
-									<span class="c-dot" />
-									Under way
-								</p>
-							)}
+					principles.map(({ title, text, icon }, index) => (
+						<li class="principle" data-reveal>
+							<span class="principle__top">
+								<span class="principle__icon">
+									<Icon name={icon} size={20} />
+								</span>
+								<span class="c-mono principle__num">{String(index + 1).padStart(2, '0')}</span>
+							</span>
+							<h4 class="c-h4">{title}</h4>
+							<p class="c-muted c-small">{text}</p>
 						</li>
 					))
 				}
 			</ol>
-			<div class="criteria">
+		</div>
+	</section>
+
+	<section id="features" class="section container" aria-labelledby="features-title">
+		<header class="section__head" data-reveal>
+			<p class="c-label">Features</p>
+			<h2 id="features-title" class="c-h1">What ships at launch</h2>
+			<p class="lead">
+				The full scope ships at launch, with no reduced trial version. None of it is usable yet: this is the target.
+			</p>
+		</header>
+		<div class="feature-groups">
+			{
+				featureGroups.map(({ title, text, features }) => (
+					<section class="feature-group" aria-labelledby={`features-${title.toLowerCase()}`} data-reveal>
+						<header class="feature-group__head">
+							<h3 id={`features-${title.toLowerCase()}`} class="c-h3">
+								{title}
+							</h3>
+							<p class="c-muted c-small">{text}</p>
+						</header>
+						<dl class="features">
+							{features.map(({ area, text, icon }) => (
+								<div class="feature">
+									<dt>
+										<span class="feature__icon">
+											<Icon name={icon} size={20} />
+										</span>
+										<span class="feature__title">{area}</span>
+									</dt>
+									<dd class="c-muted c-small">{text}</dd>
+								</div>
+							))}
+						</dl>
+					</section>
+				))
+			}
+		</div>
+		<div class="not-done" data-reveal>
+			<h3 class="c-h3">What Cahut does not do</h3>
+			<ul role="list">
+				{
+					notDone.map((item) => (
+						<li>
+							<Icon name="x" size={16} />
+							<span>{item}</span>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</section>
+
+	<section id="vocabulary" class="section section--muted" aria-labelledby="vocabulary-title">
+		<div class="container">
+			<header class="section__head" data-reveal>
+				<p class="c-label">Vocabulary</p>
+				<h2 id="vocabulary-title" class="c-h1">The language of the house</h2>
+				<p class="lead">
+					Cahut speaks the language of the house, in plain English. Start with an address: it reads like a house.
+				</p>
+			</header>
+			<div data-reveal>
+				<Address />
+			</div>
+			<ul class="words" role="list" data-reveal-group>
+				{
+					words.map(({ word, picto, meaning }) => (
+						<li class="word" data-reveal>
+							<span class="picto" aria-hidden="true" set:html={picto} />
+							<h3 class="c-h4">{word}</h3>
+							<p class="c-muted c-small">{meaning}</p>
+						</li>
+					))
+				}
+			</ul>
+			<div class="access" data-reveal>
+				<div class="access__text">
+					<h3 class="c-h4">Access</h3>
+					<p class="c-muted c-small">Each Window opens to one of four circles. You choose, Window by Window.</p>
+				</div>
+				<ul class="access__list" role="list">
+					{
+						access.map(({ badge, icon, label, text }) => (
+							<li>
+								<span class={`c-badge c-badge--${badge}`}>
+									<Icon name={icon} size={14} />
+									{label}
+								</span>
+								<span class="c-small c-muted">{text}</span>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+		</div>
+	</section>
+
+	<section id="roadmap" class="section container" aria-labelledby="roadmap-title">
+		<header class="section__head" data-reveal>
+			<p class="c-label">Roadmap</p>
+			<h2 id="roadmap-title" class="c-h1">Where Cahut stands</h2>
+			<p class="lead">
+				Cahut is a personal project by Olivier Durand, independent of any company and of any AI vendor. It is written in
+				Go, in the open, one step at a time.
+			</p>
+		</header>
+		<div class="roadmap">
+			<ol
+				class="milestones"
+				role="list"
+				style={`--progress: ${(currentStep / (roadmap.length - 1)) * 100}%`}
+				data-reveal="fade"
+			>
+				{
+					roadmap.map(({ step, current }, index) => (
+						<li
+							class:list={['milestone', { 'is-past': index < currentStep }]}
+							aria-current={current ? 'step' : undefined}
+						>
+							<span class="milestone__dot c-mono" aria-hidden="true">
+								{index + 1}
+							</span>
+							<div class="milestone__text">
+								<p>{step}</p>
+								{current && (
+									<p class="c-badge c-badge--neutral">
+										<span class="c-dot" />
+										Under way
+									</p>
+								)}
+							</div>
+						</li>
+					))
+				}
+			</ol>
+			<div class="criteria" data-reveal>
 				<h3 class="c-h3">Ready for launch when</h3>
 				<table>
 					<thead>
@@ -542,9 +587,20 @@ const criteria = [
 				</table>
 			</div>
 		</div>
-		<div class="actions">
-			<a class="c-btn c-btn--primary" href={github}>Follow the work on GitHub <Icon name="arrow-right" /></a>
-			<a class="c-btn c-btn--secondary" href={docs}>Read the docs</a>
+	</section>
+
+	<section class="closing" aria-labelledby="closing-title">
+		<div class="container closing__inner" data-reveal>
+			<span class="closing__symbol" aria-hidden="true" set:html={symbol} />
+			<h2 id="closing-title" class="c-display closing__title">Share a link, not a file.</h2>
+			<p class="lead">
+				Cahut is built in the open, one step at a time. Follow the work on GitHub, or read in the docs how it fits
+				together.
+			</p>
+			<div class="actions">
+				<a class="c-btn c-btn--primary" href={github}>Follow the work on GitHub <Icon name="arrow-right" /></a>
+				<a class="c-btn c-btn--secondary" href={docs}>Read the docs</a>
+			</div>
 		</div>
 	</section>
 </Base>
@@ -575,40 +631,10 @@ const criteria = [
 		flex-wrap: wrap;
 		gap: var(--space-3);
 	}
-
-	/* Hero */
-	.hero {
-		display: grid;
-		grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-		align-items: center;
-		gap: var(--space-12);
-		padding-block: var(--space-16) var(--space-20);
-	}
-	.hero__text {
-		display: grid;
-		justify-items: start;
-		gap: var(--space-6);
-	}
-	.hero__text > p:not(.status) {
-		max-width: var(--measure);
-	}
-	.status {
-		margin: 0;
-	}
-	.notice {
-		max-width: var(--measure);
-	}
-	/* The illustration has no dark version: it stays on a light panel, white or Paper. */
-	.hero__art {
-		border-radius: var(--radius-xl);
-		overflow: hidden;
-		background: var(--cahut-white);
-		border: var(--border-width) solid var(--color-border);
-	}
-	.hero__art img {
-		display: block;
-		width: 100%;
-		height: auto;
+	.actions .c-btn {
+		height: 48px;
+		padding-inline: var(--space-5);
+		font-size: var(--text-base);
 	}
 
 	/* Sections */
@@ -625,21 +651,59 @@ const criteria = [
 		margin-bottom: var(--space-12);
 	}
 	.subhead {
-		margin-bottom: var(--space-6);
+		margin: var(--space-20) 0 var(--space-8);
 	}
 
 	/* Why */
+	.why {
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+		align-items: center;
+		gap: var(--space-16);
+	}
+	.why__head {
+		margin-bottom: 0;
+	}
 	.problems {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-		gap: var(--space-6);
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: var(--space-4);
 	}
-	.problems li {
+	.problem {
 		display: grid;
 		align-content: start;
-		gap: var(--space-2);
-		padding-top: var(--space-4);
-		border-top: 2px solid var(--color-text);
+		gap: var(--space-3);
+		padding: var(--space-6) var(--space-5);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+		transition:
+			opacity var(--duration-reveal) var(--ease-out),
+			translate var(--duration-reveal) var(--ease-out),
+			border-color var(--duration-slow) var(--ease-out),
+			box-shadow var(--duration-slow) var(--ease-out);
+	}
+	.problem:hover {
+		border-color: var(--color-border-strong);
+		box-shadow: var(--shadow-md);
+	}
+	.problem__icon,
+	.feature__icon,
+	.principle__icon {
+		display: grid;
+		place-items: center;
+		width: var(--space-10);
+		height: var(--space-10);
+		border-radius: var(--radius-md);
+		background: var(--color-surface-muted);
+		color: var(--color-text);
+	}
+	.problem__icon {
+		margin-bottom: var(--space-2);
+	}
+	.problem p {
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
 	}
 
 	/* Statement */
@@ -648,162 +712,286 @@ const criteria = [
 		background: var(--color-surface);
 		color: var(--color-text);
 	}
+	.statement__grid {
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+		align-items: center;
+		gap: var(--space-16);
+	}
 	.statement__text {
 		display: grid;
 		gap: var(--space-4);
-		max-width: var(--measure);
-		margin-bottom: var(--space-12);
 	}
 	.layers {
+		--line: var(--space-8);
+		position: relative;
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: var(--space-6);
+		gap: var(--space-4);
 	}
-	.layers li {
+	/* The work flows down through the layers. */
+	.layers::before {
+		content: '';
+		position: absolute;
+		top: var(--space-6);
+		bottom: var(--space-6);
+		left: calc(var(--line) - 1px);
+		border-left: 2px dashed var(--color-border-strong);
+	}
+	.layer {
+		position: relative;
 		display: grid;
-		align-content: start;
-		gap: var(--space-2);
-		padding: var(--space-6);
+		gap: var(--space-3);
+		margin-left: var(--space-16);
+		padding: var(--space-5) var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
 		background: var(--color-surface-muted);
-		box-shadow: none;
+	}
+	.layer::before {
+		content: '';
+		position: absolute;
+		top: var(--space-8);
+		left: calc(-1 * var(--space-8) - 5px);
+		width: var(--space-2);
+		height: var(--space-2);
+		border: 2px solid var(--color-border-strong);
+		border-radius: 50%;
+		background: var(--color-surface);
+	}
+	.layer--home {
+		border-color: var(--color-accent);
+		background: var(--color-bg);
+		box-shadow: var(--shadow-lg);
+	}
+	.layer--home::before {
+		border-color: var(--color-accent);
+		background: var(--color-accent);
+	}
+	.layer__head {
+		display: flex;
+		align-items: start;
+		justify-content: space-between;
+		gap: var(--space-4);
+	}
+	.layer__head > div {
+		display: grid;
+		gap: var(--space-1);
+	}
+	.layer__picto {
+		display: block;
+		flex: none;
+		width: var(--space-12);
+		height: var(--space-12);
+		color: var(--color-text);
+	}
+	.layer__picto :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		color: inherit;
+	}
+	.layer__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+	}
+	.layer__tags li {
+		padding: 2px var(--space-2);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-pill);
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		font-weight: var(--weight-semibold);
+	}
+	.layer--home .layer__tags li {
+		border-color: var(--color-border-strong);
+		color: var(--color-text);
 	}
 
-	/* How it works */
-	.flow {
+	/* Knock first */
+	.knock-first {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.4fr) auto minmax(0, 1fr);
-		align-items: center;
-		gap: var(--space-4);
-		margin-bottom: var(--space-16);
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		align-items: start;
+		gap: var(--space-16);
 	}
-	.flow__node {
+	.knock-first__text .section__head {
+		margin-bottom: var(--space-8);
+	}
+	.rules {
 		display: grid;
-		gap: var(--space-2);
-		height: 100%;
-		align-content: center;
+		gap: var(--space-4);
+	}
+	.rule {
+		display: grid;
+		gap: var(--space-4);
 		padding: var(--space-6);
 		border: var(--border-width) solid var(--color-border);
 		border-radius: var(--radius-lg);
 		background: var(--color-surface);
 	}
-	.flow__node--home {
-		border: 2px solid var(--color-text);
+	.rule__title {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
 	}
-	.flow__title {
-		font-size: var(--text-xl);
-		line-height: var(--leading-xl);
-		font-weight: var(--weight-bold);
-	}
-	.flow__link {
+	.rule__title > span:last-child {
 		display: grid;
-		justify-items: center;
-		gap: var(--space-1);
-		color: var(--color-text-muted);
-		font-size: var(--text-xs);
-		line-height: var(--leading-xs);
 	}
-	.steps {
-		display: grid;
-		grid-template-columns: repeat(5, minmax(0, 1fr));
-		gap: var(--space-6);
-		counter-reset: step;
-	}
-	.steps li {
-		display: grid;
-		align-content: start;
-		gap: var(--space-2);
-		counter-increment: step;
-	}
-	.steps li::before {
-		content: counter(step);
+	.rule__icon {
 		display: grid;
 		place-items: center;
-		width: var(--space-10);
-		height: var(--space-10);
-		margin-bottom: var(--space-2);
-		border-radius: var(--radius-pill);
-		background: var(--color-accent);
-		color: var(--color-on-accent);
-		font-family: var(--font-mono);
-		font-weight: var(--weight-semibold);
+		flex: none;
+		width: var(--space-8);
+		height: var(--space-8);
+		border-radius: 50%;
+		background: var(--color-success-bg);
+		color: var(--color-success);
 	}
-	.steps code {
-		font-size: var(--text-sm);
+	.rule--knock .rule__icon {
+		background: var(--color-highlight);
+		color: var(--cahut-ink-900);
 	}
-
-	/* Features */
-	.features {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: var(--space-8) var(--space-6);
-		margin-bottom: var(--space-12);
-	}
-	.features div {
-		display: grid;
-		align-content: start;
-		gap: var(--space-2);
-		padding-top: var(--space-4);
-		border-top: var(--border-width) solid var(--color-border-strong);
-	}
-	.not-done {
-		display: grid;
-		gap: var(--space-4);
-		max-width: var(--measure);
-		padding: var(--space-8);
-	}
-	.not-done ul,
 	.rule ul {
 		display: grid;
 		gap: var(--space-2);
 		padding-left: var(--space-5);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	.knock-first__demo {
+		display: grid;
+		gap: var(--space-3);
+		position: sticky;
+		top: calc(var(--header-height) + var(--space-6));
+	}
+	.try {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
 	}
 
-	/* Knock first */
-	.rules {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--space-6);
-		margin-bottom: var(--space-16);
-	}
-	.rule {
-		display: grid;
-		align-content: start;
-		gap: var(--space-3);
-		padding: var(--space-8);
-	}
 	.principles {
 		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--space-8) var(--space-12);
-		counter-reset: principle;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--space-4);
 	}
-	.principles li {
+	.principle {
 		display: grid;
-		grid-template-columns: var(--space-8) 1fr;
 		align-content: start;
-		gap: var(--space-2) var(--space-3);
-		counter-increment: principle;
+		gap: var(--space-2);
+		padding: var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
 	}
-	.principles li::before {
-		content: counter(principle);
-		grid-row: span 2;
-		font-family: var(--font-mono);
-		font-weight: var(--weight-semibold);
+	.principle:last-child {
+		grid-column: span 2;
+	}
+	.principle__top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: var(--space-2);
+	}
+	.principle__num {
 		color: var(--color-text-muted);
-		line-height: var(--leading-xl);
+		font-size: var(--text-sm);
+	}
+
+	/* Features */
+	.feature-groups {
+		columns: 2;
+		column-gap: var(--space-6);
+		margin-bottom: var(--space-12);
+	}
+	.feature-group {
+		display: grid;
+		gap: var(--space-2);
+		margin-bottom: var(--space-6);
+		padding: var(--space-6) var(--space-6) var(--space-3);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-xl);
+		background: var(--color-surface);
+		break-inside: avoid;
+	}
+	.feature-group__head {
+		display: grid;
+		gap: var(--space-1);
+		padding-bottom: var(--space-4);
+		border-bottom: var(--border-width) solid var(--color-border);
+	}
+	.features {
+		display: grid;
+	}
+	.feature {
+		display: grid;
+		gap: var(--space-1);
+		padding-block: var(--space-4);
+	}
+	.feature + .feature {
+		border-top: var(--border-width) solid var(--color-border);
+	}
+	.feature dt {
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+	}
+	.feature dd {
+		padding-left: calc(var(--space-10) + var(--space-4));
+	}
+	.feature__icon {
+		flex: none;
+		transition:
+			background var(--duration-slow) var(--ease-out),
+			color var(--duration-slow) var(--ease-out);
+	}
+	.feature:hover .feature__icon {
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+	}
+	.feature__title {
+		font-weight: var(--weight-semibold);
+	}
+	.not-done {
+		display: grid;
+		gap: var(--space-5);
+		padding: var(--space-8);
+		border: 2px dashed var(--color-border-strong);
+		border-radius: var(--radius-xl);
+	}
+	.not-done ul {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+		gap: var(--space-3) var(--space-8);
+	}
+	.not-done li {
+		display: flex;
+		align-items: start;
+		gap: var(--space-3);
+	}
+	.not-done li :global(.i) {
+		flex: none;
+		margin-top: var(--space-1);
+		color: var(--color-text-muted);
 	}
 
 	/* Vocabulary */
-	.vocabulary {
+	.words {
 		display: grid;
 		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: var(--space-6);
+		gap: var(--space-4);
+		margin-top: var(--space-12);
 	}
 	.word {
 		display: grid;
 		align-content: start;
 		gap: var(--space-2);
 		padding: var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
 	}
 	.picto {
 		display: block;
@@ -811,6 +999,7 @@ const criteria = [
 		height: var(--space-12);
 		margin-bottom: var(--space-2);
 		color: var(--color-text);
+		transition: translate var(--duration-slow) var(--ease-out);
 	}
 	/* The pictograms set their stroke color on their root: follow the text instead. */
 	.picto :global(svg) {
@@ -819,61 +1008,115 @@ const criteria = [
 		height: 100%;
 		color: inherit;
 	}
-	.word code {
-		font-size: var(--text-sm);
-		overflow-wrap: anywhere;
+	.word:hover .picto {
+		translate: 0 calc(-1 * var(--space-1));
 	}
-	.badges {
-		display: flex;
-		flex-wrap: wrap;
+	.access {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+		align-items: center;
+		gap: var(--space-8);
+		margin-top: var(--space-4);
+		padding: var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+	.access__text {
+		display: grid;
+		gap: var(--space-1);
+	}
+	.access__list {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--space-4);
+	}
+	.access__list li {
+		display: grid;
+		justify-items: start;
 		gap: var(--space-2);
-		margin-top: var(--space-2);
 	}
 
 	/* Roadmap */
 	.roadmap {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		gap: var(--space-12);
-		margin-bottom: var(--space-12);
+		gap: var(--space-16);
 	}
 	.milestones {
+		position: relative;
 		display: grid;
+		gap: var(--space-6);
+	}
+	/* The line from the first step to the current one. */
+	.milestones::before,
+	.milestones::after {
+		content: '';
+		position: absolute;
+		top: var(--space-5);
+		left: calc(var(--space-5) - 1px);
+		width: 2px;
+		border-radius: var(--radius-pill);
+	}
+	.milestones::before {
+		bottom: var(--space-5);
+		background: var(--color-border);
+	}
+	.milestones::after {
+		height: calc((100% - var(--space-10)) * var(--progress) / 100%);
+		background: var(--color-primary);
+		transform-origin: top;
+		transition: transform 1.6s var(--ease-in-out) 300ms;
+	}
+	:global(.js) .milestones:not(.is-visible)::after {
+		transform: scaleY(0);
+	}
+	.milestone {
+		position: relative;
+		display: grid;
+		grid-template-columns: var(--space-10) minmax(0, 1fr);
 		gap: var(--space-4);
-		counter-reset: milestone;
-	}
-	.milestones li {
-		display: grid;
-		grid-template-columns: var(--space-10) 1fr;
-		gap: var(--space-2) var(--space-4);
 		align-items: start;
-		justify-items: start;
-		counter-increment: milestone;
 	}
-	.milestones li::before {
-		content: counter(milestone);
-		grid-row: span 2;
+	.milestone__dot {
+		position: relative;
+		z-index: 1;
 		display: grid;
 		place-items: center;
 		width: var(--space-10);
 		height: var(--space-10);
 		border: 2px solid var(--color-border-strong);
-		border-radius: var(--radius-pill);
-		font-family: var(--font-mono);
-		font-weight: var(--weight-semibold);
+		border-radius: 50%;
+		background: var(--color-bg);
 		color: var(--color-text-muted);
+		font-weight: var(--weight-semibold);
 	}
-	.milestones li[aria-current='step']::before {
+	.milestone.is-past .milestone__dot {
+		border-color: var(--color-primary);
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+	}
+	.milestone[aria-current='step'] .milestone__dot {
 		border-color: var(--color-text);
 		color: var(--color-text);
 	}
-	.milestones li p:first-child {
+	.milestone__text {
+		display: grid;
+		justify-items: start;
+		gap: var(--space-2);
 		padding-top: var(--space-2);
+	}
+	.milestone:not(.is-past):not([aria-current]) .milestone__text {
+		color: var(--color-text-muted);
 	}
 	.criteria {
 		display: grid;
 		align-content: start;
 		gap: var(--space-4);
+		padding: var(--space-8);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-xl);
+		background: var(--color-surface);
 	}
 	table {
 		width: 100%;
@@ -902,99 +1145,182 @@ const criteria = [
 		font-weight: var(--weight-semibold);
 	}
 
+	/* Closing */
+	.closing {
+		padding-block: var(--space-24);
+		border-top: var(--border-width) solid var(--color-border);
+	}
+	.closing__inner {
+		display: grid;
+		justify-items: center;
+		gap: var(--space-6);
+		text-align: center;
+	}
+	.closing__inner .lead {
+		max-width: 36rem;
+		color: var(--color-text-muted);
+	}
+	.closing__inner .actions {
+		justify-content: center;
+	}
+	.closing__symbol {
+		display: block;
+		width: 7.5rem;
+	}
+	.closing__symbol :global(svg) {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	.closing__symbol :global(path) {
+		stroke: var(--color-text);
+	}
+	.closing__title {
+		max-width: 14em;
+	}
+
 	/* In the dark, the muted bands would be lighter than the cards they hold. */
 	@media (prefers-color-scheme: dark) {
 		:global(:root:not([data-theme='light'])) .section--muted {
 			background: none;
 			border-block: var(--border-width) solid var(--color-border);
 		}
-		:global(:root:not([data-theme='light'])) .hero__art {
-			background: var(--cahut-paper);
-		}
 	}
 	:global(:root[data-theme='dark']) .section--muted {
 		background: none;
 		border-block: var(--border-width) solid var(--color-border);
 	}
-	:global(:root[data-theme='dark']) .hero__art {
-		background: var(--cahut-paper);
+
+	@media (prefers-reduced-motion: no-preference) {
+		/* The symbol draws itself, then its door lights up for a moment. */
+		:global(.js) .closing__symbol :global(path) {
+			stroke-dasharray: 1000;
+			stroke-dashoffset: 1000;
+		}
+		:global(.js) .is-visible .closing__symbol :global(path) {
+			animation: draw 2.2s var(--ease-in-out) 200ms forwards;
+		}
+		.layer--home .layer__picto :global(path:first-child) {
+			animation: door 3s ease-in-out infinite alternate;
+		}
+		/* A drop of work runs down the line, from the AIs to the house style. */
+		.layers:has(.is-visible)::after {
+			content: '';
+			position: absolute;
+			left: calc(var(--line) - 4px);
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			background: var(--color-accent);
+			animation: drop 4.5s var(--ease-in-out) 1s infinite both;
+		}
+	}
+	@keyframes drop {
+		0% {
+			top: var(--space-6);
+			opacity: 0;
+		}
+		10%,
+		80% {
+			opacity: 1;
+		}
+		90%,
+		100% {
+			top: calc(100% - var(--space-8));
+			opacity: 0;
+		}
+	}
+	@keyframes draw {
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+	@keyframes door {
+		from {
+			opacity: 0.4;
+		}
+	}
+
+	@media (max-width: 1080px) {
+		.problems {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+		.principles {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.principle:last-child {
+			grid-column: auto;
+		}
+		.access {
+			grid-template-columns: minmax(0, 1fr);
+		}
 	}
 
 	@media (max-width: 960px) {
-		.hero {
-			grid-template-columns: 1fr;
-			gap: var(--space-10);
-		}
-		.hero__art {
-			max-width: var(--measure);
-		}
-		.layers,
-		.features,
-		.rules,
-		.principles,
+		.why,
+		.statement__grid,
+		.knock-first,
 		.roadmap {
-			grid-template-columns: 1fr;
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-12);
 		}
-		.features {
+		.knock-first__demo {
+			position: static;
+		}
+		.feature-groups {
+			columns: 1;
+		}
+		.words {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
-		.vocabulary {
+		.access__list {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-		.steps {
-			grid-template-columns: 1fr;
-			max-width: var(--measure);
-		}
-		.steps li {
-			grid-template-columns: var(--space-10) 1fr;
-			column-gap: var(--space-4);
-		}
-		.steps li::before {
-			grid-row: span 2;
-			margin-bottom: 0;
-		}
-		.flow {
-			grid-template-columns: 1fr;
-			max-width: var(--measure);
-		}
-		.flow__link {
-			grid-auto-flow: column;
-			justify-content: center;
-			align-items: center;
-			gap: var(--space-2);
-		}
-		.flow__link :global(.i) {
-			transform: rotate(90deg);
 		}
 	}
 
 	@media (max-width: 640px) {
-		.hero {
-			padding-block: var(--space-10) var(--space-16);
-		}
-		.hero h1 {
-			font-size: var(--text-4xl);
-			line-height: var(--leading-4xl);
-		}
 		.section,
-		.statement {
+		.statement,
+		.closing {
 			padding-block: var(--space-16);
 		}
-		.section__head,
-		.statement__text {
+		.section__head {
 			margin-bottom: var(--space-10);
+		}
+		.subhead {
+			margin-top: var(--space-16);
 		}
 		.c-h1 {
 			font-size: var(--text-3xl);
 			line-height: var(--leading-3xl);
 		}
-		.features,
-		.vocabulary {
-			grid-template-columns: 1fr;
+		.closing__title {
+			font-size: var(--text-4xl);
+			line-height: var(--leading-4xl);
+		}
+		.problems,
+		.principles,
+		.words,
+		.access__list {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.layers {
+			--line: var(--space-3);
+		}
+		.layer {
+			margin-left: var(--space-8);
+			padding: var(--space-4);
+		}
+		.layer::before {
+			left: calc(-1 * var(--space-5) - 5px);
 		}
 		.rule,
-		.not-done {
-			padding: var(--space-6);
+		.not-done,
+		.criteria {
+			padding: var(--space-5);
+		}
+		.actions .c-btn {
+			flex: 1 1 auto;
 		}
 	}
 </style>
