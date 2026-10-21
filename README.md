@@ -165,6 +165,7 @@ The reasons behind each choice are in the [architecture decision records](docs/a
 ```
 cmd/cahut/   Entry point of the cahut binary
 internal/    The code of Cahut, private to this module
+install.sh   Installs Cahut on a server as a systemd service
 docs/        Project documents: architecture decision records in English; the brief, the V0 plan and the brand guidelines in French for now
 ```
 

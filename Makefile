@@ -11,13 +11,16 @@ GORELEASER    ?= go run github.com/goreleaser/goreleaser/v2@$(GORELEASER_VERSION
 
 .DEFAULT_GOAL := help
 
-.PHONY: help build test lint fmt check snapshot release-check clean
+.PHONY: help build dev test lint fmt check snapshot release-check clean
 
 help: ## List the tasks
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 build: ## Build bin/cahut for this machine
 	CGO_ENABLED=0 go build -trimpath -o bin/cahut ./cmd/cahut
+
+dev: ## Serve a home on http://localhost:8080, with its data in tmp/dev
+	go run ./cmd/cahut serve --dev --data tmp/dev
 
 test: ## Run the tests with the race detector
 	go test -race ./...
@@ -37,5 +40,5 @@ snapshot: ## Build the release archives into dist/, without publishing
 release-check: ## Validate the GoReleaser configuration
 	$(GORELEASER) check
 
-clean: ## Remove the build output
-	rm -rf bin dist
+clean: ## Remove the build output and the development home
+	rm -rf bin dist tmp
