@@ -1,6 +1,6 @@
 # Cahut · Brief projet
 
-20 octobre 2026 · Olivier Durand
+20 octobre 2026, mis à jour le 21 octobre 2026 · Olivier Durand
 
 ## En bref
 
@@ -10,7 +10,7 @@ On l'installe d'une commande sur un VPS. Claude, ChatGPT, Mistral ou Copilot y p
 
 - **Nom** : Cahut
 - **Adresses** : cahut.cloud (site), getcahut.com (redirection), déjà réservés
-- **Nature** : Plateforme open source installée sur un Linux standard, une machine par instance
+- **Nature** : Plateforme open source installée sur un Linux standard ; un serveur porte un ou plusieurs Cahuts, chacun à son domaine
 - **Porteur** : Olivier Durand, à titre personnel, indépendant de toute société et de tout fournisseur d'IA
 - **Lancement** : En anglais, périmètre complet dès le départ, dépôt privé jusque-là
 
@@ -47,10 +47,10 @@ Le grand public visé, ce sont tous ceux qui travaillent avec des documents et d
 | Consultants, commerciaux, chefs de projet | Premiers utilisateurs : ils fabriquent aujourd'hui des PowerPoint et des Word pour leurs clients | Un livrable à leurs couleurs en quelques minutes, un lien à envoyer, des retours en commentaires |
 | Équipes et services (marketing, RH, direction) | Utilisateurs, membres de Rooms d'équipe | Un espace commun, des droits clairs, tout au même endroit |
 | Dirigeant ou IT d'une PME | Administrateur et acheteur | La maîtrise : données chez soi, accès, durée de vie, journal, indépendance vis-à-vis des fournisseurs d'IA |
-| Particuliers un peu geek | Administrateurs de leur propre instance, communauté open source | Un serveur à soi pour publier ce que fait leur IA |
+| Particuliers un peu geek | Administrateurs de leur propre Cahut, communauté open source | Un serveur à soi pour publier ce que fait leur IA |
 | Visiteurs | Lecteurs : clients, partenaires, public | Une page qui s'ouvre dans un navigateur, sans compte, selon l'accès choisi |
 
-**Modèle d'utilisateurs.** Une instance a un administrateur. Les utilisateurs ont chacun leur Room personnelle et peuvent être membres ou propriétaires de Rooms d'équipe. Les agents IA agissent toujours au nom d'une personne, avec les droits qu'elle leur donne.
+**Modèle d'utilisateurs.** Un serveur porte un ou plusieurs Cahuts, chacun à son domaine (`cahut.exemple.fr`). L'administrateur du serveur déclare les Cahuts ; chaque Cahut a ses propres administrateurs, ses personnes et ses Rooms, sans rien partager avec les autres. Chaque personne a sa Room personnelle, unique, et peut être membre ou propriétaire de Rooms d'équipe. Les agents IA agissent toujours au nom d'une personne, avec les droits qu'elle leur donne.
 
 ## Ce que fait Cahut
 
@@ -60,17 +60,18 @@ Tout le périmètre ci-dessous est livré dès le lancement : pas de version ré
 | --- | --- |
 | Installation | Une commande sur un VPS ou un serveur dédié vierge (AlmaLinux ou Ubuntu), premier démarrage guidé, rattachement de l'administrateur et de sa première IA |
 | Accès des IA | Serveur MCP natif (HTTP, OAuth) ; une skill par client IA, empaquetée en plugin quand le client le permet ; Claude d'abord, puis ChatGPT, Mistral, Copilot et les autres ; accès SSH limité aux mêmes opérations pour les IA de terminal |
-| Pages | Documents, présentations, tableaux de bord et sites statiques, chacun à son adresse |
+| Pages | Documents, présentations, tableaux de bord et sites statiques, chacun à son adresse dans sa Room |
 | Applis | Runtimes prédéfinis (Node, Python…) et mode avancé par Dockerfile ; variables et secrets ; bases PostgreSQL ou SQLite ; journaux d'exécution ; limites de ressources |
-| Partage | Par lien : public, mot de passe, interne (membres de l'instance) ou invités par e-mail ; durée de vie réglable |
+| Partage | Par lien, Window par Window : sa Room seulement, interne (tout le Cahut), Key (un mot de passe) ou public ; date de fin réglable |
 | Versions | Deux versions gardées par publication, retour à la précédente en un geste |
 | Commentaires | Retours des lecteurs directement sur les pages |
 | Recherche | Retrouver une page, une présentation ou un tableau de bord dans tout ce qui est publié |
 | Export | PDF et PowerPoint, pour les destinataires restés sous Office |
 | Charte (*house style*) | Couleurs, polices, logos et modèles de l'organisation, fournis à toutes les IA pour que tout sorte à ses couleurs |
-| Utilisateurs et Rooms | Administrateur, utilisateurs, Rooms personnelles et d'équipe, propriétaires et membres |
-| Console web | Voir ce qui est publié, partager, commenter, valider l'irréversible, administrer l'instance |
-| Domaines et TLS | Un domaine ou un wildcard, certificats automatiques, adresse de repli sans domaine |
+| Utilisateurs et Rooms | Personnes et administrateurs de chaque Cahut, une Room personnelle par personne, Rooms d'équipe avec propriétaires et membres |
+| Connexion | Comptes propres à chaque Cahut, authentification unique (SSO) par OpenID Connect : Google, Microsoft Entra, Okta… |
+| Console web | Voir ce qui est publié, partager, commenter, valider l'irréversible, administrer le serveur et ses Cahuts, sur son propre port HTTPS |
+| Domaines et TLS | Plusieurs Cahuts par serveur, un domaine ou sous-domaine chacun, sans wildcard, certificats automatiques |
 | Journal | Historique de chaque action : qui, quelle IA, au nom de qui, quel résultat |
 | Sauvegardes | Vers un stockage S3 ou SFTP externe, facultatives, restauration depuis la console |
 | Mises à jour | Automatiques, avec vérification des versions publiées sur GitHub et retour arrière |
@@ -82,7 +83,7 @@ Tout le périmètre ci-dessous est livré dès le lancement : pas de version ré
 - Héberger une IA ou un modèle sur le serveur : les IA restent à l'extérieur et s'y connectent.
 - Dépendre d'un fournisseur d'IA ou enfermer le travail dans un format propriétaire.
 - Donner à l'IA un accès libre au serveur.
-- Fonctionner sur plusieurs machines : une instance, une machine.
+- Fonctionner sur plusieurs machines : un serveur porte un ou plusieurs Cahuts.
 - Être proposé en service hébergé au lancement (piste pour plus tard).
 
 ## Gouvernance et sécurité
@@ -94,16 +95,16 @@ L'IA est l'opératrice prévue de Cahut, mais jamais sans garde-fou : elle fait 
 3. **L'IA déclare ce qu'elle publie.** Chaque publication dit ce qu'elle contient et ce qu'elle fait (une appli qui collecte des données, appelle l'extérieur, ouvre un formulaire).
 4. **Des droits par agent.** Chaque IA agit au nom d'une personne, avec la portée que cette personne lui donne, révocable à tout moment.
 5. **Tout est tracé.** Quelle IA, au nom de qui, quelle action, quel résultat : le registre (*logbook*) se consulte dans la console.
-6. **Les données restent à la maison.** Tout vit sur le serveur de l'instance ; les sauvegardes partent seulement vers le stockage externe choisi.
-7. **Isolation.** Chaque appli tourne dans un conteneur sans privilèges, avec ses limites de ressources ; chaque appli a sa propre origine web dès qu'un wildcard existe.
+6. **Les données restent à la maison.** Tout vit sur votre serveur ; les sauvegardes partent seulement vers le stockage externe choisi.
+7. **Isolation.** Chaque Window tourne dans un bac à sable (*sandbox*) : ses scripts ne peuvent lire ni les autres Windows, ni la console, ni la session du lecteur. Chaque appli tourne dans un conteneur sans privilèges, avec ses limites de ressources. Les Cahuts d'un même serveur ne partagent que la machine.
 
 **Exemples proposés, à valider.**
 
 | L'IA fait seule (réversible) | Un humain valide (irréversible) |
 | --- | --- |
-| Publier ou mettre à jour une page (la version précédente est gardée) | Supprimer définitivement une page, une appli ou une base |
-| Restreindre un accès, prolonger une durée de vie | Rendre public un contenu interne |
-| Déployer une appli dans les limites prévues | Inviter une personne extérieure |
+| Publier ou mettre à jour une Window (la version précédente est gardée) | Supprimer définitivement une Window, une appli ou une base |
+| Restreindre un accès, prolonger une durée de vie | Rendre une Window publique |
+| Déployer une appli dans les limites prévues | Ajouter une personne à un Cahut |
 | Revenir à la version précédente | Changer les droits d'un utilisateur ou d'une IA |
 | Lancer une sauvegarde | Effacer des sauvegardes ou en changer la destination |
 
@@ -120,7 +121,7 @@ flowchart LR
     P[Copilot]
   end
   subgraph CAHUT["Cahut, sur votre serveur"]
-    H["La maison : publier, partager, droits, versions, commentaires, recherche, export PDF et PPTX, journal, l'irréversible validé par vous"]
+    H["Votre Cahut : publier, partager, droits, versions, commentaires, recherche, export PDF et PPTX, journal, l'irréversible validé par vous"]
     S["La charte : vos couleurs, vos formats, suivis par toutes les IA"]
   end
   subgraph LIRE["Lire"]
@@ -136,8 +137,8 @@ Cahut reçoit le travail des IA par MCP, l'habille de la charte de l'organisatio
 
 1. **Connexion.** L'utilisateur ajoute Cahut à son IA (connecteur MCP et skill) et l'autorise une fois (OAuth), avec la portée qu'il choisit.
 2. **Création.** Il demande à son IA un document, une présentation, un tableau de bord ou une appli ; la skill lui fournit les formats et la charte de l'organisation.
-3. **Publication.** L'IA publie dans une Room, déclare ce que fait la publication et reçoit une adresse ; la version précédente est gardée.
-4. **Partage.** L'utilisateur, ou l'IA dans les limites autorisées, choisit l'accès : public, mot de passe, interne ou invités. Ce qui est irréversible attend une validation dans la console.
+3. **Publication.** L'IA publie une Window dans une Room, déclare ce qu'elle fait et reçoit son adresse, comme `cahut.exemple.fr/marketing/q3-review` ; la version précédente est gardée.
+4. **Partage.** L'utilisateur, ou l'IA dans les limites autorisées, choisit qui ouvre chaque Window : sa Room seulement, tout le Cahut, qui a sa Key, ou le public. Ce qui est irréversible attend une validation dans la console.
 5. **Vie de la page.** Les lecteurs l'ouvrent dans un navigateur, la commentent ; l'IA la met à jour à la demande ; tout est au registre.
 
 ## Choix techniques
@@ -147,7 +148,7 @@ Cahut est une plateforme qui s'installe sur un Linux standard, pas un système d
 | Sujet | Choix | Statut |
 | --- | --- | --- |
 | Nature | Plateforme sur un Linux standard, pas un OS | Décidé |
-| Machine | Une seule machine par instance, VPS ou serveur dédié | Décidé |
+| Serveur | Un serveur, VPS ou dédié, porte un ou plusieurs Cahuts, chacun avec son domaine, ses personnes et ses données | Décidé |
 | Machine minimale | 2 vCPU, 4 Go de RAM, 40 Go de disque | Décidé |
 | Systèmes pris en charge | AlmaLinux et Ubuntu au lancement | Décidé |
 | Installation | Une commande, depuis l'image standard du fournisseur, en moins de 10 minutes | Décidé |
@@ -155,8 +156,8 @@ Cahut est une plateforme qui s'installe sur un Linux standard, pas un système d
 | Langage | Go ou Rust, départagés par deux prototypes de la même tranche : installer, publier une page par MCP, la servir en HTTPS | À trancher |
 | Interface IA | MCP en HTTP avec OAuth ; SSH à commande forcée pour les mêmes opérations | Décidé |
 | Applis | Runtimes prédéfinis et mode Dockerfile ; moteur de conteneurs sans privilèges (Podman ou Docker) à choisir | À trancher |
-| Web et TLS | Proxy avec certificats automatiques (Caddy ou intégré), un sous-domaine par appli quand un wildcard existe | À trancher |
-| Console web | Utilise la même API que les IA : aucune capacité ne lui est réservée | Décidé |
+| Web et TLS | Intégré au binaire, certificats automatiques ; les Windows sous les chemins du domaine de leur Cahut, chacune dans un bac à sable CSP | Décidé |
+| Console web | Sur son propre port HTTPS, utilise la même API que les IA : aucune capacité ne lui est réservée | Décidé |
 | Mises à jour | Automatiques, dernière version vérifiée sur GitHub, retour arrière possible | Décidé |
 | Sauvegardes | Vers S3 ou SFTP externe, facultatives | Décidé |
 | Licence | Permissive (Apache-2.0) ou copyleft réseau (AGPL-3.0, pour qu'un hébergeur ne puisse pas en faire un service fermé) | À trancher |
@@ -167,14 +168,15 @@ Le produit parle le langage de la maison, en anglais simple : chaque notion tech
 
 | Mot | Ce qu'il désigne |
 | --- | --- |
-| Home | L'instance Cahut, sur votre serveur |
-| Room | Un espace personnel ou d'équipe, avec ses membres |
-| Window | Une page vivante : document, présentation, tableau de bord ou appli |
-| Door | Le lien de partage, et son niveau d'accès |
-| Key | Le mot de passe ou l'invitation qui ouvre une page protégée |
+| Cahut | Une instance sur votre serveur, à son propre domaine ; un serveur peut en porter plusieurs |
+| Room | Un espace personnel ou d'équipe, avec ses membres, à l'adresse `<domaine>/<room>` |
+| Window | Une page vivante : document, présentation, tableau de bord ou appli, à l'adresse `<domaine>/<room>/<window>` |
+| Key | Le mot de passe qui ouvre une Window protégée |
 | House style | La charte de l'organisation, appliquée par toutes les IA |
 | Knock first | La règle de gouvernance : l'IA frappe avant toute action irréversible |
 | Logbook | Le registre de toutes les actions |
+
+Chaque Window s'ouvre à sa Room seulement, à tout le Cahut, à qui a sa Key, ou au public.
 
 ## Face aux autres
 
@@ -206,7 +208,7 @@ Cahut est un projet personnel, ouvert dès le lancement : il doit installer une 
 | Installation sur un VPS vierge | Moins de 10 minutes, une commande |
 | Première publication par une IA | Moins de 5 minutes, sans toucher au serveur |
 | Partage par une personne non technique | Une présentation partagée par lien en quelques minutes |
-| IA prises en charge | La même instance fonctionne avec au moins deux clients IA différents |
+| IA prises en charge | Le même Cahut fonctionne avec au moins deux clients IA différents |
 | Gouvernance | Toute action d'une IA figure au registre, et s'annule ou a été validée |
 
 ## Prochaines étapes et questions ouvertes
