@@ -1,6 +1,6 @@
 # 3. Each Window gets its own web origin
 
-- Status: Accepted
+- Status: Superseded by [ADR 8](0008-several-cahuts-per-server.md), [ADR 9](0009-rooms-and-windows-as-paths.md) and [ADR 10](0010-windows-in-a-csp-sandbox.md)
 - Date: 2026-10-21
 
 ## Context
