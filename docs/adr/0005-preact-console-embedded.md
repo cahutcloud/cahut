@@ -1,6 +1,6 @@
 # 5. The console is a Preact app embedded in the binary
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 11](0011-console-on-its-own-port.md) (the console's own port)
 - Date: 2026-10-21
 
 ## Context
