@@ -17,7 +17,7 @@ var admin = operation.Actor{Kind: operation.Admin, Via: "cli"}
 
 func setup(t *testing.T) (*operation.Registry, *store.DB) {
 	t.Helper()
-	db, err := store.Open(context.Background(), filepath.Join(t.TempDir(), "cahut.db"))
+	db, err := store.Open(context.Background(), filepath.Join(t.TempDir(), "cahut.db"), store.CahutSchema)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,21 +35,27 @@ func TestCreateUser(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create_user: %v", err)
 	}
-	if u.ID == 0 || u.Name != "Olivier Durand" || u.Role != "admin" || u.PersonalRoom == 0 {
+	if u.ID == 0 || u.Name != "Olivier Durand" || u.Role != "admin" || u.PersonalRoom != "olivier" {
 		t.Errorf("user = %+v", u)
 	}
-	var role string
+	var role, room, title string
 	err = db.Read.QueryRowContext(ctx, `
-		SELECT m.role FROM room_members m JOIN rooms r ON r.id = m.room_id
-		WHERE m.user_id = ? AND r.kind = 'personal'`, u.ID).Scan(&role)
-	if err != nil || role != "owner" {
-		t.Errorf("personal Room membership: role %q, err %v", role, err)
+		SELECT m.role, r.name, r.title FROM room_members m JOIN rooms r ON r.id = m.room_id
+		WHERE m.user_id = ? AND r.kind = 'personal'`, u.ID).Scan(&role, &room, &title)
+	if err != nil || role != "owner" || room != "olivier" || title != "Olivier Durand" {
+		t.Errorf("personal Room: %q %q, role %q, err %v", room, title, role, err)
 	}
 
+	if _, err := db.Write.ExecContext(ctx, "INSERT INTO rooms (name, kind, title, created_at) VALUES ('marketing', 'team', 'Marketing', 'now')"); err != nil {
+		t.Fatal(err)
+	}
 	for _, in := range []CreateUserInput{
 		{Handle: "olivier", Name: "Someone else"},
+		{Handle: "marketing", Name: "Taken by a Room"},
+		{Handle: "mcp", Name: "Reserved"},
 		{Handle: "Olivier", Name: "Capital"},
 		{Handle: "x", Name: "Too short"},
+		{Handle: "camille-", Name: "Ends with a hyphen"},
 		{Handle: "camille", Name: "  "},
 	} {
 		if _, err := operation.Do(ctx, r, CreateUser, admin, in); !errors.Is(err, operation.ErrInvalid) {

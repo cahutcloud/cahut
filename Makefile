@@ -19,7 +19,7 @@ help: ## List the tasks
 build: ## Build bin/cahut for this machine
 	CGO_ENABLED=0 go build -trimpath -o bin/cahut ./cmd/cahut
 
-dev: ## Serve a home on http://localhost:8080, with its data in tmp/dev
+dev: ## Serve the Cahuts of tmp/dev on http://localhost:8080
 	go run ./cmd/cahut serve --dev --data tmp/dev
 
 test: ## Run the tests with the race detector
@@ -40,5 +40,5 @@ snapshot: ## Build the release archives into dist/, without publishing
 release-check: ## Validate the GoReleaser configuration
 	$(GORELEASER) check
 
-clean: ## Remove the build output and the development home
+clean: ## Remove the build output and the development data
 	rm -rf bin dist tmp

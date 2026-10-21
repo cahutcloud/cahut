@@ -2,7 +2,7 @@ package cli
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"io"
 	"log/slog"
 	"os"
@@ -10,30 +10,24 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"cahut.cloud/internal/home"
 	"cahut.cloud/internal/server"
+	"cahut.cloud/internal/web"
 )
 
 func runServe(args []string, _, stderr io.Writer) int {
 	fs := newFlags("serve", stderr)
 	data := dataFlag(fs)
-	var cfg server.Config
-	fs.StringVar(&cfg.Domain, "domain", os.Getenv("CAHUT_DOMAIN"),
-		"address of the home, such as home.example.com; each Window is served under it (env CAHUT_DOMAIN)")
+	var cfg web.Config
 	fs.StringVar(&cfg.Email, "email", os.Getenv("CAHUT_ACME_EMAIL"),
 		"contact of the Let's Encrypt account, optional (env CAHUT_ACME_EMAIL)")
 	fs.StringVar(&cfg.CA, "acme-ca", os.Getenv("CAHUT_ACME_CA"),
 		`ACME directory, or "staging" for Let's Encrypt's staging environment (env CAHUT_ACME_CA)`)
 	fs.StringVar(&cfg.HTTPAddr, "http", ":80", "address for HTTP, which answers ACME challenges and redirects")
 	fs.StringVar(&cfg.HTTPSAddr, "https", ":443", "address for HTTPS")
-	fs.BoolVar(&cfg.Dev, "dev", false, "serve plain HTTP on --dev-addr, with the Windows under localhost")
+	fs.BoolVar(&cfg.Dev, "dev", false, "serve plain HTTP on --dev-addr, for Cahuts at localhost and *.localhost")
 	fs.StringVar(&cfg.DevAddr, "dev-addr", "localhost:8080", "address for --dev")
 	if code, ok := parse(fs, args); !ok {
 		return code
-	}
-	if !cfg.Dev && cfg.Domain == "" {
-		fmt.Fprintln(stderr, "cahut serve: set --domain or CAHUT_DOMAIN, or use --dev")
-		return exitUsage
 	}
 	cfg.CertDir = filepath.Join(*data, "certificates")
 
@@ -41,13 +35,15 @@ func runServe(args []string, _, stderr io.Writer) int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	h, err := home.Open(ctx, home.Config{DataDir: *data, WindowURL: cfg.WindowURL()})
+	srv, err := server.Open(ctx, server.Config{DataDir: *data, BaseURL: cfg.BaseURL})
 	if err != nil {
-		log.Error("open the home", "error", err)
+		log.Error("open the server", "error", err)
 		return exitError
 	}
-	defer h.Close()
-	if err := server.New(h, cfg, log).Run(ctx); err != nil {
+	w := web.New(srv, cfg, log)
+	err = w.Run(ctx)
+	err = errors.Join(err, w.Close(), srv.Close())
+	if err != nil {
 		log.Error("serve", "error", err)
 		return exitError
 	}

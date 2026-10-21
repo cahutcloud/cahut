@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"io/fs"
 	"path/filepath"
 	"testing"
 	"time"
@@ -9,10 +10,16 @@ import (
 
 func TestOpenMigrates(t *testing.T) {
 	ctx := context.Background()
-	path := filepath.Join(t.TempDir(), "cahut.db")
+	for _, schema := range []fs.FS{CahutSchema, ServerSchema} {
+		testOpenMigrates(ctx, t, schema)
+	}
+}
 
+func testOpenMigrates(ctx context.Context, t *testing.T, schema fs.FS) {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "cahut.db")
 	for range 2 { // the second open finds the schema up to date
-		db, err := Open(ctx, path)
+		db, err := Open(ctx, path, schema)
 		if err != nil {
 			t.Fatalf("Open: %v", err)
 		}
@@ -38,13 +45,13 @@ func TestOpenMigrates(t *testing.T) {
 
 func TestReadPoolIsReadOnly(t *testing.T) {
 	ctx := context.Background()
-	db, err := Open(ctx, filepath.Join(t.TempDir(), "cahut.db"))
+	db, err := Open(ctx, filepath.Join(t.TempDir(), "cahut.db"), CahutSchema)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer db.Close()
 
-	_, err = db.Read.ExecContext(ctx, "INSERT INTO rooms (kind, name, created_at) VALUES ('team', 'x', 'now')")
+	_, err = db.Read.ExecContext(ctx, "INSERT INTO rooms (name, kind, title, created_at) VALUES ('x', 'team', 'X', 'now')")
 	if err == nil {
 		t.Error("insert through the read pool succeeded, want an error")
 	}
@@ -52,7 +59,7 @@ func TestReadPoolIsReadOnly(t *testing.T) {
 
 func TestForeignKeys(t *testing.T) {
 	ctx := context.Background()
-	db, err := Open(ctx, filepath.Join(t.TempDir(), "cahut.db"))
+	db, err := Open(ctx, filepath.Join(t.TempDir(), "cahut.db"), CahutSchema)
 	if err != nil {
 		t.Fatal(err)
 	}

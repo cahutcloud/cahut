@@ -1,19 +1,20 @@
-package server
+package web
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/caddyserver/certmagic"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	"cahut.cloud/internal/window"
 )
 
-// certificates sets up CertMagic for the home and its Windows (ADR 2). Every
-// name is managed: its certificate is obtained when the home starts or the
-// Window is published, then renewed. Failures are retried in the background.
-func (s *Server) certificates(ctx context.Context) (*certmagic.Config, *certmagic.ACMEIssuer, error) {
+// certificates sets up CertMagic for the domains of the Cahuts (ADR 2 and
+// ADR 8): one certificate per Cahut, obtained at start for the domains
+// already declared, then renewed. A domain declared while the server runs
+// gets its certificate at its first TLS handshake. Failures are retried in
+// the background.
+func (s *Server) certificates(ctx context.Context, domains []string) (*certmagic.Config, *certmagic.ACMEIssuer, error) {
 	var magic *certmagic.Config
 	log := certLogger()
 	cache := certmagic.NewCache(certmagic.CacheOptions{
@@ -23,6 +24,9 @@ func (s *Server) certificates(ctx context.Context) (*certmagic.Config, *certmagi
 	magic = certmagic.New(cache, certmagic.Config{
 		Storage: &certmagic.FileStorage{Path: s.cfg.CertDir},
 		Logger:  log,
+		// Without a decision function, CertMagic would obtain a certificate
+		// for any name a client sends.
+		OnDemand: &certmagic.OnDemandConfig{DecisionFunc: s.declared},
 	})
 	ca := s.cfg.CA
 	switch ca {
@@ -34,31 +38,22 @@ func (s *Server) certificates(ctx context.Context) (*certmagic.Config, *certmagi
 	issuer := certmagic.NewACMEIssuer(magic, certmagic.ACMEIssuer{CA: ca, Email: s.cfg.Email, Agreed: true, Logger: log})
 	magic.Issuers = []certmagic.Issuer{issuer}
 
-	names, err := s.windowNames(ctx)
-	if err != nil {
+	if err := magic.ManageAsync(ctx, domains); err != nil {
 		return nil, nil, err
-	}
-	if err := magic.ManageAsync(ctx, append([]string{s.cfg.Domain}, names...)); err != nil {
-		return nil, nil, err
-	}
-	s.home.Windows.Published = func(name string) {
-		if err := magic.ManageAsync(ctx, []string{name + "." + s.cfg.Domain}); err != nil {
-			s.log.Error("manage the certificate of a new Window", "window", name, "error", err)
-		}
 	}
 	return magic, issuer, nil
 }
 
-// windowNames returns the host names of all the Windows.
-func (s *Server) windowNames(ctx context.Context) ([]string, error) {
-	names, err := window.Names(ctx, s.home.DB)
+// declared accepts the domains of the Cahuts only.
+func (s *Server) declared(ctx context.Context, name string) error {
+	ok, err := s.srv.Declared(ctx, name)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	for i, n := range names {
-		names[i] = n + "." + s.cfg.Domain
+	if !ok {
+		return fmt.Errorf("%s is not the domain of a Cahut", name)
 	}
-	return names, nil
+	return nil
 }
 
 // certLogger returns a logger for CertMagic that writes lines like those of

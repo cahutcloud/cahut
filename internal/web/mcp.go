@@ -1,4 +1,4 @@
-package server
+package web
 
 import (
 	"context"
@@ -14,23 +14,28 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"cahut.cloud/internal/account"
+	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/version"
 )
 
-const instructions = `Cahut is a home for what AIs make, on the user's own server. ` +
+const instructions = `This Cahut keeps what AIs make, on the user's own server. ` +
 	`Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, ` +
 	`and you get back the address where it opens; give that address to the user. ` +
 	`Make index.html a complete page that works on its own. ` +
-	`Every call is recorded in the home's Logbook.`
+	`Link its files with relative paths, such as css/deck.css, never /css/deck.css: ` +
+	`a Window is served under the address of its Room. ` +
+	`Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: ` +
+	`keep state in memory or in the address. ` +
+	`Every call is recorded in the Logbook of the Cahut.`
 
-// mcpHandler returns the MCP endpoint (Streamable HTTP). It offers every
-// operation that is not reserved to the administrator as a tool, and asks
-// for a personal token.
-func (s *Server) mcpHandler() http.Handler {
+// mcpHandler returns the MCP endpoint (Streamable HTTP) of the Cahut c. It
+// offers every operation of c that is not reserved to the administrator as a
+// tool, and asks for a personal token of c.
+func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
 	srv := mcp.NewServer(&mcp.Implementation{Name: "cahut", Version: version.Get().Version},
 		&mcp.ServerOptions{Instructions: instructions})
-	for _, info := range s.home.Registry.Ops() {
+	for _, info := range c.Registry.Ops() {
 		if info.AdminOnly {
 			continue
 		}
@@ -38,7 +43,7 @@ func (s *Server) mcpHandler() http.Handler {
 		if err != nil {
 			panic(err) // a type the schema library cannot describe: a programming error
 		}
-		srv.AddTool(tool, s.callTool(info.Name))
+		srv.AddTool(tool, s.callTool(c, info.Name))
 	}
 	handler := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return srv },
 		&mcp.StreamableHTTPOptions{
@@ -46,8 +51,10 @@ func (s *Server) mcpHandler() http.Handler {
 			SessionTimeout:      time.Hour,
 			MaxRequestBodyBytes: MaxRequestSize, // the SDK's default, 4 MiB, is too small for a deck with images
 		})
-	verify := auth.RequireBearerToken(s.verifyToken, &auth.RequireBearerTokenOptions{AllowMissingExpiration: true})
-	return verify(handler)
+	verify := func(ctx context.Context, token string, _ *http.Request) (*auth.TokenInfo, error) {
+		return s.verifyToken(ctx, c, token)
+	}
+	return auth.RequireBearerToken(verify, &auth.RequireBearerTokenOptions{AllowMissingExpiration: true})(handler)
 }
 
 func toolFor(info operation.Info) (*mcp.Tool, error) {
@@ -73,8 +80,9 @@ func toolFor(info operation.Info) (*mcp.Tool, error) {
 	}, nil
 }
 
-// callTool runs an operation for the AI that holds the request's token.
-func (s *Server) callTool(name string) mcp.ToolHandler {
+// callTool runs an operation of c for the AI that holds the request's
+// token.
+func (s *Server) callTool(c *cahut.Cahut, name string) mcp.ToolHandler {
 	return func(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		owner, ok := req.Extra.TokenInfo.Extra["owner"].(account.Owner)
 		if !ok {
@@ -88,12 +96,12 @@ func (s *Server) callTool(name string) mcp.ToolHandler {
 			TokenID: owner.TokenID,
 			Client:  clientName(owner.TokenName, req.Session),
 		}
-		out, err := s.home.Registry.Invoke(ctx, name, actor, req.Params.Arguments)
+		out, err := c.Registry.Invoke(ctx, name, actor, req.Params.Arguments)
 		if err != nil {
 			msg := err.Error()
 			if !operation.Public(err) {
-				s.log.Error("tool call failed", "tool", name, "user", owner.Handle, "error", err)
-				msg = "Internal error. The home's administrator can find it in the Logbook."
+				s.log.Error("tool call failed", "cahut", c.Domain, "tool", name, "user", owner.Handle, "error", err)
+				msg = "Internal error. The administrator of the Cahut can find it in the Logbook."
 			}
 			return &mcp.CallToolResult{IsError: true, Content: []mcp.Content{&mcp.TextContent{Text: msg}}}, nil
 		}
@@ -125,13 +133,15 @@ func clientName(token string, session *mcp.ServerSession) string {
 	return token + " (" + software + ")"
 }
 
-func (s *Server) verifyToken(ctx context.Context, token string, _ *http.Request) (*auth.TokenInfo, error) {
-	owner, err := account.Verify(ctx, s.home.DB, token, time.Now())
+// verifyToken checks a personal token against the people of c only: a
+// token of another Cahut is invalid here.
+func (s *Server) verifyToken(ctx context.Context, c *cahut.Cahut, token string) (*auth.TokenInfo, error) {
+	owner, err := account.Verify(ctx, c.DB, token, time.Now())
 	if errors.Is(err, account.ErrInvalidToken) {
 		return nil, fmt.Errorf("%w: %w", auth.ErrInvalidToken, err)
 	}
 	if err != nil {
-		s.log.Error("verify a token", "error", err)
+		s.log.Error("verify a token", "cahut", c.Domain, "error", err)
 		return nil, errors.New("internal error")
 	}
 	return &auth.TokenInfo{

@@ -1,5 +1,5 @@
-// Package account manages the people of a home and the personal tokens that
-// their AIs present.
+// Package account manages the people of a Cahut and the personal tokens
+// that their AIs present.
 package account
 
 import (
@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
 )
@@ -26,13 +27,13 @@ func Register(r *operation.Registry) {
 	operation.Register(r, RevokeToken)
 }
 
-// User is a person of the home.
+// User is a person of a Cahut.
 type User struct {
 	ID           int64  `json:"id"`
 	Handle       string `json:"handle"`
 	Name         string `json:"name"`
-	Role         string `json:"role" jsonschema:"admin or member"`
-	PersonalRoom int64  `json:"personal_room"`
+	Role         string `json:"role" jsonschema:"admin or member of the Cahut"`
+	PersonalRoom string `json:"personal_room" jsonschema:"name of the person's personal Room, the handle"`
 }
 
 // CreateUserInput is the input of create_user.
@@ -42,47 +43,58 @@ type CreateUserInput struct {
 	Admin  bool   `json:"admin,omitempty"`
 }
 
-var validHandle = regexp.MustCompile(`^[a-z][a-z0-9-]{1,31}$`)
+// A handle is also the name of the person's personal Room, so it is a valid
+// Room name too.
+var validHandle = regexp.MustCompile(`^[a-z][a-z0-9-]{0,30}[a-z0-9]$`)
 
-// CreateUser creates a person and their personal Room.
+// CreateUser creates a person and their personal Room, named after their
+// handle.
 var CreateUser = &operation.Op[CreateUserInput, User]{
 	Name:        "create_user",
 	Description: "Create a person, with their personal Room.",
 	AdminOnly:   true,
 	Run: func(ctx context.Context, c *operation.Call, in CreateUserInput) (User, error) {
 		if !validHandle.MatchString(in.Handle) {
-			return User{}, operation.Invalidf("handle %q: use 2 to 32 lowercase letters, digits and hyphens, starting with a letter", in.Handle)
+			return User{}, operation.Invalidf("handle %q: use 2 to 32 lowercase letters, digits and hyphens, "+
+				"starting with a letter and ending with a letter or a digit", in.Handle)
+		}
+		if address.Reserved(in.Handle) {
+			return User{}, operation.Invalidf("handle %q is reserved: it names a page of every Cahut", in.Handle)
 		}
 		name := strings.TrimSpace(in.Name)
 		if name == "" {
 			return User{}, operation.Invalidf("name is empty")
 		}
-		u := User{Handle: in.Handle, Name: name, Role: "member"}
+		u := User{Handle: in.Handle, Name: name, Role: "member", PersonalRoom: in.Handle}
 		if in.Admin {
 			u.Role = "admin"
 		}
 		c.Log(u.Handle, u.Role)
 
 		var taken bool
-		if err := c.Tx.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM users WHERE handle = ?)", u.Handle).Scan(&taken); err != nil {
+		err := c.Tx.QueryRowContext(ctx, `
+			SELECT EXISTS (SELECT 1 FROM users WHERE handle = ?) OR EXISTS (SELECT 1 FROM rooms WHERE name = ?)`,
+			u.Handle, u.Handle).Scan(&taken)
+		if err != nil {
 			return User{}, err
 		}
 		if taken {
-			return User{}, operation.Invalidf("handle %q is taken", u.Handle)
+			return User{}, operation.Invalidf("handle %q is taken, by a person or a Room", u.Handle)
 		}
 		now := store.FormatTime(c.Now)
-		err := c.Tx.QueryRowContext(ctx, "INSERT INTO users (handle, name, role, created_at) VALUES (?, ?, ?, ?) RETURNING id",
+		err = c.Tx.QueryRowContext(ctx, "INSERT INTO users (handle, name, role, created_at) VALUES (?, ?, ?, ?) RETURNING id",
 			u.Handle, u.Name, u.Role, now).Scan(&u.ID)
 		if err != nil {
 			return User{}, err
 		}
-		err = c.Tx.QueryRowContext(ctx, "INSERT INTO rooms (kind, name, created_at) VALUES ('personal', ?, ?) RETURNING id",
-			u.Name, now).Scan(&u.PersonalRoom)
+		var room int64
+		err = c.Tx.QueryRowContext(ctx, "INSERT INTO rooms (name, kind, title, created_at) VALUES (?, 'personal', ?, ?) RETURNING id",
+			u.PersonalRoom, u.Name, now).Scan(&room)
 		if err != nil {
 			return User{}, err
 		}
 		_, err = c.Tx.ExecContext(ctx, "INSERT INTO room_members (room_id, user_id, role) VALUES (?, ?, 'owner')",
-			u.PersonalRoom, u.ID)
+			room, u.ID)
 		return u, err
 	},
 }

@@ -29,7 +29,7 @@ type roomOut struct {
 // rooms, a table that needs no other row.
 func testRegistry(t *testing.T) (*Registry, *store.DB) {
 	t.Helper()
-	db, err := store.Open(context.Background(), filepath.Join(t.TempDir(), "cahut.db"))
+	db, err := store.Open(context.Background(), filepath.Join(t.TempDir(), "cahut.db"), store.CahutSchema)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,8 +43,8 @@ func createRoom(fail error) *Op[roomIn, roomOut] {
 	return &Op[roomIn, roomOut]{
 		Name: "create_room",
 		Run: func(ctx context.Context, c *Call, in roomIn) (roomOut, error) {
-			res, err := c.Tx.ExecContext(ctx, "INSERT INTO rooms (kind, name, created_at) VALUES ('team', ?, ?)",
-				in.Name, store.FormatTime(c.Now))
+			res, err := c.Tx.ExecContext(ctx, "INSERT INTO rooms (name, kind, title, created_at) VALUES (?, 'team', ?, ?)",
+				in.Name, in.Name, store.FormatTime(c.Now))
 			if err != nil {
 				return roomOut{}, err
 			}

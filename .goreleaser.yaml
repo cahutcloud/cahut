@@ -30,8 +30,8 @@ changelog:
   sort: asc
 
 release:
-  # A person reviews and publishes each release by hand. Homes only update
-  # to published releases.
+  # A person reviews and publishes each release by hand. Servers only
+  # update to published releases.
   draft: true
   # A new run for a tag replaces the draft of an earlier run, so a tag
   # never ends up with two drafts. Edits made to that draft are lost.

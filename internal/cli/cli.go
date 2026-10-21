@@ -25,8 +25,9 @@ type command struct {
 }
 
 var commands = []command{
-	{name: "serve", summary: "Serve the home: MCP for AIs, and the Windows", run: runServe},
-	{name: "user", summary: "Manage the people of the home", run: group("user", userCommands)},
+	{name: "serve", summary: "Serve the Cahuts of this server: MCP for AIs, and the Windows", run: runServe},
+	{name: "domain", summary: "Manage the Cahuts of this server, one per domain", run: group("domain", domainCommands)},
+	{name: "user", summary: "Manage the people of a Cahut", run: group("user", userCommands)},
 	{name: "token", summary: "Manage the personal tokens of AIs", run: group("token", tokenCommands)},
 	{name: "logbook", summary: "Print the latest entries of the Logbook", run: runLogbook},
 	{name: "version", summary: "Print the version of this binary", run: runVersion},
@@ -118,13 +119,37 @@ func parse(fs *flag.FlagSet, args []string) (code int, ok bool) {
 	return 0, true
 }
 
-// dataFlag adds the --data flag, for the directory of the home.
+// parseWithArgs parses args into fs, which takes flags and exactly n
+// arguments, in any order. It returns the arguments. When ok is false, the
+// command stops with code.
+func parseWithArgs(fs *flag.FlagSet, args []string, n int) (rest []string, code int, ok bool) {
+	for {
+		if err := fs.Parse(args); err != nil {
+			if errors.Is(err, flag.ErrHelp) {
+				return nil, exitOK, false
+			}
+			return nil, exitUsage, false
+		}
+		if fs.NArg() == 0 {
+			break
+		}
+		rest = append(rest, fs.Arg(0))
+		args = fs.Args()[1:]
+	}
+	if len(rest) != n {
+		fs.Usage()
+		return nil, exitUsage, false
+	}
+	return rest, 0, true
+}
+
+// dataFlag adds the --data flag, for the directory of the server's data.
 func dataFlag(fs *flag.FlagSet) *string {
 	dir := os.Getenv("CAHUT_DATA")
 	if dir == "" {
 		dir = "/var/lib/cahut"
 	}
-	return fs.String("data", dir, "directory of the home's data (env CAHUT_DATA)")
+	return fs.String("data", dir, "directory of the server's data, which holds its Cahuts (env CAHUT_DATA)")
 }
 
 func runVersion(args []string, stdout, stderr io.Writer) int {
