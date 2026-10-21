@@ -11,6 +11,8 @@ on:
       - docs/charte-graphique/**
       - .nvmrc
       - .github/workflows/sites.yml
+  # Runs from the Actions tab upload main again, without a change.
+  workflow_dispatch:
   pull_request:
     paths:
       - sites/**
@@ -44,7 +46,7 @@ jobs:
       - run: npm run build
         working-directory: sites
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: github.event_name == 'push'
+        if: github.event_name != 'pull_request'
         with:
           name: sites
           path: |
@@ -57,7 +59,7 @@ jobs:
   deploy:
     name: Deploy
     needs: build
-    if: github.event_name == 'push' && vars.SITES_SSH_HOST != ''
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.SITES_SSH_HOST != ''
     runs-on: ubuntu-latest
     environment:
       name: sites
@@ -82,11 +84,14 @@ jobs:
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      # --delete removes the files that are no longer built, but never a
+      # hidden file or folder: the web server keeps its own there, such as
+      # .well-known/ or the PHP settings of a domain.
       - name: Upload cahut.cloud and docs.cahut.cloud
         run: |
           upload() {
             rsync --recursive --links --checksum --delete --chmod=D755,F644 \
-              --filter='P /.well-known/' \
+              --filter='P .*' \
               -e "ssh -p $SSH_PORT -o StrictHostKeyChecking=yes" \
               "$1/" "$SSH_USER@$SSH_HOST:$2/"
           }

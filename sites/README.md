@@ -43,13 +43,18 @@ The integration also serves the favicons and the web manifest of `docs/charte-gr
 
 ## Deployment
 
-The [Sites workflow](../.github/workflows/sites.yml) builds both sites for every pull request that touches them or the brand. On `main`, it uploads them to the web server with rsync over SSH, into the document root of each domain, and deletes the files that are no longer built.
+The [Sites workflow](../.github/workflows/sites.yml) builds both sites for every pull request that touches them or the brand. On `main`, it uploads them to the web server with rsync over SSH, into the document root of each domain, and deletes the files that are no longer built. It never deletes a hidden file or folder, such as `.well-known/` or the PHP settings that Plesk keeps there. To upload `main` again without a change, run the workflow from the Actions tab.
 
 The upload stays off until the repository's variables name the server. To turn it on, on the server:
 
 1. Serve `cahut.cloud` and `docs.cahut.cloud` as static sites over HTTPS, and redirect `www.cahut.cloud` to `cahut.cloud`.
 2. Give the system user of these sites an SSH shell that can run rsync.
-3. Add the public half of a new key, used for nothing else, to that user's `~/.ssh/authorized_keys`.
+3. Copy [`deploy-command.sh`](deploy-command.sh) to that user's `~/.ssh/`, executable. It is the key's forced command: the key can then only upload into `httpdocs/` or `docs.cahut.cloud/` with rsync, with no shell.
+4. Add the public half of a new key, used for nothing else, to that user's `~/.ssh/authorized_keys`, behind that command:
+
+   ```
+   command="/var/www/vhosts/cahut.cloud/.ssh/deploy-command.sh",restrict ssh-ed25519 AAAA... sites-deploy
+   ```
 
 Then, in the repository's settings on GitHub, under Secrets and variables, Actions:
 
@@ -63,4 +68,4 @@ Then, in the repository's settings on GitHub, under Secrets and variables, Actio
 | `SITES_WWW_DIR` | Variable | The document root of cahut.cloud, relative to the user's home, if not `httpdocs` |
 | `SITES_DOCS_DIR` | Variable | The document root of docs.cahut.cloud, if not `docs.cahut.cloud` |
 
-The default folders are those of Plesk for a domain and its subdomain.
+The default folders are those of Plesk for a domain and its subdomain. If you change them, change `deploy-command.sh` too.
