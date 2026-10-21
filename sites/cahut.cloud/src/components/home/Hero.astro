@@ -1,0 +1,532 @@
+---
+// The top of the home page: the promise, and the open house of the brand
+// guidelines, whose Windows fly in and whose door lights up.
+import Icon from '../Icon.astro';
+import clouds from '@charte/illustrations/motif-nuages.svg?url';
+import house from '@charte/illustrations/maison-ouverte.svg?raw';
+
+interface Props {
+	github: string;
+}
+
+const { github } = Astro.props;
+
+// The illustration is drawn from its file as it is. Its French title would be
+// read out on an English page: the figure around it gives the description.
+const art = house
+	.replace(/<title>.*?<\/title>/, '')
+	.replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true" focusable="false"');
+
+const title = 'The home for everything your AIs make.';
+const facts = [
+	{ icon: 'server', text: 'One command on your server' },
+	{ icon: 'plug', text: 'Any AI, over MCP' },
+	{ icon: 'link', text: 'A link, not a file' },
+] as const;
+---
+
+<section class="hero" aria-labelledby="hero-title">
+	<div class="hero__sky" style={`--clouds: url("${clouds}")`} aria-hidden="true"></div>
+	<div class="container hero__grid">
+		<div class="hero__text">
+			<a class="hero__status" href="#roadmap">
+				<span class="hero__pulse" aria-hidden="true"></span>
+				In early development: nothing is usable yet
+				<Icon name="arrow-right" size={14} />
+			</a>
+			<h1 id="hero-title" class="c-display hero__title">
+				{
+					title.split(' ').map((word, index) => (
+						<>
+							<span class="word">
+								<span style={`--i: ${index}`}>{word}</span>
+							</span>{' '}
+						</>
+					))
+				}
+			</h1>
+			<p class="hero__lead">
+				Documents, slide decks, dashboards and small apps live online as living pages, in your house style, on your own
+				server, whichever AI made them.
+			</p>
+			<div class="hero__actions">
+				<a class="c-btn c-btn--primary" href="#how-it-works">See how it works <Icon name="arrow-down" /></a>
+				<a class="c-btn c-btn--secondary" href={github}>Follow the work on GitHub</a>
+			</div>
+			<ul class="hero__facts" role="list">
+				{
+					facts.map(({ icon, text }) => (
+						<li>
+							<Icon name={icon} size={16} />
+							{text}
+						</li>
+					))
+				}
+			</ul>
+		</div>
+
+		<figure class="hero__art">
+			<div class="hero__panel">
+				<div class="hero__scene" set:html={art} />
+			</div>
+			<figcaption class="visually-hidden">
+				A document, a dashboard, a site and a picture join a cloud with an open door, lit from inside.
+			</figcaption>
+			<div class="hero__chip hero__chip--address" aria-hidden="true">
+				<Icon name="lock" size={14} />
+				<span class="c-mono">cahut.example.com/marketing/q3-review</span>
+			</div>
+			<div class="hero__chip hero__chip--log" aria-hidden="true">
+				<span class="c-mono c-muted">09:14</span>
+				<span class="c-ai"><span class="c-ai__mark">Cl</span>Claude</span>
+				<span>published <b>Q3 review</b></span>
+				<span class="c-badge c-badge--success">Done</span>
+			</div>
+		</figure>
+	</div>
+</section>
+
+<style>
+	.hero {
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+	}
+
+	/* The cloud pattern of the brand drifts slowly behind the page. */
+	.hero__sky {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background-image: var(--clouds);
+		background-size: 160px 160px;
+		opacity: 0.4;
+		-webkit-mask-image: linear-gradient(to bottom, black 30%, transparent 95%);
+		mask-image: linear-gradient(to bottom, black 30%, transparent 95%);
+	}
+
+	.hero__grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		align-items: center;
+		gap: var(--space-16);
+		padding-block: var(--space-16) var(--space-24);
+	}
+
+	.hero__text {
+		display: grid;
+		justify-items: start;
+		gap: var(--space-6);
+	}
+
+	.hero__status {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-pill);
+		background: var(--color-surface);
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		font-weight: var(--weight-semibold);
+		text-decoration: none;
+		box-shadow: var(--shadow-sm);
+		transition: border-color var(--duration-base) var(--ease-out);
+	}
+	.hero__status:hover {
+		border-color: var(--color-border-strong);
+		color: var(--color-text);
+	}
+	.hero__status :global(.i) {
+		transition: translate var(--duration-base) var(--ease-out);
+	}
+	.hero__status:hover :global(.i) {
+		translate: 2px 0;
+	}
+	/* Someone is home: the yellow light of the door. */
+	.hero__pulse {
+		position: relative;
+		width: var(--space-2);
+		height: var(--space-2);
+		border-radius: 50%;
+		background: var(--color-highlight);
+	}
+
+	.hero__title {
+		font-size: clamp(var(--text-4xl), 5.4vw, var(--text-5xl));
+		line-height: 1.12;
+		max-width: 12em;
+	}
+	/* Each word rises out of its own line. */
+	.word {
+		display: inline-block;
+		overflow: hidden;
+		vertical-align: top;
+		padding-bottom: 0.1em;
+		margin-bottom: -0.1em;
+	}
+	.word > span {
+		display: inline-block;
+	}
+
+	.hero__lead {
+		max-width: 34rem;
+		margin: 0;
+		color: var(--color-text-muted);
+		font-size: var(--text-lg);
+		line-height: var(--leading-lg);
+	}
+
+	.hero__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+		padding-top: var(--space-2);
+	}
+	.hero__actions .c-btn {
+		height: 48px;
+		padding-inline: var(--space-5);
+		font-size: var(--text-base);
+	}
+
+	.hero__facts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2) var(--space-6);
+		margin: 0;
+		padding: var(--space-2) 0 0;
+		list-style: none;
+		color: var(--color-text-muted);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	.hero__facts li {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+
+	/* The art */
+	.hero__art {
+		position: relative;
+		margin: 0;
+	}
+	.hero__panel {
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-xl);
+		background: var(--cahut-white);
+		box-shadow: var(--shadow-lg);
+		overflow: hidden;
+	}
+	.hero__scene :global(svg) {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	.hero__chip {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: var(--space-2) var(--space-3);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		color: var(--color-text);
+		box-shadow: var(--shadow-md);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		white-space: nowrap;
+	}
+	.hero__chip--address {
+		top: 7%;
+		left: calc(-1 * var(--space-8));
+	}
+	.hero__chip--address :global(.i) {
+		color: var(--color-success);
+	}
+	.hero__chip--log {
+		right: calc(-1 * var(--space-6));
+		bottom: 9%;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-4);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+
+	/* In the dark, the illustration keeps its light panel: it has no dark version. */
+	@media (prefers-color-scheme: dark) {
+		:global(:root:not([data-theme='light'])) .hero__panel {
+			background: var(--cahut-paper);
+			border-color: var(--color-border-strong);
+		}
+		:global(:root:not([data-theme='light'])) .hero__sky {
+			opacity: 0.05;
+		}
+	}
+	:global(:root[data-theme='dark']) .hero__panel {
+		background: var(--cahut-paper);
+		border-color: var(--color-border-strong);
+	}
+	:global(:root[data-theme='dark']) .hero__sky {
+		opacity: 0.05;
+	}
+
+	/*
+	 * The motion. Everything above is the page at rest, as it shows without
+	 * scripts or with reduced motion.
+	 */
+	@media (prefers-reduced-motion: no-preference) {
+		.hero__sky {
+			animation: drift 90s linear infinite;
+		}
+		.hero__pulse::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			border-radius: 50%;
+			background: var(--color-highlight);
+			animation: pulse 2.4s var(--ease-out) infinite;
+		}
+
+		:global(.js) .word > span {
+			translate: 0 110%;
+			animation: rise 900ms var(--ease-out) calc(150ms + var(--i) * 70ms) forwards;
+		}
+		:global(.js) .hero__status,
+		:global(.js) .hero__lead,
+		:global(.js) .hero__actions,
+		:global(.js) .hero__facts {
+			opacity: 0;
+			animation: appear 800ms var(--ease-out) forwards;
+		}
+		:global(.js) .hero__status {
+			animation-delay: 50ms;
+		}
+		:global(.js) .hero__lead {
+			animation-delay: 650ms;
+		}
+		:global(.js) .hero__actions {
+			animation-delay: 800ms;
+		}
+		:global(.js) .hero__facts {
+			animation-delay: 950ms;
+		}
+
+		.hero__panel {
+			animation: appear 1s var(--ease-out) 200ms both;
+		}
+
+		/* The parts of the illustration, in the order of its file. */
+		.hero__scene > :global(svg > circle) {
+			animation: sun 1.8s var(--ease-out) 400ms both;
+		}
+		.hero__scene > :global(svg > path:not([stroke-dasharray])) {
+			animation: hills 1.4s var(--ease-out) 250ms both;
+		}
+		.hero__scene > :global(svg > path[stroke-dasharray]) {
+			animation:
+				appear 600ms var(--ease-out) 1.5s both,
+				flow 1.2s linear infinite;
+		}
+		.hero__scene > :global(svg > g:first-of-type > path:first-child) {
+			animation: appear 900ms var(--ease-out) 700ms both;
+		}
+		.hero__scene > :global(svg > g:first-of-type > path:last-child) {
+			stroke-dasharray: 1000;
+			animation: draw 1.8s var(--ease-in-out) 350ms both;
+		}
+		/* The door lights up once the Windows are in. */
+		.hero__scene > :global(svg > g:first-of-type > path:nth-child(2)) {
+			animation:
+				appear 700ms var(--ease-out) 2.1s both,
+				glow 4s ease-in-out 3s infinite alternate;
+		}
+		.hero__scene > :global(svg > g:not(:first-of-type)) {
+			animation:
+				arrive 1.3s var(--ease-out) var(--arrive) both,
+				float var(--float) ease-in-out calc(var(--arrive) + 1.3s) infinite alternate;
+		}
+		.hero__scene > :global(svg > g:nth-of-type(2)) {
+			--from: -180px 40px;
+			--arrive: 800ms;
+			--float: 6s;
+		}
+		.hero__scene > :global(svg > g:nth-of-type(3)) {
+			--from: 180px 30px;
+			--arrive: 1050ms;
+			--float: 7s;
+		}
+		.hero__scene > :global(svg > g:nth-of-type(4)) {
+			--from: -160px 120px;
+			--arrive: 950ms;
+			--float: 6.5s;
+		}
+		.hero__scene > :global(svg > g:nth-of-type(5)) {
+			--from: 160px -80px;
+			--arrive: 1150ms;
+			--float: 5.5s;
+		}
+
+		.hero__chip {
+			animation:
+				pop 700ms var(--ease-out) var(--pop) both,
+				bob 6s ease-in-out calc(var(--pop) + 700ms) infinite alternate;
+		}
+		.hero__chip--address {
+			--pop: 2.3s;
+		}
+		.hero__chip--log {
+			--pop: 2.7s;
+			animation-duration: 700ms, 7s;
+		}
+	}
+
+	@keyframes drift {
+		to {
+			background-position: 480px -160px;
+		}
+	}
+	@keyframes pulse {
+		from {
+			opacity: 0.8;
+			scale: 1;
+		}
+		to {
+			opacity: 0;
+			scale: 3;
+		}
+	}
+	@keyframes rise {
+		to {
+			translate: 0 0;
+		}
+	}
+	@keyframes appear {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+	@keyframes sun {
+		from {
+			opacity: 0;
+			translate: 0 120px;
+		}
+		to {
+			opacity: 1;
+			translate: 0 0;
+		}
+	}
+	@keyframes hills {
+		from {
+			translate: 0 80px;
+		}
+		to {
+			translate: 0 0;
+		}
+	}
+	@keyframes flow {
+		to {
+			stroke-dashoffset: -16;
+		}
+	}
+	@keyframes draw {
+		from {
+			stroke-dashoffset: 1000;
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+	@keyframes glow {
+		to {
+			opacity: 0.7;
+		}
+	}
+	@keyframes arrive {
+		from {
+			opacity: 0;
+			translate: var(--from);
+		}
+		to {
+			opacity: 1;
+			translate: 0 0;
+		}
+	}
+	@keyframes float {
+		to {
+			translate: 0 -14px;
+		}
+	}
+	@keyframes pop {
+		from {
+			opacity: 0;
+			translate: 0 var(--space-3);
+			scale: 0.96;
+		}
+		to {
+			opacity: 1;
+			translate: 0 0;
+			scale: 1;
+		}
+	}
+	@keyframes bob {
+		to {
+			translate: 0 calc(-1 * var(--space-2));
+		}
+	}
+
+	@media (max-width: 1024px) {
+		.hero__grid {
+			grid-template-columns: 1fr;
+			gap: var(--space-12);
+			padding-block: var(--space-12) var(--space-20);
+		}
+		.hero__art {
+			max-width: 40rem;
+			width: 100%;
+			justify-self: center;
+		}
+		.hero__chip--address {
+			left: var(--space-4);
+		}
+		.hero__chip--log {
+			right: var(--space-4);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.hero__grid {
+			padding-block: var(--space-10) var(--space-16);
+		}
+		.hero__title {
+			line-height: var(--leading-4xl);
+		}
+		.hero__actions .c-btn {
+			flex: 1 1 auto;
+		}
+		.hero__chip {
+			font-size: 11px;
+		}
+		.hero__chip--address {
+			top: var(--space-3);
+			left: var(--space-3);
+		}
+		.hero__chip--log {
+			right: var(--space-3);
+			bottom: var(--space-3);
+			gap: var(--space-2);
+			padding: var(--space-2) var(--space-3);
+			font-size: var(--text-xs);
+		}
+		.hero__chip--log .c-badge {
+			display: none;
+		}
+	}
+</style>

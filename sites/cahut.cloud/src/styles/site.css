@@ -8,6 +8,14 @@
 	--measure: 45rem;
 	--page-width: 72rem;
 	--page-margin: var(--space-8);
+	/* Height of the sticky header, so that anchors land below it. */
+	--header-height: var(--space-16);
+	/*
+	 * The tokens time the controls of the interface. What moves on the site
+	 * takes longer, on the same curve, so that it stays calm.
+	 */
+	--duration-reveal: 700ms;
+	--ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 @media (max-width: 640px) {
@@ -21,6 +29,10 @@
 	html:not([data-theme='light']) {
 		color-scheme: dark;
 	}
+}
+
+[id] {
+	scroll-margin-top: calc(var(--header-height) + var(--space-4));
 }
 
 a {
@@ -57,6 +69,11 @@ code {
 	max-width: var(--measure);
 }
 
+/* The interface kit sets the display of its controls: hidden ones stay hidden. */
+[hidden] {
+	display: none !important;
+}
+
 .visually-hidden {
 	position: absolute;
 	width: 1px;
@@ -67,4 +84,30 @@ code {
 	clip-path: inset(50%);
 	white-space: nowrap;
 	border: 0;
+}
+
+/*
+ * Reveal on scroll. An element with data-reveal rises into place the first
+ * time it enters the screen; the children of data-reveal-group follow one
+ * another. Only with JavaScript, and never when motion is reduced.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	html {
+		scroll-behavior: smooth;
+	}
+	.js [data-reveal] {
+		opacity: 0;
+		translate: 0 var(--space-6);
+		transition:
+			opacity var(--duration-reveal) var(--ease-out),
+			translate var(--duration-reveal) var(--ease-out);
+		transition-delay: var(--reveal-delay, 0ms);
+	}
+	.js [data-reveal='fade'] {
+		translate: none;
+	}
+	.js [data-reveal].is-visible {
+		opacity: 1;
+		translate: none;
+	}
 }

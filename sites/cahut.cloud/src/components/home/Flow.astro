@@ -1,0 +1,1765 @@
+---
+// How Cahut works, as a diagram that plays itself in five steps: an AI
+// connects, publishes a Window, shares it, knocks before making it public,
+// and every action goes to the Logbook. The steps play when the diagram comes
+// into view; the visitor can pause them or pick one.
+import DeckThumb from './DeckThumb.astro';
+import Icon from '../Icon.astro';
+import cahutPicto from '@charte/icones/cahut.svg?raw';
+
+const steps = [
+	{
+		title: 'Connect',
+		heading: 'Add Cahut to your AI, once.',
+		text: 'Your AI connects to your Cahut over MCP, the open protocol that links AIs to tools. You authorize it with OAuth, with the scope you choose. No AI model runs on your server.',
+		call: 'MCP · OAuth · on behalf of Olivier',
+		duration: 6000,
+	},
+	{
+		title: 'Publish',
+		heading: 'Ask for a deck. The AI publishes a Window.',
+		text: 'The AI calls one typed operation, never a shell. Cahut applies your house style, files the Window in its Room, and hands back its address.',
+		call: 'publish_window(room: "marketing", window: "q3-review")',
+		duration: 8500,
+	},
+	{
+		title: 'Share',
+		heading: 'Share a link, not a file.',
+		text: 'Each Window opens to its Room only, to everyone in your Cahut, to anyone with its Key, or to the public. Readers open it in a browser and comment on it.',
+		call: 'share_window(window: "q3-review", access: "key")',
+		duration: 8500,
+	},
+	{
+		title: 'Knock first',
+		heading: 'What cannot be undone waits for you.',
+		text: 'Making a Window public cannot be undone. So the AI knocks: the request waits in the console, with a notification and an expiry, until a person approves it.',
+		call: 'share_window(access: "public") → waiting for Olivier',
+		duration: 10000,
+	},
+	{
+		title: 'Logbook',
+		heading: 'Every action is in the Logbook.',
+		text: 'Which AI, on whose behalf, what it did and with what result. The Logbook keeps every action, readable in the console.',
+		call: 'logbook: 4 entries, 1 approved by a person',
+		duration: 6500,
+	},
+];
+
+const ais = [
+	{ mark: 'Cl', name: 'Claude' },
+	{ mark: 'GP', name: 'ChatGPT' },
+	{ mark: 'Mi', name: 'Mistral' },
+	{ mark: 'Co', name: 'Copilot' },
+];
+
+const operations = ['publish_window', 'share_window', 'get_window', 'list_windows'];
+
+const log = [
+	{ time: '09:12', text: 'connected for Olivier' },
+	{ time: '09:14', text: 'published', window: 'Q3 review' },
+	{ time: '09:20', text: 'gave', window: 'Q3 review', after: 'a Key' },
+	{ time: '09:31', text: 'asked to make', window: 'Q3 review', after: 'public', knock: true },
+];
+
+const readers = [
+	{ id: 'team', icon: 'users', who: 'Marketing team', short: 'Team' },
+	{ id: 'client', icon: 'key-round', who: 'A client, with the Key', short: 'Key' },
+	{ id: 'public', icon: 'globe', who: 'Anyone', short: 'Public' },
+] as const;
+
+// Without scripts, the diagram shows its last step, with everything done.
+const done = [
+	's-claude',
+	'w-mcp',
+	's-door',
+	's-style',
+	's-window',
+	'w-team',
+	'r-team',
+	'is-key',
+	'w-client',
+	'r-client',
+	's-comment',
+	'has-knock',
+	'is-approved',
+	'is-public',
+	'w-public',
+	'r-public',
+	'log-1',
+	'log-2',
+	'log-3',
+	'log-4',
+];
+---
+
+<div class="flow" data-flow role="group" aria-label="How Cahut works, in five steps">
+	<div class="flow__bar">
+		<ol class="flow__tabs" role="list">
+			{
+				steps.map(({ title, duration }, index) => (
+					<li>
+						<button
+							type="button"
+							class="flow__tab"
+							data-flow-tab={index + 1}
+							style={`--duration: ${duration}ms`}
+							aria-label={`Step ${index + 1}: ${title}`}
+						>
+							<span class="flow__num">{index + 1}</span>
+							<span class="flow__tab-title">{title}</span>
+							<span class="flow__track" aria-hidden="true" />
+						</button>
+					</li>
+				))
+			}
+		</ol>
+		<button type="button" class="c-btn c-btn--secondary c-btn--sm flow__play" data-flow-play hidden>
+			<span class="flow__pause-label"><Icon name="pause" size={14} />Pause</span>
+			<span class="flow__play-label"><Icon name="play" size={14} />Play</span>
+		</button>
+	</div>
+
+	<div class="flow__captions" data-flow-captions>
+		{
+			steps.map(({ heading, text, call }, index) => (
+				<div class="flow__caption" data-flow-caption={index + 1}>
+					<div class="flow__caption-text">
+						<p class="c-label">Step {index + 1} of 5</p>
+						<h3 class="c-h3">{heading}</h3>
+						<p class="flow__caption-lead">{text}</p>
+					</div>
+					<code class="flow__call">
+						<Icon name="terminal" size={14} />
+						<span>{call}</span>
+					</code>
+				</div>
+			))
+		}
+	</div>
+
+	<div class:list={['flow__stage', done]} data-flow-stage aria-hidden="true">
+		<svg class="flow__wires" data-flow-wires>
+			{
+				['mcp', 'team', 'client', 'public'].map((wire) => (
+					<g class={`flow__wire flow__wire--${wire}`}>
+						<path class="flow__wire-base" data-wire={wire} pathLength="1" />
+						<path class="flow__wire-flow" data-wire-flow={wire} />
+					</g>
+				))
+			}
+		</svg>
+
+		<div class="flow__col flow__ais">
+			<p class="c-label flow__col-label">Your AIs</p>
+			<ul class="flow__ai-list" role="list">
+				{
+					ais.map(({ mark, name }, index) => (
+						<li class:list={['flow__ai', { 'flow__ai--active': index === 0 }]} data-anchor={index === 0 ? 'ai' : undefined}>
+							<span class="c-ai__mark">{mark}</span>
+							<span class="flow__ai-name">{name}</span>
+							{index === 0 && <span class="flow__ai-status" />}
+						</li>
+					))
+				}
+			</ul>
+			<p class="flow__note">They stay outside. No AI runs on your server.</p>
+		</div>
+
+		<div class="flow__col flow__server">
+			<p class="c-label flow__col-label"><Icon name="server" size={14} />Your server</p>
+			<div class="flow__machine">
+				<div class="flow__cahut c-card">
+					<span class="flow__door" data-anchor="door"><Icon name="plug" size={14} />MCP</span>
+					<span class="flow__exit" data-anchor="exit"><Icon name="lock" size={14} />HTTPS</span>
+
+					<div class="flow__cahut-head">
+						<span class="flow__picto" set:html={cahutPicto} />
+						<div>
+							<p class="flow__cahut-name">Your Cahut</p>
+							<p class="c-mono flow__domain">cahut.example.com</p>
+						</div>
+						<span class="flow__style"><Icon name="palette" size={14} />House style</span>
+					</div>
+
+					<div class="flow__ops">
+						{
+							operations.map((operation) => (
+								<span class="flow__op c-mono" data-op={operation}>
+									{operation}
+								</span>
+							))
+						}
+					</div>
+
+					<div class="flow__body">
+						<div class="flow__room">
+							<p class="c-label">Room · marketing</p>
+							<div class="flow__slot">
+								<div class="flow__empty">No Windows yet</div>
+								<div class="c-card c-window flow__window">
+									<div class="flow__thumb"><DeckThumb /></div>
+									<div class="c-window__body">
+										<p class="c-window__title">Q3 review</p>
+										<div class="c-window__meta">
+											<span>marketing/q3-review</span>
+											<span class="flow__access">
+												<span class="c-badge c-badge--room">
+													<Icon name="lock" size={14} />
+													Room only
+												</span>
+												<span class="c-badge c-badge--key">
+													<Icon name="key-round" size={14} />
+													Key
+												</span>
+												<span class="c-badge c-badge--public">
+													<Icon name="globe" size={14} />
+													Public
+												</span>
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="flow__side">
+							<div class="flow__knock-box">
+								<p class="c-label">Knock first</p>
+								<div class="flow__slot">
+									<div class="flow__empty flow__empty--line">
+										<Icon name="circle-check" size={14} />
+										Nothing waits for you
+									</div>
+									<div class="c-card c-knock flow__knock">
+										<div class="c-knock__head">
+											<span class="c-ai">
+												<span class="c-ai__mark">Cl</span>Claude
+											</span>
+											<span class="flow__knock-state">
+												<span class="c-badge c-badge--warning">
+													<span class="c-dot" />
+													Waiting
+												</span>
+												<span class="c-badge c-badge--success">
+													<Icon name="check" size={14} />
+													Approved
+												</span>
+											</span>
+										</div>
+										<p class="flow__knock-text">
+											Wants to make <b>Q3 review</b> public.
+										</p>
+										<div class="flow__knock-foot">
+											<div class="c-knock__actions">
+												<span class="c-btn c-btn--primary c-btn--sm flow__approve">
+													<Icon name="check" size={14} />
+													Approve
+												</span>
+												<span class="c-btn c-btn--secondary c-btn--sm">Decline</span>
+												<span class="flow__cursor">
+													<Icon name="mouse-pointer" size={20} />
+												</span>
+											</div>
+											<p class="c-mono flow__knock-done">Approved by Olivier, 09:33</p>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="flow__log-box">
+								<p class="c-label">Logbook</p>
+								<ol class="flow__log" role="list">
+									{
+										log.map(({ time, text, window, after, knock }, index) => (
+											<li class:list={['flow__log-row', `flow__log-row--${index + 1}`]}>
+												<div>
+													<span class="c-mono flow__log-time">{time}</span>
+													<span class="flow__log-text">
+														<span class="c-ai">
+															<span class="c-ai__mark">Cl</span>Claude
+														</span>{' '}
+														{text}
+														{window && (
+															<>
+																{' '}
+																<b>{window}</b>
+															</>
+														)}
+														{after && ` ${after}`}
+													</span>
+													<span class:list={['flow__log-result', { 'flow__log-result--knock': knock }]}>
+														<Icon name="circle-check" size={14} />
+														{knock && <Icon name="clock" size={14} />}
+													</span>
+												</div>
+											</li>
+										))
+									}
+								</ol>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="flow__col flow__readers">
+			<p class="c-label flow__col-label">Your readers</p>
+			<ul class="flow__reader-list" role="list">
+				{
+					readers.map(({ id, icon, who, short }) => (
+						<li class:list={['flow__reader', `flow__reader--${id}`]} data-anchor={id}>
+							<div class="flow__browser c-card">
+								<p class="flow__browser-bar">
+									<Icon name={icon} size={14} />
+									<span class="flow__who">{who}</span>
+									<span class="flow__who-short">{short}</span>
+								</p>
+								<div class="flow__screen">
+									<div class="flow__closed">
+										<Icon name="lock" size={16} />
+										<span>Closed</span>
+									</div>
+									<div class="flow__open">
+										<DeckThumb />
+									</div>
+									{id === 'client' && (
+										<span class="flow__comment">
+											<Icon name="message-square" size={14} />
+											Looks good
+										</span>
+									)}
+								</div>
+							</div>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+
+		<span class="flow__packet flow__packet--call" data-packet="publish">
+			<Icon name="file-text" size={14} />publish_window
+		</span>
+		<span class="flow__packet flow__packet--back" data-packet="address">
+			<Icon name="link" size={14} />marketing/q3-review
+		</span>
+		<span class="flow__packet flow__packet--call" data-packet="share">
+			<Icon name="key-round" size={14} />share_window · Key
+		</span>
+		<span class="flow__packet flow__packet--back" data-packet="link-client">
+			<Icon name="link" size={14} />Link and Key
+		</span>
+		<span class="flow__packet flow__packet--call" data-packet="public">
+			<Icon name="globe" size={14} />share_window · Public
+		</span>
+		<span class="flow__packet flow__packet--back" data-packet="link-public">
+			<Icon name="link" size={14} />Link
+		</span>
+	</div>
+</div>
+
+<script>
+	// Plays the five steps of the diagram. Each step adds classes to the stage,
+	// which the styles turn into motion; packets travel along the wires.
+
+	class Cancelled extends Error {}
+
+	type Step = (play: Play) => Promise<void>;
+
+	interface Play {
+		wait(ms: number): Promise<void>;
+		fly(packet: string, wire: string, options?: { back?: boolean; duration?: number }): Promise<void>;
+	}
+
+	const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+	function setUp(root: HTMLElement) {
+		const stage = root.querySelector<HTMLElement>('[data-flow-stage]')!;
+		const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-flow-tab]')];
+		const captions = [...root.querySelectorAll<HTMLElement>('[data-flow-caption]')];
+		const captionBox = root.querySelector<HTMLElement>('[data-flow-captions]')!;
+		const playButton = root.querySelector<HTMLButtonElement>('[data-flow-play]')!;
+		const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+
+		const wires = new Map<string, SVGPathElement[]>();
+		for (const path of stage.querySelectorAll<SVGPathElement>('[data-wire], [data-wire-flow]')) {
+			const name = path.dataset.wire ?? path.dataset.wireFlow!;
+			wires.set(name, [...(wires.get(name) ?? []), path]);
+		}
+		const anchor = (name: string) => stage.querySelector<HTMLElement>(`[data-anchor="${name}"]`)!;
+
+		const durations = tabs.map((tab) => parseInt(tab.style.getPropertyValue('--duration'), 10));
+		const flags = new Set([...stage.classList].filter((name) => /^(s|w|r|is|has|log|live|op|focus)-/.test(name)));
+		const on = (...names: string[]) => names.forEach((name) => (flags.add(name), stage.classList.add(name)));
+		const off = (...names: string[]) => names.forEach((name) => (flags.delete(name), stage.classList.remove(name)));
+
+		let run = 0;
+		let current = 0;
+		let autoplay = !reduced.matches;
+		let started = false;
+
+		// The wires follow the layout: across on wide screens, down on narrow ones.
+		function layout() {
+			const box = stage.getBoundingClientRect();
+			const across = getComputedStyle(stage).getPropertyValue('--axis').trim() !== 'down';
+			const point = (element: HTMLElement, side: 'start' | 'end') => {
+				const r = element.getBoundingClientRect();
+				const x = r.left - box.left;
+				const y = r.top - box.top;
+				if (across) return { x: side === 'start' ? x + r.width : x, y: y + r.height / 2 };
+				return { x: x + r.width / 2, y: side === 'start' ? y + r.height : y };
+			};
+			const curve = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+				if (across) {
+					const d = (b.x - a.x) / 2;
+					return `M${a.x} ${a.y}C${a.x + d} ${a.y} ${b.x - d} ${b.y} ${b.x} ${b.y}`;
+				}
+				const d = (b.y - a.y) / 2;
+				return `M${a.x} ${a.y}C${a.x} ${a.y + d} ${b.x} ${b.y - d} ${b.x} ${b.y}`;
+			};
+			const set = (wire: string, d: string) => wires.get(wire)?.forEach((path) => path.setAttribute('d', d));
+			set('mcp', curve(point(anchor('ai'), 'start'), point(anchor('door'), 'end')));
+			const exit = point(anchor('exit'), 'start');
+			for (const reader of ['team', 'client', 'public']) set(reader, curve(exit, point(anchor(reader), 'end')));
+			const svg = stage.querySelector('svg')!;
+			svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+		}
+
+		function player(token: number, instant: boolean): Play {
+			const check = () => {
+				if (token !== run) throw new Cancelled();
+			};
+			return {
+				wait(ms) {
+					if (instant) return Promise.resolve();
+					return new Promise((resolve, reject) =>
+						setTimeout(() => (token === run ? resolve() : reject(new Cancelled())), ms),
+					);
+				},
+				fly(name, wire, { back = false, duration = 1300 } = {}) {
+					if (instant || reduced.matches) return Promise.resolve();
+					const packet = stage.querySelector<HTMLElement>(`[data-packet="${name}"]`)!;
+					const path = wires.get(wire)![0];
+					return new Promise((resolve, reject) => {
+						const start = performance.now();
+						packet.classList.add('is-flying');
+						const frame = (now: number) => {
+							if (token !== run) {
+								packet.classList.remove('is-flying');
+								return reject(new Cancelled());
+							}
+							const t = Math.min(1, (now - start) / duration);
+							const length = path.getTotalLength();
+							const p = path.getPointAtLength(length * (back ? 1 - ease(t) : ease(t)));
+							packet.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%)`;
+							if (t < 1) return requestAnimationFrame(frame);
+							packet.classList.remove('is-flying');
+							check();
+							resolve();
+						};
+						requestAnimationFrame(frame);
+					});
+				},
+			};
+		}
+
+		const steps: Step[] = [
+			async (p) => {
+				on('s-claude');
+				await p.wait(300);
+				on('w-mcp');
+				await p.wait(1000);
+				on('s-door');
+				await p.wait(400);
+				on('log-1');
+			},
+			async (p) => {
+				on('live-mcp');
+				await p.fly('publish', 'mcp');
+				off('live-mcp');
+				on('op-publish_window', 's-style');
+				await p.wait(600);
+				on('s-window');
+				await p.wait(700);
+				off('op-publish_window');
+				on('live-mcp');
+				await p.fly('address', 'mcp', { back: true, duration: 1100 });
+				off('live-mcp');
+				on('log-2');
+				await p.wait(500);
+				on('w-team');
+				await p.wait(800);
+				on('r-team');
+			},
+			async (p) => {
+				on('live-mcp');
+				await p.fly('share', 'mcp');
+				off('live-mcp');
+				on('op-share_window', 'is-key');
+				await p.wait(700);
+				off('op-share_window');
+				on('log-3', 'w-client');
+				await p.wait(700);
+				on('live-client');
+				await p.fly('link-client', 'client', { duration: 1000 });
+				off('live-client');
+				on('r-client');
+				await p.wait(900);
+				on('s-comment');
+			},
+			async (p) => {
+				on('live-mcp');
+				await p.fly('public', 'mcp');
+				off('live-mcp');
+				on('op-share_window', 'has-knock', 's-knocking');
+				await p.wait(500);
+				off('op-share_window');
+				on('log-4');
+				await p.wait(1600);
+				on('s-cursor');
+				await p.wait(1000);
+				on('s-press');
+				await p.wait(300);
+				off('s-knocking', 's-cursor', 's-press');
+				on('is-approved');
+				await p.wait(700);
+				on('is-public', 'w-public');
+				await p.wait(700);
+				on('live-public');
+				await p.fly('link-public', 'public', { duration: 1000 });
+				off('live-public');
+				on('r-public');
+			},
+			async () => {
+				on('focus-log');
+			},
+		];
+
+		function select(step: number, timed: boolean) {
+			current = step;
+			tabs.forEach((tab, index) => {
+				const n = index + 1;
+				tab.classList.toggle('is-done', n < step);
+				tab.classList.toggle('is-current', n === step);
+				tab.classList.toggle('is-timed', n === step && timed);
+				if (n === step) tab.setAttribute('aria-current', 'step');
+				else tab.removeAttribute('aria-current');
+			});
+			// Restart the bar of the current step.
+			const bar = tabs[step - 1]?.querySelector<HTMLElement>('.flow__track');
+			if (bar) {
+				bar.style.animation = 'none';
+				void bar.offsetWidth;
+				bar.style.animation = '';
+			}
+			captions.forEach((caption, index) => caption.classList.toggle('is-current', index + 1 === step));
+		}
+
+		// Puts the stage, at once, in the state it has after the given step.
+		async function rebuild(step: number) {
+			stage.classList.add('is-instant');
+			off(...flags);
+			const p = player(run, true);
+			for (let n = 1; n <= step; n++) await steps[n - 1](p);
+			void stage.offsetWidth;
+			stage.classList.remove('is-instant');
+		}
+
+		async function play(from: number) {
+			const token = ++run;
+			const p = player(token, false);
+			await rebuild(from - 1);
+			try {
+				for (let n = from; n <= steps.length; n++) {
+					select(n, autoplay);
+					const start = performance.now();
+					await steps[n - 1](p);
+					if (!autoplay) return;
+					await p.wait(Math.max(1500, durations[n - 1] - (performance.now() - start)));
+				}
+				// Back to the start: the stage empties, then plays again.
+				off(...flags);
+				select(1, false);
+				await p.wait(1600);
+				play(1);
+			} catch (error) {
+				if (!(error instanceof Cancelled)) throw error;
+			}
+		}
+
+		// Shows a step as it ends, without motion.
+		async function show(step: number) {
+			run++;
+			select(step, false);
+			await rebuild(step);
+		}
+
+		function setAutoplay(value: boolean) {
+			autoplay = value;
+			root.classList.toggle('is-playing', value);
+			playButton.setAttribute('aria-pressed', String(value));
+		}
+
+		tabs.forEach((tab, index) =>
+			tab.addEventListener('click', () => {
+				setAutoplay(false);
+				// Read out the step that the visitor picked, not those that play by themselves.
+				captionBox.setAttribute('aria-live', 'polite');
+				if (reduced.matches) show(index + 1);
+				else play(index + 1);
+			}),
+		);
+
+		playButton.hidden = false;
+		playButton.addEventListener('click', () => {
+			if (autoplay) {
+				setAutoplay(false);
+				show(current);
+			} else {
+				setAutoplay(true);
+				captionBox.setAttribute('aria-live', 'off');
+				play(current >= steps.length ? 1 : current + 1);
+			}
+		});
+
+		new ResizeObserver(layout).observe(stage);
+		document.fonts?.ready.then(layout);
+		layout();
+
+		root.classList.add('is-ready');
+		setAutoplay(autoplay);
+		if (autoplay) {
+			select(1, false);
+			rebuild(0);
+		} else {
+			show(1);
+		}
+
+		// Plays only while the diagram is on screen.
+		new IntersectionObserver(
+			([entry]) => {
+				if (!autoplay) return;
+				if (entry.isIntersecting) {
+					play(started ? current : 1);
+					started = true;
+				} else if (started) {
+					show(current);
+				}
+			},
+			{ threshold: 0.35 },
+		).observe(stage);
+	}
+
+	document.querySelectorAll<HTMLElement>('[data-flow]').forEach(setUp);
+</script>
+
+<style>
+	.flow {
+		/* The diagram is a miniature of the console: its smallest text sits below the scale of the tokens. */
+		--text-mini: 0.6875rem;
+		--text-micro: 0.5rem;
+		display: grid;
+		gap: var(--space-6);
+	}
+
+	/* Steps */
+	.flow__bar {
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+	}
+	.flow__tabs {
+		flex: 1;
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: var(--space-3);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.flow__tab {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		width: 100%;
+		padding: var(--space-3) 0 var(--space-4);
+		border: 0;
+		border-radius: var(--radius-sm);
+		background: none;
+		color: var(--color-text-muted);
+		font: inherit;
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+		font-weight: var(--weight-semibold);
+		text-align: left;
+		cursor: pointer;
+		transition: color var(--duration-base) var(--ease-out);
+	}
+	.flow__tab:hover,
+	.flow__tab.is-current {
+		color: var(--color-text);
+	}
+	.flow__num {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: var(--space-6);
+		height: var(--space-6);
+		border: var(--border-width) solid var(--color-border-strong);
+		border-radius: 50%;
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		transition:
+			background var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out);
+	}
+	.flow__tab.is-current .flow__num,
+	.flow__tab.is-done .flow__num {
+		border-color: var(--color-primary);
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+	}
+	.flow__tab-title {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	/* The track under each step fills while it plays. */
+	.flow__tab::before,
+	.flow__track {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: 3px;
+		border-radius: var(--radius-pill);
+	}
+	.flow__tab::before {
+		background: var(--color-border);
+	}
+	.flow__track {
+		background: var(--color-primary);
+		transform: scaleX(0);
+		transform-origin: left;
+	}
+	.flow__tab.is-done .flow__track,
+	.flow__tab.is-current .flow__track {
+		transform: none;
+	}
+	.flow__tab.is-timed .flow__track {
+		animation: fill var(--duration) linear both;
+	}
+	@keyframes fill {
+		from {
+			transform: scaleX(0);
+		}
+		to {
+			transform: none;
+		}
+	}
+	.flow__play {
+		flex: none;
+	}
+	.flow__play-label,
+	.flow__pause-label {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+	.flow:not(.is-playing) .flow__pause-label,
+	.flow.is-playing .flow__play-label {
+		display: none;
+	}
+
+	/* Captions */
+	.flow__captions {
+		display: grid;
+	}
+	.flow__caption {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: end;
+		gap: var(--space-4) var(--space-8);
+	}
+	.flow__caption + .flow__caption {
+		margin-top: var(--space-8);
+	}
+	.flow__caption-text {
+		display: grid;
+		gap: var(--space-2);
+		max-width: var(--measure);
+	}
+	.flow__caption p {
+		margin: 0;
+	}
+	.flow__caption-lead {
+		color: var(--color-text-muted);
+	}
+	.flow__call {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		max-width: 32rem;
+		padding: var(--space-2) var(--space-3);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		color: var(--color-text);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+	}
+	.flow__call :global(.i) {
+		color: var(--color-text-muted);
+	}
+	/* With scripts, the captions take turns in the same place. */
+	:global(.js) .flow.is-ready .flow__caption {
+		grid-area: 1 / 1;
+		margin: 0;
+		opacity: 0;
+		visibility: hidden;
+		translate: 0 var(--space-2);
+		transition:
+			opacity var(--duration-slow) var(--ease-out),
+			translate var(--duration-slow) var(--ease-out),
+			visibility 0s linear var(--duration-slow);
+	}
+	:global(.js) .flow.is-ready .flow__caption.is-current {
+		opacity: 1;
+		visibility: visible;
+		translate: none;
+		transition:
+			opacity var(--duration-reveal) var(--ease-out) 120ms,
+			translate var(--duration-reveal) var(--ease-out) 120ms,
+			visibility 0s;
+	}
+
+	/* The stage */
+	/*
+	 * Across, the stage is wider than the text when the screen allows, and
+	 * keeps a lane on each side of the server for the wires.
+	 */
+	.flow__stage {
+		--axis: across;
+		--gap: var(--space-16);
+		position: relative;
+		display: grid;
+		grid-template-columns: 10.5rem minmax(4rem, 1.2fr) minmax(0, 6fr) minmax(4rem, 0.8fr) 11rem;
+		align-items: center;
+		gap: var(--gap) 0;
+		margin-inline: calc(50% - min(50vw - var(--page-margin), 43rem));
+		padding: var(--space-8);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-xl);
+		background: var(--color-surface-muted);
+		overflow: hidden;
+	}
+	.flow__wires {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		overflow: visible;
+		pointer-events: none;
+	}
+	.flow__ais {
+		grid-column: 1;
+	}
+	.flow__server {
+		grid-column: 3;
+	}
+	.flow__readers {
+		grid-column: 5;
+	}
+	.flow__col {
+		position: relative;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		align-content: center;
+		gap: var(--space-3);
+		min-width: 0;
+	}
+	.flow__col-label {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		margin: 0;
+	}
+	.flow p {
+		margin: 0;
+	}
+	.flow ul,
+	.flow ol {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	/* Wires */
+	.flow__wire-base {
+		fill: none;
+		stroke: var(--color-border-strong);
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-dasharray: 1;
+		stroke-dashoffset: 1;
+		transition: stroke-dashoffset 900ms var(--ease-in-out);
+	}
+	.flow__wire-flow {
+		fill: none;
+		stroke: var(--color-accent);
+		stroke-width: 3;
+		stroke-linecap: round;
+		stroke-dasharray: 0.1 10;
+		opacity: 0;
+		transition: opacity var(--duration-slow) var(--ease-out);
+	}
+	.w-mcp .flow__wire--mcp .flow__wire-base,
+	.w-team .flow__wire--team .flow__wire-base,
+	.w-client .flow__wire--client .flow__wire-base,
+	.w-public .flow__wire--public .flow__wire-base {
+		stroke-dashoffset: 0;
+	}
+	.live-mcp .flow__wire--mcp .flow__wire-flow,
+	.live-client .flow__wire--client .flow__wire-flow,
+	.live-public .flow__wire--public .flow__wire-flow {
+		opacity: 1;
+		animation: flow 600ms linear infinite;
+	}
+	@keyframes flow {
+		to {
+			stroke-dashoffset: -10.1;
+		}
+	}
+
+	/* AIs */
+	.flow__ai-list {
+		display: grid;
+		gap: var(--space-2);
+	}
+	.flow__ai {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: var(--space-2) var(--space-3);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+		font-weight: var(--weight-semibold);
+		transition:
+			opacity var(--duration-slow) var(--ease-out),
+			border-color var(--duration-slow) var(--ease-out),
+			box-shadow var(--duration-slow) var(--ease-out);
+	}
+	.flow__ai .c-ai__mark {
+		width: var(--space-6);
+		height: var(--space-6);
+		border-radius: var(--radius-sm);
+		font-size: var(--text-mini);
+	}
+	.s-claude .flow__ai {
+		opacity: 0.55;
+	}
+	.s-claude .flow__ai--active {
+		opacity: 1;
+		border-color: var(--color-text);
+		box-shadow: var(--shadow-md);
+	}
+	.flow__ai-status {
+		width: var(--space-2);
+		height: var(--space-2);
+		margin-left: auto;
+		border-radius: 50%;
+		background: var(--color-success);
+		scale: 0;
+		transition: scale var(--duration-slow) var(--ease-out);
+	}
+	.s-door .flow__ai-status {
+		scale: 1;
+	}
+	.flow__note {
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+	}
+
+	/* Server and Cahut */
+	.flow__machine {
+		padding: var(--space-4);
+		border: 2px dashed var(--color-border-strong);
+		border-radius: var(--radius-xl);
+	}
+	.flow__cahut {
+		position: relative;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--space-4);
+		padding: var(--space-5);
+		transition: opacity var(--duration-slow) var(--ease-out);
+	}
+	.flow__door,
+	.flow__exit {
+		position: absolute;
+		top: 50%;
+		z-index: 1;
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
+		padding: 2px var(--space-2);
+		border: var(--border-width) solid var(--color-border-strong);
+		border-radius: var(--radius-pill);
+		background: var(--color-surface);
+		color: var(--color-text-muted);
+		font-family: var(--font-mono);
+		font-size: var(--text-mini);
+		line-height: var(--leading-xs);
+		font-weight: var(--weight-medium);
+		transition:
+			background var(--duration-slow) var(--ease-out),
+			border-color var(--duration-slow) var(--ease-out),
+			color var(--duration-slow) var(--ease-out);
+	}
+	.flow__door {
+		left: 0;
+		translate: -50% -50%;
+		writing-mode: vertical-rl;
+		rotate: 180deg;
+		padding: var(--space-2) 2px;
+	}
+	.flow__exit {
+		right: 0;
+		translate: 50% -50%;
+		writing-mode: vertical-rl;
+		padding: var(--space-2) 2px;
+	}
+	.flow__door :global(.i),
+	.flow__exit :global(.i) {
+		rotate: 90deg;
+	}
+	.s-door .flow__door,
+	.r-team .flow__exit {
+		border-color: var(--color-text);
+		color: var(--color-text);
+	}
+	/* Someone knocks: the door lights up in yellow. */
+	.s-knocking .flow__door {
+		border-color: var(--color-warning-border);
+		background: var(--color-highlight);
+		color: var(--cahut-ink-900);
+		animation: knock 1.2s var(--ease-out) infinite;
+	}
+	@keyframes knock {
+		0%,
+		40%,
+		100% {
+			translate: -50% -50%;
+		}
+		10%,
+		30% {
+			translate: calc(-50% - 3px) -50%;
+		}
+		20% {
+			translate: calc(-50% + 2px) -50%;
+		}
+	}
+
+	.flow__cahut-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-2) var(--space-3);
+	}
+	.flow__picto {
+		display: block;
+		flex: none;
+		width: var(--space-10);
+		height: var(--space-10);
+		color: var(--color-text);
+	}
+	.flow__picto :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		color: inherit;
+	}
+	.flow__cahut-name {
+		font-weight: var(--weight-bold);
+	}
+	.flow__domain {
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+	}
+	.flow__style {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
+		margin-left: auto;
+		padding: 2px var(--space-2);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-pill);
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		font-weight: var(--weight-semibold);
+		white-space: nowrap;
+		transition:
+			background var(--duration-slow) var(--ease-out),
+			border-color var(--duration-slow) var(--ease-out),
+			color var(--duration-slow) var(--ease-out);
+	}
+	.s-style .flow__style {
+		border-color: var(--color-info-border);
+		background: var(--color-info-bg);
+		color: var(--color-info);
+	}
+
+	.flow__ops {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-1) var(--space-2);
+	}
+	.flow__op {
+		padding: 2px var(--space-2);
+		border-radius: var(--radius-sm);
+		background: var(--color-surface-muted);
+		color: var(--color-text-muted);
+		font-size: var(--text-mini);
+		line-height: var(--leading-xs);
+		transition:
+			background var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out),
+			scale var(--duration-base) var(--ease-out);
+	}
+	.op-publish_window .flow__op[data-op='publish_window'],
+	.op-share_window .flow__op[data-op='share_window'] {
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+		scale: 1.06;
+	}
+
+	.flow__body {
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+		gap: var(--space-4);
+		align-items: start;
+	}
+	.flow__room,
+	.flow__side,
+	.flow__knock-box,
+	.flow__log-box {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--space-2);
+		align-content: start;
+		min-width: 0;
+		transition: opacity var(--duration-slow) var(--ease-out);
+	}
+	.flow__side {
+		gap: var(--space-4);
+	}
+
+	/* Two states share a slot: what is empty, and what arrives. */
+	.flow__slot {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.flow__slot > * {
+		grid-area: 1 / 1;
+	}
+	.flow__empty {
+		display: grid;
+		place-items: center;
+		min-height: 9rem;
+		border: 2px dashed var(--color-border);
+		border-radius: var(--radius-lg);
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		transition: opacity var(--duration-slow) var(--ease-out);
+	}
+	.flow__empty--line {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-2);
+		min-height: 0;
+		padding: var(--space-2) var(--space-3);
+		border-width: 1px;
+		border-radius: var(--radius-md);
+	}
+	.s-window .flow__room .flow__empty,
+	.has-knock .flow__knock-box .flow__empty {
+		opacity: 0;
+	}
+
+	.flow__window {
+		align-self: start;
+		opacity: 0;
+		translate: 0 var(--space-3);
+		scale: 0.96;
+		transition:
+			opacity var(--duration-reveal) var(--ease-out),
+			translate var(--duration-reveal) var(--ease-out),
+			scale var(--duration-reveal) var(--ease-out);
+	}
+	.s-window .flow__window {
+		opacity: 1;
+		translate: none;
+		scale: 1;
+	}
+	.flow__thumb {
+		border-bottom: var(--border-width) solid var(--color-border);
+	}
+	.flow__window .c-window__body {
+		grid-template-columns: minmax(0, 1fr);
+		padding: var(--space-3);
+		gap: var(--space-1);
+	}
+	.flow__window .c-window__title {
+		font-size: var(--text-sm);
+	}
+	.flow__window .c-window__meta {
+		flex-wrap: wrap;
+		row-gap: var(--space-1);
+		font-size: var(--text-mini);
+	}
+
+	/* The access of the Window: Room only, then Key, then public. */
+	.flow__access {
+		display: grid;
+		justify-items: end;
+	}
+	.flow__access > * {
+		grid-area: 1 / 1;
+		transition:
+			opacity var(--duration-slow) var(--ease-out),
+			scale var(--duration-slow) var(--ease-out);
+	}
+	.flow__access .c-badge--key,
+	.flow__access .c-badge--public,
+	.is-key .flow__access .c-badge--room,
+	.is-public .flow__access .c-badge--key {
+		opacity: 0;
+		scale: 0.8;
+	}
+	.is-key .flow__access .c-badge--key,
+	.is-public .flow__access .c-badge--public {
+		opacity: 1;
+		scale: 1;
+	}
+
+	/* Knock first */
+	.flow__knock {
+		position: relative;
+		gap: var(--space-2);
+		padding: var(--space-3);
+		opacity: 0;
+		translate: var(--space-4) 0;
+		transition:
+			opacity var(--duration-reveal) var(--ease-out),
+			translate var(--duration-reveal) var(--ease-out),
+			border-color var(--duration-slow) var(--ease-out);
+	}
+	.has-knock .flow__knock {
+		opacity: 1;
+		translate: none;
+	}
+	.is-approved .flow__knock {
+		border-left-color: var(--color-success);
+	}
+	.flow__knock .c-ai {
+		font-size: var(--text-xs);
+	}
+	.flow__knock-state {
+		display: grid;
+		margin-left: auto;
+	}
+	.flow__knock-state > * {
+		grid-area: 1 / 1;
+		justify-self: end;
+		transition: opacity var(--duration-slow) var(--ease-out);
+	}
+	.flow__knock-state .c-badge--success,
+	.is-approved .flow__knock-state .c-badge--warning {
+		opacity: 0;
+	}
+	.is-approved .flow__knock-state .c-badge--success {
+		opacity: 1;
+	}
+	.flow__knock-text {
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+	}
+	.flow__knock-foot {
+		display: grid;
+	}
+	.flow__knock-foot > * {
+		grid-area: 1 / 1;
+		transition: opacity var(--duration-slow) var(--ease-out);
+	}
+	.flow__knock-done {
+		align-self: center;
+		color: var(--color-success);
+		font-size: var(--text-mini);
+		line-height: var(--leading-xs);
+		opacity: 0;
+	}
+	.is-approved .c-knock__actions {
+		opacity: 0;
+	}
+	.is-approved .flow__knock-done {
+		opacity: 1;
+	}
+	.flow .c-knock__actions {
+		position: relative;
+		gap: var(--space-1);
+	}
+	.flow .c-knock__actions .c-btn {
+		height: 26px;
+		padding: 0 var(--space-2);
+		font-size: var(--text-mini);
+		cursor: default;
+	}
+	.flow__approve {
+		transition:
+			scale var(--duration-fast) var(--ease-out),
+			background var(--duration-fast) var(--ease-out);
+	}
+	.s-press .flow__approve {
+		scale: 0.94;
+		background: var(--color-primary-hover);
+	}
+	.flow__cursor {
+		position: absolute;
+		left: var(--space-10);
+		top: var(--space-3);
+		color: var(--color-text);
+		opacity: 0;
+		translate: 5rem 3rem;
+		transition:
+			opacity var(--duration-slow) var(--ease-out),
+			translate 900ms var(--ease-in-out),
+			scale var(--duration-fast) var(--ease-out);
+	}
+	.flow__cursor :global(.i) {
+		fill: var(--color-surface);
+	}
+	.s-cursor .flow__cursor {
+		opacity: 1;
+		translate: none;
+	}
+	.s-press .flow__cursor {
+		scale: 0.85;
+	}
+
+	/* Logbook */
+	.flow__log {
+		display: flex;
+		flex-direction: column-reverse;
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		overflow: hidden;
+	}
+	.flow__log-row {
+		display: grid;
+		grid-template-rows: 0fr;
+		overflow: hidden;
+		transition: grid-template-rows var(--duration-reveal) var(--ease-out);
+	}
+	.flow__log-row > div {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		align-items: start;
+		gap: var(--space-2);
+		min-height: 0;
+		overflow: hidden;
+		padding-inline: var(--space-3);
+		font-size: var(--text-mini);
+		line-height: var(--leading-xs);
+		opacity: 0;
+		transition:
+			opacity var(--duration-reveal) var(--ease-out),
+			padding var(--duration-reveal) var(--ease-out);
+	}
+	.flow__log-row + .flow__log-row > div {
+		border-bottom: var(--border-width) solid var(--color-border);
+	}
+	.log-1 .flow__log-row--1,
+	.log-2 .flow__log-row--2,
+	.log-3 .flow__log-row--3,
+	.log-4 .flow__log-row--4 {
+		grid-template-rows: 1fr;
+	}
+	.log-1 .flow__log-row--1 > div,
+	.log-2 .flow__log-row--2 > div,
+	.log-3 .flow__log-row--3 > div,
+	.log-4 .flow__log-row--4 > div {
+		padding-block: var(--space-2);
+		opacity: 1;
+	}
+	.flow__log-time {
+		color: var(--color-text-muted);
+	}
+	.flow__log-text .c-ai {
+		gap: var(--space-1);
+	}
+	.flow__log-text .c-ai__mark {
+		width: 14px;
+		height: 14px;
+		border-radius: var(--radius-xs);
+		font-size: var(--text-micro);
+	}
+	.flow__log-result {
+		display: grid;
+		color: var(--color-success);
+	}
+	.flow__log-result > :global(*) {
+		grid-area: 1 / 1;
+		transition: opacity var(--duration-slow) var(--ease-out);
+	}
+	.flow__log-result--knock {
+		color: var(--color-warning);
+	}
+	.flow__log-result--knock > :global(:first-child),
+	.is-approved .flow__log-result--knock > :global(:last-child) {
+		opacity: 0;
+	}
+	.is-approved .flow__log-result--knock {
+		color: var(--color-success);
+	}
+	.is-approved .flow__log-result--knock > :global(:first-child) {
+		opacity: 1;
+	}
+
+	/* Step 5: everything steps back, but the Logbook. */
+	.focus-log .flow__ais,
+	.focus-log .flow__readers,
+	.focus-log .flow__room,
+	.focus-log .flow__knock-box,
+	.focus-log .flow__cahut-head,
+	.focus-log .flow__ops,
+	.focus-log .flow__wires {
+		opacity: 0.35;
+	}
+	.flow__ais,
+	.flow__readers,
+	.flow__cahut-head,
+	.flow__ops,
+	.flow__wires {
+		transition: opacity var(--duration-reveal) var(--ease-out);
+	}
+	.flow__log-box {
+		transition: scale var(--duration-reveal) var(--ease-out);
+	}
+	.focus-log .flow__log-box {
+		scale: 1.04;
+	}
+	.focus-log .flow__log {
+		border-color: var(--color-text);
+		box-shadow: var(--shadow-lg);
+	}
+
+	/* Readers */
+	.flow__reader-list {
+		display: grid;
+		gap: var(--space-3);
+	}
+	.flow__browser {
+		overflow: hidden;
+		box-shadow: none;
+		transition:
+			border-color var(--duration-slow) var(--ease-out),
+			box-shadow var(--duration-slow) var(--ease-out);
+	}
+	.flow__browser-bar {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: var(--space-1) var(--space-2);
+		border-bottom: var(--border-width) solid var(--color-border);
+		color: var(--color-text-muted);
+		font-size: var(--text-mini);
+		line-height: var(--leading-xs);
+		font-weight: var(--weight-semibold);
+		white-space: nowrap;
+	}
+	.flow__who {
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.flow__who-short {
+		display: none;
+	}
+	.flow__screen {
+		position: relative;
+		display: grid;
+		aspect-ratio: 16 / 9;
+	}
+	.flow__screen > .flow__closed,
+	.flow__screen > .flow__open {
+		grid-area: 1 / 1;
+		transition:
+			opacity var(--duration-reveal) var(--ease-out),
+			scale var(--duration-reveal) var(--ease-out);
+	}
+	.flow__closed {
+		display: grid;
+		place-content: center;
+		justify-items: center;
+		gap: var(--space-1);
+		background: var(--color-surface-muted);
+		color: var(--color-text-muted);
+		font-size: var(--text-mini);
+		line-height: var(--leading-xs);
+	}
+	.flow__open {
+		opacity: 0;
+		scale: 1.04;
+	}
+	.r-team .flow__reader--team .flow__browser,
+	.r-client .flow__reader--client .flow__browser,
+	.r-public .flow__reader--public .flow__browser {
+		border-color: var(--color-text);
+		box-shadow: var(--shadow-md);
+	}
+	.r-team .flow__reader--team .flow__browser-bar,
+	.r-client .flow__reader--client .flow__browser-bar,
+	.r-public .flow__reader--public .flow__browser-bar {
+		color: var(--color-text);
+	}
+	.r-team .flow__reader--team .flow__closed,
+	.r-client .flow__reader--client .flow__closed,
+	.r-public .flow__reader--public .flow__closed {
+		opacity: 0;
+	}
+	.r-team .flow__reader--team .flow__open,
+	.r-client .flow__reader--client .flow__open,
+	.r-public .flow__reader--public .flow__open {
+		opacity: 1;
+		scale: 1;
+	}
+	.flow__comment {
+		position: absolute;
+		right: var(--space-2);
+		bottom: var(--space-2);
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
+		padding: 2px var(--space-2);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-md) var(--radius-md) var(--radius-xs) var(--radius-md);
+		background: var(--color-surface);
+		color: var(--color-text);
+		box-shadow: var(--shadow-md);
+		font-size: var(--text-mini);
+		line-height: var(--leading-xs);
+		font-weight: var(--weight-semibold);
+		opacity: 0;
+		translate: 0 var(--space-2);
+		transition:
+			opacity var(--duration-slow) var(--ease-out),
+			translate var(--duration-slow) var(--ease-out);
+	}
+	.s-comment .flow__comment {
+		opacity: 1;
+		translate: none;
+	}
+
+	/* Packets */
+	.flow__packet {
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: 2;
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
+		padding: var(--space-1) var(--space-2);
+		border-radius: var(--radius-pill);
+		font-family: var(--font-mono);
+		font-size: var(--text-mini);
+		line-height: var(--leading-xs);
+		font-weight: var(--weight-medium);
+		white-space: nowrap;
+		box-shadow: var(--shadow-md);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--duration-base) var(--ease-out);
+	}
+	.flow__packet.is-flying {
+		opacity: 1;
+	}
+	.flow__packet--call {
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+	}
+	.flow__packet--back {
+		background: var(--color-accent);
+		color: var(--color-on-accent);
+	}
+
+	/* Jumps between steps happen at once. */
+	.flow__stage.is-instant,
+	.flow__stage.is-instant :global(*) {
+		transition: none !important;
+	}
+
+	/* Narrow screens: the diagram reads downward. */
+	@media (max-width: 1080px) {
+		.flow__stage {
+			--axis: down;
+			--gap: var(--space-12);
+			grid-template-columns: minmax(0, 1fr);
+			margin-inline: 0;
+			padding: var(--space-6);
+		}
+		.flow__ais,
+		.flow__server,
+		.flow__readers {
+			grid-column: 1;
+		}
+		.flow__ai-list {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+		}
+		.flow__note {
+			display: none;
+		}
+		.flow__door,
+		.flow__exit {
+			top: 0;
+			left: 50%;
+			right: auto;
+			translate: -50% -50%;
+			writing-mode: horizontal-tb;
+			rotate: none;
+			padding: 2px var(--space-2);
+		}
+		.flow__exit {
+			top: auto;
+			bottom: 0;
+			translate: -50% 50%;
+		}
+		.flow__door :global(.i),
+		.flow__exit :global(.i) {
+			rotate: none;
+		}
+		.flow__reader-list {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+		/* Below the readers, out of the way of the wires. */
+		.flow__readers .flow__col-label {
+			order: 1;
+		}
+	}
+
+	@media (max-width: 720px) {
+		.flow__bar {
+			align-items: start;
+		}
+		.flow__tabs {
+			gap: var(--space-2);
+		}
+		.flow__tab-title {
+			display: none;
+		}
+		.flow__tab.is-current .flow__tab-title {
+			display: block;
+		}
+		.flow__tabs {
+			grid-template-columns: repeat(5, auto);
+			justify-content: start;
+		}
+		.flow__tab.is-current {
+			padding-right: var(--space-1);
+		}
+		.flow__caption {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.flow__call {
+			max-width: 100%;
+			overflow-wrap: anywhere;
+		}
+		.flow__stage {
+			--gap: var(--space-10);
+			margin-inline: calc(-1 * var(--space-2));
+			padding: var(--space-4);
+		}
+		/* The AIs stand in one row, so that the wire leaves Claude freely. */
+		.flow__ai {
+			flex-direction: column;
+			gap: var(--space-1);
+			padding: var(--space-2) var(--space-1);
+			font-size: var(--text-xs);
+			line-height: var(--leading-xs);
+		}
+		.flow__ai-status {
+			position: absolute;
+			top: var(--space-2);
+			right: var(--space-2);
+		}
+		.flow__machine {
+			padding: var(--space-2);
+		}
+		.flow__cahut {
+			padding: var(--space-4);
+		}
+		.flow__body {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.flow__op:nth-child(n + 3) {
+			display: none;
+		}
+		.flow__window {
+			display: grid;
+			grid-template-columns: 40% minmax(0, 1fr);
+		}
+		.flow__thumb {
+			border-bottom: 0;
+			border-right: var(--border-width) solid var(--color-border);
+		}
+		.flow__window .c-window__meta {
+			flex-wrap: wrap;
+		}
+		.flow__empty {
+			min-height: 5.5rem;
+		}
+		.log-4 .flow__log-row--1 {
+			display: none;
+		}
+		.flow__who {
+			display: none;
+		}
+		.flow__who-short {
+			display: inline;
+		}
+		.flow__comment {
+			right: var(--space-1);
+			bottom: var(--space-1);
+			font-size: var(--text-mini);
+		}
+		.flow__comment :global(.i) {
+			display: none;
+		}
+	}
+
+	/* The smallest screens keep the numbers: the caption below names the step. */
+	@media (max-width: 420px) {
+		.flow__tab.is-current .flow__tab-title {
+			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.flow__stage :global(*) {
+			transition-property: opacity !important;
+			animation: none !important;
+		}
+	}
+</style>
