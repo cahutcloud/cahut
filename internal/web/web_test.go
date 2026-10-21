@@ -6,10 +6,12 @@ import (
 	"encoding/base64"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -366,5 +368,53 @@ func TestRedirectToHTTPS(t *testing.T) {
 		if w.Code != tt.code || w.Header().Get("Location") != tt.want {
 			t.Errorf("%s: %d %q, want %d %q", tt.host, w.Code, w.Header().Get("Location"), tt.code, tt.want)
 		}
+	}
+}
+
+// An MCP client keeps the standalone stream of its session open: the server
+// must still stop at once, not at the deadline of its shutdown.
+func TestShutdownWithAnOpenStream(t *testing.T) {
+	f := setup(t)
+	ln, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	streaming := make(chan struct{})
+	var once sync.Once
+	srv := f.web.httpServer(ln.Addr().String(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet && r.URL.Path == "/mcp" {
+			once.Do(func() { close(streaming) })
+		}
+		f.web.ServeHTTP(w, r)
+	}))
+	ctx, stop := context.WithCancel(context.Background())
+	defer stop()
+	done := make(chan error, 1)
+	go func() { done <- serve(ctx, srv, func() error { return srv.Serve(ln) }) }()
+
+	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0"}, nil)
+	session, err := client.Connect(context.Background(), &mcp.StreamableClientTransport{
+		Endpoint:   "http://" + ln.Addr().String() + "/mcp",
+		HTTPClient: &http.Client{Transport: rewrite{host: "localhost", token: f.token, next: http.DefaultTransport}},
+		MaxRetries: -1,
+	}, nil)
+	if err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+	defer session.Close()
+	select {
+	case <-streaming:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the client opened no stream")
+	}
+
+	stop()
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Errorf("shutdown: %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("the server still waits for the stream")
 	}
 }
