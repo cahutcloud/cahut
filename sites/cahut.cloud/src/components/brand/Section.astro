@@ -1,0 +1,20 @@
+---
+// A section of the brand page: its number, its label, a title and a lead.
+interface Props {
+	id: string;
+	number: string;
+	label: string;
+	title: string;
+}
+
+const { id, number, label, title } = Astro.props;
+---
+
+<section id={id} class="b-section" aria-labelledby={`${id}-title`}>
+	<header class="b-head">
+		<p class="c-label"><span class="b-num">{number}</span>{label}</p>
+		<h2 id={`${id}-title`} class="c-h2">{title}</h2>
+		<p class="b-lead"><slot name="lead" /></p>
+	</header>
+	<slot />
+</section>

@@ -1,0 +1,70 @@
+/*
+ * Site-wide rules of cahut.cloud, on top of the brand's tokens and interface
+ * kit. Every color, size, space and radius comes from the tokens.
+ */
+
+:root {
+	/* Reading width and margins of the brand guidelines (§ 8), which have no token. */
+	--measure: 45rem;
+	--page-width: 72rem;
+	--page-margin: var(--space-8);
+}
+
+@media (max-width: 640px) {
+	:root {
+		--page-margin: var(--space-4);
+	}
+}
+
+/* cahut-ui.css turns the browser's controls dark for data-theme="dark" only. */
+@media (prefers-color-scheme: dark) {
+	html:not([data-theme='light']) {
+		color-scheme: dark;
+	}
+}
+
+a {
+	color: var(--color-link);
+	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+	text-wrap: balance;
+}
+
+p,
+li {
+	text-wrap: pretty;
+}
+
+code {
+	font-family: var(--font-mono);
+}
+
+/* Content of the page, between the margins. */
+.container {
+	width: 100%;
+	max-width: calc(var(--page-width) + 2 * var(--page-margin));
+	margin-inline: auto;
+	padding-inline: var(--page-margin);
+}
+
+.measure {
+	max-width: var(--measure);
+}
+
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}

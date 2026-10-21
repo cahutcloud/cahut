@@ -7,3 +7,8 @@
 
 # Development home (make dev)
 /tmp/
+
+# Sites: dependencies, build output and generated types
+node_modules/
+/sites/*/dist/
+/sites/*/.astro/

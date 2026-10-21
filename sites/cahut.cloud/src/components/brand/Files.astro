@@ -1,0 +1,60 @@
+---
+// The files to download that are not shown in another section: the full
+// guidelines, the palettes and the design tokens.
+import Download from './Download.astro';
+import Icon from './Icon.astro';
+import Section from './Section.astro';
+import { size, url } from './files';
+
+const pdf = 'charte-graphique-cahut.pdf';
+---
+
+<Section id="files" number="08" label="Files" title="The files to download">
+	<Fragment slot="lead">
+		The full guidelines, the palettes and the design tokens. The logos, pictograms and illustrations are in their own
+		sections above.
+	</Fragment>
+
+	<ul class="b-grid b-grid--3" role="list">
+		<li class="c-card b-file">
+			<Icon name="file" size={24} class="b-file__icon" />
+			<h3 class="b-tile__name">Brand guidelines</h3>
+			<p class="c-small c-muted">
+				Every rule and every file, in a printable document. It is in French for now; this page sums it up in English.
+			</p>
+			<p class="b-file__action">
+				<a class="c-btn c-btn--primary" href={url(pdf)} hreflang="fr" type="application/pdf">
+					<Icon name="download" />
+					Download the guidelines
+				</a>
+				<span class="c-small c-muted c-mono">PDF · {size(pdf)} · French</span>
+			</p>
+		</li>
+		<li class="c-card b-file">
+			<Icon name="download" size={24} class="b-file__icon" />
+			<h3 class="b-tile__name">Color palettes</h3>
+			<p class="c-small c-muted">
+				Swatches of the five colors and their shades, for Illustrator, InDesign and Photoshop (ASE), or for GIMP and
+				Inkscape (GPL).
+			</p>
+			<p class="b-dls">
+				<Download file="couleurs/cahut-palette.ase" label="ASE" of="Color palette for Adobe" />
+				<Download file="couleurs/cahut-palette.gpl" label="GPL" of="Color palette for GIMP and Inkscape" />
+			</p>
+		</li>
+		<li class="c-card b-file">
+			<Icon name="download" size={24} class="b-file__icon" />
+			<h3 class="b-tile__name">Design tokens</h3>
+			<p class="c-small c-muted">
+				Colors, type, spacing, radii and shadows, with the light and dark themes, as CSS variables or as JSON in the
+				Design Tokens format. Their comments are in French.
+			</p>
+			<p class="b-dls">
+				<a class="b-dl" href="/brand/cahut-tokens.css" download="cahut-tokens.css"
+					><span class="b-sr">Design tokens, </span>CSS</a
+				>
+				<Download file="tokens/cahut-tokens.json" label="JSON" of="Design tokens" />
+			</p>
+		</li>
+	</ul>
+</Section>

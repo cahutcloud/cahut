@@ -26,6 +26,7 @@ Un abri simple et à soi, posé dans le nuage : **papier chaud, encre bleu-gris,
    |---|---|
    | Écran ou composant de la console, page servie par Cahut | `charte/ui/cahut-ui.css` (classes `c-`), modèles `charte/ui/console.html` et `charte/ui/composants.html` |
    | Page web, landing, site cahut.cloud | `charte/tokens/cahut-tokens.css` et `charte/tokens/cahut-fonts.css`, puis les composants de `cahut-ui.css` |
+   | Site cahut.cloud ou documentation docs.cahut.cloud (dossier `sites/`, Astro) | Les mêmes fichiers, importés par l'alias `@charte` (`@charte/tokens/cahut-tokens.css`), jamais copiés : voir `sites/README.md` |
    | Page autonome hors du dépôt (artifact, page publiée ailleurs) | Recette « Page autonome » de `references/recettes.md` |
    | Diapositive, image de partage, bannière, avatar | Le gabarit voisin dans `charte/applications/gabarits/`, rendu avec `scripts/rendre-gabarit.sh` |
    | E-mail, signature | `charte/applications/gabarits/signature-email.html` et la recette « E-mail » |

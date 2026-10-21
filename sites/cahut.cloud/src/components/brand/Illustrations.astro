@@ -1,0 +1,81 @@
+---
+// The illustrations and the cloud pattern, with their files.
+import Download from './Download.astro';
+import Icon from './Icon.astro';
+import Section from './Section.astro';
+import { url } from './files';
+
+const illustrations = [
+	{
+		name: 'The open house',
+		file: 'maison-ouverte',
+		use: 'The hero of the site and share images: the Windows of the AIs come home.',
+	},
+	{ name: 'Landscape', file: 'paysage', use: 'An image placeholder, a slide background, a deck preview.' },
+	{ name: 'Empty state', file: 'etat-vide', use: 'A screen with nothing in it yet, such as No Windows yet.' },
+];
+
+const patterns = [
+	{ name: 'Grey', file: 'motif-nuages', background: 'paper' },
+	{ name: 'Sky', file: 'motif-nuages-sky', background: 'white' },
+	{ name: 'White', file: 'motif-nuages-blanc', background: 'sky' },
+];
+---
+
+<Section id="illustrations" number="06" label="Illustrations" title="Flat colors and a lot of air">
+	<Fragment slot="lead">
+		Flat colors, with no gradient and no shadow. Rounded Ink lines of even weight, hills in Ink 100 and Ink 200, the
+		sun in Soft Yellow, accents in Sky. A door lit in yellow means someone is home.
+	</Fragment>
+
+	<ul class="b-grid b-grid--4" role="list">
+		{
+			illustrations.map((illustration) => (
+				<li class="c-card b-tile">
+					<div class="b-art b-art--paper b-art--picture">
+						<img src={url(`illustrations/${illustration.file}.svg`)} alt={illustration.name} />
+					</div>
+					<div class="b-tile__body">
+						<p class="b-tile__name">{illustration.name}</p>
+						<p class="c-small c-muted">{illustration.use}</p>
+						<p class="b-dls">
+							<Download file={`illustrations/${illustration.file}.svg`} label="SVG" of={illustration.name} />
+							<Download file={`illustrations/${illustration.file}.png`} label="PNG" of={illustration.name} />
+						</p>
+					</div>
+				</li>
+			))
+		}
+		<li class="c-card b-tile">
+			<div class="b-art b-art--picture b-patterns" aria-hidden="true">
+				{
+					patterns.map((pattern) => (
+						<span
+							class={`b-art--${pattern.background}`}
+							style={`background-image: url("${url(`illustrations/${pattern.file}.svg`)}")`}
+						/>
+					))
+				}
+			</div>
+			<div class="b-tile__body">
+				<p class="b-tile__name">Cloud pattern</p>
+				<p class="c-small c-muted">A quiet background that repeats without a seam, in grey, Sky or white.</p>
+				<p class="b-dls">
+					{
+						patterns.map((pattern) => (
+							<Download file={`illustrations/${pattern.file}.svg`} label={`${pattern.name} SVG`} of="Cloud pattern" />
+						))
+					}
+				</p>
+			</div>
+		</li>
+	</ul>
+
+	<p class="b-avoid">
+		<Icon name="cross" size={20} class="b-no" />
+		<span>
+			No robots, brains, glowing circuits, magic sparkles or 3D characters. Cahut is not the AI: it is the home of
+			what the AI makes.
+		</span>
+	</p>
+</Section>

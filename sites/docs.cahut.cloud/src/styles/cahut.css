@@ -1,0 +1,253 @@
+/*
+ * Starlight in the type and colors of the brand. Every value comes from the
+ * brand tokens (docs/charte-graphique/tokens), never retyped: the raw scales
+ * (--cahut-*) for Starlight's grays and accent, and the roles (--color-*),
+ * which follow the theme on their own, for the rest.
+ *
+ * Starlight's dark theme is its default, its light theme sets
+ * data-theme="light", and the tokens switch with data-theme too. Starlight
+ * puts its own styles in cascade layers, so these rules win over them.
+ */
+
+/* Dark theme: Ink 950 background, Ink 900 surfaces, Paper text. */
+:root {
+	--sl-color-white: var(--cahut-paper);
+	--sl-color-gray-1: var(--cahut-ink-100);
+	--sl-color-gray-2: var(--cahut-ink-200);
+	--sl-color-gray-3: var(--cahut-ink-300);
+	--sl-color-gray-4: var(--cahut-ink-500);
+	--sl-color-gray-5: var(--cahut-ink-700);
+	--sl-color-gray-6: var(--cahut-ink-900);
+	--sl-color-black: var(--cahut-ink-950);
+
+	/* Sky 400 for the accent, Sky 300 for links. */
+	--sl-color-accent-low: var(--cahut-sky-900);
+	--sl-color-accent: var(--cahut-sky-400);
+	--sl-color-accent-high: var(--cahut-sky-300);
+}
+
+/* Light theme: Paper background, white surfaces, Ink text. */
+:root[data-theme='light'] {
+	--sl-color-white: var(--cahut-ink-900);
+	--sl-color-gray-1: var(--cahut-ink-800);
+	--sl-color-gray-2: var(--cahut-ink-700);
+	--sl-color-gray-3: var(--cahut-ink-600);
+	--sl-color-gray-4: var(--cahut-ink-400);
+	--sl-color-gray-5: var(--cahut-ink-200);
+	--sl-color-gray-6: var(--cahut-paper-200);
+	--sl-color-gray-7: var(--cahut-white);
+	--sl-color-black: var(--cahut-paper);
+
+	/* Sky 700 for the accent and the links, never Sky 400 on Paper. */
+	--sl-color-accent-low: var(--cahut-sky-100);
+	--sl-color-accent: var(--cahut-sky-700);
+	--sl-color-accent-high: var(--cahut-sky-900);
+}
+
+/* Both themes, through the roles of the tokens. */
+:root,
+:root[data-theme='light'] {
+	--sl-font: var(--font-sans);
+	--sl-font-mono: var(--font-mono);
+
+	--sl-color-text: var(--color-text);
+	--sl-color-bg: var(--color-bg);
+	--sl-color-bg-nav: var(--color-surface);
+	--sl-color-bg-sidebar: var(--color-surface);
+	--sl-color-bg-inline-code: var(--color-surface-muted);
+	--sl-color-hairline: var(--color-border);
+	--sl-color-hairline-light: var(--color-border);
+	--sl-color-hairline-shade: var(--color-border);
+
+	/* Asides and badges: note, tip, caution, danger and success. */
+	--sl-color-blue-low: var(--color-info-bg);
+	--sl-color-blue: var(--color-info-border);
+	--sl-color-blue-high: var(--color-info);
+	--sl-color-purple-low: var(--color-success-bg);
+	--sl-color-purple: var(--color-success-border);
+	--sl-color-purple-high: var(--color-success);
+	--sl-color-green-low: var(--color-success-bg);
+	--sl-color-green: var(--color-success-border);
+	--sl-color-green-high: var(--color-success);
+	--sl-color-orange-low: var(--color-warning-bg);
+	--sl-color-orange: var(--color-warning-border);
+	--sl-color-orange-high: var(--color-warning);
+	--sl-color-red-low: var(--color-danger-bg);
+	--sl-color-red: var(--color-danger-border);
+	--sl-color-red-high: var(--color-danger);
+
+	--sl-shadow-sm: var(--shadow-sm);
+	--sl-shadow-md: var(--shadow-md);
+	--sl-shadow-lg: var(--shadow-lg);
+
+	/* Headings on the type scale of the brand, a step smaller on phones. */
+	--sl-text-h1: var(--text-3xl);
+	--sl-text-h2: var(--text-2xl);
+	--sl-text-h3: var(--text-xl);
+	--sl-text-h4: var(--text-lg);
+	--sl-text-h5: var(--text-base);
+}
+
+@media (min-width: 50em) {
+	:root,
+	:root[data-theme='light'] {
+		--sl-text-h1: var(--text-4xl);
+		--sl-text-h2: var(--text-3xl);
+		--sl-text-h3: var(--text-2xl);
+		--sl-text-h4: var(--text-xl);
+		--sl-text-h5: var(--text-lg);
+	}
+}
+
+::selection {
+	background-color: var(--color-accent-soft);
+	color: var(--color-text);
+}
+
+/* A Sky ring of 3 px, always visible from the keyboard. */
+:focus-visible {
+	outline: 3px solid var(--color-focus);
+	outline-offset: 2px;
+}
+
+/* Titles: 800 for the page title, 700 for sections, as the brand sets them. */
+h1#_top,
+.sl-markdown-content h1 {
+	font-weight: var(--weight-extrabold);
+	letter-spacing: var(--tracking-title);
+}
+
+.sl-markdown-content :is(h2, h3) {
+	font-weight: var(--weight-bold);
+}
+
+.sl-markdown-content h2 {
+	letter-spacing: var(--tracking-title);
+}
+
+.sl-markdown-content :is(h4, h5, h6) {
+	font-weight: var(--weight-semibold);
+}
+
+/* Text at 16/24, links underlined as in the console. */
+.sl-markdown-content {
+	line-height: var(--leading-base);
+}
+
+.sl-markdown-content a:not(:where(.not-content *)) {
+	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
+}
+
+.sl-markdown-content :not(pre) > code {
+	border-radius: var(--radius-xs);
+}
+
+/* Names in titles, such as `publish_window`, keep the Mono type only. */
+.sl-markdown-content :is(h1, h2, h3, h4) code {
+	padding: 0;
+	background: none;
+	font-size: 0.9em;
+}
+
+.sl-markdown-content table {
+	font-size: var(--text-sm);
+	line-height: var(--leading-sm);
+}
+
+.sl-markdown-content th {
+	color: var(--color-text);
+}
+
+/* A flag or a field, in the first column, stays on one line. */
+.sl-markdown-content td:first-child code {
+	white-space: nowrap;
+}
+
+/* The sidebar of the console: Mono labels, a soft Sky for the current page. */
+.sidebar-content .large {
+	font-family: var(--font-mono);
+	font-size: var(--text-xs);
+	line-height: var(--leading-xs);
+	font-weight: var(--weight-medium);
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--color-text-muted);
+}
+
+.sidebar-content a {
+	border-radius: var(--radius-sm);
+	color: var(--color-text);
+}
+
+.sidebar-content a:hover {
+	background-color: var(--color-surface-muted);
+	color: var(--color-text);
+}
+
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus {
+	background-color: var(--color-accent-soft);
+	color: var(--color-text);
+	font-weight: var(--weight-bold);
+}
+
+/* Asides as the alerts of the console: a thin border and round corners. */
+.starlight-aside {
+	border: var(--border-width) solid var(--sl-color-asides-border);
+	border-radius: var(--radius-md);
+}
+
+/* Cards in white on Paper, with the radii of the brand. */
+.card,
+.sl-link-card {
+	border-radius: var(--radius-lg);
+	background-color: var(--color-surface);
+}
+
+.sl-link-card:hover {
+	border-color: var(--color-border-strong);
+	box-shadow: var(--shadow-sm);
+}
+
+.pagination-links a {
+	border-radius: var(--radius-md);
+	background-color: var(--color-surface);
+}
+
+/* The pictograms of the vocabulary: Ink strokes that follow the theme. */
+.cahut-pictogram {
+	flex: none;
+	width: var(--space-12);
+	height: var(--space-12);
+	color: var(--sl-color-white);
+}
+
+.cahut-term {
+	display: flex;
+	gap: var(--space-4);
+	align-items: flex-start;
+}
+
+@media (max-width: 50em) {
+	.cahut-pictogram {
+		width: var(--space-10);
+		height: var(--space-10);
+	}
+}
+
+.cahut-term > div > :first-child {
+	margin-top: 0;
+}
+
+/* A small label in Mono, such as "Coming later". */
+.cahut-label {
+	font-family: var(--font-mono);
+	font-size: var(--text-xs);
+	line-height: var(--leading-xs);
+	font-weight: var(--weight-medium);
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--color-text-muted);
+}

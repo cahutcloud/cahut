@@ -159,6 +159,7 @@ Cahut is written in **Go**: a new, clean codebase built for Cahut, which one per
 | Authorization | Cahut's own minimal OAuth 2.1 server, built for MCP clients | Decided |
 | Updates | Automatic, latest version checked on GitHub, rollback possible | Decided |
 | Backups | Optional, to external S3 or SFTP | Decided |
+| Website and docs | Astro sites in this repository, built on the brand guidelines, served from the project's own server | Decided |
 | Apps | Predefined runtimes and Dockerfile mode, on an unprivileged container engine (Podman or Docker) | Open |
 | License | Apache-2.0 or AGPL-3.0 | Open |
 
@@ -171,11 +172,12 @@ cmd/cahut/   Entry point of the cahut binary
 internal/    The code of Cahut, private to this module
 install.sh   Installs Cahut on a server as a systemd service
 docs/        Project documents: architecture decision records in English; the brief, the V0 plan and the brand guidelines in French for now
+sites/       The website and the documentation, Astro sites built on the brand guidelines
 ```
 
 ### Building
 
-Building Cahut needs Go 1.27 or later and make. `make build` builds `bin/cahut`, and `make check` runs the linters and the tests, as CI does. Run `make` for the full list of tasks.
+Building Cahut needs Go 1.27 or later and make. `make build` builds `bin/cahut`, and `make check` runs the linters and the tests, as CI does. Run `make` for the full list of tasks. The sites need Node.js at the version of `.nvmrc`: see [sites/README.md](sites/README.md).
 
 Releases are static binaries for linux/amd64 and linux/arm64, built by GoReleaser when a version tag is pushed.
 

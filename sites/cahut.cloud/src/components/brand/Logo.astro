@@ -1,0 +1,281 @@
+---
+// The logo: its versions with their files, its clear space, its minimum
+// sizes, and what not to do with it.
+import Download from './Download.astro';
+import Icon from './Icon.astro';
+import Section from './Section.astro';
+import { source, url } from './files';
+
+// Each logo comes in four versions, each on the background it is made for.
+const families = [
+	{ name: 'Logo', use: 'The default, wherever there is room.', file: 'cahut-logo', png: [600, 1200, 2400] },
+	{
+		name: 'Horizontal logo',
+		use: 'For headers, navigation bars and footers.',
+		file: 'cahut-logo-horizontal',
+		png: [800, 1600, 3200],
+	},
+	{ name: 'Symbol', use: 'For avatars, small spaces and watermarks.', file: 'cahut-symbole', png: [256, 1024] },
+];
+
+const versions = [
+	{ suffix: '', name: 'Default', use: 'On Paper, white and light backgrounds', background: 'paper' },
+	{ suffix: '-inverse', name: 'Inverse', use: 'On Ink and dark backgrounds', background: 'ink' },
+	{ suffix: '-noir', name: 'Black', use: 'For one-color printing', background: 'white' },
+	{ suffix: '-blanc', name: 'White', use: 'For one-color printing on dark', background: 'ink-950' },
+];
+
+const others = [
+	{
+		name: 'Symbol for small sizes',
+		use: 'Below 64 px, with a thicker line.',
+		preview: 'logos/cahut-symbole-petites-tailles.svg',
+		width: 96,
+		background: 'paper',
+		files: [{ file: 'logos/cahut-symbole-petites-tailles.svg', label: 'SVG' }],
+	},
+	{
+		name: 'Wordmark',
+		use: 'Only when the symbol is already close by.',
+		preview: 'logos/cahut-logotype.svg',
+		width: 128,
+		background: 'paper',
+		files: [
+			{ file: 'logos/cahut-logotype.svg', label: 'SVG' },
+			{ file: 'logos/cahut-logotype-inverse.svg', label: 'Inverse SVG' },
+		],
+	},
+	{
+		name: 'App icon',
+		use: 'Sky, with the symbol in white.',
+		preview: 'logos/cahut-icone-app.svg',
+		width: 88,
+		background: 'paper',
+		files: [
+			{ file: 'logos/cahut-icone-app.svg', label: 'SVG' },
+			{ file: 'logos/png/cahut-icone-app-512px.png', label: 'PNG 512' },
+			{ file: 'logos/png/cahut-icone-app-1024px.png', label: 'PNG 1024' },
+		],
+	},
+	{
+		name: 'App icon, Ink',
+		use: 'For avatars on light backgrounds.',
+		preview: 'logos/cahut-icone-app-ink.svg',
+		width: 88,
+		background: 'paper',
+		files: [
+			{ file: 'logos/cahut-icone-app-ink.svg', label: 'SVG' },
+			{ file: 'logos/png/cahut-icone-app-ink-512px.png', label: 'PNG 512' },
+			{ file: 'logos/png/cahut-icone-app-ink-1024px.png', label: 'PNG 1024' },
+		],
+	},
+	{
+		name: 'Favicon',
+		use: 'Drawn on the 16 px grid.',
+		preview: 'logos/favicon/favicon-32.png',
+		width: 32,
+		background: 'paper',
+		files: [
+			{ file: 'logos/cahut-favicon.svg', label: 'SVG' },
+			{ file: 'logos/favicon/favicon.ico', label: 'ICO' },
+		],
+	},
+];
+
+const minimums = [
+	{ name: 'Logo', file: 'logos/cahut-logo.svg', width: 96, print: '25 mm' },
+	{ name: 'Horizontal logo', file: 'logos/cahut-logo-horizontal.svg', width: 100, print: '25 mm' },
+	{ name: 'Symbol', file: 'logos/cahut-symbole-petites-tailles.svg', width: 24, print: '6 mm' },
+	{ name: 'Favicon', file: 'logos/favicon/favicon-16.png', width: 16, print: undefined },
+];
+
+// The logo with its cloud filled in, to show one of the mistakes.
+const filled = source('logos/cahut-logo.svg').replace('fill="none"', 'style="fill: var(--cahut-sky)"');
+const logo = url('logos/cahut-logo.svg');
+---
+
+<Section id="logo" number="03" label="The logo" title="A cloud with a door">
+	<Fragment slot="lead">
+		The symbol is a cloud drawn in a single line, whose base opens on a door. The cloud says your cloud, the door says
+		your home: you go in, and you knock first. The wordmark is drawn from Plus Jakarta Sans ExtraBold, so it needs no
+		font.
+	</Fragment>
+
+	<div class="b-sub">
+		<h3 class="c-h3">Versions</h3>
+		<p class="b-text">
+			Start from the SVG files: they are the source of truth. Use a PNG, with a transparent background, only where SVG
+			is not accepted. Each version below sits on the background it is made for.
+		</p>
+
+		{
+			families.map((family) => (
+				<div class="b-family">
+					<h4 class="b-family__name">
+						{family.name}
+						<span class="c-small c-muted">{family.use}</span>
+					</h4>
+					<ul class="b-grid b-grid--4" role="list">
+						{versions.map((version) => {
+							const name = `${family.file}${version.suffix}`;
+							const label = `${family.name}, ${version.name.toLowerCase()}`;
+							return (
+								<li class="c-card b-tile">
+									<div class={`b-art b-art--${version.background} b-art--${family.file}`}>
+										<img src={url(`logos/${name}.svg`)} alt={label} />
+									</div>
+									<div class="b-tile__body">
+										<p class="b-tile__name">{version.name}</p>
+										<p class="c-small c-muted">{version.use}</p>
+										<p class="b-dls">
+											<Download file={`logos/${name}.svg`} label="SVG" of={label} />
+											{family.png.map((width) => (
+												<Download file={`logos/png/${name}-${width}px.png`} label={`PNG ${width}`} of={label} />
+											))}
+										</p>
+									</div>
+								</li>
+							);
+						})}
+					</ul>
+				</div>
+			))
+		}
+
+		<div class="b-family">
+			<h4 class="b-family__name">Other forms</h4>
+			<ul class="b-grid b-grid--5" role="list">
+				{
+					others.map((other) => (
+						<li class="c-card b-tile">
+							<div class={`b-art b-art--${other.background}`}>
+								<img src={url(other.preview)} alt={other.name} width={other.width} />
+							</div>
+							<div class="b-tile__body">
+								<p class="b-tile__name">{other.name}</p>
+								<p class="c-small c-muted">{other.use}</p>
+								<p class="b-dls">
+									{other.files.map(({ file, label }) => (
+										<Download file={file} label={label} of={other.name} />
+									))}
+								</p>
+							</div>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</div>
+
+	<div class="b-sub">
+		<h3 class="c-h3">Clear space</h3>
+		<p class="b-text">
+			Keep a free space around the logo at least equal to <b>p</b>, the outer width of the door, about a quarter of the
+			width of the symbol. No text, edge or image goes inside it.
+		</p>
+		<div class="c-card b-clear">
+			<figure class="b-zone b-zone--logo">
+				<div class="b-zone__box">
+					<img src={logo} alt="The logo, with a clear space of p on each side" />
+					<span class="b-zone__p b-zone__p--tl" aria-hidden="true">p</span>
+					<span class="b-zone__p b-zone__p--tr" aria-hidden="true">p</span>
+					<span class="b-zone__p b-zone__p--bl" aria-hidden="true">p</span>
+					<span class="b-zone__p b-zone__p--br" aria-hidden="true">p</span>
+				</div>
+			</figure>
+			<figure class="b-zone b-zone--horizontal">
+				<div class="b-zone__box">
+					<img
+						src={url('logos/cahut-logo-horizontal.svg')}
+						alt="The horizontal logo, with a clear space of p on each side"
+					/>
+					<span class="b-zone__p b-zone__p--tl" aria-hidden="true">p</span>
+					<span class="b-zone__p b-zone__p--tr" aria-hidden="true">p</span>
+					<span class="b-zone__p b-zone__p--bl" aria-hidden="true">p</span>
+					<span class="b-zone__p b-zone__p--br" aria-hidden="true">p</span>
+				</div>
+			</figure>
+		</div>
+	</div>
+
+	<div class="b-sub">
+		<h3 class="c-h3">Minimum sizes</h3>
+		<ul class="b-grid b-grid--4" role="list">
+			{
+				minimums.map((minimum) => (
+					<li class="c-card b-tile">
+						<div class="b-art b-art--paper b-art--small">
+							<img src={url(minimum.file)} alt={`${minimum.name} at ${minimum.width} px`} width={minimum.width} />
+						</div>
+						<div class="b-tile__body">
+							<p class="b-tile__name">{minimum.name}</p>
+							<p class="c-small c-muted c-mono">
+								Screen {minimum.width} px{minimum.print && ` · Print ${minimum.print}`}
+							</p>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+		<p class="b-note c-small c-muted">
+			Below 64 px wide, use the symbol for small sizes, with its thicker line. At 16 px, use the favicon, drawn on the
+			pixel grid.
+		</p>
+	</div>
+
+	<div class="b-sub">
+		<h3 class="c-h3">What not to do</h3>
+		<p class="b-text">The logo does not change. Use its files as they are.</p>
+		<ul class="b-grid b-grid--4" role="list">
+			<li class="c-card b-tile">
+				<div class="b-art b-art--white b-art--wrong" aria-hidden="true">
+					<img src={logo} alt="" class="b-wrong--stretch" />
+				</div>
+				<p class="b-wrong"><Icon name="cross" class="b-no" />Don't stretch or squash it.</p>
+			</li>
+			<li class="c-card b-tile">
+				<div class="b-art b-art--white b-art--wrong" aria-hidden="true">
+					<span class="b-wrong--recolor" style={`--logo: url("${logo}")`}></span>
+				</div>
+				<p class="b-wrong"><Icon name="cross" class="b-no" />Don't change its colors.</p>
+			</li>
+			<li class="c-card b-tile">
+				<div class="b-art b-art--white b-art--wrong" aria-hidden="true">
+					<img src={logo} alt="" class="b-wrong--tilt" />
+				</div>
+				<p class="b-wrong"><Icon name="cross" class="b-no" />Don't tilt or turn it.</p>
+			</li>
+			<li class="c-card b-tile">
+				<div class="b-art b-art--white b-art--wrong" aria-hidden="true">
+					<img src={logo} alt="" class="b-wrong--shadow" />
+				</div>
+				<p class="b-wrong"><Icon name="cross" class="b-no" />Don't add a shadow or an effect.</p>
+			</li>
+			<li class="c-card b-tile">
+				<div class="b-art b-art--white b-art--wrong b-wrong--rearrange" aria-hidden="true">
+					<img src={url('logos/cahut-logotype.svg')} alt="" />
+					<img src={url('logos/cahut-symbole.svg')} alt="" />
+				</div>
+				<p class="b-wrong"><Icon name="cross" class="b-no" />Don't rearrange its parts.</p>
+			</li>
+			<li class="c-card b-tile">
+				<div class="b-art b-art--white b-art--wrong" aria-hidden="true">
+					<span class="b-wrong--fill" set:html={filled} />
+				</div>
+				<p class="b-wrong"><Icon name="cross" class="b-no" />Don't fill the cloud.</p>
+			</li>
+			<li class="c-card b-tile">
+				<div class="b-art b-art--light-grey b-art--wrong" aria-hidden="true">
+					<img src={url('logos/cahut-logo-inverse.svg')} alt="" />
+				</div>
+				<p class="b-wrong"><Icon name="cross" class="b-no" />Don't place it on a background with little contrast.</p>
+			</li>
+			<li class="c-card b-tile">
+				<div class="b-art b-art--busy b-art--wrong" aria-hidden="true">
+					<img src={url('logos/cahut-logo-blanc.svg')} alt="" />
+				</div>
+				<p class="b-wrong"><Icon name="cross" class="b-no" />Don't place it on a busy photo or pattern.</p>
+			</li>
+		</ul>
+	</div>
+</Section>

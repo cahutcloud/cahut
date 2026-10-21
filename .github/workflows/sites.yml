@@ -1,0 +1,94 @@
+name: Sites
+
+# Builds cahut.cloud and docs.cahut.cloud, and uploads them to the web server
+# from main. See docs/adr/0012-website-and-docs-as-astro-sites.md.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - sites/**
+      - docs/charte-graphique/**
+      - .nvmrc
+      - .github/workflows/sites.yml
+  pull_request:
+    paths:
+      - sites/**
+      - docs/charte-graphique/**
+      - .nvmrc
+      - .github/workflows/sites.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Never stop an upload halfway.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: sites/package-lock.json
+      - run: npm ci
+        working-directory: sites
+      - run: npm run build
+        working-directory: sites
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: github.event_name == 'push'
+        with:
+          name: sites
+          path: |
+            sites/cahut.cloud/dist
+            sites/docs.cahut.cloud/dist
+          retention-days: 7
+
+  # The upload stays off until the repository variable SITES_SSH_HOST names
+  # the server. sites/README.md lists the variables and secrets it needs.
+  deploy:
+    name: Deploy
+    needs: build
+    if: github.event_name == 'push' && vars.SITES_SSH_HOST != ''
+    runs-on: ubuntu-latest
+    environment:
+      name: sites
+      url: https://cahut.cloud
+    env:
+      SSH_HOST: ${{ vars.SITES_SSH_HOST }}
+      SSH_PORT: ${{ vars.SITES_SSH_PORT || '22' }}
+      SSH_USER: ${{ vars.SITES_SSH_USER }}
+      WWW_DIR: ${{ vars.SITES_WWW_DIR || 'httpdocs' }}
+      DOCS_DIR: ${{ vars.SITES_DOCS_DIR || 'docs.cahut.cloud' }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sites
+          path: sites
+      - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.SITES_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ vars.SITES_SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Upload cahut.cloud and docs.cahut.cloud
+        run: |
+          upload() {
+            rsync --recursive --links --checksum --delete --chmod=D755,F644 \
+              --filter='P /.well-known/' \
+              -e "ssh -p $SSH_PORT -o StrictHostKeyChecking=yes" \
+              "$1/" "$SSH_USER@$SSH_HOST:$2/"
+          }
+          upload sites/cahut.cloud/dist "$WWW_DIR"
+          upload sites/docs.cahut.cloud/dist "$DOCS_DIR"

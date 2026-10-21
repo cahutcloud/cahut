@@ -1,11 +1,23 @@
-# Weekly pull requests for Go modules and for the actions pinned by commit
-# hash in .github/workflows.
+# Weekly pull requests for Go modules, for the npm packages of the sites,
+# and for the actions pinned by commit hash in .github/workflows.
 version: 2
 updates:
   - package-ecosystem: gomod
     directory: /
     schedule:
       interval: weekly
+  - package-ecosystem: npm
+    directory: /sites
+    schedule:
+      interval: weekly
+    # A release waits a week, so that a compromised one is caught first.
+    cooldown:
+      default-days: 7
+    groups:
+      astro:
+        patterns:
+          - astro
+          - "@astrojs/*"
   - package-ecosystem: github-actions
     directory: /
     schedule:
