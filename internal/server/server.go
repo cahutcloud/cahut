@@ -1,172 +1,206 @@
-// Package server serves a home: the MCP endpoint for AIs at the home's own
-// address, and each Window on an origin of its own, under it.
+// Package server keeps the records of the server as a whole: the Cahuts it
+// holds, each at its own domain, and the Logbook of the operations on the
+// server. It opens each Cahut from its domain, with a database of its own,
+// so that nothing reaches the records of another Cahut.
+// See docs/adr/0008-several-cahuts-per-server.md.
 package server
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
-	"net"
-	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
-	"cahut.cloud/internal/home"
-	"cahut.cloud/internal/window"
+	"cahut.cloud/internal/address"
+	"cahut.cloud/internal/cahut"
+	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/store"
 )
 
-// Config says how a home is reached.
+// Config says where the server keeps its data and how its Cahuts are
+// reached.
 type Config struct {
-	// Domain is the home's address, such as home.example.com. Each Window is
-	// served at <name>.<Domain>.
-	Domain string
-
-	// Dev serves plain HTTP on DevAddr, for development on one machine.
-	// Domain is then "localhost": browsers resolve *.localhost to the
-	// machine itself.
-	Dev     bool
-	DevAddr string
-
-	// For HTTPS: the addresses to listen on, and the ACME account.
-	HTTPAddr  string // ":80", for ACME challenges and redirects to HTTPS
-	HTTPSAddr string // ":443"
-	Email     string // contact of the ACME account, optional
-	CA        string // ACME directory: Let's Encrypt when empty, its staging for "staging"
-	CertDir   string // where certificates and ACME keys are kept
+	// DataDir holds server.db, and a directory per Cahut in cahuts/.
+	DataDir string
+	// BaseURL returns the address of the Cahut at domain, such as
+	// https://cahut.example.com/. It may be nil where addresses are not
+	// needed, as on the command line.
+	BaseURL func(domain string) string
 }
 
-// WindowURL returns the function that gives the address of a Window.
-func (c Config) WindowURL() func(name string) string {
-	if c.Dev {
-		_, port, _ := net.SplitHostPort(c.DevAddr)
-		return func(name string) string { return "http://" + name + ".localhost:" + port + "/" }
-	}
-	return func(name string) string { return "https://" + name + "." + c.Domain + "/" }
-}
-
-// Server serves a home.
+// Server is the open server.
 type Server struct {
-	home *home.Home
-	cfg  Config
-	log  *slog.Logger
-	mcp  http.Handler
+	DB       *store.DB
+	Registry *operation.Registry
+	// AddDomain declares a domain, which creates its Cahut.
+	AddDomain *operation.Op[AddDomainInput, Info]
+	cfg       Config
 }
 
-// New returns a server for h.
-func New(h *home.Home, cfg Config, log *slog.Logger) *Server {
-	if cfg.Dev {
-		cfg.Domain = "localhost"
+// Open opens the server's records in cfg.DataDir, creating them if needed.
+func Open(ctx context.Context, cfg Config) (*Server, error) {
+	if err := os.MkdirAll(filepath.Join(cfg.DataDir, "cahuts"), 0o750); err != nil {
+		return nil, err
 	}
-	cfg.Domain = strings.ToLower(cfg.Domain)
-	s := &Server{home: h, cfg: cfg, log: log}
-	s.mcp = s.mcpHandler()
-	return s
-}
-
-// MaxRequestSize bounds the body of a request: a publication of
-// window.MaxSize bytes, in base64, with room for the JSON around it.
-const MaxRequestSize = window.MaxSize*4/3 + 1<<20
-
-// ServeHTTP routes a request by its host: the home itself, or a Window.
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	host := hostOf(r)
-	switch {
-	case host == s.cfg.Domain:
-		s.serveHome(w, r)
-	case strings.HasSuffix(host, "."+s.cfg.Domain):
-		s.serveWindow(w, r, strings.TrimSuffix(host, "."+s.cfg.Domain))
-	default:
-		misdirected(w)
-	}
-}
-
-// hostOf returns the host a request is for, in lowercase and without port.
-func hostOf(r *http.Request) string {
-	host := strings.ToLower(r.Host)
-	if h, _, err := net.SplitHostPort(host); err == nil {
-		host = h
-	}
-	return host
-}
-
-func misdirected(w http.ResponseWriter) {
-	http.Error(w, "This address is not served here.", http.StatusMisdirectedRequest)
-}
-
-func (s *Server) serveHome(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/mcp":
-		s.mcp.ServeHTTP(w, r)
-	case "/healthz":
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		fmt.Fprintln(w, "ok")
-	case "/":
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		fmt.Fprintln(w, "This is a Cahut home. AIs connect to it over MCP at /mcp.")
-	default:
-		http.NotFound(w, r)
-	}
-}
-
-// Run serves until ctx is done, then shuts down gracefully.
-func (s *Server) Run(ctx context.Context) error {
-	if s.cfg.Dev {
-		srv := s.httpServer(s.cfg.DevAddr, s)
-		s.log.Info("serving over HTTP for development", "address", "http://"+s.cfg.DevAddr+"/")
-		return serve(ctx, srv, srv.ListenAndServe)
-	}
-
-	magic, issuer, err := s.certificates(ctx)
+	db, err := store.Open(ctx, filepath.Join(cfg.DataDir, "server.db"), store.ServerSchema)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("open the server's database: %w", err)
 	}
-	https := s.httpServer(s.cfg.HTTPSAddr, s)
-	https.TLSConfig = magic.TLSConfig()
-	https.TLSConfig.NextProtos = append([]string{"h2", "http/1.1"}, https.TLSConfig.NextProtos...)
-	plain := s.httpServer(s.cfg.HTTPAddr, issuer.HTTPChallengeHandler(redirectToHTTPS{domain: s.cfg.Domain}))
-
-	s.log.Info("serving over HTTPS", "domain", s.cfg.Domain)
-	errs := make(chan error, 2)
-	go func() { errs <- serve(ctx, plain, plain.ListenAndServe) }()
-	go func() { errs <- serve(ctx, https, func() error { return https.ListenAndServeTLS("", "") }) }()
-	return errors.Join(<-errs, <-errs)
+	s := &Server{DB: db, Registry: operation.NewRegistry(db), cfg: cfg}
+	s.AddDomain = &operation.Op[AddDomainInput, Info]{
+		Name:        "add_domain",
+		Description: "Declare a domain on this server, which creates the Cahut at that domain.",
+		AdminOnly:   true,
+		Run:         s.addDomain,
+	}
+	operation.Register(s.Registry, s.AddDomain)
+	operation.Register(s.Registry, ListDomains)
+	operation.Register(s.Registry, cahut.ListLogbook)
+	return s, nil
 }
 
-func (s *Server) httpServer(addr string, h http.Handler) *http.Server {
-	return &http.Server{
-		Addr:              addr,
-		Handler:           h,
-		ReadHeaderTimeout: 10 * time.Second,
-		ReadTimeout:       5 * time.Minute, // a large publication on a slow link
-		IdleTimeout:       2 * time.Minute,
-		ErrorLog:          slog.NewLogLogger(s.log.Handler(), slog.LevelWarn),
-	}
+// Close closes the server's database.
+func (s *Server) Close() error {
+	return s.DB.Close()
 }
 
-// serve runs listen until ctx is done, then shuts srv down.
-func serve(ctx context.Context, srv *http.Server, listen func() error) error {
-	errc := make(chan error, 1)
-	go func() { errc <- listen() }()
-	select {
-	case err := <-errc:
-		return fmt.Errorf("serve %s: %w", srv.Addr, err)
-	case <-ctx.Done():
-		shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		return srv.Shutdown(shutdown)
-	}
+// Info describes a Cahut of the server.
+type Info struct {
+	ID        int64     `json:"id"`
+	Domain    string    `json:"domain"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
-// redirectToHTTPS sends requests for the home and its Windows to HTTPS.
-type redirectToHTTPS struct{ domain string }
+// AddDomainInput is the input of add_domain.
+type AddDomainInput struct {
+	Domain string `json:"domain" jsonschema:"the domain of the new Cahut, such as cahut.example.com"`
+}
 
-func (rd redirectToHTTPS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	host := hostOf(r)
-	if host != rd.domain && !strings.HasSuffix(host, "."+rd.domain) {
-		misdirected(w)
-		return
+func (s *Server) addDomain(ctx context.Context, c *operation.Call, in AddDomainInput) (Info, error) {
+	domain := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(in.Domain)), ".")
+	c.Log(domain, "")
+	if !address.ValidDomain(domain) {
+		return Info{}, operation.Invalidf("%q is not a domain name, such as cahut.example.com; IP addresses are not supported", in.Domain)
 	}
-	target := "https://" + host + r.URL.RequestURI()
-	http.Redirect(w, r, target, http.StatusPermanentRedirect) //nolint:gosec // the host is the home or one of its Windows
+	info := Info{Domain: domain, CreatedAt: c.Now}
+	err := c.Tx.QueryRowContext(ctx, "INSERT INTO cahuts (domain, created_at) VALUES (?, ?) ON CONFLICT DO NOTHING RETURNING id",
+		domain, store.FormatTime(c.Now)).Scan(&info.ID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Info{}, operation.Invalidf("%s is already the domain of a Cahut", domain)
+	}
+	if err != nil {
+		return Info{}, err
+	}
+
+	// Create the Cahut's database now, so that a failure shows at once.
+	dir := s.dir(info.ID)
+	c.OnFailure(func() { os.RemoveAll(dir) })
+	created, err := cahut.Open(ctx, cahut.Config{Dir: dir, Domain: domain})
+	if err != nil {
+		return Info{}, err
+	}
+	return info, created.Close()
+}
+
+// ListDomainsInput is the input of list_domains.
+type ListDomainsInput struct{}
+
+// List is the output of list_domains.
+type List struct {
+	Cahuts []Info `json:"cahuts"`
+}
+
+// ListDomains lists the Cahuts of the server, in the order they were
+// declared.
+var ListDomains = &operation.Op[ListDomainsInput, List]{
+	Name:        "list_domains",
+	Description: "List the Cahuts of this server and their domains.",
+	AdminOnly:   true,
+	ReadOnly:    true,
+	Run: func(ctx context.Context, c *operation.Call, _ ListDomainsInput) (List, error) {
+		rows, err := c.Tx.QueryContext(ctx, "SELECT id, domain, created_at FROM cahuts ORDER BY id")
+		if err != nil {
+			return List{}, err
+		}
+		defer rows.Close()
+		list := List{Cahuts: []Info{}}
+		for rows.Next() {
+			var info Info
+			var created string
+			if err := rows.Scan(&info.ID, &info.Domain, &created); err != nil {
+				return List{}, err
+			}
+			if info.CreatedAt, err = store.ParseTime(created); err != nil {
+				return List{}, err
+			}
+			list.Cahuts = append(list.Cahuts, info)
+		}
+		return list, rows.Err()
+	},
+}
+
+// Domains returns the domains of all the Cahuts, in the order they were
+// declared.
+func (s *Server) Domains(ctx context.Context) ([]string, error) {
+	rows, err := s.DB.Read.QueryContext(ctx, "SELECT domain FROM cahuts ORDER BY id")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var domains []string
+	for rows.Next() {
+		var d string
+		if err := rows.Scan(&d); err != nil {
+			return nil, err
+		}
+		domains = append(domains, d)
+	}
+	return domains, rows.Err()
+}
+
+// lookup returns the id of the Cahut at domain, or an error wrapping
+// operation.ErrNotFound.
+func (s *Server) lookup(ctx context.Context, domain string) (int64, error) {
+	if !address.ValidDomain(domain) {
+		return 0, operation.NotFoundf("no Cahut at %q", domain)
+	}
+	var id int64
+	err := s.DB.Read.QueryRowContext(ctx, "SELECT id FROM cahuts WHERE domain = ?", domain).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, operation.NotFoundf("no Cahut at %s", domain)
+	}
+	return id, err
+}
+
+// Declared reports whether a Cahut is at domain.
+func (s *Server) Declared(ctx context.Context, domain string) (bool, error) {
+	_, err := s.lookup(ctx, domain)
+	if errors.Is(err, operation.ErrNotFound) {
+		return false, nil
+	}
+	return err == nil, err
+}
+
+// OpenCahut opens the Cahut at domain, which the caller closes. It returns
+// an error wrapping operation.ErrNotFound when no Cahut is at domain.
+func (s *Server) OpenCahut(ctx context.Context, domain string) (*cahut.Cahut, error) {
+	id, err := s.lookup(ctx, domain)
+	if err != nil {
+		return nil, err
+	}
+	cfg := cahut.Config{Dir: s.dir(id), Domain: domain}
+	if s.cfg.BaseURL != nil {
+		cfg.BaseURL = s.cfg.BaseURL(domain)
+	}
+	return cahut.Open(ctx, cfg)
+}
+
+// dir returns the directory of the Cahut with the given id.
+func (s *Server) dir(id int64) string {
+	return filepath.Join(s.cfg.DataDir, "cahuts", strconv.FormatInt(id, 10))
 }

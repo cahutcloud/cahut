@@ -1,4 +1,5 @@
--- Times are UTC text in the layout of store.FormatTime.
+-- The records of one Cahut. Times are UTC text in the layout of
+-- store.FormatTime.
 
 CREATE TABLE users (
   id          INTEGER PRIMARY KEY,
@@ -8,10 +9,13 @@ CREATE TABLE users (
   created_at  TEXT NOT NULL
 ) STRICT;
 
+-- The name of a Room is the first part of its address, <domain>/<name>/.
+-- A personal Room is named after the handle of its person.
 CREATE TABLE rooms (
   id          INTEGER PRIMARY KEY,
+  name        TEXT NOT NULL UNIQUE,
   kind        TEXT NOT NULL CHECK (kind IN ('personal', 'team')),
-  name        TEXT NOT NULL,
+  title       TEXT NOT NULL,
   created_at  TEXT NOT NULL
 ) STRICT;
 
@@ -36,10 +40,12 @@ CREATE TABLE tokens (
   revoked_at    TEXT
 ) STRICT;
 
+-- The name of a Window is the last part of its address,
+-- <domain>/<room>/<name>/. Its files live on disk under its id.
 CREATE TABLE windows (
   id          INTEGER PRIMARY KEY,
-  name        TEXT NOT NULL UNIQUE, -- the DNS label of the Window's origin
   room_id     INTEGER NOT NULL REFERENCES rooms (id),
+  name        TEXT NOT NULL,
   title       TEXT NOT NULL,
   kind        TEXT NOT NULL CHECK (kind IN ('document', 'deck', 'dashboard', 'site')),
   version     INTEGER NOT NULL,
@@ -47,10 +53,9 @@ CREATE TABLE windows (
   file_count  INTEGER NOT NULL,
   created_by  INTEGER NOT NULL REFERENCES users (id),
   created_at  TEXT NOT NULL,
-  updated_at  TEXT NOT NULL
+  updated_at  TEXT NOT NULL,
+  UNIQUE (room_id, name)
 ) STRICT;
-
-CREATE INDEX windows_room ON windows (room_id);
 
 -- The Logbook keeps ids and names as they were, without foreign keys, so
 -- that an entry outlives what it refers to.

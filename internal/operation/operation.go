@@ -1,6 +1,6 @@
-// Package operation is the only way to act on a home. MCP tools, the HTTP
-// API and the command line are thin adapters over its registry, which checks
-// who acts, runs the operation and writes the Logbook.
+// Package operation is the only way to act on a Cahut or on its server. MCP
+// tools, the HTTP API and the command line are thin adapters over its
+// registry, which checks who acts, runs the operation and writes the Logbook.
 // See docs/adr/0001-operation-registry.md.
 package operation
 
@@ -131,7 +131,7 @@ func Public(err error) bool {
 		errors.Is(err, ErrForbidden) || errors.Is(err, ErrApprovalRequired)
 }
 
-// Registry holds the operations of a home and runs them.
+// Registry holds the operations of a Cahut, or of the server, and runs them.
 type Registry struct {
 	db  *store.DB
 	ops map[string]registered

@@ -1,5 +1,5 @@
-// Package logbook records every action on a home: which AI or person acted,
-// on whose behalf, what they did and with what result.
+// Package logbook records every action on a Cahut or on its server: which
+// AI or person acted, on whose behalf, what they did and with what result.
 package logbook
 
 import (

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -28,14 +27,14 @@ func setup(t *testing.T) *fixture {
 	t.Helper()
 	ctx := context.Background()
 	dir := t.TempDir()
-	db, err := store.Open(ctx, filepath.Join(dir, "cahut.db"))
+	db, err := store.Open(ctx, filepath.Join(dir, "cahut.db"), store.CahutSchema)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { db.Close() })
 	r := operation.NewRegistry(db)
 	account.Register(r)
-	s := NewService(filepath.Join(dir, "windows"), func(name string) string { return "https://" + name + ".home.test/" })
+	s := NewService(filepath.Join(dir, "windows"), func(room, name string) string { return "https://cahut.test/" + room + "/" + name + "/" })
 	s.Register(r)
 
 	f := &fixture{r: r, db: db, s: s}
@@ -75,27 +74,32 @@ const deck = `{
 
 func TestPublishAndGet(t *testing.T) {
 	f := setup(t)
-	published := ""
-	f.s.Published = func(name string) { published = name }
-
 	out, err := f.invoke(t, f.olivier, "publish_window", deck)
 	if err != nil {
 		t.Fatalf("publish_window: %v", err)
 	}
 	w := out.(Window)
-	if !regexp.MustCompile(`^revue-du-3e-trimestre-[a-z2-7]{8}$`).MatchString(w.Name) {
-		t.Errorf("name = %q", w.Name)
-	}
-	if w.URL != "https://"+w.Name+".home.test/" || w.Kind != Deck || w.Version != 1 || w.FileCount != 2 ||
+	if w.Name != "revue-du-3e-trimestre" || w.URL != "https://cahut.test/olivier/revue-du-3e-trimestre/" ||
+		w.Kind != Deck || w.Version != 1 || w.FileCount != 2 ||
 		w.Size != int64(len("<h1>Q3</h1>")+8) || w.Room != "olivier" || w.CreatedBy != "olivier" {
 		t.Errorf("window = %+v", w)
 	}
-	if published != w.Name {
-		t.Errorf("Published called with %q, want %q", published, w.Name)
+	id, version, err := Current(context.Background(), f.db, "olivier", w.Name)
+	if err != nil || version != 1 {
+		t.Fatalf("Current = %d, %d, %v", id, version, err)
 	}
-	html, err := os.ReadFile(filepath.Join(f.s.Dir(w.Name, 1), "index.html"))
+	html, err := os.ReadFile(filepath.Join(f.s.Dir(id, 1), "index.html"))
 	if err != nil || string(html) != "<h1>Q3</h1>" {
 		t.Errorf("index.html on disk = %q, %v", html, err)
+	}
+
+	// The same title in the same Room gets the next free name.
+	out, err = f.invoke(t, f.olivier, "publish_window", deck)
+	if err != nil || out.(Window).Name != "revue-du-3e-trimestre-2" {
+		t.Errorf("second publication = %+v, %v", out, err)
+	}
+	if _, err := f.invoke(t, f.olivier, "get_window", `{"window": "olivier/revue-du-3e-trimestre-2"}`); err != nil {
+		t.Errorf("get_window by room/name: %v", err)
 	}
 
 	out, err = f.invoke(t, f.olivier, "get_window", `{"window": "`+w.URL+`index.html", "include_content": true}`)
@@ -119,9 +123,10 @@ func TestPublishAndGet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if entries[1].Operation != "publish_window" || entries[1].Target != w.Name || entries[1].Outcome != logbook.OK ||
-		!strings.Contains(entries[1].Detail, "2 files") || entries[0].Operation != "get_window" {
-		t.Errorf("logbook = %+v", entries[:2])
+	if entries[3].Operation != "publish_window" || entries[3].Target != "olivier/revue-du-3e-trimestre" ||
+		entries[3].Outcome != logbook.OK || !strings.Contains(entries[3].Detail, "2 files") ||
+		entries[0].Operation != "get_window" || entries[0].Target != "olivier/revue-du-3e-trimestre" {
+		t.Errorf("logbook = %+v", entries[:4])
 	}
 }
 
@@ -131,10 +136,13 @@ func TestWindowsStayInTheirRoom(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := out.(Window).Name
+	url := out.(Window).URL
 
-	if _, err := f.invoke(t, f.camille, "get_window", `{"window": "`+name+`"}`); !errors.Is(err, operation.ErrNotFound) {
+	if _, err := f.invoke(t, f.camille, "get_window", `{"window": "`+url+`"}`); !errors.Is(err, operation.ErrNotFound) {
 		t.Errorf("get_window by another person: err = %v, want ErrNotFound", err)
+	}
+	if _, err := f.invoke(t, f.camille, "publish_window", strings.Replace(deck, `"kind"`, `"room": "olivier", "kind"`, 1)); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("publish_window in another person's Room: err = %v, want ErrNotFound", err)
 	}
 	out, err = f.invoke(t, f.camille, "list_windows", `{}`)
 	if err != nil || len(out.(List).Windows) != 0 {
@@ -180,11 +188,17 @@ func TestPublishRefusesBadInput(t *testing.T) {
 	for _, args := range []string{
 		`{"title": " ", "kind": "deck", "files": [{"path": "index.html", "content": "x"}]}`,
 		`{"title": "T", "kind": "slides", "files": [{"path": "index.html", "content": "x"}]}`,
-		`{"title": "T", "kind": "deck", "files": [{"path": "index.html", "content": "x"}], "room": "team"}`,
+		`{"title": "T", "kind": "deck", "files": [{"path": "index.html", "content": "x"}], "version": 2}`,
 	} {
 		if _, err := f.invoke(t, f.olivier, "publish_window", args); !errors.Is(err, operation.ErrInvalid) {
 			t.Errorf("%s: err = %v, want ErrInvalid", args, err)
 		}
+	}
+	if _, err := f.invoke(t, f.olivier, "publish_window", `{"title": "T", "kind": "deck", "room": "team", "files": [{"path": "index.html", "content": "x"}]}`); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("publish in an unknown Room: err = %v, want ErrNotFound", err)
+	}
+	if _, err := f.invoke(t, f.olivier, "get_window", `{"window": "Q3 review"}`); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("get_window without an address: err = %v, want ErrInvalid", err)
 	}
 	admin := operation.Actor{Kind: operation.Admin, Via: "cli"}
 	if _, err := f.invoke(t, admin, "publish_window", deck); !errors.Is(err, operation.ErrInvalid) {
@@ -211,34 +225,23 @@ func TestPublishRemovesFilesWhenItFails(t *testing.T) {
 	}
 }
 
-func TestSlug(t *testing.T) {
-	tests := map[string]string{
-		"Revue du 3e trimestre":          "revue-du-3e-trimestre",
-		"  Présentation : Œuvre ":        "presentation-oeuvre",
-		"Straße & Ölmühle":               "strasse-olmuhle",
-		"日本語":                            "window",
-		"---":                            "window",
-		strings.Repeat("abcdefghij ", 6): "abcdefghij-abcdefghij-abcdefghij-abcdefg",
-	}
-	for title, want := range tests {
-		if got := slug(title); got != want {
-			t.Errorf("slug(%q) = %q, want %q", title, got, want)
-		}
-	}
-}
-
-func TestNameFrom(t *testing.T) {
-	tests := map[string]string{
-		"q3-abcdefgh":                               "q3-abcdefgh",
-		"https://q3-abcdefgh.home.example.com/":     "q3-abcdefgh",
-		"https://q3-abcdefgh.home.example.com/a.js": "q3-abcdefgh",
-		"q3-abcdefgh.home.example.com":              "q3-abcdefgh",
-		"http://q3-abcdefgh.localhost:8080/":        "q3-abcdefgh",
-		"Q3 Review":                                 "Q3 Review",
+func TestLocate(t *testing.T) {
+	tests := map[string][2]string{
+		"olivier/q3-review":                                     {"olivier", "q3-review"},
+		"/olivier/q3-review/":                                   {"olivier", "q3-review"},
+		"https://cahut.example.com/olivier/q3-review/":          {"olivier", "q3-review"},
+		"https://cahut.example.com/olivier/q3-review/css/a.css": {"olivier", "q3-review"},
+		"http://localhost:8080/marketing/q3-review":             {"marketing", "q3-review"},
+		" marketing/q3-review ":                                 {"marketing", "q3-review"},
 	}
 	for in, want := range tests {
-		if got := nameFrom(in); got != want {
-			t.Errorf("nameFrom(%q) = %q, want %q", in, got, want)
+		if room, name, ok := locate(in); !ok || room != want[0] || name != want[1] {
+			t.Errorf("locate(%q) = %q, %q, %v; want %q, %q", in, room, name, ok, want[0], want[1])
+		}
+	}
+	for _, in := range []string{"q3-review", "Q3 Review", "https://cahut.example.com/", "olivier/Q3", "-/healthz"} {
+		if room, name, ok := locate(in); ok {
+			t.Errorf("locate(%q) = %q, %q, true; want false", in, room, name)
 		}
 	}
 }

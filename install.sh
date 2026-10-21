@@ -1,17 +1,19 @@
 #!/bin/sh
 # Install or update Cahut on a Linux server with systemd.
 #
-#   sudo sh install.sh --domain home.example.com [--email you@example.com]
+#   sudo sh install.sh --domain cahut.example.com [--email you@example.com]
 #
 # The script downloads a release from GitHub and checks its checksum, or
 # takes a binary you give it with --binary. It then creates the cahut system
 # user, the data directory /var/lib/cahut, the settings file
-# /etc/cahut/cahut.env and the cahut service, opens ports 80 and 443 in
-# firewalld or ufw when one is active, and starts the service.
+# /etc/cahut/cahut.env and the cahut service, declares the Cahut of
+# --domain, opens ports 80 and 443 in firewalld or ufw when one is active,
+# and starts the service.
 #
 # Options:
-#   --domain DOMAIN   address of the home; Windows are served under it.
-#                     DOMAIN and *.DOMAIN must point to this server.
+#   --domain DOMAIN   domain of a Cahut to declare on this server, such as
+#                     cahut.example.com; it must point to this server. Run
+#                     the script again with another domain to add a Cahut.
 #   --email EMAIL     contact of the Let's Encrypt account (optional)
 #   --staging         use Let's Encrypt's staging environment, for tests
 #   --version TAG     release to install, such as v0.1.0 (default: latest)
@@ -56,7 +58,7 @@ done
 [ "$(id -u)" -eq 0 ] || die "run this script as root, for instance with sudo"
 command -v systemctl >/dev/null || die "systemd is required"
 if [ -z "$domain" ] && [ ! -f "$env_file" ]; then
-	die "give the address of the home with --domain"
+	die "give the domain of your first Cahut with --domain"
 fi
 if [ -n "$domain" ]; then
 	domain=$(printf '%s' "$domain" | tr 'A-Z' 'a-z')
@@ -133,13 +135,12 @@ fi
 install -d -m 0750 -o cahut -g cahut "$data_dir"
 install -d -m 0750 -o root -g cahut "$conf_dir"
 
-if [ -n "$domain" ]; then
+if [ ! -f "$env_file" ] || [ -n "$email$ca" ]; then
 	say "writing $env_file"
 	umask 027
 	cat >"$env_file" <<EOF
 # Settings of the cahut service. Run install.sh again to change them.
 CAHUT_DATA=$data_dir
-CAHUT_DOMAIN=$domain
 CAHUT_ACME_EMAIL=$email
 CAHUT_ACME_CA=$ca
 EOF
@@ -149,7 +150,7 @@ fi
 
 cat >"$unit_file" <<EOF
 [Unit]
-Description=Cahut home
+Description=Cahut
 Documentation=https://cahut.cloud
 After=network-online.target
 Wants=network-online.target
@@ -188,6 +189,14 @@ if command -v restorecon >/dev/null; then
 	restorecon "$bin_path" "$unit_file" || true # SELinux labels of the new files
 fi
 
+# as_cahut runs a cahut command as the service user, on its data.
+as_cahut() { runuser -u cahut -- "$bin_path" "$@" --data "$data_dir"; }
+
+if [ -n "$domain" ] && ! as_cahut domain list | awk 'NR > 1 { print $2 }' | grep -qx "$domain"; then
+	say "declaring the Cahut of $domain"
+	as_cahut domain add "$domain" >/dev/null
+fi
+
 if systemctl is-active --quiet firewalld 2>/dev/null; then
 	say "opening ports 80 and 443 in firewalld"
 	firewall-cmd --quiet --permanent --add-service=http --add-service=https
@@ -204,18 +213,20 @@ systemctl restart cahut
 sleep 2
 systemctl is-active --quiet cahut || die "the service did not start: see journalctl -u cahut"
 
-home=$(sed -n 's/^CAHUT_DOMAIN=//p' "$env_file")
-say "$("$bin_path" version) is running for https://$home/"
+say "$("$bin_path" version) is running"
+as_cahut domain list | awk 'NR > 1 { print "  https://" $2 "/" }'
+[ -n "$domain" ] || domain=$(as_cahut domain list | awk 'NR == 2 { print $2 }')
+[ -n "$domain" ] || die "this server holds no Cahut yet: run the script again with --domain"
 cat <<EOF
 
-Next steps:
+Next steps for the Cahut of $domain:
 
   1. Create your account, as an administrator:
-       sudo -u cahut cahut user create --handle you --name "Your Name" --admin
+       sudo -u cahut cahut user create --domain $domain --handle you --name "Your Name" --admin
   2. Create a token for your AI:
-       sudo -u cahut cahut token create --user you --name "Claude Code"
-  3. Add the home to Claude Code:
-       claude mcp add --transport http cahut https://$home/mcp --header "Authorization: Bearer <token>"
+       sudo -u cahut cahut token create --domain $domain --user you --name "Claude Code"
+  3. Add the Cahut to Claude Code:
+       claude mcp add --transport http cahut https://$domain/mcp --header "Authorization: Bearer <token>"
 
 The service logs go to the journal: journalctl -u cahut
 EOF
