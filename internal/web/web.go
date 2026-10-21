@@ -53,6 +53,11 @@ type Server struct {
 	log *slog.Logger
 	mux *http.ServeMux
 
+	// streams is canceled when the server shuts down, to end the
+	// standalone streams of MCP sessions.
+	streams    context.Context
+	endStreams context.CancelFunc
+
 	mu    sync.Mutex
 	sites map[string]*site // by domain
 }
@@ -66,17 +71,19 @@ type site struct {
 // New returns a web server for the Cahuts of srv.
 func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s := &Server{srv: srv, cfg: cfg, log: log, sites: map[string]*site{}}
+	s.streams, s.endStreams = context.WithCancel(context.Background())
 	s.mux = http.NewServeMux()
 	s.mux.HandleFunc("GET /{$}", s.serveRoot)
-	s.mux.HandleFunc("/mcp", func(w http.ResponseWriter, r *http.Request) { siteOf(r).mcp.ServeHTTP(w, r) })
+	s.mux.HandleFunc("/mcp", s.serveMCP)
 	s.mux.HandleFunc("GET /-/healthz", serveHealth)
 	s.mux.HandleFunc("GET /{room}/{window}", redirectToWindow)
 	s.mux.HandleFunc("GET /{room}/{window}/{file...}", s.serveWindow)
 	return s
 }
 
-// Close closes the Cahuts that the server opened.
+// Close ends the MCP streams and closes the Cahuts that the server opened.
 func (s *Server) Close() error {
+	s.endStreams()
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	var errs []error
@@ -147,6 +154,21 @@ func (s *Server) serveRoot(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "This is %s, a Cahut. AIs connect to it over MCP at /mcp.\n", siteOf(r).cahut.Domain)
 }
 
+// serveMCP passes the request to the MCP endpoint of its Cahut. A GET opens
+// the standalone stream of an MCP session, which stays open as long as the
+// client does: it ends when the server shuts down, or the shutdown would wait
+// for it until its deadline.
+func (s *Server) serveMCP(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		ctx, cancel := context.WithCancel(r.Context())
+		defer cancel()
+		stop := context.AfterFunc(s.streams, cancel)
+		defer stop()
+		r = r.WithContext(ctx)
+	}
+	siteOf(r).mcp.ServeHTTP(w, r)
+}
+
 func serveHealth(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	fmt.Fprintln(w, "ok")
@@ -184,7 +206,7 @@ func (s *Server) Run(ctx context.Context) error {
 }
 
 func (s *Server) httpServer(addr string, h http.Handler) *http.Server {
-	return &http.Server{
+	srv := &http.Server{
 		Addr:              addr,
 		Handler:           h,
 		ReadHeaderTimeout: 10 * time.Second,
@@ -192,6 +214,10 @@ func (s *Server) httpServer(addr string, h http.Handler) *http.Server {
 		IdleTimeout:       2 * time.Minute,
 		ErrorLog:          slog.NewLogLogger(s.log.Handler(), slog.LevelWarn),
 	}
+	// The shutdown waits for the requests in progress, but ends the MCP
+	// streams, which would never finish on their own.
+	srv.RegisterOnShutdown(s.endStreams)
+	return srv
 }
 
 // serve runs listen until ctx is done, then shuts srv down.
