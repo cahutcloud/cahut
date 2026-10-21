@@ -7,6 +7,12 @@ on:
 permissions:
   contents: write
 
+# GitHub can deliver the same tag push twice. Runs for one tag wait for
+# each other, and GoReleaser replaces the draft of the earlier run.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Draft the release
