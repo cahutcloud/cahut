@@ -6,22 +6,50 @@ Guidance for Claude Code in this repository.
 
 Cahut is a self-hosted, open source home for what AIs make: documents, decks, dashboards and small apps, published over MCP to the user's own server and shared by link. It is a personal project by Olivier Durand, independent of any company and of any AI vendor.
 
-The project is at the brief and brand stage: there is no code yet. Build, run and test instructions will be added here with the first prototype.
+The V0 is under way, batch by batch, following the V0 plan. The code so far is a Go skeleton with its CI and release pipeline: `cahut version` is the only command.
 
 Read before working on anything substantial:
 
 - [README.md](README.md): the public pitch, scope, governance model and technical choices.
 - [docs/brief-projet.md](docs/brief-projet.md): the full project brief, in French, with the open questions.
 - [docs/plan-v0.md](docs/plan-v0.md): the development plan for the V0 (the MVP), in French: scope, batches, milestones and decisions to make.
+- [docs/adr/README.md](docs/adr/README.md): the architecture decision records, in English. They settle the web server and TLS, Window origins, the database, the console, OAuth, the module path and releases.
 - [docs/charte-graphique/README.md](docs/charte-graphique/README.md): the brand guidelines, in French.
 
-The implementation language is **Go** (decided, see the README). The brief still lists Go or Rust as open: the README is the current reference.
+The implementation language is **Go** (decided, see the README). The brief still lists Go or Rust as open: the README and the ADRs are the current reference.
 
 ## Languages
 
 - Talk with Olivier in French.
 - Write in English everything that will be public at launch: README, code, comments, commit messages, pull requests, product copy, interface text.
-- `docs/` stays in French for now (brief, V0 plan and brand guidelines). Use correct French spelling with all accents.
+- `docs/` stays in French for now (brief, V0 plan and brand guidelines), except `docs/adr/`, in English because the records are public at launch. Use correct French spelling with all accents.
+
+## Build and test
+
+The Go version is set by the `toolchain` line of `go.mod`; the `go` command downloads that toolchain when the local one is older. Run `make` to list the tasks:
+
+| Task | What it does |
+| --- | --- |
+| `make build` | Builds `bin/cahut` for this machine |
+| `make test` | Runs the tests with the race detector |
+| `make lint` | Checks that `go.mod` is tidy, then runs golangci-lint |
+| `make fmt` | Formats the code (gofmt, goimports) |
+| `make check` | Lint and tests, as CI runs them: run it before pushing |
+| `make snapshot` | Builds the release archives into `dist/`, without publishing |
+| `make release-check` | Validates `.goreleaser.yaml` |
+
+golangci-lint and GoReleaser run through `go run`, at the versions pinned in the Makefile: nothing needs installing.
+
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on `main`: lint, tests, and a GoReleaser snapshot build that checks the linux/amd64 and linux/arm64 binaries are static. Pushing a `v*` tag runs [release.yml](.github/workflows/release.yml), which drafts a GitHub release with the archives and checksums; a person reviews and publishes it.
+
+## Code conventions
+
+- Module path `cahut.cloud`. The entry point is `cmd/cahut`; everything else lives under `internal/`.
+- Binaries are static, built with `CGO_ENABLED=0`. Never add a dependency that needs cgo.
+- Prefer the standard library. A new dependency needs a reason, stated in the pull request.
+- Every action goes through the operation registry ([ADR 1](docs/adr/0001-operation-registry.md)). MCP tools, the HTTP API and SSH are thin adapters: decode, call the registry, encode. No business logic and no storage access in them.
+- A new architecture decision is a new record in `docs/adr/`. Never rewrite an accepted record: supersede it.
+- Versions to keep in step: golangci-lint and GoReleaser are pinned both in the Makefile and in the workflows. Actions are pinned by commit hash, with the version in a comment; Dependabot updates them. Raise the `toolchain` line of `go.mod` when Go ships a patch release.
 
 ## Product rules that shape the code
 
@@ -66,12 +94,23 @@ Changing the logo, the palette or the tokens is a change to the brand guidelines
 ## Repository layout
 
 ```
+cmd/cahut/             Entry point of the cahut binary
+internal/
+  cli/                 Command line: subcommands and their flags
+  version/             Build information, printed by cahut version
 docs/
+  adr/                 Architecture decision records (English)
   brief-projet.md      Project brief (French)
   plan-v0.md           V0 development plan (French)
   charte-graphique/    Brand guidelines with all source files (French)
+.github/
+  workflows/           CI and release
+  dependabot.yml       Weekly updates of Go modules and actions
 .claude/skills/
   charte-graphique-cahut/   Project skill for the brand
+Makefile               Development tasks
+.golangci.yml          Linter configuration
+.goreleaser.yaml       Release build
 ```
 
 ## Writing style
@@ -80,6 +119,6 @@ The README sets the tone: short sentences, concrete verbs, no hype. No exclamati
 
 ## Git
 
-- `main` is the default branch. Work on a topic branch (`claude/<topic>` for Claude sessions) and open a pull request.
+- `main` is the default branch. Work on a topic branch (`claude/<topic>` for Claude sessions) and open a pull request. CI must be green before merging.
 - Commit messages in English: a short imperative subject line, then a body that says what changed and why.
 - The repository is private until launch and will be opened as is, history included. Keep it free of references to other projects, employers or clients, and never commit secrets.
