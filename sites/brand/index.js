@@ -6,8 +6,10 @@ import { cp } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-/** The brand guidelines, with every source file of the brand. */
-export const charte = fileURLToPath(new URL('../../docs/charte-graphique', import.meta.url));
+// The brand guidelines, with every source file of the brand. The path holds
+// only where this module runs unbundled, as in astro.config.mjs: pages reach
+// the files through the @charte alias instead.
+const charte = fileURLToPath(new URL('../../docs/charte-graphique', import.meta.url));
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 const favicons = path.join(charte, 'logos', 'favicon');
