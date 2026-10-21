@@ -22,7 +22,7 @@ func TestRun(t *testing.T) {
 		{name: "version flag", args: []string{"--version"}, wantCode: exitOK, wantStdout: "cahut "},
 		{name: "version help", args: []string{"version", "-h"}, wantCode: exitOK, wantStderr: "Usage of cahut version"},
 		{name: "version bad flag", args: []string{"version", "-x"}, wantCode: exitUsage, wantStderr: "flag provided but not defined"},
-		{name: "version extra argument", args: []string{"version", "now"}, wantCode: exitUsage, wantStderr: "unexpected arguments"},
+		{name: "version extra argument", args: []string{"version", "now"}, wantCode: exitUsage, wantStderr: `unexpected argument "now"`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
