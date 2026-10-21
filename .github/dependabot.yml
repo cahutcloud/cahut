@@ -1,0 +1,12 @@
+# Weekly pull requests for Go modules and for the actions pinned by commit
+# hash in .github/workflows.
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
