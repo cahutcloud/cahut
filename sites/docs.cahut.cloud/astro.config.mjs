@@ -8,7 +8,8 @@ export default defineConfig({
 	integrations: [
 		brand(),
 		starlight({
-			title: 'Cahut',
+			title: 'Cahut docs',
+			description: 'Install Cahut on your server, connect your AIs over MCP, and share what they make by link.',
 			logo: {
 				light: '@charte/logos/cahut-logo-horizontal.svg',
 				dark: '@charte/logos/cahut-logo-horizontal-inverse.svg',
@@ -22,6 +23,42 @@ export default defineConfig({
 			],
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/getcahut/cahut' }],
 			customCss: ['@charte/tokens/cahut-fonts.css', '@charte/tokens/cahut-tokens.css', './src/styles/cahut.css'],
+			expressiveCode: {
+				styleOverrides: { borderRadius: 'var(--radius-md)' },
+			},
+			sidebar: [
+				{
+					label: 'Start here',
+					items: [{ label: 'Overview', slug: 'index' }, 'start/how-it-works', 'start/status'],
+				},
+				{
+					label: 'Install',
+					items: ['install/server', 'install/local'],
+				},
+				{
+					label: 'Connect an AI',
+					items: ['connect/claude-code', 'connect/tokens', 'connect/publish'],
+				},
+				{
+					label: 'Concepts',
+					items: [
+						'concepts/vocabulary',
+						'concepts/cahuts',
+						'concepts/rooms-and-windows',
+						'concepts/access',
+						'concepts/knock-first-and-logbook',
+					],
+				},
+				{
+					label: 'Administration',
+					items: ['admin/commands', 'admin/service'],
+				},
+				{
+					// Written from the code by make docs-reference.
+					label: 'Reference',
+					items: [{ autogenerate: { directory: 'reference' } }],
+				},
+			],
 		}),
 	],
 	server: { port: 4322 },

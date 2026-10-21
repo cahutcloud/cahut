@@ -25,6 +25,17 @@ jobs:
           go-version-file: go.mod
       - name: Check that go.mod is tidy
         run: go mod tidy -diff
+      - name: Check that the reference of the docs is up to date
+        run: |
+          make docs-reference
+          if [ -n "$(git status --porcelain -- "$DOCS_REFERENCE")" ]; then
+            git add --intent-to-add -- "$DOCS_REFERENCE"
+            git diff -- "$DOCS_REFERENCE"
+            echo "::error::The reference of the docs is out of date: run make docs-reference and commit the result."
+            exit 1
+          fi
+        env:
+          DOCS_REFERENCE: sites/docs.cahut.cloud/src/content/docs/reference
       - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
           version: v2.15.0 # GOLANGCI_LINT_VERSION in the Makefile

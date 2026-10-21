@@ -19,8 +19,13 @@ The sites need Node.js at the version of [`.nvmrc`](../.nvmrc). With nvm, run `n
 | `make site-dev` | Serves cahut.cloud on http://localhost:4321 |
 | `make docs-dev` | Serves docs.cahut.cloud on http://localhost:4322 |
 | `make sites` | Builds both sites into their `dist/` folders, as CI does |
+| `make docs-reference` | Writes the reference of the docs from the code, with Go only |
 
 The first task installs the packages with `npm ci`. To add a package, run `npm install <package> --workspace <site>` in `sites/`, and state why in the pull request. Packages run no install scripts (`.npmrc`).
+
+## The reference of the docs
+
+The pages of `docs.cahut.cloud/src/content/docs/reference/` come from the code: the MCP tools as a Cahut serves them to an AI, the operations of the registries, and the commands as `cahut` describes them. `make docs-reference` writes them with [`internal/reference`](../internal/reference/main.go), which owns that folder: never edit its pages by hand. Run it after changing an operation, a schema or a command, and commit the result with the change. CI fails when the committed reference is out of date.
 
 ## The brand
 
