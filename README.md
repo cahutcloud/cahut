@@ -149,20 +149,30 @@ Cahut is written in **Go**: a new, clean codebase built for Cahut, which one per
 | Nature | A platform on a standard Linux, not an operating system | Decided |
 | Language | Go | Decided |
 | AI interface | MCP over HTTP with OAuth, forced-command SSH for the same operations | Decided |
-| Web console | Uses the same API as the AIs: no capability is reserved for it | Decided |
+| Web console | A Preact app embedded in the binary, using the same API as the AIs: no capability is reserved for it | Decided |
+| Web and TLS | Built into the binary, automatic certificates with CertMagic, one subdomain per Window when a wildcard exists | Decided |
+| Database | SQLite in pure Go, so the binary stays static | Decided |
+| Authorization | Cahut's own minimal OAuth 2.1 server, built for MCP clients | Decided |
 | Updates | Automatic, latest version checked on GitHub, rollback possible | Decided |
 | Backups | Optional, to external S3 or SFTP | Decided |
 | Apps | Predefined runtimes and Dockerfile mode, on an unprivileged container engine (Podman or Docker) | Open |
-| Web and TLS | Proxy with automatic certificates (Caddy or built in), one subdomain per app when a wildcard exists | Open |
 | License | Apache-2.0 or AGPL-3.0 | Open |
+
+The reasons behind each choice are in the [architecture decision records](docs/adr/README.md).
 
 ### Repository layout
 
 ```
-docs/   Project documents, in French for now: the project brief and the brand guidelines
+cmd/cahut/   Entry point of the cahut binary
+internal/    The code of Cahut, private to this module
+docs/        Project documents: architecture decision records in English; the brief, the V0 plan and the brand guidelines in French for now
 ```
 
-Code, build and test instructions will be added with the first prototype.
+### Building
+
+Building Cahut needs Go 1.27 or later and make. `make build` builds `bin/cahut`, and `make check` runs the linters and the tests, as CI does. Run `make` for the full list of tasks.
+
+Releases are static binaries for linux/amd64 and linux/arm64, built by GoReleaser when a version tag is pushed.
 
 ## Roadmap
 
@@ -185,6 +195,8 @@ Success criteria for the launch:
 ## Documentation
 
 - [Project brief](docs/brief-projet.md) (French): vision, positioning, scope, governance, technical choices and open questions.
+- [V0 plan](docs/plan-v0.md) (French): scope, batches and milestones of the first private version.
+- [Architecture decision records](docs/adr/README.md): each technical choice, its reasons and the options set aside.
 - [Brand guidelines](docs/charte-graphique/README.md) (French): logo, colors, typography, icons, illustrations, photography, interface kit and templates, with all source files. A visual version opens from [docs/charte-graphique/index.html](docs/charte-graphique/index.html).
 
 ## License
