@@ -4,3 +4,6 @@
 # Build output
 /bin/
 /dist/
+
+# Development home (make dev)
+/tmp/

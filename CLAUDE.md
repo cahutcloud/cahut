@@ -6,7 +6,7 @@ Guidance for Claude Code in this repository.
 
 Cahut is a self-hosted, open source home for what AIs make: documents, decks, dashboards and small apps, published over MCP to the user's own server and shared by link. It is a personal project by Olivier Durand, independent of any company and of any AI vendor.
 
-The V0 is under way, batch by batch, following the V0 plan. The code so far is a Go skeleton with its CI and release pipeline: `cahut version` is the only command.
+The V0 is under way, batch by batch, following the V0 plan. Batch 1 is the first vertical slice: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS on its own origin, and the call goes to the Logbook. There are no sign-in, console or Doors yet: anyone with a Window's address can read it.
 
 Read before working on anything substantial:
 
@@ -31,6 +31,7 @@ The Go version is set by the `toolchain` line of `go.mod`; the `go` command down
 | Task | What it does |
 | --- | --- |
 | `make build` | Builds `bin/cahut` for this machine |
+| `make dev` | Serves a home on http://localhost:8080, with its data in `tmp/dev` |
 | `make test` | Runs the tests with the race detector |
 | `make lint` | Checks that `go.mod` is tidy, then runs golangci-lint |
 | `make fmt` | Formats the code (gofmt, goimports) |
@@ -40,6 +41,18 @@ The Go version is set by the `toolchain` line of `go.mod`; the `go` command down
 
 golangci-lint and GoReleaser run through `go run`, at the versions pinned in the Makefile: nothing needs installing.
 
+To try a home on this machine, run `make dev`, then, in another terminal:
+
+```bash
+go run ./cmd/cahut user create --data tmp/dev --handle you --name "Your Name" --admin
+go run ./cmd/cahut token create --data tmp/dev --user you --name "Claude Code"
+claude mcp add --transport http cahut-dev http://localhost:8080/mcp --header "Authorization: Bearer <token>"
+```
+
+Windows open at `http://<name>.localhost:8080/`: Chrome, Firefox and curl resolve `*.localhost` to this machine. `go run ./cmd/cahut logbook --data tmp/dev` prints the Logbook.
+
+On a server, [install.sh](install.sh) installs a release, or a binary given with `--binary`, as the `cahut` systemd service; run it with `--help`. Administration commands run as the service user: `sudo -u cahut cahut token create ...`.
+
 CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on `main`: lint, tests, and a GoReleaser snapshot build that checks the linux/amd64 and linux/arm64 binaries are static. Pushing a `v*` tag runs [release.yml](.github/workflows/release.yml), which drafts a GitHub release with the archives and checksums; a person reviews and publishes it.
 
 ## Code conventions
@@ -47,7 +60,10 @@ CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull req
 - Module path `cahut.cloud`. The entry point is `cmd/cahut`; everything else lives under `internal/`.
 - Binaries are static, built with `CGO_ENABLED=0`. Never add a dependency that needs cgo.
 - Prefer the standard library. A new dependency needs a reason, stated in the pull request.
-- Every action goes through the operation registry ([ADR 1](docs/adr/0001-operation-registry.md)). MCP tools, the HTTP API and SSH are thin adapters: decode, call the registry, encode. No business logic and no storage access in them.
+- Every action goes through the operation registry ([ADR 1](docs/adr/0001-operation-registry.md)). MCP tools, the HTTP API, the command line and SSH are thin adapters: decode, call the registry, encode. No business logic and no storage access in them. An operation is an `operation.Op` registered in `home.Open`; every operation that is not `AdminOnly` becomes an MCP tool, with its JSON Schemas generated from the Go input and output types.
+- Errors meant for the caller wrap `operation.ErrInvalid`, `ErrNotFound` or `ErrForbidden`, with a message that tells an AI how to fix its call. Any other error is internal: adapters hide it and the Logbook keeps it.
+- Never put a token, a password or file contents in a Logbook entry (`Call.Log`).
+- Schema changes are new numbered files in `internal/store/migrations/`. Never edit a migration that has been released.
 - A new architecture decision is a new record in `docs/adr/`. Never rewrite an accepted record: supersede it.
 - Versions to keep in step: golangci-lint and GoReleaser are pinned both in the Makefile and in the workflows. Actions are pinned by commit hash, with the version in a comment; Dependabot updates them. Raise the `toolchain` line of `go.mod` when Go ships a patch release.
 
@@ -96,7 +112,14 @@ Changing the logo, the palette or the tokens is a change to the brand guidelines
 ```
 cmd/cahut/             Entry point of the cahut binary
 internal/
-  cli/                 Command line: subcommands and their flags
+  operation/           The registry of operations, the only way in (ADR 1)
+  logbook/             The record of every action
+  store/               SQLite database and its migrations
+  account/             People, personal Rooms and personal tokens
+  window/              Windows: publish, describe, list, files on disk
+  home/                Assembles a home: database, registry, operations
+  server/              HTTP(S): MCP endpoint, Windows by host, certificates
+  cli/                 Command line: serve and the administration commands
   version/             Build information, printed by cahut version
 docs/
   adr/                 Architecture decision records (English)
@@ -108,6 +131,7 @@ docs/
   dependabot.yml       Weekly updates of Go modules and actions
 .claude/skills/
   charte-graphique-cahut/   Project skill for the brand
+install.sh             Installs Cahut on a server as a systemd service
 Makefile               Development tasks
 .golangci.yml          Linter configuration
 .goreleaser.yaml       Release build
