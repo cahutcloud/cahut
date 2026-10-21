@@ -105,7 +105,9 @@ func siteOf(r *http.Request) *site {
 }
 
 // ServeHTTP finds the Cahut of the request's host, then routes the request
-// by its path.
+// by its path. A host that no Cahut declares gets 421: this is also the
+// guard against DNS rebinding, since a page that points its own name at this
+// server still sends its own name as the host.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	st, err := s.site(r.Context(), hostOf(r))
 	if errors.Is(err, operation.ErrNotFound) {

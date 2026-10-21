@@ -54,9 +54,16 @@ Browsers and curl send `localhost` and every name under it, such as `beta.localh
 ```bash
 bin/cahut domain add --data ./cahut-data beta.localhost
 bin/cahut user create --data ./cahut-data --domain beta.localhost --handle you --name "Your Name"
+bin/cahut token create --data ./cahut-data --domain beta.localhost --user you --name "Claude Code"
 ```
 
-`http://beta.localhost:8080/` answers as a Cahut of its own. Its MCP endpoint, though, turns AIs away on your machine: on a local address, the MCP endpoint accepts the host name `localhost` only, as a guard against DNS rebinding. With `--dev`, AIs publish to the Cahut at `localhost`.
+`http://beta.localhost:8080/` answers as a Cahut of its own, with its own people and tokens: a token of the Cahut at `localhost` does not open it. Add it to Claude Code under another name:
+
+```bash
+claude mcp add --transport http cahut-beta http://beta.localhost:8080/mcp --header "Authorization: Bearer <token>"
+```
+
+A name that no Cahut declares, such as `nope.localhost`, gets `421 Misdirected Request`, on your machine as on a server. This also guards the MCP endpoints against DNS rebinding: a web page that points its own name at your machine still sends its own name, which no Cahut answers.
 
 ## Work on Cahut
 
