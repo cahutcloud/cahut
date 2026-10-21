@@ -13,6 +13,9 @@ linters:
     - unconvert
     - usestdlibvars
   settings:
+    gosec:
+      excludes:
+        - G104 # unhandled errors: errcheck reports them, with its exclusions
     misspell:
       locale: US
     nolintlint:
