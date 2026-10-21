@@ -75,7 +75,7 @@ type Info struct {
 // Call is one call of an operation, as Run sees it.
 type Call struct {
 	Actor Actor
-	Now   time.Time // when the call started
+	Now   time.Time // when the call started, in UTC, to the millisecond
 	Tx    *sql.Tx   // read-only for a ReadOnly operation
 
 	target, detail string
@@ -238,7 +238,8 @@ func (op *Op[In, Out]) invoke(ctx context.Context, r *Registry, actor Actor, arg
 // administrator or a person are not.
 func (r *Registry) run(ctx context.Context, info Info, actor Actor, fn func(context.Context, *Call) error) error {
 	logged := !info.ReadOnly || actor.Kind == AI
-	c := &Call{Actor: actor, Now: r.Now()}
+	// The precision of the times the store keeps.
+	c := &Call{Actor: actor, Now: r.Now().UTC().Truncate(time.Millisecond)}
 
 	if err := authorize(info, actor); err != nil {
 		return r.fail(ctx, info, c, logged, err)

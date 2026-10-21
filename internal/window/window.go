@@ -170,6 +170,25 @@ func CurrentVersion(ctx context.Context, db *store.DB, name string) (int, error)
 	return version, err
 }
 
+// Names returns the names of all the Windows, for the server to manage their
+// certificates.
+func Names(ctx context.Context, db *store.DB) ([]string, error) {
+	rows, err := db.Read.QueryContext(ctx, "SELECT name FROM windows ORDER BY id")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var names []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		names = append(names, name)
+	}
+	return names, rows.Err()
+}
+
 // GetInput is the input of get_window.
 type GetInput struct {
 	Window         string `json:"window" jsonschema:"the Window's name or address"`
