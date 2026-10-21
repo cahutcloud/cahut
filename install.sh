@@ -20,14 +20,14 @@
 #   --binary PATH     install this cahut binary instead of downloading one
 #
 # Environment:
-#   CAHUT_REPO        GitHub repository of the releases (default: odura/cahut)
+#   CAHUT_REPO        GitHub repository of the releases (default: getcahut/cahut)
 #   GITHUB_TOKEN      token to read the releases of a private repository
 #
 # Run it again to update Cahut or change its settings.
 
 set -eu
 
-repo="${CAHUT_REPO:-odura/cahut}"
+repo="${CAHUT_REPO:-getcahut/cahut}"
 domain=""
 email=""
 ca=""
