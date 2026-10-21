@@ -1,2 +1,6 @@
 # JetBrains IDE settings
 .idea/
+
+# Build output
+/bin/
+/dist/
