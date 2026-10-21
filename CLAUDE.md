@@ -42,6 +42,7 @@ The Go version is set by the `toolchain` line of `go.mod`; the `go` command down
 | `make release-check` | Validates `.goreleaser.yaml` |
 | `make site-dev` | Serves cahut.cloud on http://localhost:4321 |
 | `make docs-dev` | Serves docs.cahut.cloud on http://localhost:4322 |
+| `make docs-reference` | Writes the reference of the docs from the code: run it after changing an operation or a command |
 | `make sites` | Builds both sites, as CI does: run it after changing `sites/` or the brand |
 
 golangci-lint and GoReleaser run through `go run`, at the versions pinned in the Makefile: nothing needs installing. The sites need Node.js at the version of [.nvmrc](.nvmrc) (`nvm use`); their tasks install the npm packages on first run. The Go tasks never need Node.js.
@@ -59,7 +60,7 @@ Windows open at `http://localhost:8080/<room>/<window>/`. To try a second Cahut,
 
 On a server, [install.sh](install.sh) installs a release, or a binary given with `--binary`, as the `cahut` systemd service, and declares the Cahut of `--domain`; run it with `--help`. Administration commands run as the service user, with the binary's full path, since sudo on AlmaLinux does not search `/usr/local/bin`: `sudo -u cahut /usr/local/bin/cahut token create ...`.
 
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on `main`: lint, tests, and a GoReleaser snapshot build that checks the linux/amd64 and linux/arm64 binaries are static. [sites.yml](.github/workflows/sites.yml) builds the sites on pull requests that touch them or the brand, and on `main` uploads them to the web server with rsync over SSH, once the repository's variables name it ([sites/README.md](sites/README.md#deployment)). Pushing a `v*` tag runs [release.yml](.github/workflows/release.yml), which drafts a GitHub release with the archives and checksums; a person reviews and publishes it.
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on `main`: lint, a check that the reference of the docs is up to date, tests, and a GoReleaser snapshot build that checks the linux/amd64 and linux/arm64 binaries are static. [sites.yml](.github/workflows/sites.yml) builds the sites on pull requests that touch them or the brand, and on `main` uploads them to the web server with rsync over SSH, once the repository's variables name it ([sites/README.md](sites/README.md#deployment)). Pushing a `v*` tag runs [release.yml](.github/workflows/release.yml), which drafts a GitHub release with the archives and checksums; a person reviews and publishes it.
 
 ## Code conventions
 
@@ -131,6 +132,7 @@ internal/
   server/              The server as a whole: its Cahuts and their domains
   web/                 HTTP(S): MCP endpoint, Windows by domain and path, certificates
   cli/                 Command line: serve and the administration commands
+  reference/           Writes the reference of the docs from the code (make docs-reference)
   version/             Build information, printed by cahut version
 docs/
   adr/                 Architecture decision records (English)
