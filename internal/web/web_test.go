@@ -280,6 +280,48 @@ func TestMCPNeedsAValidToken(t *testing.T) {
 	}
 }
 
+// TestMCPOnALoopbackAddress checks that every Cahut takes AIs on a loopback
+// address, not only the one at localhost, and that a host no Cahut declares
+// is still refused: the guard against DNS rebinding.
+func TestMCPOnALoopbackAddress(t *testing.T) {
+	f := setup(t)
+	if addr := f.ts.Listener.Addr().(*net.TCPAddr); !addr.IP.IsLoopback() {
+		t.Fatalf("the test server listens on %s, not on a loopback address", addr)
+	}
+	ctx := context.Background()
+	c := f.open(t, "beta.localhost")
+	if _, err := operation.Do(ctx, c.Registry, account.CreateUser, admin, account.CreateUserInput{Handle: "olivier", Name: "Olivier"}); err != nil {
+		t.Fatal(err)
+	}
+	tok, err := operation.Do(ctx, c.Registry, account.CreateToken, admin, account.CreateTokenInput{User: "olivier", Name: "Claude Code"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	session := f.connect(t, "beta.localhost", tok.Token)
+	if _, err := session.ListTools(ctx, nil); err != nil {
+		t.Fatalf("list the tools of beta.localhost: %v", err)
+	}
+
+	const initialize = `{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test-client","version":"1.0"}}}`
+	for _, host := range []string{"nope.localhost", "attacker.example", "127.0.0.1"} {
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, f.ts.URL+"/mcp", strings.NewReader(initialize))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json, text/event-stream")
+		resp, err := f.client(host, tok.Token).Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusMisdirectedRequest {
+			t.Errorf("initialize at %s: %d, want 421", host, resp.StatusCode)
+		}
+	}
+}
+
 func TestRouting(t *testing.T) {
 	f := setup(t)
 	tests := []struct {

@@ -50,6 +50,11 @@ func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
 			Logger:              s.log,
 			SessionTimeout:      time.Hour,
 			MaxRequestBodyBytes: MaxRequestSize, // the SDK's default, 4 MiB, is too small for a deck with images
+			// On a loopback address, the SDK's guard against DNS rebinding
+			// accepts the host localhost only, and would turn away a Cahut at
+			// beta.localhost. ServeHTTP guards instead, on every address: it
+			// answers only the domains of the Cahuts.
+			DisableLocalhostProtection: true,
 		})
 	verify := func(ctx context.Context, token string, _ *http.Request) (*auth.TokenInfo, error) {
 		return s.verifyToken(ctx, c, token)
