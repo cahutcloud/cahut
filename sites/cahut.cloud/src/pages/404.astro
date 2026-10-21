@@ -1,0 +1,54 @@
+---
+import Base from '../layouts/Base.astro';
+import empty from '@charte/illustrations/etat-vide.svg?url';
+---
+
+<Base title="Page not found · Cahut" description="There is no page at this address on cahut.cloud." noindex>
+	<div class="not-found">
+		<img src={empty} alt="" width="480" height="320" />
+		<div class="text">
+			<p class="c-label">404</p>
+			<h1 class="c-h1">There is no page here.</h1>
+			<p>
+				The address may be mistyped, or the page has moved. Cahut is in early development, and this site changes with
+				it.
+			</p>
+			<div class="actions">
+				<a class="c-btn c-btn--primary" href="/">Go to the home page</a>
+				<a class="c-btn c-btn--secondary" href="https://docs.cahut.cloud">Read the docs</a>
+			</div>
+		</div>
+	</div>
+</Base>
+
+<style>
+	.not-found {
+		display: grid;
+		justify-items: center;
+		gap: var(--space-8);
+		max-width: var(--measure);
+		margin-inline: auto;
+		padding-block: var(--space-8);
+		text-align: center;
+	}
+	img {
+		display: block;
+		width: min(100%, 20rem);
+		height: auto;
+	}
+	.text {
+		display: grid;
+		justify-items: center;
+		gap: var(--space-4);
+	}
+	p {
+		margin: 0;
+	}
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--space-3);
+		margin-top: var(--space-4);
+	}
+</style>
