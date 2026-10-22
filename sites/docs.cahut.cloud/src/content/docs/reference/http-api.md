@@ -80,12 +80,16 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/list_windows` | Any person | yes |
 | `POST /api/publish_window` | Any person | yes |
 | `POST /api/remove_room_member` | Any person | yes |
+| `POST /api/restore_window` | Any person | yes |
 | `POST /api/revoke_token` | Any person | yes |
+| `POST /api/rollback_window` | Any person | yes |
 | `POST /api/set_room_member_role` | Any person | yes |
 | `POST /api/set_user_role` | Administrators of the Cahut | yes |
 | `POST /api/sign_in` | Anyone, to sign in | no |
 | `POST /api/sign_out` | Any person | yes |
+| `POST /api/trash_window` | Any person | yes |
 | `POST /api/update_room` | Any person | yes |
+| `POST /api/update_window` | Any person | yes |
 
 ## Operations of the server
 

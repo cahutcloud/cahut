@@ -40,12 +40,16 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | [`list_windows`](/reference/mcp-tools/#list_windows) | List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. | Any person | no | yes |
 | [`publish_window`](/reference/mcp-tools/#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. | Any person | yes | yes |
 | [`remove_room_member`](/reference/mcp-tools/#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. | Any person | yes | yes |
+| [`restore_window`](/reference/mcp-tools/#restore_window) | Bring a Window back from the trash, with its versions. | Any person | yes | yes |
 | `revoke_token` | Revoke a personal token. The AI that used it loses access at once. | Any person | yes | no, people only |
+| [`rollback_window`](/reference/mcp-tools/#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. | Any person | yes | yes |
 | [`set_room_member_role`](/reference/mcp-tools/#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. | Any person | yes | yes |
 | [`set_user_role`](/reference/mcp-tools/#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. | Administrators of the Cahut | yes | to the AIs of administrators |
 | `sign_in` | Sign in with a handle and a password, and open a session. | Anyone, to sign in | yes | no, people only |
 | `sign_out` | End the session you signed in with. | Any person | yes | no, people only |
+| [`trash_window`](/reference/mcp-tools/#trash_window) | Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. | Any person | yes | yes |
 | [`update_room`](/reference/mcp-tools/#update_room) | Change the title of a Room. Its name, and so its address, stays. | Any person | yes | yes |
+| [`update_window`](/reference/mcp-tools/#update_window) | Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. | Any person | yes | yes |
 
 ## Operations of the server
 

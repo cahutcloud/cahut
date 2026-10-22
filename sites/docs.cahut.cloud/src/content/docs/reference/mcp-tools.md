@@ -46,9 +46,13 @@ The Cahut gives these instructions to the AI when it connects:
 | [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. |
 | [`publish_window`](#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. |
 | [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. |
+| [`restore_window`](#restore_window) | Bring a Window back from the trash, with its versions. |
+| [`rollback_window`](#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
 | [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. |
 | [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. |
+| [`trash_window`](#trash_window) | Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. |
 | [`update_room`](#update_room) | Change the title of a Room. Its name, and so its address, stays. |
+| [`update_window`](#update_window) | Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. |
 
 ## `add_room_member`
 
@@ -109,7 +113,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds |
+| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -170,7 +174,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds",
+      "description": "how many Windows the Room holds, out of the trash",
       "type": "integer"
     }
   },
@@ -241,7 +245,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `members` | integer | yes | how many people are in the Room |
 | `name` | string | yes | the Room's name, first part of its address |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds |
+| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -274,7 +278,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds",
+      "description": "how many Windows the Room holds, out of the trash",
       "type": "integer"
     }
   },
@@ -823,7 +827,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds |
+| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -884,7 +888,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds",
+      "description": "how many Windows the Room holds, out of the trash",
       "type": "integer"
     }
   },
@@ -946,9 +950,9 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
 | `created_at` | string | yes |  |
-| `created_by` | string | yes | handle of the person it was published for |
+| `created_by` | string | yes | handle of the person it was first published for |
 | `file_count` | integer | yes |  |
-| `files` | array of objects or null | yes |  |
+| `files` | array of objects or null | yes | the files of the current version |
 | `files[].path` | string | yes |  |
 | `files[].size` | integer | yes |  |
 | `files[].type` | string | yes | media type |
@@ -957,11 +961,20 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
-| `size` | integer | yes | total size of the files, in bytes |
+| `size` | integer | yes | total size of the files of the current version, in bytes |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
-| `version` | integer | yes |  |
+| `version` | integer | yes | the number of the version that readers see |
+| `versions` | array of objects or null | yes | the current version, then the previous one if there is one |
+| `versions[].current` | boolean | yes | whether readers see this version |
+| `versions[].file_count` | integer | yes |  |
+| `versions[].number` | integer | yes |  |
+| `versions[].published_at` | string | yes |  |
+| `versions[].published_by` | string | yes | handle of the person it was published for |
+| `versions[].size` | integer | yes | total size of its files, in bytes |
+| `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
+| `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
 <details>
 <summary>JSON Schema</summary>
@@ -974,13 +987,14 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
       "type": "string"
     },
     "created_by": {
-      "description": "handle of the person it was published for",
+      "description": "handle of the person it was first published for",
       "type": "string"
     },
     "file_count": {
       "type": "integer"
     },
     "files": {
+      "description": "the files of the current version",
       "items": {
         "additionalProperties": false,
         "properties": {
@@ -1021,16 +1035,27 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
       "description": "the Window's name, last part of its address",
       "type": "string"
     },
+    "previous_version": {
+      "description": "the number of the version that rollback_window goes back to; absent when there is none",
+      "type": "integer"
+    },
     "room": {
       "description": "the name of its Room, the part of its address before its name",
       "type": "string"
     },
     "size": {
-      "description": "total size of the files, in bytes",
+      "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
     "title": {
       "type": "string"
+    },
+    "trashed_at": {
+      "description": "when the Window went to the trash; absent when it is not in it",
+      "type": [
+        "null",
+        "string"
+      ]
     },
     "updated_at": {
       "type": "string"
@@ -1040,7 +1065,50 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
       "type": "string"
     },
     "version": {
+      "description": "the number of the version that readers see",
       "type": "integer"
+    },
+    "versions": {
+      "description": "the current version, then the previous one if there is one",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "current": {
+            "description": "whether readers see this version",
+            "type": "boolean"
+          },
+          "file_count": {
+            "type": "integer"
+          },
+          "number": {
+            "type": "integer"
+          },
+          "published_at": {
+            "type": "string"
+          },
+          "published_by": {
+            "description": "handle of the person it was published for",
+            "type": "string"
+          },
+          "size": {
+            "description": "total size of its files, in bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number",
+          "current",
+          "size",
+          "file_count",
+          "published_by",
+          "published_at"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
     }
   },
   "required": [
@@ -1055,6 +1123,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
     "created_by",
     "created_at",
     "updated_at",
+    "versions",
     "files"
   ],
   "type": "object"
@@ -1240,7 +1309,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | `rooms[].members` | integer | yes | how many people are in the Room |
 | `rooms[].name` | string | yes | the Room's name, first part of its address |
 | `rooms[].title` | string | yes |  |
-| `rooms[].windows` | integer | yes | how many Windows the Room holds |
+| `rooms[].windows` | integer | yes | how many Windows the Room holds, out of the trash |
 | `rooms[].role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -1277,7 +1346,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
             "type": "string"
           },
           "windows": {
-            "description": "how many Windows the Room holds",
+            "description": "how many Windows the Room holds, out of the trash",
             "type": "integer"
           }
         },
@@ -1409,6 +1478,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `room` | string | no | only the Windows of this Room, by its name |
+| `trashed` | boolean | no | list the Windows in the trash instead |
 
 <details>
 <summary>JSON Schema</summary>
@@ -1420,6 +1490,10 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
     "room": {
       "description": "only the Windows of this Room, by its name",
       "type": "string"
+    },
+    "trashed": {
+      "description": "list the Windows in the trash instead",
+      "type": "boolean"
     }
   },
   "type": "object"
@@ -1434,16 +1508,18 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | --- | --- | --- | --- |
 | `windows` | array of objects or null | yes |  |
 | `windows[].created_at` | string | yes |  |
-| `windows[].created_by` | string | yes | handle of the person it was published for |
+| `windows[].created_by` | string | yes | handle of the person it was first published for |
 | `windows[].file_count` | integer | yes |  |
 | `windows[].kind` | string | yes |  |
 | `windows[].name` | string | yes | the Window's name, last part of its address |
 | `windows[].room` | string | yes | the name of its Room, the part of its address before its name |
-| `windows[].size` | integer | yes | total size of the files, in bytes |
+| `windows[].size` | integer | yes | total size of the files of the current version, in bytes |
 | `windows[].title` | string | yes |  |
 | `windows[].updated_at` | string | yes |  |
 | `windows[].url` | string | yes | where the Window opens |
-| `windows[].version` | integer | yes |  |
+| `windows[].version` | integer | yes | the number of the version that readers see |
+| `windows[].previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
+| `windows[].trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
 <details>
 <summary>JSON Schema</summary>
@@ -1460,7 +1536,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
             "type": "string"
           },
           "created_by": {
-            "description": "handle of the person it was published for",
+            "description": "handle of the person it was first published for",
             "type": "string"
           },
           "file_count": {
@@ -1473,16 +1549,27 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
             "description": "the Window's name, last part of its address",
             "type": "string"
           },
+          "previous_version": {
+            "description": "the number of the version that rollback_window goes back to; absent when there is none",
+            "type": "integer"
+          },
           "room": {
             "description": "the name of its Room, the part of its address before its name",
             "type": "string"
           },
           "size": {
-            "description": "total size of the files, in bytes",
+            "description": "total size of the files of the current version, in bytes",
             "type": "integer"
           },
           "title": {
             "type": "string"
+          },
+          "trashed_at": {
+            "description": "when the Window went to the trash; absent when it is not in it",
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "updated_at": {
             "type": "string"
@@ -1492,6 +1579,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
             "type": "string"
           },
           "version": {
+            "description": "the number of the version that readers see",
             "type": "integer"
           }
         },
@@ -1607,16 +1695,18 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
 | `created_at` | string | yes |  |
-| `created_by` | string | yes | handle of the person it was published for |
+| `created_by` | string | yes | handle of the person it was first published for |
 | `file_count` | integer | yes |  |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
-| `size` | integer | yes | total size of the files, in bytes |
+| `size` | integer | yes | total size of the files of the current version, in bytes |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
-| `version` | integer | yes |  |
+| `version` | integer | yes | the number of the version that readers see |
+| `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
+| `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
 <details>
 <summary>JSON Schema</summary>
@@ -1629,7 +1719,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
       "type": "string"
     },
     "created_by": {
-      "description": "handle of the person it was published for",
+      "description": "handle of the person it was first published for",
       "type": "string"
     },
     "file_count": {
@@ -1642,16 +1732,27 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
       "description": "the Window's name, last part of its address",
       "type": "string"
     },
+    "previous_version": {
+      "description": "the number of the version that rollback_window goes back to; absent when there is none",
+      "type": "integer"
+    },
     "room": {
       "description": "the name of its Room, the part of its address before its name",
       "type": "string"
     },
     "size": {
-      "description": "total size of the files, in bytes",
+      "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
     "title": {
       "type": "string"
+    },
+    "trashed_at": {
+      "description": "when the Window went to the trash; absent when it is not in it",
+      "type": [
+        "null",
+        "string"
+      ]
     },
     "updated_at": {
       "type": "string"
@@ -1661,6 +1762,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
       "type": "string"
     },
     "version": {
+      "description": "the number of the version that readers see",
       "type": "integer"
     }
   },
@@ -1737,7 +1839,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds |
+| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -1798,7 +1900,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds",
+      "description": "how many Windows the Room holds, out of the trash",
       "type": "integer"
     }
   },
@@ -1810,6 +1912,262 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
     "windows",
     "created_at",
     "people"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `restore_window`
+
+Bring a Window back from the trash, with its versions.
+
+Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "window": {
+      "description": "the Window's address, or its Room and its name as room/name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "window"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `created_by` | string | yes | handle of the person it was first published for |
+| `file_count` | integer | yes |  |
+| `kind` | string | yes |  |
+| `name` | string | yes | the Window's name, last part of its address |
+| `room` | string | yes | the name of its Room, the part of its address before its name |
+| `size` | integer | yes | total size of the files of the current version, in bytes |
+| `title` | string | yes |  |
+| `updated_at` | string | yes |  |
+| `url` | string | yes | where the Window opens |
+| `version` | integer | yes | the number of the version that readers see |
+| `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
+| `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "created_by": {
+      "description": "handle of the person it was first published for",
+      "type": "string"
+    },
+    "file_count": {
+      "type": "integer"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "name": {
+      "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "previous_version": {
+      "description": "the number of the version that rollback_window goes back to; absent when there is none",
+      "type": "integer"
+    },
+    "room": {
+      "description": "the name of its Room, the part of its address before its name",
+      "type": "string"
+    },
+    "size": {
+      "description": "total size of the files of the current version, in bytes",
+      "type": "integer"
+    },
+    "title": {
+      "type": "string"
+    },
+    "trashed_at": {
+      "description": "when the Window went to the trash; absent when it is not in it",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "url": {
+      "description": "where the Window opens",
+      "type": "string"
+    },
+    "version": {
+      "description": "the number of the version that readers see",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "url",
+    "room",
+    "version",
+    "size",
+    "file_count",
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `rollback_window`
+
+Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it.
+
+Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "window": {
+      "description": "the Window's address, or its Room and its name as room/name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "window"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `created_by` | string | yes | handle of the person it was first published for |
+| `file_count` | integer | yes |  |
+| `kind` | string | yes |  |
+| `name` | string | yes | the Window's name, last part of its address |
+| `room` | string | yes | the name of its Room, the part of its address before its name |
+| `size` | integer | yes | total size of the files of the current version, in bytes |
+| `title` | string | yes |  |
+| `updated_at` | string | yes |  |
+| `url` | string | yes | where the Window opens |
+| `version` | integer | yes | the number of the version that readers see |
+| `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
+| `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "created_by": {
+      "description": "handle of the person it was first published for",
+      "type": "string"
+    },
+    "file_count": {
+      "type": "integer"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "name": {
+      "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "previous_version": {
+      "description": "the number of the version that rollback_window goes back to; absent when there is none",
+      "type": "integer"
+    },
+    "room": {
+      "description": "the name of its Room, the part of its address before its name",
+      "type": "string"
+    },
+    "size": {
+      "description": "total size of the files of the current version, in bytes",
+      "type": "integer"
+    },
+    "title": {
+      "type": "string"
+    },
+    "trashed_at": {
+      "description": "when the Window went to the trash; absent when it is not in it",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "url": {
+      "description": "where the Window opens",
+      "type": "string"
+    },
+    "version": {
+      "description": "the number of the version that readers see",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "url",
+    "room",
+    "version",
+    "size",
+    "file_count",
+    "created_by",
+    "created_at",
+    "updated_at"
   ],
   "type": "object"
 }
@@ -1876,7 +2234,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds |
+| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -1937,7 +2295,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds",
+      "description": "how many Windows the Room holds, out of the trash",
       "type": "integer"
     }
   },
@@ -2053,6 +2411,134 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
 
 </details>
 
+## `trash_window`
+
+Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was.
+
+Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "window": {
+      "description": "the Window's address, or its Room and its name as room/name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "window"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `created_by` | string | yes | handle of the person it was first published for |
+| `file_count` | integer | yes |  |
+| `kind` | string | yes |  |
+| `name` | string | yes | the Window's name, last part of its address |
+| `room` | string | yes | the name of its Room, the part of its address before its name |
+| `size` | integer | yes | total size of the files of the current version, in bytes |
+| `title` | string | yes |  |
+| `updated_at` | string | yes |  |
+| `url` | string | yes | where the Window opens |
+| `version` | integer | yes | the number of the version that readers see |
+| `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
+| `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "created_by": {
+      "description": "handle of the person it was first published for",
+      "type": "string"
+    },
+    "file_count": {
+      "type": "integer"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "name": {
+      "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "previous_version": {
+      "description": "the number of the version that rollback_window goes back to; absent when there is none",
+      "type": "integer"
+    },
+    "room": {
+      "description": "the name of its Room, the part of its address before its name",
+      "type": "string"
+    },
+    "size": {
+      "description": "total size of the files of the current version, in bytes",
+      "type": "integer"
+    },
+    "title": {
+      "type": "string"
+    },
+    "trashed_at": {
+      "description": "when the Window went to the trash; absent when it is not in it",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "url": {
+      "description": "where the Window opens",
+      "type": "string"
+    },
+    "version": {
+      "description": "the number of the version that readers see",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "url",
+    "room",
+    "version",
+    "size",
+    "file_count",
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
 ## `update_room`
 
 Change the title of a Room. Its name, and so its address, stays.
@@ -2105,7 +2591,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds |
+| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -2166,7 +2652,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds",
+      "description": "how many Windows the Room holds, out of the trash",
       "type": "integer"
     }
   },
@@ -2178,6 +2664,172 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "windows",
     "created_at",
     "people"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `update_window`
+
+Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted.
+
+Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `files` | array of objects or null | yes | every file of the new version, as for publish_window; files left out are not in it |
+| `files[].content` | string | yes |  |
+| `files[].path` | string | yes | relative path with / as separator, such as index.html or img/logo.svg |
+| `files[].encoding` | string | no | utf-8 (the default) or base64, for binary files |
+| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+| `title` | string | no | a new title; the title stays when empty. The address does not change |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "files": {
+      "description": "every file of the new version, as for publish_window; files left out are not in it",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "encoding": {
+            "description": "utf-8 (the default) or base64, for binary files",
+            "type": "string"
+          },
+          "path": {
+            "description": "relative path with / as separator, such as index.html or img/logo.svg",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "title": {
+      "description": "a new title; the title stays when empty. The address does not change",
+      "type": "string"
+    },
+    "window": {
+      "description": "the Window's address, or its Room and its name as room/name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "window",
+    "files"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `created_by` | string | yes | handle of the person it was first published for |
+| `file_count` | integer | yes |  |
+| `kind` | string | yes |  |
+| `name` | string | yes | the Window's name, last part of its address |
+| `room` | string | yes | the name of its Room, the part of its address before its name |
+| `size` | integer | yes | total size of the files of the current version, in bytes |
+| `title` | string | yes |  |
+| `updated_at` | string | yes |  |
+| `url` | string | yes | where the Window opens |
+| `version` | integer | yes | the number of the version that readers see |
+| `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
+| `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "created_by": {
+      "description": "handle of the person it was first published for",
+      "type": "string"
+    },
+    "file_count": {
+      "type": "integer"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "name": {
+      "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "previous_version": {
+      "description": "the number of the version that rollback_window goes back to; absent when there is none",
+      "type": "integer"
+    },
+    "room": {
+      "description": "the name of its Room, the part of its address before its name",
+      "type": "string"
+    },
+    "size": {
+      "description": "total size of the files of the current version, in bytes",
+      "type": "integer"
+    },
+    "title": {
+      "type": "string"
+    },
+    "trashed_at": {
+      "description": "when the Window went to the trash; absent when it is not in it",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "url": {
+      "description": "where the Window opens",
+      "type": "string"
+    },
+    "version": {
+      "description": "the number of the version that readers see",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "url",
+    "room",
+    "version",
+    "size",
+    "file_count",
+    "created_by",
+    "created_at",
+    "updated_at"
   ],
   "type": "object"
 }

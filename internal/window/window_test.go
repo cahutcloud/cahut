@@ -324,3 +324,176 @@ func TestLocate(t *testing.T) {
 		}
 	}
 }
+
+func TestUpdateAndRollback(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	out, err := f.invoke(t, f.olivier, "publish_window", deck)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := out.(Window)
+	index := func() string {
+		t.Helper()
+		id, version, err := Current(ctx, f.db, "olivier", w.Name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		b, err := os.ReadFile(filepath.Join(f.s.Dir(id, version), "index.html"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(b)
+	}
+	update := func(html string) Window {
+		t.Helper()
+		out, err := f.invoke(t, f.olivier, "update_window", `{"window": "olivier/`+w.Name+`", "files": [{"path": "index.html", "content": "`+html+`"}]}`)
+		if err != nil {
+			t.Fatalf("update_window: %v", err)
+		}
+		return out.(Window)
+	}
+
+	if _, err := f.invoke(t, f.olivier, "rollback_window", `{"window": "olivier/`+w.Name+`"}`); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("rollback_window with a single version: err = %v, want ErrInvalid", err)
+	}
+	u := update("v2")
+	if u.Version != 2 || u.Previous != 1 || u.FileCount != 1 || u.Size != 2 || u.URL != w.URL || u.Title != w.Title || index() != "v2" {
+		t.Errorf("after an update: %+v, index.html = %q", u, index())
+	}
+
+	// A rollback swaps the versions, and a second one swaps them back.
+	out, err = f.invoke(t, f.olivier, "rollback_window", `{"window": "`+w.URL+`"}`)
+	if err != nil {
+		t.Fatalf("rollback_window: %v", err)
+	}
+	if r := out.(Window); r.Version != 1 || r.Previous != 2 || r.FileCount != 2 || index() != "<h1>Q3</h1>" {
+		t.Errorf("after a rollback: %+v, index.html = %q", r, index())
+	}
+	out, err = f.invoke(t, f.olivier, "rollback_window", `{"window": "`+w.URL+`"}`)
+	if err != nil || out.(Window).Version != 2 || index() != "v2" {
+		t.Errorf("after a second rollback: %+v, %v", out, err)
+	}
+
+	// After a rollback to 1, the next update is 3, and 2 goes.
+	if _, err := f.invoke(t, f.olivier, "rollback_window", `{"window": "`+w.URL+`"}`); err != nil {
+		t.Fatal(err)
+	}
+	u = update("v3")
+	if u.Version != 3 || u.Previous != 1 || index() != "v3" {
+		t.Errorf("after an update from a rollback: %+v", u)
+	}
+	id, _, _ := Current(ctx, f.db, "olivier", w.Name)
+	if _, err := os.Stat(f.s.Dir(id, 2)); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("the files of version 2 stay: %v", err)
+	}
+	out, err = f.invoke(t, f.olivier, "get_window", `{"window": "`+w.URL+`"}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := out.(Detail)
+	if len(d.Versions) != 2 || d.Versions[0].Number != 3 || !d.Versions[0].Current ||
+		d.Versions[1].Number != 1 || d.Versions[1].Current || d.Versions[1].FileCount != 2 || d.Versions[0].PublishedBy != "olivier" {
+		t.Errorf("versions = %+v", d.Versions)
+	}
+
+	// A new title keeps the address.
+	out, err = f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "title": "Q3", "files": [{"path": "index.html", "content": "v4"}]}`)
+	if err != nil || out.(Window).Title != "Q3" || out.(Window).URL != w.URL {
+		t.Errorf("update with a title = %+v, %v", out, err)
+	}
+
+	// Others cannot update it, and a bad publication changes nothing.
+	if _, err := f.invoke(t, f.camille, "update_window", `{"window": "`+w.URL+`", "files": [{"path": "index.html", "content": "x"}]}`); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("update_window by another person: err = %v, want ErrNotFound", err)
+	}
+	if _, err := f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "files": [{"path": "page.html", "content": "x"}]}`); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("update_window without index.html: err = %v, want ErrInvalid", err)
+	}
+	if index() != "v4" {
+		t.Errorf("index.html = %q after a refused update", index())
+	}
+
+	entries, err := logbook.List(ctx, f.db.Read, 3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if e := entries[2]; e.Operation != "update_window" || e.Outcome != logbook.OK || !strings.HasPrefix(e.Detail, "version 4") || e.RoomID == 0 {
+		t.Errorf("logbook = %+v", e)
+	}
+}
+
+func TestUpdateRemovesFilesWhenItFails(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	out, err := f.invoke(t, f.olivier, "publish_window", deck)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := out.(Window)
+	if _, err := f.db.Write.ExecContext(ctx, "DROP TABLE logbook"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "files": [{"path": "index.html", "content": "v2"}]}`); err == nil {
+		t.Fatal("update_window succeeded without a Logbook")
+	}
+	id, version, err := Current(ctx, f.db, "olivier", w.Name)
+	if err != nil || version != 1 {
+		t.Fatalf("Current = %d, %v", version, err)
+	}
+	if _, err := os.Stat(f.s.Dir(id, 2)); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("the files of the failed version stay: %v", err)
+	}
+}
+
+func TestTrash(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	out, err := f.invoke(t, f.olivier, "publish_window", deck)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := out.(Window)
+	ref := `{"window": "` + w.URL + `"}`
+	out, err = f.invoke(t, f.olivier, "trash_window", ref)
+	if err != nil || out.(Window).TrashedAt == nil {
+		t.Fatalf("trash_window = %+v, %v", out, err)
+	}
+	if _, _, err := Current(ctx, f.db, "olivier", w.Name); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("a Window in the trash is served: %v", err)
+	}
+	if out, _ := f.invoke(t, f.olivier, "list_windows", `{}`); len(out.(List).Windows) != 0 {
+		t.Errorf("list_windows shows the trash: %+v", out)
+	}
+	if out, _ := f.invoke(t, f.olivier, "list_windows", `{"trashed": true}`); len(out.(List).Windows) != 1 {
+		t.Errorf("list_windows of the trash = %+v", out)
+	}
+	if out, _ := f.invoke(t, f.olivier, "get_room", `{"room": "olivier"}`); out.(room.Detail).Windows != 0 {
+		t.Errorf("the Room counts the trash: %+v", out)
+	}
+	for _, op := range []string{"trash_window", "rollback_window"} {
+		if _, err := f.invoke(t, f.olivier, op, ref); !errors.Is(err, operation.ErrInvalid) {
+			t.Errorf("%s in the trash: err = %v, want ErrInvalid", op, err)
+		}
+	}
+	if _, err := f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "files": [{"path": "index.html", "content": "v2"}]}`); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("update_window in the trash: err = %v, want ErrInvalid", err)
+	}
+	// Its name stays taken.
+	if out, err := f.invoke(t, f.olivier, "publish_window", deck); err != nil || out.(Window).Name != w.Name+"-2" {
+		t.Errorf("publish_window over a Window in the trash = %+v, %v", out, err)
+	}
+	if _, err := f.invoke(t, f.camille, "restore_window", ref); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("restore_window by another person: err = %v, want ErrNotFound", err)
+	}
+	out, err = f.invoke(t, f.olivier, "restore_window", ref)
+	if err != nil || out.(Window).TrashedAt != nil {
+		t.Fatalf("restore_window = %+v, %v", out, err)
+	}
+	if _, _, err := Current(ctx, f.db, "olivier", w.Name); err != nil {
+		t.Errorf("a restored Window is not served: %v", err)
+	}
+	if _, err := f.invoke(t, f.olivier, "restore_window", ref); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("restore_window out of the trash: err = %v, want ErrInvalid", err)
+	}
+}
