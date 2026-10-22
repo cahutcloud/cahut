@@ -292,11 +292,20 @@ func TestForAIs(t *testing.T) {
 		{info: Info{PeopleOnly: true, Level: CahutAdmin}},
 	}
 	for _, tt := range tests {
-		if got := tt.info.ForAIs(false); got != tt.member {
-			t.Errorf("%+v ForAIs(false) = %v", tt.info, got)
+		if got := tt.info.ForAIs(false, false); got != tt.member {
+			t.Errorf("%+v ForAIs(false, false) = %v", tt.info, got)
 		}
-		if got := tt.info.ForAIs(true); got != tt.admin {
-			t.Errorf("%+v ForAIs(true) = %v", tt.info, got)
+		if got := tt.info.ForAIs(true, false); got != tt.admin {
+			t.Errorf("%+v ForAIs(true, false) = %v", tt.info, got)
+		}
+		// An AI that may only read sees the operations that read.
+		if got := tt.info.ForAIs(true, true); got {
+			t.Errorf("%+v ForAIs(true, true) = %v", tt.info, got)
+		}
+		read := tt.info
+		read.ReadOnly = true
+		if got := read.ForAIs(true, true); got != tt.admin {
+			t.Errorf("%+v ForAIs(true, true) = %v", read, got)
 		}
 	}
 }

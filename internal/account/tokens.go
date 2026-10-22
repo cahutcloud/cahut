@@ -187,6 +187,11 @@ type Owner struct {
 	UserID    int64
 	Handle    string
 	Admin     bool // the person administers the Cahut
+
+	// What the person granted the AI: a personal token reaches everything
+	// its person may do.
+	ReadOnly bool
+	Rooms    []int64 // every Room of the person when nil
 }
 
 // ErrInvalidToken means the token is unknown or revoked, or the person it

@@ -33,16 +33,23 @@ const instructions = `This Cahut keeps what AIs make, on the user's own server. 
 // asks for a personal token of c. It offers an AI the operations of c that
 // its person may call, as tools.
 func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
-	members, admins := s.mcpServer(c, false), s.mcpServer(c, true)
-	// The tools of a session follow the role its person had when it began.
-	// Should the role change, the registry still checks every call.
+	// One server for each set of tools: those of a member or of an
+	// administrator, who may change things or only read. The tools of a
+	// session follow the role its person had when it began. Should the role
+	// change, the registry still checks every call.
+	var servers [2][2]*mcp.Server
+	for _, admin := range []bool{false, true} {
+		for _, readOnly := range []bool{false, true} {
+			servers[b2i(admin)][b2i(readOnly)] = s.mcpServer(c, admin, readOnly)
+		}
+	}
 	server := func(r *http.Request) *mcp.Server {
 		if info := auth.TokenInfoFromContext(r.Context()); info != nil {
-			if owner, ok := info.Extra["owner"].(account.Owner); ok && owner.Admin {
-				return admins
+			if owner, ok := info.Extra["owner"].(account.Owner); ok {
+				return servers[b2i(owner.Admin)][b2i(owner.ReadOnly)]
 			}
 		}
-		return members
+		return servers[0][1]
 	}
 	handler := mcp.NewStreamableHTTPHandler(server,
 		&mcp.StreamableHTTPOptions{
@@ -61,13 +68,21 @@ func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
 	return auth.RequireBearerToken(verify, &auth.RequireBearerTokenOptions{AllowMissingExpiration: true})(handler)
 }
 
+func b2i(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
 // mcpServer returns an MCP server that offers, as tools, the operations of c
-// for the AIs of a person who administers c or not.
-func (s *Server) mcpServer(c *cahut.Cahut, admin bool) *mcp.Server {
+// for the AIs of a person who administers c or not, when they may change
+// things or only read.
+func (s *Server) mcpServer(c *cahut.Cahut, admin, readOnly bool) *mcp.Server {
 	srv := mcp.NewServer(&mcp.Implementation{Name: "cahut", Version: version.Get().Version},
 		&mcp.ServerOptions{Instructions: instructions})
 	for _, info := range c.Registry.Ops() {
-		if !info.ForAIs(admin) {
+		if !info.ForAIs(admin, readOnly) {
 			continue
 		}
 		tool, err := toolFor(info)
@@ -117,6 +132,9 @@ func (s *Server) callTool(c *cahut.Cahut, name string) mcp.ToolHandler {
 			Handle:  owner.Handle,
 			TokenID: owner.TokenID,
 			Client:  clientName(owner.TokenName, req.Session),
+
+			ReadOnly: owner.ReadOnly,
+			Rooms:    owner.Rooms,
 		}
 		out, err := c.Registry.Invoke(ctx, name, actor, req.Params.Arguments)
 		if err != nil {

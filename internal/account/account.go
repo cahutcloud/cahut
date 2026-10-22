@@ -276,7 +276,7 @@ var GetAccount = &operation.Op[GetAccountInput, Account]{
 			return Account{}, err
 		}
 		rows, err := c.Tx.QueryContext(ctx, `
-			SELECT r.name, r.title, r.kind, m.role FROM rooms r JOIN room_members m ON m.room_id = r.id
+			SELECT r.id, r.name, r.title, r.kind, m.role FROM rooms r JOIN room_members m ON m.room_id = r.id
 			WHERE m.user_id = ? ORDER BY r.kind = 'team', r.name`, p.ID)
 		if err != nil {
 			return Account{}, err
@@ -285,8 +285,12 @@ var GetAccount = &operation.Op[GetAccountInput, Account]{
 		a := Account{User: p.User, Rooms: []Membership{}}
 		for rows.Next() {
 			var m Membership
-			if err := rows.Scan(&m.Room, &m.Title, &m.Kind, &m.Role); err != nil {
+			var id int64
+			if err := rows.Scan(&id, &m.Room, &m.Title, &m.Kind, &m.Role); err != nil {
 				return Account{}, err
+			}
+			if !c.Actor.Reaches(id) {
+				continue
 			}
 			a.Rooms = append(a.Rooms, m)
 		}

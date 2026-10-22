@@ -42,6 +42,22 @@ type Actor struct {
 	Session int64  // the session a person or an administrator signed in with
 	TokenID int64  // the token an AI presented
 	Client  string // the AI, as its token and its software name it
+
+	// The reach that a person granted an AI. See
+	// docs/adr/0016-oauth-for-ai-clients.md.
+	ReadOnly bool    // the AI may only call operations that change nothing
+	Rooms    []int64 // the only Rooms the AI reaches; every Room of its person when nil
+}
+
+// Reaches reports whether the actor may reach the Room id at all, as far as
+// the grant of an AI goes. The rights of its person still apply.
+func (a Actor) Reaches(id int64) bool {
+	return a.Rooms == nil || slices.Contains(a.Rooms, id)
+}
+
+// Limited reports whether the actor is an AI that reaches some Rooms only.
+func (a Actor) Limited() bool {
+	return a.Rooms != nil
 }
 
 // CommandLine reports whether the actor is the command line on the server,
@@ -113,9 +129,10 @@ type Info struct {
 }
 
 // ForAIs reports whether the operation is offered to the AIs of a person,
-// who administers the Cahut or not.
-func (i Info) ForAIs(admin bool) bool {
-	return !i.PeopleOnly && (i.Level == AnyPerson || i.Level == CahutAdmin && admin)
+// who administers the Cahut or not, when they may change things or only
+// read.
+func (i Info) ForAIs(admin, readOnly bool) bool {
+	return !i.PeopleOnly && (i.Level == AnyPerson || i.Level == CahutAdmin && admin) && (i.ReadOnly || !readOnly)
 }
 
 // Call is one call of an operation, as Run sees it.
@@ -426,6 +443,10 @@ func authorize(info Info, a Actor) error {
 		}
 		if info.PeopleOnly {
 			return Forbiddenf("%s is for people, not for AIs: it proves who someone is", info.Name)
+		}
+		if a.ReadOnly && !info.ReadOnly {
+			return Forbiddenf("%s changes things, and this AI may only read: "+
+				"%s can connect it again with write access, in the console of the Cahut", info.Name, a.Handle)
 		}
 	case Visitor:
 		if !info.Visitors {
