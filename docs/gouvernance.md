@@ -9,7 +9,7 @@ Ce document propose comment Cahut est dirigé et comment il vit au quotidien : q
 - **Des phases déclenchées par des faits, pas par des dates.** Seul jusqu'à l'ouverture du dépôt, puis les premiers utilisateurs, puis les premiers contributeurs réguliers, puis une équipe de mainteneurs avec des règles de décision collectives et, si l'argent arrive, une structure pour porter le nom et le domaine.
 - **Un seul endroit par usage.** GitHub pour le code, les tickets, les discussions et les releases ; cahut.cloud pour expliquer le projet et donner des nouvelles ; docs.cahut.cloud pour la documentation. Pas de chat tant qu'une seule personne devrait le tenir.
 - **Les IA sont bienvenues, les humains répondent.** Cahut est construit avec Claude Code. Une contribution assistée par une IA est acceptée si la personne qui la signe la comprend, l'a testée et le dit.
-- **Ce qu'il reste à décider** est à la fin : la licence d'abord, puis le moment d'ouvrir le dépôt, les canaux, la marque, l'argent et la personne de confiance qui garde une clé de secours.
+- **Ce qu'il reste à décider** est à la fin. La licence est tranchée depuis le 22 octobre 2026 : AGPL-3.0 ([ADR 15](adr/0015-license.md)). Restent le moment d'ouvrir le dépôt, les canaux, la marque, l'argent et la personne de confiance qui garde une clé de secours.
 
 ## Le point de départ
 
@@ -20,11 +20,11 @@ Ce que le dépôt a déjà, et qui est déjà de la gouvernance :
 - [CLAUDE.md](../CLAUDE.md) fixe les conventions de code, de langue et de style : c'est un guide de contribution, écrit pour les IA, qui vaut aussi pour les humains.
 - Le site et la documentation vivent dans le dépôt, avec une page « Where Cahut stands » qui dit ce qui marche et ce qui vient.
 - L'organisation GitHub `getcahut` et le domaine cahut.cloud existent, et le chemin de module `cahut.cloud` ne dépend d'aucune forge.
+- La licence est choisie : AGPL-3.0 pour tout le dépôt, le nom et le logo à part ([ADR 15](adr/0015-license.md)), avec le texte dans LICENSE et son sens en clair dans le README.
 
 Ce qui manque :
 
-- **La licence.** Le brief laisse ouvert Apache-2.0 ou AGPL-3.0. Sans fichier LICENSE, tout est « tous droits réservés » : rien n'est open source.
-- **Les fichiers que GitHub et les contributeurs attendent** : LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, SUPPORT, GOVERNANCE, les gabarits de tickets et de pull requests, FUNDING.
+- **Les fichiers que GitHub et les contributeurs attendent** : CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, SUPPORT, GOVERNANCE, TRADEMARK, les gabarits de tickets et de pull requests, FUNDING.
 - **Les Discussions** sont désactivées, le signalement privé des failles n'est pas activé, aucune marque n'est déposée.
 - **Le site renvoie vers un dépôt privé** : le bouton GitHub de cahut.cloud n'ouvre rien pour un visiteur.
 
@@ -260,6 +260,8 @@ Recommandation : **AGPL-3.0 pour le serveur**, c'est la licence des projets auto
 
 Le choix se tient dans les deux sens : avec l'Apache-2.0, le projet garderait la liberté d'une version fermée ou d'un partenariat exclusif ; avec l'AGPL et sans CLA, il y renonce pour toujours, et c'est ce qui rend la promesse crédible. La question à Olivier n'est donc pas seulement « quelle licence », c'est « est-ce que je ferme cette porte ».
 
+**Décision.** Le 22 octobre 2026, Olivier a retenu l'AGPL-3.0, version 3 seule, pour tout le dépôt, sans CLA ([ADR 15](adr/0015-license.md)) : la porte d'une version fermée est fermée. Les skills et les gabarits porteront l'Apache-2.0 quand ils arriveront ; une licence Creative Commons pour la documentation se décidera à l'ouverture du dépôt.
+
 ### Le nom
 
 Les licences libres couvrent le code, pas le nom : l'Apache-2.0 le dit noir sur blanc, et c'est pour cela que Mastodon, Nextcloud et Rust ont une politique de marque. Pour Cahut :
@@ -327,7 +329,7 @@ GitHub lit ces fichiers et les affiche aux bons endroits : à la racine, en angl
 
 | Fichier | Contenu | Quand |
 | --- | --- | --- |
-| LICENSE | La licence choisie, et la mention que le nom et le logo n'en font pas partie | Avant l'ouverture |
+| LICENSE | Le texte de l'AGPL-3.0 ; la mention sur le nom et le logo est dans le README | Fait |
 | README.md | Déjà là ; ajouter les sections *Contributing*, *Security* et *Community* qui renvoient aux fichiers ci-dessous | Avant l'ouverture |
 | GOVERNANCE.md | Les principes, les rôles, comment on décide, les phases : le résumé public, en anglais, de ce document | Avant l'ouverture |
 | CONTRIBUTING.md | Ce qui est bienvenu, ce qui se discute, le parcours d'une pull request, le DCO, la règle sur l'IA, le renvoi à CLAUDE.md et au plan | Avant l'ouverture |
@@ -355,7 +357,7 @@ Une section du site plutôt qu'un sous-domaine : un seul site à tenir, le pied 
 | `/project/news/` | Les releases et les nouvelles, avec un flux RSS | GitHub Releases, lues à la construction du site |
 | `/brand/` (existe) | Plus « Using the name and logo » | TRADEMARK.md |
 
-Les pages se construisent à partir des fichiers du dépôt, comme le site importe déjà la charte par l'alias `@charte` : une seule source, pas de copie qui vieillit. Les versions françaises sous `/fr/project/` sont des traductions tenues dans le site. La construction du site se déclenche à la publication d'une release, pour que la page des nouvelles suive. Tout cela tient dans un ADR 15, « Les pages du projet sont construites à partir des fichiers communautaires du dépôt », et une pull request par page.
+Les pages se construisent à partir des fichiers du dépôt, comme le site importe déjà la charte par l'alias `@charte` : une seule source, pas de copie qui vieillit. Les versions françaises sous `/fr/project/` sont des traductions tenues dans le site. La construction du site se déclenche à la publication d'une release, pour que la page des nouvelles suive. Tout cela tient dans un ADR, « Les pages du projet sont construites à partir des fichiers communautaires du dépôt », et une pull request par page.
 
 ### Dans la documentation
 
@@ -387,22 +389,22 @@ Environ quatre heures par semaine en dehors du développement, et pas plus penda
 
 ## À faire avant l'ouverture du dépôt
 
-- [ ] Choisir la licence et écrire LICENSE, avec la mention sur le nom et le logo.
+- [x] Choisir la licence et écrire LICENSE, avec la mention sur le nom et le logo : fait le 22 octobre 2026 ([ADR 15](adr/0015-license.md)).
 - [ ] Déposer la marque « Cahut » à l'INPI ; réserver `getcahut` sur Mastodon, Bluesky, LinkedIn et X.
 - [ ] Écrire GOVERNANCE.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, SUPPORT.md, TRADEMARK.md, les gabarits et FUNDING.yml ; compléter le README.
 - [ ] Régler le dépôt : Discussions et leurs catégories, signalement privé des failles, double authentification obligatoire sur l'organisation, protection de `main`, application DCO, étiquettes, jalons par lot, GitHub Sponsors.
 - [ ] Créer `security@cahut.cloud` et `conduct@cahut.cloud` ; publier `security.txt`.
 - [ ] Désigner la personne de confiance, lui donner les accès de secours et la note scellée.
 - [ ] Ajouter `govulncheck` à la CI ; remplir le questionnaire du badge OpenSSF.
-- [ ] Écrire l'ADR 15 et construire les pages `/project/` du site, en anglais et en français.
+- [ ] Écrire l'ADR des pages du projet et construire les pages `/project/` du site, en anglais et en français.
 - [ ] Relire tout le dépôt et son historique avant l'ouverture, comme le brief le demande : l'historique s'ouvre tel quel et ne se réécrit pas, et le brief cite une vision extérieure (EKLOS) qu'il faut traiter.
 
 ## Décisions à prendre
 
 | Sujet | Options | Recommandation |
 | --- | --- | --- |
-| Licence du serveur | Apache-2.0 ou AGPL-3.0 | AGPL-3.0, et Apache-2.0 ou MIT pour les skills, gabarits et exemples ; CC BY-SA 4.0 pour la documentation |
-| Fermer la porte d'une version fermée | Garder l'option ou y renoncer par écrit | Y renoncer : promesse publique « la licence ne change pas, pas de version fermée », rendue structurelle par l'absence de CLA |
+| Licence du serveur | Apache-2.0 ou AGPL-3.0 | **Tranché le 22 octobre 2026 : AGPL-3.0** ([ADR 15](adr/0015-license.md)) ; Apache-2.0 pour les skills et les gabarits quand ils arriveront ; CC BY-SA 4.0 pour la documentation, à confirmer à l'ouverture |
+| Fermer la porte d'une version fermée | Garder l'option ou y renoncer par écrit | **Tranché avec la licence** : la porte est fermée, sans CLA ; la promesse publique s'écrira dans GOVERNANCE.md |
 | Certification des contributions | DCO, CLA ou rien | DCO, avec l'application GitHub |
 | Moment de l'ouverture du dépôt | Au jalon V0 ou au lancement public | Au jalon V0 |
 | Chat communautaire | Aucun, Discord, Zulip, Matrix | Aucun en phase 1 ; à choisir en phase 2 |
@@ -419,7 +421,7 @@ Environ quatre heures par semaine en dehors du développement, et pas plus penda
 ## Questions ouvertes
 
 - [ ] Qui est la personne de confiance ?
-- [ ] L'offre hébergée fait-elle partie du plan, et à quel horizon ? Elle pèse sur la licence, la marque et la structure.
+- [ ] L'offre hébergée fait-elle partie du plan, et à quel horizon ? Elle pèse sur la marque et la structure.
 - [ ] L'adresse de signalement : `security@cahut.cloud` suppose une boîte sur le domaine ; qui la relève pendant une absence ?
 - [ ] Quelle place pour le français dans la documentation et les Discussions, au-delà du site ?
 - [ ] Un hébergeur partenaire voudra-t-il un accord de marque avant l'ouverture ?
