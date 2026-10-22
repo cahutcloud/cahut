@@ -6,12 +6,15 @@
 package web
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -261,13 +264,65 @@ func (s *Server) serveMCP(w http.ResponseWriter, r *http.Request) {
 		r = r.WithContext(ctx)
 	}
 	rec := &recorder{ResponseWriter: w, status: http.StatusOK}
+	peek := &peeker{ReadCloser: r.Body}
+	r.Body = peek
 	siteOf(r).mcp.ServeHTTP(rec, r)
-	// A request without a valid token starts the sign-in of an AI client:
-	// the OAuth endpoints log what follows.
-	if rec.status == http.StatusUnauthorized {
-		s.log.Info("mcp without a valid token", "cahut", hostOf(r), "method", r.Method,
-			"client", clientIP(r), "user_agent", r.UserAgent())
+	s.logMCP(r, rec, peek)
+}
+
+// rpcMethod finds the JSON-RPC method at the start of a request's body.
+var rpcMethod = regexp.MustCompile(`"method"\s*:\s*"([^"]{1,64})"`)
+
+// logMCP logs a request to the MCP endpoint: its JSON-RPC method, and how
+// Cahut answered. A request without a valid token starts the sign-in of an
+// AI client, and the OAuth endpoints log what follows; a refused request
+// says why, with the scheme and the prefix of its token, never the token.
+// The tool calls themselves go to the Logbook.
+func (s *Server) logMCP(r *http.Request, rec *recorder, peek *peeker) {
+	attrs := []any{"cahut", hostOf(r), "method", r.Method}
+	if peek.head.Len() == 0 && rec.status >= 400 {
+		// A request refused before its body was read, such as one without
+		// a valid token, still says what it asked for.
+		_, _ = io.CopyN(&peek.head, peek.ReadCloser, 512)
 	}
+	if m := rpcMethod.FindSubmatch(peek.head.Bytes()); m != nil {
+		attrs = append(attrs, "rpc", string(m[1]))
+	}
+	attrs = append(attrs, "status", rec.status, "client", clientIP(r), "user_agent", r.UserAgent())
+	if rec.status >= 400 {
+		attrs = append(attrs, "credential", credentialKind(r.Header.Get("Authorization")),
+			"answer", strings.TrimSpace(rec.body.String()))
+	}
+	s.log.Info("mcp", attrs...)
+}
+
+// credentialKind describes the Authorization header of a request without
+// revealing it: its scheme and the prefix of its token, such as
+// "Bearer cahut_oat_".
+func credentialKind(header string) string {
+	if header == "" {
+		return "none"
+	}
+	scheme, token, _ := strings.Cut(header, " ")
+	token = strings.TrimSpace(token)
+	if i := strings.LastIndex(token, "_"); i > 0 && i < 16 {
+		return scheme + " " + token[:i+1]
+	}
+	return fmt.Sprintf("%s, %d characters", scheme, len(token))
+}
+
+// peeker keeps the first bytes of a request's body as it is read.
+type peeker struct {
+	io.ReadCloser
+	head bytes.Buffer
+}
+
+func (p *peeker) Read(b []byte) (int, error) {
+	n, err := p.ReadCloser.Read(b)
+	if room := 512 - p.head.Len(); room > 0 && n > 0 {
+		p.head.Write(b[:min(n, room)])
+	}
+	return n, err
 }
 
 func serveHealth(w http.ResponseWriter, _ *http.Request) {
