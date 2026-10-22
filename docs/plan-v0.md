@@ -81,6 +81,8 @@ C'est la première tranche verticale de la feuille de route.
 
 ### Lot 2 · Comptes, Rooms et console
 
+Le détail du lot est dans le [plan du lot 2](plan-lot-2.md).
+
 - Administrateurs du serveur, qui déclarent les Cahuts, et administrateurs de chaque Cahut, qui en gèrent les personnes ; mot de passe haché en argon2id, sessions. L'administrateur crée un compte et transmet un lien d'activation à usage unique : pas d'e-mail en V0.
 - Room personnelle créée d'office pour chaque personne, au nom de son handle ; Rooms d'équipe avec propriétaires et membres ; les droits sont appliqués par le registre d'opérations.
 - Coquille de la console : connexion, navigation, liste des Rooms et des Windows, lecture du Logbook, déclaration des Cahuts. Application légère embarquée dans le binaire, construite avec `cahut-ui.css`, qui n'appelle que l'API publique. Servie sur le port 8443 de chaque domaine, cloisonnée par Cahut, authentifiée par jeton et non par cookie (ADR 11).
@@ -114,7 +116,7 @@ C'est la première tranche verticale de la feuille de route.
 
 - Une opération irréversible demandée par une IA crée un Knock : une demande en attente, avec une expiration. L'IA reçoit le statut et le lien d'approbation, qu'elle transmet à l'utilisateur.
 - Boîte des Knocks dans la console : approuver ou refuser. L'exécution est tracée avec l'IA, l'humain qui a approuvé et le résultat.
-- Liste proposée pour la V0 : purger une Window, rendre une Window publique, élargir la portée d'une IA, changer les droits d'un utilisateur, supprimer une Room.
+- Liste proposée pour la V0 : purger une Window, rendre une Window publique, élargir la portée d'une IA, ajouter une personne, changer les droits d'une personne (son rôle, son état, ses Rooms), supprimer une Room. Le lot 2 marque déjà celles qui existent ([ADR 13](adr/0013-people-sessions-and-rights.md)).
 - Notification dans la console ; les notifications par e-mail viendront avec l'envoi d'e-mails.
 
 **Fin de lot** : Claude demande à rendre une Window publique, la demande apparaît dans la console, l'approbation l'exécute, le Logbook montre les deux étapes.
