@@ -1,9 +1,10 @@
-// AIs and access: the personal tokens with which AIs act for a person, over
-// MCP. A token shows once, with the command that connects Claude Code.
+// AIs and access: the AIs connected over OAuth, and the personal tokens with
+// which AIs act for a person, over MCP. A token shows once, with the command
+// that connects Claude Code. See docs/adr/0016-oauth-for-ai-clients.md.
 import { Plug } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
-import type { NewToken, TokenInfo } from "../api.gen";
+import type { Connection, NewToken, TokenInfo } from "../api.gen";
 import { ConfirmButton, CopyField, Failure, PageHead } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
@@ -11,29 +12,59 @@ import { useLoad } from "../load";
 export function Access() {
 	const api = useConsole();
 	const { data, error, reload } = useLoad(() =>
-		Promise.all([api.cahut("get_cahut", {}), api.cahut("list_tokens", { user: api.session.handle })]),
+		Promise.all([
+			api.cahut("get_cahut", {}),
+			api.cahut("list_tokens", { user: api.session.handle }),
+			api.cahut("list_connected_ais", { user: api.session.handle }),
+		]),
 	);
-	const others = useLoad(() => (api.isAdmin ? api.cahut("list_tokens", {}) : Promise.resolve(null)));
+	const others = useLoad(() =>
+		api.isAdmin ? Promise.all([api.cahut("list_tokens", {}), api.cahut("list_connected_ais", {})]) : Promise.resolve(null),
+	);
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
-	const [about, { tokens }] = data;
-	const theirs = (others.data?.tokens ?? []).filter((t) => t.user !== api.session.handle);
+	const [about, { tokens }, { connections }] = data;
+	const theirTokens = (others.data?.[0].tokens ?? []).filter((t) => t.user !== api.session.handle);
+	const theirAIs = (others.data?.[1].connections ?? []).filter((c) => c.user !== api.session.handle && c.status !== "ended");
 	return (
 		<>
 			<PageHead label="This Cahut" title="AIs and access">
-				An AI acts for you with a personal token, over MCP. It has your rights, every call it makes goes to the Logbook, and
-				you revoke it in one click.
+				An AI acts for you over MCP, within what you grant it. Every call it makes goes to the Logbook, and you disconnect it in
+				one click.
 			</PageHead>
+			<section class="section c-card panel">
+				<h2 class="c-h4">Connect an AI</h2>
+				<p class="c-small">
+					Give your AI client the address of this Cahut. It sends you here to sign in, and you choose the Rooms it reaches and
+					whether it may publish.
+				</p>
+				<CopyField label="the address" value={about.mcp ?? ""} />
+				<p class="c-small c-muted">
+					In claude.ai or Claude Desktop, add it as a custom connector. In Claude Code, run{" "}
+					<code class="c-mono">claude mcp add --transport http cahut {about.mcp}</code>, then <code class="c-mono">/mcp</code>.
+				</p>
+			</section>
+			<section class="section">
+				<h2 class="c-h4">Your connected AIs</h2>
+				<ConnectedAIs connections={connections.filter((c) => c.status !== "ended")} onChange={reload} />
+			</section>
+			{theirAIs.length > 0 && (
+				<section class="section">
+					<h2 class="c-h4">The connected AIs of others</h2>
+					<p class="c-small c-muted">As an administrator, you can disconnect them.</p>
+					<ConnectedAIs connections={theirAIs} showUser onChange={others.reload} />
+				</section>
+			)}
 			<NewTokenForm mcp={about.mcp ?? ""} onCreated={reload} />
 			<section class="section">
 				<h2 class="c-h4">Your tokens</h2>
 				<Tokens tokens={tokens} onRevoked={reload} />
 			</section>
-			{theirs.length > 0 && (
+			{theirTokens.length > 0 && (
 				<section class="section">
 					<h2 class="c-h4">The tokens of others</h2>
 					<p class="c-small c-muted">As an administrator, you can revoke them.</p>
-					<Tokens tokens={theirs} showUser onRevoked={others.reload} />
+					<Tokens tokens={theirTokens} showUser onRevoked={others.reload} />
 				</section>
 			)}
 		</>
@@ -58,7 +89,10 @@ function NewTokenForm({ mcp, onCreated }: { mcp: string; onCreated: () => void }
 	};
 	return (
 		<section class="section c-card panel">
-			<h2 class="c-h4">Connect an AI</h2>
+			<h2 class="c-h4">Create a personal token</h2>
+			<p class="c-small c-muted">
+				For an AI that cannot sign in, such as a script or a client without OAuth. A token has all your rights, in every Room.
+			</p>
 			<form class="form" onSubmit={submit}>
 				<label class="c-field">
 					<span class="c-field__label">What the token is for</span>
@@ -90,13 +124,85 @@ function NewTokenForm({ mcp, onCreated }: { mcp: string; onCreated: () => void }
 	);
 }
 
+const when = (at?: string) => (at ? new Date(at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }) : "Never");
+
+const states: Record<string, { label: string; badge: string }> = {
+	active: { label: "Active", badge: "c-badge--success" },
+	expired: { label: "Expired", badge: "c-badge--neutral" },
+	ended: { label: "Disconnected", badge: "c-badge--neutral" },
+};
+
+function ConnectedAIs(props: { connections: Connection[]; showUser?: boolean; onChange: () => void }) {
+	const api = useConsole();
+	const [error, setError] = useState("");
+	if (props.connections.length === 0) {
+		return <p class="c-muted">No AI connected yet.</p>;
+	}
+	return (
+		<div class="table-wrap">
+			{error && <Failure message={error} />}
+			<table class="table">
+				<thead>
+					<tr>
+						{props.showUser && <th>Person</th>}
+						<th>AI</th>
+						<th>May</th>
+						<th>Rooms</th>
+						<th>Last used</th>
+						<th>State</th>
+						<th />
+					</tr>
+				</thead>
+				<tbody>
+					{props.connections.map((c) => {
+						const state = states[c.status] ?? states.ended;
+						return (
+							<tr key={c.id}>
+								{props.showUser && <td class="c-mono">{c.user}</td>}
+								<td>
+									{c.client}
+									<div class="c-mono c-small c-muted">{c.redirect_host}</div>
+								</td>
+								<td>{c.scope === "write" ? "Read and publish" : "Read only"}</td>
+								<td class="c-small">{c.all_rooms ? "All Rooms" : c.rooms.join(", ") || "None left"}</td>
+								<td class="c-mono c-small">{when(c.last_used_at)}</td>
+								<td>
+									<span class={`c-badge ${state.badge}`}>{state.label}</span>
+								</td>
+								<td class="table__actions">
+									{c.status !== "ended" && (
+										<ConfirmButton
+											label="Disconnect"
+											question={`Disconnect ${c.client}? It loses access at once.`}
+											confirm="Disconnect"
+											danger
+											onConfirm={async () => {
+												setError("");
+												try {
+													await api.cahut("disconnect_ai", { id: c.id });
+													props.onChange();
+												} catch (err) {
+													setError(explain(err));
+												}
+											}}
+										/>
+									)}
+								</td>
+							</tr>
+						);
+					})}
+				</tbody>
+			</table>
+		</div>
+	);
+}
+
 function Tokens({ tokens, showUser, onRevoked }: { tokens: TokenInfo[]; showUser?: boolean; onRevoked: () => void }) {
 	const api = useConsole();
 	const [error, setError] = useState("");
 	if (tokens.length === 0) {
 		return <p class="c-muted">No token yet.</p>;
 	}
-	const when = (at?: string) => (at ? new Date(at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }) : "Never");
 	return (
 		<div class="table-wrap">
 			{error && <Failure message={error} />}

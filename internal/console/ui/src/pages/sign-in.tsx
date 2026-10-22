@@ -6,7 +6,7 @@ import { Logo } from "../logo";
 import { Link } from "../router";
 import type { Session } from "../session";
 
-export function SignIn({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: (s: Session) => void }) {
+export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; purpose?: string; onSignIn: (s: Session) => void }) {
 	const [handle, setHandle] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
@@ -39,7 +39,7 @@ export function SignIn({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: (s
 					<p class="c-small c-muted">
 						{kind === "admin"
 							? `Sign in as an administrator of the server, at ${location.hostname}.`
-							: `Sign in to ${location.hostname}.`}
+							: `Sign in to ${location.hostname}${purpose ? ` ${purpose}` : ""}.`}
 					</p>
 				</div>
 				<form onSubmit={submit}>
