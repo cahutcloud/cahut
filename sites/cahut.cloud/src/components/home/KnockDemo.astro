@@ -2,100 +2,108 @@
 // A request that knocks first, as the console shows it. The visitor approves
 // or declines it, and the answer goes to the Logbook.
 import Icon from '../Icon.astro';
+import { useTranslations, type Lang } from '../../i18n';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang).demo;
+const log = [
+	{ time: '09:31', text: t.log[0], badge: 'warning', result: t.waiting },
+	{ time: '09:20', text: t.log[1], badge: 'success', result: t.done },
+	{ time: '09:14', text: t.log[2], badge: 'success', result: t.done },
+];
+const answers = { nothingWaits: t.nothingWaits, ...t.answers };
 ---
 
-<div class="knock" data-knock>
+<div class="knock" data-knock data-answers={JSON.stringify(answers)}>
 	<div class="knock__head">
 		<span class="knock__bell"><Icon name="bell" size={16} /></span>
-		<p><b>Knock first</b> <span class="c-muted">· the console of your Cahut</span></p>
-		<span class="c-badge c-badge--neutral knock__count" data-knock-count>1 waiting</span>
+		<p><b>Knock first</b> <span class="c-muted">· {t.console}</span></p>
+		<span class="c-badge c-badge--neutral knock__count" data-knock-count>{t.waitingCount}</span>
 	</div>
 
 	<div class="c-card c-knock knock__card" data-knock-card>
 		<div class="c-knock__head">
 			<span class="c-ai"><span class="c-ai__mark">Cl</span>Claude</span>
-			<span class="c-badge c-badge--warning knock__state" data-knock-state><span class="c-dot"></span>Waiting</span>
+			<span class="c-badge c-badge--warning knock__state" data-knock-state><span class="c-dot"></span>{t.waiting}</span>
 		</div>
-		<p>Wants to make <b>Q3 review</b> public. Today it opens to anyone with its Key.</p>
-		<p class="c-mono c-muted knock__meta">expires in 23 h · on behalf of Olivier</p>
+		<p set:html={t.request} />
+		<p class="c-mono c-muted knock__meta">{t.meta}</p>
 		<div class="c-knock__actions knock__actions" data-knock-actions>
 			<button type="button" class="c-btn c-btn--primary c-btn--sm" data-knock-answer="approve">
-				<Icon name="check" size={14} />Approve
+				<Icon name="check" size={14} />{t.approve}
 			</button>
-			<button type="button" class="c-btn c-btn--secondary c-btn--sm" data-knock-answer="decline">Decline</button>
+			<button type="button" class="c-btn c-btn--secondary c-btn--sm" data-knock-answer="decline">{t.decline}</button>
 		</div>
 		<p class="knock__result" data-knock-result role="status"></p>
 	</div>
 
 	<div class="knock__log">
-		<p class="c-label">Logbook · today</p>
+		<p class="c-label">{t.logbook}</p>
 		<ol class="c-log" role="list" data-knock-log>
-			<li class="c-log__row">
-				<span class="c-log__time">09:31</span>
-				<span><span class="c-ai"><span class="c-ai__mark">Cl</span>Claude</span> asked to make <b>Q3 review</b> public</span>
-				<span class="c-badge c-badge--warning">Waiting</span>
-			</li>
-			<li class="c-log__row">
-				<span class="c-log__time">09:20</span>
-				<span><span class="c-ai"><span class="c-ai__mark">Cl</span>Claude</span> gave <b>Q3 review</b> a Key</span>
-				<span class="c-badge c-badge--success">Done</span>
-			</li>
-			<li class="c-log__row">
-				<span class="c-log__time">09:14</span>
-				<span><span class="c-ai"><span class="c-ai__mark">Cl</span>Claude</span> published <b>Q3 review</b></span>
-				<span class="c-badge c-badge--success">Done</span>
-			</li>
+			{
+				log.map(({ time, text, badge, result }) => (
+					<li class="c-log__row">
+						<span class="c-log__time">{time}</span>
+						<span>
+							<span class="c-ai">
+								<span class="c-ai__mark">Cl</span>Claude
+							</span>{' '}
+							<Fragment set:html={text} />
+						</span>
+						<span class={`c-badge c-badge--${badge}`}>{result}</span>
+					</li>
+				))
+			}
 		</ol>
 	</div>
 
 	<button type="button" class="c-btn c-btn--ghost c-btn--sm knock__again" data-knock-again hidden>
-		<Icon name="undo-2" size={14} />Ask again
+		<Icon name="undo-2" size={14} />{t.again}
 	</button>
 </div>
 
 <script>
+	interface Answer {
+		badge: string;
+		result: string;
+		log: string;
+		done: string;
+	}
+
 	document.querySelectorAll<HTMLElement>('[data-knock]').forEach((root) => {
 		const card = root.querySelector<HTMLElement>('[data-knock-card]')!;
 		const state = root.querySelector<HTMLElement>('[data-knock-state]')!;
 		const count = root.querySelector<HTMLElement>('[data-knock-count]')!;
-		const actions = root.querySelector<HTMLElement>('[data-knock-actions]')!;
 		const result = root.querySelector<HTMLElement>('[data-knock-result]')!;
 		const log = root.querySelector<HTMLOListElement>('[data-knock-log]')!;
 		const again = root.querySelector<HTMLButtonElement>('[data-knock-again]')!;
 		const waiting = log.firstElementChild!.querySelector('.c-badge')!;
 		const initial = { state: state.innerHTML, count: count.textContent, waiting: waiting.outerHTML };
+		const words = JSON.parse(root.dataset.answers!) as { nothingWaits: string; approve: Answer; decline: Answer };
 
-		const answers = {
-			approve: {
-				badge: '<span class="c-badge c-badge--success">Approved</span>',
-				state: 'c-badge--success',
-				result: 'Approved. Q3 review is public, and Claude knows it.',
-				log: 'approved making <b>Q3 review</b> public',
-				done: '<span class="c-badge c-badge--success">Done</span>',
-			},
-			decline: {
-				badge: '<span class="c-badge c-badge--danger">Declined</span>',
-				state: 'c-badge--danger',
-				result: 'Declined. Q3 review keeps its Key, and Claude knows it.',
-				log: 'declined making <b>Q3 review</b> public',
-				done: '<span class="c-badge c-badge--danger">Declined</span>',
-			},
-		};
+		// The words come from the dictionaries of the site, never from a visitor.
+		const badge = (tone: string, text: string) => `<span class="c-badge c-badge--${tone}">${text}</span>`;
 
 		root.querySelectorAll<HTMLButtonElement>('[data-knock-answer]').forEach((button) =>
 			button.addEventListener('click', () => {
-				const answer = answers[button.dataset.knockAnswer as keyof typeof answers];
-				state.className = `c-badge ${answer.state} knock__state`;
-				state.textContent = answer.badge.replace(/<[^>]+>/g, '');
-				count.textContent = 'Nothing waits';
+				const choice = button.dataset.knockAnswer as 'approve' | 'decline';
+				const answer = words[choice];
+				const tone = choice === 'approve' ? 'success' : 'danger';
+				state.className = `c-badge c-badge--${tone} knock__state`;
+				state.textContent = answer.badge;
+				count.textContent = words.nothingWaits;
 				root.classList.add('is-answered');
-				card.classList.add(`is-${button.dataset.knockAnswer}`);
+				card.classList.add(`is-${choice}`);
 				result.textContent = answer.result;
 
-				log.firstElementChild!.querySelector('.c-badge')!.outerHTML = answer.badge;
+				log.firstElementChild!.querySelector('.c-badge')!.outerHTML = badge(tone, answer.badge);
 				const row = document.createElement('li');
 				row.className = 'c-log__row knock__new';
-				row.innerHTML = `<span class="c-log__time">09:33</span><span><span class="c-ai"><span class="c-ai__mark">OD</span>Olivier</span> ${answer.log}</span>${answer.done}`;
+				row.innerHTML = `<span class="c-log__time">09:33</span><span><span class="c-ai"><span class="c-ai__mark">OD</span>Olivier</span> ${answer.log}</span>${badge(tone, answer.done)}`;
 				log.prepend(row);
 				again.hidden = false;
 				again.focus({ preventScroll: true });

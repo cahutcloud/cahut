@@ -5,45 +5,19 @@
 // into view; the visitor can pause them or pick one.
 import DeckThumb from './DeckThumb.astro';
 import Icon from '../Icon.astro';
+import { useTranslations, type Lang } from '../../i18n';
 import cahutPicto from '@charte/icones/cahut.svg?raw';
 
-const steps = [
-	{
-		title: 'Connect',
-		heading: 'Add Cahut to your AI, once.',
-		text: 'Your AI connects to your Cahut over MCP, the open protocol that links AIs to tools. You authorize it with OAuth, with the scope you choose. No AI model runs on your server.',
-		call: 'MCP · OAuth · on behalf of Olivier',
-		duration: 6000,
-	},
-	{
-		title: 'Publish',
-		heading: 'Ask for a deck. The AI publishes a Window.',
-		text: 'The AI calls one typed operation, never a shell. Cahut applies your house style, files the Window in its Room, and hands back its address.',
-		call: 'publish_window(room: "marketing", window: "q3-review")',
-		duration: 8500,
-	},
-	{
-		title: 'Share',
-		heading: 'Share a link, not a file.',
-		text: 'Each Window opens to its Room only, to everyone in your Cahut, to anyone with its Key, or to the public. Readers open it in a browser and comment on it.',
-		call: 'share_window(window: "q3-review", access: "key")',
-		duration: 8500,
-	},
-	{
-		title: 'Knock first',
-		heading: 'What cannot be undone waits for you.',
-		text: 'Making a Window public cannot be undone. So the AI knocks: the request waits in the console, with a notification and an expiry, until a person approves it.',
-		call: 'share_window(access: "public") → waiting for Olivier',
-		duration: 10000,
-	},
-	{
-		title: 'Logbook',
-		heading: 'Every action is in the Logbook.',
-		text: 'Which AI, on whose behalf, what it did and with what result. The Logbook keeps every action, readable in the console.',
-		call: 'logbook: 4 entries, 1 approved by a person',
-		duration: 6500,
-	},
-];
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang).flow;
+
+// How long each step plays, in milliseconds, with the time to read it.
+const durations = [6000, 8500, 8500, 10000, 6500];
+const steps = t.steps.map((step, index) => ({ ...step, duration: durations[index] }));
 
 const ais = [
 	{ mark: 'Cl', name: 'Claude' },
@@ -54,18 +28,19 @@ const ais = [
 
 const operations = ['publish_window', 'share_window', 'get_window', 'list_windows'];
 
-const log = [
-	{ time: '09:12', text: 'connected for Olivier' },
-	{ time: '09:14', text: 'published', window: 'Q3 review' },
-	{ time: '09:20', text: 'gave', window: 'Q3 review', after: 'a Key' },
-	{ time: '09:31', text: 'asked to make', window: 'Q3 review', after: 'public', knock: true },
-];
+const log = ['09:12', '09:14', '09:20', '09:31'].map((time, index) => ({
+	time,
+	text: t.log[index],
+	knock: index === 3,
+}));
 
-const readers = [
-	{ id: 'team', icon: 'users', who: 'Marketing team', short: 'Team' },
-	{ id: 'client', icon: 'key-round', who: 'A client, with the Key', short: 'Key' },
-	{ id: 'public', icon: 'globe', who: 'Anyone', short: 'Public' },
-] as const;
+const readers = (
+	[
+		{ id: 'team', icon: 'users' },
+		{ id: 'client', icon: 'key-round' },
+		{ id: 'public', icon: 'globe' },
+	] as const
+).map((reader, index) => ({ ...reader, ...t.readerNames[index] }));
 
 // Without scripts, the diagram shows its last step, with everything done.
 const done = [
@@ -92,7 +67,7 @@ const done = [
 ];
 ---
 
-<div class="flow" data-flow role="group" aria-label="How Cahut works, in five steps">
+<div class="flow" data-flow role="group" aria-label={t.group}>
 	<div class="flow__bar">
 		<ol class="flow__tabs" role="list">
 			{
@@ -103,7 +78,7 @@ const done = [
 							class="flow__tab"
 							data-flow-tab={index + 1}
 							style={`--duration: ${duration}ms`}
-							aria-label={`Step ${index + 1}: ${title}`}
+							aria-label={`${t.step} ${index + 1}: ${title}`}
 						>
 							<span class="flow__num">{index + 1}</span>
 							<span class="flow__tab-title">{title}</span>
@@ -114,8 +89,8 @@ const done = [
 			}
 		</ol>
 		<button type="button" class="c-btn c-btn--secondary c-btn--sm flow__play" data-flow-play hidden>
-			<span class="flow__pause-label"><Icon name="pause" size={14} />Pause</span>
-			<span class="flow__play-label"><Icon name="play" size={14} />Play</span>
+			<span class="flow__pause-label"><Icon name="pause" size={14} />{t.pause}</span>
+			<span class="flow__play-label"><Icon name="play" size={14} />{t.play}</span>
 		</button>
 	</div>
 
@@ -124,7 +99,9 @@ const done = [
 			steps.map(({ heading, text, call }, index) => (
 				<div class="flow__caption" data-flow-caption={index + 1}>
 					<div class="flow__caption-text">
-						<p class="c-label">Step {index + 1} of 5</p>
+						<p class="c-label">
+							{t.step} {index + 1} {t.of}
+						</p>
 						<h3 class="c-h3">{heading}</h3>
 						<p class="flow__caption-lead">{text}</p>
 					</div>
@@ -150,7 +127,7 @@ const done = [
 		</svg>
 
 		<div class="flow__col flow__ais">
-			<p class="c-label flow__col-label">Your AIs</p>
+			<p class="c-label flow__col-label">{t.ais}</p>
 			<ul class="flow__ai-list" role="list">
 				{
 					ais.map(({ mark, name }, index) => (
@@ -162,11 +139,14 @@ const done = [
 					))
 				}
 			</ul>
-			<p class="flow__note">They stay outside. No AI runs on your server.</p>
+			<p class="flow__note">{t.aisNote}</p>
 		</div>
 
 		<div class="flow__col flow__server">
-			<p class="c-label flow__col-label"><Icon name="server" size={14} />Your server</p>
+			<p class="c-label flow__col-label">
+				<Icon name="server" size={14} />
+				{t.server}
+			</p>
 			<div class="flow__machine">
 				<div class="flow__cahut c-card">
 					<span class="flow__door" data-anchor="door"><Icon name="plug" size={14} />MCP</span>
@@ -175,10 +155,10 @@ const done = [
 					<div class="flow__cahut-head">
 						<span class="flow__picto" set:html={cahutPicto} />
 						<div>
-							<p class="flow__cahut-name">Your Cahut</p>
+							<p class="flow__cahut-name">{t.cahut}</p>
 							<p class="c-mono flow__domain">cahut.example.com</p>
 						</div>
-						<span class="flow__style"><Icon name="palette" size={14} />House style</span>
+						<span class="flow__style"><Icon name="palette" size={14} />{t.houseStyle}</span>
 					</div>
 
 					<div class="flow__ops">
@@ -193,9 +173,9 @@ const done = [
 
 					<div class="flow__body">
 						<div class="flow__room">
-							<p class="c-label">Room · marketing</p>
+							<p class="c-label">{t.room}</p>
 							<div class="flow__slot">
-								<div class="flow__empty">No Windows yet</div>
+								<div class="flow__empty">{t.noWindows}</div>
 								<div class="c-card c-window flow__window">
 									<div class="flow__thumb"><DeckThumb /></div>
 									<div class="c-window__body">
@@ -205,15 +185,15 @@ const done = [
 											<span class="flow__access">
 												<span class="c-badge c-badge--room">
 													<Icon name="lock" size={14} />
-													Room only
+													{t.access.room}
 												</span>
 												<span class="c-badge c-badge--key">
 													<Icon name="key-round" size={14} />
-													Key
+													{t.access.key}
 												</span>
 												<span class="c-badge c-badge--public">
 													<Icon name="globe" size={14} />
-													Public
+													{t.access.public}
 												</span>
 											</span>
 										</div>
@@ -224,11 +204,11 @@ const done = [
 
 						<div class="flow__side">
 							<div class="flow__knock-box">
-								<p class="c-label">Knock first</p>
+								<p class="c-label">{t.knock}</p>
 								<div class="flow__slot">
 									<div class="flow__empty flow__empty--line">
 										<Icon name="circle-check" size={14} />
-										Nothing waits for you
+										{t.nothingWaits}
 									</div>
 									<div class="c-card c-knock flow__knock">
 										<div class="c-knock__head">
@@ -238,39 +218,37 @@ const done = [
 											<span class="flow__knock-state">
 												<span class="c-badge c-badge--warning">
 													<span class="c-dot" />
-													Waiting
+													{t.waiting}
 												</span>
 												<span class="c-badge c-badge--success">
 													<Icon name="check" size={14} />
-													Approved
+													{t.approved}
 												</span>
 											</span>
 										</div>
-										<p class="flow__knock-text">
-											Wants to make <b>Q3 review</b> public.
-										</p>
+										<p class="flow__knock-text" set:html={t.knockText} />
 										<div class="flow__knock-foot">
 											<div class="c-knock__actions">
 												<span class="c-btn c-btn--primary c-btn--sm flow__approve">
 													<Icon name="check" size={14} />
-													Approve
+													{t.approve}
 												</span>
-												<span class="c-btn c-btn--secondary c-btn--sm">Decline</span>
+												<span class="c-btn c-btn--secondary c-btn--sm">{t.decline}</span>
 												<span class="flow__cursor">
 													<Icon name="mouse-pointer" size={20} />
 												</span>
 											</div>
-											<p class="c-mono flow__knock-done">Approved by Olivier, 09:33</p>
+											<p class="c-mono flow__knock-done">{t.knockDone}</p>
 										</div>
 									</div>
 								</div>
 							</div>
 
 							<div class="flow__log-box">
-								<p class="c-label">Logbook</p>
+								<p class="c-label">{t.logbook}</p>
 								<ol class="flow__log" role="list">
 									{
-										log.map(({ time, text, window, after, knock }, index) => (
+										log.map(({ time, text, knock }, index) => (
 											<li class:list={['flow__log-row', `flow__log-row--${index + 1}`]}>
 												<div>
 													<span class="c-mono flow__log-time">{time}</span>
@@ -278,14 +256,7 @@ const done = [
 														<span class="c-ai">
 															<span class="c-ai__mark">Cl</span>Claude
 														</span>{' '}
-														{text}
-														{window && (
-															<>
-																{' '}
-																<b>{window}</b>
-															</>
-														)}
-														{after && ` ${after}`}
+														<Fragment set:html={text} />
 													</span>
 													<span class:list={['flow__log-result', { 'flow__log-result--knock': knock }]}>
 														<Icon name="circle-check" size={14} />
@@ -304,7 +275,7 @@ const done = [
 		</div>
 
 		<div class="flow__col flow__readers">
-			<p class="c-label flow__col-label">Your readers</p>
+			<p class="c-label flow__col-label">{t.readers}</p>
 			<ul class="flow__reader-list" role="list">
 				{
 					readers.map(({ id, icon, who, short }) => (
@@ -318,7 +289,7 @@ const done = [
 								<div class="flow__screen">
 									<div class="flow__closed">
 										<Icon name="lock" size={16} />
-										<span>Closed</span>
+										<span>{t.closed}</span>
 									</div>
 									<div class="flow__open">
 										<DeckThumb />
@@ -326,7 +297,7 @@ const done = [
 									{id === 'client' && (
 										<span class="flow__comment">
 											<Icon name="message-square" size={14} />
-											Looks good
+											{t.comment}
 										</span>
 									)}
 								</div>
@@ -347,13 +318,15 @@ const done = [
 			<Icon name="key-round" size={14} />share_window · Key
 		</span>
 		<span class="flow__packet flow__packet--back" data-packet="link-client">
-			<Icon name="link" size={14} />Link and Key
+			<Icon name="link" size={14} />
+			{t.packets.linkKey}
 		</span>
 		<span class="flow__packet flow__packet--call" data-packet="public">
 			<Icon name="globe" size={14} />share_window · Public
 		</span>
 		<span class="flow__packet flow__packet--back" data-packet="link-public">
-			<Icon name="link" size={14} />Link
+			<Icon name="link" size={14} />
+			{t.packets.link}
 		</span>
 	</div>
 </div>

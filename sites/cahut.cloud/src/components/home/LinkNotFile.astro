@@ -3,26 +3,37 @@
 // switches by itself the first time it comes into view, and on demand.
 import DeckThumb from './DeckThumb.astro';
 import Icon from '../Icon.astro';
+import { useTranslations, type Lang } from '../../i18n';
 
-const files = [
-	{ name: 'Q3 review v4 FINAL.pptx', meta: 'Attached, 8.2 MB', icon: 'file-text', x: 22, y: 20, r: -6 },
-	{ name: 'Q3 review v5 (2).pptx', meta: 'Forwarded twice', icon: 'file-text', x: 70, y: 14, r: 4 },
-	{ name: 'q3-notes.docx', meta: 'Converted back', icon: 'file-down', x: 80, y: 48, r: 7 },
-	{ name: 'A chat link', meta: 'On one AI service', icon: 'link', x: 18, y: 56, r: 5 },
-	{ name: 'Q3 numbers.xlsx', meta: 'Which version?', icon: 'layout-dashboard', x: 34, y: 86, r: -4 },
-	{ name: 'A deck elsewhere', meta: 'On another service', icon: 'link', x: 72, y: 84, r: -7 },
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang).files;
+
+// Where each file lies on the table, in percent of the scene, and its tilt.
+const places = [
+	{ icon: 'file-text', x: 22, y: 20, r: -6 },
+	{ icon: 'file-text', x: 70, y: 14, r: 4 },
+	{ icon: 'file-down', x: 80, y: 48, r: 7 },
+	{ icon: 'link', x: 18, y: 56, r: 5 },
+	{ icon: 'layout-dashboard', x: 34, y: 86, r: -4 },
+	{ icon: 'link', x: 72, y: 84, r: -7 },
 ] as const;
+const files = places.map((place, index) => ({ ...place, ...t.items[index] }));
+const facts = (['refresh-cw', 'history', 'message-square'] as const).map((icon, index) => ({ icon, text: t.facts[index] }));
 ---
 
 <div class="lnf" data-lnf data-mode="link">
-	<div class="lnf__switch" role="group" aria-label="Compare">
+	<div class="lnf__switch" role="group" aria-label={t.compare}>
 		<span class="lnf__thumb" aria-hidden="true"></span>
-		<button type="button" data-mode-button="files" aria-pressed="false">Today: files</button>
-		<button type="button" data-mode-button="link" aria-pressed="true">With Cahut: a link</button>
+		<button type="button" data-mode-button="files" aria-pressed="false">{t.files}</button>
+		<button type="button" data-mode-button="link" aria-pressed="true">{t.link}</button>
 	</div>
 
 	<div class="lnf__stage">
-		<ul class="lnf__files" role="list" aria-label="Today">
+		<ul class="lnf__files" role="list" aria-label={t.today}>
 			{
 				files.map(({ name, meta, icon, x, y, r }, index) => (
 					<li class="lnf__file" style={`--x: ${x}%; --y: ${y}%; --r: ${r}deg; --i: ${index}`}>
@@ -36,7 +47,7 @@ const files = [
 			}
 		</ul>
 
-		<div class="lnf__window c-card" role="group" aria-label="With Cahut">
+		<div class="lnf__window c-card" role="group" aria-label={t.withCahut}>
 			<div class="lnf__bar">
 				<Icon name="lock" size={14} />
 				<span class="c-mono lnf__address">cahut.example.com/marketing/q3-review</span>
@@ -44,16 +55,21 @@ const files = [
 			</div>
 			<DeckThumb />
 			<ul class="lnf__facts" role="list">
-				<li><Icon name="refresh-cw" size={14} />Updated 2 minutes ago</li>
-				<li><Icon name="history" size={14} />Version 2, the previous one kept</li>
-				<li><Icon name="message-square" size={14} />3 comments</li>
+				{
+					facts.map(({ icon, text }) => (
+						<li>
+							<Icon name={icon} size={14} />
+							{text}
+						</li>
+					))
+				}
 			</ul>
 		</div>
 	</div>
 
 	<p class="lnf__caption" aria-live="polite">
-		<span class="lnf__caption--files">Six files and links for one deck. Which one is right, and who can see it?</span>
-		<span class="lnf__caption--link">One address. The page updates, takes comments, keeps its versions, and exports to PDF or PowerPoint.</span>
+		<span class="lnf__caption--files">{t.captionFiles}</span>
+		<span class="lnf__caption--link">{t.captionLink}</span>
 	</p>
 </div>
 
