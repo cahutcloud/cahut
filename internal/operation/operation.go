@@ -129,6 +129,7 @@ type Call struct {
 	Admin bool
 
 	target, detail string
+	room           int64     // the Room the call concerns
 	as             ActorKind // what a Visitor's call is logged as
 	afterCommit    []func()
 	onFailure      []func()
@@ -138,6 +139,12 @@ type Call struct {
 // with an optional detail. Never put secrets or file contents in either.
 func (c *Call) Log(target, detail string) {
 	c.target, c.detail = target, detail
+}
+
+// InRoom names the Room that the call concerns, so that the members of that
+// Room read its Logbook entry.
+func (c *Call) InRoom(id int64) {
+	c.room = id
 }
 
 // Identify names who a Visitor's call concerns, such as the person who
@@ -382,6 +389,7 @@ func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
 		Via:        c.Actor.Via,
 		Target:     c.target,
 		Detail:     c.detail,
+		RoomID:     c.room,
 		Outcome:    logbook.OK,
 	}
 	if err != nil {

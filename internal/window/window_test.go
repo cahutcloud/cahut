@@ -12,6 +12,7 @@ import (
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/store"
 )
 
@@ -34,6 +35,7 @@ func setup(t *testing.T) *fixture {
 	t.Cleanup(func() { db.Close() })
 	r := operation.NewRegistry(db)
 	account.Register(r)
+	room.Register(r)
 	s := NewService(filepath.Join(dir, "windows"), func(room, name string) string { return "https://cahut.test/" + room + "/" + name + "/" })
 	s.Register(r)
 
@@ -166,6 +168,67 @@ func TestWindowsStayInTheirRoom(t *testing.T) {
 	out, err = f.invoke(t, operation.Actor{Kind: operation.Admin, Via: "cli"}, "list_windows", ``)
 	if err != nil || len(out.(List).Windows) != 1 {
 		t.Errorf("list_windows by the command line = %+v, %v", out, err)
+	}
+}
+
+func TestTeamRooms(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	if _, err := f.invoke(t, f.olivier, "create_room", `{"title": "Marketing"}`); err != nil {
+		t.Fatalf("create_room: %v", err)
+	}
+	inMarketing := strings.Replace(deck, `"kind"`, `"room": "marketing", "kind"`, 1)
+	if _, err := f.invoke(t, f.camille, "publish_window", inMarketing); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("publish_window in a Room one is not in: err = %v, want ErrNotFound", err)
+	}
+
+	// olivier, in the console, adds camille, who publishes there.
+	owner := operation.Actor{Kind: operation.Person, Via: "api", UserID: f.olivier.UserID, Handle: "olivier", Session: 1}
+	if _, err := operation.Do(ctx, f.r, room.AddMember, owner, room.MemberInput{Room: "marketing", User: "camille"}); err != nil {
+		t.Fatal(err)
+	}
+	out, err := f.invoke(t, f.camille, "publish_window", inMarketing)
+	if err != nil {
+		t.Fatalf("publish_window in a team Room: %v", err)
+	}
+	w := out.(Window)
+	if w.Room != "marketing" || w.URL != "https://cahut.test/marketing/revue-du-3e-trimestre/" || w.CreatedBy != "camille" {
+		t.Errorf("window = %+v", w)
+	}
+	if _, err := f.invoke(t, f.olivier, "publish_window", deck); err != nil {
+		t.Fatal(err)
+	}
+	for who, want := range map[operation.Actor]int{f.olivier: 1, f.camille: 1} {
+		out, err := f.invoke(t, who, "list_windows", `{"room": "marketing"}`)
+		if err != nil || len(out.(List).Windows) != want {
+			t.Errorf("list_windows of marketing by %s = %+v, %v; want %d", who.Handle, out, err, want)
+		}
+	}
+	out, err = f.invoke(t, f.olivier, "list_windows", `{}`)
+	if err != nil || len(out.(List).Windows) != 2 {
+		t.Errorf("list_windows of all of olivier's Rooms = %+v, %v", out, err)
+	}
+
+	// Once out of the Room, camille no longer reaches its Windows.
+	if _, err := operation.Do(ctx, f.r, room.RemoveMember, owner, room.RemoveMemberInput{Room: "marketing", User: "camille"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.invoke(t, f.camille, "list_windows", `{"room": "marketing"}`); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("list_windows of a Room one left: err = %v, want ErrNotFound", err)
+	}
+	if _, err := f.invoke(t, f.camille, "get_window", `{"window": "`+w.URL+`"}`); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("get_window in a Room one left: err = %v, want ErrNotFound", err)
+	}
+
+	// The entries of the Room name it, for its members.
+	entries, err := logbook.List(ctx, f.db.Read, 100)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range entries {
+		if e.Operation == "publish_window" && e.Outcome == logbook.OK && e.Target == "marketing/revue-du-3e-trimestre" && e.RoomID == 0 {
+			t.Errorf("a publication in marketing names no Room: %+v", e)
+		}
 	}
 }
 
