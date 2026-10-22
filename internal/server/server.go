@@ -138,33 +138,33 @@ func (s *Server) addDomain(ctx context.Context, c *operation.Call, in AddDomainI
 // ListDomainsInput is the input of list_domains.
 type ListDomainsInput struct{}
 
-// List is the output of list_domains.
-type List struct {
+// DomainList is the output of list_domains.
+type DomainList struct {
 	Cahuts []Info `json:"cahuts"`
 }
 
 // ListDomains lists the Cahuts of the server, in the order they were
 // declared.
-var ListDomains = &operation.Op[ListDomainsInput, List]{
+var ListDomains = &operation.Op[ListDomainsInput, DomainList]{
 	Name:        "list_domains",
 	Description: "List the Cahuts of this server and their domains.",
 	Level:       operation.ServerAdmin,
 	ReadOnly:    true,
-	Run: func(ctx context.Context, c *operation.Call, _ ListDomainsInput) (List, error) {
+	Run: func(ctx context.Context, c *operation.Call, _ ListDomainsInput) (DomainList, error) {
 		rows, err := c.Tx.QueryContext(ctx, "SELECT id, domain, created_at FROM cahuts ORDER BY id")
 		if err != nil {
-			return List{}, err
+			return DomainList{}, err
 		}
 		defer rows.Close()
-		list := List{Cahuts: []Info{}}
+		list := DomainList{Cahuts: []Info{}}
 		for rows.Next() {
 			var info Info
 			var created string
 			if err := rows.Scan(&info.ID, &info.Domain, &created); err != nil {
-				return List{}, err
+				return DomainList{}, err
 			}
 			if info.CreatedAt, err = store.ParseTime(created); err != nil {
-				return List{}, err
+				return DomainList{}, err
 			}
 			list.Cahuts = append(list.Cahuts, info)
 		}

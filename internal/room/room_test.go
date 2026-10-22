@@ -142,10 +142,10 @@ func TestListAndGetRooms(t *testing.T) {
 		t.Errorf("get_room of no Room: err = %v, want ErrNotFound", err)
 	}
 
-	if _, err := operation.Do(ctx, f.r, UpdateRoom, f.bruno, UpdateGetInput{Room: "marketing", Title: "Ours"}); !errors.Is(err, operation.ErrNotFound) {
+	if _, err := operation.Do(ctx, f.r, UpdateRoom, f.bruno, UpdateRoomInput{Room: "marketing", Title: "Ours"}); !errors.Is(err, operation.ErrNotFound) {
 		t.Errorf("update_room by someone outside: err = %v, want ErrNotFound", err)
 	}
-	d, err := operation.Do(ctx, f.r, UpdateRoom, f.olivier, UpdateGetInput{Room: "marketing", Title: " Marketing and sales "})
+	d, err := operation.Do(ctx, f.r, UpdateRoom, f.olivier, UpdateRoomInput{Room: "marketing", Title: " Marketing and sales "})
 	if err != nil || d.Title != "Marketing and sales" || d.Name != "marketing" {
 		t.Errorf("update_room by an administrator = %+v, %v", d, err)
 	}

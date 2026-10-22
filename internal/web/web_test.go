@@ -480,6 +480,28 @@ func TestRedirectToHTTPS(t *testing.T) {
 
 // An MCP client keeps the standalone stream of its session open: the server
 // must still stop at once, not at the deadline of its shutdown.
+// TestRunStopsWhenAPortIsTaken checks that the server stops, and says why,
+// when one of its ports is taken, instead of serving on the others alone.
+func TestRunStopsWhenAPortIsTaken(t *testing.T) {
+	f := setup(t)
+	taken, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer taken.Close()
+	f.web.cfg = Config{Dev: true, DevAddr: "127.0.0.1:0", DevConsoleAddr: taken.Addr().String()}
+	done := make(chan error, 1)
+	go func() { done <- f.web.Run(context.Background()) }()
+	select {
+	case err := <-done:
+		if err == nil || !strings.Contains(err.Error(), taken.Addr().String()) {
+			t.Errorf("Run = %v, want the error of the taken port", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("Run went on with a port taken")
+	}
+}
+
 func TestShutdownWithAnOpenStream(t *testing.T) {
 	f := setup(t)
 	ln, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", "127.0.0.1:0")

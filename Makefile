@@ -14,7 +14,7 @@ GORELEASER    ?= go run github.com/goreleaser/goreleaser/v2@$(GORELEASER_VERSION
 # The sites need Node.js at the version of .nvmrc: run "nvm use" first.
 SITES_DEPS := sites/node_modules/.package-lock.json
 
-.PHONY: help build dev test lint fmt check snapshot release-check sites site-dev docs-dev docs-reference clean
+.PHONY: help build dev test lint fmt check snapshot release-check sites site-dev docs-dev docs-reference console-types clean
 
 help: ## List the tasks
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -22,7 +22,7 @@ help: ## List the tasks
 build: ## Build bin/cahut for this machine
 	CGO_ENABLED=0 go build -trimpath -o bin/cahut ./cmd/cahut
 
-dev: ## Serve the Cahuts of tmp/dev on http://localhost:8080
+dev: ## Serve the Cahuts of tmp/dev on http://localhost:8080, their console on 8081
 	go run ./cmd/cahut serve --dev --data tmp/dev
 
 test: ## Run the tests with the race detector
@@ -58,6 +58,13 @@ DOCS_REFERENCE := sites/docs.cahut.cloud/src/content/docs/reference
 
 docs-reference: ## Write the reference of the docs from the code
 	go run ./internal/reference $(DOCS_REFERENCE)
+
+# The TypeScript types of the console's API come from the code too. They
+# need Go only, and CI checks that they are committed.
+CONSOLE_TYPES := internal/console/ui/src/api.gen.ts
+
+console-types: ## Write the TypeScript types of the console's API from the code
+	go run ./internal/apitypes $(CONSOLE_TYPES)
 
 $(SITES_DEPS): sites/package.json sites/package-lock.json $(wildcard sites/*/package.json)
 	cd sites && npm ci

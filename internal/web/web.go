@@ -29,12 +29,17 @@ type Config struct {
 	Dev     bool
 	DevAddr string
 
+	// DevConsoleAddr serves the console and its API in plain HTTP, for
+	// development, on another port than DevAddr, as in production.
+	DevConsoleAddr string
+
 	// For HTTPS: the addresses to listen on, and the ACME account.
-	HTTPAddr  string // ":80", for ACME challenges and redirects to HTTPS
-	HTTPSAddr string // ":443"
-	Email     string // contact of the ACME account, optional
-	CA        string // ACME directory: Let's Encrypt when empty, its staging for "staging"
-	CertDir   string // where certificates and ACME keys are kept
+	HTTPAddr    string // ":80", for ACME challenges and redirects to HTTPS
+	HTTPSAddr   string // ":443"
+	ConsoleAddr string // ":8443", for the console and its API
+	Email       string // contact of the ACME account, optional
+	CA          string // ACME directory: Let's Encrypt when empty, its staging for "staging"
+	CertDir     string // where certificates and ACME keys are kept
 }
 
 // The console of every Cahut listens on its own port of the Cahut's domain:
@@ -82,7 +87,10 @@ type Server struct {
 	srv *server.Server
 	cfg Config
 	log *slog.Logger
-	mux *http.ServeMux
+	mux *http.ServeMux // port 443: Windows and MCP
+
+	console  *http.ServeMux // port 8443: the console and its API
+	visitors *limiter       // calls that sign in, by address
 
 	// streams is canceled when the server shuts down, to end the
 	// standalone streams of MCP sessions.
@@ -109,7 +117,23 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.mux.HandleFunc("GET /-/healthz", serveHealth)
 	s.mux.HandleFunc("GET /{room}/{window}", redirectToWindow)
 	s.mux.HandleFunc("GET /{room}/{window}/{file...}", s.serveWindow)
+
+	s.visitors = newLimiter(SignInEvery, SignInBurst)
+	s.console = http.NewServeMux()
+	s.console.HandleFunc("POST /api/server/{operation}", s.serveServerAPI)
+	s.console.HandleFunc("POST /api/{operation}", s.serveAPI)
+	s.console.HandleFunc("/api/", refuseAPI)
+	s.console.HandleFunc("/", s.serveConsole)
 	return s
+}
+
+// Console returns the handler of the console's port, which serves the
+// console and its API at the domain of every Cahut. See
+// docs/adr/0011-console-on-its-own-port.md.
+func (s *Server) Console() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.route(w, r, s.console)
+	})
 }
 
 // Close ends the MCP streams and closes the Cahuts that the server opened.
@@ -140,6 +164,11 @@ func siteOf(r *http.Request) *site {
 // guard against DNS rebinding, since a page that points its own name at this
 // server still sends its own name as the host.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.route(w, r, s.mux)
+}
+
+// route serves r with mux, as the Cahut of its host.
+func (s *Server) route(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 	st, err := s.site(r.Context(), hostOf(r))
 	if errors.Is(err, operation.ErrNotFound) {
 		misdirected(w)
@@ -150,7 +179,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal error.", http.StatusInternalServerError)
 		return
 	}
-	s.mux.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), siteKey{}, st)))
+	mux.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), siteKey{}, st)))
 }
 
 // site returns the open Cahut at domain, opening it on first use.
@@ -217,25 +246,57 @@ func (s *Server) Run(ctx context.Context) error {
 		s.log.Warn("this server holds no Cahut yet: declare one with cahut domain add <domain>")
 	}
 	if s.cfg.Dev {
-		srv := s.httpServer(s.cfg.DevAddr, s)
-		s.log.Info("serving over HTTP for development", "address", "http://"+s.cfg.DevAddr+"/", "cahuts", domains)
-		return serve(ctx, srv, srv.ListenAndServe)
+		srv, console := s.httpServer(s.cfg.DevAddr, s), s.httpServer(s.cfg.DevConsoleAddr, s.Console())
+		s.log.Info("serving over HTTP for development", "address", "http://"+s.cfg.DevAddr+"/",
+			"console", "http://"+s.cfg.DevConsoleAddr+"/", "cahuts", domains)
+		return serveAll(ctx,
+			func(ctx context.Context) error { return serve(ctx, srv, srv.ListenAndServe) },
+			func(ctx context.Context) error { return serve(ctx, console, console.ListenAndServe) })
 	}
 
 	magic, issuer, err := s.certificates(ctx, domains)
 	if err != nil {
 		return err
 	}
-	https := s.httpServer(s.cfg.HTTPSAddr, s)
-	https.TLSConfig = magic.TLSConfig()
-	https.TLSConfig.NextProtos = append([]string{"h2", "http/1.1"}, https.TLSConfig.NextProtos...)
+	https, console := s.httpServer(s.cfg.HTTPSAddr, s), s.httpServer(s.cfg.ConsoleAddr, s.Console())
+	for _, srv := range []*http.Server{https, console} {
+		srv.TLSConfig = magic.TLSConfig()
+		srv.TLSConfig.NextProtos = append([]string{"h2", "http/1.1"}, srv.TLSConfig.NextProtos...)
+	}
 	plain := s.httpServer(s.cfg.HTTPAddr, issuer.HTTPChallengeHandler(redirectToHTTPS{srv: s.srv}))
 
-	s.log.Info("serving over HTTPS", "cahuts", domains)
-	errs := make(chan error, 2)
-	go func() { errs <- serve(ctx, plain, plain.ListenAndServe) }()
-	go func() { errs <- serve(ctx, https, func() error { return https.ListenAndServeTLS("", "") }) }()
-	return errors.Join(<-errs, <-errs)
+	s.log.Info("serving over HTTPS", "cahuts", domains, "console", s.cfg.ConsoleAddr)
+	return serveAll(ctx,
+		func(ctx context.Context) error { return serve(ctx, plain, plain.ListenAndServe) },
+		func(ctx context.Context) error {
+			return serve(ctx, https, func() error { return https.ListenAndServeTLS("", "") })
+		},
+		func(ctx context.Context) error {
+			return serve(ctx, console, func() error { return console.ListenAndServeTLS("", "") })
+		})
+}
+
+// serveAll runs every server until ctx is done or one of them fails, as
+// when its port is taken: then it shuts the others down, so that the service
+// stops, and says why, instead of running with a port missing.
+func serveAll(ctx context.Context, servers ...func(context.Context) error) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	errs := make(chan error, len(servers))
+	for _, run := range servers {
+		go func() {
+			err := run(ctx)
+			if err != nil {
+				cancel()
+			}
+			errs <- err
+		}()
+	}
+	var all []error
+	for range servers {
+		all = append(all, <-errs)
+	}
+	return errors.Join(all...)
 }
 
 func (s *Server) httpServer(addr string, h http.Handler) *http.Server {
@@ -278,4 +339,13 @@ func (rd redirectToHTTPS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	target := "https://" + host + r.URL.RequestURI()
 	http.Redirect(w, r, target, http.StatusPermanentRedirect) //nolint:gosec // the host is the domain of a Cahut
+}
+
+// serveConsole answers the pages of the console, which this version does
+// not hold yet.
+func (s *Server) serveConsole(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Security-Policy", apiPolicy)
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprintf(w, "This is the console of %s. Its pages come with a later version; its API answers at /api/.\n", siteOf(r).cahut.Domain)
 }

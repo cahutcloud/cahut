@@ -32,6 +32,7 @@ func TestRun(t *testing.T) {
 		"mcp-tools.md":  {"## `publish_window`", "| `files[].path` | string | yes |", "Every call is recorded in the Logbook"},
 		"cli.md":        {"## `cahut serve`", "### `cahut token create`", "| `--data string` | `/var/lib/cahut` |"},
 		"operations.md": {"[`publish_window`](/reference/mcp-tools/#publish_window)", "| `add_domain` |"},
+		"http-api.md":   {"## Sessions", "| `POST /api/server/add_domain` | Administrators of the server | yes |", "| 401 Unauthorized |"},
 	}
 	for file, parts := range want {
 		got, err := os.ReadFile(filepath.Join(dir, file))

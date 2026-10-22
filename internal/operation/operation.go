@@ -251,6 +251,15 @@ func (r *Registry) Ops() []Info {
 	return infos
 }
 
+// Lookup describes the operation called name, when r has one.
+func (r *Registry) Lookup(name string) (Info, bool) {
+	op, ok := r.ops[name]
+	if !ok {
+		return Info{}, false
+	}
+	return op.info(), true
+}
+
 // Do runs op for actor.
 func Do[In, Out any](ctx context.Context, r *Registry, op *Op[In, Out], actor Actor, in In) (Out, error) {
 	var out Out
