@@ -61,3 +61,23 @@ func TestListLogbook(t *testing.T) {
 		t.Error("list_logbook with a limit above 1000 succeeded")
 	}
 }
+
+func TestGetCahut(t *testing.T) {
+	ctx := context.Background()
+	c, err := Open(ctx, Config{Dir: t.TempDir(), Domain: "cahut.example.com", BaseURL: "https://cahut.example.com/"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Close()
+	admin := operation.Actor{Kind: operation.Admin, Via: "cli"}
+	u, err := operation.Do(ctx, c.Registry, account.CreateUser, admin, account.CreateUserInput{Handle: "olivier", Name: "Olivier"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ai := operation.Actor{Kind: operation.AI, Via: "mcp", UserID: u.ID, Handle: "olivier", TokenID: 1, Client: "Claude"}
+	out, err := c.Registry.Invoke(ctx, "get_cahut", ai, nil)
+	want := About{Domain: "cahut.example.com", URL: "https://cahut.example.com/", MCP: "https://cahut.example.com/mcp"}
+	if err != nil || out != want {
+		t.Errorf("get_cahut = %+v, %v; want %+v", out, err, want)
+	}
+}

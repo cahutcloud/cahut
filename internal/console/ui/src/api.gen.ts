@@ -1,6 +1,14 @@
 // Generated from the Go types of the registries by make console-types: do not edit.
 // See docs/adr/0014-console-http-api.md.
 
+export interface About {
+  domain: string;
+  /** the address of the Cahut, under which its Rooms and Windows open */
+  url?: string;
+  /** the address of its MCP endpoint, where AI clients connect */
+  mcp?: string;
+}
+
 export interface Account {
   id: number;
   handle: string;
@@ -146,6 +154,8 @@ export interface FirstAdmin {
 }
 
 export type GetAccountInput = Record<string, never>;
+
+export type GetCahutInput = Record<string, never>;
 
 export interface Info {
   id: number;
@@ -452,6 +462,8 @@ export interface CahutOperations {
   enable_user: { input: UserInput; output: User };
   /** Describe the person you act for: their handle, name, role in the Cahut and Rooms. */
   get_account: { input: GetAccountInput; output: Account };
+  /** Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. */
+  get_cahut: { input: GetCahutInput; output: About };
   /** Describe a Room: its title, its owners and members, and how many Windows it holds. */
   get_room: { input: RoomGetInput; output: RoomDetail };
   /** Describe a Window and list its files, optionally with their contents. */
