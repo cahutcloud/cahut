@@ -203,6 +203,7 @@ Success criteria for the launch:
 
 - [Project brief](docs/brief-projet.md) (French): vision, positioning, scope, governance, technical choices and open questions.
 - [V0 plan](docs/plan-v0.md) (French): scope, batches and milestones of the first private version.
+- [Governance and project life](docs/gouvernance.md) (French): how the project is run and how it lives: roles, contributions, support, channels, releases, security, name, license and money, with the decisions still open.
 - [Architecture decision records](docs/adr/README.md): each technical choice, its reasons and the options set aside.
 - [Brand guidelines](docs/charte-graphique/README.md) (French): logo, colors, typography, icons, illustrations, photography, interface kit and templates, with all source files. A visual version opens from [docs/charte-graphique/index.html](docs/charte-graphique/index.html).
 
