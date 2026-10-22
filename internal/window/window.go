@@ -9,7 +9,6 @@ package window
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -75,6 +74,14 @@ func (s *Service) Register(r *operation.Registry) {
 		Description: "Bring a Window back from the trash, with its versions.",
 		Run:         s.restore,
 	})
+	operation.Register(r, &operation.Op[AccessInput, AccessSet]{
+		Name: "set_window_access",
+		Description: "Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; " +
+			"key, anyone who types its Key; or public, anyone with its address. The access may end at a date, " +
+			"after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, " +
+			"and returns it once: give it to the person. Making a Window public waits for the approval of a person.",
+		Run: s.setAccess,
+	})
 	operation.Register(r, &operation.Op[GetInput, Detail]{
 		Name:        "get_window",
 		Description: "Describe a Window and list its files, optionally with their contents.",
@@ -103,8 +110,11 @@ type Window struct {
 	CreatedBy string    `json:"created_by" jsonschema:"handle of the person it was first published for"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	// TrashedAt is a pointer, so that a Window out of the trash omits it.
-	TrashedAt *time.Time `json:"trashed_at,omitempty" jsonschema:"when the Window went to the trash; absent when it is not in it"`
+	Access    string    `json:"access" jsonschema:"who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public"`
+	// The times below are pointers, so that a Window without them omits
+	// them.
+	AccessEndsAt *time.Time `json:"access_ends_at,omitempty" jsonschema:"when the access ends, after which the Window opens to its Room only; absent when it does not end"`
+	TrashedAt    *time.Time `json:"trashed_at,omitempty" jsonschema:"when the Window went to the trash; absent when it is not in it"`
 }
 
 // PublishInput is the input of publish_window.
@@ -156,7 +166,7 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	}
 	c.InRoom(r.ID)
 	roomID := r.ID
-	w := Window{Title: title, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files),
+	w := Window{Title: title, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: AccessRoom,
 		CreatedBy: c.Actor.Handle, CreatedAt: c.Now, UpdatedAt: c.Now}
 	if w.Name, err = freeName(ctx, c.Tx, roomID, title); err != nil {
 		return Window{}, err
@@ -351,19 +361,6 @@ func (s *Service) Dir(id int64, version int) string {
 	return filepath.Join(s.dir, strconv.FormatInt(id, 10), strconv.Itoa(version))
 }
 
-// Current returns the id and the version served to readers of the Window
-// called name in the Room called room. Serving a page is not an operation:
-// readers are not actors, and their visits are not logged.
-func Current(ctx context.Context, db *store.DB, room, name string) (id int64, version int, err error) {
-	err = db.Read.QueryRowContext(ctx, `
-		SELECT w.id, w.version FROM windows w JOIN rooms r ON r.id = w.room_id
-		WHERE r.name = ? AND w.name = ? AND w.trashed_at IS NULL`, room, name).Scan(&id, &version)
-	if errors.Is(err, sql.ErrNoRows) {
-		return 0, 0, operation.NotFoundf("no Window %s/%s", room, name)
-	}
-	return id, version, err
-}
-
 // GetInput is the input of get_window.
 type GetInput struct {
 	Window         string `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
@@ -484,10 +481,12 @@ func (s *Service) list(ctx context.Context, c *operation.Call, in ListInput) (Li
 	return list, nil
 }
 
-// found is a Window that query found, with its id and that of its Room.
+// found is a Window that query found, with its id and that of its Room,
+// and whether it has a Key.
 type found struct {
 	Window
 	id, roomID int64
+	hasKey     bool
 }
 
 // query returns the Windows matching where that the actor may see: all of
@@ -498,7 +497,7 @@ type found struct {
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
 	q := `
 		SELECT w.id, w.room_id, w.name, w.title, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
-			u.handle, w.created_at, w.updated_at, w.trashed_at
+			u.handle, w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL
 		FROM windows w JOIN rooms r ON r.id = w.room_id JOIN users u ON u.id = w.created_by
 		WHERE ` + where
 	if !c.Actor.CommandLine() {
@@ -515,9 +514,12 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		var w found
 		var previous sql.NullInt64
 		var created, updated string
-		var trashed sql.NullString
+		var trashed, ends sql.NullString
 		if err := rows.Scan(&w.id, &w.roomID, &w.Name, &w.Title, &w.Kind, &w.Room, &w.Version, &previous, &w.Size, &w.FileCount,
-			&w.CreatedBy, &created, &updated, &trashed); err != nil {
+			&w.CreatedBy, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey); err != nil {
+			return nil, err
+		}
+		if w.Access, w.AccessEndsAt, err = effective(w.Access, ends, c.Now); err != nil {
 			return nil, err
 		}
 		w.Previous = int(previous.Int64)

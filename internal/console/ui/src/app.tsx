@@ -12,6 +12,7 @@ import { Consent } from "./pages/consent";
 import { Logbook } from "./pages/logbook";
 import { Overview } from "./pages/overview";
 import { People } from "./pages/people";
+import { Read } from "./pages/read";
 import { RoomPage, RoomsPage } from "./pages/rooms";
 import { SignIn } from "./pages/sign-in";
 import { navigate, Redirect, usePath } from "./router";
@@ -68,6 +69,20 @@ export function App() {
 			<Consent key={session.token} session={session} onExpired={() => stay(null)} />
 		) : (
 			<SignIn kind="person" purpose="to connect an AI" onSignIn={stay} />
+		);
+	}
+	// A reader of the Windows of this Cahut signs in here, then goes back to
+	// the address of the Windows.
+	if (path === "/read") {
+		const stay = (s: Session | null) => {
+			if (s) save(s);
+			else clear();
+			setSession(s);
+		};
+		return session ? (
+			<Read key={session.token} session={session} onExpired={() => stay(null)} />
+		) : (
+			<SignIn kind="person" purpose="to open its Windows" onSignIn={stay} />
 		);
 	}
 	if (!session) {

@@ -9,6 +9,49 @@ export interface About {
   mcp?: string;
 }
 
+export interface AccessInput {
+  /** the Window's address, or its Room and its name as room/name */
+  window: string;
+  /** room, internal, key or public */
+  access: string;
+  /** when the access ends, such as 2026-12-31T18:00:00Z; after it, the Window opens to its Room only. It does not end when absent */
+  ends_at?: string;
+  /** for key: the Key to set, of 10 to 256 characters. When empty, the Window keeps its Key, or Cahut draws one */
+  key?: string;
+  /** for key: draw a new Key; the old one no longer opens the Window */
+  new_key?: boolean;
+}
+
+export interface AccessSet {
+  /** the Window's name, last part of its address */
+  name: string;
+  title: string;
+  kind: string;
+  /** where the Window opens */
+  url: string;
+  /** the name of its Room, the part of its address before its name */
+  room: string;
+  /** the number of the version that readers see */
+  version: number;
+  /** the number of the version that rollback_window goes back to; absent when there is none */
+  previous_version?: number;
+  /** total size of the files of the current version, in bytes */
+  size: number;
+  file_count: number;
+  /** handle of the person it was first published for */
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  /** who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public */
+  access: string;
+  /** when the access ends, after which the Window opens to its Room only; absent when it does not end */
+  access_ends_at?: string;
+  /** when the Window went to the trash; absent when it is not in it */
+  trashed_at?: string;
+  /** the new Key, returned this once: give it to the person, who passes it on with the address */
+  key?: string;
+}
+
 export interface Account {
   id: number;
   handle: string;
@@ -350,6 +393,12 @@ export interface PublishInput {
   files: File[];
 }
 
+export interface ReaderCode {
+  /** send the browser to <domain>/-/session?code=<code>, on the port of the Windows */
+  code: string;
+  expires_at: string;
+}
+
 export interface Redirect {
   /** send the browser to this address */
   redirect: string;
@@ -452,6 +501,8 @@ export interface SignInInput {
   password: string;
 }
 
+export type SignInToWindowsInput = Record<string, never>;
+
 export type SignOutInput = Record<string, never>;
 
 export type SignedOut = Record<string, never>;
@@ -538,6 +589,10 @@ export interface Window {
   created_by: string;
   created_at: string;
   updated_at: string;
+  /** who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public */
+  access: string;
+  /** when the access ends, after which the Window opens to its Room only; absent when it does not end */
+  access_ends_at?: string;
   /** when the Window went to the trash; absent when it is not in it */
   trashed_at?: string;
 }
@@ -562,6 +617,10 @@ export interface WindowDetail {
   created_by: string;
   created_at: string;
   updated_at: string;
+  /** who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public */
+  access: string;
+  /** when the access ends, after which the Window opens to its Room only; absent when it does not end */
+  access_ends_at?: string;
   /** when the Window went to the trash; absent when it is not in it */
   trashed_at?: string;
   /** the current version, then the previous one if there is one */
@@ -643,8 +702,12 @@ export interface CahutOperations {
   set_room_member_role: { input: MemberInput; output: RoomDetail };
   /** Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. */
   set_user_role: { input: SetUserRoleInput; output: User };
+  /** Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. */
+  set_window_access: { input: AccessInput; output: AccessSet };
   /** Sign in with a handle and a password, and open a session. */
   sign_in: { input: SignInInput; output: AccountSession };
+  /** Get a single-use code, valid one minute, that signs you in to read the Windows of this Cahut at its address: the browser takes it to /-/session. */
+  sign_in_to_windows: { input: SignInToWindowsInput; output: ReaderCode };
   /** End the session you signed in with. */
   sign_out: { input: SignOutInput; output: SignedOut };
   /** Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. */

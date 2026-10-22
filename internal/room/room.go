@@ -89,6 +89,27 @@ func Require(ctx context.Context, c *operation.Call, name, role string) (Access,
 	return a, nil
 }
 
+// Of returns the Rooms of the person userID, their personal Room first,
+// for the pages that readers open outside of any operation.
+func Of(ctx context.Context, db *store.DB, userID int64) ([]Access, error) {
+	rows, err := db.Read.QueryContext(ctx, `
+		SELECT r.id, r.name, r.title, r.kind, m.role FROM rooms r JOIN room_members m ON m.room_id = r.id
+		WHERE m.user_id = ? ORDER BY r.kind = 'team', r.name`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var rooms []Access
+	for rows.Next() {
+		var a Access
+		if err := rows.Scan(&a.ID, &a.Name, &a.Title, &a.Kind, &a.Role); err != nil {
+			return nil, err
+		}
+		rooms = append(rooms, a)
+	}
+	return rooms, rows.Err()
+}
+
 // Room describes a Room.
 type Room struct {
 	Name      string    `json:"name" jsonschema:"the Room's name, first part of its address"`

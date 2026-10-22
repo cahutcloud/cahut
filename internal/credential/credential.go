@@ -196,3 +196,50 @@ func Random(n int) []byte {
 	_, _ = rand.Read(b) // crypto/rand.Read never fails
 	return b
 }
+
+// Limits of a Key that a person chooses for a Window. A Key opens one
+// Window, after a hash and under a rate limit, and readers type it: it can
+// be shorter than a password. See
+// docs/adr/0019-window-versions-access-and-declaration.md.
+const (
+	MinKey = 10
+	MaxKey = 256
+)
+
+// keyAlphabet holds the lowercase letters and digits that do not look
+// alike: no i, l, o, 0 or 1.
+const keyAlphabet = "abcdefghjkmnpqrstuvwxyz23456789"
+
+// Key draws a Key for a Window: twelve characters of keyAlphabet in three
+// groups, such as k7mp-x3qa-9rtw, about 59 bits.
+func Key() string {
+	var b strings.Builder
+	for i := 0; i < 12; {
+		// Bytes past the last multiple of the alphabet's size would favor
+		// its first characters.
+		c := Random(1)[0]
+		if int(c) >= 256-256%len(keyAlphabet) {
+			continue
+		}
+		if i > 0 && i%4 == 0 {
+			b.WriteByte('-')
+		}
+		b.WriteByte(keyAlphabet[int(c)%len(keyAlphabet)])
+		i++
+	}
+	return b.String()
+}
+
+// CheckKey checks a Key that a person chooses.
+func CheckKey(key string) error {
+	n := utf8.RuneCountInString(key)
+	switch {
+	case strings.TrimSpace(key) != key:
+		return operation.Invalidf("the Key starts or ends with a space")
+	case n < MinKey:
+		return operation.Invalidf("the Key has %d characters: give it %d at least, or let Cahut draw one", n, MinKey)
+	case n > MaxKey:
+		return operation.Invalidf("the Key has more than %d characters", MaxKey)
+	}
+	return nil
+}

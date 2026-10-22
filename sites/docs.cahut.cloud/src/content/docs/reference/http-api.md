@@ -85,7 +85,9 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/rollback_window` | Any person | yes |
 | `POST /api/set_room_member_role` | Any person | yes |
 | `POST /api/set_user_role` | Administrators of the Cahut | yes |
+| `POST /api/set_window_access` | Any person | yes |
 | `POST /api/sign_in` | Anyone, to sign in | no |
+| `POST /api/sign_in_to_windows` | Any person | yes |
 | `POST /api/sign_out` | Any person | yes |
 | `POST /api/trash_window` | Any person | yes |
 | `POST /api/update_room` | Any person | yes |

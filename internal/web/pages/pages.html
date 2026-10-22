@@ -1,0 +1,107 @@
+{{/* The pages that a Cahut serves to readers on the port of its Windows.
+They carry the house style of the Cahut, neutral until it has one, never
+the brand of Cahut. They run no inline script. */}}
+
+{{define "head"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{.}}</title>
+<link rel="stylesheet" href="/-/cahut.css">
+{{end}}
+
+{{define "top"}}<header class="top">
+<a class="top__home" href="/">{{.Domain}}</a>
+{{if .Reader}}<form class="top__out" method="post" action="/-/sign-out"><span>{{.Reader}}</span> <button type="submit">Sign out</button></form>{{end}}
+</header>
+{{end}}
+
+{{define "frame"}}{{template "head" .Title}}<script src="/-/frame.js" defer></script>
+</head>
+<body class="frame">
+<iframe src="{{.Src}}" title="{{.Title}}" sandbox="{{.Sandbox}}" allow="fullscreen" allowfullscreen></iframe>
+</body>
+</html>
+{{end}}
+
+{{define "key"}}{{template "head" .Title}}</head>
+<body>
+{{template "top" .}}
+<main class="page page--narrow">
+<p class="label">Opens with a Key</p>
+<h1>{{.Title}}</h1>
+<form class="form" method="post" action="/-/key">
+<input type="hidden" name="window" value="{{.Window}}">
+<label for="key">Key</label>
+<input id="key" name="key" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required autofocus>
+{{if .Error}}<p class="error" role="alert">{{.Error}}</p>{{end}}
+<button type="submit">Open</button>
+</form>
+<p class="muted">Ask whoever gave you this address for its Key.{{if not .Reader}} Members of its Room can <a href="{{.SignIn}}">sign in</a> instead.{{end}}</p>
+</main>
+</body>
+</html>
+{{end}}
+
+{{define "room"}}{{template "head" .Title}}</head>
+<body>
+{{template "top" .}}
+<main class="page">
+<p class="label">Room</p>
+<h1>{{.Title}}</h1>
+{{if .Windows}}<ul class="list">
+{{range .Windows}}<li><a href="{{.URL}}">{{.Title}}</a> <span class="muted">{{.Kind}} · {{.Access}}</span></li>
+{{end}}</ul>
+{{else}}<p class="muted">No Window here yet.</p>{{end}}
+{{if not .Reader}}<p class="muted"><a href="{{.SignIn}}">Sign in</a> to open the Windows of your Rooms.</p>{{end}}
+</main>
+</body>
+</html>
+{{end}}
+
+{{define "home"}}{{template "head" .Domain}}</head>
+<body>
+{{template "top" .}}
+<main class="page">
+<p class="label">Cahut</p>
+<h1>{{.Domain}}</h1>
+{{if .Reader}}{{if .Rooms}}<h2>Your Rooms</h2>
+<ul class="list">
+{{range .Rooms}}<li><a href="/{{.Name}}/">{{.Title}}</a> <span class="muted">/{{.Name}}/</span></li>
+{{end}}</ul>{{end}}
+{{else}}<p><a class="button" href="{{.SignIn}}">Sign in</a></p>
+<p class="muted">Sign in to open the Windows of your Rooms.</p>{{end}}
+<p class="muted small">AIs connect to this Cahut over MCP, at {{.MCP}}.</p>
+</main>
+</body>
+</html>
+{{end}}
+
+{{define "notfound"}}{{template "head" "Not found"}}</head>
+<body>
+{{template "top" .}}
+<main class="page page--narrow">
+<p class="label">Not found</p>
+<h1>Nothing here</h1>
+<p>There is nothing at this address, or it is not open to you.</p>
+{{if not .Reader}}<p><a class="button" href="{{.SignIn}}">Sign in</a></p>
+<p class="muted">If it is in one of your Rooms, sign in to open it.</p>{{end}}
+</main>
+</body>
+</html>
+{{end}}
+
+{{define "expired"}}{{template "head" "Sign in again"}}</head>
+<body>
+{{template "top" .}}
+<main class="page page--narrow">
+<p class="label">Sign in</p>
+<h1>This link has expired</h1>
+<p>The link that signs you in works once, for a minute.</p>
+<p><a class="button" href="{{.SignIn}}">Sign in again</a></p>
+</main>
+</body>
+</html>
+{{end}}

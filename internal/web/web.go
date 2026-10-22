@@ -106,6 +106,8 @@ type Server struct {
 	console       *http.ServeMux // port 8443: the console, its API and the consent screen of OAuth
 	visitors      *limiter       // calls that sign in, by address
 	registrations *limiter       // registrations of OAuth clients, by address
+	keyTries      *limiter       // Keys typed, by address
+	keyFailures   *limiter       // wrong Keys, by Window
 
 	// streams is canceled when the server shuts down, to end the
 	// standalone streams of MCP sessions.
@@ -144,11 +146,24 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 		s.mux.HandleFunc(method+" /oauth/register", s.logged(s.serveRegister))
 		s.mux.HandleFunc(method+" /oauth/revoke", s.logged(s.serveRevoke))
 	}
+	// The pages of Cahut for readers, and the frames of protected Windows.
+	// See docs/adr/0019-window-versions-access-and-declaration.md.
+	s.mux.HandleFunc("GET /-/cahut.css", serveAsset("cahut.css"))
+	s.mux.HandleFunc("GET /-/frame.js", serveAsset("frame.js"))
+	s.mux.HandleFunc("GET /-/sign-in", s.serveSignIn)
+	s.mux.HandleFunc("GET /-/session", s.serveSession)
+	s.mux.HandleFunc("POST /-/sign-out", s.serveSignOut)
+	s.mux.HandleFunc("POST /-/key", s.serveKey)
+	s.mux.HandleFunc("GET /-/w/{capability}/{file...}", s.serveFrame)
+	s.mux.HandleFunc("/{room}", s.redirectToRoom)
+	s.mux.HandleFunc("GET /{room}/{$}", s.serveRoom)
 	s.mux.HandleFunc("GET /{room}/{window}", redirectToWindow)
 	s.mux.HandleFunc("GET /{room}/{window}/{file...}", s.serveWindow)
 
 	s.visitors = newLimiter(SignInEvery, SignInBurst)
 	s.registrations = newLimiter(RegisterEvery, RegisterBurst)
+	s.keyTries = newLimiter(KeyEvery, KeyBurst)
+	s.keyFailures = newLimiter(KeyWindowEvery, KeyWindowBurst)
 	s.console = http.NewServeMux()
 	// The console's port serves the consent screen only: people's browsers
 	// reach it, not the servers of AI clients.
@@ -244,11 +259,6 @@ func hostOf(r *http.Request) string {
 
 func misdirected(w http.ResponseWriter) {
 	http.Error(w, "This address is not served here.", http.StatusMisdirectedRequest)
-}
-
-func (s *Server) serveRoot(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	fmt.Fprintf(w, "This is %s, a Cahut. AIs connect to it over MCP at /mcp.\n", siteOf(r).cahut.Domain)
 }
 
 // serveMCP passes the request to the MCP endpoint of its Cahut. A GET opens

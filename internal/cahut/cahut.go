@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"cahut.cloud/internal/account"
+	"cahut.cloud/internal/credential"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/oauth"
 	"cahut.cloud/internal/operation"
@@ -42,6 +43,9 @@ type Cahut struct {
 	Registry *operation.Registry
 	Windows  *window.Service
 	OAuth    *oauth.Server
+	// FrameKey signs the capabilities of the frames of protected Windows.
+	// See docs/adr/0019-window-versions-access-and-declaration.md.
+	FrameKey []byte
 }
 
 // Open opens the Cahut in cfg.Dir, creating it if needed.
@@ -84,7 +88,24 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 			return a, nil
 		},
 	})
-	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w, OAuth: auth}, nil
+	frameKey, err := secret(ctx, db, "frames")
+	if err != nil {
+		db.Close()
+		return nil, fmt.Errorf("read the secrets of %s: %w", cfg.Domain, err)
+	}
+	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w, OAuth: auth, FrameKey: frameKey}, nil
+}
+
+// secret returns the random secret of the Cahut called name, drawn on first
+// use.
+func secret(ctx context.Context, db *store.DB, name string) ([]byte, error) {
+	_, err := db.Write.ExecContext(ctx, "INSERT INTO secrets (name, value) VALUES (?, ?) ON CONFLICT DO NOTHING", name, credential.Random(32))
+	if err != nil {
+		return nil, err
+	}
+	var value []byte
+	err = db.Write.QueryRowContext(ctx, "SELECT value FROM secrets WHERE name = ?", name).Scan(&value)
+	return value, err
 }
 
 // Close closes the database.

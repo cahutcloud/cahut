@@ -273,18 +273,5 @@ func VerifySession(ctx context.Context, db *store.DB, token string, now time.Tim
 	if !strings.HasPrefix(token, SessionPrefix) {
 		return SessionOwner{}, ErrInvalidSession
 	}
-	var o SessionOwner
-	err := db.Read.QueryRowContext(ctx, `
-		SELECT s.id, u.id, u.handle FROM sessions s JOIN users u ON u.id = s.user_id
-		WHERE s.hash = ? AND s.expires_at > ? AND s.last_used_at > ? AND u.disabled_at IS NULL`,
-		credential.Hash(token), store.FormatTime(now), store.FormatTime(now.Add(-credential.SessionIdle))).Scan(&o.SessionID, &o.UserID, &o.Handle)
-	if errors.Is(err, sql.ErrNoRows) {
-		return SessionOwner{}, ErrInvalidSession
-	}
-	if err != nil {
-		return SessionOwner{}, err
-	}
-	_, err = db.Write.ExecContext(ctx, "UPDATE sessions SET last_used_at = ? WHERE id = ? AND last_used_at < ?",
-		store.FormatTime(now), o.SessionID, store.FormatTime(now.Add(-time.Minute)))
-	return o, err
+	return verify(ctx, db, "s.hash = ? AND s.reader = 0", credential.Hash(token), now)
 }
