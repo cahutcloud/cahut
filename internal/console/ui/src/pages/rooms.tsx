@@ -8,6 +8,7 @@ import { ConfirmButton, Failure, initials, Notice, PageHead, plural, WindowCard 
 import { useConsole } from "../context";
 import { useLoad } from "../load";
 import { Link, navigate } from "../router";
+import { Trash } from "./window";
 
 /** Rooms as cards, each a link to its page. */
 export function RoomCards({ rooms }: { rooms: Room[] }) {
@@ -165,6 +166,7 @@ export function RoomPage({ name }: { name: string }) {
 							))}
 						</div>
 					)}
+					{windows.data && <Trash room={r.name} />}
 				</section>
 				<People room={r} manage={manage} onChange={room.reload} />
 			</div>

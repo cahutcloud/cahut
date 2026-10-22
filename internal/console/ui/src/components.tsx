@@ -1,8 +1,9 @@
 // Small pieces that the screens share.
-import { AppWindow, ChartColumn, Check, Copy, FileText, Presentation } from "lucide-preact";
+import { AppWindow, ChartColumn, Check, Copy, FileText, Globe, KeyRound, Lock, Presentation, Users } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import type { Window } from "./api.gen";
+import { Link } from "./router";
 
 /** The head of a screen: a label, a title and a line under it. */
 export function PageHead(props: { label: string; title: string; children?: ComponentChildren; actions?: ComponentChildren }) {
@@ -102,24 +103,54 @@ const kinds: Record<string, { icon: typeof FileText; name: string }> = {
 	site: { icon: AppWindow, name: "Site" },
 };
 
-/** A Window, as a card that opens it. */
+/** The access levels of a Window, with their badge. */
+export const accesses: Record<string, { icon: typeof Lock; name: string; who: string }> = {
+	room: { icon: Lock, name: "Room only", who: "the members of its Room" },
+	internal: { icon: Users, name: "Internal", who: "everyone signed in to this Cahut" },
+	key: { icon: KeyRound, name: "Key", who: "anyone with its Key" },
+	public: { icon: Globe, name: "Public", who: "anyone with its address" },
+};
+
+/** The access of a Window, as a badge: an icon and a word, never a color alone. */
+export function AccessBadge({ access }: { access: string }) {
+	const a = accesses[access] ?? accesses.room;
+	const Icon = a.icon;
+	return (
+		<span class={`c-badge c-badge--${access in accesses ? access : "room"}`}>
+			<Icon class="i" size={14} aria-hidden="true" />
+			{a.name}
+		</span>
+	);
+}
+
+/** The page of a Window in the console. */
+export function windowPage(w: Pick<Window, "room" | "name">): string {
+	return `/rooms/${w.room}/${w.name}`;
+}
+
+export function kindName(kind: string): string {
+	return (kinds[kind] ?? kinds.site).name;
+}
+
+/** A Window, as a card that leads to its page. */
 export function WindowCard({ window: w, showRoom }: { window: Window; showRoom?: boolean }) {
 	const kind = kinds[w.kind] ?? kinds.site;
 	const Icon = kind.icon;
 	return (
 		<article class="c-card c-window">
-			<a class="c-window__thumb window-thumb" href={w.url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${w.title}`}>
+			<Link class="c-window__thumb window-thumb" href={windowPage(w)} aria-label={w.title}>
 				<Icon size={40} aria-hidden="true" />
-			</a>
+			</Link>
 			<div class="c-window__body">
-				<a class="c-window__title window-title" href={w.url} target="_blank" rel="noopener noreferrer">
+				<Link class="c-window__title window-title" href={windowPage(w)}>
 					<Icon class="i" size={16} aria-hidden="true" />
 					{w.title}
-				</a>
+				</Link>
 				<div class="c-window__meta">
 					<span>
 						{kind.name} · {ago(w.updated_at)} · {showRoom ? w.room : w.created_by}
 					</span>
+					<AccessBadge access={w.access} />
 				</div>
 			</div>
 		</article>
@@ -135,6 +166,13 @@ export function ago(at: string): string {
 	if (minutes < 24 * 60) return `${Math.round(minutes / 60)} h ago`;
 	if (minutes < 48 * 60) return "Yesterday";
 	return then.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+/** Says a size in bytes, as in "12 KB" or "3.4 MB". */
+export function bytes(n: number): string {
+	if (n < 1000) return `${n} bytes`;
+	if (n < 1000 * 1000) return `${Math.round(n / 1000)} KB`;
+	return `${(n / 1000 / 1000).toFixed(1)} MB`;
 }
 
 /** Says a count with its noun, as in "1 Window" or "3 Windows". */

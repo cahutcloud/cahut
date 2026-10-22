@@ -15,6 +15,7 @@ import { People } from "./pages/people";
 import { Read } from "./pages/read";
 import { RoomPage, RoomsPage } from "./pages/rooms";
 import { SignIn } from "./pages/sign-in";
+import { WindowPage } from "./pages/window";
 import { navigate, Redirect, usePath } from "./router";
 import { clear, load, save, type Session } from "./session";
 import { Shell } from "./shell";
@@ -121,6 +122,8 @@ function SignedIn(props: { session: Session; path: string; onExpired: () => void
 function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 	const room = path.match(/^\/rooms\/([a-z0-9-]+)\/?$/);
 	if (room) return <RoomPage name={room[1]} />;
+	const win = path.match(/^\/rooms\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
+	if (win) return <WindowPage key={path} room={win[1]} name={win[2]} />;
 	switch (path) {
 		case "/":
 			return <Overview />;
