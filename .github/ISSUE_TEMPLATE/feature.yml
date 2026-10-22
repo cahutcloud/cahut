@@ -1,0 +1,42 @@
+name: Accepted feature
+description: A feature discussed and accepted in the Discussions, ready to be tracked here.
+labels: ["feature", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Features are discussed first, in the Discussions, under Ideas. Open this issue once the discussion concluded that the feature belongs in Cahut, and link it. An idea that was not discussed is closed and sent back to the Discussions.
+  - type: input
+    id: discussion
+    attributes:
+      label: The discussion
+      description: The link to the Discussion where this feature was accepted.
+      placeholder: https://github.com/getcahut/cahut/discussions/123
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What it does
+      description: In the words of the house. Which Rooms, Windows, Keys, operations or screens it touches, and what a person or an AI can do after it that they could not do before.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it belongs in Cahut
+      description: The need it answers, and why the alternatives discussed were set aside.
+    validations:
+      required: true
+  - type: textarea
+    id: knock
+    attributes:
+      label: Knock first and the Logbook
+      description: Is any part of it irreversible, and so waits for a person's approval? What goes to the Logbook?
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: The discussion linked above concluded that this feature belongs in Cahut.
+          required: true
