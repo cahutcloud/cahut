@@ -36,6 +36,7 @@ type Entry struct {
 	Detail     string    `json:"detail,omitempty"`
 	Outcome    Outcome   `json:"outcome" jsonschema:"ok, refused or failed"`
 	Error      string    `json:"error,omitempty"`
+	RoomID     int64     `json:"-"` // the Room the entry concerns, whose members read it
 }
 
 // Execer is satisfied by *sql.DB and *sql.Tx.
@@ -53,11 +54,11 @@ type Queryer interface {
 func Write(ctx context.Context, db Execer, e Entry) error {
 	_, err := db.ExecContext(ctx, `
 		INSERT INTO logbook (at, operation, actor, user_id, user_handle, token_id,
-			client, via, target, detail, outcome, error)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			client, via, target, detail, outcome, error, room_id)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		store.FormatTime(e.At), e.Operation, e.Actor, nullInt(e.UserID), nullString(e.UserHandle),
 		nullInt(e.TokenID), nullString(e.Client), e.Via, nullString(e.Target),
-		nullString(e.Detail), string(e.Outcome), nullString(e.Error))
+		nullString(e.Detail), string(e.Outcome), nullString(e.Error), nullInt(e.RoomID))
 	if err != nil {
 		return fmt.Errorf("write logbook: %w", err)
 	}
@@ -69,10 +70,11 @@ func List(ctx context.Context, db Queryer, limit int) ([]Entry, error) {
 	return list(ctx, db, "1 = 1", limit)
 }
 
-// ListOf returns the latest entries about the person userID, newest first:
-// what they did, and what AIs did on their behalf.
+// ListOf returns the latest entries that the person userID reads, newest
+// first: what they did, what AIs did on their behalf, and what happened in
+// their Rooms. Only the Logbook of a Cahut has Rooms.
 func ListOf(ctx context.Context, db Queryer, userID int64, limit int) ([]Entry, error) {
-	return list(ctx, db, "user_id = ?", userID, limit)
+	return list(ctx, db, "user_id = ? OR room_id IN (SELECT room_id FROM room_members WHERE user_id = ?)", userID, userID, limit)
 }
 
 // list returns the latest entries that match where, newest first. Its last
@@ -80,7 +82,7 @@ func ListOf(ctx context.Context, db Queryer, userID int64, limit int) ([]Entry, 
 func list(ctx context.Context, db Queryer, where string, args ...any) ([]Entry, error) {
 	rows, err := db.QueryContext(ctx, `
 		SELECT id, at, operation, actor, user_id, user_handle, token_id,
-			client, via, target, detail, outcome, error
+			client, via, target, detail, outcome, error, room_id
 		FROM logbook WHERE `+where+` ORDER BY id DESC LIMIT ?`, args...)
 	if err != nil {
 		return nil, err
@@ -92,17 +94,17 @@ func list(ctx context.Context, db Queryer, where string, args ...any) ([]Entry, 
 		var (
 			e                                           Entry
 			at, outcome                                 string
-			userID, tokenID                             sql.NullInt64
+			userID, tokenID, roomID                     sql.NullInt64
 			handle, client, target, detail, errorString sql.NullString
 		)
 		if err := rows.Scan(&e.ID, &at, &e.Operation, &e.Actor, &userID, &handle, &tokenID,
-			&client, &e.Via, &target, &detail, &outcome, &errorString); err != nil {
+			&client, &e.Via, &target, &detail, &outcome, &errorString, &roomID); err != nil {
 			return nil, err
 		}
 		if e.At, err = store.ParseTime(at); err != nil {
 			return nil, err
 		}
-		e.UserID, e.TokenID = userID.Int64, tokenID.Int64
+		e.UserID, e.TokenID, e.RoomID = userID.Int64, tokenID.Int64, roomID.Int64
 		e.UserHandle, e.Client, e.Target = handle.String, client.String, target.String
 		e.Detail, e.Error = detail.String, errorString.String
 		e.Outcome = Outcome(outcome)

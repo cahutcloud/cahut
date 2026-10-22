@@ -16,23 +16,30 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | Operation | What it does | Who calls it | Changes data | Offered to AIs |
 | --- | --- | --- | --- | --- |
 | `activate_account` | Choose a password from a single-use activation link, and sign in. | Anyone, to sign in | yes | no, people only |
+| [`add_room_member`](/reference/mcp-tools/#add_room_member) | Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. | Any person | yes | yes |
 | `change_password` | Change your password. Your other sessions end. | Any person | yes | no, people only |
 | `create_activation_link` | Give a person a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. Their password works until they use the link. | Administrators of the Cahut | yes | no, people only |
+| [`create_room`](/reference/mcp-tools/#create_room) | Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. | Any person | yes | yes |
 | `create_token` | Create a personal token that lets an AI act on behalf of a person. | Any person | yes | no, people only |
 | [`create_user`](/reference/mcp-tools/#create_user) | Create a person, with their personal Room, and the link where they choose their password. | Administrators of the Cahut | yes | to the AIs of administrators |
 | [`disable_user`](/reference/mcp-tools/#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. | Administrators of the Cahut | yes | to the AIs of administrators |
 | [`enable_user`](/reference/mcp-tools/#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. | Administrators of the Cahut | yes | to the AIs of administrators |
 | [`get_account`](/reference/mcp-tools/#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. | Any person | no | yes |
+| [`get_room`](/reference/mcp-tools/#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. | Any person | no | yes |
 | [`get_window`](/reference/mcp-tools/#get_window) | Describe a Window and list its files, optionally with their contents. | Any person | no | yes |
 | [`list_logbook`](/reference/mcp-tools/#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. | Any person | no | yes |
+| [`list_rooms`](/reference/mcp-tools/#list_rooms) | List your Rooms, your personal Room first, with your role and how many members and Windows each has. | Any person | no | yes |
 | `list_tokens` | List personal tokens, newest first. | Any person | no | no, people only |
 | [`list_users`](/reference/mcp-tools/#list_users) | List the people of the Cahut, with their handles, names, roles and states. | Any person | no | yes |
-| [`list_windows`](/reference/mcp-tools/#list_windows) | List the Windows in the Rooms of the person you act for, most recently updated first. | Any person | no | yes |
+| [`list_windows`](/reference/mcp-tools/#list_windows) | List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. | Any person | no | yes |
 | [`publish_window`](/reference/mcp-tools/#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. | Any person | yes | yes |
+| [`remove_room_member`](/reference/mcp-tools/#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. | Any person | yes | yes |
 | `revoke_token` | Revoke a personal token. The AI that used it loses access at once. | Any person | yes | no, people only |
+| [`set_room_member_role`](/reference/mcp-tools/#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. | Any person | yes | yes |
 | [`set_user_role`](/reference/mcp-tools/#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. | Administrators of the Cahut | yes | to the AIs of administrators |
 | `sign_in` | Sign in with a handle and a password, and open a session. | Anyone, to sign in | yes | no, people only |
 | `sign_out` | End the session you signed in with. | Any person | yes | no, people only |
+| [`update_room`](/reference/mcp-tools/#update_room) | Change the title of a Room. Its name, and so its address, stays. | Any person | yes | yes |
 
 ## Operations of the server
 
@@ -53,4 +60,4 @@ They are not offered over MCP.
 
 ## Knock first
 
-An operation that cannot be undone, or that changes what a person may do, needs the approval of a person before an AI can run it. A person who calls it in the console acts at once. Approvals are not available yet, so AIs cannot run these operations: `create_user`, `disable_user`, `enable_user`, `set_user_role`.
+An operation that cannot be undone, or that changes what a person may do, needs the approval of a person before an AI can run it. A person who calls it in the console acts at once. Approvals are not available yet, so AIs cannot run these operations: `add_room_member`, `create_user`, `disable_user`, `enable_user`, `remove_room_member`, `set_room_member_role`, `set_user_role`.

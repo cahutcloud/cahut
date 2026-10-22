@@ -12,6 +12,7 @@ import (
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/store"
 	"cahut.cloud/internal/window"
 )
@@ -53,6 +54,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	}
 	r := operation.NewRegistry(db)
 	account.Register(r)
+	room.Register(r)
 	w := window.NewService(filepath.Join(cfg.Dir, "windows"), url)
 	w.Register(r)
 	operation.Register(r, ListLogbook)

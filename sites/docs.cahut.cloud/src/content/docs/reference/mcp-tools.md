@@ -31,16 +31,265 @@ The Cahut gives these instructions to the AI when it connects:
 
 | Tool | What it does |
 | --- | --- |
+| [`add_room_member`](#add_room_member) | Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. |
+| [`create_room`](#create_room) | Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. |
 | [`create_user`](#create_user) | Create a person, with their personal Room, and the link where they choose their password. |
 | [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. |
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
+| [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
 | [`get_window`](#get_window) | Describe a Window and list its files, optionally with their contents. |
 | [`list_logbook`](#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. |
+| [`list_rooms`](#list_rooms) | List your Rooms, your personal Room first, with your role and how many members and Windows each has. |
 | [`list_users`](#list_users) | List the people of the Cahut, with their handles, names, roles and states. |
-| [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for, most recently updated first. |
+| [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. |
 | [`publish_window`](#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. |
+| [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. |
+| [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. |
 | [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. |
+| [`update_room`](#update_room) | Change the title of a Room. Its name, and so its address, stays. |
+
+## `add_room_member`
+
+Add a person to a team Room, as a member or an owner. They can then open and publish its Windows.
+
+Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+
+Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `room` | string | yes | the Room's name |
+| `user` | string | yes | handle of the person |
+| `role` | string | no | owner or member; member when empty |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "role": {
+      "description": "owner or member; member when empty",
+      "type": "string"
+    },
+    "room": {
+      "description": "the Room's name",
+      "type": "string"
+    },
+    "user": {
+      "description": "handle of the person",
+      "type": "string"
+    }
+  },
+  "required": [
+    "room",
+    "user"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `kind` | string | yes | personal or team |
+| `members` | integer | yes | how many people are in the Room |
+| `name` | string | yes | the Room's name, first part of its address |
+| `people` | array of objects or null | yes | the people in the Room, owners first |
+| `people[].handle` | string | yes |  |
+| `people[].name` | string | yes |  |
+| `people[].role` | string | yes | owner or member of the Room |
+| `title` | string | yes |  |
+| `windows` | integer | yes | how many Windows the Room holds |
+| `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "kind": {
+      "description": "personal or team",
+      "type": "string"
+    },
+    "members": {
+      "description": "how many people are in the Room",
+      "type": "integer"
+    },
+    "name": {
+      "description": "the Room's name, first part of its address",
+      "type": "string"
+    },
+    "people": {
+      "description": "the people in the Room, owners first",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "handle": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "description": "owner or member of the Room",
+            "type": "string"
+          }
+        },
+        "required": [
+          "handle",
+          "name",
+          "role"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "role": {
+      "description": "your role in the Room, owner or member; empty when you are not in it",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "windows": {
+      "description": "how many Windows the Room holds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "members",
+    "windows",
+    "created_at",
+    "people"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `create_room`
+
+Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members.
+
+Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `title` | string | yes | title of the Room, such as Marketing |
+| `name` | string | no | name of the Room, the first part of its address; from the title when empty |
+| `owner` | string | no | handle of its first owner; you when empty. Only administrators of the Cahut name someone else |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "description": "name of the Room, the first part of its address; from the title when empty",
+      "type": "string"
+    },
+    "owner": {
+      "description": "handle of its first owner; you when empty. Only administrators of the Cahut name someone else",
+      "type": "string"
+    },
+    "title": {
+      "description": "title of the Room, such as Marketing",
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `kind` | string | yes | personal or team |
+| `members` | integer | yes | how many people are in the Room |
+| `name` | string | yes | the Room's name, first part of its address |
+| `title` | string | yes |  |
+| `windows` | integer | yes | how many Windows the Room holds |
+| `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "kind": {
+      "description": "personal or team",
+      "type": "string"
+    },
+    "members": {
+      "description": "how many people are in the Room",
+      "type": "integer"
+    },
+    "name": {
+      "description": "the Room's name, first part of its address",
+      "type": "string"
+    },
+    "role": {
+      "description": "your role in the Room, owner or member; empty when you are not in it",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "windows": {
+      "description": "how many Windows the Room holds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "members",
+    "windows",
+    "created_at"
+  ],
+  "type": "object"
+}
+```
+
+</details>
 
 ## `create_user`
 
@@ -469,6 +718,132 @@ This tool takes no arguments.
 
 </details>
 
+## `get_room`
+
+Describe a Room: its title, its owners and members, and how many Windows it holds.
+
+Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `room` | string | yes | the Room's name, first part of its address |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "room": {
+      "description": "the Room's name, first part of its address",
+      "type": "string"
+    }
+  },
+  "required": [
+    "room"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `kind` | string | yes | personal or team |
+| `members` | integer | yes | how many people are in the Room |
+| `name` | string | yes | the Room's name, first part of its address |
+| `people` | array of objects or null | yes | the people in the Room, owners first |
+| `people[].handle` | string | yes |  |
+| `people[].name` | string | yes |  |
+| `people[].role` | string | yes | owner or member of the Room |
+| `title` | string | yes |  |
+| `windows` | integer | yes | how many Windows the Room holds |
+| `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "kind": {
+      "description": "personal or team",
+      "type": "string"
+    },
+    "members": {
+      "description": "how many people are in the Room",
+      "type": "integer"
+    },
+    "name": {
+      "description": "the Room's name, first part of its address",
+      "type": "string"
+    },
+    "people": {
+      "description": "the people in the Room, owners first",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "handle": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "description": "owner or member of the Room",
+            "type": "string"
+          }
+        },
+        "required": [
+          "handle",
+          "name",
+          "role"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "role": {
+      "description": "your role in the Room, owner or member; empty when you are not in it",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "windows": {
+      "description": "how many Windows the Room holds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "members",
+    "windows",
+    "created_at",
+    "people"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
 ## `get_window`
 
 Describe a Window and list its files, optionally with their contents.
@@ -760,6 +1135,112 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 
 </details>
 
+## `list_rooms`
+
+List your Rooms, your personal Room first, with your role and how many members and Windows each has.
+
+Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `all` | boolean | no | every Room of the Cahut, for an administrator; your Rooms when false |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "all": {
+      "description": "every Room of the Cahut, for an administrator; your Rooms when false",
+      "type": "boolean"
+    }
+  },
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `rooms` | array of objects or null | yes |  |
+| `rooms[].created_at` | string | yes |  |
+| `rooms[].kind` | string | yes | personal or team |
+| `rooms[].members` | integer | yes | how many people are in the Room |
+| `rooms[].name` | string | yes | the Room's name, first part of its address |
+| `rooms[].title` | string | yes |  |
+| `rooms[].windows` | integer | yes | how many Windows the Room holds |
+| `rooms[].role` | string | no | your role in the Room, owner or member; empty when you are not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "rooms": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "kind": {
+            "description": "personal or team",
+            "type": "string"
+          },
+          "members": {
+            "description": "how many people are in the Room",
+            "type": "integer"
+          },
+          "name": {
+            "description": "the Room's name, first part of its address",
+            "type": "string"
+          },
+          "role": {
+            "description": "your role in the Room, owner or member; empty when you are not in it",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "windows": {
+            "description": "how many Windows the Room holds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "title",
+          "kind",
+          "members",
+          "windows",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    }
+  },
+  "required": [
+    "rooms"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
 ## `list_users`
 
 List the people of the Cahut, with their handles, names, roles and states.
@@ -854,13 +1335,15 @@ This tool takes no arguments.
 
 ## `list_windows`
 
-List the Windows in the Rooms of the person you act for, most recently updated first.
+List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first.
 
 Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
-This tool takes no arguments.
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `room` | string | no | only the Windows of this Room, by its name |
 
 <details>
 <summary>JSON Schema</summary>
@@ -868,6 +1351,12 @@ This tool takes no arguments.
 ```json
 {
   "additionalProperties": false,
+  "properties": {
+    "room": {
+      "description": "only the Windows of this Room, by its name",
+      "type": "string"
+    }
+  },
   "type": "object"
 }
 ```
@@ -1129,6 +1618,279 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 </details>
 
+## `remove_room_member`
+
+Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner.
+
+Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+
+Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `room` | string | yes | the Room's name |
+| `user` | string | yes | handle of the person; yourself to leave the Room |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "room": {
+      "description": "the Room's name",
+      "type": "string"
+    },
+    "user": {
+      "description": "handle of the person; yourself to leave the Room",
+      "type": "string"
+    }
+  },
+  "required": [
+    "room",
+    "user"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `kind` | string | yes | personal or team |
+| `members` | integer | yes | how many people are in the Room |
+| `name` | string | yes | the Room's name, first part of its address |
+| `people` | array of objects or null | yes | the people in the Room, owners first |
+| `people[].handle` | string | yes |  |
+| `people[].name` | string | yes |  |
+| `people[].role` | string | yes | owner or member of the Room |
+| `title` | string | yes |  |
+| `windows` | integer | yes | how many Windows the Room holds |
+| `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "kind": {
+      "description": "personal or team",
+      "type": "string"
+    },
+    "members": {
+      "description": "how many people are in the Room",
+      "type": "integer"
+    },
+    "name": {
+      "description": "the Room's name, first part of its address",
+      "type": "string"
+    },
+    "people": {
+      "description": "the people in the Room, owners first",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "handle": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "description": "owner or member of the Room",
+            "type": "string"
+          }
+        },
+        "required": [
+          "handle",
+          "name",
+          "role"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "role": {
+      "description": "your role in the Room, owner or member; empty when you are not in it",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "windows": {
+      "description": "how many Windows the Room holds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "members",
+    "windows",
+    "created_at",
+    "people"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `set_room_member_role`
+
+Make a person of a team Room an owner or a member of it. A Room keeps at least one owner.
+
+Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+
+Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `room` | string | yes | the Room's name |
+| `user` | string | yes | handle of the person |
+| `role` | string | no | owner or member; member when empty |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "role": {
+      "description": "owner or member; member when empty",
+      "type": "string"
+    },
+    "room": {
+      "description": "the Room's name",
+      "type": "string"
+    },
+    "user": {
+      "description": "handle of the person",
+      "type": "string"
+    }
+  },
+  "required": [
+    "room",
+    "user"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `kind` | string | yes | personal or team |
+| `members` | integer | yes | how many people are in the Room |
+| `name` | string | yes | the Room's name, first part of its address |
+| `people` | array of objects or null | yes | the people in the Room, owners first |
+| `people[].handle` | string | yes |  |
+| `people[].name` | string | yes |  |
+| `people[].role` | string | yes | owner or member of the Room |
+| `title` | string | yes |  |
+| `windows` | integer | yes | how many Windows the Room holds |
+| `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "kind": {
+      "description": "personal or team",
+      "type": "string"
+    },
+    "members": {
+      "description": "how many people are in the Room",
+      "type": "integer"
+    },
+    "name": {
+      "description": "the Room's name, first part of its address",
+      "type": "string"
+    },
+    "people": {
+      "description": "the people in the Room, owners first",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "handle": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "description": "owner or member of the Room",
+            "type": "string"
+          }
+        },
+        "required": [
+          "handle",
+          "name",
+          "role"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "role": {
+      "description": "your role in the Room, owner or member; empty when you are not in it",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "windows": {
+      "description": "how many Windows the Room holds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "members",
+    "windows",
+    "created_at",
+    "people"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
 ## `set_user_role`
 
 Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator.
@@ -1219,6 +1981,138 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
     "role",
     "status",
     "personal_room"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `update_room`
+
+Change the title of a Room. Its name, and so its address, stays.
+
+Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `room` | string | yes | the Room's name |
+| `title` | string | yes | the new title |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "room": {
+      "description": "the Room's name",
+      "type": "string"
+    },
+    "title": {
+      "description": "the new title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "room",
+    "title"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `kind` | string | yes | personal or team |
+| `members` | integer | yes | how many people are in the Room |
+| `name` | string | yes | the Room's name, first part of its address |
+| `people` | array of objects or null | yes | the people in the Room, owners first |
+| `people[].handle` | string | yes |  |
+| `people[].name` | string | yes |  |
+| `people[].role` | string | yes | owner or member of the Room |
+| `title` | string | yes |  |
+| `windows` | integer | yes | how many Windows the Room holds |
+| `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "kind": {
+      "description": "personal or team",
+      "type": "string"
+    },
+    "members": {
+      "description": "how many people are in the Room",
+      "type": "integer"
+    },
+    "name": {
+      "description": "the Room's name, first part of its address",
+      "type": "string"
+    },
+    "people": {
+      "description": "the people in the Room, owners first",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "handle": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "description": "owner or member of the Room",
+            "type": "string"
+          }
+        },
+        "required": [
+          "handle",
+          "name",
+          "role"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "role": {
+      "description": "your role in the Room, owner or member; empty when you are not in it",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "windows": {
+      "description": "how many Windows the Room holds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "members",
+    "windows",
+    "created_at",
+    "people"
   ],
   "type": "object"
 }

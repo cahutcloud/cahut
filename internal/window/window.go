@@ -17,6 +17,7 @@ import (
 
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/store"
 )
 
@@ -56,7 +57,7 @@ func (s *Service) Register(r *operation.Registry) {
 	})
 	operation.Register(r, &operation.Op[ListInput, List]{
 		Name:        "list_windows",
-		Description: "List the Windows in the Rooms of the person you act for, most recently updated first.",
+		Description: "List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first.",
 		ReadOnly:    true,
 		Run:         s.list,
 	})
@@ -114,11 +115,19 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 		return Window{}, operation.Invalidf("publish_window acts for a person, and the administrator is not one")
 	}
 
-	roomID, room, err := s.room(ctx, c, in.Room)
+	// A person publishes in their personal Room, named after their handle,
+	// or in a Room they are in.
+	name := in.Room
+	if name == "" {
+		name = c.Actor.Handle
+	}
+	r, err := room.Require(ctx, c, name, room.Member)
 	if err != nil {
 		return Window{}, err
 	}
-	w := Window{Title: title, Kind: in.Kind, Room: room, Version: 1, Size: size, FileCount: len(files),
+	c.InRoom(r.ID)
+	roomID := r.ID
+	w := Window{Title: title, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files),
 		CreatedBy: c.Actor.Handle, CreatedAt: c.Now, UpdatedAt: c.Now}
 	if w.Name, err = freeName(ctx, c.Tx, roomID, title); err != nil {
 		return Window{}, err
@@ -140,30 +149,6 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 		return Window{}, err
 	}
 	return w, nil
-}
-
-// room finds the Room called name among those of the person the actor is
-// or acts for, or their personal Room when name is empty. It returns the
-// Room's id and name.
-func (s *Service) room(ctx context.Context, c *operation.Call, name string) (int64, string, error) {
-	q := `SELECT r.id, r.name FROM rooms r JOIN room_members m ON m.room_id = r.id WHERE m.user_id = ? AND `
-	args := []any{c.Actor.UserID}
-	if name == "" {
-		q += "r.kind = 'personal'"
-	} else {
-		q += "r.name = ?"
-		args = append(args, name)
-	}
-	var id int64
-	var room string
-	err := c.Tx.QueryRowContext(ctx, q, args...).Scan(&id, &room)
-	if errors.Is(err, sql.ErrNoRows) && name != "" {
-		return 0, "", operation.NotFoundf("no Room %q among those of %s", name, c.Actor.Handle)
-	}
-	if err != nil {
-		return 0, "", fmt.Errorf("find the Room: %w", err)
-	}
-	return id, room, nil
 }
 
 // Dir returns the directory that holds the files of a version of the Window
@@ -220,6 +205,7 @@ func (s *Service) get(ctx context.Context, c *operation.Call, in GetInput) (Deta
 	if len(w) == 0 {
 		return Detail{}, operation.NotFoundf("no Window %s/%s in your Rooms", room, name)
 	}
+	c.InRoom(w[0].roomID)
 	files, err := listFiles(s.Dir(w[0].id, w[0].Version), in.IncludeContent)
 	if err != nil {
 		return Detail{}, err
@@ -228,19 +214,30 @@ func (s *Service) get(ctx context.Context, c *operation.Call, in GetInput) (Deta
 }
 
 // ListInput is the input of list_windows.
-type ListInput struct{}
+type ListInput struct {
+	Room string `json:"room,omitempty" jsonschema:"only the Windows of this Room, by its name"`
+}
 
 // List is the output of list_windows.
 type List struct {
 	Windows []Window `json:"windows"`
 }
 
-func (s *Service) list(ctx context.Context, c *operation.Call, _ ListInput) (List, error) {
-	found, err := s.query(ctx, c, "1 = 1")
+func (s *Service) list(ctx context.Context, c *operation.Call, in ListInput) (List, error) {
+	where, args := "1 = 1", []any{}
+	if in.Room != "" {
+		r, err := room.Require(ctx, c, in.Room, room.Member)
+		if err != nil {
+			return List{}, err
+		}
+		c.InRoom(r.ID)
+		where, args = "w.room_id = ?", []any{r.ID}
+	}
+	found, err := s.query(ctx, c, where, args...)
 	if err != nil {
 		return List{}, err
 	}
-	c.Log("", fmt.Sprintf("%d Windows", len(found)))
+	c.Log(in.Room, fmt.Sprintf("%d Windows", len(found)))
 	list := List{Windows: make([]Window, len(found))}
 	for i, w := range found {
 		list.Windows[i] = w.Window
@@ -248,10 +245,10 @@ func (s *Service) list(ctx context.Context, c *operation.Call, _ ListInput) (Lis
 	return list, nil
 }
 
-// found is a Window that query found, with its id.
+// found is a Window that query found, with its id and that of its Room.
 type found struct {
 	Window
-	id int64
+	id, roomID int64
 }
 
 // query returns the Windows matching where that the actor may see: all of
@@ -260,7 +257,7 @@ type found struct {
 // the server, who belongs to no Room, sees none.
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
 	q := `
-		SELECT w.id, w.name, w.title, w.kind, r.name, w.version, w.size, w.file_count, u.handle, w.created_at, w.updated_at
+		SELECT w.id, w.room_id, w.name, w.title, w.kind, r.name, w.version, w.size, w.file_count, u.handle, w.created_at, w.updated_at
 		FROM windows w JOIN rooms r ON r.id = w.room_id JOIN users u ON u.id = w.created_by
 		WHERE ` + where
 	if !c.Actor.CommandLine() {
@@ -276,7 +273,7 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 	for rows.Next() {
 		var w found
 		var created, updated string
-		if err := rows.Scan(&w.id, &w.Name, &w.Title, &w.Kind, &w.Room, &w.Version, &w.Size, &w.FileCount,
+		if err := rows.Scan(&w.id, &w.roomID, &w.Name, &w.Title, &w.Kind, &w.Room, &w.Version, &w.Size, &w.FileCount,
 			&w.CreatedBy, &created, &updated); err != nil {
 			return nil, err
 		}

@@ -32,7 +32,17 @@ A Window's name holds no random part, so its address can be guessed. Access leve
 
 ## Rooms
 
-Each person has a personal Room, created with them, which they own. Their AI publishes there by default, and can publish in any Room the person belongs to. Team Rooms, with their owners and members, come with accounts and the console.
+Each person has a personal Room, created with them, which they own and share with nobody. Their AI publishes there by default, and can publish in any Room the person is in.
+
+A team Room gathers its owners and members. Any person, or their AI, creates one with `create_room`, and becomes its first owner.
+
+| Who | What they do in a team Room |
+| --- | --- |
+| Its members | Publish in it, open its Windows, and read in the Logbook what happens in it |
+| Its owners | The same, and change its title, add and remove people, and make them owners or members |
+| The administrators of the Cahut | Change its title and its people, but open its Windows only if they are in it |
+
+A Room keeps at least one owner, and anyone can leave a team Room. Adding or removing a person, and changing their role, [knock first](/concepts/knock-first-and-logbook/#knock-first): a person does it, and an AI cannot yet. A Room's name, and so its address, does not change. Deleting a Room comes later.
 
 ## Windows
 

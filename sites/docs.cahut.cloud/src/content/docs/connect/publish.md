@@ -74,7 +74,7 @@ Cahut names the Window after its title: up to 40 lowercase ASCII letters, digits
 
 ## After publishing
 
-`get_window` describes a Window, given its address or `room/name`, and lists its files, with their contents when asked. `list_windows` lists the Windows of the person's Rooms, most recently updated first.
+`get_window` describes a Window, given its address or `room/name`, and lists its files, with their contents when asked. `list_windows` lists the Windows of the person's Rooms, or of one of them with `room`, most recently updated first.
 
 A Window cannot be updated or deleted yet: publishing again creates another Window, such as `q3-review-2`. Versions, with a rollback to the previous one, come later.
 

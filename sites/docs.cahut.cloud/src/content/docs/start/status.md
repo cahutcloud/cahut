@@ -3,10 +3,10 @@ title: Where Cahut stands
 description: What works in Cahut today, and what comes later.
 ---
 
-Cahut is built in slices, each one working from the AI to the reader. The first slice works: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at its own address, and the call goes to the Logbook.
+Cahut is built in slices, each one working from the AI to the reader. The first slice works: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at its own address, and the call goes to the Logbook. The second is under way: accounts, team Rooms and their rights work, and the console comes next.
 
 :::caution[Every Window opens to anyone with its address]
-There is no sign-in and no access level yet: anyone who has the address of a Window can open it. Publish nothing that you would not share by link.
+There is no access level yet: anyone who has the address of a Window can open it, whatever its Room. Publish nothing that you would not share by link.
 :::
 
 ## What works today
@@ -15,9 +15,10 @@ There is no sign-in and no access level yet: anyone who has the address of a Win
 | --- | --- |
 | Server | One `cahut` service on a Linux server with systemd, installed with `install.sh`, holding one or more Cahuts, each at its own domain |
 | HTTPS | A certificate from Let's Encrypt for the domain of each Cahut, obtained and renewed by the service |
-| People | Created by the administrator on the command line, each with a personal Room named after their handle |
-| AI access | Personal tokens, created and revoked on the command line, sent by the AI in a header |
-| MCP | The tools `publish_window`, `get_window` and `list_windows`, over Streamable HTTP |
+| People | Created by an administrator, each with a personal Room named after their handle and a link to choose a password; administrators of the Cahut and of the server, with rights checked on every call |
+| Rooms | Team Rooms with owners and members, created by any person or AI; their members publish in them |
+| AI access | Personal tokens, created and revoked on the command line, sent by the AI in a header; an AI acts with the rights of its person |
+| MCP | The [tools](/reference/mcp-tools/) of Windows, Rooms, people and the Logbook, over Streamable HTTP |
 | Windows | Documents, decks, dashboards and static sites, served at `<domain>/<room>/<window>/` in a sandbox |
 | Logbook | Every call of an AI and every change, read on the command line |
 
@@ -25,7 +26,7 @@ There is no sign-in and no access level yet: anyone who has the address of a Win
 
 These are planned, in about this order, without dates:
 
-- **Accounts and the console.** People sign in with a password, team Rooms gather their members, and a web console on its own port shows the Windows and the Logbook.
+- **The console.** People sign in with a password to a web console on its own port, which shows their Rooms, their Windows and the Logbook, and manages people and Rooms.
 - **OAuth for AI clients.** An AI such as Claude on the web connects with a sign-in and a consent screen, instead of a token copied by hand.
 - **Versions and access.** Updating a Window keeps the previous version, and one step rolls back. Each Window opens to its Room only, to everyone signed in to its Cahut, to anyone with its Key, or to the public. See [Who can open a Window](/concepts/access/).
 - **Knock first.** An AI asks before anything it cannot undo, such as making a Window public, and a person approves or declines in the console.
