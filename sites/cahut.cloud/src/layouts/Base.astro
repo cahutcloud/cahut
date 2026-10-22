@@ -5,6 +5,7 @@ import '@charte/tokens/cahut-tokens.css';
 import '@charte/ui/cahut-ui.css';
 import '../styles/site.css';
 import Icon from '../components/Icon.astro';
+import { localize, otherLang, useTranslations, type Lang } from '../i18n';
 import logo from '@charte/logos/cahut-logo-horizontal.svg?url';
 import logoInverse from '@charte/logos/cahut-logo-horizontal-inverse.svg?url';
 import defaultImage from '@charte/applications/og-image.png';
@@ -14,6 +15,10 @@ import type { ImageMetadata } from 'astro';
 interface Props {
 	title: string;
 	description: string;
+	/** The language of the page. Defaults to English. */
+	lang?: Lang;
+	/** The address of this page in each language it exists in. Other languages lead to their home page. */
+	alternates?: Partial<Record<Lang, string>>;
 	/** The image shown when the page is shared, 1200 × 630. Defaults to the brand's. */
 	image?: ImageMetadata;
 	/** What the image shows, for those who cannot see it. */
@@ -27,67 +32,92 @@ interface Props {
 const {
 	title,
 	description,
+	lang = 'en',
+	alternates = {},
 	image = defaultImage,
-	imageAlt = 'Your own cloud for everything your AI makes. Documents, decks, dashboards and apps, in your house style, on your own server.',
 	fullWidth = false,
 	noindex = false,
 } = Astro.props;
+const t = useTranslations(lang);
+const imageAlt = Astro.props.imageAlt ?? t.meta.imageAlt;
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const imageURL = new URL(image.src, Astro.site);
 const path = Astro.url.pathname;
+const other = otherLang(lang);
+const otherHref = alternates[other] ?? localize(other, '/');
 
 const github = 'https://github.com/getcahut/cahut';
 const docs = 'https://docs.cahut.cloud';
+const home = (hash: string) => localize(lang, `/${hash}`);
 
 // The sections of the home page come first; small screens keep only the rest.
 const nav = [
-	{ href: '/#how-it-works', label: 'How it works', section: true },
-	{ href: '/#knock-first', label: 'Knock first', section: true },
-	{ href: '/#features', label: 'Features', section: true },
-	{ href: docs, label: 'Docs' },
-	{ href: '/brand/', label: 'Brand', optional: true },
+	{ href: home('#how-it-works'), label: t.base.nav.how, section: true },
+	{ href: home('#knock-first'), label: t.base.nav.knock, section: true },
+	{ href: home('#features'), label: t.base.nav.features, section: true },
+	{ href: docs, label: t.base.nav.docs, hreflang: 'en' },
+	{ href: '/brand/', label: t.base.nav.brand, hreflang: 'en', optional: true },
 ];
 
 const footer = [
 	{
-		title: 'Cahut',
+		title: t.base.footer.cahut,
 		links: [
-			{ href: '/#how-it-works', label: 'How it works' },
-			{ href: '/#knock-first', label: 'Knock first' },
-			{ href: '/#features', label: 'Features' },
-			{ href: '/#roadmap', label: 'Roadmap' },
+			{ href: home('#quickstart'), label: t.base.nav.quickstart },
+			{ href: home('#how-it-works'), label: t.base.nav.how },
+			{ href: home('#knock-first'), label: t.base.nav.knock },
+			{ href: home('#features'), label: t.base.nav.features },
+			{ href: home('#roadmap'), label: t.base.nav.roadmap },
 		],
 	},
 	{
-		title: 'Project',
+		title: t.base.footer.project,
 		links: [
-			{ href: github, label: 'GitHub' },
-			{ href: docs, label: 'Docs' },
-			{ href: '/brand/', label: 'Brand' },
+			{ href: github, label: t.base.nav.github },
+			{ href: docs, label: t.base.nav.docs, hreflang: 'en' },
+			{ href: '/brand/', label: t.base.nav.brand, hreflang: 'en' },
 		],
 	},
 ];
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>{title}</title>
 		<meta name="description" content={description} />
 		{noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+		{
+			!noindex &&
+				Object.entries(alternates).map(([language, href]) => (
+					<link rel="alternate" hreflang={language} href={new URL(href, Astro.site)} />
+				))
+		}
+		{!noindex && alternates.en && <link rel="alternate" hreflang="x-default" href={new URL(alternates.en, Astro.site)} />}
 		<link rel="icon" href="/favicon.ico" sizes="32x32" />
 		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<link rel="manifest" href="/site.webmanifest" />
 		<meta name="color-scheme" content="light dark" />
-		<meta name="theme-color" content={tokens.color.brand.paper.$value} media="(prefers-color-scheme: light)" />
-		<meta name="theme-color" content={tokens.color.ink['950'].$value} media="(prefers-color-scheme: dark)" />
+		<meta
+			name="theme-color"
+			content={tokens.color.brand.paper.$value}
+			media="(prefers-color-scheme: light)"
+			data-theme-color="light"
+		/>
+		<meta
+			name="theme-color"
+			content={tokens.color.ink['950'].$value}
+			media="(prefers-color-scheme: dark)"
+			data-theme-color="dark"
+		/>
 
 		<meta property="og:type" content="website" />
 		<meta property="og:site_name" content="Cahut" />
+		<meta property="og:locale" content={t.meta.locale} />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
 		{!noindex && <meta property="og:url" content={canonical} />}
@@ -98,28 +128,34 @@ const footer = [
 		<meta property="og:image:alt" content={imageAlt} />
 		<meta name="twitter:card" content="summary_large_image" />
 
-		<!-- Before the first paint: what reveals itself on scroll starts hidden only when scripts run. -->
+		<!--
+			Before the first paint: the theme the visitor chose, and what reveals
+			itself on scroll starts hidden only when scripts run.
+		-->
 		<script is:inline>
 			document.documentElement.classList.add('js');
+			try {
+				const theme = localStorage.getItem('cahut-theme');
+				if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+			} catch {}
 		</script>
 	</head>
 	<body>
-		<a class="skip-link" href="#content">Skip to content</a>
+		<a class="skip-link" href="#content">{t.base.skip}</a>
 		<header class="site-header" data-header>
 			<div class="container bar">
-				<a href="/" class="logo">
-					<picture>
-						<source srcset={logoInverse} media="(prefers-color-scheme: dark)" />
-						<img src={logo} alt="Cahut, home" width="138" height="28" />
-					</picture>
+				<a href={localize(lang)} class="logo">
+					<img class="logo-light" src={logo} alt={t.base.home} width="138" height="28" />
+					<img class="logo-dark" src={logoInverse} alt={t.base.home} width="138" height="28" />
 				</a>
-				<nav aria-label="Main">
+				<nav aria-label={t.base.mainNav}>
 					<ul>
 						{
-							nav.map(({ href, label, section, optional }) => (
+							nav.map(({ href, label, section, optional, hreflang }) => (
 								<li class:list={{ 'in-page': section, optional }}>
 									<a
 										href={href}
+										hreflang={hreflang !== lang ? hreflang : undefined}
 										aria-current={!section && href.startsWith('/') && path.startsWith(href) ? 'page' : undefined}
 									>
 										{label}
@@ -129,7 +165,25 @@ const footer = [
 						}
 					</ul>
 				</nav>
-				<a class="c-btn c-btn--primary c-btn--sm github" href={github}>GitHub <Icon name="arrow-right" size={14} /></a>
+				<div class="tools">
+					<a class="tool lang" href={otherHref} hreflang={other} lang={other} title={t.base.language.label}>
+						<span aria-hidden="true">{t.base.language.short}</span>
+						<span class="visually-hidden">{t.base.language.label}</span>
+					</a>
+					<button
+						type="button"
+						class="tool"
+						data-theme-toggle
+						data-label-dark={t.base.theme.dark}
+						data-label-light={t.base.theme.light}
+						aria-label={t.base.theme.dark}
+						title={t.base.theme.dark}
+					>
+						<Icon name="moon" size={16} class="to-dark" />
+						<Icon name="sun" size={16} class="to-light" />
+					</button>
+					<a class="c-btn c-btn--primary c-btn--sm github" href={github}>GitHub <Icon name="arrow-right" size={14} /></a>
+				</div>
 			</div>
 		</header>
 		<main id="content" class:list={{ container: !fullWidth, page: !fullWidth }}>
@@ -139,16 +193,18 @@ const footer = [
 			<div class="container">
 				<div class="signature">
 					<img src={logoInverse} alt="Cahut" width="138" height="28" />
-					<p>Your own cloud for everything your AI makes.</p>
+					<p>{t.base.signature}</p>
 				</div>
 				{
 					footer.map(({ title, links }) => (
 						<nav aria-label={title}>
 							<p class="c-label">{title}</p>
 							<ul>
-								{links.map(({ href, label }) => (
+								{links.map(({ href, label, hreflang }) => (
 									<li>
-										<a href={href}>{label}</a>
+										<a href={href} hreflang={hreflang !== lang ? hreflang : undefined}>
+											{label}
+										</a>
 									</li>
 								))}
 							</ul>
@@ -156,10 +212,8 @@ const footer = [
 					))
 				}
 				<div class="about">
-					<p class="c-small c-muted">
-						Cahut is a personal open source project by Olivier Durand, independent of any company and of any AI vendor.
-						It is in early development: nothing is usable yet.
-					</p>
+					<p class="c-small c-muted">{t.base.about}</p>
+					<a class="c-small" href={otherHref} hreflang={other} lang={other}>{t.base.language.label}</a>
 				</div>
 			</div>
 		</footer>
@@ -172,6 +226,36 @@ const footer = [
 	const onScroll = () => header?.classList.toggle('is-scrolled', window.scrollY > 4);
 	onScroll();
 	addEventListener('scroll', onScroll, { passive: true });
+
+	// The theme follows the system until the visitor picks one, which stays.
+	const root = document.documentElement;
+	const systemDark = matchMedia('(prefers-color-scheme: dark)');
+	const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : systemDark.matches);
+	const colors = [...document.querySelectorAll<HTMLMetaElement>('[data-theme-color]')];
+	const shades = Object.fromEntries(colors.map((meta) => [meta.dataset.themeColor, meta.content]));
+	const paintBar = () => {
+		if (root.dataset.theme) colors.forEach((meta) => (meta.content = shades[root.dataset.theme!]));
+	};
+	paintBar();
+	document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((button) => {
+		const label = () => {
+			const text = isDark() ? button.dataset.labelLight! : button.dataset.labelDark!;
+			button.setAttribute('aria-label', text);
+			button.title = text;
+		};
+		label();
+		systemDark.addEventListener('change', label);
+		button.addEventListener('click', () => {
+			root.dataset.theme = isDark() ? 'light' : 'dark';
+			try {
+				localStorage.setItem('cahut-theme', root.dataset.theme);
+			} catch {
+				// Private windows may refuse storage: the theme then lasts for this page.
+			}
+			label();
+			paintBar();
+		});
+	});
 
 	// The children of a group reveal one after the other.
 	for (const group of document.querySelectorAll('[data-reveal-group]')) {
@@ -298,6 +382,70 @@ const footer = [
 		flex: none;
 	}
 
+	/* The other language and the theme, as small square tools. */
+	.tools {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+	.tool {
+		display: inline-grid;
+		place-items: center;
+		width: var(--space-8);
+		height: var(--space-8);
+		padding: 0;
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		color: var(--color-text);
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		font-weight: var(--weight-semibold);
+		text-decoration: none;
+		cursor: pointer;
+		transition:
+			background var(--duration-fast) var(--ease-out),
+			border-color var(--duration-fast) var(--ease-out);
+	}
+	.tool:hover {
+		border-color: var(--color-border-strong);
+		background: var(--color-surface-muted);
+	}
+	.tool :global(.i) {
+		transition: rotate var(--duration-slow) var(--ease-out);
+	}
+	.tool:hover :global(.i) {
+		rotate: 20deg;
+	}
+
+	/*
+	 * The logo and the icon of the theme follow the theme in use: the one the
+	 * visitor picked, or else the system's.
+	 */
+	.logo-dark,
+	.tool :global(.to-light) {
+		display: none !important;
+	}
+	@media (prefers-color-scheme: dark) {
+		:global(:root:not([data-theme='light'])) .logo-light,
+		:global(:root:not([data-theme='light'])) .tool :global(.to-dark) {
+			display: none !important;
+		}
+		:global(:root:not([data-theme='light'])) .logo-dark,
+		:global(:root:not([data-theme='light'])) .tool :global(.to-light) {
+			display: block !important;
+		}
+	}
+	:global(:root[data-theme='dark']) .logo-light,
+	:global(:root[data-theme='dark']) .tool :global(.to-dark) {
+		display: none !important;
+	}
+	:global(:root[data-theme='dark']) .logo-dark,
+	:global(:root[data-theme='dark']) .tool :global(.to-light) {
+		display: block !important;
+	}
+
 	.site-footer {
 		padding-block: var(--space-16) var(--space-12);
 		background: var(--color-surface);
@@ -340,6 +488,10 @@ const footer = [
 	}
 	.site-footer .about {
 		grid-column: 1 / -1;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: var(--space-4) var(--space-8);
 		padding-top: var(--space-6);
 		border-top: var(--border-width) solid var(--color-border);
 	}
@@ -368,9 +520,10 @@ const footer = [
 			grid-column: 1 / -1;
 		}
 	}
-	/* The brand stays in the footer when the header runs out of room. */
+	/* The brand and GitHub stay in the footer when the header runs out of room. */
 	@media (max-width: 480px) {
-		.optional {
+		.optional,
+		.github {
 			display: none;
 		}
 	}

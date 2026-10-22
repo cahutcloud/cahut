@@ -1,0 +1,1149 @@
+---
+// The home page of cahut.cloud, in each language of the site: its words come
+// from the dictionaries of src/i18n.
+import Address from './Address.astro';
+import Flow from './Flow.astro';
+import Hero from './Hero.astro';
+import KnockDemo from './KnockDemo.astro';
+import LinkNotFile from './LinkNotFile.astro';
+import Quickstart from './Quickstart.astro';
+import Icon, { type IconName } from '../Icon.astro';
+import Base from '../../layouts/Base.astro';
+import { localize, useTranslations, type Lang } from '../../i18n';
+import cahutPicto from '@charte/icones/cahut.svg?raw';
+import houseStylePicto from '@charte/icones/house-style.svg?raw';
+import keyPicto from '@charte/icones/key.svg?raw';
+import knockFirstPicto from '@charte/icones/knock-first.svg?raw';
+import logbookPicto from '@charte/icones/logbook.svg?raw';
+import symbol from '@charte/logos/cahut-symbole.svg?raw';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const github = 'https://github.com/getcahut/cahut';
+const docs = 'https://docs.cahut.cloud';
+const docsLang = lang === 'en' ? undefined : 'en';
+
+// The icons and pictograms go with the words, in the order of the dictionaries.
+const problemIcons: IconName[] = ['shuffle', 'undo-2', 'eye-off', 'palette', 'terminal'];
+const problems = t.why.problems.map((problem, index) => ({ ...problem, icon: problemIcons[index] }));
+
+const layers = t.statement.layers.map((layer, index) => ({ ...layer, home: index === 1 }));
+
+const featureIcons: IconName[][] = [
+	['file-text', 'box', 'history', 'search', 'file-down'],
+	['plug', 'palette'],
+	['link', 'message-square', 'users', 'log-in'],
+	['terminal', 'monitor-cog', 'globe', 'scroll-text', 'hard-drive-upload', 'refresh-cw'],
+];
+const featureGroups = t.features.groups.map((group, index) => ({
+	...group,
+	id: ['publish', 'connect', 'share', 'run'][index],
+	features: group.features.map((feature, item) => ({ ...feature, icon: featureIcons[index][item] })),
+}));
+
+const principleIcons: IconName[] = ['box', 'undo-2', 'file-text', 'key-round', 'scroll-text', 'server', 'shield-check'];
+const principles = t.knock.principles.map((principle, index) => ({ ...principle, icon: principleIcons[index] }));
+
+const wordPictos = [keyPicto, houseStylePicto, knockFirstPicto, logbookPicto];
+const words = t.vocabulary.words.map((word, index) => ({ ...word, picto: wordPictos[index] }));
+
+const accessBadges = [
+	{ badge: 'room', icon: 'lock', label: t.flow.access.room },
+	{ badge: 'internal', icon: 'users', label: t.flow.access.internal },
+	{ badge: 'key', icon: 'key-round', label: t.flow.access.key },
+	{ badge: 'public', icon: 'globe', label: t.flow.access.public },
+] as const;
+const access = accessBadges.map((item, index) => ({ ...item, text: t.vocabulary.access[index] }));
+
+// The slice under way, in the order of the roadmap.
+const currentStep = 2;
+const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index === currentStep }));
+---
+
+<Base
+	title={t.meta.title}
+	description={t.meta.description}
+	lang={lang}
+	alternates={{ en: localize('en'), fr: localize('fr') }}
+	fullWidth
+>
+	<Hero lang={lang} github={github} />
+
+	<section id="quickstart" class="section quickstart" aria-labelledby="quickstart-title">
+		<div class="container">
+			<header class="quickstart__head" data-reveal>
+				<div class="section__head">
+					<p class="c-label">{t.quickstart.label}</p>
+					<h2 id="quickstart-title" class="c-h1">{t.quickstart.title}</h2>
+					<p class="lead">{t.quickstart.lead}</p>
+				</div>
+				<a class="more" href={`${docs}/install/server/`} hreflang={docsLang}>
+					{t.quickstart.allOptions}
+					<Icon name="arrow-right" size={16} />
+				</a>
+			</header>
+			<div data-reveal>
+				<Quickstart lang={lang} />
+			</div>
+		</div>
+	</section>
+
+	<section id="why" class="section container" aria-labelledby="why-title">
+		<div class="why">
+			<header class="section__head why__head" data-reveal>
+				<p class="c-label">{t.why.label}</p>
+				<h2 id="why-title" class="c-h1">{t.why.title}</h2>
+				<p class="lead">{t.why.lead}</p>
+				<p class="c-muted">{t.why.text}</p>
+			</header>
+			<div data-reveal>
+				<LinkNotFile lang={lang} />
+			</div>
+		</div>
+
+		<h3 class="c-h3 subhead" data-reveal>{t.why.problemsTitle}</h3>
+		<ul class="problems" role="list" data-reveal-group>
+			{
+				problems.map(({ title, text, icon }) => (
+					<li class="problem" data-reveal>
+						<span class="problem__icon">
+							<Icon name={icon} size={20} />
+						</span>
+						<h4 class="c-h4">{title}</h4>
+						<p class="c-muted">{text}</p>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	<section class="statement" data-theme="dark" aria-labelledby="statement-title">
+		<div class="container statement__grid">
+			<div class="statement__text" data-reveal>
+				<p class="c-label">{t.statement.label}</p>
+				<h2 id="statement-title" class="c-h1">{t.statement.title}</h2>
+				<p class="lead">{t.statement.lead}</p>
+				<p class="c-muted">{t.statement.text}</p>
+			</div>
+			<ol class="layers" role="list" data-reveal-group>
+				{
+					layers.map(({ layer, who, what, tags, home }) => (
+						<li class:list={['layer', { 'layer--home': home }]} data-reveal>
+							<div class="layer__head">
+								<div>
+									<p class="c-label">{layer}</p>
+									<h3 class="c-h4">{who}</h3>
+								</div>
+								{home && <span class="layer__picto" aria-hidden="true" set:html={cahutPicto} />}
+							</div>
+							<p class="c-muted c-small">{what}</p>
+							<ul class="layer__tags" role="list">
+								{tags.map((tag) => (
+									<li>{tag}</li>
+								))}
+							</ul>
+						</li>
+					))
+				}
+			</ol>
+		</div>
+	</section>
+
+	<section id="how-it-works" class="section container" aria-labelledby="how-title">
+		<header class="section__head" data-reveal>
+			<p class="c-label">{t.how.label}</p>
+			<h2 id="how-title" class="c-h1">{t.how.title}</h2>
+			<p class="lead">{t.how.lead}</p>
+		</header>
+		<div data-reveal>
+			<Flow lang={lang} />
+		</div>
+	</section>
+
+	<section id="knock-first" class="section section--muted" aria-labelledby="knock-title">
+		<div class="container">
+			<div class="knock-first">
+				<div class="knock-first__text">
+					<header class="section__head" data-reveal>
+						<p class="c-label">{t.knock.label}</p>
+						<h2 id="knock-title" class="c-h1">{t.knock.title}</h2>
+						<p class="lead">{t.knock.lead}</p>
+					</header>
+					<div class="rules" data-reveal-group>
+						<div class="rule" data-reveal>
+							<p class="rule__title">
+								<span class="rule__icon"><Icon name="check" size={16} /></span>
+								<span>
+									<span class="c-label">{t.knock.reversible}</span>
+									<span class="c-h4">{t.knock.alone}</span>
+								</span>
+							</p>
+							<ul>
+								{t.knock.aloneItems.map((item) => <li>{item}</li>)}
+							</ul>
+						</div>
+						<div class="rule rule--knock" data-reveal>
+							<p class="rule__title">
+								<span class="rule__icon"><Icon name="bell" size={16} /></span>
+								<span>
+									<span class="c-label">{t.knock.irreversible}</span>
+									<span class="c-h4">{t.knock.approves}</span>
+								</span>
+							</p>
+							<ul>
+								{t.knock.approvedItems.map((item) => <li>{item}</li>)}
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="knock-first__demo" data-reveal>
+					<p class="c-small c-muted try"><Icon name="mouse-pointer" size={16} />{t.knock.try}</p>
+					<KnockDemo lang={lang} />
+				</div>
+			</div>
+
+			<h3 class="c-h3 subhead" data-reveal>{t.knock.principlesTitle}</h3>
+			<ol class="principles" role="list" data-reveal-group>
+				{
+					principles.map(({ title, text, icon }, index) => (
+						<li class="principle" data-reveal>
+							<span class="principle__top">
+								<span class="principle__icon">
+									<Icon name={icon} size={20} />
+								</span>
+								<span class="c-mono principle__num">{String(index + 1).padStart(2, '0')}</span>
+							</span>
+							<h4 class="c-h4">{title}</h4>
+							<p class="c-muted c-small">{text}</p>
+						</li>
+					))
+				}
+			</ol>
+		</div>
+	</section>
+
+	<section id="features" class="section container" aria-labelledby="features-title">
+		<header class="section__head" data-reveal>
+			<p class="c-label">{t.features.label}</p>
+			<h2 id="features-title" class="c-h1">{t.features.title}</h2>
+			<p class="lead">{t.features.lead}</p>
+		</header>
+		<div class="feature-groups">
+			{
+				featureGroups.map(({ id, title, text, features }) => (
+					<section class="feature-group" aria-labelledby={`features-${id}`} data-reveal>
+						<header class="feature-group__head">
+							<h3 id={`features-${id}`} class="c-h3">
+								{title}
+							</h3>
+							<p class="c-muted c-small">{text}</p>
+						</header>
+						<dl class="features">
+							{features.map(({ area, text, icon }) => (
+								<div class="feature">
+									<dt>
+										<span class="feature__icon">
+											<Icon name={icon} size={20} />
+										</span>
+										<span class="feature__title">{area}</span>
+									</dt>
+									<dd class="c-muted c-small">{text}</dd>
+								</div>
+							))}
+						</dl>
+					</section>
+				))
+			}
+		</div>
+		<div class="not-done" data-reveal>
+			<h3 class="c-h3">{t.features.notDoneTitle}</h3>
+			<ul role="list">
+				{
+					t.features.notDone.map((item) => (
+						<li>
+							<Icon name="x" size={16} />
+							<span>{item}</span>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</section>
+
+	<section id="vocabulary" class="section section--muted" aria-labelledby="vocabulary-title">
+		<div class="container">
+			<header class="section__head" data-reveal>
+				<p class="c-label">{t.vocabulary.label}</p>
+				<h2 id="vocabulary-title" class="c-h1">{t.vocabulary.title}</h2>
+				<p class="lead">{t.vocabulary.lead}</p>
+			</header>
+			<div data-reveal>
+				<Address lang={lang} />
+			</div>
+			<ul class="words" role="list" data-reveal-group>
+				{
+					words.map(({ word, picto, meaning }) => (
+						<li class="word" data-reveal>
+							<span class="picto" aria-hidden="true" set:html={picto} />
+							<h3 class="c-h4">{word}</h3>
+							<p class="c-muted c-small">{meaning}</p>
+						</li>
+					))
+				}
+			</ul>
+			<div class="access" data-reveal>
+				<div class="access__text">
+					<h3 class="c-h4">{t.vocabulary.accessTitle}</h3>
+					<p class="c-muted c-small">{t.vocabulary.accessText}</p>
+				</div>
+				<ul class="access__list" role="list">
+					{
+						access.map(({ badge, icon, label, text }) => (
+							<li>
+								<span class={`c-badge c-badge--${badge}`}>
+									<Icon name={icon} size={14} />
+									{label}
+								</span>
+								<span class="c-small c-muted">{text}</span>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+		</div>
+	</section>
+
+	<section id="roadmap" class="section container" aria-labelledby="roadmap-title">
+		<header class="section__head" data-reveal>
+			<p class="c-label">{t.roadmap.label}</p>
+			<h2 id="roadmap-title" class="c-h1">{t.roadmap.title}</h2>
+			<p class="lead">{t.roadmap.lead}</p>
+		</header>
+		<div class="roadmap">
+			<ol
+				class="milestones"
+				role="list"
+				style={`--progress: ${(currentStep / (roadmap.length - 1)) * 100}%`}
+				data-reveal="fade"
+			>
+				{
+					roadmap.map(({ step, current }, index) => (
+						<li
+							class:list={['milestone', { 'is-past': index < currentStep }]}
+							aria-current={current ? 'step' : undefined}
+						>
+							<span class="milestone__dot c-mono" aria-hidden="true">
+								{index + 1}
+							</span>
+							<div class="milestone__text">
+								<p>{step}</p>
+								{current && (
+									<p class="c-badge c-badge--neutral">
+										<span class="c-dot" />
+										{t.roadmap.underWay}
+									</p>
+								)}
+							</div>
+						</li>
+					))
+				}
+			</ol>
+			<div class="criteria" data-reveal>
+				<h3 class="c-h3">{t.roadmap.criteriaTitle}</h3>
+				<table>
+					<thead>
+						<tr>
+							<th scope="col">{t.roadmap.criterion}</th>
+							<th scope="col">{t.roadmap.threshold}</th>
+						</tr>
+					</thead>
+					<tbody>
+						{
+							t.roadmap.criteria.map(({ criterion, threshold }) => (
+								<tr>
+									<th scope="row">{criterion}</th>
+									<td>{threshold}</td>
+								</tr>
+							))
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</section>
+
+	<section class="closing" aria-labelledby="closing-title">
+		<div class="container closing__inner" data-reveal>
+			<span class="closing__symbol" aria-hidden="true" set:html={symbol} />
+			<h2 id="closing-title" class="c-display closing__title">{t.closing.title}</h2>
+			<p class="lead">{t.closing.lead}</p>
+			<div class="actions">
+				<a class="c-btn c-btn--primary" href={github}>{t.closing.github} <Icon name="arrow-right" /></a>
+				<a class="c-btn c-btn--secondary" href={docs} hreflang={docsLang}>{t.closing.docs}</a>
+			</div>
+		</div>
+	</section>
+</Base>
+
+<style>
+	.lead {
+		font-size: var(--text-lg);
+		line-height: var(--leading-lg);
+	}
+	p {
+		margin: 0;
+	}
+	ul,
+	ol,
+	dl,
+	dd,
+	figure {
+		margin: 0;
+	}
+	ul[role='list'],
+	ol[role='list'] {
+		padding: 0;
+		list-style: none;
+	}
+
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+	}
+	.actions .c-btn {
+		height: 48px;
+		padding-inline: var(--space-5);
+		font-size: var(--text-base);
+	}
+
+	/* Sections */
+	.section {
+		padding-block: var(--space-24);
+	}
+	.section--muted {
+		background: var(--color-surface-muted);
+	}
+	.section__head {
+		display: grid;
+		gap: var(--space-4);
+		max-width: var(--measure);
+		margin-bottom: var(--space-12);
+	}
+	.subhead {
+		margin: var(--space-20) 0 var(--space-8);
+	}
+
+	/* Quick start */
+	.quickstart {
+		padding-top: var(--space-16);
+	}
+	.quickstart__head {
+		display: flex;
+		align-items: end;
+		justify-content: space-between;
+		gap: var(--space-6) var(--space-12);
+		margin-bottom: var(--space-10);
+	}
+	.quickstart__head .section__head {
+		margin-bottom: 0;
+	}
+	.more {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		flex: none;
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+		font-weight: var(--weight-semibold);
+		text-decoration: none;
+	}
+	.more:hover {
+		text-decoration: underline;
+	}
+	.more :global(.i) {
+		transition: translate var(--duration-base) var(--ease-out);
+	}
+	.more:hover :global(.i) {
+		translate: 3px 0;
+	}
+
+	/* Why */
+	.why {
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+		align-items: center;
+		gap: var(--space-16);
+	}
+	.why__head {
+		margin-bottom: 0;
+	}
+	.problems {
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: var(--space-4);
+	}
+	.problem {
+		display: grid;
+		align-content: start;
+		gap: var(--space-3);
+		padding: var(--space-6) var(--space-5);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+		transition:
+			opacity var(--duration-reveal) var(--ease-out),
+			translate var(--duration-reveal) var(--ease-out),
+			border-color var(--duration-slow) var(--ease-out),
+			box-shadow var(--duration-slow) var(--ease-out);
+	}
+	.problem:hover {
+		border-color: var(--color-border-strong);
+		box-shadow: var(--shadow-md);
+	}
+	.problem__icon,
+	.feature__icon,
+	.principle__icon {
+		display: grid;
+		place-items: center;
+		width: var(--space-10);
+		height: var(--space-10);
+		border-radius: var(--radius-md);
+		background: var(--color-surface-muted);
+		color: var(--color-text);
+	}
+	.problem__icon {
+		margin-bottom: var(--space-2);
+	}
+	.problem p {
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+
+	/* Statement */
+	.statement {
+		padding-block: var(--space-24);
+		background: var(--color-surface);
+		color: var(--color-text);
+	}
+	.statement__grid {
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+		align-items: center;
+		gap: var(--space-16);
+	}
+	.statement__text {
+		display: grid;
+		gap: var(--space-4);
+	}
+	.layers {
+		--line: var(--space-8);
+		position: relative;
+		display: grid;
+		gap: var(--space-4);
+	}
+	/* The work flows down through the layers. */
+	.layers::before {
+		content: '';
+		position: absolute;
+		top: var(--space-6);
+		bottom: var(--space-6);
+		left: calc(var(--line) - 1px);
+		border-left: 2px dashed var(--color-border-strong);
+	}
+	.layer {
+		position: relative;
+		display: grid;
+		gap: var(--space-3);
+		margin-left: var(--space-16);
+		padding: var(--space-5) var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface-muted);
+	}
+	.layer::before {
+		content: '';
+		position: absolute;
+		top: var(--space-8);
+		left: calc(-1 * var(--space-8) - 5px);
+		width: var(--space-2);
+		height: var(--space-2);
+		border: 2px solid var(--color-border-strong);
+		border-radius: 50%;
+		background: var(--color-surface);
+	}
+	.layer--home {
+		border-color: var(--color-accent);
+		background: var(--color-bg);
+		box-shadow: var(--shadow-lg);
+	}
+	.layer--home::before {
+		border-color: var(--color-accent);
+		background: var(--color-accent);
+	}
+	.layer__head {
+		display: flex;
+		align-items: start;
+		justify-content: space-between;
+		gap: var(--space-4);
+	}
+	.layer__head > div {
+		display: grid;
+		gap: var(--space-1);
+	}
+	.layer__picto {
+		display: block;
+		flex: none;
+		width: var(--space-12);
+		height: var(--space-12);
+		color: var(--color-text);
+	}
+	.layer__picto :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		color: inherit;
+	}
+	.layer__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+	}
+	.layer__tags li {
+		padding: 2px var(--space-2);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-pill);
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		font-weight: var(--weight-semibold);
+	}
+	.layer--home .layer__tags li {
+		border-color: var(--color-border-strong);
+		color: var(--color-text);
+	}
+
+	/* Knock first */
+	.knock-first {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		align-items: start;
+		gap: var(--space-16);
+	}
+	.knock-first__text .section__head {
+		margin-bottom: var(--space-8);
+	}
+	.rules {
+		display: grid;
+		gap: var(--space-4);
+	}
+	.rule {
+		display: grid;
+		gap: var(--space-4);
+		padding: var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+	.rule__title {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+	}
+	.rule__title > span:last-child {
+		display: grid;
+	}
+	.rule__icon {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: var(--space-8);
+		height: var(--space-8);
+		border-radius: 50%;
+		background: var(--color-success-bg);
+		color: var(--color-success);
+	}
+	.rule--knock .rule__icon {
+		background: var(--color-highlight);
+		color: var(--cahut-ink-900);
+	}
+	.rule ul {
+		display: grid;
+		gap: var(--space-2);
+		padding-left: var(--space-5);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	.knock-first__demo {
+		display: grid;
+		gap: var(--space-3);
+		position: sticky;
+		top: calc(var(--header-height) + var(--space-6));
+	}
+	.try {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+
+	.principles {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--space-4);
+	}
+	.principle {
+		display: grid;
+		align-content: start;
+		gap: var(--space-2);
+		padding: var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+	.principle:last-child {
+		grid-column: span 2;
+	}
+	.principle__top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: var(--space-2);
+	}
+	.principle__num {
+		color: var(--color-text-muted);
+		font-size: var(--text-sm);
+	}
+
+	/* Features */
+	.feature-groups {
+		columns: 2;
+		column-gap: var(--space-6);
+		margin-bottom: var(--space-12);
+	}
+	.feature-group {
+		display: grid;
+		gap: var(--space-2);
+		margin-bottom: var(--space-6);
+		padding: var(--space-6) var(--space-6) var(--space-3);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-xl);
+		background: var(--color-surface);
+		break-inside: avoid;
+	}
+	.feature-group__head {
+		display: grid;
+		gap: var(--space-1);
+		padding-bottom: var(--space-4);
+		border-bottom: var(--border-width) solid var(--color-border);
+	}
+	.features {
+		display: grid;
+	}
+	.feature {
+		display: grid;
+		gap: var(--space-1);
+		padding-block: var(--space-4);
+	}
+	.feature + .feature {
+		border-top: var(--border-width) solid var(--color-border);
+	}
+	.feature dt {
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+	}
+	.feature dd {
+		padding-left: calc(var(--space-10) + var(--space-4));
+	}
+	.feature__icon {
+		flex: none;
+		transition:
+			background var(--duration-slow) var(--ease-out),
+			color var(--duration-slow) var(--ease-out);
+	}
+	.feature:hover .feature__icon {
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+	}
+	.feature__title {
+		font-weight: var(--weight-semibold);
+	}
+	.not-done {
+		display: grid;
+		gap: var(--space-5);
+		padding: var(--space-8);
+		border: 2px dashed var(--color-border-strong);
+		border-radius: var(--radius-xl);
+	}
+	.not-done ul {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+		gap: var(--space-3) var(--space-8);
+	}
+	.not-done li {
+		display: flex;
+		align-items: start;
+		gap: var(--space-3);
+	}
+	.not-done li :global(.i) {
+		flex: none;
+		margin-top: var(--space-1);
+		color: var(--color-text-muted);
+	}
+
+	/* Vocabulary */
+	.words {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--space-4);
+		margin-top: var(--space-12);
+	}
+	.word {
+		display: grid;
+		align-content: start;
+		gap: var(--space-2);
+		padding: var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+	.picto {
+		display: block;
+		width: var(--space-12);
+		height: var(--space-12);
+		margin-bottom: var(--space-2);
+		color: var(--color-text);
+		transition: translate var(--duration-slow) var(--ease-out);
+	}
+	/* The pictograms set their stroke color on their root: follow the text instead. */
+	.picto :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		color: inherit;
+	}
+	.word:hover .picto {
+		translate: 0 calc(-1 * var(--space-1));
+	}
+	.access {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+		align-items: center;
+		gap: var(--space-8);
+		margin-top: var(--space-4);
+		padding: var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+	.access__text {
+		display: grid;
+		gap: var(--space-1);
+	}
+	.access__list {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--space-4);
+	}
+	.access__list li {
+		display: grid;
+		justify-items: start;
+		gap: var(--space-2);
+	}
+
+	/* Roadmap */
+	.roadmap {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		gap: var(--space-16);
+	}
+	.milestones {
+		position: relative;
+		display: grid;
+		gap: var(--space-6);
+	}
+	/* The line from the first step to the current one. */
+	.milestones::before,
+	.milestones::after {
+		content: '';
+		position: absolute;
+		top: var(--space-5);
+		left: calc(var(--space-5) - 1px);
+		width: 2px;
+		border-radius: var(--radius-pill);
+	}
+	.milestones::before {
+		bottom: var(--space-5);
+		background: var(--color-border);
+	}
+	.milestones::after {
+		height: calc((100% - var(--space-10)) * var(--progress) / 100%);
+		background: var(--color-primary);
+		transform-origin: top;
+		transition: transform 1.6s var(--ease-in-out) 300ms;
+	}
+	:global(.js) .milestones:not(.is-visible)::after {
+		transform: scaleY(0);
+	}
+	.milestone {
+		position: relative;
+		display: grid;
+		grid-template-columns: var(--space-10) minmax(0, 1fr);
+		gap: var(--space-4);
+		align-items: start;
+	}
+	.milestone__dot {
+		position: relative;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		width: var(--space-10);
+		height: var(--space-10);
+		border: 2px solid var(--color-border-strong);
+		border-radius: 50%;
+		background: var(--color-bg);
+		color: var(--color-text-muted);
+		font-weight: var(--weight-semibold);
+	}
+	.milestone.is-past .milestone__dot {
+		border-color: var(--color-primary);
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+	}
+	.milestone[aria-current='step'] .milestone__dot {
+		border-color: var(--color-text);
+		color: var(--color-text);
+	}
+	.milestone__text {
+		display: grid;
+		justify-items: start;
+		gap: var(--space-2);
+		padding-top: var(--space-2);
+	}
+	.milestone:not(.is-past):not([aria-current]) .milestone__text {
+		color: var(--color-text-muted);
+	}
+	.criteria {
+		display: grid;
+		align-content: start;
+		gap: var(--space-4);
+		padding: var(--space-8);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-xl);
+		background: var(--color-surface);
+	}
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	th,
+	td {
+		padding: var(--space-3) var(--space-3) var(--space-3) 0;
+		border-top: var(--border-width) solid var(--color-border);
+		text-align: left;
+		vertical-align: top;
+	}
+	thead th {
+		border-top: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		font-weight: var(--weight-medium);
+		letter-spacing: var(--tracking-label);
+		text-transform: uppercase;
+		color: var(--color-text-muted);
+	}
+	tbody th {
+		font-weight: var(--weight-semibold);
+	}
+
+	/* Closing */
+	.closing {
+		padding-block: var(--space-24);
+		border-top: var(--border-width) solid var(--color-border);
+	}
+	.closing__inner {
+		display: grid;
+		justify-items: center;
+		gap: var(--space-6);
+		text-align: center;
+	}
+	.closing__inner .lead {
+		max-width: 36rem;
+		color: var(--color-text-muted);
+	}
+	.closing__inner .actions {
+		justify-content: center;
+	}
+	.closing__symbol {
+		display: block;
+		width: 7.5rem;
+	}
+	.closing__symbol :global(svg) {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	.closing__symbol :global(path) {
+		stroke: var(--color-text);
+	}
+	.closing__title {
+		max-width: 14em;
+	}
+
+	/* In the dark, the muted bands would be lighter than the cards they hold. */
+	@media (prefers-color-scheme: dark) {
+		:global(:root:not([data-theme='light'])) .section--muted {
+			background: none;
+			border-block: var(--border-width) solid var(--color-border);
+		}
+	}
+	:global(:root[data-theme='dark']) .section--muted {
+		background: none;
+		border-block: var(--border-width) solid var(--color-border);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		/* The symbol draws itself, then its door lights up for a moment. */
+		:global(.js) .closing__symbol :global(path) {
+			stroke-dasharray: 1000;
+			stroke-dashoffset: 1000;
+		}
+		:global(.js) .is-visible .closing__symbol :global(path) {
+			animation: draw 2.2s var(--ease-in-out) 200ms forwards;
+		}
+		.layer--home .layer__picto :global(path:first-child) {
+			animation: door 3s ease-in-out infinite alternate;
+		}
+		/* A drop of work runs down the line, from the AIs to the house style. */
+		.layers:has(.is-visible)::after {
+			content: '';
+			position: absolute;
+			left: calc(var(--line) - 4px);
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			background: var(--color-accent);
+			animation: drop 4.5s var(--ease-in-out) 1s infinite both;
+		}
+	}
+	@keyframes drop {
+		0% {
+			top: var(--space-6);
+			opacity: 0;
+		}
+		10%,
+		80% {
+			opacity: 1;
+		}
+		90%,
+		100% {
+			top: calc(100% - var(--space-8));
+			opacity: 0;
+		}
+	}
+	@keyframes draw {
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+	@keyframes door {
+		from {
+			opacity: 0.4;
+		}
+	}
+
+	@media (max-width: 1080px) {
+		.problems {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+		.principles {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.principle:last-child {
+			grid-column: auto;
+		}
+		.access {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+
+	@media (max-width: 960px) {
+		.quickstart__head {
+			flex-direction: column;
+			align-items: start;
+		}
+		.why,
+		.statement__grid,
+		.knock-first,
+		.roadmap {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-12);
+		}
+		.knock-first__demo {
+			position: static;
+		}
+		.feature-groups {
+			columns: 1;
+		}
+		.words {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.access__list {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (max-width: 640px) {
+		.section,
+		.statement,
+		.closing {
+			padding-block: var(--space-16);
+		}
+		.section__head {
+			margin-bottom: var(--space-10);
+		}
+		.subhead {
+			margin-top: var(--space-16);
+		}
+		.c-h1 {
+			font-size: var(--text-3xl);
+			line-height: var(--leading-3xl);
+		}
+		.closing__title {
+			font-size: var(--text-4xl);
+			line-height: var(--leading-4xl);
+		}
+		.problems,
+		.principles,
+		.words,
+		.access__list {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.layers {
+			--line: var(--space-3);
+		}
+		.layer {
+			margin-left: var(--space-8);
+			padding: var(--space-4);
+		}
+		.layer::before {
+			left: calc(-1 * var(--space-5) - 5px);
+		}
+		.rule,
+		.not-done,
+		.criteria {
+			padding: var(--space-5);
+		}
+		.actions .c-btn {
+			flex: 1 1 auto;
+		}
+	}
+</style>

@@ -27,6 +27,12 @@ The first task installs the packages with `npm ci`. To add a package, run `npm i
 
 The pages of `docs.cahut.cloud/src/content/docs/reference/` come from the code: the MCP tools as a Cahut serves them to an AI, the operations of the registries, and the commands as `cahut` describes them. `make docs-reference` writes them with [`internal/reference`](../internal/reference/main.go), which owns that folder: never edit its pages by hand. Run it after changing an operation, a schema or a command, and commit the result with the change. CI fails when the committed reference is out of date.
 
+## The languages of cahut.cloud
+
+cahut.cloud is in English at the root and in French under `/fr/`. The pages share their components; their words live in [`cahut.cloud/src/i18n/`](cahut.cloud/src/i18n/), one file per language, and every language follows the shape of `en.ts`. French typography, such as the no-break space before a colon, is set by `i18n/index.ts`: write the French words with plain spaces. The brand page and the docs stay in English.
+
+The header switches between the languages, and between the light and dark themes. The theme follows the system until the visitor picks one, kept in `localStorage`.
+
 ## The brand
 
 The brand has one source: [`docs/charte-graphique`](../docs/charte-graphique/README.md). The sites never copy its files: they import them through the `@charte` alias, which the `@cahut/brand` integration maps to that folder.

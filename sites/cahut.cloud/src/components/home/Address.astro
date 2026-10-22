@@ -2,33 +2,23 @@
 // The address of a Window, read part by part: the domain is the Cahut, then
 // the Room, then the Window. The parts light up in turn once in view, and on
 // hover or focus.
+import { useTranslations, type Lang } from '../../i18n';
 import cahutPicto from '@charte/icones/cahut.svg?raw';
 import roomPicto from '@charte/icones/room.svg?raw';
 import windowPicto from '@charte/icones/window.svg?raw';
 
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang).vocabulary;
+
 const parts = [
-	{
-		id: 'cahut',
-		text: 'cahut.example.com',
-		word: 'Cahut',
-		picto: cahutPicto,
-		meaning: 'Your instance, at its own domain. One server can hold several, each with its own people and database.',
-	},
-	{
-		id: 'room',
-		text: 'marketing',
-		word: 'Room',
-		picto: roomPicto,
-		meaning: 'A personal or team space, with its members. Each person has their own Room.',
-	},
-	{
-		id: 'window',
-		text: 'q3-review',
-		word: 'Window',
-		picto: windowPicto,
-		meaning: 'A living page: document, deck, dashboard or app. It keeps its previous version.',
-	},
-];
+	{ id: 'cahut', text: 'cahut.example.com', picto: cahutPicto },
+	{ id: 'room', text: 'marketing', picto: roomPicto },
+	{ id: 'window', text: 'q3-review', picto: windowPicto },
+].map((part, index) => ({ ...part, ...t.parts[index] }));
 ---
 
 <div class="address" data-address>

@@ -24,6 +24,7 @@ The implementation language is **Go** (decided, see the README). The brief still
 
 - Talk with Olivier in French.
 - Write in English everything that will be public at launch: README, code, comments, commit messages, pull requests, product copy, interface text, the website and the documentation.
+- The website has a French version too, under `/fr/`: its words live in `sites/cahut.cloud/src/i18n/fr.ts`, next to the English ones in `en.ts`. Change both together.
 - `docs/` stays in French for now (brief, V0 plan and brand guidelines), except `docs/adr/`, in English because the records are public at launch. Use correct French spelling with all accents.
 
 ## Build and test

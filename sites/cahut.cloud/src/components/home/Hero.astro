@@ -2,27 +2,25 @@
 // The top of the home page: the promise, and the open house of the brand
 // guidelines, whose Windows fly in and whose door lights up.
 import Icon from '../Icon.astro';
+import { useTranslations, type Lang } from '../../i18n';
 import clouds from '@charte/illustrations/motif-nuages.svg?url';
 import house from '@charte/illustrations/maison-ouverte.svg?raw';
 
 interface Props {
+	lang: Lang;
 	github: string;
 }
 
-const { github } = Astro.props;
+const { lang, github } = Astro.props;
+const t = useTranslations(lang).hero;
 
 // The illustration is drawn from its file as it is. Its French title would be
-// read out on an English page: the figure around it gives the description.
+// read out as is: the figure around it gives the description.
 const art = house
 	.replace(/<title>.*?<\/title>/, '')
 	.replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true" focusable="false"');
 
-const title = 'The home for everything your AIs make.';
-const facts = [
-	{ icon: 'server', text: 'One command on your server' },
-	{ icon: 'plug', text: 'Any AI, over MCP' },
-	{ icon: 'link', text: 'A link, not a file' },
-] as const;
+const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon, text: t.facts[index] }));
 ---
 
 <section class="hero" aria-labelledby="hero-title">
@@ -31,12 +29,12 @@ const facts = [
 		<div class="hero__text">
 			<a class="hero__status" href="#roadmap">
 				<span class="hero__pulse" aria-hidden="true"></span>
-				In early development: nothing is usable yet
+				{t.status}
 				<Icon name="arrow-right" size={14} />
 			</a>
 			<h1 id="hero-title" class="c-display hero__title">
 				{
-					title.split(' ').map((word, index) => (
+					t.title.split(' ').map((word, index) => (
 						<>
 							<span class="word">
 								<span style={`--i: ${index}`}>{word}</span>
@@ -45,13 +43,10 @@ const facts = [
 					))
 				}
 			</h1>
-			<p class="hero__lead">
-				Documents, slide decks, dashboards and small apps live online as living pages, in your house style, on your own
-				server, whichever AI made them.
-			</p>
+			<p class="hero__lead">{t.lead}</p>
 			<div class="hero__actions">
-				<a class="c-btn c-btn--primary" href="#how-it-works">See how it works <Icon name="arrow-down" /></a>
-				<a class="c-btn c-btn--secondary" href={github}>Follow the work on GitHub</a>
+				<a class="c-btn c-btn--primary" href="#quickstart">{t.start} <Icon name="arrow-down" /></a>
+				<a class="c-btn c-btn--secondary" href={github}>{t.github}</a>
 			</div>
 			<ul class="hero__facts" role="list">
 				{
@@ -69,9 +64,7 @@ const facts = [
 			<div class="hero__panel">
 				<div class="hero__scene" set:html={art} />
 			</div>
-			<figcaption class="visually-hidden">
-				A document, a dashboard, a site and a picture join a cloud with an open door, lit from inside.
-			</figcaption>
+			<figcaption class="visually-hidden">{t.caption}</figcaption>
 			<div class="hero__chip hero__chip--address" aria-hidden="true">
 				<Icon name="lock" size={14} />
 				<span class="c-mono">cahut.example.com/marketing/q3-review</span>
@@ -79,8 +72,8 @@ const facts = [
 			<div class="hero__chip hero__chip--log" aria-hidden="true">
 				<span class="c-mono c-muted">09:14</span>
 				<span class="c-ai"><span class="c-ai__mark">Cl</span>Claude</span>
-				<span>published <b>Q3 review</b></span>
-				<span class="c-badge c-badge--success">Done</span>
+				<span>{t.log.action} <b>Q3 review</b></span>
+				<span class="c-badge c-badge--success">{t.log.done}</span>
 			</div>
 		</figure>
 	</div>
