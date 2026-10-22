@@ -8,6 +8,7 @@ import { Access } from "./pages/access";
 import { Account } from "./pages/account";
 import { Activate } from "./pages/activate";
 import { Admins } from "./pages/admins";
+import { Consent } from "./pages/consent";
 import { Logbook } from "./pages/logbook";
 import { Overview } from "./pages/overview";
 import { People } from "./pages/people";
@@ -54,6 +55,20 @@ export function App() {
 			return <Activate kind="person" onSignIn={signIn} />;
 		case "/server/activate":
 			return <Activate kind="admin" onSignIn={signIn} />;
+	}
+	// An AI client sends the person to the consent screen: they sign in on
+	// the spot, and the address keeps the request.
+	if (path === "/oauth/authorize") {
+		const stay = (s: Session | null) => {
+			if (s) save(s);
+			else clear();
+			setSession(s);
+		};
+		return session?.kind === "person" ? (
+			<Consent key={session.token} session={session} onExpired={() => stay(null)} />
+		) : (
+			<SignIn kind="person" purpose="to connect an AI" onSignIn={stay} />
+		);
 	}
 	if (!session) {
 		return <Redirect to="/sign-in" />;
