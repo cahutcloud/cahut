@@ -7,8 +7,8 @@
 # takes a binary you give it with --binary. It then creates the cahut system
 # user, the data directory /var/lib/cahut, the settings file
 # /etc/cahut/cahut.env and the cahut service, declares the Cahut of
-# --domain, opens ports 80 and 443 in firewalld or ufw when one is active,
-# and starts the service.
+# --domain, opens ports 80, 443 and 8443 (the console) in firewalld or ufw
+# when one is active, and starts the service.
 #
 # Options:
 #   --domain DOMAIN   domain of a Cahut to declare on this server, such as
@@ -198,13 +198,14 @@ if [ -n "$domain" ] && ! as_cahut domain list | awk 'NR > 1 { print $2 }' | grep
 fi
 
 if systemctl is-active --quiet firewalld 2>/dev/null; then
-	say "opening ports 80 and 443 in firewalld"
-	firewall-cmd --quiet --permanent --add-service=http --add-service=https
+	say "opening ports 80, 443 and 8443 in firewalld"
+	firewall-cmd --quiet --permanent --add-service=http --add-service=https --add-port=8443/tcp
 	firewall-cmd --quiet --reload
 elif command -v ufw >/dev/null && ufw status 2>/dev/null | grep -q '^Status: active'; then
-	say "opening ports 80 and 443 in ufw"
+	say "opening ports 80, 443 and 8443 in ufw"
 	ufw allow 80/tcp >/dev/null
 	ufw allow 443/tcp >/dev/null
+	ufw allow 8443/tcp >/dev/null
 fi
 
 systemctl daemon-reload
@@ -229,6 +230,9 @@ Next steps for the Cahut of $domain:
        sudo -u cahut $bin_path token create --domain $domain --user you --name "Claude Code"
   3. Add the Cahut to Claude Code:
        claude mcp add --transport http cahut https://$domain/mcp --header "Authorization: Bearer <token>"
+
+The console and its API answer on port 8443 of the domain: open that port
+in the firewall of your hosting provider too, if it has one.
 
 The service logs go to the journal: journalctl -u cahut
 EOF

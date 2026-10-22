@@ -36,7 +36,7 @@ The Go version is set by the `toolchain` line of `go.mod`; the `go` command down
 | Task | What it does |
 | --- | --- |
 | `make build` | Builds `bin/cahut` for this machine |
-| `make dev` | Serves the Cahuts of `tmp/dev` on http://localhost:8080 |
+| `make dev` | Serves the Cahuts of `tmp/dev` on http://localhost:8080, and their console's API on http://localhost:8081 |
 | `make test` | Runs the tests with the race detector |
 | `make lint` | Checks that `go.mod` is tidy, then runs golangci-lint |
 | `make fmt` | Formats the code (gofmt, goimports) |
@@ -46,6 +46,7 @@ The Go version is set by the `toolchain` line of `go.mod`; the `go` command down
 | `make site-dev` | Serves cahut.cloud on http://localhost:4321 |
 | `make docs-dev` | Serves docs.cahut.cloud on http://localhost:4322 |
 | `make docs-reference` | Writes the reference of the docs from the code: run it after changing an operation or a command |
+| `make console-types` | Writes the TypeScript types of the console's API from the code: run it after changing an operation |
 | `make sites` | Builds both sites, as CI does: run it after changing `sites/` or the brand |
 
 golangci-lint and GoReleaser run through `go run`, at the versions pinned in the Makefile: nothing needs installing. The sites need Node.js at the version of [.nvmrc](.nvmrc) (`nvm use`); their tasks install the npm packages on first run. The Go tasks never need Node.js.
@@ -59,7 +60,7 @@ go run ./cmd/cahut token create --data tmp/dev --user you --name "Claude Code"
 claude mcp add --transport http cahut-dev http://localhost:8080/mcp --header "Authorization: Bearer <token>"
 ```
 
-Windows open at `http://localhost:8080/<room>/<window>/`. To try a second Cahut, declare `beta.localhost` too: Chrome, Firefox and curl resolve `*.localhost` to this machine. Once the server holds several Cahuts, the commands that act in one take `--domain`. `go run ./cmd/cahut logbook --data tmp/dev` prints the Logbook of a Cahut.
+Windows open at `http://localhost:8080/<room>/<window>/`, and the console's API answers at `http://localhost:8081/api/<operation>` ([ADR 14](docs/adr/0014-console-http-api.md)). To try a second Cahut, declare `beta.localhost` too: Chrome, Firefox and curl resolve `*.localhost` to this machine. Once the server holds several Cahuts, the commands that act in one take `--domain`. `go run ./cmd/cahut logbook --data tmp/dev` prints the Logbook of a Cahut.
 
 On a server, [install.sh](install.sh) installs a release, or a binary given with `--binary`, as the `cahut` systemd service, and declares the Cahut of `--domain`; run it with `--help`. Administration commands run as the service user, with the binary's full path, since sudo on AlmaLinux does not search `/usr/local/bin`: `sudo -u cahut /usr/local/bin/cahut token create ...`.
 
@@ -135,9 +136,11 @@ internal/
   window/              Windows: publish, describe, list, files on disk
   cahut/               Assembles a Cahut: its database, registry and operations
   server/              The server as a whole: its Cahuts and their domains, its administrators
-  web/                 HTTP(S): MCP endpoint, Windows by domain and path, certificates
+  web/                 HTTP(S): MCP endpoint, Windows by domain and path, the console's API, certificates
   cli/                 Command line: serve and the administration commands
   reference/           Writes the reference of the docs from the code (make docs-reference)
+  apitypes/            Writes the TypeScript types of the console's API from the code (make console-types)
+  console/ui/          The console: for now, the types of its API in src/api.gen.ts
   version/             Build information, printed by cahut version
 docs/
   adr/                 Architecture decision records (English)

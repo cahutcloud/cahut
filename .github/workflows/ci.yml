@@ -36,6 +36,17 @@ jobs:
           fi
         env:
           DOCS_REFERENCE: sites/docs.cahut.cloud/src/content/docs/reference
+      - name: Check that the types of the console's API are up to date
+        run: |
+          make console-types
+          if [ -n "$(git status --porcelain -- "$CONSOLE_TYPES")" ]; then
+            git add --intent-to-add -- "$CONSOLE_TYPES"
+            git diff -- "$CONSOLE_TYPES"
+            echo "::error::The types of the console's API are out of date: run make console-types and commit the result."
+            exit 1
+          fi
+        env:
+          CONSOLE_TYPES: internal/console/ui/src/api.gen.ts
       - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
           version: v2.15.0 # GOLANGCI_LINT_VERSION in the Makefile

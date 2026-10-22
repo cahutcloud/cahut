@@ -304,17 +304,17 @@ func detail(ctx context.Context, c *operation.Call, a Access) (Detail, error) {
 	return d, rows.Err()
 }
 
-// UpdateGetInput is the input of update_room.
-type UpdateGetInput struct {
+// UpdateRoomInput is the input of update_room.
+type UpdateRoomInput struct {
 	Room  string `json:"room" jsonschema:"the Room's name"`
 	Title string `json:"title" jsonschema:"the new title"`
 }
 
 // UpdateRoom changes the title of a Room.
-var UpdateRoom = &operation.Op[UpdateGetInput, Detail]{
+var UpdateRoom = &operation.Op[UpdateRoomInput, Detail]{
 	Name:        "update_room",
 	Description: "Change the title of a Room. Its name, and so its address, stays.",
-	Run: func(ctx context.Context, c *operation.Call, in UpdateGetInput) (Detail, error) {
+	Run: func(ctx context.Context, c *operation.Call, in UpdateRoomInput) (Detail, error) {
 		title := strings.TrimSpace(in.Title)
 		c.Log(in.Room, title)
 		if title == "" {
