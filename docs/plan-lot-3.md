@@ -153,7 +153,9 @@ Le lot 3 s'est achevé le 22 octobre 2026, en cinq pull requests :
 
 **Correction après le bilan.** Le 22 octobre, l'ajout du staging comme connecteur dans claude.ai a échoué (« Couldn't register with … sign-in service »). Une capture sur le serveur a montré que les serveurs d'Anthropic n'ouvrent que le port 443, jamais le 8443 où se trouvaient l'émetteur et ses points. L'[ADR 17](adr/0017-oauth-endpoints-on-port-443.md) les place sur le port 443 : l'émetteur devient `https://<domaine>`, et seul l'écran de consentement reste dans la console. La même pull request accepte les types de grant inconnus à l'enregistrement (claude.ai annonce `jwt-bearer`), répond 404 à `/.well-known/openid-configuration` et journalise chaque requête du protocole.
 
-**Reste à faire par Olivier.** Le jalon PoC demande ses comptes : ajouter `https://staging.cahut.cloud/mcp` comme connecteur dans claude.ai, consentir, publier une présentation dans une Room d'équipe, puis le test de fumée avec ChatGPT en mode développeur (étapes 1 à 7 de la démonstration).
+**Jalon PoC, atteint le 22 octobre 2026.** Olivier a ajouté `https://staging.cahut.cloud/mcp` comme connecteur dans claude.ai, avec l'identité publiée de Claude (CIMD), et a consenti dans la console : écriture, toutes ses Rooms. Le journal du service montre la découverte, puis l'échange du code depuis les serveurs d'Anthropic. Par ce connecteur, Claude a créé la Room d'équipe `marketing` et y a publié la présentation [Proof of concept](https://staging.cahut.cloud/marketing/proof-of-concept/). Le Logbook inscrit chaque appel sous « Claude (Anthropic/ClaudeAI 1.0.0) », au nom d'Olivier, avec la connexion 1.
+
+**Reste à faire.** Le test de fumée avec ChatGPT en mode développeur, qui demande le compte d'Olivier.
 
 **Suites.**
 
