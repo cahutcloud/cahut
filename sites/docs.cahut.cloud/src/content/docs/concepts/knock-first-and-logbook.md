@@ -41,7 +41,7 @@ Each Cahut has a Logbook, and the server has one for its own operations. An entr
 | `TIME` | When the call started |
 | `OPERATION` | The operation, such as `publish_window` |
 | `WHO` | `admin`, a person, or an AI: the name of its token and its software, for the person it acts for |
-| `VIA` | The way in: `mcp` for AIs, `cli` for the command line |
+| `VIA` | The way in: `mcp` for AIs, `api` for the console, `cli` for the command line |
 | `TARGET` | What the operation acted on, such as `you/q3-review` |
 | `OUTCOME` | `ok`, `refused` or `failed`, with the error |
 
@@ -71,4 +71,4 @@ TIME              OPERATION       WHO                                           
 2026-10-21 13:57  create_user     admin                                                  cli  you             ok
 ```
 
-The latest entries come first, 20 by default: `--limit` asks for up to 1000. Times are in the server's time zone. `--server` prints the Logbook of the server instead, with the domains declared on it. The console will show the Logbook too.
+The latest entries come first, 20 by default: `--limit` asks for up to 1000. Times are in the server's time zone. `--server` prints the Logbook of the server instead, with the domains declared on it. The console shows it too, under **Logbook**, by day and with filters.

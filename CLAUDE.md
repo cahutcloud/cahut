@@ -6,7 +6,7 @@ Guidance for Claude Code in this repository.
 
 Cahut is a self-hosted, open source home for what AIs make: documents, decks, dashboards and small apps, published over MCP to the user's own server and shared by link. It is a personal project by Olivier Durand, independent of any company and of any AI vendor.
 
-The V0 is under way, batch by batch, following the V0 plan. Batch 1 is the first vertical slice: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at `<domain>/<room>/<window>/` in a CSP sandbox, and the call goes to the Logbook. A server already holds several Cahuts, each declared by its domain. Batch 2, under way, brings people who sign in, team Rooms and the web console ([docs/plan-lot-2.md](docs/plan-lot-2.md)). There are no access levels yet: anyone with a Window's address can read it.
+The V0 is under way, batch by batch, following the V0 plan. Batch 1 is the first vertical slice: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at `<domain>/<room>/<window>/` in a CSP sandbox, and the call goes to the Logbook. A server already holds several Cahuts, each declared by its domain. Batch 2 ([docs/plan-lot-2.md](docs/plan-lot-2.md)) brought people who sign in, administrators of each Cahut and of the server, team Rooms with their rights, and the web console on port 8443 with its HTTP API. Batch 3 brings OAuth for AI clients. There are no access levels yet: anyone with a Window's address can read it.
 
 The website (`cahut.cloud`) and the documentation (`docs.cahut.cloud`) are Astro sites in [sites/](sites/README.md), built on the brand guidelines ([ADR 12](docs/adr/0012-website-and-docs-as-astro-sites.md)). The website's `/brand` page gives access to the brand.
 

@@ -38,20 +38,23 @@ cahut: cahut 0.1.0 (commit 0123abc, 2026-10-21T08:00:00Z, go1.27.3 linux/amd64) 
 
 Next steps for the Cahut of cahut.example.com:
 
-  1. Create your account, as an administrator:
+  1. Create your account, as an administrator of the Cahut. The command
+     prints a link where you choose your password:
        sudo -u cahut /usr/local/bin/cahut user create --domain cahut.example.com --handle you --name "Your Name" --admin
-  2. Create a token for your AI:
-       sudo -u cahut /usr/local/bin/cahut token create --domain cahut.example.com --user you --name "Claude Code"
-  3. Add the Cahut to Claude Code:
-       claude mcp add --transport http cahut https://cahut.example.com/mcp --header "Authorization: Bearer <token>"
+  2. Open that link: it signs you in to the console, at https://cahut.example.com:8443/
+  3. In the console, AIs and access creates a token for your AI, with the
+     command that adds the Cahut to Claude Code.
 
-The console and its API answer on port 8443 of the domain: open that port
-in the firewall of your hosting provider too, if it has one.
+To administer the server itself, create an administrator of the server:
+       sudo -u cahut /usr/local/bin/cahut admin create --handle you --name "Your Name"
+
+The console answers on port 8443 of the domain: open that port in the
+firewall of your hosting provider too, if it has one.
 
 The service logs go to the journal: journalctl -u cahut
 ```
 
-[Connect Claude Code](/connect/claude-code/) explains these three steps.
+[Connect Claude Code](/connect/claude-code/) explains these three steps, and [The console](/admin/console/) what you find there.
 
 ## What the installer does
 

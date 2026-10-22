@@ -19,7 +19,9 @@ Treat a token as a password. Give each AI and each machine a token of its own, s
 
 ## Create, list and revoke
 
-On the server, as the `cahut` user. Add `--domain` when the server holds several Cahuts.
+In [the console](/admin/console/), **AIs and access** lists your tokens, creates one, shown once with the command that connects Claude Code, and revokes one in one click. An administrator of the Cahut sees and revokes the tokens of others too.
+
+On the server, as the `cahut` user, the command line does the same. Add `--domain` when the server holds several Cahuts.
 
 ```bash
 sudo -u cahut /usr/local/bin/cahut token create --user you --name "Claude Code on my laptop"

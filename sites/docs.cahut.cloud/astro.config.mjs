@@ -51,7 +51,7 @@ export default defineConfig({
 				},
 				{
 					label: 'Administration',
-					items: ['admin/commands', 'admin/service'],
+					items: ['admin/console', 'admin/commands', 'admin/service'],
 				},
 				{
 					// Written from the code by make docs-reference.
