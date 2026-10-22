@@ -1,15 +1,15 @@
 ---
 title: Connect Claude Code
-description: Create a personal token in the console or on the server, add your Cahut to Claude Code over MCP, and publish a first Window.
+description: Add your Cahut to Claude Code over MCP, sign in to choose what it may do, and publish a first Window. Or connect it with a personal token.
 ---
 
-Claude Code connects to a Cahut over MCP, with a personal token in a header. Other MCP clients that can send a header connect the same way.
+Claude Code connects to a Cahut over MCP. It signs in with OAuth, like the other [AI clients](/connect/ai-clients/): you give it the address of the Cahut, and you choose in the console the Rooms it reaches and whether it may publish. A personal token in a header works too, for a machine without a browser.
 
-Your account comes from an administrator, or from the command line on the server, as the `cahut` user. The token then comes from [the console](/admin/console/), or from the command line too. With a single Cahut on the server, `--domain` may be left out.
+Your account comes from an administrator, or from the command line on the server, as the `cahut` user. With a single Cahut on the server, `--domain` may be left out.
 
 ## 1. Create your account
 
-A token acts for a person of the Cahut. Create yours, if it does not exist yet:
+An AI acts for a person of the Cahut. Create yours, if it does not exist yet:
 
 ```bash
 sudo -u cahut /usr/local/bin/cahut user create --domain cahut.example.com --handle you --name "Your Name" --admin
@@ -27,41 +27,25 @@ Open the link: you choose your password, and you are signed in to the console. `
 
 Your handle also names your personal Room, where your AI publishes by default. It takes 2 to 32 lowercase letters, digits and hyphens, starts with a letter and ends with a letter or a digit. `mcp`, `api`, `admin`, `console` and `help` are reserved.
 
-## 2. Create a token
-
-Name the token after the AI and the machine it runs on: the Logbook shows that name.
-
-In the console, open **AIs and access**, give the token its name, and choose **Create a token**. The console shows the token once, with the command of step 3, ready to copy.
-
-On the server, the command line does the same:
-
-```bash
-sudo -u cahut /usr/local/bin/cahut token create --domain cahut.example.com --user you --name "Claude Code on my laptop"
-```
-
-```text
-Token 1 for you (Claude Code on my laptop) in cahut.example.com. It is shown once: copy it now.
-
-cahut_pat_...
-
-The AI sends it in the Authorization header: Bearer <token>.
-```
-
-Copy the token now: Cahut keeps only a hash of it. See [Personal tokens](/connect/tokens/).
-
-## 3. Add the Cahut to Claude Code
+## 2. Add the Cahut to Claude Code
 
 On the machine where Claude Code runs:
 
 ```bash
-claude mcp add --transport http cahut https://cahut.example.com/mcp --header "Authorization: Bearer <token>"
+claude mcp add --transport http cahut https://cahut.example.com/mcp
 ```
 
-Add `--scope user` to reach the Cahut from all your projects. Avoid `--scope project`: it writes the token into the project's `.mcp.json`, which may end up in a repository.
+Add `--scope user` to reach the Cahut from all your projects. Then sign in, from Claude Code with `/mcp`, choosing the server and **Authenticate**, or from the shell:
 
-In Claude Code, `/mcp` shows the server and its tools, such as `publish_window`, `get_window` and `list_windows`. The [MCP tools](/reference/mcp-tools/) lists them all: the AI of an administrator sees a few more.
+```bash
+claude mcp login cahut
+```
 
-## 4. Publish
+Your browser opens the console of the Cahut. Sign in, choose what Claude Code may do and in which Rooms, and choose **Connect**: see [Consent](/connect/ai-clients/#consent). Back in Claude Code, `/mcp` shows the server and its tools, such as `publish_window`, `get_window` and `list_windows`. The [MCP tools](/reference/mcp-tools/) lists them all: the AI of an administrator sees a few more, and an AI that may only read sees fewer.
+
+On a machine without a browser, such as a server over SSH, `claude mcp login --no-browser cahut` prints the address to open elsewhere.
+
+## 3. Publish
 
 Ask Claude Code, for example:
 
@@ -78,12 +62,24 @@ sudo -u cahut /usr/local/bin/cahut logbook --domain cahut.example.com
 ```
 
 ```text
-TIME              OPERATION       WHO                                                    VIA  TARGET               OUTCOME
-2026-10-21 14:02  publish_window  Claude Code on my laptop (claude-code 2.1.0) for you  mcp  you/project-summary  ok
+TIME              OPERATION       WHO                                        VIA  TARGET               OUTCOME
+2026-10-21 14:02  publish_window  Claude Code (claude-code 2.1.307) for you  mcp  you/project-summary  ok
 ```
 
 [Publish a Window](/connect/publish/) says what the AI sends and the rules its files follow.
 
-## Other AI clients
+## With a personal token
 
-Any MCP client that speaks Streamable HTTP and can send an `Authorization` header connects the same way, with a token of its own. Clients that connect only through OAuth, such as connectors added in a web app, need the OAuth server of Cahut, which comes later.
+Without OAuth, Claude Code sends a personal token in a header. Create one in the console, under **AIs and access**: it shows once, with this command ready to copy. Or create it on the server:
+
+```bash
+sudo -u cahut /usr/local/bin/cahut token create --domain cahut.example.com --user you --name "Claude Code on my laptop"
+```
+
+Then:
+
+```bash
+claude mcp add --transport http cahut https://cahut.example.com/mcp --header "Authorization: Bearer <token>"
+```
+
+A token has all your rights, in every Room. Avoid `--scope project` with it: it writes the token into the project's `.mcp.json`, which may end up in a repository. See [Personal tokens](/connect/tokens/).

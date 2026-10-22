@@ -6,7 +6,7 @@ Guidance for Claude Code in this repository.
 
 Cahut is a self-hosted, open source home for what AIs make: documents, decks, dashboards and small apps, published over MCP to the user's own server and shared by link. It is a personal project by Olivier Durand, independent of any company and of any AI vendor.
 
-The V0 is under way, batch by batch, following the V0 plan. Batch 1 is the first vertical slice: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at `<domain>/<room>/<window>/` in a CSP sandbox, and the call goes to the Logbook. A server already holds several Cahuts, each declared by its domain. Batch 2 ([docs/plan-lot-2.md](docs/plan-lot-2.md)) brought people who sign in, administrators of each Cahut and of the server, team Rooms with their rights, and the web console on port 8443 with its HTTP API. Batch 3 ([docs/plan-lot-3.md](docs/plan-lot-3.md)) brings OAuth for AI clients: each Cahut is its own authorization server, and a person grants an AI some Rooms and a scope. There are no access levels yet: anyone with a Window's address can read it.
+The V0 is under way, batch by batch, following the V0 plan. Batch 1 is the first vertical slice: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at `<domain>/<room>/<window>/` in a CSP sandbox, and the call goes to the Logbook. A server already holds several Cahuts, each declared by its domain. Batch 2 ([docs/plan-lot-2.md](docs/plan-lot-2.md)) brought people who sign in, administrators of each Cahut and of the server, team Rooms with their rights, and the web console on port 8443 with its HTTP API. Batch 3 ([docs/plan-lot-3.md](docs/plan-lot-3.md)) brought OAuth for AI clients: each Cahut is its own authorization server on the console's port, and a person grants an AI some Rooms and a scope on a consent screen ([ADR 16](docs/adr/0016-oauth-for-ai-clients.md)). Batch 4 brings versions and the access of each Window. There are no access levels yet: anyone with a Window's address can read it.
 
 The website (`cahut.cloud`) and the documentation (`docs.cahut.cloud`) are Astro sites in [sites/](sites/README.md), built on the brand guidelines ([ADR 12](docs/adr/0012-website-and-docs-as-astro-sites.md)). The website's `/brand` page gives access to the brand.
 
@@ -59,9 +59,11 @@ To try a Cahut on this machine, run `make dev`, then, in another terminal:
 ```bash
 go run ./cmd/cahut domain add --data tmp/dev localhost
 go run ./cmd/cahut user create --data tmp/dev --handle you --name "Your Name" --admin
-go run ./cmd/cahut token create --data tmp/dev --user you --name "Claude Code"
-claude mcp add --transport http cahut-dev http://localhost:8080/mcp --header "Authorization: Bearer <token>"
+claude mcp add --transport http cahut-dev http://localhost:8080/mcp
+claude mcp login cahut-dev
 ```
+
+Open the link that `user create` prints to choose a password. `claude mcp login` then sends you to the consent screen of the console, over OAuth; `--no-browser` prints its address instead. A personal token works too: `go run ./cmd/cahut token create --data tmp/dev --user you --name "Claude Code"`, then `claude mcp add` with `--header "Authorization: Bearer <token>"`. When ports 8080 or 8081 are taken, `go run -tags console ./cmd/cahut serve --dev --data tmp/dev --dev-addr localhost:8090 --dev-console-addr localhost:8091` serves elsewhere, OAuth included; the links that the commands print still name port 8081.
 
 Windows open at `http://localhost:8080/<room>/<window>/`. The link that `user create` prints opens the console at `http://localhost:8081/activate#…`, and its API answers at `http://localhost:8081/api/<operation>` ([ADR 14](docs/adr/0014-console-http-api.md)). To try a second Cahut, declare `beta.localhost` too: Chrome, Firefox and curl resolve `*.localhost` to this machine. Once the server holds several Cahuts, the commands that act in one take `--domain`. `go run ./cmd/cahut logbook --data tmp/dev` prints the Logbook of a Cahut.
 

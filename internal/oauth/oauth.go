@@ -123,7 +123,7 @@ func (s *Server) Metadata() Metadata {
 		RevocationAuthMethodsSupported:    []string{"none"},
 		ClientIDMetadataDocumentSupported: true,
 		IssParameterSupported:             true,
-		ServiceDocumentation:              "https://docs.cahut.cloud/connect/",
+		ServiceDocumentation:              "https://docs.cahut.cloud/connect/ai-clients/",
 	}
 }
 

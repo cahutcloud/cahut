@@ -27,7 +27,7 @@ An administrator creates accounts in the console, under **People**, or on the co
 | A Room | Its Windows, which open in a new tab, and its people; owners add and remove people, and rename the Room |
 | Rooms | A new team Room, of which you become the owner |
 | Logbook | What you did, what your AIs did, and what happened in your Rooms, by day, with filters |
-| AIs and access | Your personal tokens: create one, shown once with the command that connects Claude Code, and revoke it in one click |
+| AIs and access | The address to give an AI client; your connected AIs, with what they may do and where, and Disconnect; your personal tokens: create one, shown once with the command that connects Claude Code, and revoke it in one click |
 | Account | A new password, and signing out |
 
 A change to what someone may do, such as adding a person to a Room, asks you to confirm first. An AI cannot make these changes yet: see [Knock first](/concepts/knock-first-and-logbook/#knock-first).
@@ -39,7 +39,7 @@ The same screens, and:
 - **People**: a new person with their link, a new link, making someone an administrator or a member, disabling and enabling. A disabled person cannot sign in, and their AIs stop at once.
 - **Rooms**: every Room of the Cahut, whose people they manage. They open the Windows of the Rooms they are in only.
 - **Logbook**: every entry of the Cahut, from people and from AIs.
-- **AIs and access**: the tokens of others too, which they can revoke.
+- **AIs and access**: the connected AIs and the tokens of others too, which they can disconnect and revoke.
 
 ## Administrators of the server
 
@@ -57,3 +57,7 @@ A session holds at the domain where it opened: to look after another Cahut, sign
 ## Sessions
 
 A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. After 10 refused sign-ins in 15 minutes, a handle must wait; an address that tries too often must wait too.
+
+## Consent
+
+When an AI client connects with OAuth, it sends you to `/oauth/authorize` on the console's port. You sign in there if you need to, and choose what the AI may do and in which Rooms. See [Connect an AI client](/connect/ai-clients/#consent).
