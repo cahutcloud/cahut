@@ -1,6 +1,6 @@
 # 1. One registry of typed operations is the only way in
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 13](0013-people-sessions-and-rights.md) (operations that knock first)
 - Date: 2026-10-21
 
 ## Context
