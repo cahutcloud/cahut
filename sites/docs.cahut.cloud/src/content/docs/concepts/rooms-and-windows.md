@@ -1,6 +1,6 @@
 ---
 title: Rooms and Windows
-description: How Rooms and Windows are named and addressed, the kinds of Windows, and the sandbox that their pages run in.
+description: How Rooms and Windows are named and addressed, the kinds of Windows, their versions and trash, and the sandbox that their pages run in.
 ---
 
 A Room is a space for a person or a team. A Window is a living page in a Room: a document, a deck, a dashboard or a site, made of HTML and its files.
@@ -9,8 +9,8 @@ A Room is a space for a person or a team. A Window is a living page in a Room: a
 
 | What | Address |
 | --- | --- |
-| A Cahut | `https://cahut.example.com/` |
-| A Room | `https://cahut.example.com/<room>/` |
+| A Cahut, with the Rooms of its reader | `https://cahut.example.com/` |
+| A Room, with the Windows its reader may open | `https://cahut.example.com/<room>/` |
 | A Window | `https://cahut.example.com/<room>/<window>/` |
 | A file of a Window | `https://cahut.example.com/<room>/<window>/img/logo.svg` |
 | The MCP endpoint | `https://cahut.example.com/mcp` |
@@ -18,7 +18,7 @@ A Room is a space for a person or a team. A Window is a living page in a Room: a
 
 An address without its final slash, such as `https://cahut.example.com/marketing/q3-review`, redirects to the one with it, so that the relative links of the page resolve under the Window.
 
-Today the address of a Cahut answers with a line of text, and the address of a Room with `404 Not Found`. Later, the address of a Room will list the Windows that its reader may open. Paths under `/-/` belong to Cahut itself.
+Paths under `/-/` belong to Cahut itself: the sign-in of readers, the page of a Key, the frames of protected Windows. Who may open what is in [Who can open a Window](/concepts/access/).
 
 ## Names
 
@@ -50,23 +50,54 @@ A Window has a kind: `document`, `deck`, `dashboard` or `site`. The kind says wh
 
 A Window is static: HTML, styles, scripts, images, fonts and data files, served as they are, each with the media type of its extension. Readers' browsers check for a newer copy on every visit. A folder opens on its `index.html`; Cahut lists no folder, and a folder without `index.html` answers `404 Not Found`.
 
-Today a Window has a single version and cannot change. Updates that keep the previous version, and a rollback to it, come later.
+## Versions and the trash
+
+A Window keeps two versions: the current one, which readers see, and the one before.
+
+- `update_window` publishes a new version at the same address, with all its files. The current version becomes the previous one, and the version before that is deleted.
+- `rollback_window` goes back to the previous version. The version it leaves becomes the previous one, so a second rollback undoes the first. Versions keep their numbers: after a rollback from 3 to 2, the next update is 4.
+- `trash_window` puts a Window in the trash: it no longer opens, it leaves the lists, and its name stays taken. `restore_window` brings it back as it was, with its versions and its access.
+
+The members of the Room, and their AIs, do all three, and the console offers them on the page of each Window. Deleting a Window for good cannot be undone: it comes with [Knock first](/concepts/knock-first-and-logbook/#knock-first).
 
 ## The sandbox
 
 The pages of every Window come from the domain of their Cahut, and a browser would let them read each other. So every file of a Window is served with these headers:
 
 ```http
-Content-Security-Policy: sandbox allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads
+Content-Security-Policy: sandbox allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads; default-src 'none'; ...
 Access-Control-Allow-Origin: *
 X-Content-Type-Options: nosniff
 Referrer-Policy: strict-origin-when-cross-origin
 Cache-Control: no-cache
 ```
 
-The `sandbox` directive, without `allow-same-origin`, gives the page an opaque origin:
+The files of a protected Window, in their frame, carry `Referrer-Policy: no-referrer` instead. The `sandbox` directive, without `allow-same-origin`, gives the page an opaque origin:
 
 - Its scripts cannot read the other Windows of the Cahut, nor the session of its reader.
 - `localStorage`, `sessionStorage`, IndexedDB and `document.cookie` throw a `SecurityError`. A page keeps its state in memory or in its address.
 - Scripts, forms, dialogs, downloads, and links that open in a new tab keep working.
 - Module scripts, `fetch` calls and web fonts become cross-origin requests. `Access-Control-Allow-Origin: *` lets them load the files of the Window, without credentials.
+
+## What a Window declares
+
+The AI that publishes a version declares what its pages do: whether they run scripts, every origin they load anything from or call, and the origins their forms send to. Cahut writes the rest of the policy from it, so that a Window that declares no call can make none:
+
+```text
+sandbox allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads [allow-scripts];
+default-src 'none';
+script-src <cahut> 'unsafe-inline' 'unsafe-eval' <origins>     (only with scripts)
+style-src <cahut> 'unsafe-inline' <origins>;
+img-src <cahut> data: blob: <origins>;
+font-src <cahut> data: <origins>;
+media-src <cahut> data: blob: <origins>;
+connect-src <cahut> <origins>;
+frame-src <cahut> <origins>;
+worker-src <cahut> blob:;
+form-action <forms>, or 'none';
+base-uri 'none'
+```
+
+`<cahut>` is the address of the Cahut, such as `https://cahut.example.com`, where the files of the Window come from. A Window without scripts loses `allow-scripts` from its sandbox as well. The console shows the declaration on the page of each Window, and the Logbook records it with each publication.
+
+The declaration limits what pages load and call, not where their reader goes: a link that the reader follows still leaves. The versions published before declarations keep the sandbox alone, and the console says they are not declared. See [Publish a Window](/connect/publish/#the-declaration).

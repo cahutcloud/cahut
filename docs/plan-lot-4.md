@@ -1,6 +1,6 @@
 # Cahut · Plan du lot 4 : Windows complètes, versions et accès
 
-22 octobre 2026 · Olivier Durand · Validé
+22 octobre 2026 · Olivier Durand · Validé, achevé
 
 ## En bref
 
@@ -119,3 +119,43 @@ Soit environ 7,5 jours. Les pull requests s'enchaînent dans l'ordre.
 - La house style des pages de Cahut : lot 6. Le lot 4 les sert dans un style neutre.
 - Renommer ou déplacer une Window : après la V0.
 - Plus de deux versions, l'historique complet : après la V0.
+
+## Bilan
+
+Le lot 4 s'est achevé le 22 octobre 2026, en six pull requests :
+
+| # | Pull request | Contenu |
+| --- | --- | --- |
+| 1 | #42 | Le plan et l'ADR 19 |
+| 2 | #43 | Deux versions par Window, retour en arrière, corbeille |
+| 3 | #44 | Accès, Keys, sessions des lecteurs, pages de Cahut, capacités, page `/read` de la console |
+| 4 | #45 | Déclaration exigée, CSP tirée de la déclaration, consignes MCP |
+| 5 | #46 | Fiche d'une Window dans la console |
+| 6 | #47 | Documentation, site, bilan |
+
+**Écarts par rapport au plan.**
+
+- Les sessions de lecteur vivent dans la table `sessions`, marquées `reader`, plutôt que dans une table à part : la désactivation d'une personne et le changement de son mot de passe les ferment sans code de plus, et l'API les refuse.
+- Le secret des capacités s'appelle `frames` dans la table `secrets`. Les capacités sont signées sans état ; chaque fichier revérifie la session ou le laissez-passer, l'appartenance à la Room et l'accès.
+- Les tentatives de Key sont limitées par adresse (10, puis une toutes les 6 secondes), et les Keys fausses par Window (20, puis une toutes les 3 secondes), pour ne pas bloquer un public nombreux qui tape la bonne.
+- La fiche d'une Window montre la Key une seule fois, juste après l'avoir tirée ou choisie ; ensuite on ne peut que la garder ou en tirer une autre.
+- `rollback_window` ramène aussi la déclaration de la version à laquelle il revient.
+- Pas de nouvelle dépendance.
+
+**Essais.**
+
+- Les tests couvrent les versions et leur numérotation, la corbeille, la matrice des accès, les Keys et leurs laissez-passer, les capacités falsifiées, expirées, d'une autre Window ou d'un autre Cahut, la désactivation d'un lecteur, l'adresse de retour étrangère, la limite des Keys, et la CSP de chaque déclaration.
+- En local, dans Chrome : la page de la Key, le laissez-passer, la présentation dans son cadre, le fragment `#s3` transmis, le plein écran permis ; la connexion d'un lecteur par la console, jusqu'au cadre. Dans le panneau de navigateur de l'application de bureau, la fiche d'une Window : mise à jour par MCP, Key tirée et montrée une fois, retour à la version 1, cartes de la Room, largeur de 375 px. Ce panneau bloque de lui-même les cadres en bac à sable (`ERR_BLOCKED_BY_CLIENT`) : ce n'est pas une cible.
+- Sur le staging, la version du lot est installée (0.1.2-0.20261022215409-64d98e5), avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-22-batch4`. Par MCP, avec un jeton de démonstration révoqué ensuite : publication de [Batch 4 demo](https://staging.cahut.cloud/marketing/batch-4-demo/) dans `marketing`, mise à jour en version 2, refus de l'accès public, Key jusqu'au 30 novembre ; dans un contexte de Chrome vierge, la page de la Key, puis la version 2 ; retour à la version 1, servie au même lien avec le même laissez-passer. Le Logbook inscrit chaque étape, refus compris, sans la Key.
+- Les Windows publiées avant le lot, dont [Proof of concept](https://staging.cahut.cloud/marketing/proof-of-concept/), s'ouvrent désormais à leur Room seulement, non déclarées.
+
+**Reste à faire.**
+
+- Firefox et Safari : Firefox n'est pas installé sur la machine de développement, et l'accès à Safari n'a pas été accordé. Olivier rejoue la démonstration dans les deux, en navigation privée.
+- La démonstration de fin de lot par la console du staging, avec le compte d'Olivier : régler la Key depuis la fiche de la Window, puis revenir à la version précédente.
+
+**Suites.**
+
+- Rendre une Window publique et la purger, par Knock first : lot 5.
+- La house style sur les pages de Cahut (Key, Room, accueil) : lot 6.
+- Le fragment de l'adresse se perd quand le lecteur passe par la connexion ou par la page de la Key.
