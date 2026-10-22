@@ -1,6 +1,6 @@
 # 16. AI clients connect over OAuth, to the Rooms and the scope a person grants
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 17](0017-oauth-endpoints-on-port-443.md) (the issuer and the endpoints that clients' servers call are on port 443)
 - Date: 2026-10-22
 
 ## Context

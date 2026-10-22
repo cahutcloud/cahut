@@ -59,7 +59,7 @@ Send ana this link, where they choose their password. It works once, until 2026-
 https://cahut.example.com:8443/activate#...
 ```
 
-The handle names the person and their personal Room: 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit. It must be free, as the name of a person and of a Room, and cannot be `mcp`, `api`, `admin`, `console` or `help`. `--admin` makes the person an administrator of the Cahut.
+The handle names the person and their personal Room: 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit. It must be free, as the name of a person and of a Room, and cannot be `mcp`, `api`, `admin`, `console`, `help` or `oauth`. `--admin` makes the person an administrator of the Cahut.
 
 The link opens the console of the Cahut, on port 8443, where the person chooses a password of 15 characters at least, then is signed in. It works once, for 7 days. An administrator also creates people in the console, under **People**.
 
