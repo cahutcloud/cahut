@@ -30,8 +30,8 @@ type Config struct {
 	// addresses are not needed, as on the command line.
 	BaseURL string
 	// ConsoleURL is the address of the console of the Cahut, such as
-	// https://cahut.example.com:8443/, which is also its OAuth authorization
-	// server. It may be empty, as BaseURL may.
+	// https://cahut.example.com:8443/, where people consent to AI clients.
+	// It may be empty, as BaseURL may.
 	ConsoleURL string
 }
 
@@ -64,7 +64,11 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	room.Register(r)
 	w := window.NewService(filepath.Join(cfg.Dir, "windows"), url)
 	w.Register(r)
-	auth := oauth.New(db, r, oauth.Config{Issuer: strings.TrimSuffix(cfg.ConsoleURL, "/"), Resource: cfg.BaseURL + "mcp"})
+	auth := oauth.New(db, r, oauth.Config{
+		Issuer:    strings.TrimSuffix(cfg.BaseURL, "/"),
+		Authorize: cfg.ConsoleURL + "oauth/authorize",
+		Resource:  cfg.BaseURL + "mcp",
+	})
 	auth.Register(r)
 	operation.Register(r, ListLogbook)
 	operation.Register(r, &operation.Op[GetCahutInput, About]{

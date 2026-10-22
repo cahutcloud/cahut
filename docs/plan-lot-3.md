@@ -135,6 +135,7 @@ Le lot 3 s'est achevé le 22 octobre 2026, en cinq pull requests :
 | 3 | #31 | Serveur d'autorisation : `internal/oauth`, métadonnées, enregistrement, CIMD, jetons, révocation, opérations, MCP |
 | 4 | #32 | Console : écran de consentement, IA connectées |
 | 5 | #33 | Documentation, staging, bilan |
+| 6 | #34 | Émetteur et points OAuth sur le port 443 (ADR 17), enregistrement de claude.ai, journal du protocole |
 
 **Écarts par rapport au plan.**
 
@@ -150,7 +151,11 @@ Le lot 3 s'est achevé le 22 octobre 2026, en cinq pull requests :
 - En local, avec le vrai Claude Code 2.1.307 : `claude mcp login` passe par son Client ID Metadata Document, `https://claude.ai/oauth/claude-code-client-metadata`, que Cahut récupère derrière sa garde ; l'écran affiche « Connect Claude Code », décrit par `claude.ai`, puis `get_account` répond et s'inscrit au Logbook.
 - Sur le staging, la version du lot est installée (0.1.2-dev+fcbeb98), avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-22-batch3`. Le jeton personnel existant de Claude Code marche toujours. Un parcours scripté en HTTPS sur `dev.cahut.cloud` passe : enregistrement, consentement par l'API, jetons, 14 outils, rafraîchissement, déconnexion puis 401. Il a laissé une personne de test, `oauth-test`, dans ce Cahut : rien ne permet encore de la désactiver en ligne de commande.
 
-**Reste à faire par Olivier.** Le jalon PoC demande ses comptes : ajouter `https://staging.cahut.cloud/mcp` comme connecteur dans claude.ai, consentir, publier une présentation dans une Room d'équipe, puis le test de fumée avec ChatGPT en mode développeur (étapes 1 à 7 de la démonstration).
+**Correction après le bilan.** Le 22 octobre, l'ajout du staging comme connecteur dans claude.ai a échoué (« Couldn't register with … sign-in service »). Une capture sur le serveur a montré que les serveurs d'Anthropic n'ouvrent que le port 443, jamais le 8443 où se trouvaient l'émetteur et ses points. L'[ADR 17](adr/0017-oauth-endpoints-on-port-443.md) les place sur le port 443 : l'émetteur devient `https://<domaine>`, et seul l'écran de consentement reste dans la console. La même pull request accepte les types de grant inconnus à l'enregistrement (claude.ai annonce `jwt-bearer`), répond 404 à `/.well-known/openid-configuration` et journalise chaque requête du protocole.
+
+**Jalon PoC, atteint le 22 octobre 2026.** Olivier a ajouté `https://staging.cahut.cloud/mcp` comme connecteur dans claude.ai, avec l'identité publiée de Claude (CIMD), et a consenti dans la console : écriture, toutes ses Rooms. Le journal du service montre la découverte, puis l'échange du code depuis les serveurs d'Anthropic. Par ce connecteur, Claude a créé la Room d'équipe `marketing` et y a publié la présentation [Proof of concept](https://staging.cahut.cloud/marketing/proof-of-concept/). Le Logbook inscrit chaque appel sous « Claude (Anthropic/ClaudeAI 1.0.0) », au nom d'Olivier, avec la connexion 1.
+
+**Reste à faire.** Le test de fumée avec ChatGPT en mode développeur, qui demande le compte d'Olivier.
 
 **Suites.**
 

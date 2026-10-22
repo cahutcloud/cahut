@@ -23,7 +23,8 @@ import (
 )
 
 const (
-	issuer   = "https://cahut.test:8443"
+	issuer   = "https://cahut.test"
+	console  = "https://cahut.test:8443"
 	resource = "https://cahut.test/mcp"
 	redirect = "https://claude.ai/api/mcp/auth_callback"
 	verifier = "a-code-verifier-of-at-least-43-characters-made-of-letters"
@@ -45,7 +46,7 @@ func setup(t *testing.T) *fixture {
 	t.Helper()
 	ctx := context.Background()
 	c, err := cahut.Open(ctx, cahut.Config{Dir: t.TempDir(), Domain: "cahut.test",
-		BaseURL: "https://cahut.test/", ConsoleURL: issuer + "/"})
+		BaseURL: "https://cahut.test/", ConsoleURL: console + "/"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -178,7 +179,7 @@ func TestMetadata(t *testing.T) {
 	}
 	for key, want := range map[string]any{
 		"issuer":                                         issuer,
-		"authorization_endpoint":                         issuer + "/oauth/authorize",
+		"authorization_endpoint":                         console + "/oauth/authorize",
 		"token_endpoint":                                 issuer + "/oauth/token",
 		"registration_endpoint":                          issuer + "/oauth/register",
 		"revocation_endpoint":                            issuer + "/oauth/revoke",
@@ -450,6 +451,28 @@ func TestRegister(t *testing.T) {
 	// Applications register their own schemes, and terminals a loopback
 	// address.
 	f.register("cursor://anysphere.cursor-retrieval/oauth/callback", "http://localhost:33418/callback")
+
+	// A client may list grants that Cahut does not give, as claude.ai does,
+	// but not do without the authorization code.
+	register := func(metadata string) (int, string) {
+		rec := httptest.NewRecorder()
+		f.c.OAuth.ServeRegister(rec, httptest.NewRequestWithContext(context.Background(), http.MethodPost, issuer+"/oauth/register", strings.NewReader(metadata)))
+		return rec.Code, rec.Body.String()
+	}
+	status, body := register(`{"client_name": "Claude", "redirect_uris": ["https://claude.ai/api/mcp/auth_callback"],
+		"grant_types": ["authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"],
+		"response_types": ["code"], "token_endpoint_auth_method": "none", "scope": "read write"}`)
+	if status != http.StatusCreated || !strings.Contains(body, `"grant_types":["authorization_code","refresh_token"]`) {
+		t.Errorf("register as claude.ai = %d %s", status, body)
+	}
+	for _, metadata := range []string{
+		`{"redirect_uris": ["https://claude.ai/api/mcp/auth_callback"], "grant_types": ["client_credentials"]}`,
+		`{"redirect_uris": ["https://claude.ai/api/mcp/auth_callback"], "response_types": ["token"]}`,
+	} {
+		if status, body := register(metadata); status != http.StatusBadRequest || !strings.Contains(body, "invalid_client_metadata") {
+			t.Errorf("register %s = %d %s", metadata, status, body)
+		}
+	}
 
 	// A client that receives no connection within 7 days is deleted at the
 	// next registration; a connected one stays.

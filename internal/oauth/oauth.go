@@ -45,11 +45,18 @@ const (
 )
 
 // Config says where the authorization server and the resource it protects
-// are.
+// are. The servers of AI clients reach the issuer, on the usual port of the
+// Cahut; people's browsers reach the authorization endpoint, in the console.
+// See docs/adr/0017-oauth-endpoints-on-port-443.md.
 type Config struct {
 	// Issuer is the address of the authorization server, without a final
-	// slash, such as https://cahut.example.com:8443.
+	// slash: the address of the Cahut, such as https://cahut.example.com.
+	// Its metadata, token, registration and revocation endpoints are under
+	// it.
 	Issuer string
+	// Authorize is the address of the consent screen, a page of the
+	// console, such as https://cahut.example.com:8443/oauth/authorize.
+	Authorize string
 	// Resource is the address of the MCP endpoint, such as
 	// https://cahut.example.com/mcp.
 	Resource string
@@ -110,7 +117,7 @@ type Metadata struct {
 func (s *Server) Metadata() Metadata {
 	return Metadata{
 		Issuer:                            s.cfg.Issuer,
-		AuthorizationEndpoint:             s.cfg.Issuer + "/oauth/authorize",
+		AuthorizationEndpoint:             s.cfg.Authorize,
 		TokenEndpoint:                     s.cfg.Issuer + "/oauth/token",
 		RegistrationEndpoint:              s.cfg.Issuer + "/oauth/register",
 		RevocationEndpoint:                s.cfg.Issuer + "/oauth/revoke",
