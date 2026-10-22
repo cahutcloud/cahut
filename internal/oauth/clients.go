@@ -364,7 +364,18 @@ type metadataDocument struct {
 	ClientURI               string   `json:"client_uri"`
 	RedirectURIs            []string `json:"redirect_uris"`
 	TokenEndpointAuthMethod string   `json:"token_endpoint_auth_method"`
-	ClientSecret            string   `json:"client_secret"`
+	// TokenEndpointAuthMethods lists the methods the client can use, when
+	// it can use several, as ChatGPT does: it prefers private_key_jwt and
+	// can do without.
+	TokenEndpointAuthMethods []string `json:"token_endpoint_auth_methods_supported"`
+	ClientSecret             string   `json:"client_secret"`
+}
+
+// public reports whether the client of doc can authenticate as a public
+// client, with the method none, which is the only one Cahut takes.
+func (doc metadataDocument) public() bool {
+	return doc.TokenEndpointAuthMethod == "" || doc.TokenEndpointAuthMethod == "none" ||
+		slices.Contains(doc.TokenEndpointAuthMethods, "none")
 }
 
 // get returns the client that the metadata document at id describes.
@@ -418,8 +429,11 @@ func (d *documents) fetch(ctx context.Context, id string) (Client, error) {
 	switch {
 	case doc.ClientID != id:
 		return Client{}, fmt.Errorf("it names the client %q instead", doc.ClientID)
-	case doc.ClientSecret != "" || doc.TokenEndpointAuthMethod != "" && doc.TokenEndpointAuthMethod != "none":
-		return Client{}, errors.New("it describes a client with a secret, and Cahut takes public clients only")
+	case doc.ClientSecret != "":
+		return Client{}, errors.New("it holds a client secret, which a public document must not")
+	case !doc.public():
+		return Client{}, fmt.Errorf("its client authenticates with %s only, and Cahut takes public clients, "+
+			"which authenticate with none", doc.TokenEndpointAuthMethod)
 	case len(doc.RedirectURIs) == 0:
 		return Client{}, errors.New("it names no redirect URI")
 	}
