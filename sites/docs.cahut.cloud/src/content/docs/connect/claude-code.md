@@ -17,7 +17,13 @@ sudo -u cahut /usr/local/bin/cahut user create --domain cahut.example.com --hand
 
 ```text
 Created you (Your Name), admin of cahut.example.com, with a personal Room at cahut.example.com/you.
+
+Send you this link, where they choose their password. It works once, until 2026-10-29, and is shown only now.
+
+https://cahut.example.com:8443/activate#...
 ```
+
+The link is for the console, which is not available yet: you do not need it to connect an AI. When the console comes, `cahut user link` gives you a new one.
 
 Your handle also names your personal Room, where your AI publishes by default. It takes 2 to 32 lowercase letters, digits and hyphens, starts with a letter and ends with a letter or a digit. `mcp`, `api`, `admin`, `console` and `help` are reserved.
 
@@ -49,7 +55,7 @@ claude mcp add --transport http cahut https://cahut.example.com/mcp --header "Au
 
 Add `--scope user` to reach the Cahut from all your projects. Avoid `--scope project`: it writes the token into the project's `.mcp.json`, which may end up in a repository.
 
-In Claude Code, `/mcp` shows the server and its three tools: `publish_window`, `get_window` and `list_windows`.
+In Claude Code, `/mcp` shows the server and its tools, such as `publish_window`, `get_window` and `list_windows`. The [MCP tools](/reference/mcp-tools/) lists them all: the AI of an administrator sees a few more.
 
 ## 4. Publish
 

@@ -7,7 +7,7 @@ A personal token lets an AI act on behalf of one person, in one Cahut. The AI se
 
 ## What a token allows
 
-The AI acts as the person: it publishes in their Rooms, and lists and reads the Windows of their Rooms, through the [MCP tools](/reference/mcp-tools/). It cannot create people or tokens, nor read the Logbook. It cannot reach another Cahut either: a token of one Cahut is unknown to the others.
+The AI acts as the person, with their rights, through the [MCP tools](/reference/mcp-tools/): it publishes in their Rooms, lists and reads the Windows of their Rooms, lists the people of the Cahut, and reads in the Logbook what its person and their AIs did. The AI of an administrator also sees the tools that manage people, but they [knock first](/concepts/knock-first-and-logbook/#knock-first), so it cannot run them yet. No AI creates tokens, signs in or changes a password: these operations are for people. An AI cannot reach another Cahut either: a token of one Cahut is unknown to the others.
 
 Every call made with a token goes to the Logbook, reads included. The entry names the token, the software of the AI as it introduces itself, and the person it acts for, such as `Claude Code on my laptop (claude-code 2.1.0) for you`.
 
@@ -35,4 +35,4 @@ ID  USER  NAME                      CREATED     LAST USED         STATE
 1   you   Claude Code               2026-10-20  never             revoked 2026-10-21
 ```
 
-A revoked token stops working at once, from the next request of the AI. A revocation cannot be undone: create a new token instead.
+A revoked token stops working at once, from the next request of the AI. A revocation cannot be undone: create a new token instead. The tokens of a disabled person stop working too, until the person is enabled again.

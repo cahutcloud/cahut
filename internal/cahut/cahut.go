@@ -74,28 +74,47 @@ type LogbookPage struct {
 	Entries []logbook.Entry `json:"entries"`
 }
 
-// ListLogbook returns the latest entries of the Logbook, newest first. The
-// server registers it too, for its own Logbook.
+// ListLogbook returns the latest entries of the Logbook, newest first: all
+// of them for an administrator, and for anyone else what they did and what
+// their AIs did.
 var ListLogbook = &operation.Op[ListLogbookInput, LogbookPage]{
+	Name: "list_logbook",
+	Description: "Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, " +
+		"and for anyone else what they did and what AIs did on their behalf.",
+	ReadOnly: true,
+	Run:      readLogbook,
+}
+
+// ListServerLogbook returns the latest entries of the server's Logbook,
+// newest first.
+var ListServerLogbook = &operation.Op[ListLogbookInput, LogbookPage]{
 	Name:        "list_logbook",
-	Description: "Read the latest entries of the Logbook, newest first.",
-	AdminOnly:   true,
+	Description: "Read the latest entries of the server's Logbook, newest first.",
+	Level:       operation.ServerAdmin,
 	ReadOnly:    true,
-	Run: func(ctx context.Context, c *operation.Call, in ListLogbookInput) (LogbookPage, error) {
-		limit := in.Limit
-		switch {
-		case limit == 0:
-			limit = 50
-		case limit < 0 || limit > 1000:
-			return LogbookPage{}, operation.Invalidf("limit %d: use 1 to 1000", limit)
-		}
-		entries, err := logbook.List(ctx, c.Tx, limit)
-		if err != nil {
-			return LogbookPage{}, err
-		}
-		if entries == nil {
-			entries = []logbook.Entry{}
-		}
-		return LogbookPage{Entries: entries}, nil
-	},
+	Run:         readLogbook,
+}
+
+func readLogbook(ctx context.Context, c *operation.Call, in ListLogbookInput) (LogbookPage, error) {
+	limit := in.Limit
+	switch {
+	case limit == 0:
+		limit = 50
+	case limit < 0 || limit > 1000:
+		return LogbookPage{}, operation.Invalidf("limit %d: use 1 to 1000", limit)
+	}
+	var entries []logbook.Entry
+	var err error
+	if c.Admin {
+		entries, err = logbook.List(ctx, c.Tx, limit)
+	} else {
+		entries, err = logbook.ListOf(ctx, c.Tx, c.Actor.UserID, limit)
+	}
+	if err != nil {
+		return LogbookPage{}, err
+	}
+	if entries == nil {
+		entries = []logbook.Entry{}
+	}
+	return LogbookPage{Entries: entries}, nil
 }

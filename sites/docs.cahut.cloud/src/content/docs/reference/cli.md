@@ -20,7 +20,9 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut serve`](#cahut-serve) | Serve the Cahuts of this server: MCP for AIs, and the Windows |
 | [`cahut domain add`](#cahut-domain-add) | Declare a domain, which creates its Cahut |
 | [`cahut domain list`](#cahut-domain-list) | List the Cahuts of this server |
-| [`cahut user create`](#cahut-user-create) | Create a person, with their personal Room |
+| [`cahut user create`](#cahut-user-create) | Create a person, with their personal Room and an activation link |
+| [`cahut user list`](#cahut-user-list) | List the people of a Cahut |
+| [`cahut user link`](#cahut-user-link) | Give a person a new link where they choose their password |
 | [`cahut token create`](#cahut-token-create) | Create a personal token for an AI |
 | [`cahut token list`](#cahut-token-list) | List personal tokens |
 | [`cahut token revoke`](#cahut-token-revoke) | Revoke a personal token |
@@ -79,7 +81,7 @@ Manage the people of a Cahut.
 
 ### `cahut user create`
 
-Create a person, with their personal Room.
+Create a person, with their personal Room and an activation link.
 
 ```text
 cahut user create [flags]
@@ -92,6 +94,33 @@ cahut user create [flags]
 | `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
 | `--handle string` |  | short name, which also names the personal Room: 2 to 32 lowercase letters, digits and hyphens |
 | `--name string` |  | full name |
+
+### `cahut user list`
+
+List the people of a Cahut.
+
+```text
+cahut user list [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+
+### `cahut user link`
+
+Give a person a new link where they choose their password.
+
+```text
+cahut user link [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+| `--handle string` |  | the person who chooses a new password |
 
 ## `cahut token`
 

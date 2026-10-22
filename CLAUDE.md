@@ -69,7 +69,7 @@ CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull req
 - Module path `cahut.cloud`. The entry point is `cmd/cahut`; everything else lives under `internal/`.
 - Binaries are static, built with `CGO_ENABLED=0`. Never add a dependency that needs cgo.
 - Prefer the standard library. A new dependency needs a reason, stated in the pull request.
-- Every action goes through the operation registry ([ADR 1](docs/adr/0001-operation-registry.md)). MCP tools, the HTTP API, the command line and SSH are thin adapters: decode, call the registry, encode. No business logic and no storage access in them. An operation is an `operation.Op` registered in `cahut.Open`, or in `server.Open` for the operations of the server as a whole; every operation of a Cahut that is not `AdminOnly` becomes an MCP tool, with its JSON Schemas generated from the Go input and output types.
+- Every action goes through the operation registry ([ADR 1](docs/adr/0001-operation-registry.md)). MCP tools, the HTTP API, the command line and SSH are thin adapters: decode, call the registry, encode. No business logic and no storage access in them. An operation is an `operation.Op` registered in `cahut.Open`, or in `server.Open` for the operations of the server as a whole. It states its `Level` (any person, Cahut administrators, server administrators), whether it is `PeopleOnly` (it proves who someone is, such as `sign_in`) and whether it is `KnockFirst` ([ADR 13](docs/adr/0013-people-sessions-and-rights.md)). Every operation of a Cahut that is not `PeopleOnly` becomes an MCP tool, offered to the AIs whose person has its level, with its JSON Schemas generated from the Go input and output types. The registry reads the person's role and state in the transaction of each call: rights on a Room are checked by the operations.
 - A Cahut never reads the records of another. Each has its own database, opened from the domain of the request before anything else.
 - Errors meant for the caller wrap `operation.ErrInvalid`, `ErrNotFound` or `ErrForbidden`, with a message that tells an AI how to fix its call. Any other error is internal: adapters hide it and the Logbook keeps it.
 - Never put a token, a password or file contents in a Logbook entry (`Call.Log`).
@@ -128,7 +128,8 @@ internal/
   operation/           The registry of operations, the only way in (ADR 1)
   logbook/             The record of every action
   store/               SQLite database and its migrations
-  account/             People, personal Rooms and personal tokens
+  credential/          Passwords (Argon2id), random tokens and codes, and their hashes
+  account/             People, roles, activation links, sessions, sign-in and personal tokens
   window/              Windows: publish, describe, list, files on disk
   cahut/               Assembles a Cahut: its database, registry and operations
   server/              The server as a whole: its Cahuts and their domains

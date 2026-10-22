@@ -29,23 +29,22 @@ const instructions = `This Cahut keeps what AIs make, on the user's own server. 
 	`keep state in memory or in the address. ` +
 	`Every call is recorded in the Logbook of the Cahut.`
 
-// mcpHandler returns the MCP endpoint (Streamable HTTP) of the Cahut c. It
-// offers every operation of c that is not reserved to the administrator as a
-// tool, and asks for a personal token of c.
+// mcpHandler returns the MCP endpoint (Streamable HTTP) of the Cahut c, which
+// asks for a personal token of c. It offers an AI the operations of c that
+// its person may call, as tools.
 func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
-	srv := mcp.NewServer(&mcp.Implementation{Name: "cahut", Version: version.Get().Version},
-		&mcp.ServerOptions{Instructions: instructions})
-	for _, info := range c.Registry.Ops() {
-		if info.AdminOnly {
-			continue
+	members, admins := s.mcpServer(c, false), s.mcpServer(c, true)
+	// The tools of a session follow the role its person had when it began.
+	// Should the role change, the registry still checks every call.
+	server := func(r *http.Request) *mcp.Server {
+		if info := auth.TokenInfoFromContext(r.Context()); info != nil {
+			if owner, ok := info.Extra["owner"].(account.Owner); ok && owner.Admin {
+				return admins
+			}
 		}
-		tool, err := toolFor(info)
-		if err != nil {
-			panic(err) // a type the schema library cannot describe: a programming error
-		}
-		srv.AddTool(tool, s.callTool(c, info.Name))
+		return members
 	}
-	handler := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return srv },
+	handler := mcp.NewStreamableHTTPHandler(server,
 		&mcp.StreamableHTTPOptions{
 			Logger:              s.log,
 			SessionTimeout:      time.Hour,
@@ -62,6 +61,24 @@ func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
 	return auth.RequireBearerToken(verify, &auth.RequireBearerTokenOptions{AllowMissingExpiration: true})(handler)
 }
 
+// mcpServer returns an MCP server that offers, as tools, the operations of c
+// for the AIs of a person who administers c or not.
+func (s *Server) mcpServer(c *cahut.Cahut, admin bool) *mcp.Server {
+	srv := mcp.NewServer(&mcp.Implementation{Name: "cahut", Version: version.Get().Version},
+		&mcp.ServerOptions{Instructions: instructions})
+	for _, info := range c.Registry.Ops() {
+		if !info.ForAIs(admin) {
+			continue
+		}
+		tool, err := toolFor(info)
+		if err != nil {
+			panic(err) // a type the schema library cannot describe: a programming error
+		}
+		srv.AddTool(tool, s.callTool(c, info.Name))
+	}
+	return srv
+}
+
 func toolFor(info operation.Info) (*mcp.Tool, error) {
 	in, err := jsonschema.ForType(info.Input, nil)
 	if err != nil {
@@ -71,7 +88,7 @@ func toolFor(info operation.Info) (*mcp.Tool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("output schema of %s: %w", info.Name, err)
 	}
-	destructive, openWorld := info.Irreversible, false
+	destructive, openWorld := info.KnockFirst, false
 	return &mcp.Tool{
 		Name:         info.Name,
 		Description:  info.Description,

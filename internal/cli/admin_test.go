@@ -32,6 +32,21 @@ func TestAdminCommands(t *testing.T) {
 	if code != exitOK || !strings.Contains(out, "Created olivier (Olivier Durand), admin of cahut.example.com, with a personal Room at cahut.example.com/olivier.") {
 		t.Fatalf("user create: %d %q %q", code, out, errOut)
 	}
+	link := regexp.MustCompile(`(?m)^https://cahut\.example\.com:8443/activate#[a-z2-7]{52}$`)
+	if !link.MatchString(out) || !strings.Contains(out, "Send olivier this link") {
+		t.Errorf("user create printed no activation link: %q", out)
+	}
+	code, out, _ = run(t, data, "user", "link", "--handle", "olivier")
+	if code != exitOK || !link.MatchString(out) || !strings.Contains(out, "works until they use the link") {
+		t.Errorf("user link: %d %q", code, out)
+	}
+	if code, _, errOut := run(t, data, "user", "link", "--handle", "nobody"); code != exitError || !strings.Contains(errOut, `no person "nobody"`) {
+		t.Errorf("user link for nobody: %d %q", code, errOut)
+	}
+	code, out, _ = run(t, data, "user", "list")
+	if code != exitOK || !regexp.MustCompile(`olivier\s+Olivier Durand\s+admin\s+pending`).MatchString(out) {
+		t.Errorf("user list: %d %q", code, out)
+	}
 	code, _, errOut = run(t, data, "user", "create", "--handle", "olivier", "--name", "Again")
 	if code != exitError || !strings.Contains(errOut, `invalid input: handle "olivier" is taken`) {
 		t.Errorf("duplicate user create: %d %q", code, errOut)
@@ -59,7 +74,7 @@ func TestAdminCommands(t *testing.T) {
 		t.Fatalf("logbook: %d", code)
 	}
 	for _, want := range []string{
-		"revoke_token", "create_token", "create_user",
+		"revoke_token", "create_token", "create_activation_link", "create_user",
 		"failed: invalid input: handle \"olivier\" is taken",
 	} {
 		if !strings.Contains(out, want) {
@@ -96,7 +111,7 @@ func TestSeveralCahuts(t *testing.T) {
 	if code, _, errOut := run(t, data, "user", "create", "--domain", "B.example.com", "--handle", "olivier", "--name", "Olivier"); code != exitOK {
 		t.Errorf("user create in b: %d %q", code, errOut)
 	}
-	if code, _, errOut := run(t, data, "token", "create", "--domain", "a.example.com", "--user", "olivier", "--name", "x"); code != exitError || !strings.Contains(errOut, `no user "olivier"`) {
+	if code, _, errOut := run(t, data, "token", "create", "--domain", "a.example.com", "--user", "olivier", "--name", "x"); code != exitError || !strings.Contains(errOut, `no person "olivier"`) {
 		t.Errorf("token in a for a person of b: %d %q", code, errOut)
 	}
 	if code, _, errOut := run(t, data, "token", "list", "--domain", "c.example.com"); code != exitError || !strings.Contains(errOut, "no Cahut at c.example.com") {

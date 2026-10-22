@@ -92,15 +92,16 @@ func inspect(ctx context.Context, dir string) (sample, error) {
 	return s, nil
 }
 
-// createPerson creates the person of the sample and a token for their AI.
-// It returns the token and the operations of the Cahut.
+// createPerson creates the person of the sample, an administrator of the
+// Cahut so that their AI sees every tool, and a token for that AI. It returns
+// the token and the operations of the Cahut.
 func createPerson(ctx context.Context, srv *server.Server) (string, []operation.Info, error) {
 	c, err := srv.OpenCahut(ctx, sampleDomain)
 	if err != nil {
 		return "", nil, err
 	}
 	defer c.Close()
-	user := account.CreateUserInput{Handle: sampleHandle, Name: "Reference"}
+	user := account.CreateUserInput{Handle: sampleHandle, Name: "Reference", Admin: true}
 	if _, err := operation.Do(ctx, c.Registry, account.CreateUser, admin, user); err != nil {
 		return "", nil, err
 	}
@@ -134,9 +135,11 @@ func toolsPage(s sample) (page, error) {
 	m.block("Each Cahut serves MCP at `https://<domain>/mcp`, over Streamable HTTP. " +
 		"An AI connects with a personal token of that Cahut, which it sends in the header `Authorization: Bearer <token>`: " +
 		"see [Connect an AI](/connect/claude-code/).")
-	m.block("The tools are the operations of the Cahut that are open to AIs; the others are reserved to the administrator " +
-		"([Operations](/reference/operations/)). Every call goes through the registry of operations, which checks it, " +
-		"runs it and writes it to the Logbook, reads included. Arguments with unknown fields are refused.")
+	m.block("The tools are the operations of the Cahut that are open to AIs ([Operations](/reference/operations/)). " +
+		"An AI sees the tools that the person it acts for may use: some are for the AIs of administrators of the Cahut only. " +
+		"The operations that prove who someone is, such as signing in, are for people only. " +
+		"Every call goes through the registry of operations, which checks it, runs it and writes it to the Logbook, " +
+		"reads included. Arguments with unknown fields are refused.")
 	m.block("A tool returns its result as structured content, and as the same JSON in a text block. " +
 		"When a call fails because of its arguments, the error says what to change. Any other error reads " +
 		"only as an internal error: the administrator of the Cahut finds the details in its Logbook.")
@@ -159,9 +162,20 @@ func toolsPage(s sample) (page, error) {
 	}
 	m.table([]string{"Tool", "What it does"}, rows)
 
+	ops := map[string]operation.Info{}
+	for _, op := range s.cahutOps {
+		ops[op.Name] = op
+	}
 	for _, t := range s.tools {
 		m.block("## " + code(t.Name))
 		m.block(text(t.Description))
+		op := ops[t.Name]
+		if op.Level == operation.CahutAdmin {
+			m.block("Offered to the AIs of administrators of the Cahut only.")
+		}
+		if op.KnockFirst {
+			m.block("Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).")
+		}
 		m.block("Annotations: " + annotations(t.Annotations) + ".")
 		if err := describeSchema(m, "Arguments", "Required", t.InputSchema, "This tool takes no arguments."); err != nil {
 			return page{}, fmt.Errorf("arguments of %s: %w", t.Name, err)
@@ -317,24 +331,29 @@ func operationsPage(s sample) page {
 	for _, t := range s.tools {
 		tools[t.Name] = true
 	}
+	m.block("Each operation states who may call it: any person of the Cahut, its administrators, or the administrators " +
+		"of the server, who use the command line. An AI acts with the rights of the person it acts for.")
+	head := []string{"Operation", "What it does", "Who calls it", "Changes data", "Offered to AIs"}
 	m.block("## Operations of a Cahut")
-	m.table([]string{"Operation", "What it does", "Changes data", "Offered to AIs"}, opRows(s.cahutOps, tools))
+	m.table(head, opRows(s.cahutOps, tools))
 	m.block("## Operations of the server")
-	m.table([]string{"Operation", "What it does", "Changes data", "Offered to AIs"}, opRows(s.serverOps, tools))
+	m.block("They are not offered over MCP.")
+	m.table(head, opRows(s.serverOps, nil))
 
 	m.block("## Knock first")
-	var irreversible []string
+	var knock []string
 	for _, op := range slices.Concat(s.cahutOps, s.serverOps) {
-		if op.Irreversible {
-			irreversible = append(irreversible, code(op.Name))
+		if op.KnockFirst {
+			knock = append(knock, code(op.Name))
 		}
 	}
-	rule := "An operation that cannot be undone needs the approval of a person before an AI can run it. "
-	if len(irreversible) == 0 {
-		m.block(rule + "No operation is irreversible yet, and approvals are not available yet.")
+	rule := "An operation that cannot be undone, or that changes what a person may do, needs the approval of a person " +
+		"before an AI can run it. A person who calls it in the console acts at once. "
+	if len(knock) == 0 {
+		m.block(rule + "No operation knocks first yet, and approvals are not available yet.")
 	} else {
 		m.block(rule + "Approvals are not available yet, so AIs cannot run these operations: " +
-			strings.Join(irreversible, ", ") + ".")
+			strings.Join(knock, ", ") + ".")
 	}
 	return p
 }
@@ -343,12 +362,30 @@ func opRows(ops []operation.Info, tools map[string]bool) [][]string {
 	var rows [][]string
 	for _, op := range ops {
 		name := code(op.Name)
-		offered := "no, administrator only"
+		who := capitalize(op.Level.String())
+		if op.Visitors {
+			who = "Anyone, to sign in"
+		}
+		offered := "no"
+		switch {
+		case tools[op.Name] && op.Level == operation.CahutAdmin:
+			offered = "to the AIs of administrators"
+		case tools[op.Name]:
+			offered = "yes"
+		case op.PeopleOnly:
+			offered = "no, people only"
+		}
 		if tools[op.Name] {
 			name = "[" + name + "](/reference/mcp-tools/#" + op.Name + ")"
-			offered = "yes, as an MCP tool"
 		}
-		rows = append(rows, []string{name, text(op.Description), yesNo(!op.ReadOnly), offered})
+		rows = append(rows, []string{name, text(op.Description), who, yesNo(!op.ReadOnly), offered})
 	}
 	return rows
+}
+
+func capitalize(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
 }
