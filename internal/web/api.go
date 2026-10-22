@@ -224,6 +224,15 @@ func newLimiter(every time.Duration, burst int) *limiter {
 	return &limiter{every: every, burst: burst, seen: map[string]*visit{}}
 }
 
+// spent reports whether the address addr has no call left now, without
+// making one.
+func (l *limiter) spent(addr string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	v, ok := l.seen[addr]
+	return ok && v.limiter.TokensAt(time.Now()) < 1
+}
+
 // allow reports whether the address addr may make a call now.
 func (l *limiter) allow(addr string) bool {
 	l.mu.Lock()

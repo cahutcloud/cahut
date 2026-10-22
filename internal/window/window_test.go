@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/logbook"
@@ -86,7 +87,7 @@ func TestPublishAndGet(t *testing.T) {
 		w.Size != int64(len("<h1>Q3</h1>")+8) || w.Room != "olivier" || w.CreatedBy != "olivier" {
 		t.Errorf("window = %+v", w)
 	}
-	id, version, err := Current(context.Background(), f.db, "olivier", w.Name)
+	id, version, err := current(context.Background(), f.db, "olivier", w.Name)
 	if err != nil || version != 1 {
 		t.Fatalf("Current = %d, %d, %v", id, version, err)
 	}
@@ -335,7 +336,7 @@ func TestUpdateAndRollback(t *testing.T) {
 	w := out.(Window)
 	index := func() string {
 		t.Helper()
-		id, version, err := Current(ctx, f.db, "olivier", w.Name)
+		id, version, err := current(ctx, f.db, "olivier", w.Name)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -383,7 +384,7 @@ func TestUpdateAndRollback(t *testing.T) {
 	if u.Version != 3 || u.Previous != 1 || index() != "v3" {
 		t.Errorf("after an update from a rollback: %+v", u)
 	}
-	id, _, _ := Current(ctx, f.db, "olivier", w.Name)
+	id, _, _ := current(ctx, f.db, "olivier", w.Name)
 	if _, err := os.Stat(f.s.Dir(id, 2)); !errors.Is(err, os.ErrNotExist) {
 		t.Errorf("the files of version 2 stay: %v", err)
 	}
@@ -437,7 +438,7 @@ func TestUpdateRemovesFilesWhenItFails(t *testing.T) {
 	if _, err := f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "files": [{"path": "index.html", "content": "v2"}]}`); err == nil {
 		t.Fatal("update_window succeeded without a Logbook")
 	}
-	id, version, err := Current(ctx, f.db, "olivier", w.Name)
+	id, version, err := current(ctx, f.db, "olivier", w.Name)
 	if err != nil || version != 1 {
 		t.Fatalf("Current = %d, %v", version, err)
 	}
@@ -459,7 +460,7 @@ func TestTrash(t *testing.T) {
 	if err != nil || out.(Window).TrashedAt == nil {
 		t.Fatalf("trash_window = %+v, %v", out, err)
 	}
-	if _, _, err := Current(ctx, f.db, "olivier", w.Name); !errors.Is(err, operation.ErrNotFound) {
+	if _, _, err := current(ctx, f.db, "olivier", w.Name); !errors.Is(err, operation.ErrNotFound) {
 		t.Errorf("a Window in the trash is served: %v", err)
 	}
 	if out, _ := f.invoke(t, f.olivier, "list_windows", `{}`); len(out.(List).Windows) != 0 {
@@ -490,10 +491,16 @@ func TestTrash(t *testing.T) {
 	if err != nil || out.(Window).TrashedAt != nil {
 		t.Fatalf("restore_window = %+v, %v", out, err)
 	}
-	if _, _, err := Current(ctx, f.db, "olivier", w.Name); err != nil {
+	if _, _, err := current(ctx, f.db, "olivier", w.Name); err != nil {
 		t.Errorf("a restored Window is not served: %v", err)
 	}
 	if _, err := f.invoke(t, f.olivier, "restore_window", ref); !errors.Is(err, operation.ErrInvalid) {
 		t.Errorf("restore_window out of the trash: err = %v, want ErrInvalid", err)
 	}
+}
+
+// current returns the id and the version that readers get of a Window.
+func current(ctx context.Context, db *store.DB, room, name string) (int64, int, error) {
+	w, err := Lookup(ctx, db, room, name, time.Now())
+	return w.ID, w.Version, err
 }

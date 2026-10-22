@@ -132,6 +132,13 @@ func (f *fixture) connect(t *testing.T, host, token string) *mcp.ClientSession {
 	return session
 }
 
+// setAccess sets the access of the Window called name, in olivier's Room
+// of the Cahut at domain, as olivier would in the console.
+func (f *fixture) setAccess(t *testing.T, domain, name, access string) {
+	t.Helper()
+	f.call(t, domain, f.person(t, domain, "olivier"), "set_window_access", `{"window": "olivier/`+name+`", "access": "`+access+`"}`)
+}
+
 // open returns the Cahut at domain, as the web server opened it.
 func (f *fixture) open(t *testing.T, domain string) *cahut.Cahut {
 	t.Helper()
@@ -157,7 +164,7 @@ func TestPublishOverMCP(t *testing.T) {
 	}
 	if want := []string{"add_room_member", "create_room", "get_account", "get_cahut", "get_room", "get_window", "list_logbook", "list_rooms",
 		"list_users", "list_windows", "publish_window", "remove_room_member", "restore_window", "rollback_window", "set_room_member_role",
-		"trash_window", "update_room", "update_window"}; !slices.Equal(names, want) {
+		"set_window_access", "trash_window", "update_room", "update_window"}; !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v: those of a member", names, want)
 	}
 
@@ -183,6 +190,11 @@ func TestPublishOverMCP(t *testing.T) {
 		t.Errorf("window = %v", w)
 	}
 
+	// A Window opens to its Room only, until it is public.
+	if resp, _ := f.get(t, "localhost", http.MethodGet, "/olivier/q3-review/"); resp.StatusCode != http.StatusNotFound {
+		t.Errorf("GET /olivier/q3-review/ of a new Window = %d, want 404", resp.StatusCode)
+	}
+	f.setAccess(t, "localhost", "q3-review", window.AccessPublic)
 	resp, body := f.get(t, "localhost", http.MethodGet, "/olivier/q3-review/")
 	if resp.StatusCode != http.StatusOK || body != "<h1>Q3</h1>" {
 		t.Errorf("GET /olivier/q3-review/ = %d %q", resp.StatusCode, body)
@@ -205,7 +217,7 @@ func TestPublishOverMCP(t *testing.T) {
 		"/olivier/q3-review/css/":    http.StatusNotFound,
 		"/olivier/q3-review/nope.js": http.StatusNotFound,
 		"/olivier/nope/":             http.StatusNotFound,
-		"/olivier/":                  http.StatusNotFound,
+		"/olivier/":                  http.StatusOK, // it lists the public Window
 		"/Olivier/q3-review/":        http.StatusNotFound,
 	} {
 		if resp, _ := f.get(t, "localhost", http.MethodGet, path); resp.StatusCode != want {
@@ -310,7 +322,7 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 	}
 	want := []string{"add_room_member", "create_room", "create_user", "disable_user", "enable_user", "get_account", "get_cahut", "get_room",
 		"get_window", "list_logbook", "list_rooms", "list_users", "list_windows", "publish_window", "remove_room_member",
-		"restore_window", "rollback_window", "set_room_member_role", "set_user_role", "trash_window", "update_room", "update_window"}
+		"restore_window", "rollback_window", "set_room_member_role", "set_user_role", "set_window_access", "trash_window", "update_room", "update_window"}
 	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)
 	}
@@ -396,7 +408,7 @@ func TestRouting(t *testing.T) {
 			t.Errorf("GET %s%s = %d, want %d", tt.host, tt.path, resp.StatusCode, tt.want)
 		}
 	}
-	if _, body := f.get(t, "beta.localhost", http.MethodGet, "/"); !strings.Contains(body, "beta.localhost, a Cahut") {
+	if _, body := f.get(t, "beta.localhost", http.MethodGet, "/"); !strings.Contains(body, "<h1>beta.localhost</h1>") {
 		t.Errorf("GET beta.localhost/ = %q", body)
 	}
 }

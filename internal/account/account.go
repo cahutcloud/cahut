@@ -31,6 +31,7 @@ func Register(r *operation.Registry) {
 	operation.Register(r, SignIn)
 	operation.Register(r, SignOut)
 	operation.Register(r, ChangePassword)
+	operation.Register(r, SignInToWindows)
 	operation.Register(r, CreateToken)
 	operation.Register(r, ListTokens)
 	operation.Register(r, RevokeToken)

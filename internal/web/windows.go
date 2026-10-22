@@ -1,13 +1,21 @@
 package web
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/binary"
 	"errors"
 	"io/fs"
 	"net/http"
 	"os"
 	"path"
+	"strings"
+	"time"
 
+	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/address"
+	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/window"
 )
@@ -16,6 +24,21 @@ import (
 // can read neither the other Windows of the Cahut nor the reader's session.
 // See docs/adr/0010-windows-in-a-csp-sandbox.md.
 const sandbox = "sandbox allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads"
+
+// frameSandbox is the sandbox of the frame of a protected Window, the same
+// as that of its files.
+const frameSandbox = "allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads"
+
+// FrameTTL is how long the address of the frame of a protected Window lasts.
+const FrameTTL = 4 * time.Hour
+
+func validName(s string) bool {
+	return address.ValidName(s)
+}
+
+func isNotFound(err error) bool {
+	return errors.Is(err, operation.ErrNotFound)
+}
 
 // redirectToWindow sends <room>/<window> to <room>/<window>/, so that the
 // relative links of the Window's pages resolve under it.
@@ -31,8 +54,9 @@ func redirectToWindow(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, target, http.StatusPermanentRedirect) //nolint:gosec // a path of this host, made of two checked names
 }
 
-// serveWindow serves the files of a Window. Until access levels exist,
-// anyone who has a Window's address can read it.
+// serveWindow serves a Window at its address: the files of a public
+// Window; for a protected Window, the page of Cahut that frames it, or the
+// page that asks for its Key; and otherwise the page of what is not found.
 func (s *Server) serveWindow(w http.ResponseWriter, r *http.Request) {
 	room, name := r.PathValue("room"), r.PathValue("window")
 	if !address.ValidName(room) || !address.ValidName(name) {
@@ -40,19 +64,108 @@ func (s *Server) serveWindow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c := siteOf(r).cahut
-	id, version, err := window.Current(r.Context(), c.DB, room, name)
-	if errors.Is(err, operation.ErrNotFound) {
-		http.Error(w, "There is no Window at this address.", http.StatusNotFound)
+	now := time.Now()
+	win, err := window.Lookup(r.Context(), c.DB, room, name, now)
+	if err != nil && !isNotFound(err) {
+		s.internal(w, "find a Window", err)
+		return
+	}
+	if err == nil && win.Access == window.AccessPublic {
+		s.serveFiles(w, r, c, win, "/"+room+"/"+name, "strict-origin-when-cross-origin")
+		return
+	}
+	reader, _ := s.readerOf(r, now)
+	if err != nil {
+		s.notFound(w, r, reader.Handle)
+		return
+	}
+	how, err := win.Opens(r.Context(), c.DB, reader.UserID, s.passOf(r, win.ID, now))
+	if err != nil {
+		s.internal(w, "check the access of a Window", err)
+		return
+	}
+	var frame capability
+	switch how {
+	case window.BySession:
+		frame = capability{Window: win.ID, Kind: bySession, ID: reader.SessionID}
+	case window.ByPass:
+		frame = capability{Window: win.ID, Kind: byPass, ID: s.passOf(r, win.ID, now)}
+	default:
+		if win.Access == window.AccessKey {
+			s.askKey(w, r, win, reader.Handle, "", http.StatusUnauthorized)
+		} else {
+			s.notFound(w, r, reader.Handle)
+		}
+		return
+	}
+	frame.Expires = now.Add(FrameTTL).Unix()
+	src := "/-/w/" + frame.sign(c.FrameKey) + "/" + strings.TrimPrefix(r.URL.EscapedPath(), "/"+room+"/"+name+"/")
+	if r.URL.RawQuery != "" {
+		src += "?" + r.URL.RawQuery
+	}
+	s.render(w, http.StatusOK, "frame", struct{ Title, Src, Sandbox string }{win.Title, src, frameSandbox})
+}
+
+// serveFrame serves the files of a protected Window in its frame, under the
+// capability that its page gave, while its reader may still open it.
+func (s *Server) serveFrame(w http.ResponseWriter, r *http.Request) {
+	c := siteOf(r).cahut
+	now := time.Now()
+	gone := func() {
+		http.Error(w, "This frame no longer opens its Window: open the Window at its address again.", http.StatusNotFound)
+	}
+	signed := r.PathValue("capability")
+	frame, ok := verifyCapability(c.FrameKey, signed, now)
+	if !ok {
+		gone()
+		return
+	}
+	win, err := window.LookupID(r.Context(), c.DB, frame.Window, now)
+	if err != nil && !isNotFound(err) {
+		s.internal(w, "find a Window", err)
 		return
 	}
 	if err != nil {
-		s.log.Error("find a Window", "cahut", c.Domain, "window", room+"/"+name, "error", err)
-		http.Error(w, "Internal error.", http.StatusInternalServerError)
+		gone()
 		return
 	}
-	root, err := os.OpenRoot(c.Windows.Dir(id, version))
+	var userID, pass int64
+	switch frame.Kind {
+	case bySession:
+		o, err := account.Reader(r.Context(), c.DB, frame.ID, now)
+		if err != nil && !errors.Is(err, account.ErrInvalidSession) {
+			s.internal(w, "verify a reader session", err)
+			return
+		}
+		userID = o.UserID
+	case byPass:
+		lasts, err := window.PassLasts(r.Context(), c.DB, win.ID, frame.ID, now)
+		if err != nil {
+			s.internal(w, "verify a pass", err)
+			return
+		}
+		if lasts {
+			pass = frame.ID
+		}
+	}
+	how, err := win.Opens(r.Context(), c.DB, userID, pass)
 	if err != nil {
-		s.log.Error("open the files of a Window", "cahut", c.Domain, "window", room+"/"+name, "error", err)
+		s.internal(w, "check the access of a Window", err)
+		return
+	}
+	if how == window.Closed {
+		gone()
+		return
+	}
+	s.serveFiles(w, r, c, win, "/-/w/"+signed, "no-referrer")
+}
+
+// serveFiles serves the file of the Window win that the request names
+// under prefix, in the sandbox.
+func (s *Server) serveFiles(w http.ResponseWriter, r *http.Request, c *cahut.Cahut, win window.Served, prefix, referrer string) {
+	root, err := os.OpenRoot(c.Windows.Dir(win.ID, win.Version))
+	if err != nil {
+		s.log.Error("open the files of a Window", "cahut", c.Domain, "window", win.Room+"/"+win.Name, "error", err)
 		http.Error(w, "Internal error.", http.StatusInternalServerError)
 		return
 	}
@@ -77,7 +190,67 @@ func (s *Server) serveWindow(w http.ResponseWriter, r *http.Request) {
 	// cross-origin requests; they carry no credentials.
 	h.Set("Access-Control-Allow-Origin", "*")
 	h.Set("X-Content-Type-Options", "nosniff")
-	h.Set("Referrer-Policy", "strict-origin-when-cross-origin")
+	h.Set("Referrer-Policy", referrer)
 	h.Set("Cache-Control", "no-cache")
-	http.StripPrefix("/"+room+"/"+name, http.FileServerFS(files)).ServeHTTP(w, r)
+	http.StripPrefix(prefix, http.FileServerFS(files)).ServeHTTP(w, r)
+}
+
+// What opened the frame of a protected Window.
+const (
+	bySession byte = 's'
+	byPass    byte = 'p'
+)
+
+// capability is the address of the frame of a protected Window: it names
+// the Window, the reader session or the pass that opened it, and when it
+// expires. It is signed with the FrameKey of the Cahut.
+type capability struct {
+	Window  int64
+	Kind    byte
+	ID      int64
+	Expires int64 // Unix time
+}
+
+const (
+	capabilitySize = 8 + 1 + 8 + 8
+	macSize        = 16
+)
+
+// sign returns the capability and its signature, in base64url.
+func (f capability) sign(key []byte) string {
+	b := make([]byte, 0, capabilitySize+macSize)
+	b = binary.BigEndian.AppendUint64(b, uint64(f.Window)) //nolint:gosec // ids and times are positive
+	b = append(b, f.Kind)
+	b = binary.BigEndian.AppendUint64(b, uint64(f.ID))      //nolint:gosec // ids and times are positive
+	b = binary.BigEndian.AppendUint64(b, uint64(f.Expires)) //nolint:gosec // ids and times are positive
+	return base64.RawURLEncoding.EncodeToString(append(b, mac(key, b)...))
+}
+
+// verifyCapability returns the capability that s signs with key, when the
+// signature holds and it has not expired.
+func verifyCapability(key []byte, s string, now time.Time) (capability, bool) {
+	b, err := base64.RawURLEncoding.DecodeString(s)
+	if err != nil || len(b) != capabilitySize+macSize {
+		return capability{}, false
+	}
+	data, sig := b[:capabilitySize], b[capabilitySize:]
+	if !hmac.Equal(sig, mac(key, data)) {
+		return capability{}, false
+	}
+	f := capability{
+		Window:  int64(binary.BigEndian.Uint64(data[0:8])), //nolint:gosec // signed by this Cahut
+		Kind:    data[8],
+		ID:      int64(binary.BigEndian.Uint64(data[9:17])),  //nolint:gosec // signed by this Cahut
+		Expires: int64(binary.BigEndian.Uint64(data[17:25])), //nolint:gosec // signed by this Cahut
+	}
+	if now.Unix() >= f.Expires || f.Kind != bySession && f.Kind != byPass {
+		return capability{}, false
+	}
+	return f, true
+}
+
+func mac(key, data []byte) []byte {
+	h := hmac.New(sha256.New, key)
+	h.Write(data)
+	return h.Sum(nil)[:macSize]
 }
