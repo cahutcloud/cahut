@@ -16,6 +16,7 @@ Read before working on anything substantial:
 - [docs/brief-projet.md](docs/brief-projet.md): the full project brief, in French, with the open questions.
 - [docs/plan-v0.md](docs/plan-v0.md): the development plan for the V0 (the MVP), in French: scope, batches, milestones and decisions to make.
 - [docs/plan-lot-2.md](docs/plan-lot-2.md): the detailed plan of batch 2 (people, team Rooms and the console), in French: operations, screens and pull requests.
+- [docs/gouvernance.md](docs/gouvernance.md): how the project is governed and how it lives, in French: roles, contributions, channels, releases, security, name, license and money, and the decisions still open.
 - [docs/adr/README.md](docs/adr/README.md): the architecture decision records, in English. They settle the web server and TLS, the database, the console, OAuth, the module path and releases, then several Cahuts per server, the addresses of Rooms and Windows, the Window sandbox, the console's port, the website and documentation, and then people, sessions and rights, and the console's HTTP API.
 - [docs/charte-graphique/README.md](docs/charte-graphique/README.md): the brand guidelines, in French.
 
@@ -143,6 +144,7 @@ docs/
   brief-projet.md      Project brief (French)
   plan-v0.md           V0 development plan (French)
   plan-lot-2.md        Detailed plan of batch 2 (French)
+  gouvernance.md       Governance and project life (French)
   charte-graphique/    Brand guidelines with all source files (French)
 sites/                 npm workspace of the sites (ADR 12)
   cahut.cloud/         The website, Astro, with the brand at /brand
