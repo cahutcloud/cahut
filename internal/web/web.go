@@ -100,7 +100,7 @@ type Server struct {
 	log *slog.Logger
 	mux *http.ServeMux // port 443: Windows and MCP
 
-	console       *http.ServeMux // port 8443: the console, its API and the OAuth authorization server
+	console       *http.ServeMux // port 8443: the console, its API and the consent screen of OAuth
 	visitors      *limiter       // calls that sign in, by address
 	registrations *limiter       // registrations of OAuth clients, by address
 
@@ -127,9 +127,19 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.mux.HandleFunc("GET /{$}", s.serveRoot)
 	s.mux.HandleFunc("/mcp", s.serveMCP)
 	s.mux.HandleFunc("GET /-/healthz", serveHealth)
+	// The OAuth endpoints that the servers of AI clients call are on this
+	// port, which every client reaches. See
+	// docs/adr/0017-oauth-endpoints-on-port-443.md.
 	for _, method := range []string{"GET", "OPTIONS"} {
 		s.mux.HandleFunc(method+" /.well-known/oauth-protected-resource", s.logged(s.serveResourceMetadata))
 		s.mux.HandleFunc(method+" /.well-known/oauth-protected-resource/mcp", s.logged(s.serveResourceMetadata))
+		s.mux.HandleFunc(method+" /.well-known/oauth-authorization-server", s.logged(s.serveAuthorizationMetadata))
+		s.mux.HandleFunc(method+" /.well-known/openid-configuration", s.logged(serveUnknownMetadata))
+	}
+	for _, method := range []string{"POST", "OPTIONS"} {
+		s.mux.HandleFunc(method+" /oauth/token", s.logged(s.serveToken))
+		s.mux.HandleFunc(method+" /oauth/register", s.logged(s.serveRegister))
+		s.mux.HandleFunc(method+" /oauth/revoke", s.logged(s.serveRevoke))
 	}
 	s.mux.HandleFunc("GET /{room}/{window}", redirectToWindow)
 	s.mux.HandleFunc("GET /{room}/{window}/{file...}", s.serveWindow)
@@ -137,11 +147,9 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.visitors = newLimiter(SignInEvery, SignInBurst)
 	s.registrations = newLimiter(RegisterEvery, RegisterBurst)
 	s.console = http.NewServeMux()
-	s.console.HandleFunc("/.well-known/oauth-authorization-server", s.logged(s.serveAuthorizationMetadata))
+	// The console's port serves the consent screen only: people's browsers
+	// reach it, not the servers of AI clients.
 	s.console.HandleFunc("/.well-known/", s.logged(serveUnknownMetadata))
-	s.console.HandleFunc("/oauth/token", s.logged(s.serveToken))
-	s.console.HandleFunc("/oauth/register", s.logged(s.serveRegister))
-	s.console.HandleFunc("/oauth/revoke", s.logged(s.serveRevoke))
 	pages := console.Handler()
 	s.console.HandleFunc("GET /oauth/authorize", s.logged(pages.ServeHTTP))
 	s.console.HandleFunc("POST /api/server/{operation}", s.serveServerAPI)

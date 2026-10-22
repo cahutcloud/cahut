@@ -12,8 +12,11 @@ import (
 	"cahut.cloud/internal/oauth"
 )
 
-// Each Cahut is the OAuth authorization server of its MCP endpoint, on the
-// console's port. See docs/adr/0016-oauth-for-ai-clients.md.
+// Each Cahut is the OAuth authorization server of its MCP endpoint. The
+// servers of AI clients reach its metadata, token, registration and
+// revocation endpoints on port 443; people's browsers reach its consent
+// screen in the console. See docs/adr/0016-oauth-for-ai-clients.md and
+// docs/adr/0017-oauth-endpoints-on-port-443.md.
 
 // Registrations of OAuth clients take no session: they are limited by
 // address, to a burst of RegisterBurst, then one every RegisterEvery.
@@ -68,10 +71,9 @@ func (s *Server) serveRegister(w http.ResponseWriter, r *http.Request) {
 	siteOf(r).cahut.OAuth.ServeRegister(w, r)
 }
 
-// serveUnknownMetadata answers the well-known addresses of the console's
-// port that Cahut does not serve, such as OpenID Connect discovery, with a
-// 404 rather than the console's page: a client that probes them reads that
-// there is nothing there.
+// serveUnknownMetadata answers the well-known addresses that Cahut does not
+// serve, such as OpenID Connect discovery, with a 404 in JSON rather than a
+// page: a client that probes them reads that there is nothing there.
 func serveUnknownMetadata(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")

@@ -273,24 +273,32 @@ func TestOAuthDiscovery(t *testing.T) {
 	if resp.StatusCode != http.StatusUnauthorized || !strings.Contains(resp.Header.Get("WWW-Authenticate"), `resource_metadata="`+wantMeta+`"`) {
 		t.Errorf("MCP without a token: %d %q", resp.StatusCode, resp.Header.Get("WWW-Authenticate"))
 	}
-	issuer := strings.TrimSuffix(f.console, "/")
+	// The servers of AI clients reach everything but the consent screen on
+	// the usual port. See docs/adr/0017-oauth-endpoints-on-port-443.md.
+	issuer := strings.TrimSuffix(f.base, "/")
 	for _, address := range []string{wantMeta, f.base + ".well-known/oauth-protected-resource"} {
 		resp, meta := get(http.MethodGet, address)
 		if resp.StatusCode != http.StatusOK || meta["resource"] != f.base+"mcp" || fmt.Sprint(meta["authorization_servers"]) != "["+issuer+"]" {
 			t.Errorf("%s: %d %v", address, resp.StatusCode, meta)
 		}
 	}
-	resp, meta := get(http.MethodGet, f.console+".well-known/oauth-authorization-server")
-	if resp.StatusCode != http.StatusOK || meta["issuer"] != issuer || resp.Header.Get("Access-Control-Allow-Origin") != "*" {
+	resp, meta := get(http.MethodGet, f.base+".well-known/oauth-authorization-server")
+	if resp.StatusCode != http.StatusOK || meta["issuer"] != issuer || resp.Header.Get("Access-Control-Allow-Origin") != "*" ||
+		meta["authorization_endpoint"] != f.console+"oauth/authorize" || meta["token_endpoint"] != f.base+"oauth/token" {
 		t.Errorf("authorization server metadata: %d %v", resp.StatusCode, meta)
 	}
 	// Cahut is no OpenID provider: a client that probes for one reads a 404,
-	// not the console's page.
-	if resp, _ := get(http.MethodGet, f.console+".well-known/openid-configuration"); resp.StatusCode != http.StatusNotFound ||
-		resp.Header.Get("Content-Type") != "application/json" {
-		t.Errorf("OpenID Connect discovery: %d %v", resp.StatusCode, resp.Header)
+	// not a page.
+	for _, origin := range []string{f.base, f.console} {
+		if resp, _ := get(http.MethodGet, origin+".well-known/openid-configuration"); resp.StatusCode != http.StatusNotFound ||
+			resp.Header.Get("Content-Type") != "application/json" {
+			t.Errorf("OpenID Connect discovery at %s: %d %v", origin, resp.StatusCode, resp.Header)
+		}
 	}
-	if resp, _ := get(http.MethodOptions, f.console+"oauth/token"); resp.StatusCode != http.StatusNoContent ||
+	if resp, _ := get(http.MethodGet, f.console+".well-known/oauth-authorization-server"); resp.StatusCode != http.StatusNotFound {
+		t.Errorf("authorization server metadata on the console's port: %d", resp.StatusCode)
+	}
+	if resp, _ := get(http.MethodOptions, f.base+"oauth/token"); resp.StatusCode != http.StatusNoContent ||
 		resp.Header.Get("Access-Control-Allow-Origin") != "*" {
 		t.Errorf("preflight of the token endpoint: %d %v", resp.StatusCode, resp.Header)
 	}
@@ -322,7 +330,7 @@ func TestRegistrationsAreLimited(t *testing.T) {
 	f := setupOAuth(t)
 	status := 0
 	for range RegisterBurst + 1 {
-		req, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, f.console+"oauth/register",
+		req, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, f.base+"oauth/register",
 			strings.NewReader(`{"redirect_uris": ["http://127.0.0.1/callback"]}`))
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {

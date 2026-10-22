@@ -23,7 +23,8 @@ import (
 )
 
 const (
-	issuer   = "https://cahut.test:8443"
+	issuer   = "https://cahut.test"
+	console  = "https://cahut.test:8443"
 	resource = "https://cahut.test/mcp"
 	redirect = "https://claude.ai/api/mcp/auth_callback"
 	verifier = "a-code-verifier-of-at-least-43-characters-made-of-letters"
@@ -45,7 +46,7 @@ func setup(t *testing.T) *fixture {
 	t.Helper()
 	ctx := context.Background()
 	c, err := cahut.Open(ctx, cahut.Config{Dir: t.TempDir(), Domain: "cahut.test",
-		BaseURL: "https://cahut.test/", ConsoleURL: issuer + "/"})
+		BaseURL: "https://cahut.test/", ConsoleURL: console + "/"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -178,7 +179,7 @@ func TestMetadata(t *testing.T) {
 	}
 	for key, want := range map[string]any{
 		"issuer":                                         issuer,
-		"authorization_endpoint":                         issuer + "/oauth/authorize",
+		"authorization_endpoint":                         console + "/oauth/authorize",
 		"token_endpoint":                                 issuer + "/oauth/token",
 		"registration_endpoint":                          issuer + "/oauth/register",
 		"revocation_endpoint":                            issuer + "/oauth/revoke",

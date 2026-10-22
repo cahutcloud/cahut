@@ -14,12 +14,13 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [8](0008-several-cahuts-per-server.md) | A server holds several Cahuts, each at its own domain | Accepted |
 | [9](0009-rooms-and-windows-as-paths.md) | Rooms and Windows are paths of their Cahut's domain | Accepted |
 | [10](0010-windows-in-a-csp-sandbox.md) | Windows run in a CSP sandbox | Accepted |
-| [11](0011-console-on-its-own-port.md) | The console has its own port | Accepted, superseded in part by 13 |
+| [11](0011-console-on-its-own-port.md) | The console has its own port | Accepted, superseded in part by 13 and 17 |
 | [12](0012-website-and-docs-as-astro-sites.md) | The website and the docs are Astro sites in this repository | Accepted |
 | [13](0013-people-sessions-and-rights.md) | People sign in to their Cahut, and the registry checks their rights | Accepted |
 | [14](0014-console-http-api.md) | The console calls each operation at its own HTTP route | Accepted |
 | [15](0015-license.md) | AGPL-3.0 for the repository, the name and the logo apart | Accepted |
-| [16](0016-oauth-for-ai-clients.md) | AI clients connect over OAuth, to the Rooms and the scope a person grants | Accepted |
+| [16](0016-oauth-for-ai-clients.md) | AI clients connect over OAuth, to the Rooms and the scope a person grants | Accepted, superseded in part by 17 |
+| [17](0017-oauth-endpoints-on-port-443.md) | The OAuth endpoints that clients' servers call are on port 443 | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

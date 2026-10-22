@@ -1,6 +1,6 @@
 # 11. The console has its own port
 
-- Status: Accepted, superseded in part by [ADR 13](0013-people-sessions-and-rights.md) (server administrators sign in to each Cahut)
+- Status: Accepted, superseded in part by [ADR 13](0013-people-sessions-and-rights.md) (server administrators sign in to each Cahut) and [ADR 17](0017-oauth-endpoints-on-port-443.md) (the OAuth endpoints that clients' servers call are on port 443)
 - Date: 2026-10-21
 
 ## Context
