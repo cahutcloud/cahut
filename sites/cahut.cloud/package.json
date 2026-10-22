@@ -8,6 +8,7 @@
 		"preview": "astro preview"
 	},
 	"dependencies": {
+		"@astrojs/markdown-satteri": "0.4.5",
 		"@cahut/brand": "0.0.0",
 		"astro": "7.4.2",
 		"sharp": "0.35.5"

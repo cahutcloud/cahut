@@ -1,0 +1,19 @@
+---
+// The policy on the name and the logo, from TRADEMARK.md at the root of the
+// repository, which the site renders as the project pages are rendered from
+// their files (ADR 18).
+import Section from './Section.astro';
+import { Content, frontmatter } from '@repo/TRADEMARK.md';
+import { github } from '../../project/community';
+import '../../styles/prose.css';
+---
+
+<Section id="name-and-logo" number="08" label="The name and the logo" title={frontmatter.title}>
+	<div class="prose">
+		<Content />
+	</div>
+	<p class="b-note c-small c-muted">
+		This section is <a class="c-mono" href={`${github}/blob/main/TRADEMARK.md`}>TRADEMARK.md</a> at the root of the
+		repository, rendered at each build of the site.
+	</p>
+</Section>

@@ -1,0 +1,9 @@
+---
+// The code of conduct: the official translation of the Contributor Covenant 3.0, kept in the site (ADR 18).
+import ProjectPage from '../../../components/project/ProjectPage.astro';
+import { Content, frontmatter } from '../../../project/fr/CODE_OF_CONDUCT.md';
+---
+
+<ProjectPage lang="fr" page="conduct" title={frontmatter.title} file="CODE_OF_CONDUCT.md">
+	<Content />
+</ProjectPage>

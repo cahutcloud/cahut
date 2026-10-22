@@ -1,0 +1,148 @@
+/*
+ * Markdown content: the project pages, built from the community files of the
+ * repository, and the policy on the name on the brand page (ADR 18). Text
+ * keeps the reading width of the site; tables take the width of the page and
+ * scroll sideways when it is too narrow. Every color, size, space and radius
+ * comes from the tokens.
+ */
+
+.prose > * {
+	max-width: var(--measure);
+}
+
+.prose > table {
+	max-width: none;
+}
+
+.prose > :first-child {
+	margin-top: 0;
+}
+
+.prose > :last-child {
+	margin-bottom: 0;
+}
+
+/* The first paragraph introduces the page, as a lead. */
+.prose > p:first-child {
+	font-size: var(--text-lg);
+	line-height: var(--leading-lg);
+	color: var(--color-text-muted);
+}
+
+.prose p,
+.prose ul,
+.prose ol,
+.prose blockquote,
+.prose pre {
+	margin: 0 0 var(--space-4);
+}
+
+.prose h2 {
+	margin: var(--space-12) 0 var(--space-4);
+	font-size: var(--text-2xl);
+	line-height: var(--leading-2xl);
+	font-weight: var(--weight-bold);
+	letter-spacing: var(--tracking-title);
+}
+
+.prose h3 {
+	margin: var(--space-8) 0 var(--space-3);
+	font-size: var(--text-xl);
+	line-height: var(--leading-xl);
+	font-weight: var(--weight-semibold);
+}
+
+.prose h4 {
+	margin: var(--space-6) 0 var(--space-2);
+	font-size: var(--text-lg);
+	line-height: var(--leading-lg);
+	font-weight: var(--weight-semibold);
+}
+
+.prose ul,
+.prose ol {
+	padding-left: var(--space-6);
+}
+
+.prose li + li {
+	margin-top: var(--space-1);
+}
+
+.prose li > ul,
+.prose li > ol {
+	margin: var(--space-1) 0 0;
+}
+
+.prose li::marker {
+	color: var(--color-text-muted);
+}
+
+.prose code {
+	padding: 0 var(--space-1);
+	border-radius: var(--radius-xs);
+	background: var(--color-surface-muted);
+	font-family: var(--font-mono);
+	font-size: 0.9em;
+}
+
+.prose pre {
+	padding: var(--space-4);
+	overflow-x: auto;
+	border: var(--border-width) solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-surface);
+	font-size: var(--text-sm);
+	line-height: var(--leading-sm);
+}
+
+.prose pre code {
+	padding: 0;
+	background: none;
+	font-size: inherit;
+}
+
+.prose blockquote {
+	padding-left: var(--space-4);
+	border-left: var(--space-1) solid var(--color-border-strong);
+	color: var(--color-text-muted);
+}
+
+.prose hr {
+	margin: var(--space-8) 0;
+	border: 0;
+	border-top: var(--border-width) solid var(--color-border);
+}
+
+.prose table {
+	display: block;
+	width: 100%;
+	margin: 0 0 var(--space-6);
+	overflow-x: auto;
+	border-collapse: collapse;
+	font-size: var(--text-sm);
+	line-height: var(--leading-sm);
+}
+
+.prose th,
+.prose td {
+	padding: var(--space-2) var(--space-3);
+	border-top: var(--border-width) solid var(--color-border);
+	text-align: left;
+	vertical-align: top;
+}
+
+.prose thead th {
+	padding-top: 0;
+	border-top: 0;
+	font-family: var(--font-mono);
+	font-size: var(--text-xs);
+	line-height: var(--leading-xs);
+	font-weight: var(--weight-medium);
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--color-text-muted);
+}
+
+.prose tbody td:first-child {
+	font-weight: var(--weight-semibold);
+}

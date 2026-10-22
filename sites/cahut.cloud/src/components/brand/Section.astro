@@ -14,7 +14,13 @@ const { id, number, label, title } = Astro.props;
 	<header class="b-head">
 		<p class="c-label"><span class="b-num">{number}</span>{label}</p>
 		<h2 id={`${id}-title`} class="c-h2">{title}</h2>
-		<p class="b-lead"><slot name="lead" /></p>
+		{
+			Astro.slots.has('lead') && (
+				<p class="b-lead">
+					<slot name="lead" />
+				</p>
+			)
+		}
 	</header>
 	<slot />
 </section>

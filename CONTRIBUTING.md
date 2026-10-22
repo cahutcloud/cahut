@@ -8,7 +8,7 @@ Open a pull request without asking first for:
 
 - a bug fix, with a test that shows the bug;
 - a better page of the documentation, or a fixed typo in the site or in a message;
-- a translation of the site: the English words are in `sites/cahut.cloud/src/i18n/en.ts` and the French ones in `fr.ts`, changed together;
+- a translation of the site: the English words are in `sites/cahut.cloud/src/i18n/en.ts` and the French ones in `fr.ts`, changed together, and the French pages of the project section are in `sites/cahut.cloud/src/project/fr/`;
 - a clearer error message, one that tells an AI how to fix its call;
 - a dependency update.
 

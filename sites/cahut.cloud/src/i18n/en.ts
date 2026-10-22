@@ -23,7 +23,7 @@ export default {
 			features: 'Features',
 			docs: 'Docs',
 			brand: 'Brand',
-			roadmap: 'Roadmap',
+			project: 'Project',
 			github: 'GitHub',
 		},
 		footer: { cahut: 'Cahut', project: 'Project' },
@@ -448,6 +448,7 @@ export default {
 			'Roadmap to the public launch.',
 		],
 		underWay: 'Under way',
+		more: 'The full roadmap',
 		criteriaTitle: 'Ready for launch when',
 		criterion: 'Criterion',
 		threshold: 'Threshold',
@@ -461,6 +462,102 @@ export default {
 				threshold: 'Every AI action is in the Logbook, and is either reversible or was approved',
 			},
 		],
+	},
+
+	project: {
+		label: 'Project',
+		nav: {
+			governance: 'Governance',
+			roadmap: 'Roadmap',
+			contribute: 'Contribute',
+			support: 'Get help',
+			security: 'Security',
+			conduct: 'Code of conduct',
+		},
+		descriptions: {
+			governance: 'Who decides in the Cahut project, its principles, its roles, how it grows, and what the money does.',
+			roadmap: 'The batches of the first version of Cahut, what works today, and what makes it ready for launch.',
+			contribute:
+				'What helps Cahut right away, what to discuss first, how a pull request gets in, and the rules for contributions made with an AI.',
+			support: 'Where to ask for help with Cahut, how to ask well, and what to expect.',
+			security: 'How to report a vulnerability in Cahut, privately, what to expect, and what is in scope.',
+			conduct: 'The code of conduct of the Cahut community, the Contributor Covenant 3.0, and where to report an incident.',
+		},
+		// Under the content of a page: the file of the repository it comes from.
+		source: {
+			file: 'This page is {file} at the root of the repository, rendered at each build of the site.',
+			translation: 'This page translates {file} at the root of the repository, which is the reference, in English.',
+			conduct:
+				'This page is the official translation of the Contributor Covenant 3.0, with the reporting channel of Cahut. {file} at the root of the repository is the reference, in English.',
+			change: 'To change it, open a pull request.',
+		},
+		roadmap: {
+			title: 'Roadmap',
+			lead: 'Cahut is built in batches, each one a working slice from the AI to the reader. Their order is set, their dates are not: the milestones of the repository say where each batch stands.',
+			batchesTitle: 'The batches of the first version',
+			batch: 'Batch',
+			states: { done: 'Done', next: 'Next' },
+			batches: [
+				{
+					title: 'Foundations and decisions',
+					text: 'The first architecture records, the Go skeleton, the continuous integration and the release build.',
+				},
+				{
+					title: 'Publish over MCP, serve over HTTPS',
+					text: 'An AI publishes a Window with a personal token. Cahut serves it at its own address, in a sandbox, and the call goes to the Logbook.',
+				},
+				{
+					title: 'People, Rooms and the console',
+					text: 'People sign in; administrators of each Cahut and of the server; team Rooms with their rights; the web console and its API.',
+				},
+				{
+					title: 'Connect the AIs: OAuth',
+					text: 'Each Cahut is the authorization server of its MCP endpoint. On a consent screen, a person grants an AI some Rooms and a scope, and sees the connected AIs in the console.',
+				},
+				{
+					title: 'Complete Windows: versions and access',
+					text: 'Updating a Window keeps the previous version, and one step rolls back. Each Window opens to its Room only, to everyone signed in to its Cahut, to anyone with its Key, or to the public.',
+				},
+				{
+					title: 'Knock first',
+					text: 'An AI asks before anything it cannot undo. The request waits in the console, with a notification and an expiry, until a person approves or declines it.',
+				},
+				{
+					title: 'House style and a skill for Claude',
+					text: "The organization's colors, fonts, logo and templates, given to every AI, and a skill that tells Claude how to publish on Cahut.",
+				},
+				{
+					title: 'Installation, first start and updates',
+					text: 'One command on a fresh AlmaLinux or Ubuntu server, a guided first start in the browser, and updates from the releases, with a rollback.',
+				},
+				{
+					title: 'A second AI client and acceptance',
+					text: 'A second AI client tested from end to end, a security review, and the success criteria checked on fresh servers.',
+				},
+			],
+			milestones: 'The milestones on GitHub',
+			todayTitle: 'What works today',
+			todayLead: 'Batches 0 to 3 are done. In a Cahut, today:',
+			today: [
+				'One service on a Linux server, holding one or more Cahuts, each at its own domain with its certificate.',
+				'People who sign in, administrators of the Cahut and of the server, and team Rooms with owners and members.',
+				'A web console: Rooms, Windows, the Logbook, people, connected AIs and personal tokens.',
+				'AI clients that connect over OAuth, to the Rooms and the scope a person grants, or with a personal token.',
+				'Windows published over MCP: documents, decks, dashboards and static sites, served in a sandbox.',
+				'The Logbook of every call, every change and every sign-in.',
+			],
+			caution:
+				'There is no access level yet: anyone with the address of a Window can open it. Publish nothing that you would not share by link.',
+			statusText: 'The documentation keeps the detail, area by area:',
+			status: 'Where Cahut stands',
+			afterTitle: 'After the first version',
+			afterLead: 'Then, towards the full scope of the launch, in about this order:',
+			after: [
+				'Comments, search, single sign-on, e-mails, backups and restore, and quotas per Cahut.',
+				'Apps in unprivileged containers: runtimes, a Dockerfile mode, databases, secrets, logs and resource limits.',
+				'Export to PDF and PowerPoint, SSH access limited to the same operations, and other AI clients.',
+			],
+		},
 	},
 
 	closing: {

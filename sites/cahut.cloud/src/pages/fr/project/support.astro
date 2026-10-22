@@ -1,0 +1,9 @@
+---
+// Where to get help: the translation of SUPPORT.md, kept in the site (ADR 18).
+import ProjectPage from '../../../components/project/ProjectPage.astro';
+import { Content, frontmatter } from '../../../project/fr/SUPPORT.md';
+---
+
+<ProjectPage lang="fr" page="support" title={frontmatter.title} file="SUPPORT.md">
+	<Content />
+</ProjectPage>

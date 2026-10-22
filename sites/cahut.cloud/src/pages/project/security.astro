@@ -1,0 +1,9 @@
+---
+// The security policy, from SECURITY.md at the root of the repository (ADR 18).
+import ProjectPage from '../../components/project/ProjectPage.astro';
+import { Content, frontmatter } from '@repo/SECURITY.md';
+---
+
+<ProjectPage lang="en" page="security" title={frontmatter.title} file="SECURITY.md">
+	<Content />
+</ProjectPage>

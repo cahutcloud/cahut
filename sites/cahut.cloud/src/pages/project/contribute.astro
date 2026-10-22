@@ -1,0 +1,9 @@
+---
+// How to contribute, from CONTRIBUTING.md at the root of the repository (ADR 18).
+import ProjectPage from '../../components/project/ProjectPage.astro';
+import { Content, frontmatter } from '@repo/CONTRIBUTING.md';
+---
+
+<ProjectPage lang="en" page="contribute" title={frontmatter.title} file="CONTRIBUTING.md">
+	<Content />
+</ProjectPage>

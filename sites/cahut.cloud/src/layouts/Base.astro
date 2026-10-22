@@ -6,6 +6,7 @@ import '@charte/ui/cahut-ui.css';
 import '../styles/site.css';
 import Icon from '../components/Icon.astro';
 import { localize, otherLang, useTranslations, type Lang } from '../i18n';
+import { pages, paths } from '../project/community';
 import logo from '@charte/logos/cahut-logo-horizontal.svg?url';
 import logoInverse from '@charte/logos/cahut-logo-horizontal-inverse.svg?url';
 import defaultImage from '@charte/applications/og-image.png';
@@ -57,10 +58,11 @@ const nav = [
 	{ href: home('#knock-first'), label: t.base.nav.knock, section: true },
 	{ href: home('#features'), label: t.base.nav.features, section: true },
 	{ href: docs, label: t.base.nav.docs, hreflang: 'en' },
+	{ href: localize(lang, '/project/'), label: t.base.nav.project, optional: true },
 	{ href: '/brand/', label: t.base.nav.brand, hreflang: 'en', optional: true },
 ];
 
-const footer = [
+const footer: { title: string; links: { href: string; label: string; hreflang?: string }[] }[] = [
 	{
 		title: t.base.footer.cahut,
 		links: [
@@ -68,15 +70,16 @@ const footer = [
 			{ href: home('#how-it-works'), label: t.base.nav.how },
 			{ href: home('#knock-first'), label: t.base.nav.knock },
 			{ href: home('#features'), label: t.base.nav.features },
-			{ href: home('#roadmap'), label: t.base.nav.roadmap },
 		],
 	},
 	{
+		// The pages of the project section (ADR 18), then the docs, the brand and the repository.
 		title: t.base.footer.project,
 		links: [
-			{ href: github, label: t.base.nav.github },
+			...pages.map((page) => ({ href: localize(lang, paths[page]), label: t.project.nav[page] })),
 			{ href: docs, label: t.base.nav.docs, hreflang: 'en' },
 			{ href: '/brand/', label: t.base.nav.brand, hreflang: 'en' },
+			{ href: github, label: t.base.nav.github },
 		],
 	},
 ];

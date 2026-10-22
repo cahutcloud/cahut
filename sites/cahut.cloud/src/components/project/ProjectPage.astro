@@ -1,0 +1,159 @@
+---
+// The frame of a page of the project section: the navigation of the section,
+// the title of the page, its content, and the file of the repository that the
+// page comes from (ADR 18).
+import Base from '../../layouts/Base.astro';
+import { localize, useTranslations, type Lang } from '../../i18n';
+import { github, pages, paths, type ProjectPage } from '../../project/community';
+import '../../styles/prose.css';
+
+interface Props {
+	lang: Lang;
+	page: ProjectPage;
+	/** The title of the page: that of its file, for a page built from one. */
+	title: string;
+	/** The community file at the root of the repository that the page is built from. */
+	file?: string;
+}
+
+const { lang, page, title, file } = Astro.props;
+const t = useTranslations(lang);
+const alternates = { en: localize('en', paths[page]), fr: localize('fr', paths[page]) };
+
+// What the page says of its source: the file itself, its translation, or the
+// official translation of the code of conduct.
+const source = !file
+	? undefined
+	: lang === 'en'
+		? t.project.source.file
+		: page === 'conduct'
+			? t.project.source.conduct
+			: t.project.source.translation;
+const [beforeFile, afterFile] = source?.split('{file}') ?? [];
+---
+
+<Base title={`${title} · Cahut`} description={t.project.descriptions[page]} lang={lang} alternates={alternates}>
+	<div class="project">
+		<nav class="project__nav" aria-label={t.project.label}>
+			<p class="c-label">{t.project.label}</p>
+			<ul role="list">
+				{
+					pages.map((item) => (
+						<li>
+							<a href={localize(lang, paths[item])} aria-current={item === page ? 'page' : undefined}>
+								{t.project.nav[item]}
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</nav>
+		<article class="project__page">
+			<h1 class="c-h1">{title}</h1>
+			<div class="prose">
+				<slot />
+			</div>
+			{
+				file && (
+					<footer class="project__source c-small c-muted">
+						<p>
+							{beforeFile}
+							<a class="c-mono" href={`${github}/blob/main/${file}`}>
+								{file}
+							</a>
+							{afterFile} {t.project.source.change}
+						</p>
+					</footer>
+				)
+			}
+		</article>
+	</div>
+</Base>
+
+<style>
+	.project {
+		display: grid;
+		grid-template-columns: 12rem minmax(0, 1fr);
+		gap: var(--space-10) var(--space-16);
+		align-items: start;
+	}
+
+	/* The navigation of the section stays in view while the page scrolls. */
+	.project__nav {
+		position: sticky;
+		top: calc(var(--header-height) + var(--space-8));
+		display: grid;
+		gap: var(--space-3);
+	}
+	.project__nav p {
+		margin: 0;
+	}
+	.project__nav ul {
+		display: grid;
+		gap: var(--space-1);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.project__nav a {
+		display: block;
+		margin-left: calc(-1 * var(--space-3));
+		padding: var(--space-2) var(--space-3);
+		border-radius: var(--radius-sm);
+		color: var(--color-text);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+		font-weight: var(--weight-semibold);
+		text-decoration: none;
+	}
+	.project__nav a:hover {
+		background: var(--color-surface-muted);
+	}
+	.project__nav a[aria-current='page'] {
+		background: var(--color-accent-soft);
+		font-weight: var(--weight-bold);
+	}
+
+	.project__page {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--space-6);
+		min-width: 0;
+	}
+	.project__page h1 {
+		max-width: var(--measure);
+	}
+	.project__source {
+		max-width: var(--measure);
+		margin-top: var(--space-6);
+		padding-top: var(--space-6);
+		border-top: var(--border-width) solid var(--color-border);
+	}
+	.project__source p {
+		margin: 0;
+	}
+
+	@media (max-width: 860px) {
+		.project {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-8);
+		}
+		.project__nav {
+			position: static;
+		}
+		.project__nav ul {
+			display: flex;
+			flex-wrap: wrap;
+			gap: var(--space-2);
+		}
+		.project__nav a {
+			margin: 0;
+			padding: var(--space-1) var(--space-3);
+			border: var(--border-width) solid var(--color-border);
+			border-radius: var(--radius-pill);
+		}
+		.project__nav a[aria-current='page'] {
+			border-color: var(--color-accent);
+		}
+	}
+</style>

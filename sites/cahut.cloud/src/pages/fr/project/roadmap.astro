@@ -1,0 +1,12 @@
+---
+// The roadmap of the first version, in French, written in the site (ADR 18).
+import ProjectPage from '../../../components/project/ProjectPage.astro';
+import Roadmap from '../../../components/project/Roadmap.astro';
+import { useTranslations } from '../../../i18n';
+
+const t = useTranslations('fr');
+---
+
+<ProjectPage lang="fr" page="roadmap" title={t.project.roadmap.title}>
+	<Roadmap lang="fr" />
+</ProjectPage>

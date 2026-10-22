@@ -1,0 +1,172 @@
+---
+// The roadmap of the first version: its batches, what works today, what makes
+// it ready for launch, and what comes after. Written in the site, in both
+// languages, from the V0 plan and from the status page of the documentation
+// (ADR 18); its words are in the dictionaries of src/i18n.
+import Icon from '../Icon.astro';
+import { useTranslations, type Lang } from '../../i18n';
+import { github } from '../../project/community';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// Batches 0 to 3 are done; the one after them is next.
+const done = 4;
+const batches = t.project.roadmap.batches.map((batch, index) => ({
+	...batch,
+	index,
+	state: index < done ? 'done' : index === done ? 'next' : undefined,
+}));
+
+const status = 'https://docs.cahut.cloud/start/status/';
+const docsLang = lang === 'en' ? undefined : 'en';
+---
+
+<p>{t.project.roadmap.lead}</p>
+
+<h2>{t.project.roadmap.batchesTitle}</h2>
+<ol class="batches" role="list">
+	{
+		batches.map(({ index, title, text, state }) => (
+			<li class:list={['batch', state && `is-${state}`]}>
+				<p class="batch__num c-label">
+					{t.project.roadmap.batch} {index}
+				</p>
+				<div class="batch__text">
+					<h3>{title}</h3>
+					<p>{text}</p>
+				</div>
+				{state === 'done' && (
+					<p class="c-badge c-badge--neutral">
+						<Icon name="check" size={14} class="batch__check" />
+						{t.project.roadmap.states.done}
+					</p>
+				)}
+				{state === 'next' && (
+					<p class="c-badge c-badge--neutral">
+						<span class="c-dot" />
+						{t.project.roadmap.states.next}
+					</p>
+				)}
+			</li>
+		))
+	}
+</ol>
+<p>
+	<a href={`${github}/milestones`}>{t.project.roadmap.milestones}</a>
+</p>
+
+<h2>{t.project.roadmap.todayTitle}</h2>
+<p>{t.project.roadmap.todayLead}</p>
+<ul>{t.project.roadmap.today.map((item) => <li>{item}</li>)}</ul>
+<div class="c-alert c-alert--warning" role="note">
+	<Icon name="info" size={16} class="alert__icon" />
+	<p>{t.project.roadmap.caution}</p>
+</div>
+<p>
+	{t.project.roadmap.statusText}
+	<a href={status} hreflang={docsLang}>{t.project.roadmap.status}</a>.
+</p>
+
+<h2>{t.roadmap.criteriaTitle}</h2>
+<table>
+	<thead>
+		<tr>
+			<th scope="col">{t.roadmap.criterion}</th>
+			<th scope="col">{t.roadmap.threshold}</th>
+		</tr>
+	</thead>
+	<tbody>
+		{
+			t.roadmap.criteria.map(({ criterion, threshold }) => (
+				<tr>
+					<td>{criterion}</td>
+					<td>{threshold}</td>
+				</tr>
+			))
+		}
+	</tbody>
+</table>
+
+<h2>{t.project.roadmap.afterTitle}</h2>
+<p>{t.project.roadmap.afterLead}</p>
+<ol>{t.project.roadmap.after.map((item) => <li>{item}</li>)}</ol>
+
+<style>
+	.batches {
+		display: grid;
+		gap: var(--space-3);
+		margin: 0 0 var(--space-4);
+		padding: 0;
+		list-style: none;
+	}
+	.batches > li {
+		margin: 0;
+	}
+	.batch {
+		display: grid;
+		grid-template-columns: var(--space-16) minmax(0, 1fr) auto;
+		gap: var(--space-2) var(--space-4);
+		align-items: start;
+		padding: var(--space-4) var(--space-5);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+	.batch.is-next {
+		border-color: var(--color-accent);
+	}
+	.batch__num {
+		margin: 0;
+		padding-top: var(--space-1);
+		white-space: nowrap;
+	}
+	.batch__text {
+		display: grid;
+		gap: var(--space-1);
+	}
+	.batch__text h3 {
+		margin: 0;
+		font-size: var(--text-lg);
+		line-height: var(--leading-lg);
+		font-weight: var(--weight-bold);
+	}
+	.batch__text p {
+		margin: 0;
+		color: var(--color-text-muted);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	.batch .c-badge {
+		margin: 0;
+	}
+	.batch__check {
+		color: var(--color-success);
+	}
+
+	.c-alert {
+		margin: 0 0 var(--space-4);
+	}
+	.c-alert p {
+		margin: 0;
+	}
+	.alert__icon {
+		flex: none;
+		margin-top: 2px;
+		color: var(--color-warning);
+	}
+
+	@media (max-width: 560px) {
+		.batch {
+			grid-template-columns: minmax(0, 1fr) auto;
+		}
+		.batch__num {
+			grid-column: 1 / -1;
+			padding-top: 0;
+		}
+	}
+</style>
