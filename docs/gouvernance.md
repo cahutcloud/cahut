@@ -21,11 +21,11 @@ Ce que le dépôt a déjà, et qui est déjà de la gouvernance :
 - Le site et la documentation vivent dans le dépôt, avec une page « Where Cahut stands » qui dit ce qui marche et ce qui vient.
 - L'organisation GitHub `getcahut` et le domaine cahut.cloud existent, et le chemin de module `cahut.cloud` ne dépend d'aucune forge.
 - La licence est choisie : AGPL-3.0 pour tout le dépôt, le nom et le logo à part ([ADR 15](adr/0015-license.md)), avec le texte dans LICENSE et son sens en clair dans le README.
+- Les fichiers communautaires : GOVERNANCE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, SUPPORT et TRADEMARK, les gabarits de tickets et de pull requests et FUNDING, écrits à partir de ce document le 22 octobre 2026.
 
 Ce qui manque :
 
-- **Les fichiers que GitHub et les contributeurs attendent** : CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, SUPPORT, GOVERNANCE, TRADEMARK, les gabarits de tickets et de pull requests, FUNDING.
-- **Les Discussions** sont désactivées, le signalement privé des failles n'est pas activé, aucune marque n'est déposée.
+- **Les Discussions** sont désactivées, le signalement privé des failles n'est pas activé, les boîtes `security@`, `conduct@` et `contact@cahut.cloud` n'existent pas encore, aucune marque n'est déposée.
 - **Le site renvoie vers un dépôt privé** : le bouton GitHub de cahut.cloud n'ouvre rien pour un visiteur.
 
 La contrainte qui commande tout : une personne. Nadia Eghbal (*Working in Public*, 2020) classe les projets selon leurs utilisateurs et leurs contributeurs. Les projets à succès sont le plus souvent des « stades » : beaucoup d'utilisateurs, très peu de contributeurs, un mainteneur. Cahut en sera un longtemps. La gouvernance se conçoit donc pour ce cas : écrire une fois ce qui sera demandé cent fois, automatiser ce qui peut l'être, protéger le temps du mainteneur. Mike McQuaid (Homebrew) le dit sans détour : la licence dit « as is », le mainteneur ne doit rien ; l'épuisement vient de se comporter en service client.
@@ -135,7 +135,7 @@ Cahut est écrit avec Claude Code, et [CLAUDE.md](../CLAUDE.md) est public : une
 
 1. **Dites-le.** L'outil et son étendue, dans la pull request ou en pied de commit (`Assisted-by: Claude Code`, le trailer qu'adoptent Fedora et LLVM).
 2. **Comprenez tout.** La personne qui signe a lu, compris, exécuté et testé ce qu'elle propose, et répond elle-même en relecture. Une réponse générée à une relecture ferme la pull request.
-3. **L'IA ne signe pas.** Un agent n'ajoute jamais de `Signed-off-by` (règle du noyau Linux), et aucun agent n'ouvre de ticket ni de pull request sans qu'une personne l'ait relu.
+3. **La signature est la vôtre.** Le `Signed-off-by` certifie ce que vous avez fait, pas ce que l'outil a fait : un agent ne l'ajoute que sur votre instruction et en votre nom, jamais de lui-même (règle du noyau Linux), et aucun agent n'ouvre de ticket ni de pull request sans qu'une personne l'ait relu.
 4. **Reproduisez avant de signaler.** Un ticket écrit par une IA sans reproduction est fermé. Un rapport de sécurité inventé vaut un bannissement, comme chez curl.
 5. **Les visuels viennent de la charte.** Pas d'image ni d'illustration générée dans le site ou la documentation.
 
@@ -186,7 +186,7 @@ Trois niveaux, et pas de quatrième :
 2. **Les Discussions (Q&A)**, où la communauté répond et où le mainteneur passe dans son créneau.
 3. **Les tickets**, pour les bugs reproductibles.
 
-Pas de support par e-mail, pas de message privé, pas de délai garanti. Les seules adresses privées sont `security@cahut.cloud` pour les failles et `conduct@cahut.cloud` pour le code de conduite. Une page « Getting help » (SUPPORT.md, que GitHub affiche à l'ouverture d'un ticket) le dit en dix lignes, et dit comment bien demander : la version, le système, la méthode d'installation, le Logbook. Une commande `cahut doctor`, qui rassemblerait ces informations sans secret, ferait gagner du temps à tout le monde ; c'est une idée de produit, à placer dans un lot.
+Pas de support par e-mail, pas de message privé, pas de délai garanti. Les seules adresses privées sont `security@cahut.cloud` pour les failles, `conduct@cahut.cloud` pour le code de conduite et `contact@cahut.cloud` pour la marque et les partenariats ; aucune ne fait de support. Une page « Getting help » (SUPPORT.md, que GitHub affiche à l'ouverture d'un ticket) le dit en dix lignes, et dit comment bien demander : la version, le système, la méthode d'installation, le Logbook. Une commande `cahut doctor`, qui rassemblerait ces informations sans secret, ferait gagner du temps à tout le monde ; c'est une idée de produit, à placer dans un lot.
 
 Le support payant pour les PME, évoqué dans le brief, est une affaire de phase 3 : après la 1.0, séparé du projet, et jamais au détriment des réponses publiques.
 
@@ -267,7 +267,7 @@ Le choix se tient dans les deux sens : avec l'Apache-2.0, le projet garderait la
 Les licences libres couvrent le code, pas le nom : l'Apache-2.0 le dit noir sur blanc, et c'est pour cela que Mastodon, Nextcloud et Rust ont une politique de marque. Pour Cahut :
 
 - **Déposer la marque verbale « Cahut »** à l'INPI avant l'ouverture du dépôt (environ 190 € pour une classe, en ligne), puis à l'EUIPO quand le projet a une traction (environ 850 € pour une classe). Les classes à retenir, logiciels et services en ligne, sont à vérifier avec l'INPI.
-- **Publier une politique de marque courte**, sur le modèle de Mastodon (mise à jour en août 2026) et de Nextcloud : libre de dire « compatible avec Cahut », « tourne sur Cahut », de distribuer Cahut sans le modifier, y compris en image de conteneur, de l'auto-héberger, d'écrire et d'enseigner à son sujet ; interdit d'utiliser le nom ou le logo dans le nom d'un produit, d'une entreprise, d'un domaine ou d'un service, de laisser croire à un lien officiel, ou de garder le nom sur une version modifiée. Un fork prend un autre nom. Un hébergement commercial sous le nom « Cahut » demande un accord écrit : c'est la base du programme de partenaires du brief. La politique de Rust de 2023 montre la limite : trop restrictive, elle a soulevé la communauté et a été réécrite en 2025.
+- **Publier une politique de marque courte**, sur le modèle de Mastodon (mise à jour en août 2026) et de Nextcloud : libre de dire « compatible avec Cahut », « tourne sur Cahut », de distribuer Cahut sans le modifier, y compris en image de conteneur, de l'auto-héberger, d'écrire et d'enseigner à son sujet ; interdit d'utiliser le nom ou le logo dans le nom d'un produit, d'une entreprise, d'un domaine ou d'un service, de laisser croire à un lien officiel, ou de garder le nom sur une version modifiée. Un fork prend un autre nom. Un hébergement commercial sous le nom « Cahut » demande un accord écrit, à demander à `contact@cahut.cloud` : c'est la base du programme de partenaires du brief. La politique de Rust de 2023 montre la limite : trop restrictive, elle a soulevé la communauté et a été réécrite en 2025.
 - **Le logo reste tel quel**, en toutes versions, comme la charte le dit déjà ; la page `/brand` du site accueille la politique de marque.
 - **Le domaine** cahut.cloud se renouvelle longtemps à l'avance, avec un second contact.
 
@@ -330,15 +330,15 @@ GitHub lit ces fichiers et les affiche aux bons endroits : à la racine, en angl
 | Fichier | Contenu | Quand |
 | --- | --- | --- |
 | LICENSE | Le texte de l'AGPL-3.0 ; la mention sur le nom et le logo est dans le README | Fait |
-| README.md | Déjà là ; ajouter les sections *Contributing*, *Security* et *Community* qui renvoient aux fichiers ci-dessous | Avant l'ouverture |
-| GOVERNANCE.md | Les principes, les rôles, comment on décide, les phases : le résumé public, en anglais, de ce document | Avant l'ouverture |
-| CONTRIBUTING.md | Ce qui est bienvenu, ce qui se discute, le parcours d'une pull request, le DCO, la règle sur l'IA, le renvoi à CLAUDE.md et au plan | Avant l'ouverture |
-| CODE_OF_CONDUCT.md | Le Contributor Covenant 3.0 et le canal de signalement | Avant l'ouverture |
-| SECURITY.md | Où signaler, délais, périmètre, versions prises en charge | Avant l'ouverture |
-| SUPPORT.md | Où demander de l'aide, et comment bien demander | Avant l'ouverture |
-| TRADEMARK.md | La politique de marque | Avant l'ouverture |
+| README.md | Déjà là ; une section *Contributing and community* renvoie aux fichiers ci-dessous | Fait |
+| GOVERNANCE.md | Les principes, les rôles, comment on décide, les phases : le résumé public, en anglais, de ce document | Fait |
+| CONTRIBUTING.md | Ce qui est bienvenu, ce qui se discute, le parcours d'une pull request, le DCO, la règle sur l'IA, le renvoi à CLAUDE.md et au plan | Fait |
+| CODE_OF_CONDUCT.md | Le Contributor Covenant 3.0 et le canal de signalement | Fait |
+| SECURITY.md | Où signaler, délais, périmètre, versions prises en charge | Fait |
+| SUPPORT.md | Où demander de l'aide, et comment bien demander | Fait |
+| TRADEMARK.md | La politique de marque | Fait |
 | MAINTAINERS.md | Les mainteneurs et les émérites | Phase 2 |
-| .github/ISSUE_TEMPLATE/, PULL_REQUEST_TEMPLATE.md, FUNDING.yml | Les gabarits et les dons | Avant l'ouverture |
+| .github/ISSUE_TEMPLATE/, PULL_REQUEST_TEMPLATE.md, FUNDING.yml | Les gabarits et les dons | Fait |
 | .well-known/security.txt (dans le site) | Le fichier de la RFC 9116 | Avant l'ouverture |
 
 CLAUDE.md reste la convention de travail, lue par les IA ; CONTRIBUTING.md est écrit pour les humains et renvoie à CLAUDE.md pour les conventions, afin de ne rien tenir en double. Ce document-ci, en français, reste dans `docs/` comme le brief et les plans : il dit le pourquoi ; les fichiers de la racine disent le quoi.
@@ -391,9 +391,9 @@ Environ quatre heures par semaine en dehors du développement, et pas plus penda
 
 - [x] Choisir la licence et écrire LICENSE, avec la mention sur le nom et le logo : fait le 22 octobre 2026 ([ADR 15](adr/0015-license.md)).
 - [ ] Déposer la marque « Cahut » à l'INPI ; réserver `getcahut` sur Mastodon, Bluesky, LinkedIn et X.
-- [ ] Écrire GOVERNANCE.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, SUPPORT.md, TRADEMARK.md, les gabarits et FUNDING.yml ; compléter le README.
+- [x] Écrire GOVERNANCE.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, SUPPORT.md, TRADEMARK.md, les gabarits et FUNDING.yml ; compléter le README : fait le 22 octobre 2026.
 - [ ] Régler le dépôt : Discussions et leurs catégories, signalement privé des failles, double authentification obligatoire sur l'organisation, protection de `main`, application DCO, étiquettes, jalons par lot, GitHub Sponsors.
-- [ ] Créer `security@cahut.cloud` et `conduct@cahut.cloud` ; publier `security.txt`.
+- [ ] Créer `security@`, `conduct@` et `contact@cahut.cloud` ; publier `security.txt`.
 - [ ] Désigner la personne de confiance, lui donner les accès de secours et la note scellée.
 - [ ] Ajouter `govulncheck` à la CI ; remplir le questionnaire du badge OpenSSF.
 - [ ] Écrire l'ADR des pages du projet et construire les pages `/project/` du site, en anglais et en français.

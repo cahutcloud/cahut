@@ -207,11 +207,15 @@ Success criteria for the launch:
 - [Architecture decision records](docs/adr/README.md): each technical choice, its reasons and the options set aside.
 - [Brand guidelines](docs/charte-graphique/README.md) (French): logo, colors, typography, icons, illustrations, photography, interface kit and templates, with all source files. A visual version opens from [docs/charte-graphique/index.html](docs/charte-graphique/index.html).
 
+## Contributing and community
+
+Cahut is maintained by one person, in the open. [GOVERNANCE.md](GOVERNANCE.md) says how the project is run, [CONTRIBUTING.md](CONTRIBUTING.md) what helps and how a change gets in, [SUPPORT.md](SUPPORT.md) where to ask for help, and [SECURITY.md](SECURITY.md) how to report a vulnerability, privately. Everyone who takes part follows the [code of conduct](CODE_OF_CONDUCT.md).
+
 ## License
 
 Cahut is free software under the GNU Affero General Public License, version 3 ([LICENSE](LICENSE)). You can run it, study it, change it and share it. If you change it and let others use your version over a network, you give them your changes under the same license. Installing or distributing Cahut as it is asks nothing more than keeping the license with it.
 
-The name Cahut and its logo identify this project and are not covered by this license. Say that something runs on Cahut or works with Cahut; do not use the name or the logo for a product, a service or a domain of your own, and give a fork its own name. A trademark policy will say this in full before the repository opens.
+The name Cahut and its logo identify this project and are not covered by this license. Say that something runs on Cahut or works with Cahut; do not use the name or the logo for a product, a service or a domain of your own, and give a fork its own name. [TRADEMARK.md](TRADEMARK.md) says this in full.
 
 [ADR 15](docs/adr/0015-license.md) records the decision and the options set aside.
 

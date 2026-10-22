@@ -158,9 +158,19 @@ sites/                 npm workspace of the sites (ADR 12)
   brand/               @cahut/brand: the brand of docs/charte-graphique for the sites
 .github/
   workflows/           CI, sites and release
+  ISSUE_TEMPLATE/      The bug report and accepted feature forms; config.yml sends questions to the Discussions
+  PULL_REQUEST_TEMPLATE.md   What a pull request says
+  FUNDING.yml          The Sponsor button
   dependabot.yml       Weekly updates of Go modules, npm packages and actions
 .claude/skills/
   charte-graphique-cahut/   Project skill for the brand
+GOVERNANCE.md          How the project is run: the public summary of docs/gouvernance.md
+CONTRIBUTING.md        What helps, how a change gets in, the DCO and the rule on AI-assisted work
+CODE_OF_CONDUCT.md     The Contributor Covenant 3.0
+SECURITY.md            How to report a vulnerability
+SUPPORT.md             Where to ask for help
+TRADEMARK.md           Using the name and the logo
+LICENSE                The AGPL-3.0 (ADR 15)
 install.sh             Installs Cahut on a server as a systemd service
 Makefile               Development tasks
 .nvmrc                 Node.js version, for the sites
