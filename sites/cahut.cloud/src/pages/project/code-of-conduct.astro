@@ -1,0 +1,9 @@
+---
+// The code of conduct, from CODE_OF_CONDUCT.md at the root of the repository (ADR 18).
+import ProjectPage from '../../components/project/ProjectPage.astro';
+import { Content, frontmatter } from '@repo/CODE_OF_CONDUCT.md';
+---
+
+<ProjectPage lang="en" page="conduct" title={frontmatter.title} file="CODE_OF_CONDUCT.md">
+	<Content />
+</ProjectPage>

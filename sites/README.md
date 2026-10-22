@@ -33,6 +33,20 @@ cahut.cloud is in English at the root and in French under `/fr/`. The pages shar
 
 The header switches between the languages, and between the light and dark themes. The theme follows the system until the visitor picks one, kept in `localStorage`.
 
+## The project pages
+
+The pages of `/project/` come from the community files at the root of the repository, as [ADR 18](../docs/adr/0018-project-pages-from-community-files.md) decides: `GOVERNANCE.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md` and `SUPPORT.md`, and `TRADEMARK.md` for the section of the brand page on the name and the logo. The site imports them through the `@repo` alias, which points to the root of the repository, and never copies them:
+
+```astro
+---
+import { Content, frontmatter } from '@repo/GOVERNANCE.md';
+---
+```
+
+[`cahut.cloud/src/project/community.ts`](cahut.cloud/src/project/community.ts) says where each file is served, and holds the plugin of the Markdown processor that adapts a file to its page: the title of the file becomes the title of the page, a link to another community file leads to its page, and a link to any other file of the repository opens it on GitHub.
+
+The French pages, under `/fr/project/`, are translations kept in [`cahut.cloud/src/project/fr/`](cahut.cloud/src/project/fr/), one file per community file, with the same name and written like the original: the same links as paths from the root of the repository, and plain spaces before the French punctuation, which the plugin sets as the dictionaries do. The English file is the reference. The roadmap page is written in the site, in both languages, in the dictionaries of `src/i18n/`.
+
 ## The brand
 
 The brand has one source: [`docs/charte-graphique`](../docs/charte-graphique/README.md). The sites never copy its files: they import them through the `@charte` alias, which the `@cahut/brand` integration maps to that folder.

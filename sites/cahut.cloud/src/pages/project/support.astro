@@ -1,0 +1,9 @@
+---
+// Where to get help, from SUPPORT.md at the root of the repository (ADR 18).
+import ProjectPage from '../../components/project/ProjectPage.astro';
+import { Content, frontmatter } from '@repo/SUPPORT.md';
+---
+
+<ProjectPage lang="en" page="support" title={frontmatter.title} file="SUPPORT.md">
+	<Content />
+</ProjectPage>

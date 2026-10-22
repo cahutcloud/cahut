@@ -1,0 +1,9 @@
+---
+// How Cahut is run: the translation of GOVERNANCE.md, kept in the site (ADR 18).
+import ProjectPage from '../../../components/project/ProjectPage.astro';
+import { Content, frontmatter } from '../../../project/fr/GOVERNANCE.md';
+---
+
+<ProjectPage lang="fr" page="governance" title={frontmatter.title} file="GOVERNANCE.md">
+	<Content />
+</ProjectPage>

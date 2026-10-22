@@ -1,0 +1,9 @@
+---
+// How Cahut is run, from GOVERNANCE.md at the root of the repository (ADR 18).
+import ProjectPage from '../../components/project/ProjectPage.astro';
+import { Content, frontmatter } from '@repo/GOVERNANCE.md';
+---
+
+<ProjectPage lang="en" page="governance" title={frontmatter.title} file="GOVERNANCE.md">
+	<Content />
+</ProjectPage>

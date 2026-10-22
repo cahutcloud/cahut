@@ -353,11 +353,12 @@ Une section du site plutôt qu'un sous-domaine : un seul site à tenir, le pied 
 | `/project/contribute/` | Comment contribuer, avec la règle sur l'IA | CONTRIBUTING.md |
 | `/project/security/` | Signaler une faille | SECURITY.md |
 | `/project/code-of-conduct/` | Le code de conduite | CODE_OF_CONDUCT.md |
+| `/project/support/` | Où demander de l'aide, et comment bien demander | SUPPORT.md |
 | `/project/roadmap/` | Les lots, sans dates, et ce qui marche aujourd'hui | Le plan de la V0 et la page « Where Cahut stands » |
 | `/project/news/` | Les releases et les nouvelles, avec un flux RSS | GitHub Releases, lues à la construction du site |
 | `/brand/` (existe) | Plus « Using the name and logo » | TRADEMARK.md |
 
-Les pages se construisent à partir des fichiers du dépôt, comme le site importe déjà la charte par l'alias `@charte` : une seule source, pas de copie qui vieillit. Les versions françaises sous `/fr/project/` sont des traductions tenues dans le site. La construction du site se déclenche à la publication d'une release, pour que la page des nouvelles suive. Tout cela tient dans un ADR, « Les pages du projet sont construites à partir des fichiers communautaires du dépôt », et une pull request par page.
+Les pages se construisent à partir des fichiers du dépôt, comme le site importe déjà la charte par l'alias `@charte` : une seule source, pas de copie qui vieillit. Les versions françaises sous `/fr/project/` sont des traductions tenues dans le site. La construction du site se déclenche à la publication d'une release, pour que la page des nouvelles suive. Tout cela tient dans un ADR, « Les pages du projet sont construites à partir des fichiers communautaires du dépôt » ([ADR 18](adr/0018-project-pages-from-community-files.md)), et une pull request par page.
 
 ### Dans la documentation
 

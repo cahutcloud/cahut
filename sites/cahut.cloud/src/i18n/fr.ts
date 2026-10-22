@@ -24,7 +24,7 @@ const fr: Dictionary = {
 			features: 'Fonctionnalités',
 			docs: 'Docs',
 			brand: 'Marque',
-			roadmap: 'Feuille de route',
+			project: 'Projet',
 			github: 'GitHub',
 		},
 		footer: { cahut: 'Cahut', project: 'Projet' },
@@ -471,6 +471,7 @@ const fr: Dictionary = {
 			"Feuille de route jusqu'au lancement public.",
 		],
 		underWay: 'En cours',
+		more: 'La feuille de route complète',
 		criteriaTitle: 'Prêt pour le lancement quand',
 		criterion: 'Critère',
 		threshold: 'Seuil',
@@ -490,6 +491,101 @@ const fr: Dictionary = {
 				threshold: "Chaque action d'une IA figure au Logbook, et s'annule ou a été approuvée",
 			},
 		],
+	},
+
+	project: {
+		label: 'Projet',
+		nav: {
+			governance: 'Gouvernance',
+			roadmap: 'Feuille de route',
+			contribute: 'Contribuer',
+			support: "Obtenir de l'aide",
+			security: 'Sécurité',
+			conduct: 'Code de conduite',
+		},
+		descriptions: {
+			governance: "Qui décide dans le projet Cahut, ses principes, ses rôles, comment il grandit, et ce que fait l'argent.",
+			roadmap: "Les lots de la première version de Cahut, ce qui marche aujourd'hui, et ce qui la rend prête pour le lancement.",
+			contribute:
+				"Ce qui aide Cahut tout de suite, ce qui se discute d'abord, comment une pull request entre, et les règles des contributions faites avec une IA.",
+			support: "Où demander de l'aide sur Cahut, comment bien demander, et à quoi s'attendre.",
+			security: "Comment signaler une faille de Cahut, en privé, à quoi s'attendre, et ce qui est dans le périmètre.",
+			conduct: 'Le code de conduite de la communauté Cahut, le Contributor Covenant 3.0, et où signaler un incident.',
+		},
+		source: {
+			file: 'Cette page est {file}, à la racine du dépôt, rendu à chaque construction du site.',
+			translation: 'Cette page traduit {file}, à la racine du dépôt, qui fait foi, en anglais.',
+			conduct:
+				'Cette page reprend la traduction officielle du Contributor Covenant 3.0, avec le canal de signalement de Cahut. {file}, à la racine du dépôt, fait foi, en anglais.',
+			change: 'Pour la changer, ouvrez une pull request.',
+		},
+		roadmap: {
+			title: 'Feuille de route',
+			lead: "Cahut se construit par lots, chacun une tranche qui fonctionne de l'IA au lecteur. Leur ordre est fixé, leurs dates ne le sont pas : les jalons du dépôt disent où en est chaque lot.",
+			batchesTitle: 'Les lots de la première version',
+			batch: 'Lot',
+			states: { done: 'Fait', next: 'Prochain' },
+			batches: [
+				{
+					title: 'Socle et décisions',
+					text: "Les premiers ADR, le squelette Go, l'intégration continue et la construction des releases.",
+				},
+				{
+					title: 'Publier par MCP, servir en HTTPS',
+					text: "Une IA publie une Window avec un jeton personnel. Cahut la sert à sa propre adresse, dans un bac à sable, et l'appel va au Logbook.",
+				},
+				{
+					title: 'Personnes, Rooms et console',
+					text: "Des personnes qui se connectent ; des administrateurs de chaque Cahut et du serveur ; des Rooms d'équipe avec leurs droits ; la console web et son API.",
+				},
+				{
+					title: 'Brancher les IA : OAuth',
+					text: "Chaque Cahut est le serveur d'autorisation de son point d'accès MCP. Sur un écran de consentement, une personne accorde à une IA des Rooms et une portée, et voit les IA connectées dans la console.",
+				},
+				{
+					title: 'Windows complètes : versions et accès',
+					text: "Mettre à jour une Window garde la version précédente, et un geste y revient. Chaque Window s'ouvre à sa Room seulement, à tout son Cahut, à qui a sa Key, ou au public.",
+				},
+				{
+					title: 'Knock first',
+					text: "L'IA demande avant tout ce qu'elle ne peut pas annuler. La demande attend dans la console, avec une notification et une échéance, jusqu'à ce qu'une personne l'approuve ou la refuse.",
+				},
+				{
+					title: 'House style et skill Claude',
+					text: "Les couleurs, polices, logo et modèles de l'organisation, donnés à chaque IA, et une skill qui dit à Claude comment publier sur Cahut.",
+				},
+				{
+					title: 'Installation, premier démarrage et mises à jour',
+					text: 'Une commande sur un serveur AlmaLinux ou Ubuntu vierge, un premier démarrage guidé dans le navigateur, et des mises à jour depuis les releases, avec retour arrière.',
+				},
+				{
+					title: 'Deuxième client IA et recette',
+					text: "Un deuxième client d'IA testé de bout en bout, une revue de sécurité, et les critères de réussite vérifiés sur des serveurs vierges.",
+				},
+			],
+			milestones: 'Les jalons sur GitHub',
+			todayTitle: "Ce qui marche aujourd'hui",
+			todayLead: "Les lots 0 à 3 sont faits. Aujourd'hui, dans un Cahut :",
+			today: [
+				'Un service sur un serveur Linux, qui porte un ou plusieurs Cahuts, chacun à son domaine avec son certificat.',
+				"Des personnes qui se connectent, des administrateurs du Cahut et du serveur, et des Rooms d'équipe avec propriétaires et membres.",
+				'Une console web : Rooms, Windows, Logbook, personnes, IA connectées et jetons personnels.',
+				"Des clients d'IA qui se connectent par OAuth, aux Rooms et dans la portée qu'une personne accorde, ou avec un jeton personnel.",
+				'Des Windows publiées par MCP : documents, présentations, tableaux de bord et sites statiques, servis dans un bac à sable.',
+				'Le Logbook de chaque appel, de chaque changement et de chaque connexion.',
+			],
+			caution:
+				"Il n'y a pas encore de niveau d'accès : quiconque a l'adresse d'une Window peut l'ouvrir. Ne publiez rien que vous ne partageriez pas par lien.",
+			statusText: 'La documentation garde le détail, domaine par domaine :',
+			status: 'Où en est Cahut',
+			afterTitle: 'Après la première version',
+			afterLead: 'Puis, vers le périmètre complet du lancement, à peu près dans cet ordre :',
+			after: [
+				"Les commentaires, la recherche, l'authentification unique, les e-mails, les sauvegardes et leur restauration, et des quotas par Cahut.",
+				'Les applis dans des conteneurs sans privilèges : environnements, mode Dockerfile, bases de données, secrets, journaux et limites de ressources.',
+				"L'export en PDF et en PowerPoint, l'accès SSH limité aux mêmes opérations, et d'autres clients d'IA.",
+			],
+		},
 	},
 
 	closing: {

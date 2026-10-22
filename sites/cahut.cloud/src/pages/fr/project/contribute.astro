@@ -1,0 +1,9 @@
+---
+// How to contribute: the translation of CONTRIBUTING.md, kept in the site (ADR 18).
+import ProjectPage from '../../../components/project/ProjectPage.astro';
+import { Content, frontmatter } from '../../../project/fr/CONTRIBUTING.md';
+---
+
+<ProjectPage lang="fr" page="contribute" title={frontmatter.title} file="CONTRIBUTING.md">
+	<Content />
+</ProjectPage>

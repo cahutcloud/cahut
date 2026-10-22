@@ -12,7 +12,7 @@ export type Lang = 'en' | 'fr';
  * « », narrow no-break before ; ? and !, and no-break after a number, as in
  * "23 h". The French words are written with plain spaces; this sets them.
  */
-function frenchSpaces<T>(value: T): T {
+export function frenchSpaces<T>(value: T): T {
 	if (typeof value === 'string') {
 		return value
 			.replace(/ :/g, ' :')

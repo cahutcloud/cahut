@@ -323,6 +323,10 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 			<p class="c-label">{t.roadmap.label}</p>
 			<h2 id="roadmap-title" class="c-h1">{t.roadmap.title}</h2>
 			<p class="lead">{t.roadmap.lead}</p>
+			<a class="more" href={localize(lang, '/project/roadmap/')}>
+				{t.roadmap.more}
+				<Icon name="arrow-right" size={16} />
+			</a>
 		</header>
 		<div class="roadmap">
 			<ol
@@ -471,6 +475,9 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 	}
 	.more:hover :global(.i) {
 		translate: 3px 0;
+	}
+	.section__head .more {
+		justify-self: start;
 	}
 
 	/* Why */

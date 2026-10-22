@@ -1,0 +1,9 @@
+---
+// The security policy: the translation of SECURITY.md, kept in the site (ADR 18).
+import ProjectPage from '../../../components/project/ProjectPage.astro';
+import { Content, frontmatter } from '../../../project/fr/SECURITY.md';
+---
+
+<ProjectPage lang="fr" page="security" title={frontmatter.title} file="SECURITY.md">
+	<Content />
+</ProjectPage>
