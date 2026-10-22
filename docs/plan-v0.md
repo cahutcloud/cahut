@@ -100,6 +100,8 @@ Le détail du lot est dans le [plan du lot 2](plan-lot-2.md).
 
 ### Lot 4 · Windows complètes : versions et accès
 
+Le détail du lot est dans le [plan du lot 4](plan-lot-4.md).
+
 - `update_window` garde la version précédente ; `rollback_window` y revient.
 - Accès de chaque Window : Room seulement (par défaut), interne (les personnes connectées du Cahut), Key (un mot de passe), public ; date de fin réglable et prolongeable.
 - La Key d'une Window est hachée et s'ouvre par une page d'accès à la house style du Cahut. Les lecteurs d'une Window interne se connectent sur le port 443 en passant par la connexion de la console (ADR 11).
@@ -188,7 +190,7 @@ Proposition d'ordre pour atteindre le périmètre complet du lancement, en répo
 
 ## Questions ouvertes
 
-- [ ] Une Window ouverte par l'IA en interne ou avec une Key doit-elle frapper (Knock first) ?
+- [x] Une Window ouverte par l'IA en interne ou avec une Key doit-elle frapper (Knock first) ? Non : seul l'accès public frappe ([ADR 19](adr/0019-window-versions-access-and-declaration.md)).
 - [ ] Quelle adresse de repli pour essayer Cahut sans domaine ?
 - [ ] La liste des actions irréversibles de la V0 est-elle la bonne ?
 - [ ] Quelle expiration par défaut pour un Knock ?
