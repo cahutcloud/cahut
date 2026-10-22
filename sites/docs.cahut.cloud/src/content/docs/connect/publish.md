@@ -1,9 +1,9 @@
 ---
 title: Publish a Window
-description: What an AI sends to publish a Window, what comes back, and the rules that its files follow.
+description: What an AI sends to publish a Window, what it declares, what comes back, and how it updates, shares and rolls back a Window.
 ---
 
-An AI publishes a Window with the `publish_window` tool. It sends the title, the kind and the files of the Window, and gets back the address where the Window opens. This page is for people who write prompts, skills or MCP clients. The [MCP tools reference](/reference/mcp-tools/#publish_window) gives the full schema.
+An AI publishes a Window with the `publish_window` tool. It sends the title, the kind and the files of the Window, with a declaration of what its pages do, and gets back the address where the Window opens. This page is for people who write prompts, skills or MCP clients. The [MCP tools reference](/reference/mcp-tools/#publish_window) gives the full schema.
 
 ## A publication
 
@@ -13,6 +13,7 @@ The arguments of `publish_window`:
 {
   "title": "Q3 review",
   "kind": "deck",
+  "declaration": { "scripts": true, "origins": ["https://cdn.jsdelivr.net"] },
   "files": [
     { "path": "index.html", "content": "<!doctype html><html lang=\"en\">...</html>" },
     { "path": "css/deck.css", "content": "body { margin: 0; }" },
@@ -27,6 +28,7 @@ The arguments of `publish_window`:
 | `kind` | `document`, `deck`, `dashboard` or `site`. |
 | `room` | Optional: the name of a Room of the person the AI acts for. Without it, the Window goes to their personal Room. |
 | `files` | The files, with `index.html` at the root: it is the page that opens. |
+| `declaration` | What the pages do: see [The declaration](#the-declaration). |
 
 Cahut answers with the Window:
 
@@ -42,11 +44,13 @@ Cahut answers with the Window:
   "file_count": 3,
   "created_by": "you",
   "created_at": "2026-10-21T12:02:31.418Z",
-  "updated_at": "2026-10-21T12:02:31.418Z"
+  "updated_at": "2026-10-21T12:02:31.418Z",
+  "access": "room",
+  "declaration": { "scripts": true, "origins": ["https://cdn.jsdelivr.net"] }
 }
 ```
 
-The AI gives the `url` to the user.
+The AI gives the `url` to the user. The new Window opens to the members of its Room: see [Share a Window](#share-a-window).
 
 ## Files
 
@@ -56,6 +60,23 @@ The AI gives the `url` to the user.
 - A Window holds at most 500 files and 32 MiB, once decoded.
 - Pages link their files with relative paths, such as `css/deck.css`. A path that starts with `/` points to the root of the Cahut, not to the Window.
 - A folder opens on its own `index.html`, so a site can have pages such as `about/index.html`. Cahut lists no folder.
+
+## The declaration
+
+Every publication declares what its pages do, and Cahut lets them do that and nothing more:
+
+| Field | What it holds |
+| --- | --- |
+| `scripts` | `true` when the pages run scripts, inline or in files. |
+| `origins` | Every origin the pages load anything from or call: scripts, styles, fonts, images, `fetch` calls, WebSockets. Such as `https://cdn.jsdelivr.net`, `https://fonts.googleapis.com` and `https://fonts.gstatic.com`. `https://*.example.com` covers the subdomains of `example.com`, not `example.com` itself. |
+| `forms` | The origins that the forms of the pages send to, if any. |
+
+- An origin is `https://` or `wss://`, a host and an optional port, without a path. Each list holds 20 origins at most.
+- The files of the Window need no origin: they come from the Cahut, which the policy always allows.
+- A page that loads from an origin it did not declare does not get it: the browser blocks the request, and the console of the browser says so. Declare every origin, or put the files in the Window.
+- A deck that only shows text and images declares `{"scripts": false}`: it can then call nothing at all.
+
+[Rooms and Windows](/concepts/rooms-and-windows/#what-a-window-declares) gives the policy that Cahut writes from it.
 
 ## The sandbox
 
@@ -74,9 +95,42 @@ Cahut names the Window after its title: up to 40 lowercase ASCII letters, digits
 
 ## After publishing
 
-`get_window` describes a Window, given its address or `room/name`, and lists its files, with their contents when asked. `list_windows` lists the Windows of the person's Rooms, or of one of them with `room`, most recently updated first.
+`get_window` describes a Window, given its address or `room/name`: its access, its two versions, its declaration, and its files, with their contents when asked. `list_windows` lists the Windows of the person's Rooms, or of one of them with `room`, most recently updated first; with `trashed`, it lists the trash.
 
-A Window cannot be updated or deleted yet: publishing again creates another Window, such as `q3-review-2`. Versions, with a rollback to the previous one, come later.
+### Update a Window
+
+`update_window` publishes a new version at the same address. It takes the Window, all the files of the new version and their declaration, and optionally a new title:
+
+```json
+{
+  "window": "you/q3-review",
+  "declaration": { "scripts": false },
+  "files": [{ "path": "index.html", "content": "<!doctype html>..." }]
+}
+```
+
+The version it replaces is kept. `rollback_window`, with the Window alone, goes back to it, and a second rollback returns. Publishing again with `publish_window` creates another Window, such as `q3-review-2`: to change a Window, update it.
+
+### Share a Window
+
+`set_window_access` sets who opens a Window:
+
+```json
+{ "window": "you/q3-review", "access": "key", "ends_at": "2026-12-31T18:00:00Z" }
+```
+
+| Field | What it holds |
+| --- | --- |
+| `access` | `room`, `internal`, `key` or `public`. An AI cannot set `public`: a person does it in the console. |
+| `ends_at` | Optional: when the access ends, after which the Window opens to its Room only. |
+| `key` | Optional, for `key`: the Key to set, of 10 characters at least. Without it, the Window keeps its Key, or Cahut draws one. |
+| `new_key` | Optional, for `key`: draw a new Key; the old one stops working. |
+
+When a Key is set, the answer holds it in `key`, this once. The AI gives the address and the Key to the user. See [Who can open a Window](/concepts/access/).
+
+### Put a Window in the trash
+
+`trash_window` takes a Window out of the lists, and it no longer opens. `restore_window` brings it back as it was.
 
 ## When a call fails
 

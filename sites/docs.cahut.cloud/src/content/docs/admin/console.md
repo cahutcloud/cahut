@@ -24,13 +24,14 @@ An administrator creates accounts in the console, under **People**, or on the co
 | Screen | What it shows |
 | --- | --- |
 | Overview | The latest Windows of your Rooms, and your Rooms |
-| A Room | Its Windows, which open in a new tab, and its people; owners add and remove people, and rename the Room |
+| A Room | Its Windows, each with its access, its trash, and its people; owners add and remove people, and rename the Room |
+| A Window | Where it opens; its access, its end date and its Key, which shows once, next to the address, ready to copy; its two versions, with a button that goes back; what its AI declared it does; the trash |
 | Rooms | A new team Room, of which you become the owner |
 | Logbook | What you did, what your AIs did, and what happened in your Rooms, by day, with filters |
 | AIs and access | The address to give an AI client; your connected AIs, with what they may do and where, and Disconnect; your personal tokens: create one, shown once with the command that connects Claude Code, and revoke it in one click |
 | Account | A new password, and signing out |
 
-A change to what someone may do, such as adding a person to a Room, asks you to confirm first. An AI cannot make these changes yet: see [Knock first](/concepts/knock-first-and-logbook/#knock-first).
+A change to what someone may do, such as adding a person to a Room, and making a Window public, ask you to confirm first. An AI cannot make these changes yet: see [Knock first](/concepts/knock-first-and-logbook/#knock-first).
 
 ## What an administrator of the Cahut finds
 
@@ -57,6 +58,10 @@ A session holds at the domain where it opened: to look after another Cahut, sign
 ## Sessions
 
 A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. After 10 refused sign-ins in 15 minutes, a handle must wait; an address that tries too often must wait too.
+
+## Readers
+
+To open a Window that is not public, a reader signs in through the console: the link on the page of a closed Window sends them to `/read` on the console's port, which signs them in if needed, then sends them back to the Window on port 443. See [Who can open a Window](/concepts/access/#readers-who-sign-in).
 
 ## Consent
 
