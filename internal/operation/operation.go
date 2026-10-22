@@ -40,8 +40,9 @@ type Actor struct {
 	UserID  int64  // the person, or the person an AI acts for; zero for Admin
 	Handle  string // the handle of that person, or of the administrator of the server
 	Session int64  // the session a person or an administrator signed in with
-	TokenID int64  // the token an AI presented
-	Client  string // the AI, as its token and its software name it
+	TokenID int64  // the personal token an AI presented
+	Conn    int64  // the connection of an AI that connected over OAuth
+	Client  string // the AI, as its token or its connection, and its software, name it
 
 	// The reach that a person granted an AI. See
 	// docs/adr/0016-oauth-for-ai-clients.md.
@@ -411,6 +412,7 @@ func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
 		UserID:     c.Actor.UserID,
 		UserHandle: c.Actor.Handle,
 		TokenID:    c.Actor.TokenID,
+		Connection: c.Actor.Conn,
 		Client:     c.Actor.Client,
 		Via:        c.Actor.Via,
 		Target:     c.target,
@@ -438,8 +440,8 @@ func authorize(info Info, a Actor) error {
 			return errors.New("operation: person without a user")
 		}
 	case AI:
-		if a.UserID == 0 || a.TokenID == 0 {
-			return errors.New("operation: AI without a user or a token")
+		if a.UserID == 0 || a.TokenID == 0 && a.Conn == 0 {
+			return errors.New("operation: AI without a user, or without a token or a connection")
 		}
 		if info.PeopleOnly {
 			return Forbiddenf("%s is for people, not for AIs: it proves who someone is", info.Name)

@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/logbook"
+	"cahut.cloud/internal/oauth"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/store"
@@ -27,6 +29,10 @@ type Config struct {
 	// from which the addresses of its Windows are made. It may be empty where
 	// addresses are not needed, as on the command line.
 	BaseURL string
+	// ConsoleURL is the address of the console of the Cahut, such as
+	// https://cahut.example.com:8443/, which is also its OAuth authorization
+	// server. It may be empty, as BaseURL may.
+	ConsoleURL string
 }
 
 // Cahut is an open Cahut.
@@ -35,6 +41,7 @@ type Cahut struct {
 	DB       *store.DB
 	Registry *operation.Registry
 	Windows  *window.Service
+	OAuth    *oauth.Server
 }
 
 // Open opens the Cahut in cfg.Dir, creating it if needed.
@@ -57,6 +64,8 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	room.Register(r)
 	w := window.NewService(filepath.Join(cfg.Dir, "windows"), url)
 	w.Register(r)
+	auth := oauth.New(db, r, oauth.Config{Issuer: strings.TrimSuffix(cfg.ConsoleURL, "/"), Resource: cfg.BaseURL + "mcp"})
+	auth.Register(r)
 	operation.Register(r, ListLogbook)
 	operation.Register(r, &operation.Op[GetCahutInput, About]{
 		Name:        "get_cahut",
@@ -71,7 +80,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 			return a, nil
 		},
 	})
-	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w}, nil
+	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w, OAuth: auth}, nil
 }
 
 // Close closes the database.

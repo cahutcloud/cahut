@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/jsonschema-go/jsonschema"
@@ -15,6 +16,7 @@ import (
 
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/cahut"
+	"cahut.cloud/internal/oauth"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/version"
 )
@@ -65,7 +67,13 @@ func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
 	verify := func(ctx context.Context, token string, _ *http.Request) (*auth.TokenInfo, error) {
 		return s.verifyToken(ctx, c, token)
 	}
-	return auth.RequireBearerToken(verify, &auth.RequireBearerTokenOptions{AllowMissingExpiration: true})(handler)
+	// A request without a valid token learns where to get one: the
+	// metadata of the resource names the Cahut's authorization server.
+	// Personal tokens do not expire.
+	return auth.RequireBearerToken(verify, &auth.RequireBearerTokenOptions{
+		ResourceMetadataURL:    s.resourceMetadataURL(c.Domain),
+		AllowMissingExpiration: true,
+	})(handler)
 }
 
 func b2i(b bool) int {
@@ -131,6 +139,7 @@ func (s *Server) callTool(c *cahut.Cahut, name string) mcp.ToolHandler {
 			UserID:  owner.UserID,
 			Handle:  owner.Handle,
 			TokenID: owner.TokenID,
+			Conn:    owner.Connection,
 			Client:  clientName(owner.TokenName, req.Session),
 
 			ReadOnly: owner.ReadOnly,
@@ -173,10 +182,17 @@ func clientName(token string, session *mcp.ServerSession) string {
 	return token + " (" + software + ")"
 }
 
-// verifyToken checks a personal token against the people of c only: a
-// token of another Cahut is invalid here.
+// verifyToken checks a personal token, or an OAuth access token, against
+// the people of c only: a token of another Cahut is invalid here.
 func (s *Server) verifyToken(ctx context.Context, c *cahut.Cahut, token string) (*auth.TokenInfo, error) {
-	owner, err := account.Verify(ctx, c.DB, token, time.Now())
+	var owner account.Owner
+	var expires time.Time
+	var err error
+	if strings.HasPrefix(token, oauth.AccessPrefix) {
+		owner, expires, err = c.OAuth.AccessOwner(ctx, token)
+	} else {
+		owner, err = account.Verify(ctx, c.DB, token, time.Now())
+	}
 	if errors.Is(err, account.ErrInvalidToken) {
 		return nil, fmt.Errorf("%w: %w", auth.ErrInvalidToken, err)
 	}
@@ -185,7 +201,8 @@ func (s *Server) verifyToken(ctx context.Context, c *cahut.Cahut, token string) 
 		return nil, errors.New("internal error")
 	}
 	return &auth.TokenInfo{
-		UserID: strconv.FormatInt(owner.UserID, 10),
-		Extra:  map[string]any{"owner": owner},
+		UserID:     strconv.FormatInt(owner.UserID, 10),
+		Expiration: expires,
+		Extra:      map[string]any{"owner": owner},
 	}, nil
 }
