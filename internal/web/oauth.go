@@ -1,6 +1,8 @@
 package web
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -65,3 +67,68 @@ func (s *Server) serveRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	siteOf(r).cahut.OAuth.ServeRegister(w, r)
 }
+
+// serveUnknownMetadata answers the well-known addresses of the console's
+// port that Cahut does not serve, such as OpenID Connect discovery, with a
+// 404 rather than the console's page: a client that probes them reads that
+// there is nothing there.
+func serveUnknownMetadata(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNotFound)
+	_, _ = w.Write([]byte(`{"error":"not_found","error_description":"Cahut serves OAuth 2.0 authorization server metadata at /.well-known/oauth-authorization-server, not OpenID Connect"}` + "\n"))
+}
+
+// logged logs each request to h, an endpoint of the OAuth protocol: what an
+// AI client asked, and how Cahut answered. Clients run on their vendor's
+// servers, out of the person's sight, so these lines are how an
+// administrator follows a connection that fails. They hold no query, no
+// token and no successful answer: only the error of a refused request.
+func (s *Server) logged(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		rec := &recorder{ResponseWriter: w, status: http.StatusOK}
+		h(rec, r)
+		attrs := []any{"cahut", hostOf(r), "method", r.Method, "path", r.URL.Path, "status", rec.status,
+			"client", clientIP(r), "user_agent", r.UserAgent(), "duration", time.Since(start).Round(time.Millisecond)}
+		if rec.status >= 400 {
+			var refusal struct {
+				Error       string `json:"error"`
+				Description string `json:"error_description"`
+			}
+			if json.Unmarshal(rec.body.Bytes(), &refusal) == nil && refusal.Error != "" {
+				attrs = append(attrs, "error", refusal.Error, "description", refusal.Description)
+			}
+		}
+		s.log.Info("oauth", attrs...)
+	}
+}
+
+// recorder keeps the status of a response, and the start of its body when
+// it is an error.
+type recorder struct {
+	http.ResponseWriter
+	status int
+	body   bytes.Buffer
+}
+
+func (r *recorder) WriteHeader(status int) {
+	r.status = status
+	r.ResponseWriter.WriteHeader(status)
+}
+
+func (r *recorder) Write(b []byte) (int, error) {
+	if r.status >= 400 && r.body.Len() < 1024 {
+		r.body.Write(b[:min(len(b), 1024-r.body.Len())])
+	}
+	return r.ResponseWriter.Write(b)
+}
+
+// Flush lets the MCP endpoint stream through a recorder.
+func (r *recorder) Flush() {
+	if f, ok := r.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+func (r *recorder) Unwrap() http.ResponseWriter { return r.ResponseWriter }

@@ -179,15 +179,14 @@ func (s *Server) register(ctx context.Context, req RegistrationRequest) (Registr
 			return Registration{}, &errClientMetadata{"invalid_redirect_uri", err.Error()}
 		}
 	}
-	for _, t := range req.GrantTypes {
-		if t != "authorization_code" && t != "refresh_token" {
-			return Registration{}, &errClientMetadata{"invalid_client_metadata", "grant type " + t + " is not supported: use authorization_code and refresh_token"}
-		}
+	// Clients list the grants they can use, such as jwt-bearer for claude.ai,
+	// and keep those the answer names (RFC 7591, section 3.2.1): Cahut
+	// refuses a client only when it cannot use the authorization code.
+	if len(req.GrantTypes) > 0 && !slices.Contains(req.GrantTypes, "authorization_code") {
+		return Registration{}, &errClientMetadata{"invalid_client_metadata", "Cahut grants authorization codes only: grant_types must include authorization_code"}
 	}
-	for _, t := range req.ResponseTypes {
-		if t != "code" {
-			return Registration{}, &errClientMetadata{"invalid_client_metadata", "response type " + t + " is not supported: use code"}
-		}
+	if len(req.ResponseTypes) > 0 && !slices.Contains(req.ResponseTypes, "code") {
+		return Registration{}, &errClientMetadata{"invalid_client_metadata", "Cahut answers response_type=code only: response_types must include code"}
 	}
 	name := strings.TrimSpace(req.ClientName)
 	if name == "" {

@@ -284,6 +284,12 @@ func TestOAuthDiscovery(t *testing.T) {
 	if resp.StatusCode != http.StatusOK || meta["issuer"] != issuer || resp.Header.Get("Access-Control-Allow-Origin") != "*" {
 		t.Errorf("authorization server metadata: %d %v", resp.StatusCode, meta)
 	}
+	// Cahut is no OpenID provider: a client that probes for one reads a 404,
+	// not the console's page.
+	if resp, _ := get(http.MethodGet, f.console+".well-known/openid-configuration"); resp.StatusCode != http.StatusNotFound ||
+		resp.Header.Get("Content-Type") != "application/json" {
+		t.Errorf("OpenID Connect discovery: %d %v", resp.StatusCode, resp.Header)
+	}
 	if resp, _ := get(http.MethodOptions, f.console+"oauth/token"); resp.StatusCode != http.StatusNoContent ||
 		resp.Header.Get("Access-Control-Allow-Origin") != "*" {
 		t.Errorf("preflight of the token endpoint: %d %v", resp.StatusCode, resp.Header)

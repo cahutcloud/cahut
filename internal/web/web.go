@@ -128,8 +128,8 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.mux.HandleFunc("/mcp", s.serveMCP)
 	s.mux.HandleFunc("GET /-/healthz", serveHealth)
 	for _, method := range []string{"GET", "OPTIONS"} {
-		s.mux.HandleFunc(method+" /.well-known/oauth-protected-resource", s.serveResourceMetadata)
-		s.mux.HandleFunc(method+" /.well-known/oauth-protected-resource/mcp", s.serveResourceMetadata)
+		s.mux.HandleFunc(method+" /.well-known/oauth-protected-resource", s.logged(s.serveResourceMetadata))
+		s.mux.HandleFunc(method+" /.well-known/oauth-protected-resource/mcp", s.logged(s.serveResourceMetadata))
 	}
 	s.mux.HandleFunc("GET /{room}/{window}", redirectToWindow)
 	s.mux.HandleFunc("GET /{room}/{window}/{file...}", s.serveWindow)
@@ -137,14 +137,17 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.visitors = newLimiter(SignInEvery, SignInBurst)
 	s.registrations = newLimiter(RegisterEvery, RegisterBurst)
 	s.console = http.NewServeMux()
-	s.console.HandleFunc("/.well-known/oauth-authorization-server", s.serveAuthorizationMetadata)
-	s.console.HandleFunc("/oauth/token", s.serveToken)
-	s.console.HandleFunc("/oauth/register", s.serveRegister)
-	s.console.HandleFunc("/oauth/revoke", s.serveRevoke)
+	s.console.HandleFunc("/.well-known/oauth-authorization-server", s.logged(s.serveAuthorizationMetadata))
+	s.console.HandleFunc("/.well-known/", s.logged(serveUnknownMetadata))
+	s.console.HandleFunc("/oauth/token", s.logged(s.serveToken))
+	s.console.HandleFunc("/oauth/register", s.logged(s.serveRegister))
+	s.console.HandleFunc("/oauth/revoke", s.logged(s.serveRevoke))
+	pages := console.Handler()
+	s.console.HandleFunc("GET /oauth/authorize", s.logged(pages.ServeHTTP))
 	s.console.HandleFunc("POST /api/server/{operation}", s.serveServerAPI)
 	s.console.HandleFunc("POST /api/{operation}", s.serveAPI)
 	s.console.HandleFunc("/api/", refuseAPI)
-	s.console.Handle("/", console.Handler())
+	s.console.Handle("/", pages)
 	return s
 }
 
@@ -249,7 +252,14 @@ func (s *Server) serveMCP(w http.ResponseWriter, r *http.Request) {
 		defer stop()
 		r = r.WithContext(ctx)
 	}
-	siteOf(r).mcp.ServeHTTP(w, r)
+	rec := &recorder{ResponseWriter: w, status: http.StatusOK}
+	siteOf(r).mcp.ServeHTTP(rec, r)
+	// A request without a valid token starts the sign-in of an AI client:
+	// the OAuth endpoints log what follows.
+	if rec.status == http.StatusUnauthorized {
+		s.log.Info("mcp without a valid token", "cahut", hostOf(r), "method", r.Method,
+			"client", clientIP(r), "user_agent", r.UserAgent())
+	}
 }
 
 func serveHealth(w http.ResponseWriter, _ *http.Request) {
