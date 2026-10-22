@@ -1,6 +1,6 @@
 # 11. The console has its own port
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 13](0013-people-sessions-and-rights.md) (server administrators sign in to each Cahut)
 - Date: 2026-10-21
 
 ## Context
