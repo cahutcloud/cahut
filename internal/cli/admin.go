@@ -15,6 +15,7 @@ import (
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
+	"cahut.cloud/internal/web"
 )
 
 // admin is the actor of every command run on the server: whoever can run
@@ -27,7 +28,9 @@ var domainCommands = []command{
 }
 
 var userCommands = []command{
-	{name: "create", summary: "Create a person, with their personal Room", run: runUserCreate},
+	{name: "create", summary: "Create a person, with their personal Room and an activation link", run: runUserCreate},
+	{name: "list", summary: "List the people of a Cahut", run: runUserList},
+	{name: "link", summary: "Give a person a new link where they choose their password", run: runUserLink},
 }
 
 var tokenCommands = []command{
@@ -156,8 +159,57 @@ func runUserCreate(args []string, stdout, stderr io.Writer) int {
 	if !ok {
 		return exitError
 	}
-	fmt.Fprintf(stdout, "Created %s (%s), %s of %s, with a personal Room at %s/%s.\n", u.Handle, u.Name, u.Role, at, at, u.PersonalRoom)
+	fmt.Fprintf(stdout, "Created %s (%s), %s of %s, with a personal Room at %s/%s.\n\n", u.Handle, u.Name, u.Role, at, at, u.PersonalRoom)
+	printActivation(stdout, at, *u.Activation)
 	return exitOK
+}
+
+func runUserList(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("user list", stderr)
+	data := dataFlag(fs)
+	domain := domainFlag(fs)
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	list, _, ok := inCahut(*data, *domain, account.ListUsers, account.ListUsersInput{}, stderr)
+	if !ok {
+		return exitError
+	}
+	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
+	fmt.Fprintln(tw, "HANDLE\tNAME\tROLE\tSTATUS")
+	for _, u := range list.Users {
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", u.Handle, u.Name, u.Role, u.Status)
+	}
+	if err := tw.Flush(); err != nil {
+		return exitError
+	}
+	return exitOK
+}
+
+func runUserLink(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("user link", stderr)
+	data := dataFlag(fs)
+	domain := domainFlag(fs)
+	var in account.UserInput
+	fs.StringVar(&in.User, "handle", "", "the person who chooses a new password")
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	a, at, ok := inCahut(*data, *domain, account.CreateActivationLink, in, stderr)
+	if !ok {
+		return exitError
+	}
+	printActivation(stdout, at, a)
+	fmt.Fprintln(stdout, "Their password, if they have one, works until they use the link.")
+	return exitOK
+}
+
+// printActivation prints the link of an activation, in the console of the
+// Cahut at domain.
+func printActivation(w io.Writer, domain string, a account.Activation) {
+	fmt.Fprintf(w, "Send %s this link, where they choose their password. It works once, until %s, and is shown only now.\n\n",
+		a.User, day(a.ExpiresAt))
+	fmt.Fprintf(w, "%sactivate#%s\n\n", web.ConsoleURL(domain), a.Code)
 }
 
 func runTokenCreate(args []string, stdout, stderr io.Writer) int {
@@ -241,7 +293,7 @@ func runLogbook(args []string, stdout, stderr io.Writer) int {
 	var page cahut.LogbookPage
 	var ok bool
 	if *ofServer {
-		page, ok = onServer(*data, cahut.ListLogbook, in, stderr)
+		page, ok = onServer(*data, cahut.ListServerLogbook, in, stderr)
 	} else {
 		page, _, ok = inCahut(*data, *domain, cahut.ListLogbook, in, stderr)
 	}

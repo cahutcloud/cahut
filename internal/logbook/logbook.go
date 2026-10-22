@@ -66,10 +66,22 @@ func Write(ctx context.Context, db Execer, e Entry) error {
 
 // List returns the latest entries, newest first.
 func List(ctx context.Context, db Queryer, limit int) ([]Entry, error) {
+	return list(ctx, db, "1 = 1", limit)
+}
+
+// ListOf returns the latest entries about the person userID, newest first:
+// what they did, and what AIs did on their behalf.
+func ListOf(ctx context.Context, db Queryer, userID int64, limit int) ([]Entry, error) {
+	return list(ctx, db, "user_id = ?", userID, limit)
+}
+
+// list returns the latest entries that match where, newest first. Its last
+// argument is the limit.
+func list(ctx context.Context, db Queryer, where string, args ...any) ([]Entry, error) {
 	rows, err := db.QueryContext(ctx, `
 		SELECT id, at, operation, actor, user_id, user_handle, token_id,
 			client, via, target, detail, outcome, error
-		FROM logbook ORDER BY id DESC LIMIT ?`, limit)
+		FROM logbook WHERE `+where+` ORDER BY id DESC LIMIT ?`, args...)
 	if err != nil {
 		return nil, err
 	}

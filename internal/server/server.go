@@ -55,12 +55,12 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 	s.AddDomain = &operation.Op[AddDomainInput, Info]{
 		Name:        "add_domain",
 		Description: "Declare a domain on this server, which creates the Cahut at that domain.",
-		AdminOnly:   true,
+		Level:       operation.ServerAdmin,
 		Run:         s.addDomain,
 	}
 	operation.Register(s.Registry, s.AddDomain)
 	operation.Register(s.Registry, ListDomains)
-	operation.Register(s.Registry, cahut.ListLogbook)
+	operation.Register(s.Registry, cahut.ListServerLogbook)
 	return s, nil
 }
 
@@ -120,7 +120,7 @@ type List struct {
 var ListDomains = &operation.Op[ListDomainsInput, List]{
 	Name:        "list_domains",
 	Description: "List the Cahuts of this server and their domains.",
-	AdminOnly:   true,
+	Level:       operation.ServerAdmin,
 	ReadOnly:    true,
 	Run: func(ctx context.Context, c *operation.Call, _ ListDomainsInput) (List, error) {
 		rows, err := c.Tx.QueryContext(ctx, "SELECT id, domain, created_at FROM cahuts ORDER BY id")

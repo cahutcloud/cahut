@@ -2,6 +2,7 @@ package operation
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"path/filepath"
@@ -12,9 +13,15 @@ import (
 	"cahut.cloud/internal/store"
 )
 
+// The people of the test registry: 1 is a member, 2 an administrator of the
+// Cahut, and 3 is disabled.
 var (
-	admin = Actor{Kind: Admin, Via: "cli"}
-	ai    = Actor{Kind: AI, Via: "mcp", UserID: 1, Handle: "olivier", TokenID: 7, Client: "Claude Code"}
+	admin    = Actor{Kind: Admin, Via: "cli"}
+	ai       = Actor{Kind: AI, Via: "mcp", UserID: 1, Handle: "olivier", TokenID: 7, Client: "Claude Code"}
+	member   = Actor{Kind: Person, Via: "api", UserID: 1, Handle: "olivier", Session: 4}
+	adminAI  = Actor{Kind: AI, Via: "mcp", UserID: 2, Handle: "camille", TokenID: 8, Client: "Claude Code"}
+	disabled = Actor{Kind: Person, Via: "api", UserID: 3, Handle: "bruno", Session: 5}
+	visitor  = Actor{Kind: Visitor, Via: "api"}
 )
 
 type roomIn struct {
@@ -36,6 +43,12 @@ func testRegistry(t *testing.T) (*Registry, *store.DB) {
 	t.Cleanup(func() { db.Close() })
 	r := NewRegistry(db)
 	r.Now = func() time.Time { return time.Date(2026, 10, 21, 9, 0, 0, 0, time.UTC) }
+	r.CheckPerson = func(_ context.Context, _ *sql.Tx, userID int64) (bool, error) {
+		if userID == 3 {
+			return false, Forbiddenf("this person is disabled")
+		}
+		return userID == 2, nil
+	}
 	return r, db
 }
 
@@ -166,21 +179,31 @@ func TestReadsAreLoggedForAIsOnly(t *testing.T) {
 	}
 }
 
+// rules copies the rules of an operation, not its name or its Run.
+func rules(op *Op[roomIn, roomOut], from Op[roomIn, roomOut]) {
+	op.Level, op.PeopleOnly, op.Visitors, op.KnockFirst = from.Level, from.PeopleOnly, from.Visitors, from.KnockFirst
+}
+
 func TestRefusals(t *testing.T) {
 	tests := []struct {
 		name  string
-		op    *Op[roomIn, roomOut]
+		rules Op[roomIn, roomOut]
 		actor Actor
 		want  error
 	}{
-		{name: "admin only, by an AI", op: &Op[roomIn, roomOut]{AdminOnly: true}, actor: ai, want: ErrForbidden},
-		{name: "irreversible, by an AI", op: &Op[roomIn, roomOut]{Irreversible: true}, actor: ai, want: ErrApprovalRequired},
+		{name: "for people, by an AI", rules: Op[roomIn, roomOut]{PeopleOnly: true}, actor: ai, want: ErrForbidden},
+		{name: "knock first, by an AI", rules: Op[roomIn, roomOut]{KnockFirst: true}, actor: adminAI, want: ErrApprovalRequired},
+		{name: "for Cahut administrators, by a member", rules: Op[roomIn, roomOut]{Level: CahutAdmin}, actor: member, want: ErrForbidden},
+		{name: "for Cahut administrators, by the AI of a member", rules: Op[roomIn, roomOut]{Level: CahutAdmin}, actor: ai, want: ErrForbidden},
+		{name: "for server administrators, by a person", rules: Op[roomIn, roomOut]{Level: ServerAdmin}, actor: member, want: ErrForbidden},
+		{name: "by a disabled person", actor: disabled, want: ErrForbidden},
+		{name: "by a visitor", actor: visitor, want: ErrForbidden},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r, db := testRegistry(t)
 			op := createRoom(nil)
-			op.AdminOnly, op.Irreversible = tt.op.AdminOnly, tt.op.Irreversible
+			rules(op, tt.rules)
 			Register(r, op)
 
 			_, err := Do(context.Background(), r, op, tt.actor, roomIn{Name: "Team"})
@@ -202,6 +225,79 @@ func TestRefusals(t *testing.T) {
 				t.Errorf("the administrator was refused: %v", err)
 			}
 		})
+	}
+}
+
+func TestAdmission(t *testing.T) {
+	tests := []struct {
+		name      string
+		rules     Op[roomIn, roomOut]
+		actor     Actor
+		wantAdmin bool
+	}{
+		{name: "for any person, by a member", actor: member},
+		{name: "for any person, by the command line", actor: admin, wantAdmin: true},
+		{name: "for Cahut administrators, by the AI of an administrator", rules: Op[roomIn, roomOut]{Level: CahutAdmin}, actor: adminAI, wantAdmin: true},
+		{name: "for server administrators, by the command line", rules: Op[roomIn, roomOut]{Level: ServerAdmin}, actor: admin, wantAdmin: true},
+		{name: "knock first, by a person", rules: Op[roomIn, roomOut]{KnockFirst: true}, actor: member},
+		{name: "for visitors, by a visitor", rules: Op[roomIn, roomOut]{Visitors: true, PeopleOnly: true}, actor: visitor},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, db := testRegistry(t)
+			op := createRoom(nil)
+			rules(op, tt.rules)
+			run := op.Run
+			var gotAdmin bool
+			op.Run = func(ctx context.Context, c *Call, in roomIn) (roomOut, error) {
+				gotAdmin = c.Admin
+				c.Identify(9, "someone")
+				return run(ctx, c, in)
+			}
+			Register(r, op)
+
+			if _, err := Do(context.Background(), r, op, tt.actor, roomIn{Name: "Team"}); err != nil {
+				t.Fatalf("Do: %v", err)
+			}
+			if gotAdmin != tt.wantAdmin {
+				t.Errorf("c.Admin = %v, want %v", gotAdmin, tt.wantAdmin)
+			}
+			got := entries(t, db)
+			if len(got) != 1 {
+				t.Fatalf("entries = %+v", got)
+			}
+			// A visitor is logged as the person Identify names; Identify
+			// changes nobody else.
+			wantActor, wantHandle := string(tt.actor.Kind), tt.actor.Handle
+			if tt.actor.Kind == Visitor {
+				wantActor, wantHandle = "person", "someone"
+			}
+			if got[0].Actor != wantActor || got[0].UserHandle != wantHandle {
+				t.Errorf("entry actor %q %q, want %q %q", got[0].Actor, got[0].UserHandle, wantActor, wantHandle)
+			}
+		})
+	}
+}
+
+func TestForAIs(t *testing.T) {
+	tests := []struct {
+		info          Info
+		member, admin bool
+	}{
+		{info: Info{}, member: true, admin: true},
+		{info: Info{KnockFirst: true}, member: true, admin: true},
+		{info: Info{Level: CahutAdmin}, admin: true},
+		{info: Info{Level: ServerAdmin}},
+		{info: Info{PeopleOnly: true}},
+		{info: Info{PeopleOnly: true, Level: CahutAdmin}},
+	}
+	for _, tt := range tests {
+		if got := tt.info.ForAIs(false); got != tt.member {
+			t.Errorf("%+v ForAIs(false) = %v", tt.info, got)
+		}
+		if got := tt.info.ForAIs(true); got != tt.admin {
+			t.Errorf("%+v ForAIs(true) = %v", tt.info, got)
+		}
 	}
 }
 

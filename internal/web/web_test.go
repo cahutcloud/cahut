@@ -155,8 +155,8 @@ func TestPublishOverMCP(t *testing.T) {
 	for _, tool := range tools.Tools {
 		names = append(names, tool.Name)
 	}
-	if !slices.Equal(names, []string{"get_window", "list_windows", "publish_window"}) {
-		t.Errorf("tools = %v, want the Window operations only", names)
+	if want := []string{"get_account", "get_window", "list_logbook", "list_users", "list_windows", "publish_window"}; !slices.Equal(names, want) {
+		t.Errorf("tools = %v, want %v: those of a member", names, want)
 	}
 
 	res, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "publish_window", Arguments: map[string]any{
@@ -280,6 +280,58 @@ func TestMCPNeedsAValidToken(t *testing.T) {
 	}
 }
 
+// TestMCPToolsFollowTheRole checks that the AI of an administrator sees the
+// tools for administrators, which knock first, and that a disabled person's
+// tokens stop working.
+func TestMCPToolsFollowTheRole(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	c := f.open(t, "localhost")
+	if _, err := operation.Do(ctx, c.Registry, account.CreateUser, admin, account.CreateUserInput{Handle: "camille", Name: "Camille", Admin: true}); err != nil {
+		t.Fatal(err)
+	}
+	tok, err := operation.Do(ctx, c.Registry, account.CreateToken, admin, account.CreateTokenInput{User: "camille", Name: "Claude Code"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	session := f.connect(t, "localhost", tok.Token)
+	tools, err := session.ListTools(ctx, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for _, tool := range tools.Tools {
+		names = append(names, tool.Name)
+		if tool.Name == "disable_user" && (tool.Annotations.DestructiveHint == nil || !*tool.Annotations.DestructiveHint) {
+			t.Errorf("disable_user is not marked destructive: %+v", tool.Annotations)
+		}
+	}
+	want := []string{"create_user", "disable_user", "enable_user", "get_account", "get_window", "list_logbook",
+		"list_users", "list_windows", "publish_window", "set_user_role"}
+	if !slices.Equal(names, want) {
+		t.Errorf("tools = %v, want %v", names, want)
+	}
+
+	res, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "disable_user", Arguments: map[string]any{"user": "olivier"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if text := res.Content[0].(*mcp.TextContent).Text; !res.IsError || !strings.Contains(text, "needs the approval of a person") {
+		t.Errorf("disable_user by an AI: %v %q", res.IsError, text)
+	}
+
+	// The Cahut keeps an administrator who is not disabled.
+	if _, err := operation.Do(ctx, c.Registry, account.SetUserRole, admin, account.SetUserRoleInput{User: "olivier", Role: account.Admin}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := operation.Do(ctx, c.Registry, account.DisableUser, admin, account.UserInput{User: "camille"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := session.ListTools(ctx, nil); err == nil {
+		t.Error("the token of a disabled person still works")
+	}
+}
+
 // TestMCPOnALoopbackAddress checks that every Cahut takes AIs on a loopback
 // address, not only the one at localhost, and that a host no Cahut declares
 // is still refused: the guard against DNS rebinding.
@@ -352,6 +404,17 @@ func TestBaseURL(t *testing.T) {
 	}
 	if got := (Config{Dev: true, DevAddr: "localhost:8080"}).BaseURL("beta.localhost"); got != "http://beta.localhost:8080/" {
 		t.Errorf("dev BaseURL = %q", got)
+	}
+	for domain, want := range map[string]string{
+		"cahut.example.com": "https://cahut.example.com:8443/",
+		"localhost.example": "https://localhost.example:8443/",
+		"localhost":         "http://localhost:8081/",
+		"beta.localhost":    "http://beta.localhost:8081/",
+		"notlocalhost":      "https://notlocalhost:8443/",
+	} {
+		if got := ConsoleURL(domain); got != want {
+			t.Errorf("ConsoleURL(%q) = %q, want %q", domain, got, want)
+		}
 	}
 }
 

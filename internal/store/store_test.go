@@ -18,6 +18,10 @@ func TestOpenMigrates(t *testing.T) {
 func testOpenMigrates(ctx context.Context, t *testing.T, schema fs.FS) {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "cahut.db")
+	migrations, err := fs.Glob(schema, "*.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
 	for range 2 { // the second open finds the schema up to date
 		db, err := Open(ctx, path, schema)
 		if err != nil {
@@ -27,8 +31,8 @@ func testOpenMigrates(ctx context.Context, t *testing.T, schema fs.FS) {
 		if err := db.Read.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 			t.Fatal(err)
 		}
-		if version != 1 {
-			t.Errorf("user_version = %d, want 1", version)
+		if version != len(migrations) {
+			t.Errorf("user_version = %d, want %d, the number of the last migration", version, len(migrations))
 		}
 		var mode string
 		if err := db.Read.QueryRowContext(ctx, "PRAGMA journal_mode").Scan(&mode); err != nil {

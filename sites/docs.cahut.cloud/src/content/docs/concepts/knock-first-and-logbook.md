@@ -11,8 +11,8 @@ An AI is the intended operator of a Cahut, but never without guardrails. It acts
 
 An AI acts only through typed operations, such as `publish_window`, each with a name, an input and an output. It never gets a shell, a database or the files of the server. The MCP tools and the command line are thin layers over one registry of operations, which:
 
-1. checks who calls: the administrator, a person, or an AI acting on behalf of a person;
-2. refuses what the caller may not do, such as an operation reserved to the administrator;
+1. checks who calls: the administrator, a person, or an AI acting on behalf of a person, and whether that person administers the Cahut or is disabled;
+2. refuses what the caller may not do, such as an operation for administrators called by a member, or signing in called by an AI;
 3. runs the operation, in a database transaction;
 4. writes the Logbook entry, in the same transaction for a change.
 
@@ -22,7 +22,7 @@ No way in can skip a step, since none has another way to act. The [operations re
 
 What can be undone, the AI does on its own. What cannot waits for a person to approve it.
 
-Each operation declares whether it can be undone. When an AI calls one that cannot, the registry refuses the call: the error says that it needs the approval of a person, and the Logbook records the call as refused. No operation is irreversible today, and approvals are not available yet.
+Each operation declares whether it knocks first: whether it cannot be undone, or changes what a person may do. When an AI calls one, the registry refuses the call: the error says that it needs the approval of a person, and the Logbook records the call as refused. A person who calls it acts at once. Approvals are not available yet, so AIs cannot run these operations; the [operations reference](/reference/operations/#knock-first) lists them.
 
 As planned, an irreversible call will create a request that waits for a person, with an expiry. The AI gives the user a link, a person approves or declines in the console, and the Logbook records both steps. These will need an approval:
 
@@ -50,9 +50,10 @@ An entry also keeps a detail, such as the kind, title, number of files and size 
 What goes to the Logbook:
 
 - every call of an AI, reads included, whatever its outcome;
-- every change made by the administrator, including those refused or failed.
+- every change made by the administrator or by a person, including those refused or failed;
+- every sign-in, under the person who signs in, refused ones included.
 
-The reads of the administrator, such as `token list`, stay out of it, so that it stays readable. A change and its entry are written in the same transaction: there is no change without its entry. The Logbook never holds a token, a password, or the contents of a file.
+The reads of the administrator and of people, such as `token list`, stay out of it, so that it stays readable. An administrator of the Cahut reads every entry; anyone else reads what they did and what their AIs did. A change and its entry are written in the same transaction: there is no change without its entry. The Logbook never holds a token, a password, or the contents of a file.
 
 ### Read the Logbook
 

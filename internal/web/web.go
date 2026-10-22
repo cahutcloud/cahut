@@ -37,6 +37,24 @@ type Config struct {
 	CertDir   string // where certificates and ACME keys are kept
 }
 
+// The console of every Cahut listens on its own port of the Cahut's domain:
+// ConsolePort, or DevConsolePort for development. See
+// docs/adr/0011-console-on-its-own-port.md.
+const (
+	ConsolePort    = 8443
+	DevConsolePort = 8081
+)
+
+// ConsoleURL returns the address of the console of the Cahut at domain.
+// Only a server for development serves localhost and *.localhost, which no
+// certificate authority certifies.
+func ConsoleURL(domain string) string {
+	if domain == "localhost" || strings.HasSuffix(domain, ".localhost") {
+		return fmt.Sprintf("http://%s:%d/", domain, DevConsolePort)
+	}
+	return fmt.Sprintf("https://%s:%d/", domain, ConsolePort)
+}
+
 // BaseURL returns the address of the Cahut at domain.
 func (c Config) BaseURL(domain string) string {
 	if c.Dev {

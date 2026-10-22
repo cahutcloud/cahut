@@ -26,9 +26,10 @@ type ActorKind string
 
 // Kinds of actors.
 const (
-	Admin  ActorKind = "admin"  // the administrator, on the server's command line
-	Person ActorKind = "person" // a person, in the console
-	AI     ActorKind = "ai"     // an AI acting on behalf of a person
+	Admin   ActorKind = "admin"   // the administrator, on the server's command line
+	Person  ActorKind = "person"  // a person, in the console
+	AI      ActorKind = "ai"      // an AI acting on behalf of a person
+	Visitor ActorKind = "visitor" // someone who has not signed in, to sign in
 )
 
 // Actor is who calls an operation.
@@ -37,8 +38,34 @@ type Actor struct {
 	Via     string // the adapter the call comes through: cli, mcp
 	UserID  int64  // the person, or the person an AI acts for; zero for Admin
 	Handle  string // the handle of that person
+	Session int64  // the session a person signed in with
 	TokenID int64  // the token an AI presented
 	Client  string // the AI, as its token and its software name it
+}
+
+// Level is who may call an operation.
+type Level int
+
+// Levels, from the widest. See docs/adr/0013-people-sessions-and-rights.md.
+const (
+	// AnyPerson is any person of the Cahut, and the AIs that act for one.
+	AnyPerson Level = iota
+	// CahutAdmin is the administrators of the Cahut, and those of the server.
+	CahutAdmin
+	// ServerAdmin is the administrators of the server.
+	ServerAdmin
+)
+
+func (l Level) String() string {
+	switch l {
+	case AnyPerson:
+		return "any person"
+	case CahutAdmin:
+		return "administrators of the Cahut"
+	case ServerAdmin:
+		return "administrators of the server"
+	}
+	return fmt.Sprintf("level %d", int(l))
 }
 
 // Op is an operation: what it is, who may call it, and how it runs.
@@ -49,12 +76,16 @@ type Op[In, Out any] struct {
 	Description string
 	// ReadOnly operations change nothing.
 	ReadOnly bool
-	// Irreversible operations cannot be undone. An AI needs the approval of
-	// a person to run one: Knock first.
-	Irreversible bool
-	// AdminOnly operations are reserved to the administrator and are not
-	// offered to AIs.
-	AdminOnly bool
+	// Level is who may call the operation: any person when it is not set.
+	Level Level
+	// PeopleOnly operations prove who someone is, such as signing in. They
+	// are not offered to AIs.
+	PeopleOnly bool
+	// Visitors may call the operation before they sign in: it signs them in.
+	Visitors bool
+	// KnockFirst operations cannot be undone, or change what a person may
+	// do. An AI needs the approval of a person to run one: Knock first.
+	KnockFirst bool
 	// Run does the work, inside the transaction of the call. It returns an
 	// error wrapping ErrInvalid, ErrNotFound or ErrForbidden when the caller
 	// is at fault.
@@ -63,13 +94,21 @@ type Op[In, Out any] struct {
 
 // Info describes an operation to the adapters.
 type Info struct {
-	Name         string
-	Description  string
-	ReadOnly     bool
-	Irreversible bool
-	AdminOnly    bool
-	Input        reflect.Type
-	Output       reflect.Type
+	Name        string
+	Description string
+	ReadOnly    bool
+	Level       Level
+	PeopleOnly  bool
+	Visitors    bool
+	KnockFirst  bool
+	Input       reflect.Type
+	Output      reflect.Type
+}
+
+// ForAIs reports whether the operation is offered to the AIs of a person,
+// who administers the Cahut or not.
+func (i Info) ForAIs(admin bool) bool {
+	return !i.PeopleOnly && (i.Level == AnyPerson || i.Level == CahutAdmin && admin)
 }
 
 // Call is one call of an operation, as Run sees it.
@@ -77,6 +116,10 @@ type Call struct {
 	Actor Actor
 	Now   time.Time // when the call started, in UTC, to the millisecond
 	Tx    *sql.Tx   // read-only for a ReadOnly operation
+	// Admin reports whether the actor administers the Cahut: the person who
+	// acts, or for whom an AI acts, is an administrator of the Cahut, or the
+	// actor administers the server.
+	Admin bool
 
 	target, detail string
 	afterCommit    []func()
@@ -87,6 +130,14 @@ type Call struct {
 // with an optional detail. Never put secrets or file contents in either.
 func (c *Call) Log(target, detail string) {
 	c.target, c.detail = target, detail
+}
+
+// Identify names the person that a Visitor's call concerns, such as the
+// person who signs in, so that the Logbook records the call under them.
+func (c *Call) Identify(userID int64, handle string) {
+	if c.Actor.Kind == Visitor {
+		c.Actor.UserID, c.Actor.Handle = userID, handle
+	}
 }
 
 // AfterCommit runs fn once the call has succeeded and its transaction is
@@ -108,6 +159,7 @@ var (
 	ErrNotFound         = errors.New("not found")
 	ErrForbidden        = errors.New("not allowed")
 	ErrApprovalRequired = errors.New("needs the approval of a person")
+	ErrTooMany          = errors.New("too many attempts")
 )
 
 // Invalidf returns an error wrapping ErrInvalid.
@@ -128,7 +180,8 @@ func Forbiddenf(format string, args ...any) error {
 // Public reports whether the message of err may be shown to the caller.
 func Public(err error) bool {
 	return errors.Is(err, ErrInvalid) || errors.Is(err, ErrNotFound) ||
-		errors.Is(err, ErrForbidden) || errors.Is(err, ErrApprovalRequired)
+		errors.Is(err, ErrForbidden) || errors.Is(err, ErrApprovalRequired) ||
+		errors.Is(err, ErrTooMany)
 }
 
 // Registry holds the operations of a Cahut, or of the server, and runs them.
@@ -138,6 +191,13 @@ type Registry struct {
 
 	// Now returns the current time. Tests replace it.
 	Now func() time.Time
+
+	// CheckPerson reads, in the transaction of a call, whether a person
+	// administers the Cahut. It returns an error wrapping ErrForbidden when
+	// the person may not act at all, as when they are disabled. Each Cahut
+	// sets it; the registry of the server, which people do not call, does
+	// not.
+	CheckPerson func(ctx context.Context, tx *sql.Tx, userID int64) (admin bool, err error)
 }
 
 type registered interface {
@@ -201,13 +261,15 @@ func (r *Registry) Invoke(ctx context.Context, name string, actor Actor, args js
 
 func (op *Op[In, Out]) info() Info {
 	return Info{
-		Name:         op.Name,
-		Description:  op.Description,
-		ReadOnly:     op.ReadOnly,
-		Irreversible: op.Irreversible,
-		AdminOnly:    op.AdminOnly,
-		Input:        reflect.TypeFor[In](),
-		Output:       reflect.TypeFor[Out](),
+		Name:        op.Name,
+		Description: op.Description,
+		ReadOnly:    op.ReadOnly,
+		Level:       op.Level,
+		PeopleOnly:  op.PeopleOnly,
+		Visitors:    op.Visitors,
+		KnockFirst:  op.KnockFirst,
+		Input:       reflect.TypeFor[In](),
+		Output:      reflect.TypeFor[Out](),
 	}
 }
 
@@ -254,7 +316,10 @@ func (r *Registry) run(ctx context.Context, info Info, actor Actor, fn func(cont
 	}
 	c.Tx = tx
 
-	err = fn(ctx, c)
+	err = r.admit(ctx, info, c)
+	if err == nil {
+		err = fn(ctx, c)
+	}
 	if err == nil && logged && !info.ReadOnly {
 		err = logbook.Write(ctx, tx, r.entry(info, c, nil))
 	}
@@ -292,10 +357,14 @@ func (r *Registry) fail(ctx context.Context, info Info, c *Call, logged bool, er
 }
 
 func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
+	actor := c.Actor.Kind
+	if actor == Visitor {
+		actor = Person // the person the call concerns, if Identify named one
+	}
 	e := logbook.Entry{
 		At:         c.Now,
 		Operation:  info.Name,
-		Actor:      string(c.Actor.Kind),
+		Actor:      string(actor),
 		UserID:     c.Actor.UserID,
 		UserHandle: c.Actor.Handle,
 		TokenID:    c.Actor.TokenID,
@@ -307,7 +376,7 @@ func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
 	}
 	if err != nil {
 		e.Outcome = logbook.Failed
-		if errors.Is(err, ErrForbidden) || errors.Is(err, ErrApprovalRequired) {
+		if errors.Is(err, ErrForbidden) || errors.Is(err, ErrApprovalRequired) || errors.Is(err, ErrTooMany) {
 			e.Outcome = logbook.Refused
 		}
 		e.Error = err.Error()
@@ -315,6 +384,8 @@ func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
 	return e
 }
 
+// authorize checks, before the call opens its transaction, what the kind of
+// the actor alone decides.
 func authorize(info Info, a Actor) error {
 	switch a.Kind {
 	case Admin:
@@ -326,14 +397,45 @@ func authorize(info Info, a Actor) error {
 		if a.UserID == 0 || a.TokenID == 0 {
 			return errors.New("operation: AI without a user or a token")
 		}
+		if info.PeopleOnly {
+			return Forbiddenf("%s is for people, not for AIs: it proves who someone is", info.Name)
+		}
+	case Visitor:
+		if !info.Visitors {
+			return Forbiddenf("%s needs someone signed in", info.Name)
+		}
 	default:
 		return fmt.Errorf("operation: unknown actor kind %q", a.Kind)
 	}
-	if info.AdminOnly && a.Kind != Admin {
-		return Forbiddenf("%s is reserved to the administrator", info.Name)
+	if info.Level == ServerAdmin && a.Kind != Admin {
+		return Forbiddenf("%s is for the %s", info.Name, info.Level)
 	}
-	if info.Irreversible && a.Kind == AI {
-		return fmt.Errorf("%w: %s cannot be undone, and approvals are not available yet", ErrApprovalRequired, info.Name)
+	return nil
+}
+
+// admit checks, in the transaction of the call, what the records say: the
+// role and the state of the person who acts, or for whom an AI acts. It sets
+// c.Admin.
+func (r *Registry) admit(ctx context.Context, info Info, c *Call) error {
+	switch c.Actor.Kind {
+	case Admin:
+		c.Admin = true
+	case Person, AI:
+		if r.CheckPerson == nil {
+			return fmt.Errorf("operation: %s for a person, in a registry that knows no people", info.Name)
+		}
+		admin, err := r.CheckPerson(ctx, c.Tx, c.Actor.UserID)
+		if err != nil {
+			return err
+		}
+		c.Admin = admin
+	}
+	if info.Level == CahutAdmin && !c.Admin {
+		return Forbiddenf("%s is for the %s", info.Name, info.Level)
+	}
+	if info.KnockFirst && c.Actor.Kind == AI {
+		return fmt.Errorf("%w: %s changes what a person may do, or cannot be undone, and approvals are not available yet: "+
+			"%s can do it in the console of the Cahut", ErrApprovalRequired, info.Name, c.Actor.Handle)
 	}
 	return nil
 }

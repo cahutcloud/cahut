@@ -9,7 +9,7 @@ sidebar:
 
 Each Cahut serves MCP at `https://<domain>/mcp`, over Streamable HTTP. An AI connects with a personal token of that Cahut, which it sends in the header `Authorization: Bearer <token>`: see [Connect an AI](/connect/claude-code/).
 
-The tools are the operations of the Cahut that are open to AIs; the others are reserved to the administrator ([Operations](/reference/operations/)). Every call goes through the registry of operations, which checks it, runs it and writes it to the Logbook, reads included. Arguments with unknown fields are refused.
+The tools are the operations of the Cahut that are open to AIs ([Operations](/reference/operations/)). An AI sees the tools that the person it acts for may use: some are for the AIs of administrators of the Cahut only. The operations that prove who someone is, such as signing in, are for people only. Every call goes through the registry of operations, which checks it, runs it and writes it to the Logbook, reads included. Arguments with unknown fields are refused.
 
 A tool returns its result as structured content, and as the same JSON in a text block. When a call fails because of its arguments, the error says what to change. Any other error reads only as an internal error: the administrator of the Cahut finds the details in its Logbook.
 
@@ -31,9 +31,443 @@ The Cahut gives these instructions to the AI when it connects:
 
 | Tool | What it does |
 | --- | --- |
+| [`create_user`](#create_user) | Create a person, with their personal Room, and the link where they choose their password. |
+| [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. |
+| [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. |
+| [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
 | [`get_window`](#get_window) | Describe a Window and list its files, optionally with their contents. |
+| [`list_logbook`](#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. |
+| [`list_users`](#list_users) | List the people of the Cahut, with their handles, names, roles and states. |
 | [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for, most recently updated first. |
 | [`publish_window`](#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. |
+| [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. |
+
+## `create_user`
+
+Create a person, with their personal Room, and the link where they choose their password.
+
+Offered to the AIs of administrators of the Cahut only.
+
+Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+
+Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `handle` | string | yes |  |
+| `name` | string | yes |  |
+| `admin` | boolean | no |  |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "admin": {
+      "type": "boolean"
+    },
+    "handle": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "handle",
+    "name"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `handle` | string | yes |  |
+| `id` | integer | yes |  |
+| `name` | string | yes |  |
+| `personal_room` | string | yes | name of the person's personal Room, the handle |
+| `role` | string | yes | admin or member of the Cahut |
+| `status` | string | yes | pending until the person chooses a password, then active, or disabled |
+| `activation` | object or null | no | the link where the person chooses their password; an AI never gets it |
+| `activation.code` | string | yes | the person opens the console of the Cahut at /activate#&lt;code&gt; to choose their password |
+| `activation.expires_at` | string | yes |  |
+| `activation.user` | string | yes | handle of the person |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "activation": {
+      "additionalProperties": false,
+      "description": "the link where the person chooses their password; an AI never gets it",
+      "properties": {
+        "code": {
+          "description": "the person opens the console of the Cahut at /activate#\u003ccode\u003e to choose their password",
+          "type": "string"
+        },
+        "expires_at": {
+          "type": "string"
+        },
+        "user": {
+          "description": "handle of the person",
+          "type": "string"
+        }
+      },
+      "required": [
+        "user",
+        "code",
+        "expires_at"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "handle": {
+      "type": "string"
+    },
+    "id": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "personal_room": {
+      "description": "name of the person's personal Room, the handle",
+      "type": "string"
+    },
+    "role": {
+      "description": "admin or member of the Cahut",
+      "type": "string"
+    },
+    "status": {
+      "description": "pending until the person chooses a password, then active, or disabled",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "handle",
+    "name",
+    "role",
+    "status",
+    "personal_room"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `disable_user`
+
+Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay.
+
+Offered to the AIs of administrators of the Cahut only.
+
+Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+
+Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `user` | string | yes | handle of the person |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "user": {
+      "description": "handle of the person",
+      "type": "string"
+    }
+  },
+  "required": [
+    "user"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `handle` | string | yes |  |
+| `id` | integer | yes |  |
+| `name` | string | yes |  |
+| `personal_room` | string | yes | name of the person's personal Room, the handle |
+| `role` | string | yes | admin or member of the Cahut |
+| `status` | string | yes | pending until the person chooses a password, then active, or disabled |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "handle": {
+      "type": "string"
+    },
+    "id": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "personal_room": {
+      "description": "name of the person's personal Room, the handle",
+      "type": "string"
+    },
+    "role": {
+      "description": "admin or member of the Cahut",
+      "type": "string"
+    },
+    "status": {
+      "description": "pending until the person chooses a password, then active, or disabled",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "handle",
+    "name",
+    "role",
+    "status",
+    "personal_room"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `enable_user`
+
+Enable a disabled person again: they can sign in, and their AIs can act with their tokens.
+
+Offered to the AIs of administrators of the Cahut only.
+
+Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+
+Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `user` | string | yes | handle of the person |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "user": {
+      "description": "handle of the person",
+      "type": "string"
+    }
+  },
+  "required": [
+    "user"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `handle` | string | yes |  |
+| `id` | integer | yes |  |
+| `name` | string | yes |  |
+| `personal_room` | string | yes | name of the person's personal Room, the handle |
+| `role` | string | yes | admin or member of the Cahut |
+| `status` | string | yes | pending until the person chooses a password, then active, or disabled |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "handle": {
+      "type": "string"
+    },
+    "id": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "personal_room": {
+      "description": "name of the person's personal Room, the handle",
+      "type": "string"
+    },
+    "role": {
+      "description": "admin or member of the Cahut",
+      "type": "string"
+    },
+    "status": {
+      "description": "pending until the person chooses a password, then active, or disabled",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "handle",
+    "name",
+    "role",
+    "status",
+    "personal_room"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `get_account`
+
+Describe the person you act for: their handle, name, role in the Cahut and Rooms.
+
+Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+This tool takes no arguments.
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `handle` | string | yes |  |
+| `id` | integer | yes |  |
+| `name` | string | yes |  |
+| `personal_room` | string | yes | name of the person's personal Room, the handle |
+| `role` | string | yes | admin or member of the Cahut |
+| `rooms` | array of objects or null | yes | the Rooms of the person, their personal Room first |
+| `rooms[].kind` | string | yes | personal or team |
+| `rooms[].role` | string | yes | owner or member of the Room |
+| `rooms[].room` | string | yes | the Room's name, first part of its address |
+| `rooms[].title` | string | yes |  |
+| `status` | string | yes | pending until the person chooses a password, then active, or disabled |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "handle": {
+      "type": "string"
+    },
+    "id": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "personal_room": {
+      "description": "name of the person's personal Room, the handle",
+      "type": "string"
+    },
+    "role": {
+      "description": "admin or member of the Cahut",
+      "type": "string"
+    },
+    "rooms": {
+      "description": "the Rooms of the person, their personal Room first",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "description": "personal or team",
+            "type": "string"
+          },
+          "role": {
+            "description": "owner or member of the Room",
+            "type": "string"
+          },
+          "room": {
+            "description": "the Room's name, first part of its address",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "room",
+          "title",
+          "kind",
+          "role"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "status": {
+      "description": "pending until the person chooses a password, then active, or disabled",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "handle",
+    "name",
+    "role",
+    "status",
+    "personal_room",
+    "rooms"
+  ],
+  "type": "object"
+}
+```
+
+</details>
 
 ## `get_window`
 
@@ -188,6 +622,229 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
     "created_at",
     "updated_at",
     "files"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `list_logbook`
+
+Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf.
+
+Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `limit` | integer | no | how many entries, 50 by default, at most 1000 |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "limit": {
+      "description": "how many entries, 50 by default, at most 1000",
+      "type": "integer"
+    }
+  },
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `entries` | array of objects or null | yes |  |
+| `entries[].actor` | string | yes | admin, person or ai |
+| `entries[].at` | string | yes |  |
+| `entries[].id` | integer | yes |  |
+| `entries[].operation` | string | yes |  |
+| `entries[].outcome` | string | yes | ok, refused or failed |
+| `entries[].via` | string | yes | the adapter the call came through: cli, mcp |
+| `entries[].client` | string | no | the AI, as its token and its software name it |
+| `entries[].detail` | string | no |  |
+| `entries[].error` | string | no |  |
+| `entries[].target` | string | no | what the operation acted on |
+| `entries[].token_id` | integer | no |  |
+| `entries[].user` | string | no |  |
+| `entries[].user_id` | integer | no | the person, or the person an AI acts for |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "entries": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "description": "admin, person or ai",
+            "type": "string"
+          },
+          "at": {
+            "type": "string"
+          },
+          "client": {
+            "description": "the AI, as its token and its software name it",
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "outcome": {
+            "description": "ok, refused or failed",
+            "type": "string"
+          },
+          "target": {
+            "description": "what the operation acted on",
+            "type": "string"
+          },
+          "token_id": {
+            "type": "integer"
+          },
+          "user": {
+            "type": "string"
+          },
+          "user_id": {
+            "description": "the person, or the person an AI acts for",
+            "type": "integer"
+          },
+          "via": {
+            "description": "the adapter the call came through: cli, mcp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "at",
+          "operation",
+          "actor",
+          "via",
+          "outcome"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    }
+  },
+  "required": [
+    "entries"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `list_users`
+
+List the people of the Cahut, with their handles, names, roles and states.
+
+Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+This tool takes no arguments.
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `users` | array of objects or null | yes |  |
+| `users[].handle` | string | yes |  |
+| `users[].id` | integer | yes |  |
+| `users[].name` | string | yes |  |
+| `users[].personal_room` | string | yes | name of the person's personal Room, the handle |
+| `users[].role` | string | yes | admin or member of the Cahut |
+| `users[].status` | string | yes | pending until the person chooses a password, then active, or disabled |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "users": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "handle": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "personal_room": {
+            "description": "name of the person's personal Room, the handle",
+            "type": "string"
+          },
+          "role": {
+            "description": "admin or member of the Cahut",
+            "type": "string"
+          },
+          "status": {
+            "description": "pending until the person chooses a password, then active, or disabled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "handle",
+          "name",
+          "role",
+          "status",
+          "personal_room"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    }
+  },
+  "required": [
+    "users"
   ],
   "type": "object"
 }
@@ -465,6 +1122,103 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "created_by",
     "created_at",
     "updated_at"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `set_user_role`
+
+Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator.
+
+Offered to the AIs of administrators of the Cahut only.
+
+Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+
+Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `role` | string | yes | admin or member |
+| `user` | string | yes | handle of the person |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "role": {
+      "description": "admin or member",
+      "type": "string"
+    },
+    "user": {
+      "description": "handle of the person",
+      "type": "string"
+    }
+  },
+  "required": [
+    "user",
+    "role"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `handle` | string | yes |  |
+| `id` | integer | yes |  |
+| `name` | string | yes |  |
+| `personal_room` | string | yes | name of the person's personal Room, the handle |
+| `role` | string | yes | admin or member of the Cahut |
+| `status` | string | yes | pending until the person chooses a password, then active, or disabled |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "handle": {
+      "type": "string"
+    },
+    "id": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "personal_room": {
+      "description": "name of the person's personal Room, the handle",
+      "type": "string"
+    },
+    "role": {
+      "description": "admin or member of the Cahut",
+      "type": "string"
+    },
+    "status": {
+      "description": "pending until the person chooses a password, then active, or disabled",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "handle",
+    "name",
+    "role",
+    "status",
+    "personal_room"
   ],
   "type": "object"
 }
