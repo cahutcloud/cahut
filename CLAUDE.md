@@ -6,7 +6,7 @@ Guidance for Claude Code in this repository.
 
 Cahut is a self-hosted, open source home for what AIs make: documents, decks, dashboards and small apps, published over MCP to the user's own server and shared by link. It is a personal project by Olivier Durand, independent of any company and of any AI vendor.
 
-The V0 is under way, batch by batch, following the V0 plan. Batch 1 is the first vertical slice: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at `<domain>/<room>/<window>/` in a CSP sandbox, and the call goes to the Logbook. A server already holds several Cahuts, each declared by its domain. Batch 2 ([docs/plan-lot-2.md](docs/plan-lot-2.md)) brought people who sign in, administrators of each Cahut and of the server, team Rooms with their rights, and the web console on port 8443 with its HTTP API. Batch 3 brings OAuth for AI clients. There are no access levels yet: anyone with a Window's address can read it.
+The V0 is under way, batch by batch, following the V0 plan. Batch 1 is the first vertical slice: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at `<domain>/<room>/<window>/` in a CSP sandbox, and the call goes to the Logbook. A server already holds several Cahuts, each declared by its domain. Batch 2 ([docs/plan-lot-2.md](docs/plan-lot-2.md)) brought people who sign in, administrators of each Cahut and of the server, team Rooms with their rights, and the web console on port 8443 with its HTTP API. Batch 3 ([docs/plan-lot-3.md](docs/plan-lot-3.md)) brings OAuth for AI clients: each Cahut is its own authorization server, and a person grants an AI some Rooms and a scope. There are no access levels yet: anyone with a Window's address can read it.
 
 The website (`cahut.cloud`) and the documentation (`docs.cahut.cloud`) are Astro sites in [sites/](sites/README.md), built on the brand guidelines ([ADR 12](docs/adr/0012-website-and-docs-as-astro-sites.md)). The website's `/brand` page gives access to the brand.
 
@@ -16,8 +16,9 @@ Read before working on anything substantial:
 - [docs/brief-projet.md](docs/brief-projet.md): the full project brief, in French, with the open questions.
 - [docs/plan-v0.md](docs/plan-v0.md): the development plan for the V0 (the MVP), in French: scope, batches, milestones and decisions to make.
 - [docs/plan-lot-2.md](docs/plan-lot-2.md): the detailed plan of batch 2 (people, team Rooms and the console), in French: operations, screens and pull requests.
+- [docs/plan-lot-3.md](docs/plan-lot-3.md): the detailed plan of batch 3 (OAuth for AI clients), in French.
 - [docs/gouvernance.md](docs/gouvernance.md): how the project is governed and how it lives, in French: roles, contributions, channels, releases, security, name, license and money, and the decisions still open.
-- [docs/adr/README.md](docs/adr/README.md): the architecture decision records, in English. They settle the web server and TLS, the database, the console, OAuth, the module path and releases, then several Cahuts per server, the addresses of Rooms and Windows, the Window sandbox, the console's port, the website and documentation, and then people, sessions and rights, and the console's HTTP API.
+- [docs/adr/README.md](docs/adr/README.md): the architecture decision records, in English. They settle the web server and TLS, the database, the console, OAuth, the module path and releases, then several Cahuts per server, the addresses of Rooms and Windows, the Window sandbox, the console's port, the website and documentation, and then people, sessions and rights, the console's HTTP API, the license, and OAuth for AI clients.
 - [docs/charte-graphique/README.md](docs/charte-graphique/README.md): the brand guidelines, in French.
 
 The implementation language is **Go** (decided, see the README). The brief still lists Go or Rust as open: the README and the ADRs are the current reference.
@@ -150,6 +151,7 @@ docs/
   brief-projet.md      Project brief (French)
   plan-v0.md           V0 development plan (French)
   plan-lot-2.md        Detailed plan of batch 2 (French)
+  plan-lot-3.md        Detailed plan of batch 3 (French)
   gouvernance.md       Governance and project life (French)
   charte-graphique/    Brand guidelines with all source files (French)
 sites/                 npm workspace of the sites (ADR 12)

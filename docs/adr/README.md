@@ -9,7 +9,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [3](0003-one-origin-per-window.md) | Each Window gets its own web origin | Superseded by 8, 9 and 10 |
 | [4](0004-sqlite-in-pure-go.md) | SQLite in pure Go | Accepted, extended by 8 |
 | [5](0005-preact-console-embedded.md) | The console is a Preact app embedded in the binary | Accepted, superseded in part by 11 |
-| [6](0006-in-house-oauth-server.md) | Cahut runs its own minimal OAuth authorization server | Accepted |
+| [6](0006-in-house-oauth-server.md) | Cahut runs its own minimal OAuth authorization server | Accepted, extended by 16 |
 | [7](0007-module-path-repository-and-releases.md) | Module path, repository and releases | Accepted |
 | [8](0008-several-cahuts-per-server.md) | A server holds several Cahuts, each at its own domain | Accepted |
 | [9](0009-rooms-and-windows-as-paths.md) | Rooms and Windows are paths of their Cahut's domain | Accepted |
@@ -19,6 +19,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [13](0013-people-sessions-and-rights.md) | People sign in to their Cahut, and the registry checks their rights | Accepted |
 | [14](0014-console-http-api.md) | The console calls each operation at its own HTTP route | Accepted |
 | [15](0015-license.md) | AGPL-3.0 for the repository, the name and the logo apart | Accepted |
+| [16](0016-oauth-for-ai-clients.md) | AI clients connect over OAuth, to the Rooms and the scope a person grants | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 
