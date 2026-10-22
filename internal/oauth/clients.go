@@ -20,6 +20,7 @@ import (
 	"cahut.cloud/internal/credential"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
+	"cahut.cloud/internal/version"
 )
 
 // Client is an AI client, as it registered or as its metadata document
@@ -38,29 +39,30 @@ type Client struct {
 // document when id is an https address, or read from those that
 // registered. It returns an error wrapping operation.ErrInvalid when there
 // is no such client.
-func (s *Server) client(ctx context.Context, tx *sql.Tx, id string) (Client, error) {
+func (s *Server) client(ctx context.Context, c *operation.Call, id string) (Client, error) {
 	if id == "" {
 		return Client{}, operation.Invalidf("the request names no client: client_id is empty")
 	}
+	tx := c.Tx
 	if isDocumentID(id) {
-		return s.docs.get(ctx, id)
+		return s.document(ctx, c, id)
 	}
-	var c Client
+	var cl Client
 	var uri sql.NullString
 	var redirects string
 	err := tx.QueryRowContext(ctx, "SELECT id, name, uri, redirect_uris FROM oauth_clients WHERE id = ?", id).
-		Scan(&c.ID, &c.Name, &uri, &redirects)
+		Scan(&cl.ID, &cl.Name, &uri, &redirects)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Client{}, operation.Invalidf("no client %q is registered here: the AI should register again", id)
 	}
 	if err != nil {
 		return Client{}, err
 	}
-	c.URI = uri.String
-	if err := json.Unmarshal([]byte(redirects), &c.RedirectURIs); err != nil {
+	cl.URI = uri.String
+	if err := json.Unmarshal([]byte(redirects), &cl.RedirectURIs); err != nil {
 		return Client{}, fmt.Errorf("redirect URIs of client %s: %w", id, err)
 	}
-	return c, nil
+	return cl, nil
 }
 
 // isDocumentID reports whether a client ID is the address of a Client ID
@@ -268,14 +270,21 @@ const (
 	documentMaxSize  = 16 << 10
 	documentLifetime = time.Hour
 	documentsKept    = 1000
+	// documentStale is how long the last valid copy of a document stands
+	// in for a document that no longer answers.
+	documentStale = 30 * 24 * time.Hour
+	// documentRetry is how long a copy that stood in is used before Cahut
+	// tries the document again.
+	documentRetry = 5 * time.Minute
 )
 
-// documents fetches Client ID Metadata Documents and keeps them a while.
+// documents fetches Client ID Metadata Documents and keeps them in memory
+// a while.
 type documents struct {
 	client *http.Client
 
 	mu   sync.Mutex
-	kept map[string]document
+	docs map[string]document
 }
 
 type document struct {
@@ -284,7 +293,7 @@ type document struct {
 }
 
 func newDocuments() *documents {
-	return &documents{client: guardedClient(), kept: map[string]document{}}
+	return &documents{client: guardedClient(), docs: map[string]document{}}
 }
 
 // guardedClient fetches public addresses only. It checks the address it
@@ -378,50 +387,107 @@ func (doc metadataDocument) public() bool {
 		slices.Contains(doc.TokenEndpointAuthMethods, "none")
 }
 
-// get returns the client that the metadata document at id describes.
-func (d *documents) get(ctx context.Context, id string) (Client, error) {
-	d.mu.Lock()
-	kept, ok := d.kept[id]
-	d.mu.Unlock()
-	if ok && time.Since(kept.fetched) < documentLifetime {
-		return kept.client, nil
+// document returns the client that the metadata document at id describes.
+// A valid document that answers is kept in memory a while, and its copy in
+// the database once the call succeeds. When the document no longer answers,
+// as when its host is down, its last valid copy stands in, for 30 days. A
+// document that answers but is invalid is refused, whatever its copy says.
+func (s *Server) document(ctx context.Context, c *operation.Call, id string) (Client, error) {
+	now := s.Now()
+	if cl, ok := s.docs.kept(id, now); ok {
+		return cl, nil
 	}
-	c, err := d.fetch(ctx, id)
-	if err != nil {
+	body, err := s.docs.fetch(ctx, id)
+	if err == nil {
+		cl, err := parseDocument(id, body)
+		if err != nil {
+			return Client{}, operation.Invalidf("the client metadata document at %s: %v", id, err)
+		}
+		s.docs.keep(id, cl, now)
+		at := c.Now
+		c.AfterCommit(func() { s.saveDocument(id, body, at) })
+		return cl, nil
+	}
+	var stored, fetched string
+	serr := c.Tx.QueryRowContext(ctx, "SELECT document, fetched_at FROM client_documents WHERE client_id = ? AND fetched_at > ?",
+		id, store.FormatTime(c.Now.Add(-documentStale))).Scan(&stored, &fetched)
+	if serr != nil {
 		return Client{}, operation.Invalidf("the client metadata document at %s: %v", id, err)
 	}
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	if len(d.kept) >= documentsKept {
-		clear(d.kept)
+	cl, perr := parseDocument(id, []byte(stored))
+	if perr != nil {
+		return Client{}, operation.Invalidf("the client metadata document at %s: %v", id, err)
 	}
-	d.kept[id] = document{client: c, fetched: time.Now()}
-	return c, nil
+	// Try the document again in a few minutes, not at every request.
+	s.docs.keep(id, cl, now.Add(documentRetry-documentLifetime))
+	return cl, nil
 }
 
-func (d *documents) fetch(ctx context.Context, id string) (Client, error) {
+// saveDocument keeps the copy of a valid document. It runs after the call
+// that fetched it, outside its transaction: a copy that cannot be written
+// waits for the next fetch.
+func (s *Server) saveDocument(id string, body []byte, at time.Time) {
+	ctx, cancel := context.WithTimeout(context.Background(), documentTimeout)
+	defer cancel()
+	_, _ = s.db.Write.ExecContext(ctx, `
+		INSERT INTO client_documents (client_id, document, fetched_at) VALUES (?, ?, ?)
+		ON CONFLICT (client_id) DO UPDATE SET document = excluded.document, fetched_at = excluded.fetched_at`,
+		id, string(body), store.FormatTime(at))
+}
+
+// kept returns the client of the document at id, when it was kept less
+// than documentLifetime before now.
+func (d *documents) kept(id string, now time.Time) (Client, bool) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	k, ok := d.docs[id]
+	if !ok || now.Sub(k.fetched) >= documentLifetime {
+		return Client{}, false
+	}
+	return k.client, true
+}
+
+// keep keeps the client of the document at id, as fetched at.
+func (d *documents) keep(id string, c Client, at time.Time) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if len(d.docs) >= documentsKept {
+		clear(d.docs)
+	}
+	d.docs[id] = document{client: c, fetched: at}
+}
+
+// fetch fetches the metadata document at id.
+func (d *documents) fetch(ctx context.Context, id string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, documentTimeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, id, nil)
 	if err != nil {
-		return Client{}, err
+		return nil, err
 	}
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", "Cahut/"+version.Get().Version+" (+https://cahut.cloud)")
 	resp, err := d.client.Do(req)
 	if err != nil {
-		return Client{}, errors.New("it could not be fetched")
+		return nil, errors.New("it could not be fetched")
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return Client{}, fmt.Errorf("it answered %s", resp.Status)
+		return nil, fmt.Errorf("it answered %s", resp.Status)
 	}
 	body, err := io.ReadAll(io.LimitReader(resp.Body, documentMaxSize+1))
 	if err != nil {
-		return Client{}, errors.New("it could not be read")
+		return nil, errors.New("it could not be read")
 	}
 	if len(body) > documentMaxSize {
-		return Client{}, fmt.Errorf("it is larger than %d KiB", documentMaxSize>>10)
+		return nil, fmt.Errorf("it is larger than %d KiB", documentMaxSize>>10)
 	}
+	return body, nil
+}
+
+// parseDocument checks the metadata document at id, and returns the client
+// it describes.
+func parseDocument(id string, body []byte) (Client, error) {
 	var doc metadataDocument
 	if err := json.Unmarshal(body, &doc); err != nil {
 		return Client{}, errors.New("it is not a JSON object")

@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -603,7 +604,14 @@ func TestMetadataDocuments(t *testing.T) {
 	f := setup(t)
 	var doc map[string]any
 	var redirectTo string
+	var gone atomic.Bool
+	var agent atomic.Value
 	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		agent.Store(r.UserAgent())
+		if gone.Load() {
+			http.NotFound(w, r)
+			return
+		}
 		if redirectTo != "" {
 			http.Redirect(w, r, redirectTo, http.StatusFound)
 			return
@@ -675,6 +683,34 @@ func TestMetadataDocuments(t *testing.T) {
 		"client_assertion": {"eyJhbGciOiJSUzI1NiJ9." + claims + ".c2lnbmF0dXJl"}})
 	if status != http.StatusOK {
 		t.Errorf("exchange with a client assertion = %d %v", status, out)
+	}
+	if ua, _ := agent.Load().(string); !strings.HasPrefix(ua, "Cahut/") {
+		t.Errorf("documents are fetched as %q", ua)
+	}
+
+	// When the document no longer answers, as after a restart while its
+	// host is down, its last valid copy stands in, for 30 days.
+	describe := func() error {
+		oauth.ForgetDocuments(f.c.OAuth)
+		_, err := f.invoke(f.olivier, "describe_authorization", oauth.DescribeInput{Request: req})
+		return err
+	}
+	gone.Store(true)
+	if err := describe(); err != nil {
+		t.Errorf("describe_authorization while the document answers 404: %v", err)
+	}
+	f.now = f.now.Add(31 * 24 * time.Hour)
+	if err := describe(); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "404") {
+		t.Errorf("describe_authorization with a copy older than 30 days: %v", err)
+	}
+	// A document that answers but is invalid is refused, whatever its copy.
+	gone.Store(false)
+	if err := describe(); err != nil {
+		t.Fatalf("describe_authorization once the document is back: %v", err)
+	}
+	doc["client_id"] = srv.URL + "/other.json"
+	if err := describe(); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("describe_authorization with an invalid document and a valid copy: %v", err)
 	}
 }
 
