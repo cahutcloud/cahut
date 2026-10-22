@@ -1,6 +1,9 @@
 // Package window publishes Windows, the living pages that AIs make, and
 // keeps their files on disk. A Window is at <domain>/<room>/<window>/, under
-// the domain of its Cahut. See docs/adr/0009-rooms-and-windows-as-paths.md.
+// the domain of its Cahut. It keeps its current version and the one before,
+// and can go to the trash and come back. See
+// docs/adr/0009-rooms-and-windows-as-paths.md and
+// docs/adr/0019-window-versions-access-and-declaration.md.
 package window
 
 import (
@@ -49,6 +52,29 @@ func (s *Service) Register(r *operation.Registry) {
 			"in a Room of the person you act for, by default their personal Room. Returns the address where it opens.",
 		Run: s.publish,
 	})
+	operation.Register(r, &operation.Op[UpdateInput, Window]{
+		Name: "update_window",
+		Description: "Publish a new version of a Window: give all its files again, as for publish_window. " +
+			"Its address stays. Its current version becomes the previous one, which rollback_window goes back to; " +
+			"the version before that is deleted.",
+		Run: s.update,
+	})
+	operation.Register(r, &operation.Op[RefInput, Window]{
+		Name: "rollback_window",
+		Description: "Go back to the previous version of a Window. The version you leave becomes the previous one, " +
+			"so calling rollback_window again returns to it.",
+		Run: s.rollback,
+	})
+	operation.Register(r, &operation.Op[RefInput, Window]{
+		Name:        "trash_window",
+		Description: "Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was.",
+		Run:         s.trash,
+	})
+	operation.Register(r, &operation.Op[RefInput, Window]{
+		Name:        "restore_window",
+		Description: "Bring a Window back from the trash, with its versions.",
+		Run:         s.restore,
+	})
 	operation.Register(r, &operation.Op[GetInput, Detail]{
 		Name:        "get_window",
 		Description: "Describe a Window and list its files, optionally with their contents.",
@@ -70,12 +96,15 @@ type Window struct {
 	Kind      string    `json:"kind"`
 	URL       string    `json:"url" jsonschema:"where the Window opens"`
 	Room      string    `json:"room" jsonschema:"the name of its Room, the part of its address before its name"`
-	Version   int       `json:"version"`
-	Size      int64     `json:"size" jsonschema:"total size of the files, in bytes"`
+	Version   int       `json:"version" jsonschema:"the number of the version that readers see"`
+	Previous  int       `json:"previous_version,omitempty" jsonschema:"the number of the version that rollback_window goes back to; absent when there is none"`
+	Size      int64     `json:"size" jsonschema:"total size of the files of the current version, in bytes"`
 	FileCount int       `json:"file_count"`
-	CreatedBy string    `json:"created_by" jsonschema:"handle of the person it was published for"`
+	CreatedBy string    `json:"created_by" jsonschema:"handle of the person it was first published for"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	// TrashedAt is a pointer, so that a Window out of the trash omits it.
+	TrashedAt *time.Time `json:"trashed_at,omitempty" jsonschema:"when the Window went to the trash; absent when it is not in it"`
 }
 
 // PublishInput is the input of publish_window.
@@ -142,6 +171,12 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err != nil {
 		return Window{}, err
 	}
+	_, err = c.Tx.ExecContext(ctx, `
+		INSERT INTO window_versions (window_id, number, size, file_count, published_by, published_at)
+		VALUES (?, ?, ?, ?, ?, ?)`, id, w.Version, w.Size, w.FileCount, c.Actor.UserID, now)
+	if err != nil {
+		return Window{}, err
+	}
 	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("%s %q, %d files, %d bytes", w.Kind, w.Title, w.FileCount, w.Size))
 
 	c.OnFailure(func() { os.RemoveAll(filepath.Join(s.dir, strconv.FormatInt(id, 10))) })
@@ -149,6 +184,165 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 		return Window{}, err
 	}
 	return w, nil
+}
+
+// UpdateInput is the input of update_window.
+type UpdateInput struct {
+	Window string `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
+	Title  string `json:"title,omitempty" jsonschema:"a new title; the title stays when empty. The address does not change"`
+	Files  []File `json:"files" jsonschema:"every file of the new version, as for publish_window; files left out are not in it"`
+}
+
+func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput) (Window, error) {
+	w, err := s.target(ctx, c, in.Window)
+	if err != nil {
+		return Window{}, err
+	}
+	if err := w.outOfTrash(); err != nil {
+		return Window{}, err
+	}
+	if title := strings.TrimSpace(in.Title); title != "" {
+		if len(title) > 200 {
+			return Window{}, operation.Invalidf("title is longer than 200 bytes")
+		}
+		w.Title = title
+	}
+	files, size, err := decode(in.Files)
+	if err != nil {
+		return Window{}, err
+	}
+
+	// The current version becomes the previous one, and the previous one
+	// goes, files included, once the call has succeeded.
+	dropped := w.Previous
+	w.Previous, w.Version = w.Version, max(w.Version, w.Previous)+1
+	w.Size, w.FileCount, w.UpdatedAt = size, len(files), c.Now
+	now := store.FormatTime(c.Now)
+	_, err = c.Tx.ExecContext(ctx, `
+		INSERT INTO window_versions (window_id, number, size, file_count, published_by, published_at)
+		VALUES (?, ?, ?, ?, ?, ?)`, w.id, w.Version, w.Size, w.FileCount, c.Actor.UserID, now)
+	if err != nil {
+		return Window{}, err
+	}
+	if _, err := c.Tx.ExecContext(ctx, "DELETE FROM window_versions WHERE window_id = ? AND number = ?", w.id, dropped); err != nil {
+		return Window{}, err
+	}
+	_, err = c.Tx.ExecContext(ctx, `
+		UPDATE windows SET title = ?, version = ?, previous = ?, size = ?, file_count = ?, updated_at = ? WHERE id = ?`,
+		w.Title, w.Version, w.Previous, w.Size, w.FileCount, now, w.id)
+	if err != nil {
+		return Window{}, err
+	}
+	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("version %d, %q, %d files, %d bytes", w.Version, w.Title, w.FileCount, w.Size))
+
+	// No version ever had this number, but a crash may have left its files.
+	dir := s.Dir(w.id, w.Version)
+	if err := os.RemoveAll(dir); err != nil {
+		return Window{}, err
+	}
+	c.OnFailure(func() { os.RemoveAll(dir) })
+	if err := writeFiles(dir, files); err != nil {
+		return Window{}, err
+	}
+	if dropped != 0 {
+		c.AfterCommit(func() { os.RemoveAll(s.Dir(w.id, dropped)) })
+	}
+	return w.Window, nil
+}
+
+// RefInput names a Window, for the operations that act on one.
+type RefInput struct {
+	Window string `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
+}
+
+func (s *Service) rollback(ctx context.Context, c *operation.Call, in RefInput) (Window, error) {
+	w, err := s.target(ctx, c, in.Window)
+	if err != nil {
+		return Window{}, err
+	}
+	if err := w.outOfTrash(); err != nil {
+		return Window{}, err
+	}
+	if w.Previous == 0 {
+		return Window{}, operation.Invalidf("%s/%s has a single version: there is none to go back to", w.Room, w.Name)
+	}
+	w.Version, w.Previous = w.Previous, w.Version
+	w.UpdatedAt = c.Now
+	err = c.Tx.QueryRowContext(ctx, "SELECT size, file_count FROM window_versions WHERE window_id = ? AND number = ?",
+		w.id, w.Version).Scan(&w.Size, &w.FileCount)
+	if err != nil {
+		return Window{}, err
+	}
+	_, err = c.Tx.ExecContext(ctx, "UPDATE windows SET version = ?, previous = ?, size = ?, file_count = ?, updated_at = ? WHERE id = ?",
+		w.Version, w.Previous, w.Size, w.FileCount, store.FormatTime(c.Now), w.id)
+	if err != nil {
+		return Window{}, err
+	}
+	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("version %d, from version %d", w.Version, w.Previous))
+	return w.Window, nil
+}
+
+func (s *Service) trash(ctx context.Context, c *operation.Call, in RefInput) (Window, error) {
+	w, err := s.target(ctx, c, in.Window)
+	if err != nil {
+		return Window{}, err
+	}
+	if w.TrashedAt != nil {
+		return Window{}, operation.Invalidf("%s/%s is already in the trash", w.Room, w.Name)
+	}
+	if _, err := c.Tx.ExecContext(ctx, "UPDATE windows SET trashed_at = ? WHERE id = ?", store.FormatTime(c.Now), w.id); err != nil {
+		return Window{}, err
+	}
+	w.TrashedAt = &c.Now
+	return w.Window, nil
+}
+
+func (s *Service) restore(ctx context.Context, c *operation.Call, in RefInput) (Window, error) {
+	w, err := s.target(ctx, c, in.Window)
+	if err != nil {
+		return Window{}, err
+	}
+	if w.TrashedAt == nil {
+		return Window{}, operation.Invalidf("%s/%s is not in the trash", w.Room, w.Name)
+	}
+	if _, err := c.Tx.ExecContext(ctx, "UPDATE windows SET trashed_at = NULL WHERE id = ?", w.id); err != nil {
+		return Window{}, err
+	}
+	w.TrashedAt = nil
+	return w.Window, nil
+}
+
+// target returns the Window that ref names, for a call that changes it: the
+// caller must publish in its Room.
+func (s *Service) target(ctx context.Context, c *operation.Call, ref string) (found, error) {
+	roomName, name, ok := locate(ref)
+	if !ok {
+		c.Log(ref, "")
+		return found{}, operation.Invalidf("window %q: give the Window's address, or its Room and its name as room/name", ref)
+	}
+	c.Log(roomName+"/"+name, "")
+	r, err := room.Require(ctx, c, roomName, room.Member)
+	if err != nil {
+		return found{}, err
+	}
+	c.InRoom(r.ID)
+	w, err := s.query(ctx, c, "w.room_id = ? AND w.name = ?", r.ID, name)
+	if err != nil {
+		return found{}, err
+	}
+	if len(w) == 0 {
+		return found{}, operation.NotFoundf("no Window %s/%s", roomName, name)
+	}
+	return w[0], nil
+}
+
+// outOfTrash returns an error wrapping operation.ErrInvalid when the Window
+// is in the trash.
+func (w found) outOfTrash() error {
+	if w.TrashedAt != nil {
+		return operation.Invalidf("%s/%s is in the trash: bring it back with restore_window first", w.Room, w.Name)
+	}
+	return nil
 }
 
 // Dir returns the directory that holds the files of a version of the Window
@@ -163,7 +357,7 @@ func (s *Service) Dir(id int64, version int) string {
 func Current(ctx context.Context, db *store.DB, room, name string) (id int64, version int, err error) {
 	err = db.Read.QueryRowContext(ctx, `
 		SELECT w.id, w.version FROM windows w JOIN rooms r ON r.id = w.room_id
-		WHERE r.name = ? AND w.name = ?`, room, name).Scan(&id, &version)
+		WHERE r.name = ? AND w.name = ? AND w.trashed_at IS NULL`, room, name).Scan(&id, &version)
 	if errors.Is(err, sql.ErrNoRows) {
 		return 0, 0, operation.NotFoundf("no Window %s/%s", room, name)
 	}
@@ -179,7 +373,18 @@ type GetInput struct {
 // Detail is the output of get_window.
 type Detail struct {
 	Window
-	Files []FileInfo `json:"files"`
+	Versions []Version  `json:"versions" jsonschema:"the current version, then the previous one if there is one"`
+	Files    []FileInfo `json:"files" jsonschema:"the files of the current version"`
+}
+
+// Version describes a version of a Window.
+type Version struct {
+	Number      int       `json:"number"`
+	Current     bool      `json:"current" jsonschema:"whether readers see this version"`
+	Size        int64     `json:"size" jsonschema:"total size of its files, in bytes"`
+	FileCount   int       `json:"file_count"`
+	PublishedBy string    `json:"published_by" jsonschema:"handle of the person it was published for"`
+	PublishedAt time.Time `json:"published_at"`
 }
 
 // FileInfo describes a file of a Window.
@@ -206,16 +411,47 @@ func (s *Service) get(ctx context.Context, c *operation.Call, in GetInput) (Deta
 		return Detail{}, operation.NotFoundf("no Window %s/%s in your Rooms", room, name)
 	}
 	c.InRoom(w[0].roomID)
+	versions, err := versionsOf(ctx, c.Tx, w[0])
+	if err != nil {
+		return Detail{}, err
+	}
 	files, err := listFiles(s.Dir(w[0].id, w[0].Version), in.IncludeContent)
 	if err != nil {
 		return Detail{}, err
 	}
-	return Detail{Window: w[0].Window, Files: files}, nil
+	return Detail{Window: w[0].Window, Versions: versions, Files: files}, nil
+}
+
+// versionsOf returns the versions of the Window w, the current one first.
+func versionsOf(ctx context.Context, tx *sql.Tx, w found) ([]Version, error) {
+	rows, err := tx.QueryContext(ctx, `
+		SELECT v.number, v.size, v.file_count, u.handle, v.published_at
+		FROM window_versions v JOIN users u ON u.id = v.published_by
+		WHERE v.window_id = ? ORDER BY v.number = ? DESC`, w.id, w.Version)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	versions := []Version{}
+	for rows.Next() {
+		var v Version
+		var at string
+		if err := rows.Scan(&v.Number, &v.Size, &v.FileCount, &v.PublishedBy, &at); err != nil {
+			return nil, err
+		}
+		if v.PublishedAt, err = store.ParseTime(at); err != nil {
+			return nil, err
+		}
+		v.Current = v.Number == w.Version
+		versions = append(versions, v)
+	}
+	return versions, rows.Err()
 }
 
 // ListInput is the input of list_windows.
 type ListInput struct {
-	Room string `json:"room,omitempty" jsonschema:"only the Windows of this Room, by its name"`
+	Room    string `json:"room,omitempty" jsonschema:"only the Windows of this Room, by its name"`
+	Trashed bool   `json:"trashed,omitempty" jsonschema:"list the Windows in the trash instead"`
 }
 
 // List is the output of list_windows.
@@ -224,14 +460,17 @@ type List struct {
 }
 
 func (s *Service) list(ctx context.Context, c *operation.Call, in ListInput) (List, error) {
-	where, args := "1 = 1", []any{}
+	where, args := "w.trashed_at IS NULL", []any{}
+	if in.Trashed {
+		where = "w.trashed_at IS NOT NULL"
+	}
 	if in.Room != "" {
 		r, err := room.Require(ctx, c, in.Room, room.Member)
 		if err != nil {
 			return List{}, err
 		}
 		c.InRoom(r.ID)
-		where, args = "w.room_id = ?", []any{r.ID}
+		where, args = where+" AND w.room_id = ?", []any{r.ID}
 	}
 	found, err := s.query(ctx, c, where, args...)
 	if err != nil {
@@ -258,7 +497,8 @@ type found struct {
 // the server, who belongs to no Room, sees none.
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
 	q := `
-		SELECT w.id, w.room_id, w.name, w.title, w.kind, r.name, w.version, w.size, w.file_count, u.handle, w.created_at, w.updated_at
+		SELECT w.id, w.room_id, w.name, w.title, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
+			u.handle, w.created_at, w.updated_at, w.trashed_at
 		FROM windows w JOIN rooms r ON r.id = w.room_id JOIN users u ON u.id = w.created_by
 		WHERE ` + where
 	if !c.Actor.CommandLine() {
@@ -273,10 +513,20 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 	windows := []found{}
 	for rows.Next() {
 		var w found
+		var previous sql.NullInt64
 		var created, updated string
-		if err := rows.Scan(&w.id, &w.roomID, &w.Name, &w.Title, &w.Kind, &w.Room, &w.Version, &w.Size, &w.FileCount,
-			&w.CreatedBy, &created, &updated); err != nil {
+		var trashed sql.NullString
+		if err := rows.Scan(&w.id, &w.roomID, &w.Name, &w.Title, &w.Kind, &w.Room, &w.Version, &previous, &w.Size, &w.FileCount,
+			&w.CreatedBy, &created, &updated, &trashed); err != nil {
 			return nil, err
+		}
+		w.Previous = int(previous.Int64)
+		if trashed.Valid {
+			at, err := store.ParseTime(trashed.String)
+			if err != nil {
+				return nil, err
+			}
+			w.TrashedAt = &at
 		}
 		if w.CreatedAt, err = store.ParseTime(created); err != nil {
 			return nil, err

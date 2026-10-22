@@ -96,7 +96,7 @@ type Room struct {
 	Kind      string    `json:"kind" jsonschema:"personal or team"`
 	Role      string    `json:"role,omitempty" jsonschema:"your role in the Room, owner or member; empty when you are not in it"`
 	Members   int       `json:"members" jsonschema:"how many people are in the Room"`
-	Windows   int       `json:"windows" jsonschema:"how many Windows the Room holds"`
+	Windows   int       `json:"windows" jsonschema:"how many Windows the Room holds, out of the trash"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -220,7 +220,7 @@ var ListRooms = &operation.Op[ListRoomsInput, List]{
 		rows, err := c.Tx.QueryContext(ctx, `
 			SELECT r.id, r.name, r.title, r.kind, m.role, r.created_at,
 				(SELECT count(*) FROM room_members WHERE room_id = r.id),
-				(SELECT count(*) FROM windows WHERE room_id = r.id)
+				(SELECT count(*) FROM windows WHERE room_id = r.id AND trashed_at IS NULL)
 			FROM rooms r LEFT JOIN room_members m ON m.room_id = r.id AND m.user_id = ?
 			WHERE `+where+`
 			ORDER BY r.kind = 'team', m.role IS NULL, r.name`, c.Actor.UserID)
@@ -290,7 +290,7 @@ func detail(ctx context.Context, c *operation.Call, a Access) (Detail, error) {
 	d := Detail{Room: Room{Name: a.Name, Title: a.Title, Kind: a.Kind, Role: a.Role}, People: []Person{}}
 	var created string
 	err := c.Tx.QueryRowContext(ctx, `
-		SELECT created_at, (SELECT count(*) FROM windows WHERE room_id = ?) FROM rooms WHERE id = ?`,
+		SELECT created_at, (SELECT count(*) FROM windows WHERE room_id = ? AND trashed_at IS NULL) FROM rooms WHERE id = ?`,
 		a.ID, a.ID).Scan(&created, &d.Windows)
 	if err != nil {
 		return Detail{}, err

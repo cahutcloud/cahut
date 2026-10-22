@@ -247,6 +247,8 @@ export type ListDomainsInput = Record<string, never>;
 export interface ListInput {
   /** only the Windows of this Room, by its name */
   room?: string;
+  /** list the Windows in the trash instead */
+  trashed?: boolean;
 }
 
 export interface ListLogbookInput {
@@ -353,6 +355,11 @@ export interface Redirect {
   redirect: string;
 }
 
+export interface RefInput {
+  /** the Window's address, or its Room and its name as room/name */
+  window: string;
+}
+
 export interface RemoveMemberInput {
   /** the Room's name */
   room: string;
@@ -385,7 +392,7 @@ export interface Room {
   role?: string;
   /** how many people are in the Room */
   members: number;
-  /** how many Windows the Room holds */
+  /** how many Windows the Room holds, out of the trash */
   windows: number;
   created_at: string;
 }
@@ -407,7 +414,7 @@ export interface RoomDetail {
   role?: string;
   /** how many people are in the Room */
   members: number;
-  /** how many Windows the Room holds */
+  /** how many Windows the Room holds, out of the trash */
   windows: number;
   created_at: string;
   /** the people in the Room, owners first */
@@ -462,6 +469,15 @@ export interface TokenList {
   tokens: TokenInfo[];
 }
 
+export interface UpdateInput {
+  /** the Window's address, or its Room and its name as room/name */
+  window: string;
+  /** a new title; the title stays when empty. The address does not change */
+  title?: string;
+  /** every file of the new version, as for publish_window; files left out are not in it */
+  files: File[];
+}
+
 export interface UpdateRoomInput {
   /** the Room's name */
   room: string;
@@ -490,6 +506,18 @@ export interface UserList {
   users: User[];
 }
 
+export interface Version {
+  number: number;
+  /** whether readers see this version */
+  current: boolean;
+  /** total size of its files, in bytes */
+  size: number;
+  file_count: number;
+  /** handle of the person it was published for */
+  published_by: string;
+  published_at: string;
+}
+
 export interface Window {
   /** the Window's name, last part of its address */
   name: string;
@@ -499,14 +527,19 @@ export interface Window {
   url: string;
   /** the name of its Room, the part of its address before its name */
   room: string;
+  /** the number of the version that readers see */
   version: number;
-  /** total size of the files, in bytes */
+  /** the number of the version that rollback_window goes back to; absent when there is none */
+  previous_version?: number;
+  /** total size of the files of the current version, in bytes */
   size: number;
   file_count: number;
-  /** handle of the person it was published for */
+  /** handle of the person it was first published for */
   created_by: string;
   created_at: string;
   updated_at: string;
+  /** when the Window went to the trash; absent when it is not in it */
+  trashed_at?: string;
 }
 
 export interface WindowDetail {
@@ -518,14 +551,22 @@ export interface WindowDetail {
   url: string;
   /** the name of its Room, the part of its address before its name */
   room: string;
+  /** the number of the version that readers see */
   version: number;
-  /** total size of the files, in bytes */
+  /** the number of the version that rollback_window goes back to; absent when there is none */
+  previous_version?: number;
+  /** total size of the files of the current version, in bytes */
   size: number;
   file_count: number;
-  /** handle of the person it was published for */
+  /** handle of the person it was first published for */
   created_by: string;
   created_at: string;
   updated_at: string;
+  /** when the Window went to the trash; absent when it is not in it */
+  trashed_at?: string;
+  /** the current version, then the previous one if there is one */
+  versions: Version[];
+  /** the files of the current version */
   files: FileInfo[];
 }
 
@@ -592,8 +633,12 @@ export interface CahutOperations {
   publish_window: { input: PublishInput; output: Window };
   /** Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. */
   remove_room_member: { input: RemoveMemberInput; output: RoomDetail };
+  /** Bring a Window back from the trash, with its versions. */
+  restore_window: { input: RefInput; output: Window };
   /** Revoke a personal token. The AI that used it loses access at once. */
   revoke_token: { input: RevokeTokenInput; output: TokenInfo };
+  /** Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. */
+  rollback_window: { input: RefInput; output: Window };
   /** Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. */
   set_room_member_role: { input: MemberInput; output: RoomDetail };
   /** Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. */
@@ -602,8 +647,12 @@ export interface CahutOperations {
   sign_in: { input: SignInInput; output: AccountSession };
   /** End the session you signed in with. */
   sign_out: { input: SignOutInput; output: SignedOut };
+  /** Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. */
+  trash_window: { input: RefInput; output: Window };
   /** Change the title of a Room. Its name, and so its address, stays. */
   update_room: { input: UpdateRoomInput; output: RoomDetail };
+  /** Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. */
+  update_window: { input: UpdateInput; output: Window };
 }
 
 /** The operations of the server, at POST /api/server/<operation>, for its administrators. */
