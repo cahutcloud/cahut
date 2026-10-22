@@ -4,24 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
 	"cahut.cloud/internal/credential"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
-)
-
-// How long links and sessions last, and how many refused sign-ins a person
-// takes before they must wait.
-const (
-	ActivationTTL = 7 * 24 * time.Hour
-	SessionIdle   = 7 * 24 * time.Hour  // a session ends this long after its last use
-	SessionMax    = 30 * 24 * time.Hour // and this long after it opened in any case
-
-	maxRefusals   = 10
-	refusalWindow = 15 * time.Minute
 )
 
 // SessionPrefix starts every session token, so that secret scanners and
@@ -42,7 +30,7 @@ func newActivation(ctx context.Context, c *operation.Call, userID int64, handle 
 	if _, err := c.Tx.ExecContext(ctx, "DELETE FROM activations WHERE user_id = ?", userID); err != nil {
 		return Activation{}, err
 	}
-	a := Activation{User: handle, Code: credential.Token(""), ExpiresAt: c.Now.Add(ActivationTTL)}
+	a := Activation{User: handle, Code: credential.Token(""), ExpiresAt: c.Now.Add(credential.ActivationTTL)}
 	_, err := c.Tx.ExecContext(ctx, "INSERT INTO activations (user_id, hash, created_at, expires_at) VALUES (?, ?, ?, ?)",
 		userID, credential.Hash(a.Code), store.FormatTime(c.Now), store.FormatTime(a.ExpiresAt))
 	return a, err
@@ -80,11 +68,11 @@ type Session struct {
 // of the Cahut that have ended.
 func openSession(ctx context.Context, c *operation.Call, p person) (Session, error) {
 	_, err := c.Tx.ExecContext(ctx, "DELETE FROM sessions WHERE expires_at <= ? OR last_used_at <= ?",
-		store.FormatTime(c.Now), store.FormatTime(c.Now.Add(-SessionIdle)))
+		store.FormatTime(c.Now), store.FormatTime(c.Now.Add(-credential.SessionIdle)))
 	if err != nil {
 		return Session{}, err
 	}
-	s := Session{Token: credential.Token(SessionPrefix), ExpiresAt: c.Now.Add(SessionMax), User: p.User}
+	s := Session{Token: credential.Token(SessionPrefix), ExpiresAt: c.Now.Add(credential.SessionMax), User: p.User}
 	now := store.FormatTime(c.Now)
 	_, err = c.Tx.ExecContext(ctx, "INSERT INTO sessions (user_id, hash, created_at, last_used_at, expires_at) VALUES (?, ?, ?, ?, ?)",
 		p.ID, credential.Hash(s.Token), now, now, store.FormatTime(s.ExpiresAt))
@@ -129,7 +117,7 @@ var ActivateAccount = &operation.Op[ActivateInput, Session]{
 		if err != nil {
 			return Session{}, err
 		}
-		c.Identify(p.ID, p.Handle)
+		c.Identify(operation.Person, p.ID, p.Handle)
 		c.Log(p.Handle, "")
 		if p.Status == Disabled {
 			return Session{}, operation.Forbiddenf("this account is disabled: an administrator of the Cahut can enable it")
@@ -158,10 +146,6 @@ type SignInInput struct {
 	Password string `json:"password"`
 }
 
-// errWrongPassword answers every failed sign-in alike, so that it does not
-// tell whether a handle exists.
-var errWrongPassword = operation.Forbiddenf("wrong handle or password")
-
 // SignIn opens a session for a person who gives their handle and password.
 var SignIn = &operation.Op[SignInInput, Session]{
 	Name:        "sign_in",
@@ -169,49 +153,33 @@ var SignIn = &operation.Op[SignInInput, Session]{
 	PeopleOnly:  true,
 	Visitors:    true,
 	Run: func(ctx context.Context, c *operation.Call, in SignInInput) (Session, error) {
-		// refuse spends the time of a password check before it answers, so
-		// that response times tell nothing either.
-		refuse := func(refusal error) (Session, error) {
-			if err := credential.CheckNoPassword(ctx, in.Password); err != nil {
-				return Session{}, err
-			}
-			return Session{}, refusal
-		}
 		// An unknown handle is not logged: it may be a password typed in the
 		// wrong field.
 		handle := strings.ToLower(strings.TrimSpace(in.Handle))
 		p, err := findUser(ctx, c.Tx, handle)
 		if errors.Is(err, operation.ErrNotFound) {
 			c.Log("", "unknown handle")
-			return refuse(errWrongPassword)
+			return Session{}, credential.CheckSignIn(ctx, "", 0, in.Password)
 		}
 		if err != nil {
 			return Session{}, err
 		}
-		c.Identify(p.ID, p.Handle)
+		c.Identify(operation.Person, p.ID, p.Handle)
 		c.Log(p.Handle, "")
+		if p.passwordHash == "" {
+			c.Log(p.Handle, "account not activated")
+		}
 
 		var refusals int
 		err = c.Tx.QueryRowContext(ctx, `
 			SELECT count(*) FROM logbook
 			WHERE operation = 'sign_in' AND outcome = 'refused' AND user_id = ? AND at > ?`,
-			p.ID, store.FormatTime(c.Now.Add(-refusalWindow))).Scan(&refusals)
+			p.ID, store.FormatTime(c.Now.Add(-credential.RefusalWindow))).Scan(&refusals)
 		if err != nil {
 			return Session{}, err
 		}
-		if refusals >= maxRefusals {
-			return refuse(fmt.Errorf("%w: too many refused sign-ins for this handle: try again in 15 minutes", operation.ErrTooMany))
-		}
-		if p.passwordHash == "" {
-			c.Log(p.Handle, "account not activated")
-			return refuse(errWrongPassword)
-		}
-		ok, err := credential.CheckPassword(ctx, p.passwordHash, in.Password)
-		if err != nil {
+		if err := credential.CheckSignIn(ctx, p.passwordHash, refusals, in.Password); err != nil {
 			return Session{}, err
-		}
-		if !ok {
-			return Session{}, errWrongPassword
 		}
 		if p.Status == Disabled {
 			return Session{}, operation.Forbiddenf("this account is disabled: an administrator of the Cahut can enable it")
@@ -309,7 +277,7 @@ func VerifySession(ctx context.Context, db *store.DB, token string, now time.Tim
 	err := db.Read.QueryRowContext(ctx, `
 		SELECT s.id, u.id, u.handle FROM sessions s JOIN users u ON u.id = s.user_id
 		WHERE s.hash = ? AND s.expires_at > ? AND s.last_used_at > ? AND u.disabled_at IS NULL`,
-		credential.Hash(token), store.FormatTime(now), store.FormatTime(now.Add(-SessionIdle))).Scan(&o.SessionID, &o.UserID, &o.Handle)
+		credential.Hash(token), store.FormatTime(now), store.FormatTime(now.Add(-credential.SessionIdle))).Scan(&o.SessionID, &o.UserID, &o.Handle)
 	if errors.Is(err, sql.ErrNoRows) {
 		return SessionOwner{}, ErrInvalidSession
 	}

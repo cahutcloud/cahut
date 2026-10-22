@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"cahut.cloud/internal/credential"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
@@ -92,7 +93,7 @@ func TestCreateUser(t *testing.T) {
 	if u.ID == 0 || u.Name != "Olivier Durand" || u.Role != Admin || u.Status != Pending || u.PersonalRoom != "olivier" {
 		t.Errorf("user = %+v", u)
 	}
-	if u.Activation == nil || len(u.Activation.Code) != 52 || !u.Activation.ExpiresAt.Equal(f.now.Add(ActivationTTL)) {
+	if u.Activation == nil || len(u.Activation.Code) != 52 || !u.Activation.ExpiresAt.Equal(f.now.Add(credential.ActivationTTL)) {
 		t.Errorf("activation = %+v", u.Activation)
 	}
 	var role, room, title string
@@ -148,7 +149,7 @@ func TestActivateAndSignIn(t *testing.T) {
 		t.Fatalf("activate_account: %v", err)
 	}
 	if !strings.HasPrefix(s.Token, SessionPrefix) || s.User.Handle != "olivier" || s.User.Status != Active ||
-		!s.ExpiresAt.Equal(f.now.Add(SessionMax)) {
+		!s.ExpiresAt.Equal(f.now.Add(credential.SessionMax)) {
 		t.Errorf("session = %+v", s)
 	}
 	if _, err := operation.Do(ctx, f.r, ActivateAccount, visitor, ActivateInput{Code: code, Password: password}); !errors.Is(err, operation.ErrForbidden) {
@@ -215,7 +216,7 @@ func TestSessionsEnd(t *testing.T) {
 			t.Fatalf("day %d: %v", days, err)
 		}
 	}
-	if _, err := VerifySession(ctx, f.db, s.Token, start.Add(SessionMax)); !errors.Is(err, ErrInvalidSession) {
+	if _, err := VerifySession(ctx, f.db, s.Token, start.Add(credential.SessionMax)); !errors.Is(err, ErrInvalidSession) {
 		t.Errorf("after 30 days: err = %v", err)
 	}
 
@@ -223,7 +224,7 @@ func TestSessionsEnd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := VerifySession(ctx, f.db, s2.Token, f.now.Add(SessionIdle)); !errors.Is(err, ErrInvalidSession) {
+	if _, err := VerifySession(ctx, f.db, s2.Token, f.now.Add(credential.SessionIdle)); !errors.Is(err, ErrInvalidSession) {
 		t.Errorf("after 7 days without use: err = %v", err)
 	}
 	for _, bad := range []string{"", "cahut_ses_nope", s2.Token + "x", strings.TrimPrefix(s2.Token, SessionPrefix)} {
@@ -237,16 +238,16 @@ func TestSignInLimit(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
 	f.active(t, "olivier", true)
-	for range maxRefusals {
+	for range credential.MaxRefusals {
 		if _, err := operation.Do(ctx, f.r, SignIn, visitor, SignInInput{Handle: "olivier", Password: "wrong"}); !errors.Is(err, operation.ErrForbidden) {
 			t.Fatalf("wrong password: err = %v", err)
 		}
 	}
 	_, err := operation.Do(ctx, f.r, SignIn, visitor, SignInInput{Handle: "olivier", Password: password})
 	if !errors.Is(err, operation.ErrTooMany) || !operation.Public(err) {
-		t.Errorf("sign_in after %d refusals: err = %v, want ErrTooMany", maxRefusals, err)
+		t.Errorf("sign_in after %d refusals: err = %v, want ErrTooMany", credential.MaxRefusals, err)
 	}
-	f.now = f.now.Add(refusalWindow + time.Minute)
+	f.now = f.now.Add(credential.RefusalWindow + time.Minute)
 	if _, err := operation.Do(ctx, f.r, SignIn, visitor, SignInInput{Handle: "olivier", Password: password}); err != nil {
 		t.Errorf("sign_in once the refusals are old: %v", err)
 	}
@@ -300,7 +301,7 @@ func TestActivationLinks(t *testing.T) {
 	if _, err := operation.Do(ctx, f.r, ActivateAccount, visitor, ActivateInput{Code: first, Password: password}); !errors.Is(err, operation.ErrForbidden) {
 		t.Errorf("a replaced link: err = %v, want ErrForbidden", err)
 	}
-	f.now = f.now.Add(ActivationTTL)
+	f.now = f.now.Add(credential.ActivationTTL)
 	if _, err := operation.Do(ctx, f.r, ActivateAccount, visitor, ActivateInput{Code: a.Code, Password: password}); !errors.Is(err, operation.ErrForbidden) {
 		t.Errorf("an expired link: err = %v, want ErrForbidden", err)
 	}

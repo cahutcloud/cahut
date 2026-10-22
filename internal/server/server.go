@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/operation"
@@ -38,7 +39,7 @@ type Server struct {
 	DB       *store.DB
 	Registry *operation.Registry
 	// AddDomain declares a domain, which creates its Cahut.
-	AddDomain *operation.Op[AddDomainInput, Info]
+	AddDomain *operation.Op[AddDomainInput, NewCahut]
 	cfg       Config
 }
 
@@ -52,15 +53,17 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 		return nil, fmt.Errorf("open the server's database: %w", err)
 	}
 	s := &Server{DB: db, Registry: operation.NewRegistry(db), cfg: cfg}
-	s.AddDomain = &operation.Op[AddDomainInput, Info]{
-		Name:        "add_domain",
-		Description: "Declare a domain on this server, which creates the Cahut at that domain.",
-		Level:       operation.ServerAdmin,
-		Run:         s.addDomain,
+	s.AddDomain = &operation.Op[AddDomainInput, NewCahut]{
+		Name: "add_domain",
+		Description: "Declare a domain on this server, which creates the Cahut at that domain, " +
+			"optionally with its first administrator and the link where they choose their password.",
+		Level: operation.ServerAdmin,
+		Run:   s.addDomain,
 	}
 	operation.Register(s.Registry, s.AddDomain)
 	operation.Register(s.Registry, ListDomains)
 	operation.Register(s.Registry, cahut.ListServerLogbook)
+	registerAdmins(s.Registry)
 	return s, nil
 }
 
@@ -78,33 +81,58 @@ type Info struct {
 
 // AddDomainInput is the input of add_domain.
 type AddDomainInput struct {
-	Domain string `json:"domain" jsonschema:"the domain of the new Cahut, such as cahut.example.com"`
+	Domain string      `json:"domain" jsonschema:"the domain of the new Cahut, such as cahut.example.com"`
+	Admin  *FirstAdmin `json:"admin,omitempty" jsonschema:"the first administrator of the Cahut, a person of it"`
 }
 
-func (s *Server) addDomain(ctx context.Context, c *operation.Call, in AddDomainInput) (Info, error) {
+// FirstAdmin is the first administrator of a new Cahut.
+type FirstAdmin struct {
+	Handle string `json:"handle"`
+	Name   string `json:"name"`
+}
+
+// NewCahut is the output of add_domain.
+type NewCahut struct {
+	Info
+	Admin *account.NewUser `json:"admin,omitempty" jsonschema:"the first administrator of the Cahut, with their activation link"`
+}
+
+func (s *Server) addDomain(ctx context.Context, c *operation.Call, in AddDomainInput) (NewCahut, error) {
 	domain := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(in.Domain)), ".")
 	c.Log(domain, "")
 	if !address.ValidDomain(domain) {
-		return Info{}, operation.Invalidf("%q is not a domain name, such as cahut.example.com; IP addresses are not supported", in.Domain)
+		return NewCahut{}, operation.Invalidf("%q is not a domain name, such as cahut.example.com; IP addresses are not supported", in.Domain)
 	}
-	info := Info{Domain: domain, CreatedAt: c.Now}
+	n := NewCahut{Info: Info{Domain: domain, CreatedAt: c.Now}}
 	err := c.Tx.QueryRowContext(ctx, "INSERT INTO cahuts (domain, created_at) VALUES (?, ?) ON CONFLICT DO NOTHING RETURNING id",
-		domain, store.FormatTime(c.Now)).Scan(&info.ID)
+		domain, store.FormatTime(c.Now)).Scan(&n.ID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return Info{}, operation.Invalidf("%s is already the domain of a Cahut", domain)
+		return NewCahut{}, operation.Invalidf("%s is already the domain of a Cahut", domain)
 	}
 	if err != nil {
-		return Info{}, err
+		return NewCahut{}, err
 	}
 
 	// Create the Cahut's database now, so that a failure shows at once.
-	dir := s.dir(info.ID)
+	dir := s.dir(n.ID)
 	c.OnFailure(func() { os.RemoveAll(dir) })
 	created, err := cahut.Open(ctx, cahut.Config{Dir: dir, Domain: domain})
 	if err != nil {
-		return Info{}, err
+		return NewCahut{}, err
 	}
-	return info, created.Close()
+	if in.Admin != nil {
+		// The administrator of the server creates the person, in the
+		// Logbook of the new Cahut.
+		u, err := operation.Do(ctx, created.Registry, account.CreateUser, c.Actor,
+			account.CreateUserInput{Handle: in.Admin.Handle, Name: in.Admin.Name, Admin: true})
+		if err != nil {
+			created.Close()
+			return NewCahut{}, fmt.Errorf("first administrator: %w", err)
+		}
+		n.Admin = &u
+		c.Log(domain, "with "+u.Handle)
+	}
+	return n, created.Close()
 }
 
 // ListDomainsInput is the input of list_domains.

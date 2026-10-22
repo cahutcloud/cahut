@@ -40,9 +40,16 @@ They are not offered over MCP.
 
 | Operation | What it does | Who calls it | Changes data | Offered to AIs |
 | --- | --- | --- | --- | --- |
-| `add_domain` | Declare a domain on this server, which creates the Cahut at that domain. | Administrators of the server | yes | no |
+| `activate_account` | Choose a password from a single-use activation link, as an administrator of the server, and sign in. | Anyone, to sign in | yes | no, people only |
+| `add_domain` | Declare a domain on this server, which creates the Cahut at that domain, optionally with its first administrator and the link where they choose their password. | Administrators of the server | yes | no |
+| `change_password` | Change your password, as an administrator of the server. Your other sessions end. | Administrators of the server | yes | no, people only |
+| `create_activation_link` | Give an administrator of the server a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. Their password works until they use the link. | Administrators of the server | yes | no, people only |
+| `create_admin` | Create an administrator of the server, and the link where they choose their password. | Administrators of the server | yes | no |
+| `list_admins` | List the administrators of the server. | Administrators of the server | no | no |
 | `list_domains` | List the Cahuts of this server and their domains. | Administrators of the server | no | no |
 | `list_logbook` | Read the latest entries of the server's Logbook, newest first. | Administrators of the server | no | no |
+| `sign_in` | Sign in as an administrator of the server, with a handle and a password, and open a session at this domain. | Anyone, to sign in | yes | no, people only |
+| `sign_out` | End the session you signed in with, as an administrator of the server. | Administrators of the server | yes | no, people only |
 
 ## Knock first
 

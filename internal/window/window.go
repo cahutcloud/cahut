@@ -255,13 +255,15 @@ type found struct {
 }
 
 // query returns the Windows matching where that the actor may see: all of
-// them for the administrator, those of their Rooms for anyone else.
+// them for the command line, those of their Rooms for anyone else.
+// Administrators manage people and Rooms, not content: an administrator of
+// the server, who belongs to no Room, sees none.
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
 	q := `
 		SELECT w.id, w.name, w.title, w.kind, r.name, w.version, w.size, w.file_count, u.handle, w.created_at, w.updated_at
 		FROM windows w JOIN rooms r ON r.id = w.room_id JOIN users u ON u.id = w.created_by
 		WHERE ` + where
-	if c.Actor.Kind != operation.Admin {
+	if !c.Actor.CommandLine() {
 		q += " AND w.room_id IN (SELECT room_id FROM room_members WHERE user_id = ?)"
 		args = append(args, c.Actor.UserID)
 	}

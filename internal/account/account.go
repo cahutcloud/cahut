@@ -138,6 +138,13 @@ type NewUser struct {
 // Room name too.
 var validHandle = regexp.MustCompile(`^[a-z][a-z0-9-]{0,30}[a-z0-9]$`)
 
+// ValidHandle reports whether s can be a handle: 2 to 32 lowercase letters,
+// digits and hyphens, starting with a letter and ending with a letter or a
+// digit. The administrators of the server have handles of the same form.
+func ValidHandle(s string) bool {
+	return validHandle.MatchString(s)
+}
+
 // CreateUser creates a person and their personal Room, named after their
 // handle, with an activation link.
 var CreateUser = &operation.Op[CreateUserInput, NewUser]{

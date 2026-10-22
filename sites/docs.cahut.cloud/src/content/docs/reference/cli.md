@@ -20,6 +20,9 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut serve`](#cahut-serve) | Serve the Cahuts of this server: MCP for AIs, and the Windows |
 | [`cahut domain add`](#cahut-domain-add) | Declare a domain, which creates its Cahut |
 | [`cahut domain list`](#cahut-domain-list) | List the Cahuts of this server |
+| [`cahut admin create`](#cahut-admin-create) | Create an administrator of the server, with an activation link |
+| [`cahut admin list`](#cahut-admin-list) | List the administrators of the server |
+| [`cahut admin link`](#cahut-admin-link) | Give an administrator of the server a new link where they choose their password |
 | [`cahut user create`](#cahut-user-create) | Create a person, with their personal Room and an activation link |
 | [`cahut user list`](#cahut-user-list) | List the people of a Cahut |
 | [`cahut user link`](#cahut-user-link) | Give a person a new link where they choose their password |
@@ -56,11 +59,13 @@ Manage the Cahuts of this server, one per domain.
 Declare a domain, which creates its Cahut.
 
 ```text
-cahut domain add [--data DIR] <domain>
+cahut domain add [--data DIR] [--admin-handle HANDLE --admin-name NAME] <domain>
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
+| `--admin-handle string` |  | handle of the first administrator of the Cahut, a person of it, who gets an activation link |
+| `--admin-name string` |  | full name of the first administrator |
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
 
 ### `cahut domain list`
@@ -74,6 +79,51 @@ cahut domain list [flags]
 | Flag | Default | Description |
 | --- | --- | --- |
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+
+## `cahut admin`
+
+Manage the administrators of the server.
+
+### `cahut admin create`
+
+Create an administrator of the server, with an activation link.
+
+```text
+cahut admin create [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut whose console the link opens; the first one declared when empty |
+| `--handle string` |  | short name of the administrator: 2 to 32 lowercase letters, digits and hyphens |
+| `--name string` |  | full name |
+
+### `cahut admin list`
+
+List the administrators of the server.
+
+```text
+cahut admin list [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+
+### `cahut admin link`
+
+Give an administrator of the server a new link where they choose their password.
+
+```text
+cahut admin link [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut whose console the link opens; the first one declared when empty |
+| `--handle string` |  | the administrator who chooses a new password |
 
 ## `cahut user`
 
