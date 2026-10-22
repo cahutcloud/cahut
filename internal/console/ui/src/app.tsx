@@ -1,8 +1,17 @@
 // Routes the pages of the console, and keeps the session.
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { cahut, server } from "./api";
+import type { Room } from "./api.gen";
+import { PageHead } from "./components";
+import { bind, ConsoleProvider } from "./context";
+import { Access } from "./pages/access";
+import { Account } from "./pages/account";
 import { Activate } from "./pages/activate";
+import { Admins } from "./pages/admins";
+import { Logbook } from "./pages/logbook";
 import { Overview } from "./pages/overview";
+import { People } from "./pages/people";
+import { RoomPage, RoomsPage } from "./pages/rooms";
 import { SignIn } from "./pages/sign-in";
 import { navigate, Redirect, usePath } from "./router";
 import { clear, load, save, type Session } from "./session";
@@ -49,16 +58,56 @@ export function App() {
 	if (!session) {
 		return <Redirect to="/sign-in" />;
 	}
+	return <SignedIn key={session.token} session={session} path={path} onExpired={expired} onSignOut={signOut} />;
+}
+
+function SignedIn(props: { session: Session; path: string; onExpired: () => void; onSignOut: () => void }) {
+	const { session, path } = props;
+	const api = bind(session, props.onExpired);
+	const [rooms, setRooms] = useState<Room[]>([]);
+	const [roomsVersion, setRoomsVersion] = useState(0);
+	const [isAdmin, setAdmin] = useState(session.kind === "admin");
+	useEffect(() => {
+		if (session.kind === "person") {
+			api.cahut("list_rooms", {}).then((r) => setRooms(r.rooms), () => undefined);
+		}
+	}, [roomsVersion]);
+	useEffect(() => {
+		if (session.kind === "person") {
+			api.cahut("get_account", {}).then((a) => setAdmin(a.role === "admin"), () => undefined);
+		}
+	}, []);
+
+	const value = { ...api, isAdmin, roomsVersion, reloadRooms: () => setRoomsVersion((n) => n + 1) };
 	return (
-		<Shell session={session} path={path} onSignOut={signOut}>
-			{path === "/" ? (
-				<Overview session={session} onExpired={expired} />
-			) : (
-				<div class="page-head">
-					<h1 class="c-h2">Nothing here</h1>
-					<p class="c-muted">This page does not exist.</p>
-				</div>
-			)}
-		</Shell>
+		<ConsoleProvider value={value}>
+			<Shell path={path} rooms={rooms} onSignOut={props.onSignOut}>
+				<Page path={path} onSignOut={props.onSignOut} />
+			</Shell>
+		</ConsoleProvider>
 	);
+}
+
+function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
+	const room = path.match(/^\/rooms\/([a-z0-9-]+)\/?$/);
+	if (room) return <RoomPage name={room[1]} />;
+	switch (path) {
+		case "/":
+			return <Overview />;
+		case "/rooms":
+			return <RoomsPage />;
+		case "/logbook":
+			return <Logbook of="cahut" />;
+		case "/people":
+			return <People />;
+		case "/access":
+			return <Access />;
+		case "/account":
+			return <Account onSignOut={onSignOut} />;
+		case "/server/admins":
+			return <Admins />;
+		case "/server/logbook":
+			return <Logbook of="server" />;
+	}
+	return <PageHead label="Not found" title="Nothing here">This page does not exist.</PageHead>;
 }

@@ -65,6 +65,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/disable_user` | Administrators of the Cahut | yes |
 | `POST /api/enable_user` | Administrators of the Cahut | yes |
 | `POST /api/get_account` | Any person | yes |
+| `POST /api/get_cahut` | Any person | yes |
 | `POST /api/get_room` | Any person | yes |
 | `POST /api/get_window` | Any person | yes |
 | `POST /api/list_logbook` | Any person | yes |

@@ -37,6 +37,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. |
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
+| [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. |
 | [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
 | [`get_window`](#get_window) | Describe a Window and list its files, optionally with their contents. |
 | [`list_logbook`](#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. |
@@ -711,6 +712,64 @@ This tool takes no arguments.
     "status",
     "personal_room",
     "rooms"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `get_cahut`
+
+Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint.
+
+Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+This tool takes no arguments.
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `domain` | string | yes |  |
+| `mcp` | string | no | the address of its MCP endpoint, where AI clients connect |
+| `url` | string | no | the address of the Cahut, under which its Rooms and Windows open |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "domain": {
+      "type": "string"
+    },
+    "mcp": {
+      "description": "the address of its MCP endpoint, where AI clients connect",
+      "type": "string"
+    },
+    "url": {
+      "description": "the address of the Cahut, under which its Rooms and Windows open",
+      "type": "string"
+    }
+  },
+  "required": [
+    "domain"
   ],
   "type": "object"
 }

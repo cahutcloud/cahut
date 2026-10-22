@@ -25,6 +25,7 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | [`disable_user`](/reference/mcp-tools/#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. | Administrators of the Cahut | yes | to the AIs of administrators |
 | [`enable_user`](/reference/mcp-tools/#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. | Administrators of the Cahut | yes | to the AIs of administrators |
 | [`get_account`](/reference/mcp-tools/#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. | Any person | no | yes |
+| [`get_cahut`](/reference/mcp-tools/#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. | Any person | no | yes |
 | [`get_room`](/reference/mcp-tools/#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. | Any person | no | yes |
 | [`get_window`](/reference/mcp-tools/#get_window) | Describe a Window and list its files, optionally with their contents. | Any person | no | yes |
 | [`list_logbook`](/reference/mcp-tools/#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. | Any person | no | yes |

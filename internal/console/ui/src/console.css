@@ -77,3 +77,256 @@
 	align-items: center;
 	gap: var(--space-1);
 }
+
+/* The navigation on a narrow screen: cahut-ui.css hides the sidebar, and
+   the menu button opens it over the page. */
+.menu-button {
+	display: none;
+}
+.console-account__link {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	color: var(--color-text);
+	text-decoration: none;
+}
+.c-sidebar .c-nav {
+	min-width: 0;
+}
+@media (max-width: 760px) {
+	.menu-button {
+		display: inline-flex;
+	}
+	.c-topbar {
+		gap: var(--space-3);
+		padding: 0 var(--space-4);
+	}
+	.c-sidebar[data-open="true"] {
+		display: grid;
+		position: fixed;
+		inset: 64px 0 0;
+		z-index: 10;
+		overflow-y: auto;
+		box-shadow: var(--shadow-lg);
+	}
+}
+
+/* Screens */
+.page-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: var(--space-4);
+}
+.page-head__text {
+	display: grid;
+	gap: var(--space-2);
+	min-width: 0;
+}
+.section {
+	margin-top: var(--space-8);
+	display: grid;
+	gap: var(--space-4);
+}
+.section > .cards {
+	margin-top: 0;
+}
+.panel {
+	padding: var(--space-5) var(--space-6);
+}
+.panel > .c-h4,
+.panel > p {
+	margin: 0;
+}
+.narrow {
+	max-width: 560px;
+}
+.cards--windows {
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+.card--link {
+	color: var(--color-text);
+	text-decoration: none;
+}
+.card--link:hover {
+	border-color: var(--color-border-strong);
+}
+.window-thumb {
+	color: var(--color-text-muted);
+}
+.c-window__thumb.window-thumb svg {
+	width: 40px;
+	height: 40px;
+}
+.window-title {
+	color: var(--color-text);
+	text-decoration: none;
+}
+.window-title:hover {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* Forms */
+.form {
+	display: grid;
+	gap: var(--space-4);
+}
+.form__row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: var(--space-4);
+	align-items: start;
+}
+.result {
+	display: grid;
+	gap: var(--space-3);
+	padding: var(--space-4);
+	border-radius: var(--radius-md);
+	background: var(--color-surface-muted);
+}
+.result p {
+	margin: 0;
+}
+.copy {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	min-width: 0;
+}
+.copy__value {
+	flex: 1;
+	min-width: 0;
+	padding: var(--space-2) var(--space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface);
+	font-size: var(--text-xs);
+	overflow-x: auto;
+	white-space: nowrap;
+}
+.confirm {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+/* A Room: its Windows, and its people beside them */
+.layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 340px;
+	gap: var(--space-8);
+	align-items: start;
+	margin-top: var(--space-8);
+}
+.layout > section {
+	display: grid;
+	gap: var(--space-4);
+	align-content: start;
+}
+.layout .cards {
+	margin-top: 0;
+}
+@media (max-width: 1100px) {
+	.layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+.aside {
+	display: grid;
+	gap: var(--space-4);
+}
+.people {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: var(--space-3);
+}
+.people__row {
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	align-items: center;
+	gap: var(--space-2) var(--space-3);
+}
+.people__who {
+	display: grid;
+	min-width: 0;
+}
+.people__handle {
+	font-size: var(--text-xs);
+}
+.people__actions {
+	grid-column: 2 / -1;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2);
+}
+.person {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+}
+
+/* Tables */
+.table-wrap {
+	overflow-x: auto;
+}
+.table {
+	width: 100%;
+	border-collapse: collapse;
+	background: var(--color-surface);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-lg);
+	font-size: var(--text-sm);
+}
+.table th {
+	text-align: left;
+	font-family: var(--font-mono);
+	font-size: var(--text-xs);
+	font-weight: 500;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--color-text-muted);
+	padding: var(--space-3) var(--space-4);
+	border-bottom: 1px solid var(--color-border);
+}
+.table td {
+	padding: var(--space-3) var(--space-4);
+	border-top: 1px solid var(--color-border);
+	vertical-align: middle;
+}
+.table__actions {
+	text-align: right;
+}
+.table__actions > * + * {
+	margin-left: var(--space-2);
+}
+
+/* The Logbook */
+.filters {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: var(--space-4);
+	margin-bottom: var(--space-6);
+	max-width: 720px;
+}
+.logbook-day {
+	margin-bottom: var(--space-4);
+}
+.logbook-day > .c-label {
+	margin: 0 0 var(--space-2);
+}
+.log-entry {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+}
+.log-entry__op {
+	font-size: var(--text-xs);
+}
+.log-entry__via {
+	font-size: var(--text-xs);
+}

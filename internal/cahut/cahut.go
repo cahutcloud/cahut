@@ -58,12 +58,35 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	w := window.NewService(filepath.Join(cfg.Dir, "windows"), url)
 	w.Register(r)
 	operation.Register(r, ListLogbook)
+	operation.Register(r, &operation.Op[GetCahutInput, About]{
+		Name:        "get_cahut",
+		Description: "Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint.",
+		ReadOnly:    true,
+		Run: func(_ context.Context, c *operation.Call, _ GetCahutInput) (About, error) {
+			c.Log(cfg.Domain, "")
+			a := About{Domain: cfg.Domain, URL: cfg.BaseURL}
+			if cfg.BaseURL != "" {
+				a.MCP = cfg.BaseURL + "mcp"
+			}
+			return a, nil
+		},
+	})
 	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w}, nil
 }
 
 // Close closes the database.
 func (c *Cahut) Close() error {
 	return c.DB.Close()
+}
+
+// GetCahutInput is the input of get_cahut.
+type GetCahutInput struct{}
+
+// About is the output of get_cahut.
+type About struct {
+	Domain string `json:"domain"`
+	URL    string `json:"url,omitempty" jsonschema:"the address of the Cahut, under which its Rooms and Windows open"`
+	MCP    string `json:"mcp,omitempty" jsonschema:"the address of its MCP endpoint, where AI clients connect"`
 }
 
 // ListLogbookInput is the input of list_logbook.
