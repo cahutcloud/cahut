@@ -69,7 +69,7 @@ func (f *fixture) invoke(t *testing.T, actor operation.Actor, name string, args 
 const deck = `{
 	"title": "Revue du 3e trimestre",
 	"kind": "deck",
-	"files": [
+	"declaration": {"scripts": false}, "files": [
 		{"path": "index.html", "content": "<h1>Q3</h1>"},
 		{"path": "img/logo.png", "content": "iVBORw0KGgo=", "encoding": "base64"}
 	]
@@ -252,7 +252,7 @@ func TestPublishRefusesBadFiles(t *testing.T) {
 	for name, files := range tests {
 		t.Run(name, func(t *testing.T) {
 			f := setup(t)
-			_, err := f.invoke(t, f.olivier, "publish_window", `{"title": "T", "kind": "site", "files": `+files+`}`)
+			_, err := f.invoke(t, f.olivier, "publish_window", `{"title": "T", "kind": "site", "declaration": {"scripts": false}, "files": `+files+`}`)
 			if !errors.Is(err, operation.ErrInvalid) {
 				t.Errorf("err = %v, want ErrInvalid", err)
 			}
@@ -266,15 +266,15 @@ func TestPublishRefusesBadFiles(t *testing.T) {
 func TestPublishRefusesBadInput(t *testing.T) {
 	f := setup(t)
 	for _, args := range []string{
-		`{"title": " ", "kind": "deck", "files": [{"path": "index.html", "content": "x"}]}`,
-		`{"title": "T", "kind": "slides", "files": [{"path": "index.html", "content": "x"}]}`,
-		`{"title": "T", "kind": "deck", "files": [{"path": "index.html", "content": "x"}], "version": 2}`,
+		`{"title": " ", "kind": "deck", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "x"}]}`,
+		`{"title": "T", "kind": "slides", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "x"}]}`,
+		`{"title": "T", "kind": "deck", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "x"}], "version": 2}`,
 	} {
 		if _, err := f.invoke(t, f.olivier, "publish_window", args); !errors.Is(err, operation.ErrInvalid) {
 			t.Errorf("%s: err = %v, want ErrInvalid", args, err)
 		}
 	}
-	if _, err := f.invoke(t, f.olivier, "publish_window", `{"title": "T", "kind": "deck", "room": "team", "files": [{"path": "index.html", "content": "x"}]}`); !errors.Is(err, operation.ErrNotFound) {
+	if _, err := f.invoke(t, f.olivier, "publish_window", `{"title": "T", "kind": "deck", "room": "team", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "x"}]}`); !errors.Is(err, operation.ErrNotFound) {
 		t.Errorf("publish in an unknown Room: err = %v, want ErrNotFound", err)
 	}
 	if _, err := f.invoke(t, f.olivier, "get_window", `{"window": "Q3 review"}`); !errors.Is(err, operation.ErrInvalid) {
@@ -348,7 +348,7 @@ func TestUpdateAndRollback(t *testing.T) {
 	}
 	update := func(html string) Window {
 		t.Helper()
-		out, err := f.invoke(t, f.olivier, "update_window", `{"window": "olivier/`+w.Name+`", "files": [{"path": "index.html", "content": "`+html+`"}]}`)
+		out, err := f.invoke(t, f.olivier, "update_window", `{"window": "olivier/`+w.Name+`", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "`+html+`"}]}`)
 		if err != nil {
 			t.Fatalf("update_window: %v", err)
 		}
@@ -399,16 +399,16 @@ func TestUpdateAndRollback(t *testing.T) {
 	}
 
 	// A new title keeps the address.
-	out, err = f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "title": "Q3", "files": [{"path": "index.html", "content": "v4"}]}`)
+	out, err = f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "title": "Q3", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "v4"}]}`)
 	if err != nil || out.(Window).Title != "Q3" || out.(Window).URL != w.URL {
 		t.Errorf("update with a title = %+v, %v", out, err)
 	}
 
 	// Others cannot update it, and a bad publication changes nothing.
-	if _, err := f.invoke(t, f.camille, "update_window", `{"window": "`+w.URL+`", "files": [{"path": "index.html", "content": "x"}]}`); !errors.Is(err, operation.ErrNotFound) {
+	if _, err := f.invoke(t, f.camille, "update_window", `{"window": "`+w.URL+`", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "x"}]}`); !errors.Is(err, operation.ErrNotFound) {
 		t.Errorf("update_window by another person: err = %v, want ErrNotFound", err)
 	}
-	if _, err := f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "files": [{"path": "page.html", "content": "x"}]}`); !errors.Is(err, operation.ErrInvalid) {
+	if _, err := f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "declaration": {"scripts": false}, "files": [{"path": "page.html", "content": "x"}]}`); !errors.Is(err, operation.ErrInvalid) {
 		t.Errorf("update_window without index.html: err = %v, want ErrInvalid", err)
 	}
 	if index() != "v4" {
@@ -435,7 +435,7 @@ func TestUpdateRemovesFilesWhenItFails(t *testing.T) {
 	if _, err := f.db.Write.ExecContext(ctx, "DROP TABLE logbook"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "files": [{"path": "index.html", "content": "v2"}]}`); err == nil {
+	if _, err := f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "v2"}]}`); err == nil {
 		t.Fatal("update_window succeeded without a Logbook")
 	}
 	id, version, err := current(ctx, f.db, "olivier", w.Name)
@@ -477,7 +477,7 @@ func TestTrash(t *testing.T) {
 			t.Errorf("%s in the trash: err = %v, want ErrInvalid", op, err)
 		}
 	}
-	if _, err := f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "files": [{"path": "index.html", "content": "v2"}]}`); !errors.Is(err, operation.ErrInvalid) {
+	if _, err := f.invoke(t, f.olivier, "update_window", `{"window": "`+w.URL+`", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "v2"}]}`); !errors.Is(err, operation.ErrInvalid) {
 		t.Errorf("update_window in the trash: err = %v, want ErrInvalid", err)
 	}
 	// Its name stays taken.

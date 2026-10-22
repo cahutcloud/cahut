@@ -20,15 +20,6 @@ import (
 	"cahut.cloud/internal/window"
 )
 
-// sandbox gives every page of a Window an opaque origin, so that its scripts
-// can read neither the other Windows of the Cahut nor the reader's session.
-// See docs/adr/0010-windows-in-a-csp-sandbox.md.
-const sandbox = "sandbox allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads"
-
-// frameSandbox is the sandbox of the frame of a protected Window, the same
-// as that of its files.
-const frameSandbox = "allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads"
-
 // FrameTTL is how long the address of the frame of a protected Window lasts.
 const FrameTTL = 4 * time.Hour
 
@@ -103,7 +94,8 @@ func (s *Server) serveWindow(w http.ResponseWriter, r *http.Request) {
 	if r.URL.RawQuery != "" {
 		src += "?" + r.URL.RawQuery
 	}
-	s.render(w, http.StatusOK, "frame", struct{ Title, Src, Sandbox string }{win.Title, src, frameSandbox})
+	// The frame has the sandbox of the Window's files.
+	s.render(w, http.StatusOK, "frame", struct{ Title, Src, Sandbox string }{win.Title, src, win.Declaration.Sandbox()})
 }
 
 // serveFrame serves the files of a protected Window in its frame, under the
@@ -184,8 +176,12 @@ func (s *Server) serveFiles(w http.ResponseWriter, r *http.Request, c *cahut.Cah
 		}
 	}
 
+	// Every file runs in a sandbox, which gives its page an opaque origin, so
+	// that its scripts can read neither the other Windows of the Cahut nor
+	// the reader's session, and loads and calls only what its version
+	// declares. See docs/adr/0010-windows-in-a-csp-sandbox.md.
 	h := w.Header()
-	h.Set("Content-Security-Policy", sandbox)
+	h.Set("Content-Security-Policy", win.Declaration.Policy(strings.TrimSuffix(s.cfg.BaseURL(c.Domain), "/")))
 	// The sandbox makes the page's module scripts, fetch calls and fonts
 	// cross-origin requests; they carry no credentials.
 	h.Set("Access-Control-Allow-Origin", "*")

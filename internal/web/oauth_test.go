@@ -229,7 +229,7 @@ func TestOAuthWithTheSDKClient(t *testing.T) {
 		t.Fatalf("connect: %v", err)
 	}
 	res, err = writer.CallTool(ctx, &mcp.CallToolParams{Name: "publish_window", Arguments: map[string]any{
-		"title": "Q3", "kind": "deck", "room": "marketing", "files": []any{map[string]any{"path": "index.html", "content": "<h1>Q3</h1>"}},
+		"title": "Q3", "kind": "deck", "room": "marketing", "declaration": map[string]any{"scripts": false}, "files": []any{map[string]any{"path": "index.html", "content": "<h1>Q3</h1>"}},
 	}})
 	if err != nil || res.IsError {
 		t.Fatalf("publish_window: %v %v", res, err)

@@ -119,7 +119,7 @@ func (f *fixture) frame(t *testing.T, path string, cookies ...*http.Cookie) stri
 
 func publishDeck(t *testing.T, f *fixture, actor operation.Actor) window.Window {
 	t.Helper()
-	return f.call(t, "localhost", actor, "publish_window", `{"title": "Q3 review", "kind": "deck", "files": [
+	return f.call(t, "localhost", actor, "publish_window", `{"title": "Q3 review", "kind": "deck", "declaration": {"scripts": false}, "files": [
 		{"path": "index.html", "content": "<h1>Q3</h1>"}, {"path": "css/deck.css", "content": "h1 { color: teal }"}]}`).(window.Window)
 }
 
@@ -338,5 +338,31 @@ func TestReaders(t *testing.T) {
 	}
 	if resp, _ := f.do(t, "localhost", http.MethodGet, "/olivier", nil, nil); resp.StatusCode != http.StatusPermanentRedirect || resp.Header.Get("Location") != "/olivier/" {
 		t.Errorf("GET /olivier = %d %q", resp.StatusCode, resp.Header.Get("Location"))
+	}
+}
+
+func TestDeclaredPolicy(t *testing.T) {
+	f := setup(t)
+	olivier := f.person(t, "localhost", "olivier")
+	publishDeck(t, f, olivier) // declares no scripts
+	reader := f.signIn(t, "localhost", "olivier")
+	_, body := f.do(t, "localhost", http.MethodGet, "/olivier/q3-review/", []*http.Cookie{reader}, nil)
+	if !strings.Contains(body, `sandbox="allow-forms allow-modals`) {
+		t.Errorf("the frame of a Window without scripts = %q", body)
+	}
+	src := f.frame(t, "/olivier/q3-review/", reader)
+	resp, _ := f.do(t, "localhost", http.MethodGet, src, nil, nil)
+	if csp := resp.Header.Get("Content-Security-Policy"); !strings.HasPrefix(csp, "sandbox allow-forms ") ||
+		!strings.Contains(csp, "connect-src https://localhost;") || strings.Contains(csp, "script-src") {
+		t.Errorf("the policy of a Window without scripts = %q", csp)
+	}
+
+	f.call(t, "localhost", olivier, "publish_window", `{"title": "Chart", "kind": "dashboard",
+		"declaration": {"scripts": true, "origins": ["https://cdn.jsdelivr.net"]}, "files": [{"path": "index.html", "content": "x"}]}`)
+	f.setAccess(t, "localhost", "chart", window.AccessPublic)
+	resp, _ = f.do(t, "localhost", http.MethodGet, "/olivier/chart/", nil, nil)
+	if csp := resp.Header.Get("Content-Security-Policy"); !strings.HasPrefix(csp, "sandbox allow-scripts ") ||
+		!strings.Contains(csp, "script-src https://localhost 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;") {
+		t.Errorf("the policy of a public Window with scripts = %q", csp)
 	}
 }
