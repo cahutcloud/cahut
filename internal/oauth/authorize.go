@@ -48,8 +48,8 @@ var challengeFormat = regexp.MustCompile(`^[A-Za-z0-9_-]{43}$`)
 // check checks an authorization request. It returns an error wrapping
 // operation.ErrInvalid when the client or the redirect URI is invalid: the
 // request then cannot go back to the client, which may not be who it says.
-func (s *Server) check(ctx context.Context, tx *sql.Tx, req Request) (checked, error) {
-	client, err := s.client(ctx, tx, req.ClientID)
+func (s *Server) check(ctx context.Context, c *operation.Call, req Request) (checked, error) {
+	client, err := s.client(ctx, c, req.ClientID)
 	if err != nil {
 		return checked{}, err
 	}
@@ -187,7 +187,7 @@ func (s *Server) describeOp() *operation.Op[DescribeInput, Authorization] {
 			if err != nil {
 				return Authorization{}, err
 			}
-			ch, err := s.check(ctx, c.Tx, in.Request)
+			ch, err := s.check(ctx, c, in.Request)
 			if err != nil {
 				return Authorization{}, err
 			}
@@ -231,7 +231,7 @@ func (s *Server) approveOp() *operation.Op[ApproveInput, Redirect] {
 			if err != nil {
 				return Redirect{}, err
 			}
-			ch, err := s.check(ctx, c.Tx, in.Request)
+			ch, err := s.check(ctx, c, in.Request)
 			if err != nil {
 				return Redirect{}, err
 			}
@@ -328,7 +328,7 @@ func (s *Server) denyOp() *operation.Op[DenyInput, Redirect] {
 			if _, err := person(c); err != nil {
 				return Redirect{}, err
 			}
-			ch, err := s.check(ctx, c.Tx, in.Request)
+			ch, err := s.check(ctx, c, in.Request)
 			if err != nil {
 				return Redirect{}, err
 			}
