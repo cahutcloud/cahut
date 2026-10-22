@@ -39,6 +39,12 @@ ID  DOMAIN             CREATED
 
 The running service serves the new Cahut at once, and gets its certificate at the first HTTPS connection to its domain. A domain is a host name such as `cahut.example.com`: IP addresses are not supported. There is no command yet to remove a Cahut or to change its domain.
 
+`--admin-handle` and `--admin-name` create the first administrator of the new Cahut at the same time, a person of it, and print their activation link, as [`user create`](#create-a-person) does:
+
+```bash
+sudo -u cahut /usr/local/bin/cahut domain add docs.example.org --admin-handle ana --admin-name "Ana Lima"
+```
+
 ## Create a person
 
 ```bash
@@ -73,6 +79,26 @@ olivier  Olivier Durand  admin   active
 A person is `pending` until they choose a password, then `active`, or `disabled`. `user link` gives a new link to a person who lost theirs or forgot their password: it replaces their previous link, and their password, if they have one, works until they use the new one. It also works for administrators, so that the command line is the way back in when nobody can sign in.
 
 Changing a person's role, and disabling or enabling a person, are operations for the administrators of the Cahut, which the console will offer.
+
+## Administrators of the server
+
+The administrators of the server have accounts of their own, apart from the people of the Cahuts. In the console, they declare Cahuts and read the Logbook of the server, and in each Cahut they manage its people and its Rooms, but do not open its Windows. They sign in at the console of any Cahut: a session holds at the domain where it opened, so an administrator who looks after several Cahuts signs in to each.
+
+```bash
+sudo -u cahut /usr/local/bin/cahut admin create --handle olivier --name "Olivier Durand"
+sudo -u cahut /usr/local/bin/cahut admin list
+sudo -u cahut /usr/local/bin/cahut admin link --handle olivier
+```
+
+```text
+Created olivier (Olivier Durand), administrator of this server.
+
+Send olivier this link, where they choose their password. It works once, until 2026-10-29, and is shown only now.
+
+https://cahut.example.com:8443/server/activate#...
+```
+
+The link opens at the console of the first Cahut declared, or of the one `--domain` names. `admin link` gives a new link to an administrator who lost theirs or forgot their password. The command line itself needs no account: whoever runs it on the server acts as an administrator of the server, everywhere.
 
 ## Manage tokens
 

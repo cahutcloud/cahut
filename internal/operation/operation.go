@@ -26,7 +26,7 @@ type ActorKind string
 
 // Kinds of actors.
 const (
-	Admin   ActorKind = "admin"   // the administrator, on the server's command line
+	Admin   ActorKind = "admin"   // the command line, or an administrator of the server, who has a handle
 	Person  ActorKind = "person"  // a person, in the console
 	AI      ActorKind = "ai"      // an AI acting on behalf of a person
 	Visitor ActorKind = "visitor" // someone who has not signed in, to sign in
@@ -36,11 +36,18 @@ const (
 type Actor struct {
 	Kind    ActorKind
 	Via     string // the adapter the call comes through: cli, mcp
+	Domain  string // the domain the call came to; empty on the command line
 	UserID  int64  // the person, or the person an AI acts for; zero for Admin
-	Handle  string // the handle of that person
-	Session int64  // the session a person signed in with
+	Handle  string // the handle of that person, or of the administrator of the server
+	Session int64  // the session a person or an administrator signed in with
 	TokenID int64  // the token an AI presented
 	Client  string // the AI, as its token and its software name it
+}
+
+// CommandLine reports whether the actor is the command line on the server,
+// which reaches everything: whoever runs it can read the disk anyway.
+func (a Actor) CommandLine() bool {
+	return a.Kind == Admin && a.Handle == ""
 }
 
 // Level is who may call an operation.
@@ -122,6 +129,7 @@ type Call struct {
 	Admin bool
 
 	target, detail string
+	as             ActorKind // what a Visitor's call is logged as
 	afterCommit    []func()
 	onFailure      []func()
 }
@@ -132,11 +140,13 @@ func (c *Call) Log(target, detail string) {
 	c.target, c.detail = target, detail
 }
 
-// Identify names the person that a Visitor's call concerns, such as the
-// person who signs in, so that the Logbook records the call under them.
-func (c *Call) Identify(userID int64, handle string) {
+// Identify names who a Visitor's call concerns, such as the person who
+// signs in, so that the Logbook records the call under them: a Person, with
+// their id, or an Admin of the server. The handle may be empty, when nobody
+// has it. A call that Identify does not name is logged as a Person's.
+func (c *Call) Identify(kind ActorKind, userID int64, handle string) {
 	if c.Actor.Kind == Visitor {
-		c.Actor.UserID, c.Actor.Handle = userID, handle
+		c.as, c.Actor.UserID, c.Actor.Handle = kind, userID, handle
 	}
 }
 
@@ -359,7 +369,7 @@ func (r *Registry) fail(ctx context.Context, info Info, c *Call, logged bool, er
 func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
 	actor := c.Actor.Kind
 	if actor == Visitor {
-		actor = Person // the person the call concerns, if Identify named one
+		actor = cmp.Or(c.as, Person)
 	}
 	e := logbook.Entry{
 		At:         c.Now,

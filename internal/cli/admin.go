@@ -27,6 +27,12 @@ var domainCommands = []command{
 	{name: "list", summary: "List the Cahuts of this server", run: runDomainList},
 }
 
+var adminCommands = []command{
+	{name: "create", summary: "Create an administrator of the server, with an activation link", run: runAdminCreate},
+	{name: "list", summary: "List the administrators of the server", run: runAdminList},
+	{name: "link", summary: "Give an administrator of the server a new link where they choose their password", run: runAdminLink},
+}
+
 var userCommands = []command{
 	{name: "create", summary: "Create a person, with their personal Room and an activation link", run: runUserCreate},
 	{name: "list", summary: "List the people of a Cahut", run: runUserList},
@@ -105,22 +111,135 @@ func domainFlag(fs *flag.FlagSet) *string {
 func runDomainAdd(args []string, stdout, stderr io.Writer) int {
 	fs := newFlags("domain add", stderr)
 	data := dataFlag(fs)
+	var first server.FirstAdmin
+	fs.StringVar(&first.Handle, "admin-handle", "", "handle of the first administrator of the Cahut, a person of it, who gets an activation link")
+	fs.StringVar(&first.Name, "admin-name", "", "full name of the first administrator")
 	fs.Usage = func() {
-		fmt.Fprintln(stderr, "Usage: cahut domain add [--data DIR] <domain>")
+		fmt.Fprintln(stderr, "Usage: cahut domain add [--data DIR] [--admin-handle HANDLE --admin-name NAME] <domain>")
 		fs.PrintDefaults()
 	}
 	rest, code, ok := parseWithArgs(fs, args, 1)
 	if !ok {
 		return code
 	}
-	info, ok := withServer(*data, stderr, func(ctx context.Context, srv *server.Server) (server.Info, error) {
-		return operation.Do(ctx, srv.Registry, srv.AddDomain, admin, server.AddDomainInput{Domain: rest[0]})
+	in := server.AddDomainInput{Domain: rest[0]}
+	if first != (server.FirstAdmin{}) {
+		in.Admin = &first
+	}
+	n, ok := withServer(*data, stderr, func(ctx context.Context, srv *server.Server) (server.NewCahut, error) {
+		return operation.Do(ctx, srv.Registry, srv.AddDomain, admin, in)
 	})
 	if !ok {
 		return exitError
 	}
-	fmt.Fprintf(stdout, "Declared %s: its Cahut is ready. Point its DNS to this server, then serve it.\n", info.Domain)
+	fmt.Fprintf(stdout, "Declared %s: its Cahut is ready. Point its DNS to this server, then serve it.\n", n.Domain)
+	if u := n.Admin; u != nil {
+		fmt.Fprintf(stdout, "\nCreated %s (%s), admin of %s, with a personal Room at %s/%s.\n\n", u.Handle, u.Name, n.Domain, n.Domain, u.PersonalRoom)
+		printActivation(stdout, web.ActivationURL(n.Domain), *u.Activation)
+	}
 	return exitOK
+}
+
+func runAdminCreate(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("admin create", stderr)
+	data := dataFlag(fs)
+	var in server.CreateAdminInput
+	fs.StringVar(&in.Handle, "handle", "", "short name of the administrator: 2 to 32 lowercase letters, digits and hyphens")
+	fs.StringVar(&in.Name, "name", "", "full name")
+	domain := fs.String("domain", "", "the Cahut whose console the link opens; the first one declared when empty")
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	type created struct {
+		admin  server.NewAdmin
+		domain string
+	}
+	c, ok := withServer(*data, stderr, func(ctx context.Context, srv *server.Server) (created, error) {
+		d, err := consoleDomain(ctx, srv, *domain)
+		if err != nil {
+			return created{}, err
+		}
+		a, err := operation.Do(ctx, srv.Registry, server.CreateAdmin, admin, in)
+		return created{admin: a, domain: d}, err
+	})
+	if !ok {
+		return exitError
+	}
+	fmt.Fprintf(stdout, "Created %s (%s), administrator of this server.\n\n", c.admin.Handle, c.admin.Name)
+	printAdminActivation(stdout, c.domain, c.admin.Activation)
+	return exitOK
+}
+
+func runAdminList(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("admin list", stderr)
+	data := dataFlag(fs)
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	list, ok := onServer(*data, server.ListAdmins, server.ListAdminsInput{}, stderr)
+	if !ok {
+		return exitError
+	}
+	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
+	fmt.Fprintln(tw, "HANDLE\tNAME\tSTATUS\tCREATED")
+	for _, a := range list.Admins {
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", a.Handle, a.Name, a.Status, day(a.CreatedAt))
+	}
+	if err := tw.Flush(); err != nil {
+		return exitError
+	}
+	return exitOK
+}
+
+func runAdminLink(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("admin link", stderr)
+	data := dataFlag(fs)
+	var in server.AdminInput
+	fs.StringVar(&in.Admin, "handle", "", "the administrator who chooses a new password")
+	domain := fs.String("domain", "", "the Cahut whose console the link opens; the first one declared when empty")
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	type link struct {
+		activation account.Activation
+		domain     string
+	}
+	l, ok := withServer(*data, stderr, func(ctx context.Context, srv *server.Server) (link, error) {
+		d, err := consoleDomain(ctx, srv, *domain)
+		if err != nil {
+			return link{}, err
+		}
+		a, err := operation.Do(ctx, srv.Registry, server.CreateActivationLink, admin, in)
+		return link{activation: a, domain: d}, err
+	})
+	if !ok {
+		return exitError
+	}
+	printAdminActivation(stdout, l.domain, l.activation)
+	fmt.Fprintln(stdout, "Their password, if they have one, works until they use the link.")
+	return exitOK
+}
+
+// consoleDomain returns the domain whose console an administrator of the
+// server opens a link at: domain, which a Cahut must have, or the domain of
+// the first Cahut declared, or "" when there is none.
+func consoleDomain(ctx context.Context, srv *server.Server, domain string) (string, error) {
+	if domain != "" {
+		domain = strings.ToLower(domain)
+		ok, err := srv.Declared(ctx, domain)
+		if err != nil {
+			return "", err
+		}
+		if !ok {
+			return "", fmt.Errorf("no Cahut at %s: cahut domain list shows them", domain)
+		}
+		return domain, nil
+	}
+	domains, err := srv.Domains(ctx)
+	if err != nil || len(domains) == 0 {
+		return "", err
+	}
+	return domains[0], nil
 }
 
 func runDomainList(args []string, stdout, stderr io.Writer) int {
@@ -160,7 +279,7 @@ func runUserCreate(args []string, stdout, stderr io.Writer) int {
 		return exitError
 	}
 	fmt.Fprintf(stdout, "Created %s (%s), %s of %s, with a personal Room at %s/%s.\n\n", u.Handle, u.Name, u.Role, at, at, u.PersonalRoom)
-	printActivation(stdout, at, *u.Activation)
+	printActivation(stdout, web.ActivationURL(at), *u.Activation)
 	return exitOK
 }
 
@@ -199,17 +318,30 @@ func runUserLink(args []string, stdout, stderr io.Writer) int {
 	if !ok {
 		return exitError
 	}
-	printActivation(stdout, at, a)
+	printActivation(stdout, web.ActivationURL(at), a)
 	fmt.Fprintln(stdout, "Their password, if they have one, works until they use the link.")
 	return exitOK
 }
 
-// printActivation prints the link of an activation, in the console of the
-// Cahut at domain.
-func printActivation(w io.Writer, domain string, a account.Activation) {
+// printActivation prints the link of an activation: base, the page of the
+// console where it opens, then its code.
+func printActivation(w io.Writer, base string, a account.Activation) {
 	fmt.Fprintf(w, "Send %s this link, where they choose their password. It works once, until %s, and is shown only now.\n\n",
 		a.User, day(a.ExpiresAt))
-	fmt.Fprintf(w, "%sactivate#%s\n\n", web.ConsoleURL(domain), a.Code)
+	fmt.Fprintf(w, "%s%s\n\n", base, a.Code)
+}
+
+// printAdminActivation prints the link of an administrator's activation, at
+// the console of the Cahut at domain, or at that of any Cahut when the
+// server holds none yet.
+func printAdminActivation(w io.Writer, domain string, a account.Activation) {
+	if domain == "" {
+		fmt.Fprintln(w, "This server holds no Cahut yet. Once you declare one, put its domain in the link: "+
+			"it opens in the console of any Cahut of the server.")
+		printActivation(w, fmt.Sprintf("https://<domain>:%d/server/activate#", web.ConsolePort), a)
+		return
+	}
+	printActivation(w, web.AdminActivationURL(domain), a)
 }
 
 func runTokenCreate(args []string, stdout, stderr io.Writer) int {

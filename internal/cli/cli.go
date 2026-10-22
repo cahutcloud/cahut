@@ -27,6 +27,7 @@ type command struct {
 var commands = []command{
 	{name: "serve", summary: "Serve the Cahuts of this server: MCP for AIs, and the Windows", run: runServe},
 	{name: "domain", summary: "Manage the Cahuts of this server, one per domain", run: group("domain", domainCommands)},
+	{name: "admin", summary: "Manage the administrators of the server", run: group("admin", adminCommands)},
 	{name: "user", summary: "Manage the people of a Cahut", run: group("user", userCommands)},
 	{name: "token", summary: "Manage the personal tokens of AIs", run: group("token", tokenCommands)},
 	{name: "logbook", summary: "Print the latest entries of the Logbook", run: runLogbook},

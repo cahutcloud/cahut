@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/argon2"
@@ -37,6 +38,51 @@ const (
 	saltLen = 16
 	keyLen  = 32
 )
+
+// How long activation links and sessions last, and how many refused
+// sign-ins someone takes before they must wait. They hold for the people of
+// a Cahut and for the administrators of the server alike.
+const (
+	ActivationTTL = 7 * 24 * time.Hour
+	SessionIdle   = 7 * 24 * time.Hour  // a session ends this long after its last use
+	SessionMax    = 30 * 24 * time.Hour // and this long after it opened in any case
+
+	MaxRefusals   = 10
+	RefusalWindow = 15 * time.Minute
+)
+
+// ErrWrongPassword answers every failed sign-in alike, so that it does not
+// tell whether a handle exists.
+var ErrWrongPassword = operation.Forbiddenf("wrong handle or password")
+
+// CheckSignIn checks the password of someone who signs in. hash is their
+// password hash, empty when they have none or the handle is unknown, and
+// refusals counts their refused sign-ins of the last RefusalWindow. Every
+// refusal costs the time of a password check, so that response times do not
+// tell why it came.
+func CheckSignIn(ctx context.Context, hash string, refusals int, password string) error {
+	refuse := func(refusal error) error {
+		if err := CheckNoPassword(ctx, password); err != nil {
+			return err
+		}
+		return refusal
+	}
+	switch {
+	case refusals >= MaxRefusals:
+		return refuse(fmt.Errorf("%w: too many refused sign-ins for this handle: try again in %d minutes",
+			operation.ErrTooMany, int(RefusalWindow.Minutes())))
+	case hash == "":
+		return refuse(ErrWrongPassword)
+	}
+	ok, err := CheckPassword(ctx, hash, password)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return ErrWrongPassword
+	}
+	return nil
+}
 
 // slots bounds the hashes computed at once, so that a burst of sign-ins
 // cannot exhaust the memory of a small server: each takes 19 MiB.

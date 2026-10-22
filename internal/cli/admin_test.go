@@ -124,6 +124,46 @@ func TestSeveralCahuts(t *testing.T) {
 	}
 }
 
+func TestServerAdminCommands(t *testing.T) {
+	data := t.TempDir()
+	code, out, errOut := run(t, data, "admin", "create", "--handle", "olivier", "--name", "Olivier Durand")
+	if code != exitOK || !strings.Contains(out, "Created olivier (Olivier Durand), administrator of this server.") ||
+		!strings.Contains(out, "This server holds no Cahut yet") ||
+		!regexp.MustCompile(`(?m)^https://<domain>:8443/server/activate#[a-z2-7]{52}$`).MatchString(out) {
+		t.Errorf("admin create without a Cahut: %d %q %q", code, out, errOut)
+	}
+
+	code, out, errOut = run(t, data, "domain", "add", "cahut.example.com", "--admin-handle", "ana", "--admin-name", "Ana Lima")
+	if code != exitOK || !strings.Contains(out, "Created ana (Ana Lima), admin of cahut.example.com") ||
+		!regexp.MustCompile(`(?m)^https://cahut\.example\.com:8443/activate#[a-z2-7]{52}$`).MatchString(out) {
+		t.Errorf("domain add with a first administrator: %d %q %q", code, out, errOut)
+	}
+	code, out, _ = run(t, data, "user", "list")
+	if code != exitOK || !regexp.MustCompile(`ana\s+Ana Lima\s+admin\s+pending`).MatchString(out) {
+		t.Errorf("user list in the new Cahut: %d %q", code, out)
+	}
+	if code, _, errOut := run(t, data, "domain", "add", "beta.example.org", "--admin-handle", "Ana", "--admin-name", "Ana"); code != exitError ||
+		!strings.Contains(errOut, "first administrator: invalid input") {
+		t.Errorf("domain add with a bad first administrator: %d %q", code, errOut)
+	}
+
+	code, out, _ = run(t, data, "admin", "link", "--handle", "olivier")
+	if code != exitOK || !regexp.MustCompile(`(?m)^https://cahut\.example\.com:8443/server/activate#[a-z2-7]{52}$`).MatchString(out) {
+		t.Errorf("admin link: %d %q", code, out)
+	}
+	if code, _, errOut := run(t, data, "admin", "link", "--handle", "olivier", "--domain", "c.example.com"); code != exitError || !strings.Contains(errOut, "no Cahut at c.example.com") {
+		t.Errorf("admin link at an unknown domain: %d %q", code, errOut)
+	}
+	code, out, _ = run(t, data, "admin", "list")
+	if code != exitOK || !regexp.MustCompile(`olivier\s+Olivier Durand\s+pending`).MatchString(out) {
+		t.Errorf("admin list: %d %q", code, out)
+	}
+	code, out, _ = run(t, data, "logbook", "--server")
+	if code != exitOK || !strings.Contains(out, "create_activation_link") || !strings.Contains(out, "create_admin") {
+		t.Errorf("server logbook: %d\n%s", code, out)
+	}
+}
+
 func TestGroupUsage(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if code := Run([]string{"token"}, &stdout, &stderr); code != exitUsage || !strings.Contains(stderr.String(), "revoke") {

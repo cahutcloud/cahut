@@ -251,7 +251,7 @@ func TestAdmission(t *testing.T) {
 			var gotAdmin bool
 			op.Run = func(ctx context.Context, c *Call, in roomIn) (roomOut, error) {
 				gotAdmin = c.Admin
-				c.Identify(9, "someone")
+				c.Identify(Person, 9, "someone")
 				return run(ctx, c, in)
 			}
 			Register(r, op)

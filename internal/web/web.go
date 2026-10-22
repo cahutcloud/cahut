@@ -55,6 +55,19 @@ func ConsoleURL(domain string) string {
 	return fmt.Sprintf("https://%s:%d/", domain, ConsolePort)
 }
 
+// ActivationURL is the address where a person of the Cahut at domain uses
+// an activation link: the code follows it.
+func ActivationURL(domain string) string {
+	return ConsoleURL(domain) + "activate#"
+}
+
+// AdminActivationURL is the address where an administrator of the server
+// uses an activation link, at the console of the Cahut at domain: the code
+// follows it.
+func AdminActivationURL(domain string) string {
+	return ConsoleURL(domain) + "server/activate#"
+}
+
 // BaseURL returns the address of the Cahut at domain.
 func (c Config) BaseURL(domain string) string {
 	if c.Dev {

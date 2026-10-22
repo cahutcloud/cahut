@@ -152,6 +152,21 @@ func TestWindowsStayInTheirRoom(t *testing.T) {
 	if err != nil || len(out.(List).Windows) != 1 {
 		t.Errorf("list_windows by the owner = %+v, %v", out, err)
 	}
+
+	// An administrator of the server manages people, not content; the
+	// command line reaches everything.
+	serverAdmin := operation.Actor{Kind: operation.Admin, Via: "api", Domain: "cahut.example.com", Handle: "root", Session: 1}
+	out, err = f.invoke(t, serverAdmin, "list_windows", ``)
+	if err != nil || len(out.(List).Windows) != 0 {
+		t.Errorf("list_windows by an administrator of the server = %+v, %v", out, err)
+	}
+	if _, err := f.invoke(t, serverAdmin, "get_window", `{"window": "`+url+`"}`); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("get_window by an administrator of the server: err = %v, want ErrNotFound", err)
+	}
+	out, err = f.invoke(t, operation.Actor{Kind: operation.Admin, Via: "cli"}, "list_windows", ``)
+	if err != nil || len(out.(List).Windows) != 1 {
+		t.Errorf("list_windows by the command line = %+v, %v", out, err)
+	}
 }
 
 func TestPublishRefusesBadFiles(t *testing.T) {

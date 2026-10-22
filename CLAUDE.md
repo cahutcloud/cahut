@@ -132,7 +132,7 @@ internal/
   account/             People, roles, activation links, sessions, sign-in and personal tokens
   window/              Windows: publish, describe, list, files on disk
   cahut/               Assembles a Cahut: its database, registry and operations
-  server/              The server as a whole: its Cahuts and their domains
+  server/              The server as a whole: its Cahuts and their domains, its administrators
   web/                 HTTP(S): MCP endpoint, Windows by domain and path, certificates
   cli/                 Command line: serve and the administration commands
   reference/           Writes the reference of the docs from the code (make docs-reference)
