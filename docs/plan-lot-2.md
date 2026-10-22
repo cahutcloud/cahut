@@ -203,3 +203,40 @@ Le 22 octobre 2026, les recommandations ont été retenues :
 7. **Quel second domaine pour la démonstration ?** `beta.staging.cahut.cloud`, avec un enregistrement DNS qui pointe vers le serveur de staging.
 
 Les ADR 13 et 14 reprennent ces réponses.
+
+## Bilan
+
+Le lot 2 s'est achevé le 22 octobre 2026, en huit pull requests :
+
+| # | Pull request | Contenu |
+| --- | --- | --- |
+| 1 | #12 | Le plan et les ADR 13 et 14 |
+| 2 | #13 | Droits dans le registre, mots de passe, activation, sessions |
+| 3 | #14 | Administrateurs du serveur, premier administrateur d'un Cahut |
+| 4 | #15 | Rooms d'équipe, droits de Room, Room de chaque entrée du Logbook |
+| 5 | #17 | API HTTP sur le port 8443, types TypeScript générés |
+| 6 | #19 | Socle de la console : connexion, activation, coquille |
+| 7 | #26 | Écrans de la console |
+| 8 | #27 | Documentation, scénario de démonstration, staging |
+
+**Écarts par rapport au plan.**
+
+- Une opération de plus, `get_cahut` : la console, sur un autre port, ne peut pas deviner l'adresse MCP du Cahut qu'elle affiche dans la commande `claude mcp add`.
+- Un paquet npm de plus, `lucide-preact`, pour les icônes Lucide de la charte.
+- La console n'est embarquée qu'avec l'étiquette de compilation `console`. `make build`, `make dev` et GoReleaser la construisent ; un `go build` simple, les tests et le lint se passent de Node.js et servent une page d'avis.
+- Le port de la console reste fixe (8443, et 8081 en développement). Le rendre réglable demande que la ligne de commande connaisse ce réglage pour écrire ses liens : à voir au lot 7.
+- L'acteur d'un appel porte le domaine où il arrive, et le Logbook du serveur reçoit aussi la colonne `room_id`, pour garder la même structure que celui d'un Cahut.
+- Un défaut corrigé en route : un écouteur qui ne pouvait pas démarrer, faute de port libre, laissait le serveur tourner sans lui. Le serveur s'arrête désormais et dit pourquoi.
+
+**Démonstration.**
+
+- Les huit étapes ont été rejouées de bout en bout en local, par l'API et MCP, puis dans un test Go, `TestBatch2Scenario`, qui les rejoue à chaque CI.
+- Sur le staging, la version du lot est installée (0.1.2-dev). La console répond sur le port 8443 de `staging.cahut.cloud` et de `dev.cahut.cloud`, qui sert de second domaine à la place de `beta.staging.cahut.cloud`. Les données du lot 1 ont migré, et le jeton existant de Claude Code marche toujours, avec les outils d'un administrateur. Une sauvegarde est restée dans `/var/lib/cahut.bak-2026-10-22-batch2`.
+- Sur le staging, aucun compte de démonstration (Alice, Bruno) n'a été créé : Olivier a reçu ses liens d'activation, pour son compte et pour un administrateur du serveur.
+
+**Suites.**
+
+- Désactiver ou retirer un administrateur du serveur : rien ne le permet encore.
+- Pour le lot 5, les opérations marquées `KnockFirst` : `create_user`, `set_user_role`, `disable_user`, `enable_user`, `add_room_member`, `set_room_member_role`, `remove_room_member`.
+- Un bouton de thème dans la console, qui suit pour l'instant le système.
+- Aucune release ne porte encore le lot 2 : la prochaine le fera.

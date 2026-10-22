@@ -5,7 +5,7 @@ sidebar:
   label: Command line
 ---
 
-Until the console comes, you administer Cahut on the server, with the `cahut` command. Each command runs an operation of the registry as the administrator, and its changes go to the Logbook.
+Most of the administration happens in [the console](/admin/console/). The `cahut` command, on the server, declares Cahuts, creates the first accounts, and gives a new link to anyone locked out. Each command runs an operation of the registry as the administrator, and its changes go to the Logbook.
 
 ## Run the commands
 
@@ -61,7 +61,7 @@ https://cahut.example.com:8443/activate#...
 
 The handle names the person and their personal Room: 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit. It must be free, as the name of a person and of a Room, and cannot be `mcp`, `api`, `admin`, `console` or `help`. `--admin` makes the person an administrator of the Cahut.
 
-The link opens the console of the Cahut, on port 8443, where the person chooses a password of 15 characters at least. It works once, for 7 days. The console is not available yet: until it comes, people act through their AIs, with [personal tokens](/connect/tokens/).
+The link opens the console of the Cahut, on port 8443, where the person chooses a password of 15 characters at least, then is signed in. It works once, for 7 days. An administrator also creates people in the console, under **People**.
 
 ## List people and give a new link
 
@@ -78,7 +78,7 @@ olivier  Olivier Durand  admin   active
 
 A person is `pending` until they choose a password, then `active`, or `disabled`. `user link` gives a new link to a person who lost theirs or forgot their password: it replaces their previous link, and their password, if they have one, works until they use the new one. It also works for administrators, so that the command line is the way back in when nobody can sign in.
 
-Changing a person's role, and disabling or enabling a person, are operations for the administrators of the Cahut, which the console will offer.
+Changing a person's role, and disabling or enabling a person, happen in the console, under **People**.
 
 ## Administrators of the server
 

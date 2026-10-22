@@ -1,0 +1,59 @@
+---
+title: The console
+description: Sign in to the web console of a Cahut, on port 8443 of its domain, and what each person and each administrator finds there.
+---
+
+Each Cahut has a web console, at port 8443 of its domain: `https://cahut.example.com:8443/`. People sign in there, see their Rooms and Windows, connect their AIs and read the Logbook; administrators manage people, Rooms and the server. The console uses the same [API](/reference/http-api/) as the AIs, and nothing else.
+
+Port 443 keeps the Windows and MCP. Some company networks let only port 443 out: from there, the console is out of reach, the Windows are not.
+
+## Sign in for the first time
+
+Nobody chooses a password for someone else. An administrator creates the account, and Cahut gives a link that works once, for 7 days:
+
+```text
+https://cahut.example.com:8443/activate#...
+```
+
+The person opens it, chooses a password of 15 characters at least, and is signed in. The code of the link stays in the browser: it never reaches the server's logs, and the console takes it out of the address once read.
+
+An administrator creates accounts in the console, under **People**, or on the command line with [`cahut user create`](/admin/commands/#create-a-person). A person who forgot their password gets a new link the same way: **New link** in People, or `cahut user link`. Their password works until they use the new link, and using it ends their other sessions.
+
+## What a person finds
+
+| Screen | What it shows |
+| --- | --- |
+| Overview | The latest Windows of your Rooms, and your Rooms |
+| A Room | Its Windows, which open in a new tab, and its people; owners add and remove people, and rename the Room |
+| Rooms | A new team Room, of which you become the owner |
+| Logbook | What you did, what your AIs did, and what happened in your Rooms, by day, with filters |
+| AIs and access | Your personal tokens: create one, shown once with the command that connects Claude Code, and revoke it in one click |
+| Account | A new password, and signing out |
+
+A change to what someone may do, such as adding a person to a Room, asks you to confirm first. An AI cannot make these changes yet: see [Knock first](/concepts/knock-first-and-logbook/#knock-first).
+
+## What an administrator of the Cahut finds
+
+The same screens, and:
+
+- **People**: a new person with their link, a new link, making someone an administrator or a member, disabling and enabling. A disabled person cannot sign in, and their AIs stop at once.
+- **Rooms**: every Room of the Cahut, whose people they manage. They open the Windows of the Rooms they are in only.
+- **Logbook**: every entry of the Cahut, from people and from AIs.
+- **AIs and access**: the tokens of others too, which they can revoke.
+
+## Administrators of the server
+
+The administrators of the server have accounts of their own, apart from the people of the Cahuts: see [Administrators of the server](/admin/commands/#administrators-of-the-server). They sign in at **Administer the server**, under the sign-in form of any Cahut, or at `/server/sign-in`. Their first link opens at `/server/activate#...`.
+
+They find:
+
+- **Overview**: the Cahuts of the server, and a form that declares one with its first administrator, whose link the console shows.
+- **Administrators**: the list, a new administrator with their link, and a new link.
+- **Logbook of the server**: the Cahuts declared, the administrators and their sign-ins.
+- In the Cahut of the domain where they signed in, **People**, **Rooms** and its **Logbook**, as its administrators have them, without its Windows.
+
+A session holds at the domain where it opened: to look after another Cahut, sign in at its own console.
+
+## Sessions
+
+A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. After 10 refused sign-ins in 15 minutes, a handle must wait; an address that tries too often must wait too.
