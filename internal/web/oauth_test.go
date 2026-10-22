@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -341,5 +342,39 @@ func TestRegistrationsAreLimited(t *testing.T) {
 	}
 	if status != http.StatusTooManyRequests {
 		t.Errorf("registration %d = %d, want 429", RegisterBurst+1, status)
+	}
+}
+
+// TestMCPLog checks what the journal says of a refused request to the MCP
+// endpoint: its JSON-RPC method, the answer, and the kind of credential,
+// never the credential.
+func TestMCPLog(t *testing.T) {
+	f := setup(t)
+	var journal bytes.Buffer
+	f.web.log = slog.New(slog.NewTextHandler(&journal, nil))
+	req, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, f.ts.URL+"/mcp",
+		strings.NewReader(`{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}`))
+	resp, err := f.client("localhost", "cahut_oat_secretpart").Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	line := journal.String()
+	for _, want := range []string{"msg=mcp", "rpc=initialize", "status=401", `credential="Bearer cahut_oat_"`, "answer="} {
+		if !strings.Contains(line, want) {
+			t.Errorf("the journal says %q, without %q", line, want)
+		}
+	}
+	if strings.Contains(line, "secretpart") {
+		t.Errorf("the journal holds the token: %q", line)
+	}
+	for _, tt := range []struct{ header, want string }{
+		{"", "none"},
+		{"Bearer " + account.TokenPrefix + "abc", "Bearer " + account.TokenPrefix},
+		{"DPoP eyJhbGciOiJSUzI1", "DPoP, 16 characters"},
+	} {
+		if got := credentialKind(tt.header); got != tt.want {
+			t.Errorf("credentialKind(%q) = %q, want %q", tt.header, got, tt.want)
+		}
 	}
 }
