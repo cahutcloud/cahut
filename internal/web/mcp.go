@@ -27,8 +27,13 @@ const instructions = `This Cahut keeps what AIs make, on the user's own server. 
 	`Make index.html a complete page that works on its own. ` +
 	`Link its files with relative paths, such as css/deck.css, never /css/deck.css: ` +
 	`a Window is served under the address of its Room. ` +
+	`Declare what the pages do: whether they run scripts, every origin they load from or call, such as a CDN or a font service, ` +
+	`and where their forms send. They can load and call nothing else. ` +
 	`Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: ` +
 	`keep state in memory or in the address. ` +
+	`To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. ` +
+	`A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; ` +
+	`making it public waits for a person. ` +
 	`Every call is recorded in the Logbook of the Cahut.`
 
 // mcpHandler returns the MCP endpoint (Streamable HTTP) of the Cahut c, which

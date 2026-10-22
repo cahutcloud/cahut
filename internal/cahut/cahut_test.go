@@ -108,8 +108,8 @@ func TestReach(t *testing.T) {
 	}
 	full := operation.Actor{Kind: operation.AI, Via: "mcp", UserID: u.ID, Handle: "olivier", TokenID: 1, Client: "Claude"}
 	for _, in := range []string{
-		`{"title": "Plan", "kind": "document", "room": "olivier", "files": [{"path": "index.html", "content": "<h1>Plan</h1>"}]}`,
-		`{"title": "Q3", "kind": "document", "room": "marketing", "files": [{"path": "index.html", "content": "<h1>Q3</h1>"}]}`,
+		`{"title": "Plan", "kind": "document", "room": "olivier", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "<h1>Plan</h1>"}]}`,
+		`{"title": "Q3", "kind": "document", "room": "marketing", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "<h1>Q3</h1>"}]}`,
 	} {
 		if _, err := c.Registry.Invoke(ctx, "publish_window", full, []byte(in)); err != nil {
 			t.Fatal(err)
@@ -138,7 +138,7 @@ func TestReach(t *testing.T) {
 		"get_window":     `{"window": "olivier/plan"}`,
 		"get_room":       `{"room": "olivier"}`,
 		"list_windows":   `{"room": "olivier"}`,
-		"publish_window": `{"title": "Other", "kind": "document", "room": "olivier", "files": [{"path": "index.html", "content": "x"}]}`,
+		"publish_window": `{"title": "Other", "kind": "document", "room": "olivier", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "x"}]}`,
 	} {
 		if _, err := call(limited, name, in); !errors.Is(err, operation.ErrNotFound) {
 			t.Errorf("%s outside the granted Rooms: %v, want ErrNotFound", name, err)
@@ -162,7 +162,7 @@ func TestReach(t *testing.T) {
 
 	readOnly := full
 	readOnly.TokenID, readOnly.ReadOnly = 3, true
-	if _, err := call(readOnly, "publish_window", `{"title": "Q4", "kind": "document", "room": "marketing", "files": [{"path": "index.html", "content": "x"}]}`); !errors.Is(err, operation.ErrForbidden) {
+	if _, err := call(readOnly, "publish_window", `{"title": "Q4", "kind": "document", "room": "marketing", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "x"}]}`); !errors.Is(err, operation.ErrForbidden) {
 		t.Errorf("publish_window by an AI that may only read: %v, want ErrForbidden", err)
 	}
 	out, err = call(readOnly, "list_windows", `{}`)

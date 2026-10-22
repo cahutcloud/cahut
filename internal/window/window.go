@@ -113,16 +113,18 @@ type Window struct {
 	Access    string    `json:"access" jsonschema:"who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public"`
 	// The times below are pointers, so that a Window without them omits
 	// them.
-	AccessEndsAt *time.Time `json:"access_ends_at,omitempty" jsonschema:"when the access ends, after which the Window opens to its Room only; absent when it does not end"`
-	TrashedAt    *time.Time `json:"trashed_at,omitempty" jsonschema:"when the Window went to the trash; absent when it is not in it"`
+	AccessEndsAt *time.Time   `json:"access_ends_at,omitempty" jsonschema:"when the access ends, after which the Window opens to its Room only; absent when it does not end"`
+	TrashedAt    *time.Time   `json:"trashed_at,omitempty" jsonschema:"when the Window went to the trash; absent when it is not in it"`
+	Declaration  *Declaration `json:"declaration,omitempty" jsonschema:"what the pages of the current version do, as declared when it was published; absent for a Window published before declarations"`
 }
 
 // PublishInput is the input of publish_window.
 type PublishInput struct {
-	Title string `json:"title" jsonschema:"title of the Window, also used in its address"`
-	Kind  string `json:"kind" jsonschema:"one of document, deck, dashboard or site"`
-	Room  string `json:"room,omitempty" jsonschema:"name of the Room to publish in; the personal Room of the person you act for when empty"`
-	Files []File `json:"files" jsonschema:"the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css"`
+	Title       string       `json:"title" jsonschema:"title of the Window, also used in its address"`
+	Kind        string       `json:"kind" jsonschema:"one of document, deck, dashboard or site"`
+	Room        string       `json:"room,omitempty" jsonschema:"name of the Room to publish in; the personal Room of the person you act for when empty"`
+	Files       []File       `json:"files" jsonschema:"the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css"`
+	Declaration *Declaration `json:"declaration" jsonschema:"what the pages do: Cahut lets them load and call the origins listed here, and nothing else"`
 }
 
 // File is a file of a publication.
@@ -150,6 +152,10 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err != nil {
 		return Window{}, err
 	}
+	declared, err := in.Declaration.check()
+	if err != nil {
+		return Window{}, err
+	}
 	if c.Actor.UserID == 0 {
 		return Window{}, operation.Invalidf("publish_window acts for a person, and the administrator is not one")
 	}
@@ -167,7 +173,7 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	c.InRoom(r.ID)
 	roomID := r.ID
 	w := Window{Title: title, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: AccessRoom,
-		CreatedBy: c.Actor.Handle, CreatedAt: c.Now, UpdatedAt: c.Now}
+		CreatedBy: c.Actor.Handle, CreatedAt: c.Now, UpdatedAt: c.Now, Declaration: declared}
 	if w.Name, err = freeName(ctx, c.Tx, roomID, title); err != nil {
 		return Window{}, err
 	}
@@ -181,13 +187,10 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err != nil {
 		return Window{}, err
 	}
-	_, err = c.Tx.ExecContext(ctx, `
-		INSERT INTO window_versions (window_id, number, size, file_count, published_by, published_at)
-		VALUES (?, ?, ?, ?, ?, ?)`, id, w.Version, w.Size, w.FileCount, c.Actor.UserID, now)
-	if err != nil {
+	if err := insertVersion(ctx, c, id, w); err != nil {
 		return Window{}, err
 	}
-	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("%s %q, %d files, %d bytes", w.Kind, w.Title, w.FileCount, w.Size))
+	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("%s %q, %d files, %d bytes; %s", w.Kind, w.Title, w.FileCount, w.Size, w.Declaration))
 
 	c.OnFailure(func() { os.RemoveAll(filepath.Join(s.dir, strconv.FormatInt(id, 10))) })
 	if err := writeFiles(s.Dir(id, w.Version), files); err != nil {
@@ -198,9 +201,10 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 
 // UpdateInput is the input of update_window.
 type UpdateInput struct {
-	Window string `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
-	Title  string `json:"title,omitempty" jsonschema:"a new title; the title stays when empty. The address does not change"`
-	Files  []File `json:"files" jsonschema:"every file of the new version, as for publish_window; files left out are not in it"`
+	Window      string       `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
+	Title       string       `json:"title,omitempty" jsonschema:"a new title; the title stays when empty. The address does not change"`
+	Files       []File       `json:"files" jsonschema:"every file of the new version, as for publish_window; files left out are not in it"`
+	Declaration *Declaration `json:"declaration" jsonschema:"what the pages do: Cahut lets them load and call the origins listed here, and nothing else"`
 }
 
 func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput) (Window, error) {
@@ -221,6 +225,9 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 	if err != nil {
 		return Window{}, err
 	}
+	if w.Declaration, err = in.Declaration.check(); err != nil {
+		return Window{}, err
+	}
 
 	// The current version becomes the previous one, and the previous one
 	// goes, files included, once the call has succeeded.
@@ -228,10 +235,7 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 	w.Previous, w.Version = w.Version, max(w.Version, w.Previous)+1
 	w.Size, w.FileCount, w.UpdatedAt = size, len(files), c.Now
 	now := store.FormatTime(c.Now)
-	_, err = c.Tx.ExecContext(ctx, `
-		INSERT INTO window_versions (window_id, number, size, file_count, published_by, published_at)
-		VALUES (?, ?, ?, ?, ?, ?)`, w.id, w.Version, w.Size, w.FileCount, c.Actor.UserID, now)
-	if err != nil {
+	if err := insertVersion(ctx, c, w.id, w.Window); err != nil {
 		return Window{}, err
 	}
 	if _, err := c.Tx.ExecContext(ctx, "DELETE FROM window_versions WHERE window_id = ? AND number = ?", w.id, dropped); err != nil {
@@ -243,7 +247,7 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 	if err != nil {
 		return Window{}, err
 	}
-	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("version %d, %q, %d files, %d bytes", w.Version, w.Title, w.FileCount, w.Size))
+	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("version %d, %q, %d files, %d bytes; %s", w.Version, w.Title, w.FileCount, w.Size, w.Declaration))
 
 	// No version ever had this number, but a crash may have left its files.
 	dir := s.Dir(w.id, w.Version)
@@ -258,6 +262,19 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 		c.AfterCommit(func() { os.RemoveAll(s.Dir(w.id, dropped)) })
 	}
 	return w.Window, nil
+}
+
+// insertVersion records the current version of the Window w, whose id is
+// id, as the call publishes it.
+func insertVersion(ctx context.Context, c *operation.Call, id int64, w Window) error {
+	declared, err := w.Declaration.encode()
+	if err != nil {
+		return err
+	}
+	_, err = c.Tx.ExecContext(ctx, `
+		INSERT INTO window_versions (window_id, number, size, file_count, published_by, published_at, declaration)
+		VALUES (?, ?, ?, ?, ?, ?, ?)`, id, w.Version, w.Size, w.FileCount, c.Actor.UserID, store.FormatTime(c.Now), declared)
+	return err
 }
 
 // RefInput names a Window, for the operations that act on one.
@@ -278,9 +295,13 @@ func (s *Service) rollback(ctx context.Context, c *operation.Call, in RefInput) 
 	}
 	w.Version, w.Previous = w.Previous, w.Version
 	w.UpdatedAt = c.Now
-	err = c.Tx.QueryRowContext(ctx, "SELECT size, file_count FROM window_versions WHERE window_id = ? AND number = ?",
-		w.id, w.Version).Scan(&w.Size, &w.FileCount)
+	var declared *string
+	err = c.Tx.QueryRowContext(ctx, "SELECT size, file_count, declaration FROM window_versions WHERE window_id = ? AND number = ?",
+		w.id, w.Version).Scan(&w.Size, &w.FileCount, &declared)
 	if err != nil {
+		return Window{}, err
+	}
+	if w.Declaration, err = decodeDeclaration(declared); err != nil {
 		return Window{}, err
 	}
 	_, err = c.Tx.ExecContext(ctx, "UPDATE windows SET version = ?, previous = ?, size = ?, file_count = ?, updated_at = ? WHERE id = ?",
@@ -497,8 +518,9 @@ type found struct {
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
 	q := `
 		SELECT w.id, w.room_id, w.name, w.title, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
-			u.handle, w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL
+			u.handle, w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL, v.declaration
 		FROM windows w JOIN rooms r ON r.id = w.room_id JOIN users u ON u.id = w.created_by
+		JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
 		WHERE ` + where
 	if !c.Actor.CommandLine() {
 		q += " AND w.room_id IN (SELECT room_id FROM room_members WHERE user_id = ?)"
@@ -515,8 +537,12 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		var previous sql.NullInt64
 		var created, updated string
 		var trashed, ends sql.NullString
+		var declared *string
 		if err := rows.Scan(&w.id, &w.roomID, &w.Name, &w.Title, &w.Kind, &w.Room, &w.Version, &previous, &w.Size, &w.FileCount,
-			&w.CreatedBy, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey); err != nil {
+			&w.CreatedBy, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey, &declared); err != nil {
+			return nil, err
+		}
+		if w.Declaration, err = decodeDeclaration(declared); err != nil {
 			return nil, err
 		}
 		if w.Access, w.AccessEndsAt, err = effective(w.Access, ends, c.Now); err != nil {

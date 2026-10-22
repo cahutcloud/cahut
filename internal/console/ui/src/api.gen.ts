@@ -48,6 +48,8 @@ export interface AccessSet {
   access_ends_at?: string;
   /** when the Window went to the trash; absent when it is not in it */
   trashed_at?: string;
+  /** what the pages of the current version do, as declared when it was published; absent for a Window published before declarations */
+  declaration?: Declaration;
   /** the new Key, returned this once: give it to the person, who passes it on with the address */
   key?: string;
 }
@@ -201,6 +203,15 @@ export interface CreateUserInput {
   handle: string;
   name: string;
   admin?: boolean;
+}
+
+export interface Declaration {
+  /** whether the pages run scripts, inline or in files */
+  scripts: boolean;
+  /** every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none */
+  origins?: string[];
+  /** the origins that the forms of the pages send to, if any */
+  forms?: string[];
 }
 
 export interface DenyInput {
@@ -391,6 +402,8 @@ export interface PublishInput {
   room?: string;
   /** the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css */
   files: File[];
+  /** what the pages do: Cahut lets them load and call the origins listed here, and nothing else */
+  declaration: Declaration;
 }
 
 export interface ReaderCode {
@@ -527,6 +540,8 @@ export interface UpdateInput {
   title?: string;
   /** every file of the new version, as for publish_window; files left out are not in it */
   files: File[];
+  /** what the pages do: Cahut lets them load and call the origins listed here, and nothing else */
+  declaration: Declaration;
 }
 
 export interface UpdateRoomInput {
@@ -595,6 +610,8 @@ export interface Window {
   access_ends_at?: string;
   /** when the Window went to the trash; absent when it is not in it */
   trashed_at?: string;
+  /** what the pages of the current version do, as declared when it was published; absent for a Window published before declarations */
+  declaration?: Declaration;
 }
 
 export interface WindowDetail {
@@ -623,6 +640,8 @@ export interface WindowDetail {
   access_ends_at?: string;
   /** when the Window went to the trash; absent when it is not in it */
   trashed_at?: string;
+  /** what the pages of the current version do, as declared when it was published; absent for a Window published before declarations */
+  declaration?: Declaration;
   /** the current version, then the previous one if there is one */
   versions: Version[];
   /** the files of the current version */

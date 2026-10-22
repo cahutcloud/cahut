@@ -169,9 +169,9 @@ func TestPublishOverMCP(t *testing.T) {
 	}
 
 	res, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "publish_window", Arguments: map[string]any{
-		"title": "Q3 review",
-		"kind":  "deck",
-		"files": []map[string]string{
+		"title":       "Q3 review",
+		"kind":        "deck",
+		"declaration": map[string]any{"scripts": false}, "files": []map[string]string{
 			{"path": "index.html", "content": "<h1>Q3</h1>"},
 			{"path": "css/deck.css", "content": "h1 { color: teal }"},
 		},
@@ -233,7 +233,7 @@ func TestPublishOverMCP(t *testing.T) {
 	}
 
 	res, err = session.CallTool(ctx, &mcp.CallToolParams{Name: "publish_window", Arguments: map[string]any{
-		"title": "Broken", "kind": "deck", "files": []map[string]string{{"path": "../x", "content": ""}},
+		"title": "Broken", "kind": "deck", "declaration": map[string]any{"scripts": false}, "files": []map[string]string{{"path": "../x", "content": ""}},
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -447,7 +447,7 @@ func TestLargePublication(t *testing.T) {
 		t.Helper()
 		image := base64.StdEncoding.EncodeToString(bytes.Repeat([]byte{0xa5}, size))
 		res, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "publish_window", Arguments: map[string]any{
-			"title": "Large", "kind": "site", "files": []map[string]string{
+			"title": "Large", "kind": "site", "declaration": map[string]any{"scripts": false}, "files": []map[string]string{
 				{"path": "index.html", "content": `<img src="big.bin">`},
 				{"path": "big.bin", "content": image, "encoding": "base64"},
 			},

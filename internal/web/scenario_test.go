@@ -84,7 +84,7 @@ func TestBatch2Scenario(t *testing.T) {
 	publish := func(handle, title, room string) *mcp.CallToolResult {
 		t.Helper()
 		res, err := ais[handle].CallTool(ctx, &mcp.CallToolParams{Name: "publish_window", Arguments: map[string]any{
-			"title": title, "kind": "document", "room": room, "files": []map[string]string{{"path": "index.html", "content": "<h1>" + title + "</h1>"}},
+			"title": title, "kind": "document", "room": room, "declaration": map[string]any{"scripts": false}, "files": []map[string]string{{"path": "index.html", "content": "<h1>" + title + "</h1>"}},
 		}})
 		if err != nil {
 			t.Fatal(err)

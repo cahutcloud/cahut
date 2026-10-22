@@ -151,12 +151,13 @@ type Served struct {
 	Access            string // as it is now: an access that has ended is room
 	EndsAt            *time.Time
 	UpdatedAt         time.Time
+	Declaration       *Declaration // of the current version; nil when it was published before declarations
 	keyHash           string
 }
 
 const served = `
-	SELECT w.id, w.room_id, r.name, w.name, w.title, w.kind, w.version, w.access, w.access_ends_at, w.updated_at, w.key_hash
-	FROM windows w JOIN rooms r ON r.id = w.room_id
+	SELECT w.id, w.room_id, r.name, w.name, w.title, w.kind, w.version, w.access, w.access_ends_at, w.updated_at, w.key_hash, v.declaration
+	FROM windows w JOIN rooms r ON r.id = w.room_id JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
 	WHERE w.trashed_at IS NULL AND `
 
 // Lookup returns the Window called name in the Room called room.
@@ -185,8 +186,12 @@ func scanServed(row scanner, now time.Time) (Served, error) {
 	var w Served
 	var ends, keyHash sql.NullString
 	var updated string
-	err := row.Scan(&w.ID, &w.RoomID, &w.Room, &w.Name, &w.Title, &w.Kind, &w.Version, &w.Access, &ends, &updated, &keyHash)
+	var declared *string
+	err := row.Scan(&w.ID, &w.RoomID, &w.Room, &w.Name, &w.Title, &w.Kind, &w.Version, &w.Access, &ends, &updated, &keyHash, &declared)
 	if err != nil {
+		return Served{}, err
+	}
+	if w.Declaration, err = decodeDeclaration(declared); err != nil {
 		return Served{}, err
 	}
 	if w.UpdatedAt, err = store.ParseTime(updated); err != nil {

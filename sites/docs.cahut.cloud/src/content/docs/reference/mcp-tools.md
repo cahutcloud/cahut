@@ -17,7 +17,7 @@ A tool returns its result as structured content, and as the same JSON in a text 
 
 The Cahut gives these instructions to the AI when it connects:
 
-> This Cahut keeps what AIs make, on the user's own server. Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, and you get back the address where it opens; give that address to the user. Make index.html a complete page that works on its own. Link its files with relative paths, such as css/deck.css, never /css/deck.css: a Window is served under the address of its Room. Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. Every call is recorded in the Logbook of the Cahut.
+> This Cahut keeps what AIs make, on the user's own server. Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, and you get back the address where it opens; give that address to the user. Make index.html a complete page that works on its own. Link its files with relative paths, such as css/deck.css, never /css/deck.css: a Window is served under the address of its Room. Declare what the pages do: whether they run scripts, every origin they load from or call, such as a CDN or a font service, and where their forms send. They can load and call nothing else. Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -976,6 +976,10 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | `versions[].published_by` | string | yes | handle of the person it was published for |
 | `versions[].size` | integer | yes | total size of its files, in bytes |
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -1003,6 +1007,43 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
     "created_by": {
       "description": "handle of the person it was first published for",
       "type": "string"
+    },
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "file_count": {
       "type": "integer"
@@ -1535,6 +1576,10 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | `windows[].url` | string | yes | where the Window opens |
 | `windows[].version` | integer | yes | the number of the version that readers see |
 | `windows[].access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `windows[].declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
+| `windows[].declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `windows[].declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `windows[].declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
 | `windows[].previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `windows[].trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -1566,6 +1611,43 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
           "created_by": {
             "description": "handle of the person it was first published for",
             "type": "string"
+          },
+          "declaration": {
+            "additionalProperties": false,
+            "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
+            "properties": {
+              "forms": {
+                "description": "the origins that the forms of the pages send to, if any",
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "origins": {
+                "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "scripts": {
+                "description": "whether the pages run scripts, inline or in files",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scripts"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
           },
           "file_count": {
             "type": "integer"
@@ -1652,6 +1734,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
+| `declaration` | object or null | yes | what the pages do: Cahut lets them load and call the origins listed here, and nothing else |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
 | `files` | array of objects or null | yes | the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css |
 | `files[].content` | string | yes |  |
 | `files[].path` | string | yes | relative path with / as separator, such as index.html or img/logo.svg |
@@ -1667,6 +1753,43 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 {
   "additionalProperties": false,
   "properties": {
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages do: Cahut lets them load and call the origins listed here, and nothing else",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
     "files": {
       "description": "the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css",
       "items": {
@@ -1711,7 +1834,8 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
   "required": [
     "title",
     "kind",
-    "files"
+    "files",
+    "declaration"
   ],
   "type": "object"
 }
@@ -1736,6 +1860,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `url` | string | yes | where the Window opens |
 | `version` | integer | yes | the number of the version that readers see |
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -1763,6 +1891,43 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "created_by": {
       "description": "handle of the person it was first published for",
       "type": "string"
+    },
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "file_count": {
       "type": "integer"
@@ -2012,6 +2177,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `url` | string | yes | where the Window opens |
 | `version` | integer | yes | the number of the version that readers see |
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -2039,6 +2208,43 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "created_by": {
       "description": "handle of the person it was first published for",
       "type": "string"
+    },
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "file_count": {
       "type": "integer"
@@ -2154,6 +2360,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `url` | string | yes | where the Window opens |
 | `version` | integer | yes | the number of the version that readers see |
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -2181,6 +2391,43 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "created_by": {
       "description": "handle of the person it was first published for",
       "type": "string"
+    },
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "file_count": {
       "type": "integer"
@@ -2556,6 +2803,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `url` | string | yes | where the Window opens |
 | `version` | integer | yes | the number of the version that readers see |
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
 | `key` | string | no | the new Key, returned this once: give it to the person, who passes it on with the address |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
@@ -2584,6 +2835,43 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "created_by": {
       "description": "handle of the person it was first published for",
       "type": "string"
+    },
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "file_count": {
       "type": "integer"
@@ -2703,6 +2991,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `url` | string | yes | where the Window opens |
 | `version` | integer | yes | the number of the version that readers see |
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -2730,6 +3022,43 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "created_by": {
       "description": "handle of the person it was first published for",
       "type": "string"
+    },
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "file_count": {
       "type": "integer"
@@ -2937,6 +3266,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
+| `declaration` | object or null | yes | what the pages do: Cahut lets them load and call the origins listed here, and nothing else |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
 | `files` | array of objects or null | yes | every file of the new version, as for publish_window; files left out are not in it |
 | `files[].content` | string | yes |  |
 | `files[].path` | string | yes | relative path with / as separator, such as index.html or img/logo.svg |
@@ -2951,6 +3284,43 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 {
   "additionalProperties": false,
   "properties": {
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages do: Cahut lets them load and call the origins listed here, and nothing else",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
     "files": {
       "description": "every file of the new version, as for publish_window; files left out are not in it",
       "items": {
@@ -2990,7 +3360,8 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
   },
   "required": [
     "window",
-    "files"
+    "files",
+    "declaration"
   ],
   "type": "object"
 }
@@ -3015,6 +3386,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `url` | string | yes | where the Window opens |
 | `version` | integer | yes | the number of the version that readers see |
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -3042,6 +3417,43 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "created_by": {
       "description": "handle of the person it was first published for",
       "type": "string"
+    },
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "file_count": {
       "type": "integer"
