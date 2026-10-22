@@ -8,8 +8,8 @@ Cahut hosts what AIs make. It does not make it: the AIs stay outside, on your la
 ## The path of a Window
 
 1. **You install Cahut** on a Linux server, and declare a Cahut at a domain that points to it, such as `cahut.example.com`.
-2. **You create a personal token** for your AI, on the server's command line. The token acts for you, in that Cahut only.
-3. **The AI connects** to `https://cahut.example.com/mcp` with that token. It sees a few tools and nothing else: no shell, no files of the server.
+2. **You give your AI the address** of the Cahut, `https://cahut.example.com/mcp`. It sends you to the console, where you sign in and choose the Rooms it reaches and whether it may publish. It acts for you, in that Cahut only.
+3. **The AI connects** over MCP. It sees a few tools and nothing else: no shell, no files of the server.
 4. **The AI publishes a Window**: the HTML of a document, deck, dashboard or site, and its other files. Cahut keeps them and returns the address where the Window opens, such as `https://cahut.example.com/you/q3-review/`.
 5. **You share the link.** Readers open the Window in their browser. Its pages run in a sandbox, apart from the other Windows.
 6. **Every call is logged.** The Logbook of the Cahut records which AI acted, on whose behalf, what it did and with what result.

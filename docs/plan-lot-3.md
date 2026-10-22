@@ -123,3 +123,38 @@ Les étapes 1 à 7 demandent les comptes claude.ai et ChatGPT d'Olivier : il les
 - Les accès des Windows : lot 4. Une Window reste lisible par quiconque a son adresse.
 - OpenID Connect, et le SSO des personnes : après la V0.
 - Le deuxième client de bout en bout : lot 8. Le lot 3 n'en fait qu'un test de fumée.
+
+## Bilan
+
+Le lot 3 s'est achevé le 22 octobre 2026, en cinq pull requests :
+
+| # | Pull request | Contenu |
+| --- | --- | --- |
+| 1 | #29 | Le plan et l'ADR 16 |
+| 2 | #30 | Portée et Rooms d'une IA dans le registre et les opérations |
+| 3 | #31 | Serveur d'autorisation : `internal/oauth`, métadonnées, enregistrement, CIMD, jetons, révocation, opérations, MCP |
+| 4 | #32 | Console : écran de consentement, IA connectées |
+| 5 | #33 | Documentation, staging, bilan |
+
+**Écarts par rapport au plan.**
+
+- La fin d'une connexion par son client (révocation, code ou jeton rejoué) passe par une opération du registre qui n'est pas enregistrée, `end_connection` : elle s'inscrit au Logbook sans devenir ni un outil MCP ni une route de l'API.
+- La configuration du serveur web donne l'adresse de la console de chaque Cahut, qui sert d'émetteur : en développement, elle suit `--dev-console-addr`. Les liens qu'affichent les commandes nomment toujours le port 8081 ; le réglage du port reste au lot 7.
+- Le statut d'une connexion se déduit de ses jetons : active, expirée après 30 jours sans rafraîchissement, ou terminée.
+- Pas de nouvelle dépendance : le SDK Go de MCP fournit la garde du jeton et les métadonnées de la ressource, et son client OAuth sert aux tests.
+
+**Essais.**
+
+- Les tests suivent les pièges de l'ADR 6 et rejouent le parcours complet avec le client OAuth du SDK Go de MCP, par enregistrement dynamique.
+- En local, dans le navigateur : un client enregistré dynamiquement, la connexion sur l'écran de consentement, la lecture seule et une seule Room, l'échange du code, `tools/list` réduit aux outils de lecture, la déconnexion depuis la console.
+- En local, avec le vrai Claude Code 2.1.307 : `claude mcp login` passe par son Client ID Metadata Document, `https://claude.ai/oauth/claude-code-client-metadata`, que Cahut récupère derrière sa garde ; l'écran affiche « Connect Claude Code », décrit par `claude.ai`, puis `get_account` répond et s'inscrit au Logbook.
+- Sur le staging, la version du lot est installée (0.1.2-dev+fcbeb98), avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-22-batch3`. Le jeton personnel existant de Claude Code marche toujours. Un parcours scripté en HTTPS sur `dev.cahut.cloud` passe : enregistrement, consentement par l'API, jetons, 14 outils, rafraîchissement, déconnexion puis 401. Il a laissé une personne de test, `oauth-test`, dans ce Cahut : rien ne permet encore de la désactiver en ligne de commande.
+
+**Reste à faire par Olivier.** Le jalon PoC demande ses comptes : ajouter `https://staging.cahut.cloud/mcp` comme connecteur dans claude.ai, consentir, publier une présentation dans une Room d'équipe, puis le test de fumée avec ChatGPT en mode développeur (étapes 1 à 7 de la démonstration).
+
+**Suites.**
+
+- Élargir la portée d'une IA connectée, par Knock first : lot 5.
+- `cahut user disable` en ligne de commande, et désactiver un administrateur du serveur.
+- Le port de la console réglable, et les liens des commandes qui le suivent : lot 7.
+- Aucune release ne porte encore les lots 2 et 3 : la prochaine le fera.

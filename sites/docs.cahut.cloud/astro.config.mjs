@@ -37,7 +37,7 @@ export default defineConfig({
 				},
 				{
 					label: 'Connect an AI',
-					items: ['connect/claude-code', 'connect/tokens', 'connect/publish'],
+					items: ['connect/ai-clients', 'connect/claude-code', 'connect/tokens', 'connect/publish'],
 				},
 				{
 					label: 'Concepts',

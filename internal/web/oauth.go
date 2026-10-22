@@ -36,7 +36,7 @@ func (s *Server) serveResourceMetadata(w http.ResponseWriter, r *http.Request) {
 		ScopesSupported:        []string{oauth.Read, oauth.Write},
 		BearerMethodsSupported: []string{"header"},
 		ResourceName:           "Cahut at " + siteOf(r).cahut.Domain,
-		ResourceDocumentation:  "https://docs.cahut.cloud/connect/",
+		ResourceDocumentation:  "https://docs.cahut.cloud/connect/ai-clients/",
 	}).ServeHTTP(w, r)
 }
 
