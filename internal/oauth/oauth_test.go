@@ -618,12 +618,25 @@ func TestMetadataDocuments(t *testing.T) {
 	if err != nil || c.Name != "Claude" || !c.Document {
 		t.Errorf("fetch = %+v, %v", c, err)
 	}
+	// ChatGPT prefers to authenticate with a key, and can do without: it
+	// connects as a public client.
+	doc = map[string]any{"client_id": id, "client_name": "ChatGPT", "redirect_uris": []string{"https://chatgpt.com/connector_platform_oauth_redirect"}}
+	doc["token_endpoint_auth_method"] = "private_key_jwt"
+	doc["token_endpoint_auth_methods_supported"] = []string{"none", "private_key_jwt"}
+	doc["jwks_uri"] = "https://chatgpt.com/oauth/jwks.json"
+	if c, err := oauth.FetchDocument(f.c.OAuth, id); err != nil || c.Name != "ChatGPT" {
+		t.Errorf("fetch ChatGPT's document = %+v, %v", c, err)
+	}
 	for name, change := range map[string]func(){
 		"another client ID": func() { doc["client_id"] = srv.URL + "/other.json" },
-		"a secret":          func() { doc["token_endpoint_auth_method"] = "client_secret_basic" },
-		"no redirect URI":   func() { delete(doc, "redirect_uris") },
-		"too large":         func() { doc["padding"] = strings.Repeat("x", 17<<10) },
-		"a redirect":        func() { redirectTo = srv.URL + "/elsewhere" },
+		"a secret method":   func() { doc["token_endpoint_auth_method"] = "client_secret_basic" },
+		"a secret":          func() { doc["client_secret"] = "s3cret" },
+		"a key only": func() {
+			doc["token_endpoint_auth_method"], doc["token_endpoint_auth_methods_supported"] = "private_key_jwt", []string{"private_key_jwt"}
+		},
+		"no redirect URI": func() { delete(doc, "redirect_uris") },
+		"too large":       func() { doc["padding"] = strings.Repeat("x", 17<<10) },
+		"a redirect":      func() { redirectTo = srv.URL + "/elsewhere" },
 	} {
 		doc = map[string]any{"client_id": id, "client_name": "Claude", "redirect_uris": []string{redirect}}
 		redirectTo = ""
@@ -646,6 +659,16 @@ func TestMetadataDocuments(t *testing.T) {
 	code := f.approve(f.olivier, oauth.ApproveInput{Request: req, Scope: oauth.Read, AllRooms: true})
 	if status, out := f.exchange(id, code); status != http.StatusOK {
 		t.Errorf("exchange for a client known by its document = %d %v", status, out)
+	}
+	// A client that authenticates with a key names itself in its assertion,
+	// without client_id.
+	code = f.approve(f.olivier, oauth.ApproveInput{Request: req, Scope: oauth.Read, AllRooms: true})
+	claims := base64.RawURLEncoding.EncodeToString([]byte(`{"iss":"` + id + `","sub":"` + id + `","aud":"` + issuer + `/oauth/token"}`))
+	status, out := f.token(url.Values{"grant_type": {"authorization_code"}, "code": {code}, "redirect_uri": {redirect},
+		"code_verifier": {verifier}, "client_assertion_type": {"urn:ietf:params:oauth:client-assertion-type:jwt-bearer"},
+		"client_assertion": {"eyJhbGciOiJSUzI1NiJ9." + claims + ".c2lnbmF0dXJl"}})
+	if status != http.StatusOK {
+		t.Errorf("exchange with a client assertion = %d %v", status, out)
 	}
 }
 

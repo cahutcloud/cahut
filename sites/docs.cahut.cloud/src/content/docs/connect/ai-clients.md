@@ -60,7 +60,7 @@ Each Cahut is its own OAuth 2.1 authorization server, as the [MCP authorization 
 
 The servers of a client need port 443 only. The person's browser opens the authorization page, on the console's port.
 
-- Clients register with a Client ID Metadata Document or by dynamic registration (RFC 7591). Both make public clients: there is no client secret.
+- Clients register with a Client ID Metadata Document or by dynamic registration (RFC 7591). Both make public clients, which authenticate with `none`: there is no client secret. A metadata document may prefer another method, such as `private_key_jwt` for ChatGPT, as long as it lists `none` in `token_endpoint_auth_methods_supported`.
 - Authorization codes need PKCE with S256, live 5 minutes and are used once.
 - Access tokens start with `cahut_oat_` and live one hour. Refresh tokens start with `cahut_ort_` and live 30 days; each refresh replaces the refresh token. A refresh token used twice ends the connection.
 - The scopes are `read` and `write`. The resource is `https://cahut.example.com/mcp`; a token of one Cahut opens nothing in another.

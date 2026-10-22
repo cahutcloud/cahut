@@ -6,6 +6,7 @@ import (
 	"crypto/subtle"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -66,6 +67,9 @@ func (s *Server) ServeToken(w http.ResponseWriter, r *http.Request) {
 	if id, _, ok := r.BasicAuth(); ok && id != "" {
 		client = id // a public client may name itself this way, without a secret
 	}
+	if client == "" {
+		client = assertedClient(form.Get("client_assertion"))
+	}
 	var tokens Tokens
 	var err error
 	switch form.Get("grant_type") {
@@ -95,6 +99,28 @@ func (s *Server) ServeToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Pragma", "no-cache")
 	writeJSON(w, http.StatusOK, tokens)
+}
+
+// assertedClient returns the client that a client assertion (RFC 7523)
+// names, for a client that authenticates with a key and sends no client_id.
+// Cahut takes public clients only and does not check the signature: the
+// name serves to match the client of the code, which PKCE binds anyway.
+func assertedClient(assertion string) string {
+	parts := strings.Split(assertion, ".")
+	if len(parts) != 3 {
+		return ""
+	}
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return ""
+	}
+	var claims struct {
+		Subject string `json:"sub"`
+	}
+	if json.Unmarshal(payload, &claims) != nil {
+		return ""
+	}
+	return claims.Subject
 }
 
 var verifierFormat = regexp.MustCompile(`^[A-Za-z0-9._~-]{43,128}$`)
