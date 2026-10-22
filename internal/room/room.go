@@ -62,6 +62,10 @@ func Find(ctx context.Context, c *operation.Call, name string) (Access, error) {
 	if err != nil {
 		return Access{}, err
 	}
+	if !c.Actor.Reaches(a.ID) {
+		return Access{}, operation.NotFoundf("no Room %q among those you were granted: "+
+			"%s can grant you more Rooms by connecting you again", name, c.Actor.Handle)
+	}
 	a.Role = role.String
 	return a, nil
 }
@@ -122,6 +126,10 @@ var CreateRoom = &operation.Op[CreateRoomInput, Room]{
 			name = address.Slug(title, "")
 		}
 		c.Log(name, title)
+		if c.Actor.Limited() {
+			return Room{}, operation.Forbiddenf("you were granted some Rooms only, and a new Room would be outside them: "+
+				"%s can create it in the console", c.Actor.Handle)
+		}
 		switch {
 		case !address.ValidName(name):
 			return Room{}, operation.Invalidf("name %q: use 1 to 63 lowercase letters, digits and hyphens, "+
@@ -210,7 +218,7 @@ var ListRooms = &operation.Op[ListRoomsInput, List]{
 			where = "1 = 1"
 		}
 		rows, err := c.Tx.QueryContext(ctx, `
-			SELECT r.name, r.title, r.kind, m.role, r.created_at,
+			SELECT r.id, r.name, r.title, r.kind, m.role, r.created_at,
 				(SELECT count(*) FROM room_members WHERE room_id = r.id),
 				(SELECT count(*) FROM windows WHERE room_id = r.id)
 			FROM rooms r LEFT JOIN room_members m ON m.room_id = r.id AND m.user_id = ?
@@ -223,10 +231,14 @@ var ListRooms = &operation.Op[ListRoomsInput, List]{
 		list := List{Rooms: []Room{}}
 		for rows.Next() {
 			var r Room
+			var id int64
 			var role sql.NullString
 			var created string
-			if err := rows.Scan(&r.Name, &r.Title, &r.Kind, &role, &created, &r.Members, &r.Windows); err != nil {
+			if err := rows.Scan(&id, &r.Name, &r.Title, &r.Kind, &role, &created, &r.Members, &r.Windows); err != nil {
 				return List{}, err
+			}
+			if !c.Actor.Reaches(id) {
+				continue
 			}
 			r.Role = role.String
 			if r.CreatedAt, err = store.ParseTime(created); err != nil {

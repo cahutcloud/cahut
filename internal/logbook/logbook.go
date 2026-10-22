@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"cahut.cloud/internal/store"
@@ -75,6 +76,25 @@ func List(ctx context.Context, db Queryer, limit int) ([]Entry, error) {
 // their Rooms. Only the Logbook of a Cahut has Rooms.
 func ListOf(ctx context.Context, db Queryer, userID int64, limit int) ([]Entry, error) {
 	return list(ctx, db, "user_id = ? OR room_id IN (SELECT room_id FROM room_members WHERE user_id = ?)", userID, userID, limit)
+}
+
+// ListIn returns the latest entries about the Rooms rooms, newest first.
+// When member is not zero, only the Rooms that the person member is in
+// count.
+func ListIn(ctx context.Context, db Queryer, rooms []int64, member int64, limit int) ([]Entry, error) {
+	if len(rooms) == 0 {
+		return nil, nil
+	}
+	args := make([]any, 0, len(rooms)+2)
+	for _, id := range rooms {
+		args = append(args, id)
+	}
+	where := "room_id IN (" + strings.Repeat("?, ", len(rooms)-1) + "?)"
+	if member != 0 {
+		where += " AND room_id IN (SELECT room_id FROM room_members WHERE user_id = ?)"
+		args = append(args, member)
+	}
+	return list(ctx, db, where, append(args, limit)...)
 }
 
 // list returns the latest entries that match where, newest first. Its last

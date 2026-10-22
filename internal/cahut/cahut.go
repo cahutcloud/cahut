@@ -101,7 +101,7 @@ type LogbookPage struct {
 
 // ListLogbook returns the latest entries of the Logbook, newest first: all
 // of them for an administrator, and for anyone else what they did and what
-// their AIs did.
+// their AIs did. An AI granted some Rooms only reads what happened in them.
 var ListLogbook = &operation.Op[ListLogbookInput, LogbookPage]{
 	Name: "list_logbook",
 	Description: "Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, " +
@@ -130,9 +130,14 @@ func readLogbook(ctx context.Context, c *operation.Call, in ListLogbookInput) (L
 	}
 	var entries []logbook.Entry
 	var err error
-	if c.Admin {
+	switch {
+	case c.Actor.Limited() && c.Admin:
+		entries, err = logbook.ListIn(ctx, c.Tx, c.Actor.Rooms, 0, limit)
+	case c.Actor.Limited():
+		entries, err = logbook.ListIn(ctx, c.Tx, c.Actor.Rooms, c.Actor.UserID, limit)
+	case c.Admin:
 		entries, err = logbook.List(ctx, c.Tx, limit)
-	} else {
+	default:
 		entries, err = logbook.ListOf(ctx, c.Tx, c.Actor.UserID, limit)
 	}
 	if err != nil {

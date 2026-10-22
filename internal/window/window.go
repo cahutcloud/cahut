@@ -252,7 +252,8 @@ type found struct {
 }
 
 // query returns the Windows matching where that the actor may see: all of
-// them for the command line, those of their Rooms for anyone else.
+// them for the command line, those of their Rooms for anyone else, and of
+// the Rooms it was granted for an AI.
 // Administrators manage people and Rooms, not content: an administrator of
 // the server, who belongs to no Room, sees none.
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
@@ -282,6 +283,9 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		}
 		if w.UpdatedAt, err = store.ParseTime(updated); err != nil {
 			return nil, err
+		}
+		if !c.Actor.Reaches(w.roomID) {
+			continue
 		}
 		w.URL = s.url(w.Room, w.Name)
 		windows = append(windows, w)

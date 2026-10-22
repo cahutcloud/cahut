@@ -198,7 +198,8 @@ func TestTeamRooms(t *testing.T) {
 	if _, err := f.invoke(t, f.olivier, "publish_window", deck); err != nil {
 		t.Fatal(err)
 	}
-	for who, want := range map[operation.Actor]int{f.olivier: 1, f.camille: 1} {
+	for _, who := range []operation.Actor{f.olivier, f.camille} {
+		want := 1
 		out, err := f.invoke(t, who, "list_windows", `{"room": "marketing"}`)
 		if err != nil || len(out.(List).Windows) != want {
 			t.Errorf("list_windows of marketing by %s = %+v, %v; want %d", who.Handle, out, err, want)
