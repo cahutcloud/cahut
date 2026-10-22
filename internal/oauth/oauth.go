@@ -38,11 +38,24 @@ const (
 )
 
 // Scopes: read allows the operations that change nothing, write everything
-// the person may do.
+// the person may do. Every connection may refresh its tokens, which
+// clients ask for with offline_access.
 const (
-	Read  = "read"
-	Write = "write"
+	Read          = "read"
+	Write         = "write"
+	OfflineAccess = "offline_access"
 )
+
+// granted returns the scopes that a token of a connection with scope
+// carries, as the token endpoint states them: write includes read, and
+// every connection refreshes. Clients such as ChatGPT compare them with
+// those they asked for, and ask the person again when one is missing.
+func granted(scope string) string {
+	if scope == Write {
+		return Read + " " + Write + " " + OfflineAccess
+	}
+	return Read + " " + OfflineAccess
+}
 
 // Config says where the authorization server and the resource it protects
 // are. The servers of AI clients reach the issuer, on the usual port of the
@@ -121,7 +134,7 @@ func (s *Server) Metadata() Metadata {
 		TokenEndpoint:                     s.cfg.Issuer + "/oauth/token",
 		RegistrationEndpoint:              s.cfg.Issuer + "/oauth/register",
 		RevocationEndpoint:                s.cfg.Issuer + "/oauth/revoke",
-		ScopesSupported:                   []string{Read, Write},
+		ScopesSupported:                   []string{Read, Write, OfflineAccess},
 		ResponseTypesSupported:            []string{"code"},
 		ResponseModesSupported:            []string{"query"},
 		GrantTypesSupported:               []string{"authorization_code", "refresh_token"},

@@ -190,7 +190,8 @@ func TestMetadata(t *testing.T) {
 			t.Errorf("%s = %v, want %v", key, m[key], want)
 		}
 	}
-	if fmt.Sprint(m["code_challenge_methods_supported"]) != "[S256]" || fmt.Sprint(m["token_endpoint_auth_methods_supported"]) != "[none]" {
+	if fmt.Sprint(m["code_challenge_methods_supported"]) != "[S256]" || fmt.Sprint(m["token_endpoint_auth_methods_supported"]) != "[none]" ||
+		fmt.Sprint(m["scopes_supported"]) != "[read write offline_access]" {
 		t.Errorf("metadata = %v", m)
 	}
 	if rec.Header().Get("Access-Control-Allow-Origin") != "*" {
@@ -215,7 +216,7 @@ func TestConnect(t *testing.T) {
 
 	code := f.approve(f.camille, oauth.ApproveInput{Request: f.request(client), Scope: oauth.Read, Rooms: []string{"marketing"}})
 	status, tokens := f.exchange(client, code)
-	if status != http.StatusOK || tokens["token_type"] != "Bearer" || tokens["scope"] != "read" || tokens["expires_in"] != 3600.0 {
+	if status != http.StatusOK || tokens["token_type"] != "Bearer" || tokens["scope"] != "read offline_access" || tokens["expires_in"] != 3600.0 {
 		t.Fatalf("exchange = %d %v", status, tokens)
 	}
 	access, refresh := tokens["access_token"].(string), tokens["refresh_token"].(string)
@@ -253,6 +254,11 @@ func TestRefresh(t *testing.T) {
 	code := f.approve(f.olivier, oauth.ApproveInput{Request: f.request(client), Scope: oauth.Write, AllRooms: true})
 	_, tokens := f.exchange(client, code)
 	first := tokens["refresh_token"].(string)
+	// Write includes read, and every connection refreshes: clients compare
+	// these scopes with those they asked for.
+	if tokens["scope"] != "read write offline_access" {
+		t.Errorf("scope of a connection that may write = %v", tokens["scope"])
+	}
 
 	f.now = f.now.Add(2 * time.Hour)
 	if _, _, err := f.c.OAuth.AccessOwner(context.Background(), tokens["access_token"].(string)); !errors.Is(err, account.ErrInvalidToken) {

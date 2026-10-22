@@ -274,7 +274,7 @@ func (s *Server) issue(ctx context.Context, tx *sql.Tx, connection int64, now ti
 		TokenType:    "Bearer",
 		ExpiresIn:    int(AccessLifetime / time.Second),
 		RefreshToken: credential.Token(RefreshPrefix),
-		Scope:        scope,
+		Scope:        granted(scope),
 	}
 	for _, tok := range []struct {
 		value, kind string

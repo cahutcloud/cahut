@@ -63,7 +63,7 @@ The servers of a client need port 443 only. The person's browser opens the autho
 - Clients register with a Client ID Metadata Document or by dynamic registration (RFC 7591). Both make public clients, which authenticate with `none`: there is no client secret. A metadata document may prefer another method, such as `private_key_jwt` for ChatGPT, as long as it lists `none` in `token_endpoint_auth_methods_supported`.
 - Authorization codes need PKCE with S256, live 5 minutes and are used once.
 - Access tokens start with `cahut_oat_` and live one hour. Refresh tokens start with `cahut_ort_` and live 30 days; each refresh replaces the refresh token. A refresh token used twice ends the connection.
-- The scopes are `read` and `write`. The resource is `https://cahut.example.com/mcp`; a token of one Cahut opens nothing in another.
+- The scopes are `read` and `write`, and `offline_access` for the refresh token, which every connection has. A token granted `write` states `read write offline_access`, and one granted `read` states `read offline_access`. The resource is `https://cahut.example.com/mcp`; a token of one Cahut opens nothing in another.
 - Redirect URIs match exactly, except loopback addresses in `http`, whose port may change.
 
 [ADR 16](https://github.com/getcahut/cahut/blob/main/docs/adr/0016-oauth-for-ai-clients.md) and [ADR 17](https://github.com/getcahut/cahut/blob/main/docs/adr/0017-oauth-endpoints-on-port-443.md) give the details. The service logs each request to these endpoints, with its status and the error of a refused one: `journalctl -u cahut` shows them while a client connects.
