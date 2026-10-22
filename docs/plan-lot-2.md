@@ -217,7 +217,7 @@ Le lot 2 s'est achevé le 22 octobre 2026, en huit pull requests :
 | 5 | #17 | API HTTP sur le port 8443, types TypeScript générés |
 | 6 | #19 | Socle de la console : connexion, activation, coquille |
 | 7 | #26 | Écrans de la console |
-| 8 | celle-ci | Documentation, scénario de démonstration, staging |
+| 8 | #27 | Documentation, scénario de démonstration, staging |
 
 **Écarts par rapport au plan.**
 
