@@ -70,11 +70,67 @@ export interface AdminList {
   admins: Admin[];
 }
 
+export interface ApproveInput {
+  request: Request;
+  /** read, or write; at most what the client asks for */
+  scope: string;
+  /** every Room of the person, including those they join later */
+  all_rooms?: boolean;
+  /** the Rooms granted, by name, when all_rooms is false */
+  rooms?: string[];
+}
+
+export interface Authorization {
+  /** the name of the AI client, as it gives it */
+  client: string;
+  /** its web page, as it gives it */
+  client_uri?: string;
+  /** the host of its client metadata document, which vouches for it */
+  client_host?: string;
+  /** where the browser goes back to after consent */
+  redirect_host: string;
+  /** the most the client asks for: read, or write */
+  scope: string;
+  /** the Rooms the person may grant */
+  rooms: RoomChoice[];
+  /** when set, the request is invalid: send the browser to this address */
+  redirect?: string;
+  /** why the request is invalid, when it is */
+  error?: string;
+}
+
 export interface ChangePasswordInput {
   /** the current password */
   password: string;
   /** the new password, of 15 characters at least */
   new_password: string;
+}
+
+export interface ConnectedAIs {
+  connections: Connection[];
+}
+
+export interface Connection {
+  id: number;
+  /** the person the AI acts for */
+  user: string;
+  /** the name of the AI client */
+  client: string;
+  client_id: string;
+  /** where its authorization went back to */
+  redirect_host: string;
+  /** read, or write */
+  scope: string;
+  /** every Room of the person, including those they join later */
+  all_rooms: boolean;
+  /** the Rooms granted, when all_rooms is false */
+  rooms: string[];
+  /** active, expired after 30 days without use, or ended */
+  status: string;
+  created_at: string;
+  last_used_at?: string;
+  ended_at?: string;
+  end_reason?: string;
 }
 
 export interface CreateAdminInput {
@@ -104,6 +160,19 @@ export interface CreateUserInput {
   admin?: boolean;
 }
 
+export interface DenyInput {
+  request: Request;
+}
+
+export interface DescribeInput {
+  request: Request;
+}
+
+export interface DisconnectAIInput {
+  /** the connection, from list_connected_ais */
+  id: number;
+}
+
 export interface DomainList {
   cahuts: Info[];
 }
@@ -117,10 +186,13 @@ export interface Entry {
   /** the person, or the person an AI acts for */
   user_id?: number;
   user?: string;
+  /** the personal token the AI presented */
   token_id?: number;
-  /** the AI, as its token and its software name it */
+  /** the connection of the AI, when it connected over OAuth */
+  connection_id?: number;
+  /** the AI, as its token or its connection, and its software, name it */
   client?: string;
-  /** the adapter the call came through: cli, mcp */
+  /** the adapter the call came through: cli, api, mcp or oauth */
   via: string;
   /** what the operation acted on */
   target?: string;
@@ -164,6 +236,11 @@ export interface Info {
 }
 
 export type ListAdminsInput = Record<string, never>;
+
+export interface ListConnectedAIsInput {
+  /** only the AIs of this person; for a person who is not an administrator, their own */
+  user?: string;
+}
 
 export type ListDomainsInput = Record<string, never>;
 
@@ -271,11 +348,27 @@ export interface PublishInput {
   files: File[];
 }
 
+export interface Redirect {
+  /** send the browser to this address */
+  redirect: string;
+}
+
 export interface RemoveMemberInput {
   /** the Room's name */
   room: string;
   /** handle of the person; yourself to leave the Room */
   user: string;
+}
+
+export interface Request {
+  response_type?: string;
+  client_id: string;
+  redirect_uri?: string;
+  scope?: string;
+  state?: string;
+  code_challenge?: string;
+  code_challenge_method?: string;
+  resource?: string;
 }
 
 export interface RevokeTokenInput {
@@ -295,6 +388,13 @@ export interface Room {
   /** how many Windows the Room holds */
   windows: number;
   created_at: string;
+}
+
+export interface RoomChoice {
+  name: string;
+  title: string;
+  /** personal or team */
+  kind: string;
 }
 
 export interface RoomDetail {
@@ -446,6 +546,8 @@ export interface CahutOperations {
   activate_account: { input: ActivateInput; output: AccountSession };
   /** Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. */
   add_room_member: { input: MemberInput; output: RoomDetail };
+  /** Connect an AI client to this Cahut, for the person who consents, with the scope and the Rooms they grant. Returns the address that sends the browser back to the client, with its authorization code. */
+  approve_authorization: { input: ApproveInput; output: Redirect };
   /** Change your password. Your other sessions end. */
   change_password: { input: ChangePasswordInput; output: PasswordChanged };
   /** Give a person a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. Their password works until they use the link. */
@@ -456,8 +558,14 @@ export interface CahutOperations {
   create_token: { input: CreateTokenInput; output: NewToken };
   /** Create a person, with their personal Room, and the link where they choose their password. */
   create_user: { input: CreateUserInput; output: NewUser };
+  /** Refuse the request of an AI client to connect to this Cahut. Returns the address that tells the client so. */
+  deny_authorization: { input: DenyInput; output: Redirect };
+  /** Check the request of an AI client to connect to this Cahut, and describe it to the person who consents: the client, where it will be sent back, the scope it asks for, and the Rooms the person may grant. */
+  describe_authorization: { input: DescribeInput; output: Authorization };
   /** Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. */
   disable_user: { input: UserInput; output: User };
+  /** Disconnect an AI connected over OAuth. Its tokens stop working at once; to use it again, the person connects it again. */
+  disconnect_ai: { input: DisconnectAIInput; output: Connection };
   /** Enable a disabled person again: they can sign in, and their AIs can act with their tokens. */
   enable_user: { input: UserInput; output: User };
   /** Describe the person you act for: their handle, name, role in the Cahut and Rooms. */
@@ -468,6 +576,8 @@ export interface CahutOperations {
   get_room: { input: RoomGetInput; output: RoomDetail };
   /** Describe a Window and list its files, optionally with their contents. */
   get_window: { input: WindowGetInput; output: WindowDetail };
+  /** List the AIs connected over OAuth, newest first, with the person each acts for, its scope and its Rooms. */
+  list_connected_ais: { input: ListConnectedAIsInput; output: ConnectedAIs };
   /** Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. */
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
   /** List your Rooms, your personal Room first, with your role and how many members and Windows each has. */

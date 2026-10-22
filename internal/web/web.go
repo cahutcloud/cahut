@@ -83,6 +83,16 @@ func (c Config) BaseURL(domain string) string {
 	return "https://" + domain + "/"
 }
 
+// ConsoleURL returns the address of the console of the Cahut at domain, as
+// this server serves it.
+func (c Config) ConsoleURL(domain string) string {
+	if c.Dev {
+		_, port, _ := net.SplitHostPort(c.DevConsoleAddr)
+		return "http://" + domain + ":" + port + "/"
+	}
+	return ConsoleURL(domain)
+}
+
 // Server serves the Cahuts of a server.
 type Server struct {
 	srv *server.Server
@@ -90,8 +100,9 @@ type Server struct {
 	log *slog.Logger
 	mux *http.ServeMux // port 443: Windows and MCP
 
-	console  *http.ServeMux // port 8443: the console and its API
-	visitors *limiter       // calls that sign in, by address
+	console       *http.ServeMux // port 8443: the console, its API and the OAuth authorization server
+	visitors      *limiter       // calls that sign in, by address
+	registrations *limiter       // registrations of OAuth clients, by address
 
 	// streams is canceled when the server shuts down, to end the
 	// standalone streams of MCP sessions.
@@ -116,11 +127,20 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.mux.HandleFunc("GET /{$}", s.serveRoot)
 	s.mux.HandleFunc("/mcp", s.serveMCP)
 	s.mux.HandleFunc("GET /-/healthz", serveHealth)
+	for _, method := range []string{"GET", "OPTIONS"} {
+		s.mux.HandleFunc(method+" /.well-known/oauth-protected-resource", s.serveResourceMetadata)
+		s.mux.HandleFunc(method+" /.well-known/oauth-protected-resource/mcp", s.serveResourceMetadata)
+	}
 	s.mux.HandleFunc("GET /{room}/{window}", redirectToWindow)
 	s.mux.HandleFunc("GET /{room}/{window}/{file...}", s.serveWindow)
 
 	s.visitors = newLimiter(SignInEvery, SignInBurst)
+	s.registrations = newLimiter(RegisterEvery, RegisterBurst)
 	s.console = http.NewServeMux()
+	s.console.HandleFunc("/.well-known/oauth-authorization-server", s.serveAuthorizationMetadata)
+	s.console.HandleFunc("/oauth/token", s.serveToken)
+	s.console.HandleFunc("/oauth/register", s.serveRegister)
+	s.console.HandleFunc("/oauth/revoke", s.serveRevoke)
 	s.console.HandleFunc("POST /api/server/{operation}", s.serveServerAPI)
 	s.console.HandleFunc("POST /api/{operation}", s.serveAPI)
 	s.console.HandleFunc("/api/", refuseAPI)

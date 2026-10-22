@@ -1103,12 +1103,13 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | `entries[].id` | integer | yes |  |
 | `entries[].operation` | string | yes |  |
 | `entries[].outcome` | string | yes | ok, refused or failed |
-| `entries[].via` | string | yes | the adapter the call came through: cli, mcp |
-| `entries[].client` | string | no | the AI, as its token and its software name it |
+| `entries[].via` | string | yes | the adapter the call came through: cli, api, mcp or oauth |
+| `entries[].client` | string | no | the AI, as its token or its connection, and its software, name it |
+| `entries[].connection_id` | integer | no | the connection of the AI, when it connected over OAuth |
 | `entries[].detail` | string | no |  |
 | `entries[].error` | string | no |  |
 | `entries[].target` | string | no | what the operation acted on |
-| `entries[].token_id` | integer | no |  |
+| `entries[].token_id` | integer | no | the personal token the AI presented |
 | `entries[].user` | string | no |  |
 | `entries[].user_id` | integer | no | the person, or the person an AI acts for |
 
@@ -1131,8 +1132,12 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
             "type": "string"
           },
           "client": {
-            "description": "the AI, as its token and its software name it",
+            "description": "the AI, as its token or its connection, and its software, name it",
             "type": "string"
+          },
+          "connection_id": {
+            "description": "the connection of the AI, when it connected over OAuth",
+            "type": "integer"
           },
           "detail": {
             "type": "string"
@@ -1155,6 +1160,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
             "type": "string"
           },
           "token_id": {
+            "description": "the personal token the AI presented",
             "type": "integer"
           },
           "user": {
@@ -1165,7 +1171,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
             "type": "integer"
           },
           "via": {
-            "description": "the adapter the call came through: cli, mcp",
+            "description": "the adapter the call came through: cli, api, mcp or oauth",
             "type": "string"
           }
         },

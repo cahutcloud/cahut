@@ -32,6 +32,10 @@ type Config struct {
 	// https://cahut.example.com/. It may be nil where addresses are not
 	// needed, as on the command line.
 	BaseURL func(domain string) string
+	// ConsoleURL returns the address of the console of the Cahut at domain,
+	// such as https://cahut.example.com:8443/, which is also its OAuth
+	// authorization server. It may be nil, as BaseURL may.
+	ConsoleURL func(domain string) string
 }
 
 // Server is the open server.
@@ -224,6 +228,9 @@ func (s *Server) OpenCahut(ctx context.Context, domain string) (*cahut.Cahut, er
 	cfg := cahut.Config{Dir: s.dir(id), Domain: domain}
 	if s.cfg.BaseURL != nil {
 		cfg.BaseURL = s.cfg.BaseURL(domain)
+	}
+	if s.cfg.ConsoleURL != nil {
+		cfg.ConsoleURL = s.cfg.ConsoleURL(domain)
 	}
 	return cahut.Open(ctx, cfg)
 }

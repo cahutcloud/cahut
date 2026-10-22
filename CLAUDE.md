@@ -136,6 +136,7 @@ internal/
   credential/          Passwords (Argon2id), random tokens and codes, and their hashes
   account/             People, roles, activation links, sessions, sign-in and personal tokens
   room/                Rooms: personal and team Rooms, their owners and members, rights in a Room
+  oauth/               The OAuth authorization server of each Cahut: clients, consent, tokens, connected AIs (ADR 16)
   window/              Windows: publish, describe, list, files on disk
   cahut/               Assembles a Cahut: its database, registry and operations
   server/              The server as a whole: its Cahuts and their domains, its administrators

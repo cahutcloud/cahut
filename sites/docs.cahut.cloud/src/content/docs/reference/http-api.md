@@ -57,17 +57,22 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | --- | --- | --- |
 | `POST /api/activate_account` | Anyone, to sign in | no |
 | `POST /api/add_room_member` | Any person | yes |
+| `POST /api/approve_authorization` | Any person | yes |
 | `POST /api/change_password` | Any person | yes |
 | `POST /api/create_activation_link` | Administrators of the Cahut | yes |
 | `POST /api/create_room` | Any person | yes |
 | `POST /api/create_token` | Any person | yes |
 | `POST /api/create_user` | Administrators of the Cahut | yes |
+| `POST /api/deny_authorization` | Any person | yes |
+| `POST /api/describe_authorization` | Any person | yes |
 | `POST /api/disable_user` | Administrators of the Cahut | yes |
+| `POST /api/disconnect_ai` | Any person | yes |
 | `POST /api/enable_user` | Administrators of the Cahut | yes |
 | `POST /api/get_account` | Any person | yes |
 | `POST /api/get_cahut` | Any person | yes |
 | `POST /api/get_room` | Any person | yes |
 | `POST /api/get_window` | Any person | yes |
+| `POST /api/list_connected_ais` | Any person | yes |
 | `POST /api/list_logbook` | Any person | yes |
 | `POST /api/list_rooms` | Any person | yes |
 | `POST /api/list_tokens` | Any person | yes |

@@ -182,11 +182,12 @@ var RevokeToken = &operation.Op[RevokeTokenInput, TokenInfo]{
 
 // Owner is who a valid token acts for.
 type Owner struct {
-	TokenID   int64
-	TokenName string
-	UserID    int64
-	Handle    string
-	Admin     bool // the person administers the Cahut
+	TokenID    int64  // the personal token, or zero
+	Connection int64  // the connection over OAuth, or zero
+	TokenName  string // the name of the token, or of the connected client
+	UserID     int64
+	Handle     string
+	Admin      bool // the person administers the Cahut
 
 	// What the person granted the AI: a personal token reaches everything
 	// its person may do.

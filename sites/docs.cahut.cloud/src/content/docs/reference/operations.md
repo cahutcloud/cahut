@@ -17,17 +17,22 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | --- | --- | --- | --- | --- |
 | `activate_account` | Choose a password from a single-use activation link, and sign in. | Anyone, to sign in | yes | no, people only |
 | [`add_room_member`](/reference/mcp-tools/#add_room_member) | Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. | Any person | yes | yes |
+| `approve_authorization` | Connect an AI client to this Cahut, for the person who consents, with the scope and the Rooms they grant. Returns the address that sends the browser back to the client, with its authorization code. | Any person | yes | no, people only |
 | `change_password` | Change your password. Your other sessions end. | Any person | yes | no, people only |
 | `create_activation_link` | Give a person a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. Their password works until they use the link. | Administrators of the Cahut | yes | no, people only |
 | [`create_room`](/reference/mcp-tools/#create_room) | Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. | Any person | yes | yes |
 | `create_token` | Create a personal token that lets an AI act on behalf of a person. | Any person | yes | no, people only |
 | [`create_user`](/reference/mcp-tools/#create_user) | Create a person, with their personal Room, and the link where they choose their password. | Administrators of the Cahut | yes | to the AIs of administrators |
+| `deny_authorization` | Refuse the request of an AI client to connect to this Cahut. Returns the address that tells the client so. | Any person | yes | no, people only |
+| `describe_authorization` | Check the request of an AI client to connect to this Cahut, and describe it to the person who consents: the client, where it will be sent back, the scope it asks for, and the Rooms the person may grant. | Any person | no | no, people only |
 | [`disable_user`](/reference/mcp-tools/#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. | Administrators of the Cahut | yes | to the AIs of administrators |
+| `disconnect_ai` | Disconnect an AI connected over OAuth. Its tokens stop working at once; to use it again, the person connects it again. | Any person | yes | no, people only |
 | [`enable_user`](/reference/mcp-tools/#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. | Administrators of the Cahut | yes | to the AIs of administrators |
 | [`get_account`](/reference/mcp-tools/#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. | Any person | no | yes |
 | [`get_cahut`](/reference/mcp-tools/#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. | Any person | no | yes |
 | [`get_room`](/reference/mcp-tools/#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. | Any person | no | yes |
 | [`get_window`](/reference/mcp-tools/#get_window) | Describe a Window and list its files, optionally with their contents. | Any person | no | yes |
+| `list_connected_ais` | List the AIs connected over OAuth, newest first, with the person each acts for, its scope and its Rooms. | Any person | no | no, people only |
 | [`list_logbook`](/reference/mcp-tools/#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. | Any person | no | yes |
 | [`list_rooms`](/reference/mcp-tools/#list_rooms) | List your Rooms, your personal Room first, with your role and how many members and Windows each has. | Any person | no | yes |
 | `list_tokens` | List personal tokens, newest first. | Any person | no | no, people only |
