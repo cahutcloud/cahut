@@ -161,7 +161,7 @@ Cahut is written in **Go**: a new, clean codebase built for Cahut, which one per
 | Backups | Optional, to external S3 or SFTP | Decided |
 | Website and docs | Astro sites in this repository, built on the brand guidelines, served from the project's own server | Decided |
 | Apps | Predefined runtimes and Dockerfile mode, on an unprivileged container engine (Podman or Docker) | Open |
-| License | Apache-2.0 or AGPL-3.0 | Open |
+| License | AGPL-3.0 for the repository; the name and the logo stay apart | Decided |
 
 The reasons behind each choice are in the [architecture decision records](docs/adr/README.md).
 
@@ -209,7 +209,11 @@ Success criteria for the launch:
 
 ## License
 
-Not decided yet: Apache-2.0 or AGPL-3.0. Until a license is chosen, all rights are reserved.
+Cahut is free software under the GNU Affero General Public License, version 3 ([LICENSE](LICENSE)). You can run it, study it, change it and share it. If you change it and let others use your version over a network, you give them your changes under the same license. Installing or distributing Cahut as it is asks nothing more than keeping the license with it.
+
+The name Cahut and its logo identify this project and are not covered by this license. Say that something runs on Cahut or works with Cahut; do not use the name or the logo for a product, a service or a domain of your own, and give a fork its own name. A trademark policy will say this in full before the repository opens.
+
+[ADR 15](docs/adr/0015-license.md) records the decision and the options set aside.
 
 ## Author
 

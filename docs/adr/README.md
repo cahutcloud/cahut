@@ -18,6 +18,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [12](0012-website-and-docs-as-astro-sites.md) | The website and the docs are Astro sites in this repository | Accepted |
 | [13](0013-people-sessions-and-rights.md) | People sign in to their Cahut, and the registry checks their rights | Accepted |
 | [14](0014-console-http-api.md) | The console calls each operation at its own HTTP route | Accepted |
+| [15](0015-license.md) | AGPL-3.0 for the repository, the name and the logo apart | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 
