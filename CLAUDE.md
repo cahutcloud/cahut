@@ -6,7 +6,7 @@ Guidance for Claude Code in this repository.
 
 Cahut is a self-hosted, open source home for what AIs make: documents, decks, dashboards and small apps, published over MCP to the user's own server and shared by link. It is a personal project by Olivier Durand, independent of any company and of any AI vendor.
 
-The V0 is under way, batch by batch, following the V0 plan. Batch 1 is the first vertical slice: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at `<domain>/<room>/<window>/` in a CSP sandbox, and the call goes to the Logbook. A server already holds several Cahuts, each declared by its domain. There are no sign-in, console or access levels yet: anyone with a Window's address can read it.
+The V0 is under way, batch by batch, following the V0 plan. Batch 1 is the first vertical slice: an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at `<domain>/<room>/<window>/` in a CSP sandbox, and the call goes to the Logbook. A server already holds several Cahuts, each declared by its domain. Batch 2, under way, brings people who sign in, team Rooms and the web console ([docs/plan-lot-2.md](docs/plan-lot-2.md)). There are no access levels yet: anyone with a Window's address can read it.
 
 The website (`cahut.cloud`) and the documentation (`docs.cahut.cloud`) are Astro sites in [sites/](sites/README.md), built on the brand guidelines ([ADR 12](docs/adr/0012-website-and-docs-as-astro-sites.md)). The website's `/brand` page gives access to the brand.
 
@@ -35,8 +35,10 @@ The Go version is set by the `toolchain` line of `go.mod`; the `go` command down
 
 | Task | What it does |
 | --- | --- |
-| `make build` | Builds `bin/cahut` for this machine |
-| `make dev` | Serves the Cahuts of `tmp/dev` on http://localhost:8080, and their console's API on http://localhost:8081 |
+| `make build` | Builds the console, then `bin/cahut` for this machine with the console embedded |
+| `make dev` | Serves the Cahuts of `tmp/dev` on http://localhost:8080, and their console on http://localhost:8081 |
+| `make console` | Builds the console into `internal/console/ui/dist` |
+| `make console-dev` | Serves the console with live reload on http://localhost:5173, against the API of `make dev` |
 | `make test` | Runs the tests with the race detector |
 | `make lint` | Checks that `go.mod` is tidy, then runs golangci-lint |
 | `make fmt` | Formats the code (gofmt, goimports) |
@@ -49,7 +51,7 @@ The Go version is set by the `toolchain` line of `go.mod`; the `go` command down
 | `make console-types` | Writes the TypeScript types of the console's API from the code: run it after changing an operation |
 | `make sites` | Builds both sites, as CI does: run it after changing `sites/` or the brand |
 
-golangci-lint and GoReleaser run through `go run`, at the versions pinned in the Makefile: nothing needs installing. The sites need Node.js at the version of [.nvmrc](.nvmrc) (`nvm use`); their tasks install the npm packages on first run. The Go tasks never need Node.js.
+golangci-lint and GoReleaser run through `go run`, at the versions pinned in the Makefile: nothing needs installing. The sites and the console need Node.js at the version of [.nvmrc](.nvmrc) (`nvm use`); their tasks install the npm packages on first run. `make build`, `make dev` and `make snapshot` build the console, so they need Node.js; `make test`, `make lint` and `make check` do not. The binary embeds the console only with the `console` build tag: a plain `go build` serves a notice in its place ([internal/console](internal/console/console.go)).
 
 To try a Cahut on this machine, run `make dev`, then, in another terminal:
 
@@ -60,7 +62,7 @@ go run ./cmd/cahut token create --data tmp/dev --user you --name "Claude Code"
 claude mcp add --transport http cahut-dev http://localhost:8080/mcp --header "Authorization: Bearer <token>"
 ```
 
-Windows open at `http://localhost:8080/<room>/<window>/`, and the console's API answers at `http://localhost:8081/api/<operation>` ([ADR 14](docs/adr/0014-console-http-api.md)). To try a second Cahut, declare `beta.localhost` too: Chrome, Firefox and curl resolve `*.localhost` to this machine. Once the server holds several Cahuts, the commands that act in one take `--domain`. `go run ./cmd/cahut logbook --data tmp/dev` prints the Logbook of a Cahut.
+Windows open at `http://localhost:8080/<room>/<window>/`. The link that `user create` prints opens the console at `http://localhost:8081/activate#…`, and its API answers at `http://localhost:8081/api/<operation>` ([ADR 14](docs/adr/0014-console-http-api.md)). To try a second Cahut, declare `beta.localhost` too: Chrome, Firefox and curl resolve `*.localhost` to this machine. Once the server holds several Cahuts, the commands that act in one take `--domain`. `go run ./cmd/cahut logbook --data tmp/dev` prints the Logbook of a Cahut.
 
 On a server, [install.sh](install.sh) installs a release, or a binary given with `--binary`, as the `cahut` systemd service, and declares the Cahut of `--domain`; run it with `--help`. Administration commands run as the service user, with the binary's full path, since sudo on AlmaLinux does not search `/usr/local/bin`: `sudo -u cahut /usr/local/bin/cahut token create ...`.
 
@@ -77,7 +79,7 @@ CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull req
 - Never put a token, a password or file contents in a Logbook entry (`Call.Log`).
 - Schema changes are new numbered files in `internal/store/migrations/cahut/` or `internal/store/migrations/server/`. Never edit a migration that has been released.
 - A new architecture decision is a new record in `docs/adr/`. Never rewrite an accepted record: supersede it.
-- The sites follow the same rule for npm packages: a reason in the pull request, an exact version, and no install scripts ([sites/.npmrc](sites/.npmrc)). Add them with `npm install <package> --workspace <site>` in `sites/`, never in another folder.
+- The sites and the console follow the same rule for npm packages: a reason in the pull request, an exact version, and no install scripts ([sites/.npmrc](sites/.npmrc), [internal/console/ui/.npmrc](internal/console/ui/.npmrc)). Add them with `npm install <package> --workspace <site>` in `sites/`, or with `npm install <package>` in `internal/console/ui/`, never in another folder.
 - Versions to keep in step: golangci-lint and GoReleaser are pinned both in the Makefile and in the workflows. Actions are pinned by commit hash, with the version in a comment; Dependabot updates them, and the npm packages of the sites too. Raise the `toolchain` line of `go.mod` when Go ships a patch release. `.nvmrc` holds the Node.js LTS line for the whole repository.
 
 ## Product rules that shape the code
@@ -118,7 +120,7 @@ For anything visual (site, console, mockup, slide, social image, e-mail, illustr
 - Use the logo SVG files as they are. Never redraw, recolor or rebuild the logotype.
 - Interface components come from [docs/charte-graphique/ui/cahut-ui.css](docs/charte-graphique/ui/cahut-ui.css) (`c-` classes).
 - Pages that Cahut serves for an organization carry that organization's house style, not Cahut's. Cahut's own brand applies to its own screens: console, sign-in, e-mails, site.
-- The sites import brand files through the `@charte` alias (`@charte/tokens/cahut-tokens.css`), which points to `docs/charte-graphique`. Never copy a token, a font or a logo into `sites/`.
+- The sites and the console import brand files through the `@charte` alias (`@charte/tokens/cahut-tokens.css`), which points to `docs/charte-graphique`. Never copy a token, a font or a logo into `sites/` or `internal/console/ui/`.
 
 Changing the logo, the palette, the tokens or the vocabulary is a change to the brand guidelines: update the guidelines README, `index.html`, both token files (CSS and JSON, kept in sync by hand) when tokens change, the PNG renders, the PDF (`node .claude/skills/charte-graphique-cahut/scripts/imprimer-charte.mjs`), and bump the version in the changelog table.
 
@@ -140,7 +142,8 @@ internal/
   cli/                 Command line: serve and the administration commands
   reference/           Writes the reference of the docs from the code (make docs-reference)
   apitypes/            Writes the TypeScript types of the console's API from the code (make console-types)
-  console/ui/          The console: for now, the types of its API in src/api.gen.ts
+  console/             The web console, embedded with the console build tag (ADR 5)
+    ui/                Its Preact app, built by Vite; src/api.gen.ts comes from make console-types
   version/             Build information, printed by cahut version
 docs/
   adr/                 Architecture decision records (English)

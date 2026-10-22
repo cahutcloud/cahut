@@ -177,7 +177,7 @@ sites/       The website and the documentation, Astro sites built on the brand g
 
 ### Building
 
-Building Cahut needs Go 1.27 or later and make. `make build` builds `bin/cahut`, and `make check` runs the linters and the tests, as CI does. Run `make` for the full list of tasks. The sites need Node.js at the version of `.nvmrc`: see [sites/README.md](sites/README.md).
+Building Cahut needs Go 1.27 or later, make, and Node.js at the version of `.nvmrc` for the web console, which the binary embeds. `make build` builds `bin/cahut`, and `make check` runs the linters and the tests, as CI does, without Node.js. Run `make` for the full list of tasks. The sites need Node.js too: see [sites/README.md](sites/README.md).
 
 Releases are static binaries for linux/amd64 and linux/arm64, built by GoReleaser when a version tag is pushed.
 

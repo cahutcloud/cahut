@@ -1,0 +1,23 @@
+{
+	"name": "cahut-console",
+	"private": true,
+	"description": "The web console of Cahut, embedded in the binary: see docs/adr/0005-preact-console-embedded.md",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc --noEmit && vite build",
+		"typecheck": "tsc --noEmit"
+	},
+	"engines": {
+		"node": ">=24"
+	},
+	"dependencies": {
+		"lucide-preact": "1.52.0",
+		"preact": "10.29.8"
+	},
+	"devDependencies": {
+		"@preact/preset-vite": "2.10.6",
+		"typescript": "5.9.3",
+		"vite": "8.3.3"
+	}
+}

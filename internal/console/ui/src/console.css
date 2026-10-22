@@ -1,0 +1,79 @@
+/*
+ * The console's own layout, on top of cahut-ui.css: values come from the
+ * tokens of the brand only.
+ */
+
+/* Sign-in and activation */
+.auth {
+	min-height: 100vh;
+	display: grid;
+	place-items: center;
+	padding: var(--space-8) var(--space-4);
+}
+.auth__card {
+	width: min(100%, 420px);
+	padding: var(--space-8);
+	display: grid;
+	gap: var(--space-6);
+}
+.auth__card img {
+	display: block;
+}
+.auth__head {
+	display: grid;
+	gap: var(--space-2);
+}
+.auth__head p {
+	margin: 0;
+}
+.auth form {
+	display: grid;
+	gap: var(--space-4);
+}
+.auth__card p {
+	margin: 0;
+}
+.auth__foot {
+	display: grid;
+	gap: var(--space-2);
+}
+
+/* The account, at the end of the top bar */
+.console-account {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+}
+@media (max-width: 560px) {
+	.console-account__name {
+		display: none;
+	}
+}
+
+/* Screens */
+.page-head {
+	display: grid;
+	gap: var(--space-2);
+	margin-bottom: var(--space-8);
+}
+.page-head p {
+	margin: 0;
+}
+.cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: var(--space-5);
+	margin-top: var(--space-4);
+}
+.card {
+	padding: var(--space-4);
+	display: grid;
+	gap: var(--space-2);
+	align-content: start;
+}
+.card .c-link {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-1);
+}

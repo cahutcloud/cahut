@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"cahut.cloud/internal/cahut"
+	"cahut.cloud/internal/console"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
 	"cahut.cloud/internal/window"
@@ -123,7 +124,7 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.console.HandleFunc("POST /api/server/{operation}", s.serveServerAPI)
 	s.console.HandleFunc("POST /api/{operation}", s.serveAPI)
 	s.console.HandleFunc("/api/", refuseAPI)
-	s.console.HandleFunc("/", s.serveConsole)
+	s.console.Handle("/", console.Handler())
 	return s
 }
 
@@ -339,13 +340,4 @@ func (rd redirectToHTTPS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	target := "https://" + host + r.URL.RequestURI()
 	http.Redirect(w, r, target, http.StatusPermanentRedirect) //nolint:gosec // the host is the domain of a Cahut
-}
-
-// serveConsole answers the pages of the console, which this version does
-// not hold yet.
-func (s *Server) serveConsole(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Header().Set("Content-Security-Policy", apiPolicy)
-	w.WriteHeader(http.StatusNotFound)
-	fmt.Fprintf(w, "This is the console of %s. Its pages come with a later version; its API answers at /api/.\n", siteOf(r).cahut.Domain)
 }
