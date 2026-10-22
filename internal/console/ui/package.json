@@ -12,7 +12,7 @@
 		"node": ">=24"
 	},
 	"dependencies": {
-		"lucide-preact": "1.52.0",
+		"lucide-preact": "1.57.0",
 		"preact": "10.29.8"
 	},
 	"devDependencies": {
