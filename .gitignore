@@ -8,6 +8,9 @@
 # Development home (make dev)
 /tmp/
 
+# The console: its build output, embedded by make build
+/internal/console/ui/dist/
+
 # Sites: dependencies, build output and generated types
 node_modules/
 /sites/*/dist/

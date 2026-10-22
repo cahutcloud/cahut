@@ -131,8 +131,9 @@ func TestAPI(t *testing.T) {
 		t.Errorf("after sign_out: %d %s", r.status, r.raw)
 	}
 
+	// The tests build no console: its port answers a notice.
 	r = call(t, f, console, http.MethodGet, "localhost", "/", "", ``)
-	if r.status != http.StatusNotFound || !strings.Contains(r.raw, "console of localhost") {
+	if r.status != http.StatusNotFound || !strings.Contains(r.raw, "built without its console") {
 		t.Errorf("GET /: %d %s", r.status, r.raw)
 	}
 }

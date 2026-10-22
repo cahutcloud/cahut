@@ -18,6 +18,17 @@ updates:
         patterns:
           - astro
           - "@astrojs/*"
+  - package-ecosystem: npm
+    directory: /internal/console/ui
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      vite:
+        patterns:
+          - vite
+          - "@preact/*"
   - package-ecosystem: github-actions
     directory: /
     schedule:

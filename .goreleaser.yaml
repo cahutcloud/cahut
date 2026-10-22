@@ -4,9 +4,17 @@ version: 2
 
 project_name: cahut
 
+# The console is built once, then embedded in every binary with the console
+# tag. See docs/adr/0005-preact-console-embedded.md.
+before:
+  hooks:
+    - make console
+
 builds:
   - main: ./cmd/cahut
     binary: cahut
+    tags:
+      - console
     env:
       - CGO_ENABLED=0
     goos:

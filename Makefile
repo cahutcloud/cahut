@@ -14,16 +14,29 @@ GORELEASER    ?= go run github.com/goreleaser/goreleaser/v2@$(GORELEASER_VERSION
 # The sites need Node.js at the version of .nvmrc: run "nvm use" first.
 SITES_DEPS := sites/node_modules/.package-lock.json
 
-.PHONY: help build dev test lint fmt check snapshot release-check sites site-dev docs-dev docs-reference console-types clean
+.PHONY: help build dev test lint fmt check snapshot release-check console console-dev console-types sites site-dev docs-dev docs-reference clean
 
 help: ## List the tasks
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-build: ## Build bin/cahut for this machine
-	CGO_ENABLED=0 go build -trimpath -o bin/cahut ./cmd/cahut
+# The console is built by Vite into internal/console/ui/dist, then embedded
+# in the binary with the console build tag. Without the tag, as with a plain
+# go build, the binary serves a notice in its place. It needs Node.js at the
+# version of .nvmrc: run "nvm use" first.
+CONSOLE_DIR  := internal/console/ui
+CONSOLE_DEPS := $(CONSOLE_DIR)/node_modules/.package-lock.json
 
-dev: ## Serve the Cahuts of tmp/dev on http://localhost:8080, their console on 8081
-	go run ./cmd/cahut serve --dev --data tmp/dev
+build: console ## Build bin/cahut for this machine, with the console
+	CGO_ENABLED=0 go build -tags console -trimpath -o bin/cahut ./cmd/cahut
+
+dev: console ## Serve the Cahuts of tmp/dev on http://localhost:8080, their console on 8081
+	go run -tags console ./cmd/cahut serve --dev --data tmp/dev
+
+console: $(CONSOLE_DEPS) ## Build the console into internal/console/ui/dist
+	cd $(CONSOLE_DIR) && npm run build
+
+console-dev: $(CONSOLE_DEPS) ## Serve the console with live reload on http://localhost:5173, next to make dev
+	cd $(CONSOLE_DIR) && npm run dev
 
 test: ## Run the tests with the race detector
 	go test -race ./...
@@ -66,9 +79,13 @@ CONSOLE_TYPES := internal/console/ui/src/api.gen.ts
 console-types: ## Write the TypeScript types of the console's API from the code
 	go run ./internal/apitypes $(CONSOLE_TYPES)
 
+$(CONSOLE_DEPS): $(CONSOLE_DIR)/package.json $(CONSOLE_DIR)/package-lock.json
+	cd $(CONSOLE_DIR) && npm ci
+	touch $@
+
 $(SITES_DEPS): sites/package.json sites/package-lock.json $(wildcard sites/*/package.json)
 	cd sites && npm ci
 	touch $@
 
 clean: ## Remove the build output and the development data
-	rm -rf bin dist tmp sites/node_modules sites/*/dist sites/*/.astro
+	rm -rf bin dist tmp sites/node_modules sites/*/dist sites/*/.astro $(CONSOLE_DIR)/node_modules $(CONSOLE_DIR)/dist

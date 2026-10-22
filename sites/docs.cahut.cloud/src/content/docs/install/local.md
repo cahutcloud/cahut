@@ -9,7 +9,7 @@ To try Cahut without a server, build it from source and serve it on your machine
 
 ## Build
 
-You need Git, make and Go. The `toolchain` line of `go.mod` sets the version of Go, and the `go` command downloads it when yours is older.
+You need Git, make, Go and Node.js. The `toolchain` line of `go.mod` sets the version of Go, and the `go` command downloads it when yours is older. `.nvmrc` sets the version of Node.js, which builds the web console that the binary embeds.
 
 ```bash
 git clone https://github.com/getcahut/cahut.git
@@ -17,7 +17,7 @@ cd cahut
 make build
 ```
 
-`make build` writes a static binary to `bin/cahut`.
+`make build` builds the console, then writes a static binary to `bin/cahut` that holds it. A plain `go build` leaves the console out: such a binary answers its port with a notice.
 
 ## Declare a Cahut at localhost
 
@@ -38,6 +38,8 @@ bin/cahut serve --dev --data ./cahut-data
 ```
 
 With `--dev`, Cahut serves plain HTTP on `localhost:8080`, without certificates, and the console and its [API](/reference/http-api/) on `localhost:8081`. `--dev-addr` and `--dev-console-addr` change the addresses.
+
+The link that `user create` prints opens the console at `http://localhost:8081/activate#…`, where you choose your password and sign in.
 
 Add the Cahut to Claude Code, with the token:
 

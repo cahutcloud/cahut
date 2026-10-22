@@ -73,14 +73,20 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: internal/console/ui/package-lock.json
       - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           version: v2.18.3 # GORELEASER_VERSION in the Makefile
           args: build --snapshot --clean
-      - name: Check that the binaries are static and run
+      - name: Check that the binaries are static, run, and hold the console
         run: |
           for bin in dist/*/cahut; do
             file "$bin"
             file "$bin" | grep -q "statically linked"
+            go version -m "$bin" | grep -q -- "-tags=console"
           done
           dist/cahut_linux_amd64_v1/cahut version
