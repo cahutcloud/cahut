@@ -34,6 +34,9 @@ const instructions = `This Cahut keeps what AIs make, on the user's own server. 
 	`To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. ` +
 	`A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; ` +
 	`making it public waits for a person. ` +
+	`Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once. ` +
+	`It makes a Knock, which waits for the person you act for: give them the link it returns, ` +
+	`where they approve or deny it, then call get_knock to learn the outcome. ` +
 	`Every call is recorded in the Logbook of the Cahut.`
 
 // mcpHandler returns the MCP endpoint (Streamable HTTP) of the Cahut c, which
@@ -117,9 +120,16 @@ func toolFor(info operation.Info) (*mcp.Tool, error) {
 		return nil, fmt.Errorf("output schema of %s: %w", info.Name, err)
 	}
 	destructive, openWorld := info.KnockFirst, false
+	description := info.Description
+	switch {
+	case info.KnockFirst:
+		description += " Knock first: a person approves the call before it runs."
+	case info.KnocksWhen != "":
+		description += " Knock first when " + info.KnocksWhen + ": a person approves the call before it runs."
+	}
 	return &mcp.Tool{
 		Name:         info.Name,
-		Description:  info.Description,
+		Description:  description,
 		InputSchema:  in,
 		OutputSchema: out,
 		Annotations: &mcp.ToolAnnotations{

@@ -17,7 +17,7 @@ A tool returns its result as structured content, and as the same JSON in a text 
 
 The Cahut gives these instructions to the AI when it connects:
 
-> This Cahut keeps what AIs make, on the user's own server. Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, and you get back the address where it opens; give that address to the user. Make index.html a complete page that works on its own. Link its files with relative paths, such as css/deck.css, never /css/deck.css: a Window is served under the address of its Room. Declare what the pages do: whether they run scripts, every origin they load from or call, such as a CDN or a font service, and where their forms send. They can load and call nothing else. Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. Every call is recorded in the Logbook of the Cahut.
+> This Cahut keeps what AIs make, on the user's own server. Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, and you get back the address where it opens; give that address to the user. Make index.html a complete page that works on its own. Link its files with relative paths, such as css/deck.css, never /css/deck.css: a Window is served under the address of its Room. Declare what the pages do: whether they run scripts, every origin they load from or call, such as a CDN or a font service, and where their forms send. They can load and call nothing else. Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once. It makes a Knock, which waits for the person you act for: give them the link it returns, where they approve or deny it, then call get_knock to learn the outcome. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -31,35 +31,37 @@ The Cahut gives these instructions to the AI when it connects:
 
 | Tool | What it does |
 | --- | --- |
-| [`add_room_member`](#add_room_member) | Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. |
+| [`add_room_member`](#add_room_member) | Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. Knock first: a person approves the call before it runs. |
 | [`create_room`](#create_room) | Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. |
-| [`create_user`](#create_user) | Create a person, with their personal Room, and the link where they choose their password. |
-| [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. |
-| [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. |
+| [`create_user`](#create_user) | Create a person, with their personal Room, and the link where they choose their password. Knock first: a person approves the call before it runs. |
+| [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. Knock first: a person approves the call before it runs. |
+| [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
 | [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. |
+| [`get_knock`](#get_knock) | Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
 | [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
 | [`get_window`](#get_window) | Describe a Window and list its files, optionally with their contents. |
+| [`list_knocks`](#list_knocks) | List Knocks, those that wait first: the calls that cannot be undone, or that change what a person may do, which wait for a person to approve them. An AI lists the Knocks it made; a person, those of their AIs. |
 | [`list_logbook`](#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. |
 | [`list_rooms`](#list_rooms) | List your Rooms, your personal Room first, with your role and how many members and Windows each has. |
 | [`list_users`](#list_users) | List the people of the Cahut, with their handles, names, roles and states. |
 | [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. |
 | [`publish_window`](#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. |
-| [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. |
+| [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`restore_window`](#restore_window) | Bring a Window back from the trash, with its versions. |
 | [`rollback_window`](#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
-| [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. |
-| [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. |
-| [`set_window_access`](#set_window_access) | Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. |
+| [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
+| [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs. |
+| [`set_window_access`](#set_window_access) | Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
 | [`trash_window`](#trash_window) | Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. |
 | [`update_room`](#update_room) | Change the title of a Room. Its name, and so its address, stays. |
 | [`update_window`](#update_window) | Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. |
 
 ## `add_room_member`
 
-Add a person to a team Room, as a member or an owner. They can then open and publish its Windows.
+Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. Knock first: a person approves the call before it runs.
 
-Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
 Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
@@ -299,11 +301,11 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 ## `create_user`
 
-Create a person, with their personal Room, and the link where they choose their password.
+Create a person, with their personal Room, and the link where they choose their password. Knock first: a person approves the call before it runs.
 
 Offered to the AIs of administrators of the Cahut only.
 
-Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
 Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
@@ -428,11 +430,11 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
 
 ## `disable_user`
 
-Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay.
+Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. Knock first: a person approves the call before it runs.
 
 Offered to the AIs of administrators of the Cahut only.
 
-Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
 Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
@@ -519,11 +521,11 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
 
 ## `enable_user`
 
-Enable a disabled person again: they can sign in, and their AIs can act with their tokens.
+Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs.
 
 Offered to the AIs of administrators of the Cahut only.
 
-Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
 Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
@@ -775,6 +777,138 @@ This tool takes no arguments.
   },
   "required": [
     "domain"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `get_knock`
+
+Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked.
+
+Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `knock` | integer | yes | the number of the Knock |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "knock": {
+      "description": "the number of the Knock",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "knock"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `client` | string | yes | the AI that called, as its token or its connection, and its software, name it |
+| `created_at` | string | yes |  |
+| `expires_at` | string | yes | when the Knock expires, if no one answers it |
+| `id` | integer | yes |  |
+| `input` | object | yes | the arguments of the call |
+| `operation` | string | yes | the operation that the AI called |
+| `state` | string | yes | waiting, done (approved and run), failed (approved, and the operation failed), denied, expired or canceled (the AI lost access) |
+| `user` | string | yes | handle of the person the AI acts for, who answers the Knock |
+| `answered_at` | string or null | no |  |
+| `detail` | string | no |  |
+| `error` | string | no | why the operation failed, once approved |
+| `room` | string | no | the name of the Room the call concerns, if any |
+| `target` | string | no | what the call acts on |
+| `url` | string | no | where the person approves or denies it, in the console |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "answered_at": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "client": {
+      "description": "the AI that called, as its token or its connection, and its software, name it",
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "detail": {
+      "type": "string"
+    },
+    "error": {
+      "description": "why the operation failed, once approved",
+      "type": "string"
+    },
+    "expires_at": {
+      "description": "when the Knock expires, if no one answers it",
+      "type": "string"
+    },
+    "id": {
+      "type": "integer"
+    },
+    "input": {
+      "additionalProperties": true,
+      "description": "the arguments of the call",
+      "type": "object"
+    },
+    "operation": {
+      "description": "the operation that the AI called",
+      "type": "string"
+    },
+    "room": {
+      "description": "the name of the Room the call concerns, if any",
+      "type": "string"
+    },
+    "state": {
+      "description": "waiting, done (approved and run), failed (approved, and the operation failed), denied, expired or canceled (the AI lost access)",
+      "type": "string"
+    },
+    "target": {
+      "description": "what the call acts on",
+      "type": "string"
+    },
+    "url": {
+      "description": "where the person approves or denies it, in the console",
+      "type": "string"
+    },
+    "user": {
+      "description": "handle of the person the AI acts for, who answers the Knock",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "operation",
+    "input",
+    "user",
+    "client",
+    "state",
+    "created_at",
+    "expires_at"
   ],
   "type": "object"
 }
@@ -1188,6 +1322,162 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 
 </details>
 
+## `list_knocks`
+
+List Knocks, those that wait first: the calls that cannot be undone, or that change what a person may do, which wait for a person to approve them. An AI lists the Knocks it made; a person, those of their AIs.
+
+Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `limit` | integer | no | how many Knocks, 50 by default, at most 500 |
+| `waiting` | boolean | no | only the Knocks that wait |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "limit": {
+      "description": "how many Knocks, 50 by default, at most 500",
+      "type": "integer"
+    },
+    "waiting": {
+      "description": "only the Knocks that wait",
+      "type": "boolean"
+    }
+  },
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `knocks` | array of objects or null | yes |  |
+| `knocks[].client` | string | yes | the AI that called, as its token or its connection, and its software, name it |
+| `knocks[].created_at` | string | yes |  |
+| `knocks[].expires_at` | string | yes | when the Knock expires, if no one answers it |
+| `knocks[].id` | integer | yes |  |
+| `knocks[].input` | object | yes | the arguments of the call |
+| `knocks[].operation` | string | yes | the operation that the AI called |
+| `knocks[].state` | string | yes | waiting, done (approved and run), failed (approved, and the operation failed), denied, expired or canceled (the AI lost access) |
+| `knocks[].user` | string | yes | handle of the person the AI acts for, who answers the Knock |
+| `knocks[].answered_at` | string or null | no |  |
+| `knocks[].detail` | string | no |  |
+| `knocks[].error` | string | no | why the operation failed, once approved |
+| `knocks[].room` | string | no | the name of the Room the call concerns, if any |
+| `knocks[].target` | string | no | what the call acts on |
+| `knocks[].url` | string | no | where the person approves or denies it, in the console |
+| `waiting` | integer | yes | how many Knocks wait, in all |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "knocks": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "answered_at": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "client": {
+            "description": "the AI that called, as its token or its connection, and its software, name it",
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "error": {
+            "description": "why the operation failed, once approved",
+            "type": "string"
+          },
+          "expires_at": {
+            "description": "when the Knock expires, if no one answers it",
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "input": {
+            "additionalProperties": true,
+            "description": "the arguments of the call",
+            "type": "object"
+          },
+          "operation": {
+            "description": "the operation that the AI called",
+            "type": "string"
+          },
+          "room": {
+            "description": "the name of the Room the call concerns, if any",
+            "type": "string"
+          },
+          "state": {
+            "description": "waiting, done (approved and run), failed (approved, and the operation failed), denied, expired or canceled (the AI lost access)",
+            "type": "string"
+          },
+          "target": {
+            "description": "what the call acts on",
+            "type": "string"
+          },
+          "url": {
+            "description": "where the person approves or denies it, in the console",
+            "type": "string"
+          },
+          "user": {
+            "description": "handle of the person the AI acts for, who answers the Knock",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "operation",
+          "input",
+          "user",
+          "client",
+          "state",
+          "created_at",
+          "expires_at"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "waiting": {
+      "description": "how many Knocks wait, in all",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "knocks",
+    "waiting"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
 ## `list_logbook`
 
 Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf.
@@ -1227,12 +1517,13 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | `entries[].at` | string | yes |  |
 | `entries[].id` | integer | yes |  |
 | `entries[].operation` | string | yes |  |
-| `entries[].outcome` | string | yes | ok, refused or failed |
+| `entries[].outcome` | string | yes | ok, knocked (waiting for a person's approval), refused or failed |
 | `entries[].via` | string | yes | the adapter the call came through: cli, api, mcp or oauth |
 | `entries[].client` | string | no | the AI, as its token or its connection, and its software, name it |
 | `entries[].connection_id` | integer | no | the connection of the AI, when it connected over OAuth |
 | `entries[].detail` | string | no |  |
 | `entries[].error` | string | no |  |
+| `entries[].knock_id` | integer | no | the Knock that the call made, answered or ran for |
 | `entries[].target` | string | no | what the operation acted on |
 | `entries[].token_id` | integer | no | the personal token the AI presented |
 | `entries[].user` | string | no |  |
@@ -1273,11 +1564,15 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
           "id": {
             "type": "integer"
           },
+          "knock_id": {
+            "description": "the Knock that the call made, answered or ran for",
+            "type": "integer"
+          },
           "operation": {
             "type": "string"
           },
           "outcome": {
-            "description": "ok, refused or failed",
+            "description": "ok, knocked (waiting for a person's approval), refused or failed",
             "type": "string"
           },
           "target": {
@@ -1995,9 +2290,9 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 ## `remove_room_member`
 
-Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner.
+Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs.
 
-Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
 Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
@@ -2495,9 +2790,9 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 ## `set_room_member_role`
 
-Make a person of a team Room an owner or a member of it. A Room keeps at least one owner.
+Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs.
 
-Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
 Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
@@ -2634,11 +2929,11 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
 
 ## `set_user_role`
 
-Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator.
+Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs.
 
 Offered to the AIs of administrators of the Cahut only.
 
-Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).
+Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
 Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
@@ -2731,7 +3026,9 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
 
 ## `set_window_access`
 
-Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person.
+Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs.
+
+Knock first when it makes a Window public: that call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
 Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 

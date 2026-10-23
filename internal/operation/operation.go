@@ -108,8 +108,13 @@ type Op[In, Out any] struct {
 	// Visitors may call the operation before they sign in: it signs them in.
 	Visitors bool
 	// KnockFirst operations cannot be undone, or change what a person may
-	// do. An AI needs the approval of a person to run one: Knock first.
+	// do. An AI needs the approval of a person to run one: its call makes a
+	// Knock. See docs/adr/0021-ais-knock-first.md.
 	KnockFirst bool
+	// KnocksWhen says, for an operation that knocks first for some calls
+	// only, which ones, such as "it makes a Window public". Run calls
+	// Call.Knock for them.
+	KnocksWhen string
 	// Run does the work, inside the transaction of the call. It returns an
 	// error wrapping ErrInvalid, ErrNotFound or ErrForbidden when the caller
 	// is at fault.
@@ -125,6 +130,7 @@ type Info struct {
 	PeopleOnly  bool
 	Visitors    bool
 	KnockFirst  bool
+	KnocksWhen  string
 	Input       reflect.Type
 	Output      reflect.Type
 }
@@ -151,6 +157,12 @@ type Call struct {
 	as             ActorKind // what a Visitor's call is logged as
 	afterCommit    []func()
 	onFailure      []func()
+
+	input    any   // the input of the call, which a Knock keeps
+	knocks   bool  // the call waits for a person: an AI made it, and it knocks first
+	approved int64 // the Knock that a person approved for the call to run
+	knock    int64 // the Knock that the call made or answered, for the Logbook
+	unlogged bool  // the call wrote the entries that the Logbook needs
 }
 
 // Log sets what the Logbook entry of the call says the operation acted on,
@@ -233,11 +245,18 @@ type Registry struct {
 	// sets it; the registry of the server, which people do not call, does
 	// not.
 	CheckPerson func(ctx context.Context, tx *sql.Tx, userID int64) (admin bool, err error)
+
+	// Knock records, in tx, the Knock that a call of an AI makes, or returns
+	// the one that already waits for the same call. Each Cahut sets it; a
+	// registry without it refuses the calls that knock. See
+	// docs/adr/0021-ais-knock-first.md.
+	Knock func(ctx context.Context, tx *sql.Tx, req KnockRequest) (*Knocked, error)
 }
 
 type registered interface {
 	info() Info
 	invoke(ctx context.Context, r *Registry, actor Actor, args json.RawMessage) (any, error)
+	runJSON(ctx context.Context, c *Call, args json.RawMessage) (any, error)
 }
 
 // NewRegistry returns an empty registry over db.
@@ -255,6 +274,9 @@ func Register[In, Out any](r *Registry, op *Op[In, Out]) {
 	}
 	if _, ok := r.ops[op.Name]; ok {
 		panic("operation: " + op.Name + " registered twice")
+	}
+	if op.KnockFirst && op.KnocksWhen != "" {
+		panic("operation: " + op.Name + " knocks first always and when " + op.KnocksWhen)
 	}
 	r.ops[op.Name] = op
 }
@@ -283,6 +305,7 @@ func Do[In, Out any](ctx context.Context, r *Registry, op *Op[In, Out], actor Ac
 	var out Out
 	err := r.run(ctx, op.info(), actor, func(ctx context.Context, c *Call) error {
 		var err error
+		c.input = in
 		out, err = op.Run(ctx, c, in)
 		return err
 	})
@@ -312,26 +335,38 @@ func (op *Op[In, Out]) info() Info {
 		PeopleOnly:  op.PeopleOnly,
 		Visitors:    op.Visitors,
 		KnockFirst:  op.KnockFirst,
+		KnocksWhen:  op.KnocksWhen,
 		Input:       reflect.TypeFor[In](),
 		Output:      reflect.TypeFor[Out](),
 	}
 }
 
 func (op *Op[In, Out]) invoke(ctx context.Context, r *Registry, actor Actor, args json.RawMessage) (any, error) {
-	var out Out
+	var out any
 	err := r.run(ctx, op.info(), actor, func(ctx context.Context, c *Call) error {
-		var in In
-		if len(bytes.TrimSpace(args)) > 0 {
-			dec := json.NewDecoder(bytes.NewReader(args))
-			dec.DisallowUnknownFields()
-			if err := dec.Decode(&in); err != nil {
-				return Invalidf("arguments: %v", err)
-			}
-		}
 		var err error
-		out, err = op.Run(ctx, c, in)
+		out, err = op.runJSON(ctx, c, args)
 		return err
 	})
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// runJSON decodes args, refusing unknown fields, and runs the operation in
+// the call c.
+func (op *Op[In, Out]) runJSON(ctx context.Context, c *Call, args json.RawMessage) (any, error) {
+	var in In
+	if len(bytes.TrimSpace(args)) > 0 {
+		dec := json.NewDecoder(bytes.NewReader(args))
+		dec.DisallowUnknownFields()
+		if err := dec.Decode(&in); err != nil {
+			return nil, Invalidf("arguments: %v", err)
+		}
+	}
+	c.input = in
+	out, err := op.Run(ctx, c, in)
 	if err != nil {
 		return nil, err
 	}
@@ -341,11 +376,13 @@ func (op *Op[In, Out]) invoke(ctx context.Context, r *Registry, actor Actor, arg
 // run checks that actor may call the operation, runs fn in a transaction
 // and writes the Logbook. A change and its entry share the transaction.
 // Every call by an AI is logged, reads included; reads by the
-// administrator or a person are not.
+// administrator or a person are not. A call that knocks first runs to its
+// end, to check it, and is rolled back: it makes a Knock instead.
 func (r *Registry) run(ctx context.Context, info Info, actor Actor, fn func(context.Context, *Call) error) error {
 	logged := !info.ReadOnly || actor.Kind == AI
 	// The precision of the times the store keeps.
 	c := &Call{Actor: actor, Now: r.Now().UTC().Truncate(time.Millisecond)}
+	c.knocks = info.KnockFirst && actor.Kind == AI
 
 	if err := authorize(info, actor); err != nil {
 		return r.fail(ctx, info, c, logged, err)
@@ -364,7 +401,14 @@ func (r *Registry) run(ctx context.Context, info Info, actor Actor, fn func(cont
 	if err == nil {
 		err = fn(ctx, c)
 	}
-	if err == nil && logged && !info.ReadOnly {
+	if err == nil && c.knocks {
+		_ = tx.Rollback() // the call only knocks: it must change nothing
+		for _, f := range c.onFailure {
+			f()
+		}
+		return r.knock(ctx, info, c)
+	}
+	if err == nil && logged && !info.ReadOnly && !c.unlogged {
 		err = logbook.Write(ctx, tx, r.entry(info, c, nil))
 	}
 	if err == nil {
@@ -418,6 +462,7 @@ func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
 		Target:     c.target,
 		Detail:     c.detail,
 		RoomID:     c.room,
+		KnockID:    c.knock,
 		Outcome:    logbook.OK,
 	}
 	if err != nil {
@@ -482,10 +527,6 @@ func (r *Registry) admit(ctx context.Context, info Info, c *Call) error {
 	}
 	if info.Level == CahutAdmin && !c.Admin {
 		return Forbiddenf("%s is for the %s", info.Name, info.Level)
-	}
-	if info.KnockFirst && c.Actor.Kind == AI {
-		return fmt.Errorf("%w: %s changes what a person may do, or cannot be undone, and approvals are not available yet: "+
-			"%s can do it in the console of the Cahut", ErrApprovalRequired, info.Name, c.Actor.Handle)
 	}
 	return nil
 }

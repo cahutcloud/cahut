@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/credential"
+	"cahut.cloud/internal/knock"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/oauth"
 	"cahut.cloud/internal/operation"
@@ -74,6 +76,12 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		Resource:  cfg.BaseURL + "mcp",
 	})
 	auth.Register(r)
+	knock.Register(r, func(id int64) string {
+		if cfg.ConsoleURL == "" {
+			return ""
+		}
+		return cfg.ConsoleURL + "knocks/" + strconv.FormatInt(id, 10)
+	})
 	operation.Register(r, ListLogbook)
 	operation.Register(r, &operation.Op[GetCahutInput, About]{
 		Name:        "get_cahut",

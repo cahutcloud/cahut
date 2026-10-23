@@ -115,6 +115,17 @@ export interface AdminList {
   admins: Admin[];
 }
 
+export interface Answer {
+  knock: Knock;
+  /** what the operation returned, when it ran */
+  output?: unknown;
+}
+
+export interface AnswerInput {
+  /** the number of the Knock */
+  knock: number;
+}
+
 export interface ApproveInput {
   request: Request;
   /** read, or write; at most what the client asks for */
@@ -251,9 +262,11 @@ export interface Entry {
   /** what the operation acted on */
   target?: string;
   detail?: string;
-  /** ok, refused or failed */
+  /** ok, knocked (waiting for a person's approval), refused or failed */
   outcome: string;
   error?: string;
+  /** the Knock that the call made, answered or ran for */
+  knock_id?: number;
 }
 
 export interface File {
@@ -289,6 +302,51 @@ export interface Info {
   created_at: string;
 }
 
+export interface Knock {
+  id: number;
+  /** the operation that the AI called */
+  operation: string;
+  /** the arguments of the call */
+  input: Record<string, unknown>;
+  /** what the call acts on */
+  target?: string;
+  detail?: string;
+  /** the name of the Room the call concerns, if any */
+  room?: string;
+  /** handle of the person the AI acts for, who answers the Knock */
+  user: string;
+  /** the AI that called, as its token or its connection, and its software, name it */
+  client: string;
+  /** waiting, done (approved and run), failed (approved, and the operation failed), denied, expired or canceled (the AI lost access) */
+  state: string;
+  created_at: string;
+  /** when the Knock expires, if no one answers it */
+  expires_at: string;
+  answered_at?: string;
+  /** why the operation failed, once approved */
+  error?: string;
+  /** where the person approves or denies it, in the console */
+  url?: string;
+}
+
+export interface KnockGetInput {
+  /** the number of the Knock */
+  knock: number;
+}
+
+export interface KnockList {
+  knocks: Knock[];
+  /** how many Knocks wait, in all */
+  waiting: number;
+}
+
+export interface KnockListInput {
+  /** only the Knocks that wait */
+  waiting?: boolean;
+  /** how many Knocks, 50 by default, at most 500 */
+  limit?: number;
+}
+
 export type ListAdminsInput = Record<string, never>;
 
 export interface ListConnectedAIsInput {
@@ -297,13 +355,6 @@ export interface ListConnectedAIsInput {
 }
 
 export type ListDomainsInput = Record<string, never>;
-
-export interface ListInput {
-  /** only the Windows of this Room, by its name */
-  room?: string;
-  /** list the Windows in the trash instead */
-  trashed?: boolean;
-}
 
 export interface ListLogbookInput {
   /** how many entries, 50 by default, at most 1000 */
@@ -659,6 +710,13 @@ export interface WindowList {
   windows: Window[];
 }
 
+export interface WindowListInput {
+  /** only the Windows of this Room, by its name */
+  room?: string;
+  /** list the Windows in the trash instead */
+  trashed?: boolean;
+}
+
 /** The operations of a Cahut, at POST /console/api/<operation> of its domain. */
 export interface CahutOperations {
   /** Choose a password from a single-use activation link, and sign in. */
@@ -667,6 +725,8 @@ export interface CahutOperations {
   add_room_member: { input: MemberInput; output: RoomDetail };
   /** Connect an AI client to this Cahut, for the person who consents, with the scope and the Rooms they grant. Returns the address that sends the browser back to the client, with its authorization code. */
   approve_authorization: { input: ApproveInput; output: Redirect };
+  /** Approve a Knock of one of your AIs: the call runs now, as the AI, and what it returns comes to you. It may still fail, if things changed since the AI called. */
+  approve_knock: { input: AnswerInput; output: Answer };
   /** Change your password. Your other sessions end. */
   change_password: { input: ChangePasswordInput; output: PasswordChanged };
   /** Give a person a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. Their password works until they use the link. */
@@ -679,6 +739,8 @@ export interface CahutOperations {
   create_user: { input: CreateUserInput; output: NewUser };
   /** Refuse the request of an AI client to connect to this Cahut. Returns the address that tells the client so. */
   deny_authorization: { input: DenyInput; output: Redirect };
+  /** Deny a Knock of one of your AIs: the call never runs. The AI learns it from get_knock. */
+  deny_knock: { input: AnswerInput; output: Knock };
   /** Check the request of an AI client to connect to this Cahut, and describe it to the person who consents: the client, where it will be sent back, the scope it asks for, and the Rooms the person may grant. */
   describe_authorization: { input: DescribeInput; output: Authorization };
   /** Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. */
@@ -691,12 +753,16 @@ export interface CahutOperations {
   get_account: { input: GetAccountInput; output: Account };
   /** Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. */
   get_cahut: { input: GetCahutInput; output: About };
+  /** Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
+  get_knock: { input: KnockGetInput; output: Knock };
   /** Describe a Room: its title, its owners and members, and how many Windows it holds. */
   get_room: { input: RoomGetInput; output: RoomDetail };
   /** Describe a Window and list its files, optionally with their contents. */
   get_window: { input: WindowGetInput; output: WindowDetail };
   /** List the AIs connected over OAuth, newest first, with the person each acts for, its scope and its Rooms. */
   list_connected_ais: { input: ListConnectedAIsInput; output: ConnectedAIs };
+  /** List Knocks, those that wait first: the calls that cannot be undone, or that change what a person may do, which wait for a person to approve them. An AI lists the Knocks it made; a person, those of their AIs. */
+  list_knocks: { input: KnockListInput; output: KnockList };
   /** Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. */
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
   /** List your Rooms, your personal Room first, with your role and how many members and Windows each has. */
@@ -706,7 +772,7 @@ export interface CahutOperations {
   /** List the people of the Cahut, with their handles, names, roles and states. */
   list_users: { input: ListUsersInput; output: UserList };
   /** List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. */
-  list_windows: { input: ListInput; output: WindowList };
+  list_windows: { input: WindowListInput; output: WindowList };
   /** Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. */
   publish_window: { input: PublishInput; output: Window };
   /** Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. */

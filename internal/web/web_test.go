@@ -40,7 +40,7 @@ func setup(t *testing.T) *fixture {
 	t.Helper()
 	ctx := context.Background()
 	cfg := Config{}
-	srv, err := server.Open(ctx, server.Config{DataDir: t.TempDir(), BaseURL: cfg.BaseURL})
+	srv, err := server.Open(ctx, server.Config{DataDir: t.TempDir(), BaseURL: cfg.BaseURL, ConsoleURL: cfg.ConsoleURL})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +162,7 @@ func TestPublishOverMCP(t *testing.T) {
 	for _, tool := range tools.Tools {
 		names = append(names, tool.Name)
 	}
-	if want := []string{"add_room_member", "create_room", "get_account", "get_cahut", "get_room", "get_window", "list_logbook", "list_rooms",
+	if want := []string{"add_room_member", "create_room", "get_account", "get_cahut", "get_knock", "get_room", "get_window", "list_knocks", "list_logbook", "list_rooms",
 		"list_users", "list_windows", "publish_window", "remove_room_member", "restore_window", "rollback_window", "set_room_member_role",
 		"set_window_access", "trash_window", "update_room", "update_window"}; !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v: those of a member", names, want)
@@ -320,8 +320,8 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 			t.Errorf("disable_user is not marked destructive: %+v", tool.Annotations)
 		}
 	}
-	want := []string{"add_room_member", "create_room", "create_user", "disable_user", "enable_user", "get_account", "get_cahut", "get_room",
-		"get_window", "list_logbook", "list_rooms", "list_users", "list_windows", "publish_window", "remove_room_member",
+	want := []string{"add_room_member", "create_room", "create_user", "disable_user", "enable_user", "get_account", "get_cahut", "get_knock", "get_room",
+		"get_window", "list_knocks", "list_logbook", "list_rooms", "list_users", "list_windows", "publish_window", "remove_room_member",
 		"restore_window", "rollback_window", "set_room_member_role", "set_user_role", "set_window_access", "trash_window", "update_room", "update_window"}
 	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)
@@ -331,7 +331,8 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if text := res.Content[0].(*mcp.TextContent).Text; !res.IsError || !strings.Contains(text, "needs the approval of a person") {
+	if text := res.Content[0].(*mcp.TextContent).Text; !res.IsError || !strings.Contains(text, "Waiting for Camille to approve") ||
+		!strings.Contains(text, "/console/knocks/1") {
 		t.Errorf("disable_user by an AI: %v %q", res.IsError, text)
 	}
 
