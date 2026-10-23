@@ -1,6 +1,6 @@
 // A small router over the History API: the console has a few pages, and
 // the server answers every one of their addresses with the app.
-import type { JSX } from "preact";
+import type { AccessibleAnchorHTMLAttributes, TargetedMouseEvent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 const changed = "cahut:navigate";
@@ -34,8 +34,8 @@ export function usePath(): string {
 }
 
 /** A link to a page of the console, which opens without reloading it. */
-export function Link(props: JSX.HTMLAttributes<HTMLAnchorElement> & { href: string }) {
-	const onClick = (e: JSX.TargetedMouseEvent<HTMLAnchorElement>) => {
+export function Link(props: AccessibleAnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
+	const onClick = (e: TargetedMouseEvent<HTMLAnchorElement>) => {
 		if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
 			return;
 		}
