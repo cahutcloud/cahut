@@ -1,0 +1,960 @@
+/* The classes of the house style, after its variables. They style elements
+   only inside .hs-document, .hs-deck and .hs-dashboard, without
+   specificity, so that the classes below and the CSS of a Window override
+   them. guide.md
+   describes them. Apache-2.0: see LICENSE in this directory. */
+
+/* Roots */
+
+.hs-document,
+.hs-deck,
+.hs-dashboard {
+	--hs-good: color-mix(in srgb, #15803d 72%, var(--hs-text));
+	--hs-bad: color-mix(in srgb, #c2410c 72%, var(--hs-text));
+	color-scheme: var(--hs-scheme);
+	font-family: var(--hs-font-body);
+	color: var(--hs-text);
+	background: var(--hs-background);
+	line-height: 1.55;
+	font-kerning: normal;
+	-webkit-font-smoothing: antialiased;
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard),
+:where(.hs-document, .hs-deck, .hs-dashboard) *,
+:where(.hs-document, .hs-deck, .hs-dashboard) ::before,
+:where(.hs-document, .hs-deck, .hs-dashboard) ::after {
+	box-sizing: border-box;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(h1, h2, h3, h4) {
+	margin: 0;
+	font-family: var(--hs-font-heading);
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: -0.01em;
+	text-wrap: balance;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(p, ul, ol, dl, blockquote, figure, pre, table) {
+	margin: 0;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(a) {
+	color: var(--hs-primary);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.15em;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(img, svg, video, canvas) {
+	max-width: 100%;
+	height: auto;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(code, kbd, samp, pre) {
+	font-family: var(--hs-font-mono);
+	font-size: 0.9em;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(:not(pre) > code) {
+	padding: 0.1em 0.35em;
+	border-radius: 4px;
+	background: var(--hs-surface);
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(pre) {
+	padding: 1em 1.25em;
+	overflow: auto;
+	border: 1px solid var(--hs-line);
+	border-radius: 8px;
+	background: var(--hs-surface);
+	line-height: 1.5;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(blockquote) {
+	padding-left: 1em;
+	border-left: 3px solid var(--hs-secondary);
+	font-size: 1.15em;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(hr) {
+	margin: 2.5em 0;
+	border: 0;
+	border-top: 1px solid var(--hs-line);
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(figcaption) {
+	margin-top: 0.5em;
+	color: var(--hs-muted);
+	font-size: 0.875em;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(table) {
+	width: 100%;
+	border-collapse: collapse;
+	font-variant-numeric: tabular-nums;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(th, td) {
+	padding: 0.6em 0.75em;
+	border-bottom: 1px solid var(--hs-line);
+	text-align: left;
+	vertical-align: top;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(th) {
+	color: var(--hs-muted);
+	font-size: 0.8125em;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	vertical-align: bottom;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(th, td):first-child {
+	padding-left: 0;
+}
+
+:where(.hs-document, .hs-deck, .hs-dashboard) :where(th, td):last-child {
+	padding-right: 0;
+}
+
+/* Parts that any root takes */
+
+.hs-num {
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+	white-space: nowrap;
+}
+
+.hs-logo {
+	display: block;
+	width: auto;
+	height: 2rem;
+	max-width: 12rem;
+	object-fit: contain;
+	object-position: left center;
+}
+
+.hs-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem 1.5rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid var(--hs-line);
+}
+
+.hs-footer {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 0.5rem 1.5rem;
+	padding-top: 1rem;
+	border-top: 1px solid var(--hs-line);
+	color: var(--hs-muted);
+	font-size: 0.875rem;
+}
+
+.hs-meta,
+.hs-muted {
+	color: var(--hs-muted);
+}
+
+.hs-meta {
+	font-size: 0.875rem;
+}
+
+.hs-kicker {
+	display: block;
+	margin: 0 0 0.75em;
+	color: var(--hs-primary);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	line-height: 1.3;
+	text-transform: uppercase;
+}
+
+.hs-lead {
+	color: var(--hs-muted);
+	font-size: 1.25em;
+	line-height: 1.45;
+	text-wrap: pretty;
+}
+
+.hs-callout {
+	padding: 1em 1.25em;
+	border-left: 4px solid var(--hs-primary);
+	border-radius: 0 8px 8px 0;
+	background: var(--hs-surface);
+}
+
+.hs-callout--secondary {
+	border-left-color: var(--hs-secondary);
+}
+
+.hs-card {
+	padding: 1.25em 1.5em;
+	border: 1px solid var(--hs-line);
+	border-radius: 12px;
+	background: var(--hs-surface);
+}
+
+.hs-callout > :last-child,
+.hs-card > :last-child {
+	margin-bottom: 0;
+}
+
+.hs-badge {
+	display: inline-block;
+	padding: 0.15em 0.6em;
+	border: 1px solid var(--hs-line);
+	border-radius: 999px;
+	background: var(--hs-surface);
+	color: var(--hs-text);
+	font-size: 0.75em;
+	font-weight: 600;
+	line-height: 1.5;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.hs-badge--primary {
+	border-color: var(--hs-primary);
+	background: var(--hs-primary);
+	color: var(--hs-on-primary);
+}
+
+.hs-badge--secondary {
+	border-color: var(--hs-secondary);
+	background: var(--hs-secondary);
+	color: var(--hs-on-secondary);
+}
+
+.hs-columns {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+	gap: 1.5rem 2rem;
+}
+
+.hs-columns--2 {
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+.hs-columns--3 {
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+.hs-stat {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25em;
+}
+
+.hs-stat__value {
+	color: var(--hs-primary);
+	font-family: var(--hs-font-heading);
+	font-size: 3em;
+	font-variant-numeric: tabular-nums;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	line-height: 1;
+}
+
+.hs-stat__label {
+	color: var(--hs-muted);
+}
+
+/* Charts: the colors of series, in their order */
+
+.hs-series-1 { --hs-series: var(--hs-chart-1); }
+.hs-series-2 { --hs-series: var(--hs-chart-2); }
+.hs-series-3 { --hs-series: var(--hs-chart-3); }
+.hs-series-4 { --hs-series: var(--hs-chart-4); }
+.hs-series-5 { --hs-series: var(--hs-chart-5); }
+.hs-series-6 { --hs-series: var(--hs-chart-6); }
+.hs-series-7 { --hs-series: var(--hs-chart-7); }
+.hs-series-8 { --hs-series: var(--hs-chart-8); }
+
+.hs-chart {
+	display: block;
+	width: 100%;
+	height: auto;
+	overflow: visible;
+	font-family: var(--hs-font-body);
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+}
+
+.hs-chart text {
+	fill: var(--hs-muted);
+}
+
+.hs-chart :where([class*="hs-series-"]) {
+	fill: var(--hs-series);
+}
+
+.hs-chart .hs-grid {
+	fill: none;
+	stroke: var(--hs-line);
+	stroke-width: 1;
+}
+
+.hs-chart .hs-line {
+	fill: none;
+	stroke: var(--hs-series, var(--hs-chart-1));
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.hs-bars {
+	display: grid;
+	gap: 0.6em;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.hs-bar {
+	display: grid;
+	grid-template-areas: "label bar value";
+	grid-template-columns: minmax(5rem, 30%) 1fr auto;
+	align-items: center;
+	gap: 0.75em;
+	font-variant-numeric: tabular-nums;
+}
+
+.hs-bar > :first-child {
+	grid-area: label;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.hs-bar > :last-child {
+	grid-area: value;
+	color: var(--hs-muted);
+	font-size: 0.875em;
+	text-align: right;
+}
+
+.hs-bar::before {
+	grid-area: bar;
+	content: "";
+	width: calc(clamp(0, var(--value, 0), 1) * 100%);
+	min-width: 2px;
+	height: 0.75em;
+	border-radius: 0 4px 4px 0;
+	background: var(--hs-series, var(--hs-chart-1));
+}
+
+.hs-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4em 1.25em;
+	margin: 0;
+	padding: 0;
+	color: var(--hs-text);
+	font-size: 0.875em;
+	list-style: none;
+}
+
+.hs-legend > * {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45em;
+}
+
+.hs-legend > *::before {
+	content: "";
+	width: 0.75em;
+	height: 0.75em;
+	border-radius: 3px;
+	background: var(--hs-series, var(--hs-chart-1));
+}
+
+/* Document */
+
+.hs-document {
+	margin: 0;
+	padding: clamp(24px, 6vw, 64px) clamp(16px, 5vw, 48px) clamp(48px, 8vw, 96px);
+	font-size: 1.0625rem;
+}
+
+.hs-document > *,
+.hs-document > main > * {
+	max-width: 46rem;
+	margin-inline: auto;
+}
+
+.hs-document > .hs-wide,
+.hs-document > main > .hs-wide {
+	max-width: 64rem;
+}
+
+.hs-document > .hs-header {
+	margin-bottom: clamp(32px, 6vw, 64px);
+}
+
+.hs-document > .hs-footer {
+	margin-top: clamp(48px, 8vw, 96px);
+}
+
+:where(.hs-document) :where(h1) {
+	margin-bottom: 0.45em;
+	font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+	letter-spacing: -0.02em;
+}
+
+:where(.hs-document) :where(h2) {
+	margin: 2.2em 0 0.6em;
+	font-size: 1.6rem;
+}
+
+:where(.hs-document) :where(h3) {
+	margin: 1.8em 0 0.5em;
+	font-size: 1.25rem;
+}
+
+:where(.hs-document) :where(h4) {
+	margin: 1.5em 0 0.4em;
+	font-size: 1rem;
+}
+
+:where(.hs-document) :where(p, ul, ol, dl, blockquote, figure, pre, table, .hs-callout, .hs-card, .hs-columns, .hs-bars, .hs-legend) {
+	margin-bottom: 1.1em;
+}
+
+:where(.hs-document) :where(.hs-lead) {
+	margin-bottom: 1.5em;
+}
+
+:where(.hs-document) :where(li + li) {
+	margin-top: 0.35em;
+}
+
+:where(.hs-document) :where(p, li) {
+	text-wrap: pretty;
+}
+
+/* Deck: 16:9 slides that scale with the width of the deck. Without the
+   engine, they follow one another down the page. */
+
+.hs-deck {
+	container-type: inline-size;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	max-width: 1280px;
+	margin: 0 auto;
+	padding: 24px 16px 48px;
+	background: color-mix(in srgb, var(--hs-text) 10%, var(--hs-background));
+	counter-reset: hs-slide;
+}
+
+/* The deck contains its slides as a container, which stops the browser from
+   painting its background over the whole page: the root paints it. */
+:root:has(> body.hs-deck) {
+	background: color-mix(in srgb, var(--hs-text) 10%, var(--hs-background));
+}
+
+:root:has(> body.hs-live) {
+	background: color-mix(in srgb, var(--hs-text) 85%, #000000);
+}
+
+.hs-slide {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	gap: 2.4cqi;
+	aspect-ratio: 16 / 9;
+	padding: 6cqi 7cqi 9cqi;
+	overflow: hidden;
+	background: var(--hs-background);
+	color: var(--hs-text);
+	font-size: 2.4cqi;
+	line-height: 1.4;
+	counter-increment: hs-slide;
+	box-shadow: 0 1px 2px rgb(0 0 0 / 0.12), 0 4px 16px rgb(0 0 0 / 0.06);
+	print-color-adjust: exact;
+}
+
+/* The logo and the number of the slide, at its foot. */
+.hs-slide::before {
+	content: "";
+	position: absolute;
+	left: 7cqi;
+	bottom: 3cqi;
+	width: 18cqi;
+	height: 3.2cqi;
+	background: var(--hs-logo) left center / contain no-repeat;
+}
+
+.hs-slide::after {
+	content: counter(hs-slide);
+	position: absolute;
+	right: 7cqi;
+	bottom: 3cqi;
+	color: var(--hs-muted);
+	font-size: 1.5cqi;
+	font-variant-numeric: tabular-nums;
+	line-height: 3.2cqi;
+}
+
+:where(.hs-slide) :where(h1) {
+	font-size: 6.4cqi;
+	line-height: 1.04;
+	letter-spacing: -0.025em;
+}
+
+:where(.hs-slide) :where(h2) {
+	font-size: 4.2cqi;
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+}
+
+:where(.hs-slide) :where(h3) {
+	font-size: 2.8cqi;
+}
+
+:where(.hs-slide) :where(ul, ol) {
+	display: grid;
+	gap: 0.55em;
+	padding-left: 1.2em;
+}
+
+:where(.hs-slide) :where(li)::marker {
+	color: var(--hs-primary);
+}
+
+:where(.hs-slide) :where(p, li) {
+	max-width: 40em;
+	text-wrap: pretty;
+}
+
+:where(.hs-slide) :where(table) {
+	font-size: 0.85em;
+}
+
+:where(.hs-slide) :where(img, svg, video) {
+	min-height: 0;
+	max-height: 100%;
+}
+
+.hs-slide .hs-kicker {
+	margin: 0;
+	font-size: 1.5cqi;
+}
+
+.hs-slide .hs-lead {
+	max-width: 36em;
+	font-size: 1.2em;
+}
+
+.hs-slide .hs-columns {
+	flex: 1;
+	min-height: 0;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	align-content: start;
+	gap: 3cqi 4cqi;
+}
+
+.hs-slide .hs-columns--3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.hs-slide .hs-card {
+	padding: 2cqi 2.4cqi;
+	border-radius: 1cqi;
+}
+
+.hs-slide .hs-stat__value {
+	font-size: 8cqi;
+}
+
+.hs-slide .hs-logo {
+	height: 5cqi;
+	max-width: 30cqi;
+}
+
+/* A slide that opens the deck: its title, centered on the height. */
+.hs-slide--title {
+	justify-content: center;
+	border-bottom: 1.4cqi solid var(--hs-primary);
+}
+
+.hs-slide--title::before {
+	top: 6cqi;
+	bottom: auto;
+	width: 26cqi;
+	height: 5cqi;
+}
+
+.hs-slide--title::after,
+.hs-slide--section::after {
+	content: none;
+}
+
+:where(.hs-slide--title) :where(h1) {
+	font-size: 7.2cqi;
+}
+
+/* A slide that opens a part, in the primary color. */
+.hs-slide--section {
+	justify-content: center;
+	background: var(--hs-primary);
+	color: var(--hs-on-primary);
+}
+
+.hs-slide--section::before {
+	background-image: var(--hs-logo-inverse);
+}
+
+:where(.hs-slide--section) :where(h1, h2) {
+	font-size: 6cqi;
+}
+
+.hs-slide--section .hs-kicker,
+.hs-slide--section .hs-lead,
+:where(.hs-slide--section) :where(a) {
+	color: inherit;
+}
+
+.hs-slide--section .hs-lead {
+	opacity: 0.85;
+}
+
+/* A slide with one message, large and centered. */
+.hs-slide--statement {
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+}
+
+:where(.hs-slide--statement) :where(p, blockquote) {
+	max-width: 30em;
+	font-family: var(--hs-font-heading);
+	font-size: 4cqi;
+	font-weight: 600;
+	line-height: 1.2;
+	text-wrap: balance;
+}
+
+:where(.hs-slide--statement) :where(blockquote) {
+	padding: 0;
+	border: 0;
+}
+
+/* A slide on a full picture: its first image covers it. */
+.hs-slide--image {
+	justify-content: flex-end;
+	color: #ffffff;
+}
+
+.hs-slide--image > img:first-child {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	max-height: none;
+	object-fit: cover;
+	z-index: 0;
+}
+
+.hs-slide--image > :not(img:first-child) {
+	position: relative;
+	z-index: 1;
+	text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+.hs-slide--image .hs-kicker {
+	color: inherit;
+}
+
+.hs-slide--image::before {
+	inset: 40% 0 0;
+	z-index: 1;
+	width: auto;
+	height: auto;
+	background: linear-gradient(transparent, rgb(0 0 0 / 0.7));
+}
+
+.hs-slide--image::after {
+	z-index: 2;
+	color: #ffffff;
+}
+
+.hs-notes {
+	display: none;
+}
+
+/* The engine shows one slide at a time, as large as the screen allows. */
+.hs-deck.hs-live {
+	position: fixed;
+	inset: 0;
+	width: min(100vw, 100vh * 16 / 9);
+	height: min(100vh, 100vw * 9 / 16);
+	max-width: none;
+	margin: auto;
+	padding: 0;
+	overflow: hidden;
+	background: color-mix(in srgb, var(--hs-text) 85%, #000000);
+}
+
+.hs-live .hs-slide {
+	position: absolute;
+	inset: 0;
+	box-shadow: none;
+}
+
+.hs-live .hs-slide:not(.hs-current) {
+	visibility: hidden;
+}
+
+.hs-progress {
+	display: none;
+}
+
+.hs-live .hs-progress {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	z-index: 3;
+	display: block;
+	width: calc(var(--hs-at, 0) * 100%);
+	height: 0.4cqi;
+	background: var(--hs-secondary);
+	transition: width 0.2s ease;
+}
+
+.hs-controls {
+	display: none;
+}
+
+.hs-live .hs-controls {
+	position: absolute;
+	right: 2cqi;
+	bottom: 2cqi;
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px;
+	border-radius: 999px;
+	background: rgb(20 20 20 / 0.72);
+	color: #ffffff;
+	font: 600 13px/1 system-ui, sans-serif;
+	font-variant-numeric: tabular-nums;
+	transition: opacity 0.3s ease;
+}
+
+.hs-live.hs-idle .hs-controls {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.hs-live.hs-idle {
+	cursor: none;
+}
+
+.hs-controls button {
+	display: grid;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 0;
+	border-radius: 999px;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: 18px;
+	cursor: pointer;
+}
+
+.hs-controls button:hover,
+.hs-controls button:focus-visible {
+	background: rgb(255 255 255 / 0.16);
+	outline: none;
+}
+
+.hs-controls span {
+	min-width: 4.5em;
+	text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hs-live .hs-progress,
+	.hs-live .hs-controls {
+		transition: none;
+	}
+}
+
+/* Dashboard */
+
+.hs-dashboard {
+	margin: 0;
+	padding: clamp(16px, 3vw, 40px);
+	font-size: 0.9375rem;
+}
+
+.hs-dashboard > * {
+	max-width: 80rem;
+	margin-inline: auto;
+}
+
+.hs-dashboard > .hs-header {
+	margin-bottom: 1.5rem;
+}
+
+.hs-dashboard > .hs-footer {
+	margin-top: 2rem;
+}
+
+:where(.hs-dashboard) :where(h1) {
+	font-size: 1.5rem;
+}
+
+:where(.hs-dashboard) :where(h2) {
+	margin-bottom: 0.9rem;
+	font-size: 1rem;
+}
+
+.hs-kpis {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+	gap: 1rem;
+	margin: 0 0 1rem;
+	padding: 0;
+	list-style: none;
+}
+
+.hs-kpi,
+.hs-panel {
+	min-width: 0;
+	border: 1px solid var(--hs-line);
+	border-radius: 12px;
+	background: var(--hs-surface);
+}
+
+.hs-kpi {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	padding: 1rem 1.25rem;
+}
+
+.hs-kpi__label {
+	color: var(--hs-muted);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.hs-kpi__value {
+	font-family: var(--hs-font-heading);
+	font-size: 2rem;
+	font-variant-numeric: tabular-nums;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	line-height: 1.1;
+}
+
+.hs-kpi__delta {
+	color: var(--hs-muted);
+	font-size: 0.8125rem;
+}
+
+.hs-kpi__delta--up::before {
+	content: "▲ ";
+	color: var(--hs-good);
+}
+
+.hs-kpi__delta--down::before {
+	content: "▼ ";
+	color: var(--hs-bad);
+}
+
+.hs-panels {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+	gap: 1rem;
+}
+
+.hs-panel {
+	padding: 1.25rem 1.5rem;
+}
+
+.hs-panel--wide {
+	grid-column: 1 / -1;
+}
+
+.hs-panel > :last-child {
+	margin-bottom: 0;
+}
+
+.hs-panel :where(.hs-legend, .hs-bars, table, .hs-chart) {
+	margin-bottom: 0.9rem;
+}
+
+/* Print: a page for a document, and a page for each slide. */
+
+@media print {
+	.hs-document,
+	.hs-dashboard {
+		padding: 0;
+	}
+
+	.hs-document :where(figure, table, pre, .hs-callout, .hs-card),
+	.hs-dashboard :where(.hs-kpi, .hs-panel) {
+		break-inside: avoid;
+	}
+
+	.hs-deck,
+	.hs-deck.hs-live {
+		position: static;
+		display: block;
+		width: auto;
+		height: auto;
+		max-width: none;
+		padding: 0;
+		background: none;
+	}
+
+	.hs-slide,
+	.hs-live .hs-slide {
+		position: relative;
+		visibility: visible;
+		box-shadow: none;
+		break-after: page;
+	}
+
+	.hs-controls,
+	.hs-live .hs-controls,
+	.hs-live .hs-progress {
+		display: none;
+	}
+}
+
+@page hs-page {
+	margin: 16mm;
+}
+
+@page hs-slide {
+	size: 13.333in 7.5in;
+	margin: 0;
+}
+
+.hs-document,
+.hs-dashboard {
+	page: hs-page;
+}
+
+.hs-deck {
+	page: hs-slide;
+}

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sales dashboard · {{.Name}}</title>
+<link rel="stylesheet" href="/-/house-style.css">
+</head>
+<body class="hs-dashboard">
+<header class="hs-header">
+	<img class="hs-logo" src="/-/house-style/logo" alt="{{.Name}}">
+	<h1>Sales dashboard</h1>
+	<span class="hs-meta">Updated {{.Date}}</span>
+</header>
+<main>
+	<ul class="hs-kpis">
+		<li class="hs-kpi"><span class="hs-kpi__label">Revenue</span><span class="hs-kpi__value">2,980</span><span class="hs-kpi__delta hs-kpi__delta--up">+12% on last quarter</span></li>
+		<li class="hs-kpi"><span class="hs-kpi__label">Orders</span><span class="hs-kpi__value">1,412</span><span class="hs-kpi__delta hs-kpi__delta--up">+5%</span></li>
+		<li class="hs-kpi"><span class="hs-kpi__label">Average basket</span><span class="hs-kpi__value">211</span><span class="hs-kpi__delta hs-kpi__delta--down">−3%</span></li>
+		<li class="hs-kpi"><span class="hs-kpi__label">Customer rating</span><span class="hs-kpi__value">4.6</span><span class="hs-kpi__delta">out of 5</span></li>
+	</ul>
+	<div class="hs-panels">
+		<section class="hs-panel">
+			<h2>Revenue by region</h2>
+			<ul class="hs-bars" aria-label="Revenue by region, in thousands">
+				<li class="hs-bar" style="--value: 1"><span>North</span><span>1,240</span></li>
+				<li class="hs-bar" style="--value: 0.79"><span>South</span><span>980</span></li>
+				<li class="hs-bar" style="--value: 0.61"><span>West</span><span>760</span></li>
+			</ul>
+		</section>
+		<section class="hs-panel">
+			<h2>Revenue by month</h2>
+			<ul class="hs-legend">
+				<li class="hs-series-1">This year</li>
+				<li class="hs-series-2">Last year</li>
+			</ul>
+			<svg class="hs-chart" viewBox="0 0 360 160" role="img" aria-label="Revenue by month, this year and last year">
+				<line class="hs-grid" x1="32" y1="20" x2="352" y2="20"/>
+				<line class="hs-grid" x1="32" y1="70" x2="352" y2="70"/>
+				<line class="hs-grid" x1="32" y1="120" x2="352" y2="120"/>
+				<text x="0" y="24">300</text>
+				<text x="0" y="74">200</text>
+				<text x="0" y="124">100</text>
+				<polyline class="hs-line hs-series-2" points="40,100 104,96 168,88 232,90 296,80 344,78"/>
+				<polyline class="hs-line hs-series-1" points="40,92 104,80 168,70 232,58 296,46 344,32"/>
+				<text x="40" y="150">Jan</text>
+				<text x="168" y="150">Mar</text>
+				<text x="320" y="150">Jun</text>
+			</svg>
+		</section>
+		<section class="hs-panel hs-panel--wide">
+			<h2>Largest orders</h2>
+			<table>
+				<thead>
+					<tr><th>Customer</th><th>Region</th><th class="hs-num">Amount</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Customer A</td><td>North</td><td class="hs-num">48,200</td></tr>
+					<tr><td>Customer B</td><td>South</td><td class="hs-num">31,750</td></tr>
+					<tr><td>Customer C</td><td>West</td><td class="hs-num">22,900</td></tr>
+				</tbody>
+			</table>
+		</section>
+	</div>
+</main>
+<footer class="hs-footer">
+	<span>{{.Name}}</span>
+	<span>Source: the sales ledger</span>
+</footer>
+</body>
+</html>

@@ -76,7 +76,7 @@ func TestHouseStyleServed(t *testing.T) {
 	}
 	headers("/-/house-style/logo", resp, "image/svg+xml")
 	resp, inverse := f.get(t, "localhost", http.MethodGet, "/-/house-style/logo-inverse")
-	if resp.StatusCode != http.StatusOK || inverse != svg {
+	if resp.StatusCode != http.StatusOK || !strings.Contains(inverse, ">Example Co</text>") {
 		t.Errorf("logo for dark backgrounds, without one = %d %q", resp.StatusCode, inverse)
 	}
 	resp, font := f.get(t, "localhost", http.MethodGet, "/-/house-style/fonts/body-400.woff2")
@@ -143,5 +143,31 @@ func TestWindowsLoadTheHouseStyle(t *testing.T) {
 		if !strings.Contains(csp, want) {
 			t.Errorf("the policy of a Window lacks %q: %q", want, csp)
 		}
+	}
+}
+
+func TestDeckEngineAndTemplates(t *testing.T) {
+	f := setup(t)
+	resp, js := f.get(t, "localhost", http.MethodGet, "/-/deck.js")
+	if resp.StatusCode != http.StatusOK || !strings.Contains(js, `document.querySelector(".hs-deck")`) ||
+		resp.Header.Get("Content-Type") != "text/javascript; charset=utf-8" || resp.Header.Get("Access-Control-Allow-Origin") != "*" {
+		t.Errorf("GET /-/deck.js = %d %v", resp.StatusCode, resp.Header)
+	}
+	f.call(t, "localhost", admin, "set_house_style", `{"name": "Example Co"}`)
+	for _, kind := range []string{"document", "deck", "dashboard"} {
+		resp, page := f.get(t, "localhost", http.MethodGet, "/-/templates/"+kind)
+		csp := resp.Header.Get("Content-Security-Policy")
+		if resp.StatusCode != http.StatusOK || !strings.Contains(page, `class="hs-`+kind+`"`) || !strings.Contains(page, "Example Co") ||
+			!strings.HasPrefix(csp, "sandbox allow-scripts ") || !strings.Contains(csp, "connect-src https://localhost;") {
+			t.Errorf("GET /-/templates/%s = %d, policy %q", kind, resp.StatusCode, csp)
+		}
+	}
+	for _, kind := range []string{"site", "poster"} {
+		if resp, _ := f.get(t, "localhost", http.MethodGet, "/-/templates/"+kind); resp.StatusCode != http.StatusNotFound {
+			t.Errorf("GET /-/templates/%s = %d, want 404", kind, resp.StatusCode)
+		}
+	}
+	if !strings.Contains(instructions, "call get_house_style") || !strings.Contains(instructions, "/-/house-style.css") {
+		t.Errorf("the instructions of the MCP server do not send AIs to the house style: %q", instructions)
 	}
 }

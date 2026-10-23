@@ -17,7 +17,7 @@ A tool returns its result as structured content, and as the same JSON in a text 
 
 The Cahut gives these instructions to the AI when it connects:
 
-> This Cahut keeps what AIs make, on the user's own server. Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, and you get back the address where it opens; give that address to the user. Make index.html a complete page that works on its own. Link its files with relative paths, such as css/deck.css, never /css/deck.css: a Window is served under the address of its Room. Declare what the pages do: whether they run scripts, every origin they load from or call, such as a CDN or a font service, and where their forms send. They can load and call nothing else. Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once. It makes a Knock, which waits for the person you act for: give them the link it returns, where they approve or deny it, then call get_knock to learn the outcome. Every call is recorded in the Logbook of the Cahut.
+> This Cahut keeps what AIs make, on the user's own server. Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, and you get back the address where it opens; give that address to the user. Before you make one, call get_house_style with its kind: start from its template, link the style sheet of the organization, /-/house-style.css, use its classes and variables, and follow its guidance. Make index.html a complete page that works on its own. Link its own files with relative paths, such as css/deck.css, never /css/deck.css: a Window is served under the address of its Room. Only the house style and the deck engine are under /-/. Declare what the pages do: whether they run scripts, every origin they load from or call, such as a CDN or a font service, and where their forms send. They can load and call nothing else. Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once. It makes a Knock, which waits for the person you act for: give them the link it returns, where they approve or deny it, then call get_knock to learn the outcome. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -39,7 +39,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
 | [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. |
-| [`get_house_style`](#get_house_style) | Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, and the path of its style sheet, which a Window links from the root of the domain. |
+| [`get_house_style`](#get_house_style) | Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. |
 | [`get_knock`](#get_knock) | Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
 | [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
 | [`get_window`](#get_window) | Describe a Window and list its files, optionally with their contents. |
@@ -865,13 +865,15 @@ This tool takes no arguments.
 
 ## `get_house_style`
 
-Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, and the path of its style sheet, which a Window links from the root of the domain.
+Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make.
 
 Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
-This tool takes no arguments.
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `kind` | string | no | the kind of Window you make, to get its template: document, deck, dashboard or site |
 
 <details>
 <summary>JSON Schema</summary>
@@ -879,6 +881,12 @@ This tool takes no arguments.
 ```json
 {
   "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "description": "the kind of Window you make, to get its template: document, deck, dashboard or site",
+      "type": "string"
+    }
+  },
   "type": "object"
 }
 ```
@@ -900,6 +908,7 @@ This tool takes no arguments.
 | `colors.secondary` | string | yes | the second color of the brand, for accents, `--hs-secondary` |
 | `colors.surface` | string | yes | the background of cards and panels, `--hs-surface` |
 | `colors.text` | string | yes | body text, `--hs-text` |
+| `deck_engine` | string | yes | the path of the deck engine, from the root of the domain: &lt;script src="/-/deck.js" defer&gt;&lt;/script&gt; in the head of a deck, which then declares that it runs scripts |
 | `fonts` | object | yes |  |
 | `fonts.body` | object | yes | the font of body text, `--hs-font-body` |
 | `fonts.body.fallback` | string | yes | the generic family it falls back on: sans-serif, serif or monospace |
@@ -927,17 +936,22 @@ This tool takes no arguments.
 | `has_logo` | boolean | yes | whether the house style has a logo |
 | `has_logo_inverse` | boolean | yes | whether it has a version of its logo for dark backgrounds |
 | `logo` | string | yes | the path of the logo, from the root of the domain; without a logo, it shows the name of the organization |
-| `logo_inverse` | string | yes | the path of the logo for dark backgrounds; the logo itself when there is no such version |
+| `logo_inverse` | string | yes | the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters |
 | `name` | string | yes | the name of the organization; the domain of the Cahut until an administrator sets one |
 | `neutral` | boolean | yes | whether the Cahut has the neutral house style, which no administrator has changed |
 | `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
 | `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
+| `guide` | string | no | how to use the style sheet, its variables and its classes, in Markdown |
 | `previous` | object or null | no | the previous house style, which rollback_house_style restores; absent when there is none |
 | `previous.neutral` | boolean | yes | whether it is the neutral house style |
 | `previous.set_at` | string | yes |  |
 | `previous.set_by` | string | no |  |
 | `set_at` | string or null | no | when the house style was set; absent for the neutral house style |
 | `set_by` | string | no | the handle of the person who set it, or for whom an AI set it |
+| `template` | object or null | no | the template of the kind asked for |
+| `template.html` | string | yes | index.html of a Window of this kind: keep its structure and its classes, replace its sample content, and give it its own title |
+| `template.kind` | string | yes | the kind of Window it makes |
+| `template.scripts` | boolean | yes | whether it runs scripts, which the Window then declares |
 | `warnings` | array of strings or null | no | what may not read well, and what to change |
 
 <details>
@@ -1009,6 +1023,10 @@ This tool takes no arguments.
         "surface"
       ],
       "type": "object"
+    },
+    "deck_engine": {
+      "description": "the path of the deck engine, from the root of the domain: \u003cscript src=\"/-/deck.js\" defer\u003e\u003c/script\u003e in the head of a deck, which then declares that it runs scripts",
+      "type": "string"
     },
     "fonts": {
       "additionalProperties": false,
@@ -1161,6 +1179,10 @@ This tool takes no arguments.
       "description": "what the organization asks of AIs, such as its tone of voice or rules for charts: follow it",
       "type": "string"
     },
+    "guide": {
+      "description": "how to use the style sheet, its variables and its classes, in Markdown",
+      "type": "string"
+    },
     "has_logo": {
       "description": "whether the house style has a logo",
       "type": "boolean"
@@ -1174,7 +1196,7 @@ This tool takes no arguments.
       "type": "string"
     },
     "logo_inverse": {
-      "description": "the path of the logo for dark backgrounds; the logo itself when there is no such version",
+      "description": "the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters",
       "type": "string"
     },
     "name": {
@@ -1224,6 +1246,33 @@ This tool takes no arguments.
       "description": "the style sheet of the house style, at this path from the root of the domain: link it with \u003clink rel=\"stylesheet\" href=\"/-/house-style.css\"\u003e. The Window declares nothing for it",
       "type": "string"
     },
+    "template": {
+      "additionalProperties": false,
+      "description": "the template of the kind asked for",
+      "properties": {
+        "html": {
+          "description": "index.html of a Window of this kind: keep its structure and its classes, replace its sample content, and give it its own title",
+          "type": "string"
+        },
+        "kind": {
+          "description": "the kind of Window it makes",
+          "type": "string"
+        },
+        "scripts": {
+          "description": "whether it runs scripts, which the Window then declares",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "html",
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
     "warnings": {
       "description": "what may not read well, and what to change",
       "items": {
@@ -1243,6 +1292,7 @@ This tool takes no arguments.
     "logo_inverse",
     "has_logo",
     "has_logo_inverse",
+    "deck_engine",
     "colors",
     "chart_colors",
     "fonts"
@@ -3298,6 +3348,7 @@ This tool takes no arguments.
 | `colors.secondary` | string | yes | the second color of the brand, for accents, `--hs-secondary` |
 | `colors.surface` | string | yes | the background of cards and panels, `--hs-surface` |
 | `colors.text` | string | yes | body text, `--hs-text` |
+| `deck_engine` | string | yes | the path of the deck engine, from the root of the domain: &lt;script src="/-/deck.js" defer&gt;&lt;/script&gt; in the head of a deck, which then declares that it runs scripts |
 | `fonts` | object | yes |  |
 | `fonts.body` | object | yes | the font of body text, `--hs-font-body` |
 | `fonts.body.fallback` | string | yes | the generic family it falls back on: sans-serif, serif or monospace |
@@ -3325,17 +3376,22 @@ This tool takes no arguments.
 | `has_logo` | boolean | yes | whether the house style has a logo |
 | `has_logo_inverse` | boolean | yes | whether it has a version of its logo for dark backgrounds |
 | `logo` | string | yes | the path of the logo, from the root of the domain; without a logo, it shows the name of the organization |
-| `logo_inverse` | string | yes | the path of the logo for dark backgrounds; the logo itself when there is no such version |
+| `logo_inverse` | string | yes | the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters |
 | `name` | string | yes | the name of the organization; the domain of the Cahut until an administrator sets one |
 | `neutral` | boolean | yes | whether the Cahut has the neutral house style, which no administrator has changed |
 | `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
 | `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
+| `guide` | string | no | how to use the style sheet, its variables and its classes, in Markdown |
 | `previous` | object or null | no | the previous house style, which rollback_house_style restores; absent when there is none |
 | `previous.neutral` | boolean | yes | whether it is the neutral house style |
 | `previous.set_at` | string | yes |  |
 | `previous.set_by` | string | no |  |
 | `set_at` | string or null | no | when the house style was set; absent for the neutral house style |
 | `set_by` | string | no | the handle of the person who set it, or for whom an AI set it |
+| `template` | object or null | no | the template of the kind asked for |
+| `template.html` | string | yes | index.html of a Window of this kind: keep its structure and its classes, replace its sample content, and give it its own title |
+| `template.kind` | string | yes | the kind of Window it makes |
+| `template.scripts` | boolean | yes | whether it runs scripts, which the Window then declares |
 | `warnings` | array of strings or null | no | what may not read well, and what to change |
 
 <details>
@@ -3407,6 +3463,10 @@ This tool takes no arguments.
         "surface"
       ],
       "type": "object"
+    },
+    "deck_engine": {
+      "description": "the path of the deck engine, from the root of the domain: \u003cscript src=\"/-/deck.js\" defer\u003e\u003c/script\u003e in the head of a deck, which then declares that it runs scripts",
+      "type": "string"
     },
     "fonts": {
       "additionalProperties": false,
@@ -3559,6 +3619,10 @@ This tool takes no arguments.
       "description": "what the organization asks of AIs, such as its tone of voice or rules for charts: follow it",
       "type": "string"
     },
+    "guide": {
+      "description": "how to use the style sheet, its variables and its classes, in Markdown",
+      "type": "string"
+    },
     "has_logo": {
       "description": "whether the house style has a logo",
       "type": "boolean"
@@ -3572,7 +3636,7 @@ This tool takes no arguments.
       "type": "string"
     },
     "logo_inverse": {
-      "description": "the path of the logo for dark backgrounds; the logo itself when there is no such version",
+      "description": "the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters",
       "type": "string"
     },
     "name": {
@@ -3622,6 +3686,33 @@ This tool takes no arguments.
       "description": "the style sheet of the house style, at this path from the root of the domain: link it with \u003clink rel=\"stylesheet\" href=\"/-/house-style.css\"\u003e. The Window declares nothing for it",
       "type": "string"
     },
+    "template": {
+      "additionalProperties": false,
+      "description": "the template of the kind asked for",
+      "properties": {
+        "html": {
+          "description": "index.html of a Window of this kind: keep its structure and its classes, replace its sample content, and give it its own title",
+          "type": "string"
+        },
+        "kind": {
+          "description": "the kind of Window it makes",
+          "type": "string"
+        },
+        "scripts": {
+          "description": "whether it runs scripts, which the Window then declares",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "html",
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
     "warnings": {
       "description": "what may not read well, and what to change",
       "items": {
@@ -3641,6 +3732,7 @@ This tool takes no arguments.
     "logo_inverse",
     "has_logo",
     "has_logo_inverse",
+    "deck_engine",
     "colors",
     "chart_colors",
     "fonts"
@@ -4267,6 +4359,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `colors.secondary` | string | yes | the second color of the brand, for accents, `--hs-secondary` |
 | `colors.surface` | string | yes | the background of cards and panels, `--hs-surface` |
 | `colors.text` | string | yes | body text, `--hs-text` |
+| `deck_engine` | string | yes | the path of the deck engine, from the root of the domain: &lt;script src="/-/deck.js" defer&gt;&lt;/script&gt; in the head of a deck, which then declares that it runs scripts |
 | `fonts` | object | yes |  |
 | `fonts.body` | object | yes | the font of body text, `--hs-font-body` |
 | `fonts.body.fallback` | string | yes | the generic family it falls back on: sans-serif, serif or monospace |
@@ -4294,17 +4387,22 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `has_logo` | boolean | yes | whether the house style has a logo |
 | `has_logo_inverse` | boolean | yes | whether it has a version of its logo for dark backgrounds |
 | `logo` | string | yes | the path of the logo, from the root of the domain; without a logo, it shows the name of the organization |
-| `logo_inverse` | string | yes | the path of the logo for dark backgrounds; the logo itself when there is no such version |
+| `logo_inverse` | string | yes | the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters |
 | `name` | string | yes | the name of the organization; the domain of the Cahut until an administrator sets one |
 | `neutral` | boolean | yes | whether the Cahut has the neutral house style, which no administrator has changed |
 | `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
 | `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
+| `guide` | string | no | how to use the style sheet, its variables and its classes, in Markdown |
 | `previous` | object or null | no | the previous house style, which rollback_house_style restores; absent when there is none |
 | `previous.neutral` | boolean | yes | whether it is the neutral house style |
 | `previous.set_at` | string | yes |  |
 | `previous.set_by` | string | no |  |
 | `set_at` | string or null | no | when the house style was set; absent for the neutral house style |
 | `set_by` | string | no | the handle of the person who set it, or for whom an AI set it |
+| `template` | object or null | no | the template of the kind asked for |
+| `template.html` | string | yes | index.html of a Window of this kind: keep its structure and its classes, replace its sample content, and give it its own title |
+| `template.kind` | string | yes | the kind of Window it makes |
+| `template.scripts` | boolean | yes | whether it runs scripts, which the Window then declares |
 | `warnings` | array of strings or null | no | what may not read well, and what to change |
 
 <details>
@@ -4376,6 +4474,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
         "surface"
       ],
       "type": "object"
+    },
+    "deck_engine": {
+      "description": "the path of the deck engine, from the root of the domain: \u003cscript src=\"/-/deck.js\" defer\u003e\u003c/script\u003e in the head of a deck, which then declares that it runs scripts",
+      "type": "string"
     },
     "fonts": {
       "additionalProperties": false,
@@ -4528,6 +4630,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
       "description": "what the organization asks of AIs, such as its tone of voice or rules for charts: follow it",
       "type": "string"
     },
+    "guide": {
+      "description": "how to use the style sheet, its variables and its classes, in Markdown",
+      "type": "string"
+    },
     "has_logo": {
       "description": "whether the house style has a logo",
       "type": "boolean"
@@ -4541,7 +4647,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
       "type": "string"
     },
     "logo_inverse": {
-      "description": "the path of the logo for dark backgrounds; the logo itself when there is no such version",
+      "description": "the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters",
       "type": "string"
     },
     "name": {
@@ -4591,6 +4697,33 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
       "description": "the style sheet of the house style, at this path from the root of the domain: link it with \u003clink rel=\"stylesheet\" href=\"/-/house-style.css\"\u003e. The Window declares nothing for it",
       "type": "string"
     },
+    "template": {
+      "additionalProperties": false,
+      "description": "the template of the kind asked for",
+      "properties": {
+        "html": {
+          "description": "index.html of a Window of this kind: keep its structure and its classes, replace its sample content, and give it its own title",
+          "type": "string"
+        },
+        "kind": {
+          "description": "the kind of Window it makes",
+          "type": "string"
+        },
+        "scripts": {
+          "description": "whether it runs scripts, which the Window then declares",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "html",
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
     "warnings": {
       "description": "what may not read well, and what to change",
       "items": {
@@ -4610,6 +4743,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "logo_inverse",
     "has_logo",
     "has_logo_inverse",
+    "deck_engine",
     "colors",
     "chart_colors",
     "fonts"

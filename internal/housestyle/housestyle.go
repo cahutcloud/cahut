@@ -32,9 +32,10 @@ type HouseStyle struct {
 	Neutral        bool       `json:"neutral" jsonschema:"whether the Cahut has the neutral house style, which no administrator has changed"`
 	Stylesheet     string     `json:"stylesheet" jsonschema:"the style sheet of the house style, at this path from the root of the domain: link it with <link rel=\"stylesheet\" href=\"/-/house-style.css\">. The Window declares nothing for it"`
 	Logo           string     `json:"logo" jsonschema:"the path of the logo, from the root of the domain; without a logo, it shows the name of the organization"`
-	LogoInverse    string     `json:"logo_inverse" jsonschema:"the path of the logo for dark backgrounds; the logo itself when there is no such version"`
+	LogoInverse    string     `json:"logo_inverse" jsonschema:"the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters"`
 	HasLogo        bool       `json:"has_logo" jsonschema:"whether the house style has a logo"`
 	HasLogoInverse bool       `json:"has_logo_inverse" jsonschema:"whether it has a version of its logo for dark backgrounds"`
+	DeckEngine     string     `json:"deck_engine" jsonschema:"the path of the deck engine, from the root of the domain: <script src=\"/-/deck.js\" defer></script> in the head of a deck, which then declares that it runs scripts"`
 	Colors         Palette    `json:"colors"`
 	ChartColors    []string   `json:"chart_colors" jsonschema:"the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled"`
 	Fonts          Fonts      `json:"fonts"`
@@ -43,6 +44,8 @@ type HouseStyle struct {
 	SetBy          string     `json:"set_by,omitempty" jsonschema:"the handle of the person who set it, or for whom an AI set it"`
 	Previous       *Previous  `json:"previous,omitempty" jsonschema:"the previous house style, which rollback_house_style restores; absent when there is none"`
 	Warnings       []string   `json:"warnings,omitempty" jsonschema:"what may not read well, and what to change"`
+	Guide          string     `json:"guide,omitempty" jsonschema:"how to use the style sheet, its variables and its classes, in Markdown"`
+	Template       *Template  `json:"template,omitempty" jsonschema:"the template of the kind asked for"`
 }
 
 // Palette is the colors of a house style, as #rrggbb, and the CSS variables
@@ -92,7 +95,9 @@ type Previous struct {
 }
 
 // GetInput is the input of get_house_style.
-type GetInput struct{}
+type GetInput struct {
+	Kind string `json:"kind,omitempty" jsonschema:"the kind of Window you make, to get its template: document, deck, dashboard or site"`
+}
 
 // Register adds the operations of the house style of the Cahut at domain
 // to r.
@@ -100,15 +105,22 @@ func Register(r *operation.Registry, domain string) {
 	operation.Register(r, &operation.Op[GetInput, HouseStyle]{
 		Name: "get_house_style",
 		Description: "Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, " +
-			"what it asks of AIs, and the path of its style sheet, which a Window links from the root of the domain.",
+			"what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, " +
+			"and the template of the kind of Window you make.",
 		ReadOnly: true,
-		Run: func(ctx context.Context, c *operation.Call, _ GetInput) (HouseStyle, error) {
-			c.Log("house style", "")
+		Run: func(ctx context.Context, c *operation.Call, in GetInput) (HouseStyle, error) {
+			c.Log("house style", in.Kind)
+			if _, ok := kinds[in.Kind]; in.Kind != "" && !ok {
+				return HouseStyle{}, operation.Invalidf("kind %q: use document, deck, dashboard or site", in.Kind)
+			}
 			cur, prev, err := load(ctx, c.Tx, false)
 			if err != nil {
 				return HouseStyle{}, err
 			}
-			return describe(cur, prev, domain), nil
+			h := describe(cur, prev, domain)
+			h.Guide = guide
+			h.Template, err = render(in.Kind, h.Name, c.Now)
+			return h, err
 		},
 	})
 	operation.Register(r, &operation.Op[SetInput, HouseStyle]{
@@ -168,7 +180,7 @@ func describe(cur, prev *version, domain string) HouseStyle {
 	h := HouseStyle{
 		Name:       s.Name,
 		Neutral:    cur == nil || cur.neutral(),
-		Stylesheet: SheetPath, Logo: LogoPath, LogoInverse: LogoInversePath,
+		Stylesheet: SheetPath, Logo: LogoPath, LogoInverse: LogoInversePath, DeckEngine: DeckPath,
 		Guidance: s.Guidance,
 	}
 	if h.Name == "" {
@@ -183,6 +195,10 @@ func describe(cur, prev *version, domain string) HouseStyle {
 		h.Fonts.Heading = fontOf(s.Heading, files)
 	}
 	h.Warnings = warnings(h.Colors)
+	if h.HasLogo && !h.HasLogoInverse {
+		h.Warnings = append(h.Warnings, "logo_inverse is missing: on dark backgrounds, such as the slides that open a part, "+
+			"the name of the organization shows in place of the logo; give a version of the logo for dark backgrounds")
+	}
 	if cur != nil && !h.Neutral {
 		at := cur.setAt
 		h.SetAt, h.SetBy = &at, cur.setBy

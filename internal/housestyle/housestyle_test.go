@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/logbook"
@@ -327,8 +329,11 @@ func TestLogos(t *testing.T) {
 
 	h = f.must(t, f.admin, "set_house_style", `{"logo_inverse": {"content": ""}}`)
 	b, _ = Logo(ctx, f.db, "cahut.test", true)
-	if h.HasLogoInverse || !h.HasLogo || string(b.Content) != svg {
+	if h.HasLogoInverse || !h.HasLogo || !strings.Contains(string(b.Content), `fill="#ffffff"`) || !strings.Contains(string(b.Content), "&lt;A &amp; B&gt;</text>") {
 		t.Errorf("without a logo for dark backgrounds, it serves %s", b.Content)
+	}
+	if len(h.Warnings) != 1 || !strings.HasPrefix(h.Warnings[0], "logo_inverse is missing") {
+		t.Errorf("warnings without a logo for dark backgrounds = %q", h.Warnings)
 	}
 
 	for _, tc := range []struct{ args, want string }{
@@ -461,7 +466,71 @@ func TestSheetFollowsTheHouseStyle(t *testing.T) {
 	f.must(t, f.admin, "set_house_style", `{"name": "End */ of comment", "colors": {"text": "#eeeeee", "background": "#101010", "primary": "#80b0ff"}}`)
 	b, _ := Sheet(ctx, f.db, "cahut.test")
 	if b.ETag == a.ETag || !strings.Contains(string(b.Content), "--hs-primary: #80b0ff;") || !strings.Contains(string(b.Content), "--hs-scheme: dark;") ||
-		strings.Count(string(b.Content), "*/") != 1 {
+		!strings.Contains(string(b.Content), "house style of End * / of comment,") || !strings.Contains(string(b.Content), ".hs-slide--title {") {
 		t.Errorf("sheet after a change = %s", b.Content)
+	}
+}
+
+func TestTemplates(t *testing.T) {
+	f := setup(t)
+	f.must(t, f.admin, "set_house_style", `{"name": "Example <&> Co"}`)
+	h := f.must(t, f.memberAI, "get_house_style", ``)
+	if h.Template != nil || !strings.HasPrefix(h.Guide, "# The house style sheet") || h.DeckEngine != "/-/deck.js" {
+		t.Errorf("get_house_style without kind = template %v, guide %.40q, engine %q", h.Template, h.Guide, h.DeckEngine)
+	}
+	for kind, want := range map[string]string{
+		"document":  `<body class="hs-document">`,
+		"site":      `<body class="hs-document">`,
+		"deck":      `<script src="/-/deck.js" defer></script>`,
+		"dashboard": `<ul class="hs-kpis">`,
+	} {
+		h := f.must(t, f.memberAI, "get_house_style", `{"kind": "`+kind+`"}`)
+		tpl := h.Template
+		if tpl == nil || tpl.Kind != kind || !strings.Contains(tpl.HTML, want) || tpl.Scripts != (kind == "deck") ||
+			!strings.Contains(tpl.HTML, `<link rel="stylesheet" href="/-/house-style.css">`) || !strings.Contains(tpl.HTML, "Example &lt;&amp;&gt; Co") {
+			t.Errorf("template of %s = %+v", kind, tpl)
+		}
+	}
+	if _, err := f.call(t, f.memberAI, "get_house_style", `{"kind": "poster"}`); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("get_house_style of an unknown kind: %v", err)
+	}
+	page, ok, err := TemplatePage(context.Background(), f.db, "cahut.test", "deck", time.Now())
+	if err != nil || !ok || !strings.Contains(string(page), `<section class="hs-slide hs-slide--title">`) {
+		t.Errorf("TemplatePage(deck) = %.80q, %v, %v", page, ok, err)
+	}
+	if _, ok, _ := TemplatePage(context.Background(), f.db, "cahut.test", "site", time.Now()); ok {
+		t.Error("TemplatePage(site) exists; the document is the template of a site")
+	}
+}
+
+// The guide that AIs read names every class of the sheet, and the
+// templates use only classes of the sheet.
+func TestGuideNamesEveryClass(t *testing.T) {
+	class := regexp.MustCompile(`\bhs-[a-z0-9]+(?:-[a-z0-9]+)*(?:__[a-z]+)?(?:--[a-z0-9]+)?\b`)
+	sheet := map[string]bool{}
+	for _, m := range regexp.MustCompile(`\.(hs-[a-z0-9_-]+)`).FindAllStringSubmatch(string(kitCSS), -1) {
+		sheet[m[1]] = true
+	}
+	if len(sheet) < 40 {
+		t.Fatalf("found %d classes in the sheet", len(sheet))
+	}
+	named := map[string]bool{}
+	for _, c := range class.FindAllString(guide, -1) {
+		named[c] = true
+	}
+	for c := range sheet {
+		if !named[c] {
+			t.Errorf("the guide does not name the class %s", c)
+		}
+	}
+	for _, name := range []string{"document", "deck", "dashboard"} {
+		b, _ := kit.ReadFile("kit/templates/" + name + ".html")
+		for _, m := range regexp.MustCompile(`class="([^"]+)"`).FindAllStringSubmatch(string(b), -1) {
+			for _, c := range strings.Fields(m[1]) {
+				if !sheet[c] {
+					t.Errorf("the template %s uses the class %s, which the sheet lacks", name, c)
+				}
+			}
+		}
 	}
 }
