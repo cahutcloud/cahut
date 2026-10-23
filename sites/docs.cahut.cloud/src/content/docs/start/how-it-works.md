@@ -22,7 +22,7 @@ A server runs one `cahut` service, which holds one or more Cahuts. Each Cahut ha
 
 An AI acts on a Cahut only through typed operations, such as `publish_window`. Whatever the way in, MCP for AIs or the command line for the administrator, each call goes through the same registry: it checks who calls, runs the operation and writes the Logbook. The [operations reference](/reference/operations/) lists them all.
 
-What can be undone, the AI does on its own. What cannot is meant to wait for a person to approve it: this rule is called Knock first. See [Knock first and the Logbook](/concepts/knock-first-and-logbook/).
+What can be undone, the AI does on its own. What cannot waits for the person the AI acts for to approve it in the console: this rule is called Knock first. See [Knock first and the Logbook](/concepts/knock-first-and-logbook/).
 
 ## What Cahut does not do
 

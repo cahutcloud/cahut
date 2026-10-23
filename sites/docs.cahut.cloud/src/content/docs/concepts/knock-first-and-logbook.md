@@ -20,17 +20,30 @@ No way in can skip a step, since none has another way to act. The [operations re
 
 ## Knock first
 
-What can be undone, the AI does on its own. What cannot waits for a person to approve it.
+What can be undone, the AI does on its own. What cannot, and what changes what a person may do, waits for the person the AI acts for.
 
-Each operation declares whether it knocks first: whether it cannot be undone, or changes what a person may do. When an AI calls one, the registry refuses the call: the error says that it needs the approval of a person, and the Logbook records the call as refused. A person who calls it acts at once. Approvals are not available yet, so AIs cannot run these operations; the [operations reference](/reference/operations/#knock-first) lists them.
+When an AI calls such an operation, the call does not run. Cahut checks it as if it ran, so that a mistake comes back to the AI at once, then makes a Knock: a request that waits 24 hours. The AI gets the link of the Knock, such as `https://cahut.example.com/console/knocks/12`, and gives it to you.
 
-As planned, an irreversible call will create a request that waits for a person, with an expiry. The AI gives the user a link, a person approves or declines in the console, and the Logbook records both steps. These will need an approval:
+The link opens the Knock in the console, where you sign in if you need to. It says which AI asks, what it asks in plain words, the details of the call, and when it expires. **Approve** runs the call, as the AI asked it, and shows you what it gave back that you need, such as the link where a new person chooses their password. **Decline** drops it. The AI learns the outcome with [`get_knock`](/reference/mcp-tools/#get_knock).
 
-- deleting a Window for good;
-- making a Window public;
-- adding a person to a Cahut;
-- changing the permissions of a person or of an AI;
-- erasing backups, or changing where they go.
+- Only the person the AI acts for answers its Knocks: not another person, not an administrator, and never an AI.
+- Cahut checks the call again when you approve it, as things stand then. A Knock may still fail, if the Window is gone or the AI lost a Room: it says why, and nothing changes.
+- A Knock that nobody answers expires after 24 hours. A Knock whose AI lost its access before an answer is canceled: its token was revoked, its connection ended, or its person was disabled.
+- The same call, made again while its Knock waits, gets the same Knock. An AI has at most 20 Knocks waiting.
+- **Knocks**, in the console's navigation, counts those that wait for you, and so does the title of the console's tab.
+
+These operations knock first when an AI calls them:
+
+| Operation | Why |
+| --- | --- |
+| `set_window_access`, to make a Window public | Once a public Window is read, that cannot be taken back |
+| `purge_window` | It deletes a Window in the trash for good |
+| `delete_room` | It deletes a team Room for good, with its Windows |
+| `create_user`, `set_user_role`, `disable_user`, `enable_user` | They change who acts in the Cahut |
+| `add_room_member`, `set_room_member_role`, `remove_room_member` | They change who opens and publishes in a Room |
+| `set_ai_reach`, to widen what an AI reaches | It gives an AI more than its person granted |
+
+A person who calls one of these operations in the console acts at once, after a confirmation. The [operations reference](/reference/operations/#knock-first) lists them too. Erasing backups, or changing where they go, will knock first when backups come.
 
 ## The Logbook
 
@@ -43,13 +56,14 @@ Each Cahut has a Logbook, and the server has one for its own operations. An entr
 | `WHO` | `admin`, a person, or an AI: the name of its token and its software, for the person it acts for |
 | `VIA` | The way in: `mcp` for AIs, `api` for the console, `cli` for the command line |
 | `TARGET` | What the operation acted on, such as `you/q3-review` |
-| `OUTCOME` | `ok`, `refused` or `failed`, with the error |
+| `OUTCOME` | `ok`, `knocked`, `refused` or `failed`, with the error |
 
 An entry also keeps a detail, such as the kind, title, number of files and size of a published Window.
 
 What goes to the Logbook:
 
 - every call of an AI, reads included, whatever its outcome;
+- the call of an AI that knocks, as `knocked`, then, under the number of its Knock, its approval, as the call of the AI through the console (`api`), or its decline, as `deny_knock`;
 - every change made by the administrator or by a person, including those refused or failed;
 - every sign-in, under the person who signs in, refused ones included.
 

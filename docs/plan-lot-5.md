@@ -1,6 +1,6 @@
 # Cahut · Plan du lot 5 : Knock first
 
-23 octobre 2026 · Olivier Durand · Validé
+23 octobre 2026 · Olivier Durand · Validé, achevé
 
 ## En bref
 
@@ -135,3 +135,43 @@ Soit environ 6,5 jours. Les pull requests s'enchaînent dans l'ordre.
 - Effacer des sauvegardes ou en changer la destination : avec les sauvegardes, après la V0.
 - Vider la corbeille d'elle-même au bout d'un temps : après la V0.
 - Supprimer une personne : pas en V0, où on la désactive ([ADR 13](adr/0013-people-sessions-and-rights.md)).
+
+## Bilan
+
+Le lot 5 s'est achevé le 23 octobre 2026, en cinq pull requests :
+
+| # | Pull request | Contenu |
+| --- | --- | --- |
+| 1 | #57 | Le plan et l'ADR 21 |
+| 2 | #58 | Les Knocks dans le registre, le paquet `knock`, ses quatre opérations ; les opérations du lot 2 et l'accès public frappent |
+| 3 | #60 | `purge_window`, `delete_room`, `set_ai_reach`, et des identifiants de Rooms et de Windows jamais réutilisés |
+| 4 | #61 | La console : Knocks et leur page, compteur, purge, suppression d'une Room, portée d'une IA |
+| 5 | #62 | Documentation, site, staging, bilan |
+
+**Écarts par rapport au plan.**
+
+- La migration `cahut/0009` refait la table du Logbook : SQLite ne change pas la contrainte de sa colonne `outcome`, qui doit admettre `knocked`.
+- Une migration de plus, `cahut/0010` : SQLite donne à une nouvelle ligne le plus grand identifiant plus un, si bien qu'une Room supprimée aurait cédé son identifiant à la suivante, dont les membres auraient lu le Logbook de l'ancienne. Les tables `rooms` et `windows` sont refaites avec `AUTOINCREMENT`. Une migration qui commence par `-- foreign keys off` s'exécute désormais clés étrangères coupées, comme SQLite le demande, et les vérifie avant de valider.
+- `set_ai_reach` est offerte aux IA en lecture seule par un nouveau drapeau des opérations, `ReadOnlyAIs`.
+- `delete_room` vit dans le paquet `window`, qui garde les fichiers des Windows.
+- Les états expiré et annulé ne s'écrivent pas en base : ils se lisent de l'heure, et du jeton ou de la connexion de l'IA. L'état annulé s'écrit `canceled`, en anglais américain comme le veut le linter : l'ADR 21 est corrigée en ce sens.
+- La console dit « Decline », comme la carte Knock du kit de la charte ; l'opération reste `deny_knock`.
+- Ce que rend une approbation, comme le lien d'activation d'une personne créée, s'affiche aussi sur la liste des Knocks, pas seulement sur la page d'un Knock.
+- Au scénario du lot 2, l'IA de Bruno, qui n'est pas propriétaire de `marketing`, est refusée tout de suite au lieu de frapper : l'appel est vérifié avant de devenir un Knock.
+- Pas de nouvelle dépendance.
+
+**Essais.**
+
+- Les tests couvrent la vérification à blanc (rien ne change, en base ni sur le disque), l'appel faux refusé tout de suite, les Knocks conditionnels, l'approbation exécutée comme l'IA puis revérifiée, l'échec à l'approbation, le refus, l'expiration, l'annulation par jeton révoqué ou connexion terminée, le même Knock pour le même appel, la limite de 20, le lien d'activation remis à la personne et jamais à l'IA, seule la personne qui répond ; la purge, la suppression d'une Room, `set_ai_reach` ; la migration 0010 sur une base de la migration 9 ; de bout en bout, un Knock fait par MCP et approuvé par l'API de la console.
+- En local, dans le panneau de navigateur, contre le serveur de développement et ses données, mises à jour par les migrations 9 et 10 : une IA de test frappe par MCP pour rendre une Window publique et ajouter une personne ; le lien du Knock connecte sur place et y reste ; l'approbation rend la Window publique et `get_knock` le dit ; le lien d'activation s'affiche après l'approbation depuis la liste ; un nouveau Knock apparaît dans le compteur et dans le titre de l'onglet en moins de 30 secondes ; refus d'une purge ; le Logbook et ses liens vers les Knocks ; purge d'une Window et suppression d'une Room, fichiers effacés, identifiant non réutilisé ; une IA en lecture seule frappe pour écrire, puis « Change » lui donne toutes les Rooms ; la page d'un Knock à 375 px.
+- Sur le staging, la version du lot est installée (0.2.1-0.20261023091304-c51a955d85e1), avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-23-batch5`. Les migrations sont passées, et les Windows, leurs versions, leurs Keys et leurs déclarations sont intactes. Le connecteur `cahut-staging` de Claude Code s'est reconnecté avec les nouveaux outils et les nouvelles consignes. Claude a publié [Batch 5 demo](https://staging.cahut.cloud/marketing/batch-5-demo/) dans `marketing`, puis demandé à la rendre publique : le Knock 1 attend, la Window reste fermée aux inconnus, et `get_knock` dit `waiting`.
+
+**Reste à faire.**
+
+- La démonstration de fin de lot, avec le compte d'Olivier : ouvrir [le Knock 1](https://staging.cahut.cloud/console/knocks/1) avant le 24 octobre à 09:13 UTC et l'approuver, ouvrir la Window en navigation privée, faire appeler `get_knock` à Claude, lire les deux étapes au Logbook. Puis le refus d'une purge, et une IA en lecture seule qui demande l'écriture.
+- Firefox et Safari, toujours, depuis le lot 4.
+
+**Suites.**
+
+- Les notifications par e-mail, avec l'envoi d'e-mails, après la V0.
+- `cahut logbook`, en ligne de commande, ne montre pas encore le numéro du Knock d'une entrée.

@@ -24,14 +24,16 @@ An administrator creates accounts in the console, under **People**, or on the co
 | Screen | What it shows |
 | --- | --- |
 | Overview | The latest Windows of your Rooms, and your Rooms |
-| A Room | Its Windows, each with its access, its trash, and its people; owners add and remove people, and rename the Room |
-| A Window | Where it opens; its access, its end date and its Key, which shows once, next to the address, ready to copy; its two versions, with a button that goes back; what its AI declared it does; the trash |
+| Knocks | What your AIs asked that waits for you, with Approve and Decline, then what you answered and what expired; the navigation counts those that wait |
+| A Knock | Where the link of an AI leads: what it asks, the details of the call, when it expires, Approve and Decline, then what the call gave back |
+| A Room | Its Windows, each with its access, its trash, and its people; owners add and remove people, rename the Room, and delete a team Room for good once its name is typed |
+| A Window | Where it opens; its access, its end date and its Key, which shows once, next to the address, ready to copy; its two versions, with a button that goes back; what its AI declared it does; the trash, and deleting it for good from there |
 | Rooms | A new team Room, of which you become the owner |
 | Logbook | What you did, what your AIs did, and what happened in your Rooms, by day, with filters |
-| AIs and access | The address to give an AI client; your connected AIs, with what they may do and where, and Disconnect; your personal tokens: create one, shown once with the command that connects Claude Code, and revoke it in one click |
+| AIs and access | The address to give an AI client; your connected AIs, with what they may do and where, Change and Disconnect; your personal tokens: create one, shown once with the command that connects Claude Code, and revoke it in one click |
 | Account | A new password, and signing out |
 
-A change to what someone may do, such as adding a person to a Room, and making a Window public, ask you to confirm first. An AI cannot make these changes yet: see [Knock first](/concepts/knock-first-and-logbook/#knock-first).
+A change to what someone may do, such as adding a person to a Room, making a Window public, and deleting anything for good, ask you to confirm first. When your AI asks for one of these changes, it knocks first: the change waits for you under **Knocks**. See [Knock first](/concepts/knock-first-and-logbook/#knock-first).
 
 ## What an administrator of the Cahut finds
 
