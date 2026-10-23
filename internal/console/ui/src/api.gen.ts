@@ -859,6 +859,8 @@ export interface SetupLink {
   /** the first person opens the console of the Cahut at /setup#<code> */
   code: string;
   expires_at: string;
+  /** whether the first person, today, would also become the administrator of the server, which has none */
+  server_admin: boolean;
 }
 
 export interface SignInInput {
