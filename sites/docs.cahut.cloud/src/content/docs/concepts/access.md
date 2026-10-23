@@ -41,9 +41,9 @@ A reader session is no session of the console: it opens Windows, and calls no op
 | Who | What they set |
 | --- | --- |
 | The members of the Room | Every access, its end and its Key, in the console |
-| Their AIs | Room only, internal and Key, with `set_window_access`, within the Rooms they were granted |
+| Their AIs | Room only, internal and Key, with `set_window_access`, within the Rooms they were granted; public, once their person approves |
 
-Opening a Window to its Cahut or to the holders of a Key keeps it among people the organization chose, and can be undone at once: an AI does it alone. Making a Window public cannot be taken back once it is read: an AI that asks gets an error that sends its person to the console, until [Knock first](/concepts/knock-first-and-logbook/#knock-first) lets the AI ask and a person approve. In the console, making a Window public asks to confirm first.
+Opening a Window to its Cahut or to the holders of a Key keeps it among people the organization chose, and can be undone at once: an AI does it alone. Making a Window public cannot be taken back once it is read: an AI that asks [knocks first](/concepts/knock-first-and-logbook/#knock-first), and the Window opens to the public once its person approves in the console. In the console, making a Window public asks to confirm first.
 
 ## How a protected Window is served
 

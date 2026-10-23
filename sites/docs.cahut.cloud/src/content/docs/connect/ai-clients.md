@@ -34,7 +34,9 @@ An AI never gets more than its person: if you leave a Room, or an administrator 
 
 ## Connected AIs
 
-**AIs and access** lists your connected AIs: the client, what it may do, its Rooms, when it last acted and its state. **Disconnect** cuts one off: its next call is refused. To change what an AI may do, disconnect it and connect it again.
+**AIs and access** lists your connected AIs: the client, what it may do, its Rooms, when it last acted and its state. **Change** sets what it may do and where, as on the consent screen. **Disconnect** cuts one off: its next call is refused.
+
+An AI can ask for more itself, such as write access or another Room, with [`set_ai_reach`](/reference/mcp-tools/#set_ai_reach): it [knocks first](/concepts/knock-first-and-logbook/#knock-first), and gets it once you approve. An AI that may only read is offered this tool too, for that. Narrowing what it reaches, it does at once.
 
 | State | What it means |
 | --- | --- |

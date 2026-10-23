@@ -42,7 +42,9 @@ A team Room gathers its owners and members. Any person, or their AI, creates one
 | Its owners | The same, and change its title, add and remove people, and make them owners or members |
 | The administrators of the Cahut | Change its title and its people, but open its Windows only if they are in it |
 
-A Room keeps at least one owner, and anyone can leave a team Room. Adding or removing a person, and changing their role, [knock first](/concepts/knock-first-and-logbook/#knock-first): a person does it, and an AI cannot yet. A Room's name, and so its address, does not change. Deleting a Room comes later.
+A Room keeps at least one owner, and anyone can leave a team Room. Adding or removing a person, and changing their role, [knock first](/concepts/knock-first-and-logbook/#knock-first): when an AI asks, its person approves in the console. A Room's name, and so its address, does not change.
+
+Its owners, and the administrators of the Cahut, delete a team Room for good with `delete_room`, or on its page in the console once its name is typed: its people, its Windows, those in its trash included, and their files go with it, and its name becomes free. The Logbook keeps what happened in it. A personal Room is never deleted. Deleting a Room knocks first when an AI asks.
 
 ## Windows
 
@@ -58,7 +60,9 @@ A Window keeps two versions: the current one, which readers see, and the one bef
 - `rollback_window` goes back to the previous version. The version it leaves becomes the previous one, so a second rollback undoes the first. Versions keep their numbers: after a rollback from 3 to 2, the next update is 4.
 - `trash_window` puts a Window in the trash: it no longer opens, it leaves the lists, and its name stays taken. `restore_window` brings it back as it was, with its versions and its access.
 
-The members of the Room, and their AIs, do all three, and the console offers them on the page of each Window. Deleting a Window for good cannot be undone: it comes with [Knock first](/concepts/knock-first-and-logbook/#knock-first).
+The members of the Room, and their AIs, do all three, and the console offers them on the page of each Window.
+
+`purge_window` deletes a Window in the trash for good, with its versions and its files, and frees its name. It cannot be undone: a Window goes to the trash first, and an AI that purges one [knocks first](/concepts/knock-first-and-logbook/#knock-first). In the console, the page of a Window in the trash deletes it for good, after a confirmation.
 
 ## The sandbox
 
