@@ -38,6 +38,168 @@
 	gap: var(--space-2);
 }
 
+/* The first start of a Cahut, on a full screen. See
+   docs/adr/0025-first-start-in-the-browser.md. */
+.setup {
+	min-height: 100vh;
+	padding: var(--space-8) var(--space-4);
+}
+.setup__frame {
+	width: min(100%, 720px);
+	margin: 0 auto;
+	display: grid;
+	gap: var(--space-6);
+}
+.setup__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-4);
+}
+.setup__steps {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-4);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: var(--text-sm);
+	color: var(--color-text-muted);
+}
+.setup__steps li {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+.setup__steps li[aria-current="step"] {
+	color: var(--color-text);
+	font-weight: 600;
+}
+.setup__number {
+	display: inline-grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
+	border-radius: var(--radius-pill);
+	border: 1px solid var(--color-border-strong);
+	font-size: var(--text-xs);
+}
+.setup__steps li[aria-current="step"] .setup__number {
+	background: var(--color-primary);
+	border-color: var(--color-primary);
+	color: var(--color-on-primary);
+}
+.setup__steps li[data-done] .setup__number {
+	background: var(--color-success-bg);
+	border-color: var(--color-success-border);
+	color: var(--color-success);
+}
+.setup__card {
+	padding: var(--space-8);
+}
+.setup__body {
+	display: grid;
+	gap: var(--space-5);
+}
+.setup__body p,
+.setup__intro p {
+	margin: 0;
+}
+.setup__intro {
+	display: grid;
+	gap: var(--space-2);
+}
+.setup__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-3);
+}
+.setup__command {
+	margin: 0;
+	padding: var(--space-3);
+	border-radius: var(--radius-md);
+	background: var(--color-surface-muted);
+	font-size: var(--text-sm);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+.setup__color,
+.setup__logo {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	min-height: 40px;
+}
+.setup__color input {
+	width: 48px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: none;
+}
+.setup__logo img {
+	max-width: 120px;
+	max-height: 40px;
+}
+@media (max-width: 480px) {
+	.setup__card {
+		padding: var(--space-5);
+	}
+}
+
+/* How to connect an AI, client by client */
+.connect {
+	display: grid;
+	gap: var(--space-4);
+}
+.connect .c-tab {
+	background: none;
+	border-width: 0 0 2px;
+	border-style: solid;
+	border-color: transparent;
+	font: inherit;
+	font-size: var(--text-sm);
+	font-weight: 600;
+	cursor: pointer;
+}
+.connect .c-tab[aria-selected="true"] {
+	border-color: var(--color-text);
+}
+.connect__panel {
+	display: grid;
+	gap: var(--space-3);
+}
+.connect__panel p {
+	margin: 0;
+}
+.connect__status {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	margin: 0;
+	font-size: var(--text-sm);
+	color: var(--color-text-muted);
+}
+.connect__status--done {
+	color: var(--color-success);
+	font-weight: 600;
+}
+.connect__spin {
+	animation: connect-spin 1.2s linear infinite;
+}
+@keyframes connect-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.connect__spin {
+		animation: none;
+	}
+}
+
 /* The consent screen of OAuth */
 .consent {
 	width: min(100%, 480px);

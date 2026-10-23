@@ -224,6 +224,11 @@ export interface CreateRoomInput {
   owner?: string;
 }
 
+export interface CreateSetupLinkInput {
+  /** the Cahut, by its domain or its address */
+  domain: string;
+}
+
 export interface CreateTokenInput {
   /** handle of the person the AI acts for; yourself when empty. Only administrators create tokens for others */
   user?: string;
@@ -812,11 +817,46 @@ export interface SetInput {
   guidance?: string;
 }
 
+export interface SetUp {
+  /** the session of the first person, at the console of the Cahut */
+  session: AccountSession;
+  /** whether they are also the administrator of the server, with the same handle and password */
+  server_admin: boolean;
+}
+
+export interface SetUpInput {
+  /** the code of the link to the first start */
+  code: string;
+  handle: string;
+  name: string;
+  /** of 15 characters at least */
+  password: string;
+}
+
 export interface SetUserRoleInput {
   /** handle of the person */
   user: string;
   /** admin or member */
   role: string;
+}
+
+export interface Setup {
+  domain: string;
+  expires_at: string;
+  /** whether the first person also becomes the administrator of the server, which has none */
+  server_admin: boolean;
+}
+
+export interface SetupInput {
+  /** the code of the link to the first start */
+  code: string;
+}
+
+export interface SetupLink {
+  domain: string;
+  /** the first person opens the console of the Cahut at /setup#<code> */
+  code: string;
+  expires_at: string;
 }
 
 export interface SignInInput {
@@ -1112,6 +1152,10 @@ export interface ServerOperations {
   create_activation_link: { input: AdminInput; output: Activation };
   /** Create an administrator of the server, and the link where they choose their password. */
   create_admin: { input: CreateAdminInput; output: NewAdmin };
+  /** Give the link to the first start of a Cahut that has nobody yet, single-use and valid for 24 hours, where its first person chooses their handle and password. It replaces the previous link. */
+  create_setup_link: { input: CreateSetupLinkInput; output: SetupLink };
+  /** Say whether a link to the first start still works at this domain. */
+  get_setup: { input: SetupInput; output: Setup };
   /** Say which version of Cahut runs, the newest release, and how the last check and the last update went. */
   get_updates: { input: UpdatesInput; output: Updates };
   /** List the administrators of the server. */
@@ -1124,6 +1168,8 @@ export interface ServerOperations {
   rename_domain: { input: RenameDomainInput; output: Info };
   /** Ask the updater of the server to check for new releases, or to install a release newer than the one running. It runs as root within a minute, checks the signature, and goes back to the version running if the new one fails. */
   request_update: { input: RequestUpdateInput; output: RequestedUpdate };
+  /** Use a link to the first start: create the first person of the Cahut, its administrator, and the administrator of the server if it has none, with the same handle and password; then sign the person in. */
+  set_up: { input: SetUpInput; output: SetUp };
   /** Sign in as an administrator of the server, with a handle and a password, and open a session at this domain. */
   sign_in: { input: SignInInput; output: ServerSession };
   /** End the session you signed in with, as an administrator of the server. */

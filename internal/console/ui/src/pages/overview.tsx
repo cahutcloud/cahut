@@ -5,6 +5,7 @@ import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { NewCahut } from "../api.gen";
 import { CopyField, Failure, Notice, PageHead, plural, WindowCards } from "../components";
+import { ConnectSteps } from "../connect";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
 import { href, Link } from "../router";
@@ -17,16 +18,34 @@ export function Overview() {
 function PersonOverview() {
 	const api = useConsole();
 	const { data, error } = useLoad(() =>
-		Promise.all([api.cahut("get_account", {}), api.cahut("list_windows", {}), api.cahut("list_rooms", {})]),
+		Promise.all([
+			api.cahut("get_account", {}),
+			api.cahut("list_windows", {}),
+			api.cahut("list_rooms", {}),
+			api.cahut("list_connected_ais", { user: api.session.handle }),
+			api.cahut("list_tokens", { user: api.session.handle }),
+			api.cahut("get_cahut", {}),
+		]),
 	);
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
-	const [account, { windows }, { rooms }] = data;
+	const [account, { windows }, { rooms }, { connections }, { tokens }, about] = data;
+	// Until the person connects an AI, the overview shows how.
+	const noAI = !connections.some((c) => c.status !== "ended") && !tokens.some((t) => !t.revoked_at);
 	return (
 		<>
 			<PageHead label="Overview" title={location.hostname}>
 				Signed in as {account.name}, {account.role === "admin" ? "an administrator" : "a member"} of this Cahut.
 			</PageHead>
+			{noAI && (
+				<section class="section c-card panel">
+					<h2 class="c-h4">Connect your first AI</h2>
+					<p class="c-small">
+						Your AI publishes on Cahut over MCP. Connect it, then ask it to make a document, a deck or a dashboard.
+					</p>
+					<ConnectSteps mcp={about.mcp ?? `${location.origin}/mcp`} />
+				</section>
+			)}
 			<section class="section">
 				<h2 class="c-h4">Latest Windows</h2>
 				{windows.length === 0 ? (

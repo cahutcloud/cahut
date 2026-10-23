@@ -379,21 +379,21 @@ echo
 as_cahut domain list | awk 'NR > 1 { print "  https://" $2 "/" }'
 [ -n "$domain" ] || domain=$(as_cahut domain list | awk 'NR == 2 { print $2 }')
 [ -n "$domain" ] || die "this server holds no Cahut yet: run the script again with --domain"
-# The commands name the binary by its full path: sudo searches only its
-# secure_path, which leaves out /usr/local/bin on AlmaLinux.
+# A Cahut that has nobody yet starts in the browser, from a single-use
+# link. See docs/adr/0025-first-start-in-the-browser.md. The commands name
+# the binary by its full path: sudo searches only its secure_path, which
+# leaves out /usr/local/bin on AlmaLinux.
+echo
+if link=$(as_cahut setup --domain "$domain" 2>/dev/null); then
+	printf '%s\n\n' "$link"
+	cat <<EOF
+It creates your account, sets the house style of your organization, and
+connects your first AI. For a new link: sudo -u cahut $bin_path setup
+EOF
+else
+	echo "The Cahut of $domain has people already: sign in at https://$domain/console/"
+fi
 cat <<EOF
-
-Next steps for the Cahut of $domain:
-
-  1. Create your account, as an administrator of the Cahut. The command
-     prints a link where you choose your password:
-       sudo -u cahut $bin_path user create --domain $domain --handle you --name "Your Name" --admin
-  2. Open that link: it signs you in to the console, at https://$domain/console/
-  3. In the console, AIs and access creates a token for your AI, with the
-     command that adds the Cahut to Claude Code.
-
-To administer the server itself, create an administrator of the server:
-       sudo -u cahut $bin_path admin create --handle you --name "Your Name"
 
 Cahut updates itself every day ($updates: see CAHUT_UPDATES in
 $env_file). To update now, or to see what is new:

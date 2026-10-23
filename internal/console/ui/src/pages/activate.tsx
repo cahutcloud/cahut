@@ -3,17 +3,11 @@
 // address, which the server never sees.
 import { useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
+import { fragment as code } from "../fragment";
 import { Logo } from "../logo";
 import type { Session } from "../session";
 
-const minPassword = 15;
-
-// The code, read once: the page then takes it out of the address, so that it
-// stays out of the browser's history.
-const code = location.hash.slice(1);
-if (code) {
-	history.replaceState(null, "", location.pathname);
-}
+export const minPassword = 15;
 
 export function Activate({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: (s: Session) => void }) {
 	const [password, setPassword] = useState("");

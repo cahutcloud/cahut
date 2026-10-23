@@ -16,6 +16,7 @@ import { Overview } from "./pages/overview";
 import { People } from "./pages/people";
 import { Read } from "./pages/read";
 import { RoomPage, RoomsPage } from "./pages/rooms";
+import { Setup } from "./pages/setup";
 import { SignIn } from "./pages/sign-in";
 import { WindowPage } from "./pages/window";
 import { navigate, Redirect, usePath } from "./router";
@@ -62,6 +63,15 @@ export function App() {
 			return <Activate kind="person" onSignIn={signIn} />;
 		case "/server/activate":
 			return <Activate kind="admin" onSignIn={signIn} />;
+		case "/setup":
+			return (
+				<Setup
+					onSession={(s) => {
+						save(s);
+						setSession(s);
+					}}
+				/>
+			);
 	}
 	// An AI client sends the person to the consent screen: they sign in on
 	// the spot, and the address keeps the request.

@@ -62,13 +62,18 @@ func TestGetUpdates(t *testing.T) {
 
 // do runs the operation name of the server's registry, as the command line.
 // The operations on updates are made by Open, as closures on the server.
-func do[In, Out any](ctx context.Context, s *Server, name string, in In) (Out, error) {
+// A visitor may be given instead.
+func do[In, Out any](ctx context.Context, s *Server, name string, in In, as ...operation.Actor) (Out, error) {
 	var out Out
 	data, err := json.Marshal(in)
 	if err != nil {
 		return out, err
 	}
-	res, err := s.Registry.Invoke(ctx, name, admin, data)
+	actor := admin
+	if len(as) > 0 {
+		actor = as[0]
+	}
+	res, err := s.Registry.Invoke(ctx, name, actor, data)
 	if err != nil {
 		return out, err
 	}

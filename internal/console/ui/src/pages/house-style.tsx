@@ -479,7 +479,7 @@ function Swatches({ colors }: { colors: string[] }) {
 	);
 }
 
-async function base64(buffer: ArrayBuffer): Promise<string> {
+export async function base64(buffer: ArrayBuffer): Promise<string> {
 	const bytes = new Uint8Array(buffer);
 	let s = "";
 	for (let i = 0; i < bytes.length; i += 0x8000) {
