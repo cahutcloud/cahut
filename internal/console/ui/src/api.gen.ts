@@ -225,6 +225,19 @@ export interface Declaration {
   forms?: string[];
 }
 
+export interface DeleteRoomInput {
+  /** the name of the team Room */
+  room: string;
+}
+
+export interface DeletedRoom {
+  /** the name of the Room, now free */
+  room: string;
+  title: string;
+  /** how many Windows were deleted with it, those in its trash included */
+  windows: number;
+}
+
 export interface DenyInput {
   request: Request;
 }
@@ -553,6 +566,17 @@ export interface ServerSession {
   admin: Admin;
 }
 
+export interface SetAIReachInput {
+  /** the connection, from list_connected_ais; an AI leaves it out, to set its own */
+  id?: number;
+  /** read, or write */
+  scope: string;
+  /** every Room of the person, including those they join later */
+  all_rooms?: boolean;
+  /** the names of the Rooms the AI reaches, when all_rooms is false */
+  rooms?: string[];
+}
+
 export interface SetUserRoleInput {
   /** handle of the person */
   user: string;
@@ -737,6 +761,8 @@ export interface CahutOperations {
   create_token: { input: CreateTokenInput; output: NewToken };
   /** Create a person, with their personal Room, and the link where they choose their password. */
   create_user: { input: CreateUserInput; output: NewUser };
+  /** Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. */
+  delete_room: { input: DeleteRoomInput; output: DeletedRoom };
   /** Refuse the request of an AI client to connect to this Cahut. Returns the address that tells the client so. */
   deny_authorization: { input: DenyInput; output: Redirect };
   /** Deny a Knock of one of your AIs: the call never runs. The AI learns it from get_knock. */
@@ -775,6 +801,8 @@ export interface CahutOperations {
   list_windows: { input: WindowListInput; output: WindowList };
   /** Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. */
   publish_window: { input: PublishInput; output: Window };
+  /** Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. */
+  purge_window: { input: RefInput; output: Window };
   /** Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. */
   remove_room_member: { input: RemoveMemberInput; output: RoomDetail };
   /** Bring a Window back from the trash, with its versions. */
@@ -783,6 +811,8 @@ export interface CahutOperations {
   revoke_token: { input: RevokeTokenInput; output: TokenInfo };
   /** Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. */
   rollback_window: { input: RefInput; output: Window };
+  /** Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. */
+  set_ai_reach: { input: SetAIReachInput; output: Connection };
   /** Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. */
   set_room_member_role: { input: MemberInput; output: RoomDetail };
   /** Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. */

@@ -307,6 +307,11 @@ func TestForAIs(t *testing.T) {
 		if got := read.ForAIs(true, true); got != tt.admin {
 			t.Errorf("%+v ForAIs(true, true) = %v", read, got)
 		}
+		asks := tt.info
+		asks.ReadOnlyAIs = true
+		if got := asks.ForAIs(true, true); got != tt.admin {
+			t.Errorf("%+v ForAIs(true, true) = %v", asks, got)
+		}
 	}
 }
 

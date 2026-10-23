@@ -13,6 +13,7 @@ import (
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/knock"
 	"cahut.cloud/internal/logbook"
+	"cahut.cloud/internal/oauth"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
 	"cahut.cloud/internal/window"
@@ -364,25 +365,9 @@ func TestApprovalChecksTheReachOfTheAI(t *testing.T) {
 	ctx := context.Background()
 	url := f.publish(t, "Q3 review")
 	db := f.c.DB.Write
-	var room int64
-	if err := db.QueryRowContext(ctx, "SELECT id FROM rooms WHERE name = 'olivier'").Scan(&room); err != nil {
-		t.Fatal(err)
-	}
-	var conn int64
-	err := db.QueryRowContext(ctx, `
-		INSERT INTO connections (user_id, client_id, client_name, redirect_host, scope, all_rooms, created_at)
-		VALUES (?, 'https://claude.ai/client', 'Claude', 'claude.ai', 'write', 0, ?) RETURNING id`,
-		f.olivier.UserID, store.FormatTime(f.now)).Scan(&conn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := db.ExecContext(ctx, "INSERT INTO connection_rooms (connection_id, room_id) VALUES (?, ?)", conn, room); err != nil {
-		t.Fatal(err)
-	}
-	ai := operation.Actor{Kind: operation.AI, Via: "mcp", UserID: f.olivier.UserID, Handle: "olivier", Conn: conn,
-		Client: "Claude", Rooms: []int64{room}}
+	conn, ai := f.connect(t, "write", "olivier")
 
-	_, err = f.invoke(t, ai, "set_window_access", `{"window": "`+url+`", "access": "public"}`)
+	_, err := f.invoke(t, ai, "set_window_access", `{"window": "`+url+`", "access": "public"}`)
 	k := knocked(t, err)
 	if _, err := db.ExecContext(ctx, "DELETE FROM connection_rooms WHERE connection_id = ?", conn); err != nil {
 		t.Fatal(err)
@@ -404,5 +389,111 @@ func TestApprovalChecksTheReachOfTheAI(t *testing.T) {
 	}
 	if got := f.get(t, f.olivier, k.ID); got.State != knock.Canceled {
 		t.Errorf("after its connection ended, the Knock is %s", got.State)
+	}
+}
+
+// connect connects an AI for olivier, as the consent screen would, with
+// the scope and the Rooms given. It returns the connection and the AI.
+func (f *fixture) connect(t *testing.T, scope string, rooms ...string) (int64, operation.Actor) {
+	t.Helper()
+	ctx := context.Background()
+	db := f.c.DB.Write
+	var conn int64
+	err := db.QueryRowContext(ctx, `
+		INSERT INTO connections (user_id, client_id, client_name, redirect_host, scope, all_rooms, created_at)
+		VALUES (?, 'https://claude.ai/client', 'Claude', 'claude.ai', ?, 0, ?) RETURNING id`,
+		f.olivier.UserID, scope, store.FormatTime(f.now)).Scan(&conn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ai := operation.Actor{Kind: operation.AI, Via: "mcp", UserID: f.olivier.UserID, Handle: "olivier", Conn: conn,
+		Client: "Claude", ReadOnly: scope == "read", Rooms: []int64{}}
+	for _, name := range rooms {
+		var id int64
+		if err := db.QueryRowContext(ctx, "SELECT id FROM rooms WHERE name = ?", name).Scan(&id); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := db.ExecContext(ctx, "INSERT INTO connection_rooms (connection_id, room_id) VALUES (?, ?)", conn, id); err != nil {
+			t.Fatal(err)
+		}
+		ai.Rooms = append(ai.Rooms, id)
+	}
+	return conn, ai
+}
+
+func (f *fixture) reach(t *testing.T, conn int64) oauth.Connection {
+	t.Helper()
+	out, err := f.invoke(t, f.olivier, "list_connected_ais", `{}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range out.(oauth.ConnectedAIs).Connections {
+		if c.ID == conn {
+			return c
+		}
+	}
+	t.Fatalf("no connection %d", conn)
+	return oauth.Connection{}
+}
+
+func TestSetAIReach(t *testing.T) {
+	f := setup(t)
+	if _, err := f.invoke(t, f.olivier, "create_room", `{"title": "Marketing"}`); err != nil {
+		t.Fatal(err)
+	}
+	conn, ai := f.connect(t, "read", "olivier")
+
+	// An AI that may only read asks to write: it knocks.
+	_, err := f.invoke(t, ai, "set_ai_reach", `{"scope": "write", "rooms": ["olivier"]}`)
+	write := knocked(t, err)
+	if r := f.reach(t, conn); r.Scope != "read" {
+		t.Errorf("the Knock gave %s", r.Scope)
+	}
+	// It names a Room it does not reach, and one that does not exist: it
+	// learns nothing of them before its person answers.
+	_, err = f.invoke(t, ai, "set_ai_reach", `{"scope": "read", "rooms": ["olivier", "nope"]}`)
+	nope := knocked(t, err)
+
+	out, err := f.answer(t, f.olivier, "approve_knock", write.ID)
+	if err != nil || out.(knock.Answer).Knock.State != knock.Done {
+		t.Fatalf("approve_knock = %+v, %v", out, err)
+	}
+	if r := f.reach(t, conn); r.Scope != "write" || r.AllRooms || len(r.Rooms) != 1 || r.Rooms[0] != "olivier" {
+		t.Errorf("approved, the AI reaches %+v", r)
+	}
+	out, err = f.answer(t, f.olivier, "approve_knock", nope.ID)
+	if a := out.(knock.Answer); err != nil || a.Knock.State != knock.Failed || !strings.Contains(a.Knock.Error, `no Room "nope"`) {
+		t.Errorf("approving a Room that does not exist = %+v, %v", out, err)
+	}
+
+	// The person sets it at once; the AI narrows it at once.
+	out, err = f.invoke(t, f.olivier, "set_ai_reach", fmt.Sprintf(`{"id": %d, "scope": "write", "rooms": ["olivier", "marketing"]}`, conn))
+	if r := out.(oauth.Connection); err != nil || len(r.Rooms) != 2 {
+		t.Fatalf("set_ai_reach by the person = %+v, %v", out, err)
+	}
+	ai.ReadOnly = false
+	out, err = f.invoke(t, ai, "set_ai_reach", `{"scope": "read", "rooms": ["marketing"]}`)
+	if r := out.(oauth.Connection); err != nil || r.Scope != "read" || len(r.Rooms) != 1 || r.Rooms[0] != "marketing" {
+		t.Errorf("set_ai_reach that narrows = %+v, %v", out, err)
+	}
+	if _, err := f.invoke(t, ai, "set_ai_reach", `{"scope": "read", "all_rooms": true}`); !errors.Is(err, operation.ErrApprovalRequired) {
+		t.Errorf("every Room: err = %v, want a Knock", err)
+	}
+
+	for _, tt := range []struct {
+		name  string
+		actor operation.Actor
+		args  string
+		want  error
+	}{
+		{name: "a personal token", actor: f.ai, args: `{"scope": "read", "all_rooms": true}`, want: operation.ErrInvalid},
+		{name: "another connection", actor: ai, args: fmt.Sprintf(`{"id": %d, "scope": "read", "all_rooms": true}`, conn+1), want: operation.ErrForbidden},
+		{name: "another person", actor: f.camille, args: fmt.Sprintf(`{"id": %d, "scope": "read", "all_rooms": true}`, conn), want: operation.ErrNotFound},
+		{name: "no Room", actor: f.olivier, args: fmt.Sprintf(`{"id": %d, "scope": "read"}`, conn), want: operation.ErrInvalid},
+		{name: "a bad scope", actor: f.olivier, args: fmt.Sprintf(`{"id": %d, "scope": "admin", "all_rooms": true}`, conn), want: operation.ErrInvalid},
+	} {
+		if _, err := f.invoke(t, tt.actor, "set_ai_reach", tt.args); !errors.Is(err, tt.want) {
+			t.Errorf("%s: err = %v, want %v", tt.name, err, tt.want)
+		}
 	}
 }

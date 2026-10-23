@@ -174,6 +174,9 @@ func toolsPage(s sample) (page, error) {
 		if op.Level == operation.CahutAdmin {
 			m.block("Offered to the AIs of administrators of the Cahut only.")
 		}
+		if op.ReadOnlyAIs {
+			m.block("Offered also to the AIs that may only read, though it changes things.")
+		}
 		switch {
 		case op.KnockFirst:
 			m.block("Knock first: the call of an AI makes a Knock, which the person it acts for approves " +
