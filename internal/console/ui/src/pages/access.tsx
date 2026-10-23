@@ -2,6 +2,7 @@
 // which AIs act for a person, over MCP. A token shows once, with the command
 // that connects Claude Code. See docs/adr/0016-oauth-for-ai-clients.md.
 import { Plug } from "lucide-preact";
+import { Fragment } from "preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Connection, NewToken, TokenInfo } from "../api.gen";
@@ -46,7 +47,7 @@ export function Access() {
 			</section>
 			<section class="section">
 				<h2 class="c-h4">Your connected AIs</h2>
-				<ConnectedAIs connections={connections.filter((c) => c.status !== "ended")} onChange={reload} />
+				<ConnectedAIs connections={connections.filter((c) => c.status !== "ended")} mine onChange={reload} />
 			</section>
 			{theirAIs.length > 0 && (
 				<section class="section">
@@ -132,9 +133,11 @@ const states: Record<string, { label: string; badge: string }> = {
 	ended: { label: "Disconnected", badge: "c-badge--neutral" },
 };
 
-function ConnectedAIs(props: { connections: Connection[]; showUser?: boolean; onChange: () => void }) {
+function ConnectedAIs(props: { connections: Connection[]; showUser?: boolean; mine?: boolean; onChange: () => void }) {
 	const api = useConsole();
 	const [error, setError] = useState("");
+	// The connection whose reach the person changes.
+	const [changing, setChanging] = useState(0);
 	if (props.connections.length === 0) {
 		return <p class="c-muted">No AI connected yet.</p>;
 	}
@@ -157,43 +160,132 @@ function ConnectedAIs(props: { connections: Connection[]; showUser?: boolean; on
 					{props.connections.map((c) => {
 						const state = states[c.status] ?? states.ended;
 						return (
-							<tr key={c.id}>
-								{props.showUser && <td class="c-mono">{c.user}</td>}
-								<td>
-									{c.client}
-									<div class="c-mono c-small c-muted">{c.redirect_host}</div>
-								</td>
-								<td>{c.scope === "write" ? "Read and publish" : "Read only"}</td>
-								<td class="c-small">{c.all_rooms ? "All Rooms" : c.rooms.join(", ") || "None left"}</td>
-								<td class="c-mono c-small">{when(c.last_used_at)}</td>
-								<td>
-									<span class={`c-badge ${state.badge}`}>{state.label}</span>
-								</td>
-								<td class="table__actions">
-									{c.status !== "ended" && (
-										<ConfirmButton
-											label="Disconnect"
-											question={`Disconnect ${c.client}? It loses access at once.`}
-											confirm="Disconnect"
-											danger
-											onConfirm={async () => {
-												setError("");
-												try {
-													await api.cahut("disconnect_ai", { id: c.id });
+							<Fragment key={c.id}>
+								<tr>
+									{props.showUser && <td class="c-mono">{c.user}</td>}
+									<td>
+										{c.client}
+										<div class="c-mono c-small c-muted">{c.redirect_host}</div>
+									</td>
+									<td>{c.scope === "write" ? "Read and publish" : "Read only"}</td>
+									<td class="c-small">{c.all_rooms ? "All Rooms" : c.rooms.join(", ") || "None left"}</td>
+									<td class="c-mono c-small">{when(c.last_used_at)}</td>
+									<td>
+										<span class={`c-badge ${state.badge}`}>{state.label}</span>
+									</td>
+									<td class="table__actions">
+										{props.mine && c.status !== "ended" && changing !== c.id && (
+											<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={() => setChanging(c.id)}>
+												Change
+											</button>
+										)}
+										{c.status !== "ended" && (
+											<ConfirmButton
+												label="Disconnect"
+												question={`Disconnect ${c.client}? It loses access at once.`}
+												confirm="Disconnect"
+												danger
+												onConfirm={async () => {
+													setError("");
+													try {
+														await api.cahut("disconnect_ai", { id: c.id });
+														props.onChange();
+													} catch (err) {
+														setError(explain(err));
+													}
+												}}
+											/>
+										)}
+									</td>
+								</tr>
+								{changing === c.id && (
+									<tr>
+										<td colSpan={props.showUser ? 7 : 6}>
+											<ReachForm
+												connection={c}
+												onDone={() => {
+													setChanging(0);
 													props.onChange();
-												} catch (err) {
-													setError(explain(err));
-												}
-											}}
-										/>
-									)}
-								</td>
-							</tr>
+												}}
+											/>
+										</td>
+									</tr>
+								)}
+							</Fragment>
 						);
 					})}
 				</tbody>
 			</table>
 		</div>
+	);
+}
+
+/** Changes what a connected AI may do, and where, as on the consent screen. */
+function ReachForm({ connection: c, onDone }: { connection: Connection; onDone: () => void }) {
+	const api = useConsole();
+	const rooms = useLoad(() => api.cahut("list_rooms", {}));
+	const [scope, setScope] = useState(c.scope);
+	const [allRooms, setAllRooms] = useState(c.all_rooms);
+	const [chosen, setChosen] = useState<string[]>(c.rooms);
+	const [error, setError] = useState("");
+	const mine = (rooms.data?.rooms ?? []).filter((r) => r.role);
+	const toggle = (name: string, on: boolean) => setChosen((list) => (on ? [...list, name] : list.filter((r) => r !== name)));
+	const save = async (e: Event) => {
+		e.preventDefault();
+		setError("");
+		try {
+			await api.cahut("set_ai_reach", { id: c.id, scope, all_rooms: allRooms, rooms: allRooms ? [] : chosen });
+			onDone();
+		} catch (err) {
+			setError(explain(err));
+		}
+	};
+	return (
+		<form class="form" onSubmit={save}>
+			<fieldset class="consent__group">
+				<legend class="c-field__label">What {c.client} may do</legend>
+				<label class="c-check">
+					<input type="radio" name={`scope-${c.id}`} checked={scope === "write"} onChange={() => setScope("write")} />
+					<span>Read and publish: everything you can do in its Rooms</span>
+				</label>
+				<label class="c-check">
+					<input type="radio" name={`scope-${c.id}`} checked={scope === "read"} onChange={() => setScope("read")} />
+					<span>Read only</span>
+				</label>
+			</fieldset>
+			<fieldset class="consent__group">
+				<legend class="c-field__label">Where</legend>
+				<label class="c-check">
+					<input type="radio" name={`rooms-${c.id}`} checked={allRooms} onChange={() => setAllRooms(true)} />
+					<span>All your Rooms, and those you join later</span>
+				</label>
+				<label class="c-check">
+					<input type="radio" name={`rooms-${c.id}`} checked={!allRooms} onChange={() => setAllRooms(false)} />
+					<span>Only these Rooms</span>
+				</label>
+				{!allRooms && (
+					<div class="consent__rooms">
+						{mine.map((r) => (
+							<label class="c-check" key={r.name}>
+								<input type="checkbox" checked={chosen.includes(r.name)} onChange={(e) => toggle(r.name, e.currentTarget.checked)} />
+								<span>
+									{r.kind === "personal" ? "Your personal Room" : r.title} <span class="c-mono c-muted">{r.name}</span>
+								</span>
+							</label>
+						))}
+					</div>
+				)}
+			</fieldset>
+			{(error || rooms.error) && <Failure message={error || (rooms.error ?? "")} />}
+			<div class="actions">
+				<button class="c-btn c-btn--primary c-btn--sm" type="submit" disabled={!allRooms && chosen.length === 0}>
+					Save
+				</button>
+				<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={onDone}>
+					Cancel
+				</button>
+			</div>
+		</form>
 	);
 }
 

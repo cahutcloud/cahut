@@ -27,7 +27,7 @@ func (s *Service) purge(ctx context.Context, c *operation.Call, in RefInput) (Wi
 	if _, err := c.Tx.ExecContext(ctx, "DELETE FROM windows WHERE id = ?", w.id); err != nil {
 		return Window{}, err
 	}
-	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("%s %q, versions %s", w.Kind, w.Title, versions(w.Window)))
+	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("%s %q, %s", w.Kind, w.Title, versions(w.Window)))
 	c.AfterCommit(func() { s.remove(w.id) })
 	return w.Window, nil
 }
@@ -35,9 +35,9 @@ func (s *Service) purge(ctx context.Context, c *operation.Call, in RefInput) (Wi
 // versions names the versions that a Window keeps.
 func versions(w Window) string {
 	if w.Previous == 0 {
-		return strconv.Itoa(w.Version)
+		return fmt.Sprintf("version %d", w.Version)
 	}
-	return fmt.Sprintf("%d and %d", w.Version, w.Previous)
+	return fmt.Sprintf("versions %d and %d", w.Version, w.Previous)
 }
 
 // remove deletes the files of the Window id, every version.

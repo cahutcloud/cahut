@@ -18,6 +18,10 @@ export interface Console {
 	reloadRooms(): void;
 	/** Bumps when the Rooms change, for the screens that show them. */
 	roomsVersion: number;
+	/** How many Knocks of the person's AIs wait for them. */
+	knocks: number;
+	/** Counts the Knocks that wait again, after an answer. */
+	reloadKnocks(): void;
 }
 
 const context = createContext<Console | null>(null);

@@ -1,7 +1,7 @@
 // The frame of every page once signed in: the top bar, with the account, and
 // the navigation, which a button opens on a narrow screen. The screens of
 // the console fill its main area.
-import { Bot, House, LogOut, Menu, NotebookText, Plus, Server, ShieldCheck, User, Users, X } from "lucide-preact";
+import { Bot, DoorClosed, House, LogOut, Menu, NotebookText, Plus, Server, ShieldCheck, User, Users, X } from "lucide-preact";
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import type { Room } from "./api.gen";
@@ -11,11 +11,11 @@ import { Logo } from "./logo";
 import { Link } from "./router";
 
 export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => void; children: ComponentChildren }) {
-	const { session, isAdmin } = useConsole();
+	const { session, isAdmin, knocks } = useConsole();
 	const [open, setOpen] = useState(false);
 	useEffect(() => setOpen(false), [props.path]);
 
-	const nav = (href: string, icon: ComponentChildren, label: string, exact = true) => (
+	const nav = (href: string, icon: ComponentChildren, label: string, exact = true, count = 0) => (
 		<Link
 			class="c-nav"
 			href={href}
@@ -23,6 +23,12 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 		>
 			{icon}
 			{label}
+			{count > 0 && (
+				<span class="c-nav__count">
+					{count}
+					<span class="visually-hidden"> waiting</span>
+				</span>
+			)}
 		</Link>
 	);
 	const person = session.kind === "person";
@@ -60,6 +66,7 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 			</header>
 			<nav id="sidebar" class="c-sidebar" aria-label="Main" data-open={open}>
 				{nav("/", <House class="i" size={18} aria-hidden="true" />, "Overview")}
+				{person && nav("/knocks", <DoorClosed class="i" size={18} aria-hidden="true" />, "Knocks", false, knocks)}
 				{person && nav("/logbook", <NotebookText class="i" size={18} aria-hidden="true" />, "Logbook")}
 				{person && (
 					<>

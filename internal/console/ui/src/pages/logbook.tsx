@@ -6,6 +6,7 @@ import type { Entry } from "../api.gen";
 import { Failure, PageHead } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
+import { Link } from "../router";
 
 const step = 200;
 const most = 1000;
@@ -19,6 +20,7 @@ function who(e: Entry): string {
 
 const outcomes: Record<string, { word: string; badge: string }> = {
 	ok: { word: "Done", badge: "c-badge--success" },
+	knocked: { word: "Knocked", badge: "c-badge--warning" },
 	refused: { word: "Refused", badge: "c-badge--warning" },
 	failed: { word: "Failed", badge: "c-badge--danger" },
 };
@@ -91,6 +93,7 @@ export function Logbook({ of }: { of: "cahut" | "server" }) {
 					<select class="c-input" value={outcome} onChange={(e) => setOutcome(e.currentTarget.value)}>
 						<option value="">All</option>
 						<option value="ok">Done</option>
+						<option value="knocked">Knocked</option>
 						<option value="refused">Refused</option>
 						<option value="failed">Failed</option>
 					</select>
@@ -121,6 +124,11 @@ export function Logbook({ of }: { of: "cahut" | "server" }) {
 											<span class="c-mono log-entry__op">{e.operation}</span> {e.target && <span>{e.target}</span>}
 										</span>
 										{(e.detail || e.error) && <span class="c-small c-muted">{e.error ?? e.detail}</span>}
+										{e.knock_id && of === "cahut" && (
+											<Link class="c-link c-small" href={`/knocks/${e.knock_id}`}>
+												Knock {e.knock_id}
+											</Link>
+										)}
 										<span class="c-mono c-muted log-entry__via">via {e.via}</span>
 									</div>
 									<span class={`c-badge ${o.badge}`}>{o.word}</span>

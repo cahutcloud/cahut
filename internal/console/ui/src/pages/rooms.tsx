@@ -235,6 +235,7 @@ function People({ room, manage, onChange }: { room: RoomDetail; manage: boolean;
 			{error && <Failure message={error} />}
 			{manage && <AddPerson room={room} onAdd={(handle, role) => act(() => api.cahut("add_room_member", { room: room.name, user: handle, role }))} />}
 			{manage && <Retitle room={room} onRetitle={(title) => act(() => api.cahut("update_room", { room: room.name, title }))} />}
+			{manage && <DeleteRoom room={room} />}
 			{room.kind === "team" && room.role && (room.role === "member" || owners > 1) && (
 				<ConfirmButton
 					label="Leave this Room"
@@ -343,3 +344,57 @@ function Retitle({ room, onRetitle }: { room: RoomDetail; onRetitle: (title: str
 	);
 }
 
+
+/** Deletes a team Room for good, once its name is typed. */
+function DeleteRoom({ room }: { room: RoomDetail }) {
+	const api = useConsole();
+	const [open, setOpen] = useState(false);
+	const [typed, setTyped] = useState("");
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	if (!open) {
+		return (
+			<div>
+				<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={() => setOpen(true)}>
+					Delete this Room
+				</button>
+			</div>
+		);
+	}
+	const remove = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		try {
+			await api.cahut("delete_room", { room: room.name });
+			api.reloadRooms();
+			navigate("/rooms");
+		} catch (err) {
+			setError(explain(err));
+			setBusy(false);
+		}
+	};
+	return (
+		<form class="delete-room" onSubmit={remove}>
+			<p class="c-small">
+				This deletes the Room {room.title} for good: its people, {plural(room.windows, "Window", "Windows")}, those in its trash, and
+				their files. It cannot be undone.
+			</p>
+			<label class="c-field">
+				<span class="c-field__label">
+					Type <span class="c-mono">{room.name}</span> to confirm
+				</span>
+				<input class="c-input c-mono" autoComplete="off" spellcheck={false} value={typed} onInput={(e) => setTyped(e.currentTarget.value)} />
+			</label>
+			{error && <Failure message={error} />}
+			<div class="actions">
+				<button class="c-btn c-btn--danger c-btn--sm" type="submit" disabled={busy || typed.trim() !== room.name}>
+					Delete for good
+				</button>
+				<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => setOpen(false)}>
+					Cancel
+				</button>
+			</div>
+		</form>
+	);
+}
