@@ -14,3 +14,13 @@ func label(name string) (string, error) {
 	}
 	return strings.TrimRight(string(buf[:n]), "\x00"), nil
 }
+
+// freeBytes returns the space left to unprivileged users on the file
+// system of path.
+func freeBytes(path string) (uint64, error) {
+	var st syscall.Statfs_t
+	if err := syscall.Statfs(path, &st); err != nil {
+		return 0, err
+	}
+	return st.Bavail * uint64(st.Bsize), nil //nolint:gosec // a block size is positive
+}

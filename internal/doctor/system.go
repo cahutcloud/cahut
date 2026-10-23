@@ -59,13 +59,7 @@ func (Machine) Label(name string) (string, error) { return label(name) }
 
 // FreeBytes returns the space left to unprivileged users on the file
 // system of path.
-func (Machine) FreeBytes(path string) (uint64, error) {
-	var st syscall.Statfs_t
-	if err := syscall.Statfs(path, &st); err != nil {
-		return 0, err
-	}
-	return uint64(st.Bavail) * uint64(st.Bsize), nil //nolint:unconvert // the types differ between systems
-}
+func (Machine) FreeBytes(path string) (uint64, error) { return freeBytes(path) }
 
 // LocalAddrs returns the addresses of the interfaces of the machine.
 func (Machine) LocalAddrs() ([]net.IP, error) {
