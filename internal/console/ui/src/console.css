@@ -470,6 +470,23 @@
 	align-items: start;
 	gap: var(--space-6);
 }
+.house__use {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-4);
+}
+.house__use-text {
+	display: grid;
+	gap: var(--space-2);
+}
+.house__use-text p {
+	margin: 0;
+}
+.house__use .c-toggle {
+	border: 0;
+	cursor: pointer;
+}
 .house__form {
 	display: grid;
 	gap: var(--space-4);

@@ -9,7 +9,7 @@ Cahut keeps what you make on the user's own server. Each piece is a Window: a li
 
 ## Make a Window
 
-1. Call `get_house_style` with the kind of Window: `document`, `deck`, `dashboard` or `site`. It gives the name of the organization, its colors and fonts, what it asks of AIs (`guidance`), a guide to the classes of its style sheet (`guide`), and the template of that kind.
+1. Call `get_house_style` with the kind of Window: `document`, `deck`, `dashboard` or `site`. It gives the name of the organization, its colors and fonts, what it asks of AIs (`guidance`), a guide to the classes of its style sheet (`guide`), and the template of that kind. When it answers that the house style is inactive (`active` is false), the organization keeps its brand elsewhere, often in a skill of its own: make the Window in the style the user asks for, with its own CSS among its files, and skip steps 2 and 3.
 2. Start from the template. Keep its structure and its classes, replace its sample content, and give the page its own `<title>`. Follow the guidance of the organization, and [the formats](references/formats.md).
 3. Keep the links of the template to the house style, from the root of the domain: `<link rel="stylesheet" href="/-/house-style.css">`, and for a deck `<script src="/-/deck.js" defer></script>`. In your own CSS, use its variables, such as `var(--hs-primary)` or `var(--hs-font-heading)`, rather than colors or fonts of your own.
 4. Link the Window's own files with relative paths, such as `img/map.webp`, never `/img/map.webp`: a Window lives under the address of its Room. The house style and the deck engine are the only paths under `/-/`.
@@ -47,4 +47,4 @@ Some calls wait for a person: making a Window public, purging a Window from the 
 
 ## The house style
 
-The administrators of a Cahut change it with `set_house_style`, giving only what changes: the name of the organization, its colors, its fonts and their files, its logos, its guidance. `rollback_house_style` goes back to the previous one. A change reaches every Window that links the sheet at once, so ask before you change the brand of an organization, and show the user the result: `/-/templates/deck` shows a deck in the house style.
+The administrators of a Cahut change it with `set_house_style`, giving only what changes: the name of the organization, its colors, its fonts and their files, its logos, its guidance, and whether AIs use it (`active`). `rollback_house_style` goes back to the previous one. A change reaches every Window that links the sheet at once, so ask before you change the brand of an organization, and show the user the result: `/-/templates/deck` shows a deck in the house style.

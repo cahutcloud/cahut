@@ -52,7 +52,7 @@ Cahut does not create content, it hosts it. It does not compete with AIs or crea
 | --- | --- | --- |
 | Create | The AIs (Claude, ChatGPT, Mistral, Copilot...) | The content: documents, decks, dashboards, apps |
 | Keep and share | Cahut, on your server | Publishing, links, permissions, versions, comments, search, export, logbook |
-| Look and feel | The house style, carried by Cahut | Your colors and formats, given to every AI as templates and skills |
+| Look and feel | The house style, carried by Cahut | Your colors, fonts and logo, given to every AI with templates, or your own guidelines instead |
 
 ## How it works
 
@@ -80,7 +80,7 @@ flowchart LR
 ```
 
 1. **Connect.** Add Cahut to your AI (MCP connector and skill) and authorize it once with OAuth, with the scope you choose.
-2. **Create.** Ask your AI for a document, a deck, a dashboard or an app. The skill gives it your formats and house style.
+2. **Create.** Ask your AI for a document, a deck, a dashboard or an app. Cahut gives it your house style and its templates, and the skill for Claude the formats.
 3. **Publish.** The AI publishes a Window to a Room, declares what it does, and gets its address back, such as `cahut.example.com/marketing/q3-review`. The previous version is kept.
 4. **Share.** You, or the AI within the limits you set, choose who opens each Window: its Room only, everyone in your Cahut, anyone with its Key, or the public. Anything irreversible waits for approval in the console.
 5. **Live.** Readers open the page in a browser and comment on it. The AI updates it on request. Everything goes to the logbook.

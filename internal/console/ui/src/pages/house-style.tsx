@@ -95,7 +95,7 @@ export function HouseStylePage() {
 	if (!api.isAdmin) return <Notice>Only the administrators of this Cahut set its house style.</Notice>;
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
-	return <Editor key={`${data.set_at ?? "neutral"}-${data.name}`} style={data} onSaved={reload} />;
+	return <Editor key={`${data.set_at ?? "neutral"}-${data.name}-${data.active}`} style={data} onSaved={reload} />;
 }
 
 function Editor({ style, onSaved }: { style: HouseStyle; onSaved: () => void }) {
@@ -155,6 +155,25 @@ function Editor({ style, onSaved }: { style: HouseStyle; onSaved: () => void }) 
 					{style.set_by ? ` for ${style.set_by}` : ""}.
 				</p>
 			)}
+			<section class="section c-card panel house__use">
+				<div class="house__use-text">
+					<h2 class="c-h4" id="house-use">AIs use this house style</h2>
+					<p class="c-small c-muted">
+						{style.active
+							? "AIs read it before they make a Window, and start from its templates."
+							: "Inactive: AIs get nothing of it, and make Windows in the style the user asks for, such as guidelines of your own given to them as a skill. The pages that readers see, and the Windows that link the style sheet, keep it."}
+					</p>
+				</div>
+				<button
+					class="c-toggle"
+					type="button"
+					role="switch"
+					aria-checked={style.active}
+					aria-labelledby="house-use"
+					disabled={busy}
+					onClick={() => run(() => api.cahut("set_house_style", { active: !style.active }))}
+				/>
+			</section>
 			<form class="house section" onSubmit={save}>
 				<div class="house__form">
 					<section class="c-card panel form">

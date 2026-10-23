@@ -3,7 +3,7 @@ title: House style
 description: The brand of the organization in each Cahut, the style sheet that Windows link at a stable address, the templates and the deck engine, and how administrators change it and go back.
 ---
 
-The house style is the brand of the organization, applied by every AI: its name, its colors, its fonts, its logo, and what it asks of AIs. Each Cahut has its own. An AI reads it before it makes a Window, starts from a template in it, and links its style sheet, so that a document, a deck or a dashboard comes out in the colors of the organization. The pages that Cahut shows readers, such as the page of a Key, carry it too. The decision is [ADR 22](https://github.com/getcahut/cahut/blob/main/docs/adr/0022-house-style-of-each-cahut.md).
+The house style is the brand of the organization, applied by every AI: its name, its colors, its fonts, its logo, and what it asks of AIs. Each Cahut has its own. An AI reads it before it makes a Window, starts from a template in it, and links its style sheet, so that a document, a deck or a dashboard comes out in the colors of the organization. The pages that Cahut shows readers, such as the page of a Key, carry it too. The decisions are [ADR 22](https://github.com/getcahut/cahut/blob/main/docs/adr/0022-house-style-of-each-cahut.md) and [ADR 23](https://github.com/getcahut/cahut/blob/main/docs/adr/0023-house-style-inactive-for-ais.md).
 
 ## What it holds
 
@@ -69,6 +69,16 @@ The administrators of a Cahut change its house style in the console, on the [Hou
 Cahut keeps the house style before each change as the previous one, and `rollback_house_style`, or **Go back to it** in the console, restores it; the one before that is deleted. Since a change can be undone, it does not knock first. **Back to neutral** starts again from the neutral house style, which then becomes a change like any other.
 
 The Logbook records each change: the name, the colors, the families of the fonts and the number of their files, the size of the logos. Never the contents of a file.
+
+## Turn it off for AIs
+
+The house style of Cahut suits an organization without brand guidelines of its own: in a few minutes, it gives its Windows a look that holds together. An organization that has full guidelines, with more colors, visuals and icons, often gives them to its AIs already, as a skill of their own. It makes the house style inactive, with the switch **AIs use this house style** of the console, or `set_house_style` with `"active": false`:
+
+- `get_house_style` still answers an AI, but gives nothing of the house style: no colors, no fonts, no logo, no guidance, no template. It says that the house style is inactive, and the AI makes the Window in the style the user asks for, with its own CSS.
+- The administrators still see the whole house style in the console, to change it or to turn it on again.
+- The style sheet, the logos and the fonts are still served: the Windows that link the sheet keep their look, and the pages that readers see, such as the page of a Key, keep the name, the logo and the colors of the house style. An organization can thus give Cahut its name and its logo for these pages, and leave the rest to its own guidelines.
+
+Turning it off or on is a change like any other: the house style before becomes the previous one, and the Logbook records it.
 
 ## Fonts and their license
 

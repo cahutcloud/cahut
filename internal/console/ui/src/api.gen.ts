@@ -379,6 +379,10 @@ export type GetCahutInput = Record<string, never>;
 export interface HouseStyle {
   /** the name of the organization; the domain of the Cahut until an administrator sets one */
   name: string;
+  /** whether AIs use the house style; when it is inactive, make the Window in the style the user asks for */
+  active: boolean;
+  /** what to do when the house style is inactive */
+  message?: string;
   /** whether the Cahut has the neutral house style, which no administrator has changed */
   neutral: boolean;
   /** the style sheet of the house style, at this path from the root of the domain: link it with <link rel="stylesheet" href="/-/house-style.css">. The Window declares nothing for it */
@@ -728,6 +732,8 @@ export interface SetAIReachInput {
 export interface SetInput {
   /** start again from the neutral house style, then apply the other fields */
   neutral?: boolean;
+  /** whether AIs use the house style: false makes it inactive, and get_house_style then gives them nothing of it; the pages of Cahut and the Windows that link its sheet keep it */
+  active?: boolean;
   /** the name of the organization; empty for the domain of the Cahut */
   name?: string;
   /** the colors to change; those left out stay */
@@ -957,7 +963,7 @@ export interface CahutOperations {
   get_account: { input: GetAccountInput; output: Account };
   /** Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. */
   get_cahut: { input: GetCahutInput; output: About };
-  /** Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. */
+  /** Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for. */
   get_house_style: { input: HousestyleGetInput; output: HouseStyle };
   /** Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
   get_knock: { input: KnockGetInput; output: Knock };
@@ -995,7 +1001,7 @@ export interface CahutOperations {
   rollback_window: { input: RefInput; output: Window };
   /** Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. */
   set_ai_reach: { input: SetAIReachInput; output: Connection };
-  /** Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, and what it asks of AIs. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. */
+  /** Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. */
   set_house_style: { input: SetInput; output: HouseStyle };
   /** Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. */
   set_room_member_role: { input: MemberInput; output: RoomDetail };

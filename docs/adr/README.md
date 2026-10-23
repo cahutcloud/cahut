@@ -25,7 +25,8 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [19](0019-window-versions-access-and-declaration.md) | Windows keep two versions, open to an access, and declare what they call | Accepted, extended by 21 and 22 |
 | [20](0020-console-under-a-path-of-port-443.md) | The console is served under `/console/` on port 443 | Accepted |
 | [21](0021-ais-knock-first.md) | An AI knocks first, and the person it acts for answers | Accepted |
-| [22](0022-house-style-of-each-cahut.md) | Each Cahut has a house style, served to its Windows and given to AIs | Accepted |
+| [22](0022-house-style-of-each-cahut.md) | Each Cahut has a house style, served to its Windows and given to AIs | Accepted, extended by 23 |
+| [23](0023-house-style-inactive-for-ais.md) | The house style can be inactive for AIs | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 
