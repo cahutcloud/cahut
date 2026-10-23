@@ -12,11 +12,11 @@ import (
 	"cahut.cloud/internal/store"
 )
 
-// A reader session lets a person open the Windows of their Cahut on the
-// port of the Windows, where it lives in a cookie. The person signs in to
-// the console, which hands a single-use code to that port. See
-// docs/adr/0011-console-on-its-own-port.md and
-// docs/adr/0019-window-versions-access-and-declaration.md.
+// A reader session lets a person open the Windows of their Cahut, where it
+// lives in a cookie. The person signs in to the console, which reads no
+// cookie and hands a single-use code to /-/session. See
+// docs/adr/0019-window-versions-access-and-declaration.md and
+// docs/adr/0020-console-under-a-path-of-port-443.md.
 
 // ReaderPrefix starts every reader session token.
 const ReaderPrefix = "cahut_rdr_"

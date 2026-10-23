@@ -32,7 +32,7 @@ func TestAdminCommands(t *testing.T) {
 	if code != exitOK || !strings.Contains(out, "Created olivier (Olivier Durand), admin of cahut.example.com, with a personal Room at cahut.example.com/olivier.") {
 		t.Fatalf("user create: %d %q %q", code, out, errOut)
 	}
-	link := regexp.MustCompile(`(?m)^https://cahut\.example\.com:8443/activate#[a-z2-7]{52}$`)
+	link := regexp.MustCompile(`(?m)^https://cahut\.example\.com/console/activate#[a-z2-7]{52}$`)
 	if !link.MatchString(out) || !strings.Contains(out, "Send olivier this link") {
 		t.Errorf("user create printed no activation link: %q", out)
 	}
@@ -129,13 +129,13 @@ func TestServerAdminCommands(t *testing.T) {
 	code, out, errOut := run(t, data, "admin", "create", "--handle", "olivier", "--name", "Olivier Durand")
 	if code != exitOK || !strings.Contains(out, "Created olivier (Olivier Durand), administrator of this server.") ||
 		!strings.Contains(out, "This server holds no Cahut yet") ||
-		!regexp.MustCompile(`(?m)^https://<domain>:8443/server/activate#[a-z2-7]{52}$`).MatchString(out) {
+		!regexp.MustCompile(`(?m)^https://<domain>/console/server/activate#[a-z2-7]{52}$`).MatchString(out) {
 		t.Errorf("admin create without a Cahut: %d %q %q", code, out, errOut)
 	}
 
 	code, out, errOut = run(t, data, "domain", "add", "cahut.example.com", "--admin-handle", "ana", "--admin-name", "Ana Lima")
 	if code != exitOK || !strings.Contains(out, "Created ana (Ana Lima), admin of cahut.example.com") ||
-		!regexp.MustCompile(`(?m)^https://cahut\.example\.com:8443/activate#[a-z2-7]{52}$`).MatchString(out) {
+		!regexp.MustCompile(`(?m)^https://cahut\.example\.com/console/activate#[a-z2-7]{52}$`).MatchString(out) {
 		t.Errorf("domain add with a first administrator: %d %q %q", code, out, errOut)
 	}
 	code, out, _ = run(t, data, "user", "list")
@@ -148,7 +148,7 @@ func TestServerAdminCommands(t *testing.T) {
 	}
 
 	code, out, _ = run(t, data, "admin", "link", "--handle", "olivier")
-	if code != exitOK || !regexp.MustCompile(`(?m)^https://cahut\.example\.com:8443/server/activate#[a-z2-7]{52}$`).MatchString(out) {
+	if code != exitOK || !regexp.MustCompile(`(?m)^https://cahut\.example\.com/console/server/activate#[a-z2-7]{52}$`).MatchString(out) {
 		t.Errorf("admin link: %d %q", code, out)
 	}
 	if code, _, errOut := run(t, data, "admin", "link", "--handle", "olivier", "--domain", "c.example.com"); code != exitError || !strings.Contains(errOut, "no Cahut at c.example.com") {

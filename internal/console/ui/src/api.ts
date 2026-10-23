@@ -1,8 +1,9 @@
-// Calls the API of the console, at the console's own origin. Every
+// Calls the API of the console, under the console's path. Every
 // operation and its types come from api.gen.ts, which make console-types
 // writes from the Go code: a call to an operation that does not exist, or
 // with the wrong input, fails the build. See docs/adr/0014-console-http-api.md.
 import type { CahutOperations, ServerOperations } from "./api.gen";
+import { base } from "./router";
 
 /** A call that the API refused, with its status and its message. */
 export class ApiError extends Error {
@@ -32,7 +33,7 @@ export function cahut<K extends keyof CahutOperations>(
 	input: CahutOperations[K]["input"],
 	token?: string,
 ): Promise<CahutOperations[K]["output"]> {
-	return post(`/api/${op}`, input, token) as Promise<CahutOperations[K]["output"]>;
+	return post(`${base}/api/${op}`, input, token) as Promise<CahutOperations[K]["output"]>;
 }
 
 /** Runs an operation of the server, for its administrators. */
@@ -41,7 +42,7 @@ export function server<K extends keyof ServerOperations>(
 	input: ServerOperations[K]["input"],
 	token?: string,
 ): Promise<ServerOperations[K]["output"]> {
-	return post(`/api/server/${op}`, input, token) as Promise<ServerOperations[K]["output"]>;
+	return post(`${base}/api/server/${op}`, input, token) as Promise<ServerOperations[K]["output"]>;
 }
 
 // The prefixes that the registry puts before the message of an error, which

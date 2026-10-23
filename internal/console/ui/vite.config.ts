@@ -10,6 +10,9 @@ const charte = fileURLToPath(new URL("../../../docs/charte-graphique", import.me
 export default defineConfig({
 	plugins: [preact()],
 	resolve: { alias: { "@charte": charte } },
+	// The console is served under /console/ of its Cahut's domain. See
+	// docs/adr/0020-console-under-a-path-of-port-443.md.
+	base: "/console/",
 	build: {
 		outDir: "dist",
 		emptyOutDir: true,
@@ -21,8 +24,8 @@ export default defineConfig({
 		port: 5173,
 		strictPort: true,
 		fs: { allow: [".", charte] },
-		// make dev serves the API of the console on port 8081. The proxy keeps
+		// make dev serves the API of the console on port 8080. The proxy keeps
 		// the host, so that the API answers as the Cahut at localhost.
-		proxy: { "/api": { target: "http://localhost:8081" } },
+		proxy: { "/console/api": { target: "http://localhost:8080" } },
 	},
 });

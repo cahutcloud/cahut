@@ -1,6 +1,8 @@
 // The session of whoever signed in to this console. It lives in the storage
-// of the console's own origin, and goes to the API in the Authorization
-// header: the API reads no cookie. See docs/adr/0011-console-on-its-own-port.md.
+// of the Cahut's origin, which the sandboxed Windows cannot read, and goes to
+// the API in the Authorization header: the API reads no cookie. See
+// docs/adr/0011-console-on-its-own-port.md and
+// docs/adr/0020-console-under-a-path-of-port-443.md.
 
 export interface Session {
 	/** A person of this Cahut, or an administrator of the server. */

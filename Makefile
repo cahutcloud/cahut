@@ -29,13 +29,13 @@ CONSOLE_DEPS := $(CONSOLE_DIR)/node_modules/.package-lock.json
 build: console ## Build bin/cahut for this machine, with the console
 	CGO_ENABLED=0 go build -tags console -trimpath -o bin/cahut ./cmd/cahut
 
-dev: console ## Serve the Cahuts of tmp/dev on http://localhost:8080, their console on 8081
+dev: console ## Serve the Cahuts of tmp/dev on http://localhost:8080, their console at /console/
 	go run -tags console ./cmd/cahut serve --dev --data tmp/dev
 
 console: $(CONSOLE_DEPS) ## Build the console into internal/console/ui/dist
 	cd $(CONSOLE_DIR) && npm run build
 
-console-dev: $(CONSOLE_DEPS) ## Serve the console with live reload on http://localhost:5173, next to make dev
+console-dev: $(CONSOLE_DEPS) ## Serve the console with live reload on http://localhost:5173/console/, next to make dev
 	cd $(CONSOLE_DIR) && npm run dev
 
 test: ## Run the tests with the race detector

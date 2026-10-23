@@ -25,7 +25,7 @@ import (
 
 const (
 	issuer   = "https://cahut.test"
-	console  = "https://cahut.test:8443"
+	console  = "https://cahut.test/console"
 	resource = "https://cahut.test/mcp"
 	redirect = "https://claude.ai/api/mcp/auth_callback"
 	verifier = "a-code-verifier-of-at-least-43-characters-made-of-letters"

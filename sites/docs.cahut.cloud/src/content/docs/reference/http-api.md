@@ -7,19 +7,19 @@ sidebar:
 
 <!-- Generated from the code by make docs-reference: do not edit. -->
 
-Each Cahut serves the API of its console on port 8443 of its domain, next to the console itself. The console uses this API and nothing else, and AIs reach the same operations over [MCP](/reference/mcp-tools/): there is one registry of [operations](/reference/operations/).
+Each Cahut serves the API of its console under `/console/api/` of its domain, next to the console itself at `/console/`. The console uses this API and nothing else, and AIs reach the same operations over [MCP](/reference/mcp-tools/): there is one registry of [operations](/reference/operations/).
 
 ## Calls
 
 | Route | What it runs |
 | --- | --- |
-| `POST /api/<operation>` | An operation of the Cahut of the domain |
-| `POST /api/server/<operation>` | An operation of the server, for its administrators |
+| `POST /console/api/<operation>` | An operation of the Cahut of the domain |
+| `POST /console/api/server/<operation>` | An operation of the server, for its administrators |
 
 The body of the request is the input of the operation, in JSON, and the body of the response its output, with the same names and schemas as the MCP tools. Fields that the operation does not know are refused. The API takes `POST` only, reads included, and answers no CORS preflight.
 
 ```bash
-curl -X POST https://cahut.example.com:8443/api/list_rooms \
+curl -X POST https://cahut.example.com/console/api/list_rooms \
   -H "Authorization: Bearer <session token>" -d '{}'
 ```
 

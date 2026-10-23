@@ -33,7 +33,7 @@ type Config struct {
 	// needed, as on the command line.
 	BaseURL func(domain string) string
 	// ConsoleURL returns the address of the console of the Cahut at domain,
-	// such as https://cahut.example.com:8443/, where people consent to AI
+	// such as https://cahut.example.com/console/, where people consent to AI
 	// clients. It may be nil, as BaseURL may.
 	ConsoleURL func(domain string) string
 }

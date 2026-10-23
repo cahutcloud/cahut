@@ -33,35 +33,30 @@ type Config struct {
 	Dev     bool
 	DevAddr string
 
-	// DevConsoleAddr serves the console and its API in plain HTTP, for
-	// development, on another port than DevAddr, as in production.
-	DevConsoleAddr string
-
 	// For HTTPS: the addresses to listen on, and the ACME account.
-	HTTPAddr    string // ":80", for ACME challenges and redirects to HTTPS
-	HTTPSAddr   string // ":443"
-	ConsoleAddr string // ":8443", for the console and its API
-	Email       string // contact of the ACME account, optional
-	CA          string // ACME directory: Let's Encrypt when empty, its staging for "staging"
-	CertDir     string // where certificates and ACME keys are kept
+	HTTPAddr  string // ":80", for ACME challenges and redirects to HTTPS
+	HTTPSAddr string // ":443"
+	Email     string // contact of the ACME account, optional
+	CA        string // ACME directory: Let's Encrypt when empty, its staging for "staging"
+	CertDir   string // where certificates and ACME keys are kept
 }
 
-// The console of every Cahut listens on its own port of the Cahut's domain:
-// ConsolePort, or DevConsolePort for development. See
-// docs/adr/0011-console-on-its-own-port.md.
-const (
-	ConsolePort    = 8443
-	DevConsolePort = 8081
-)
+// DevPort is the port of a server for development, unless it is told
+// another one.
+const DevPort = 8080
+
+// ConsolePath is where the console of every Cahut is served, on the port
+// of its Windows. See docs/adr/0020-console-under-a-path-of-port-443.md.
+const ConsolePath = "/console/"
 
 // ConsoleURL returns the address of the console of the Cahut at domain.
 // Only a server for development serves localhost and *.localhost, which no
 // certificate authority certifies.
 func ConsoleURL(domain string) string {
 	if domain == "localhost" || strings.HasSuffix(domain, ".localhost") {
-		return fmt.Sprintf("http://%s:%d/", domain, DevConsolePort)
+		return fmt.Sprintf("http://%s:%d%s", domain, DevPort, ConsolePath)
 	}
-	return fmt.Sprintf("https://%s:%d/", domain, ConsolePort)
+	return "https://" + domain + ConsolePath
 }
 
 // ActivationURL is the address where a person of the Cahut at domain uses
@@ -89,11 +84,7 @@ func (c Config) BaseURL(domain string) string {
 // ConsoleURL returns the address of the console of the Cahut at domain, as
 // this server serves it.
 func (c Config) ConsoleURL(domain string) string {
-	if c.Dev {
-		_, port, _ := net.SplitHostPort(c.DevConsoleAddr)
-		return "http://" + domain + ":" + port + "/"
-	}
-	return ConsoleURL(domain)
+	return c.BaseURL(domain) + strings.TrimPrefix(ConsolePath, "/")
 }
 
 // Server serves the Cahuts of a server.
@@ -101,13 +92,16 @@ type Server struct {
 	srv *server.Server
 	cfg Config
 	log *slog.Logger
-	mux *http.ServeMux // port 443: Windows and MCP
+	mux *http.ServeMux // port 443: Windows, MCP and OAuth
 
-	console       *http.ServeMux // port 8443: the console, its API and the consent screen of OAuth
-	visitors      *limiter       // calls that sign in, by address
-	registrations *limiter       // registrations of OAuth clients, by address
-	keyTries      *limiter       // Keys typed, by address
-	keyFailures   *limiter       // wrong Keys, by Window
+	// console serves the paths under ConsolePath: the console, its API and
+	// the consent screen of OAuth. It has a mux of its own, since its paths
+	// would overlap those of the Rooms.
+	console       *http.ServeMux
+	visitors      *limiter // calls that sign in, by address
+	registrations *limiter // registrations of OAuth clients, by address
+	keyTries      *limiter // Keys typed, by address
+	keyFailures   *limiter // wrong Keys, by Window
 
 	// streams is canceled when the server shuts down, to end the
 	// standalone streams of MCP sessions.
@@ -164,26 +158,22 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.registrations = newLimiter(RegisterEvery, RegisterBurst)
 	s.keyTries = newLimiter(KeyEvery, KeyBurst)
 	s.keyFailures = newLimiter(KeyWindowEvery, KeyWindowBurst)
+	// The console, its API and the consent screen of OAuth. See
+	// docs/adr/0020-console-under-a-path-of-port-443.md.
 	s.console = http.NewServeMux()
-	// The console's port serves the consent screen only: people's browsers
-	// reach it, not the servers of AI clients.
-	s.console.HandleFunc("/.well-known/", s.logged(serveUnknownMetadata))
-	pages := console.Handler()
-	s.console.HandleFunc("GET /oauth/authorize", s.logged(pages.ServeHTTP))
-	s.console.HandleFunc("POST /api/server/{operation}", s.serveServerAPI)
-	s.console.HandleFunc("POST /api/{operation}", s.serveAPI)
-	s.console.HandleFunc("/api/", refuseAPI)
-	s.console.Handle("/", pages)
+	pages := http.StripPrefix(strings.TrimSuffix(ConsolePath, "/"), console.Handler())
+	s.console.HandleFunc("GET "+ConsolePath+"oauth/authorize", s.logged(pages.ServeHTTP))
+	s.console.HandleFunc("POST "+ConsolePath+"api/server/{operation}", s.serveServerAPI)
+	s.console.HandleFunc("POST "+ConsolePath+"api/{operation}", s.serveAPI)
+	s.console.HandleFunc(ConsolePath+"api/", refuseAPI)
+	s.console.Handle(ConsolePath, pages)
 	return s
 }
 
-// Console returns the handler of the console's port, which serves the
-// console and its API at the domain of every Cahut. See
-// docs/adr/0011-console-on-its-own-port.md.
-func (s *Server) Console() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s.route(w, r, s.console)
-	})
+// redirectToConsole sends /console, and /admin, which people type out of
+// habit, to the console.
+func redirectToConsole(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, ConsolePath, http.StatusMovedPermanently)
 }
 
 // Close ends the MCP streams and closes the Cahuts that the server opened.
@@ -218,17 +208,6 @@ func siteOf(r *http.Request) *site {
 // replace the policy. See docs/adr/0020-console-under-a-path-of-port-443.md.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Security-Policy", defaultPolicy)
-	s.route(w, r, s.mux)
-}
-
-// defaultPolicy sandboxes what no handler gives a policy of its own: an
-// error, a redirect, a path that no route names. A file of a Window served
-// by mistake without its policy still gets an opaque origin, and reaches
-// neither the reader's session nor the storage of the domain.
-const defaultPolicy = "sandbox; default-src 'none'; base-uri 'none'; form-action 'none'"
-
-// route serves r with mux, as the Cahut of its host.
-func (s *Server) route(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 	st, err := s.site(r.Context(), hostOf(r))
 	if errors.Is(err, operation.ErrNotFound) {
 		misdirected(w)
@@ -239,8 +218,22 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, mux *http.ServeMu
 		http.Error(w, "Internal error.", http.StatusInternalServerError)
 		return
 	}
-	mux.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), siteKey{}, st)))
+	r = r.WithContext(context.WithValue(r.Context(), siteKey{}, st))
+	switch p := r.URL.Path; {
+	case strings.HasPrefix(p, ConsolePath):
+		s.console.ServeHTTP(w, r)
+	case p == strings.TrimSuffix(ConsolePath, "/"), p == "/admin", strings.HasPrefix(p, "/admin/"):
+		redirectToConsole(w, r)
+	default:
+		s.mux.ServeHTTP(w, r)
+	}
 }
+
+// defaultPolicy sandboxes what no handler gives a policy of its own: an
+// error, a redirect, a path that no route names. A file of a Window served
+// by mistake without its policy still gets an opaque origin, and reaches
+// neither the reader's session nor the storage of the domain.
+const defaultPolicy = "sandbox; default-src 'none'; base-uri 'none'; form-action 'none'"
 
 // site returns the open Cahut at domain, opening it on first use.
 func (s *Server) site(ctx context.Context, domain string) (*site, error) {
@@ -360,33 +353,26 @@ func (s *Server) Run(ctx context.Context) error {
 		s.log.Warn("this server holds no Cahut yet: declare one with cahut domain add <domain>")
 	}
 	if s.cfg.Dev {
-		srv, console := s.httpServer(s.cfg.DevAddr, s), s.httpServer(s.cfg.DevConsoleAddr, s.Console())
+		srv := s.httpServer(s.cfg.DevAddr, s)
 		s.log.Info("serving over HTTP for development", "address", "http://"+s.cfg.DevAddr+"/",
-			"console", "http://"+s.cfg.DevConsoleAddr+"/", "cahuts", domains)
-		return serveAll(ctx,
-			func(ctx context.Context) error { return serve(ctx, srv, srv.ListenAndServe) },
-			func(ctx context.Context) error { return serve(ctx, console, console.ListenAndServe) })
+			"console", "http://"+s.cfg.DevAddr+ConsolePath, "cahuts", domains)
+		return serve(ctx, srv, srv.ListenAndServe)
 	}
 
 	magic, issuer, err := s.certificates(ctx, domains)
 	if err != nil {
 		return err
 	}
-	https, console := s.httpServer(s.cfg.HTTPSAddr, s), s.httpServer(s.cfg.ConsoleAddr, s.Console())
-	for _, srv := range []*http.Server{https, console} {
-		srv.TLSConfig = magic.TLSConfig()
-		srv.TLSConfig.NextProtos = append([]string{"h2", "http/1.1"}, srv.TLSConfig.NextProtos...)
-	}
+	https := s.httpServer(s.cfg.HTTPSAddr, s)
+	https.TLSConfig = magic.TLSConfig()
+	https.TLSConfig.NextProtos = append([]string{"h2", "http/1.1"}, https.TLSConfig.NextProtos...)
 	plain := s.httpServer(s.cfg.HTTPAddr, issuer.HTTPChallengeHandler(redirectToHTTPS{srv: s.srv}))
 
-	s.log.Info("serving over HTTPS", "cahuts", domains, "console", s.cfg.ConsoleAddr)
+	s.log.Info("serving over HTTPS", "cahuts", domains, "console", ConsolePath)
 	return serveAll(ctx,
 		func(ctx context.Context) error { return serve(ctx, plain, plain.ListenAndServe) },
 		func(ctx context.Context) error {
 			return serve(ctx, https, func() error { return https.ListenAndServeTLS("", "") })
-		},
-		func(ctx context.Context) error {
-			return serve(ctx, console, func() error { return console.ListenAndServeTLS("", "") })
 		})
 }
 

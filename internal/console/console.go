@@ -3,7 +3,7 @@
 // console and nothing else. A binary built without the console, as a plain
 // go build is, serves a notice instead. See
 // docs/adr/0005-preact-console-embedded.md and
-// docs/adr/0011-console-on-its-own-port.md.
+// docs/adr/0020-console-under-a-path-of-port-443.md.
 package console
 
 import (
@@ -27,7 +27,7 @@ const notice = `<!doctype html>
 <html lang="en">
 <meta charset="utf-8">
 <title>Cahut</title>
-<p>This Cahut was built without its console. Its API answers at <code>/api/</code>.</p>
+<p>This Cahut was built without its console. Its API answers at <code>/console/api/</code>.</p>
 <p>To build the console into the binary, run <code>make build</code>, which needs Node.js.</p>
 `
 

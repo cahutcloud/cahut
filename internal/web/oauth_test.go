@@ -14,6 +14,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/auth"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -26,9 +27,9 @@ import (
 	"cahut.cloud/internal/server"
 )
 
-// oauthFixture serves the Cahut at localhost on two ports, as a server does
-// on ports 443 and 8443, so that an OAuth client finds its way from the MCP
-// endpoint to the authorization server.
+// oauthFixture serves the Cahut at localhost on a port of its own, as a
+// server does on port 443, so that an OAuth client finds its way from the
+// MCP endpoint to the authorization server and the console.
 type oauthFixture struct {
 	base, console string // http://localhost:<port>/
 	session       string // camille's session in the console
@@ -49,11 +50,10 @@ func setupOAuth(t *testing.T) *oauthFixture {
 	t.Helper()
 	ctx := context.Background()
 	main, mainPort := listen(t)
-	console, consolePort := listen(t)
 	srv, err := server.Open(ctx, server.Config{
 		DataDir:    t.TempDir(),
 		BaseURL:    func(domain string) string { return "http://" + domain + ":" + mainPort + "/" },
-		ConsoleURL: func(domain string) string { return "http://" + domain + ":" + consolePort + "/" },
+		ConsoleURL: func(domain string) string { return "http://" + domain + ":" + mainPort + "/console/" },
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -64,17 +64,11 @@ func setupOAuth(t *testing.T) *oauthFixture {
 			t.Fatal(err)
 		}
 	}
-	w := New(srv, Config{Dev: true, DevAddr: "localhost:" + mainPort, DevConsoleAddr: "localhost:" + consolePort},
-		slog.New(slog.DiscardHandler))
+	w := New(srv, Config{Dev: true, DevAddr: "localhost:" + mainPort}, slog.New(slog.DiscardHandler))
 	t.Cleanup(func() { w.Close() })
-	for _, s := range []*http.Server{{Handler: w}, {Handler: w.Console()}} {
-		l := main
-		if s.Handler != w {
-			l = console
-		}
-		go s.Serve(l) //nolint:errcheck // ends with Close
-		t.Cleanup(func() { s.Close() })
-	}
+	s := &http.Server{Handler: w, ReadHeaderTimeout: 10 * time.Second}
+	go s.Serve(main) //nolint:errcheck // ends with Close
+	t.Cleanup(func() { s.Close() })
 
 	c, err := w.site(ctx, "localhost")
 	if err != nil {
@@ -96,7 +90,7 @@ func setupOAuth(t *testing.T) *oauthFixture {
 	}
 	return &oauthFixture{
 		base:    "http://localhost:" + mainPort + "/",
-		console: "http://localhost:" + consolePort + "/",
+		console: "http://localhost:" + mainPort + "/console/",
 		session: session.Token,
 		web:     w,
 	}
@@ -274,8 +268,10 @@ func TestOAuthDiscovery(t *testing.T) {
 	if resp.StatusCode != http.StatusUnauthorized || !strings.Contains(resp.Header.Get("WWW-Authenticate"), `resource_metadata="`+wantMeta+`"`) {
 		t.Errorf("MCP without a token: %d %q", resp.StatusCode, resp.Header.Get("WWW-Authenticate"))
 	}
-	// The servers of AI clients reach everything but the consent screen on
-	// the usual port. See docs/adr/0017-oauth-endpoints-on-port-443.md.
+	// The servers of AI clients reach everything on the usual port, and the
+	// consent screen is a page of the console. See
+	// docs/adr/0017-oauth-endpoints-on-port-443.md and
+	// docs/adr/0020-console-under-a-path-of-port-443.md.
 	issuer := strings.TrimSuffix(f.base, "/")
 	for _, address := range []string{wantMeta, f.base + ".well-known/oauth-protected-resource"} {
 		resp, meta := get(http.MethodGet, address)
@@ -290,14 +286,9 @@ func TestOAuthDiscovery(t *testing.T) {
 	}
 	// Cahut is no OpenID provider: a client that probes for one reads a 404,
 	// not a page.
-	for _, origin := range []string{f.base, f.console} {
-		if resp, _ := get(http.MethodGet, origin+".well-known/openid-configuration"); resp.StatusCode != http.StatusNotFound ||
-			resp.Header.Get("Content-Type") != "application/json" {
-			t.Errorf("OpenID Connect discovery at %s: %d %v", origin, resp.StatusCode, resp.Header)
-		}
-	}
-	if resp, _ := get(http.MethodGet, f.console+".well-known/oauth-authorization-server"); resp.StatusCode != http.StatusNotFound {
-		t.Errorf("authorization server metadata on the console's port: %d", resp.StatusCode)
+	if resp, _ := get(http.MethodGet, f.base+".well-known/openid-configuration"); resp.StatusCode != http.StatusNotFound ||
+		resp.Header.Get("Content-Type") != "application/json" {
+		t.Errorf("OpenID Connect discovery: %d %v", resp.StatusCode, resp.Header)
 	}
 	if resp, _ := get(http.MethodOptions, f.base+"oauth/token"); resp.StatusCode != http.StatusNoContent ||
 		resp.Header.Get("Access-Control-Allow-Origin") != "*" {

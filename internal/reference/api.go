@@ -22,20 +22,20 @@ func apiPage(s sample) page {
 		order:       4,
 	}
 	m := &p.body
-	m.block(fmt.Sprintf("Each Cahut serves the API of its console on port %d of its domain, next to the console itself. "+
+	m.block(fmt.Sprintf("Each Cahut serves the API of its console under %s of its domain, next to the console itself at %s. "+
 		"The console uses this API and nothing else, and AIs reach the same operations over [MCP](/reference/mcp-tools/): "+
-		"there is one registry of [operations](/reference/operations/).", web.ConsolePort))
+		"there is one registry of [operations](/reference/operations/).", code(web.ConsolePath+"api/"), code(web.ConsolePath)))
 
 	m.block("## Calls")
 	m.table([]string{"Route", "What it runs"}, [][]string{
-		{code("POST /api/<operation>"), "An operation of the Cahut of the domain"},
-		{code("POST /api/server/<operation>"), "An operation of the server, for its administrators"},
+		{code("POST " + web.ConsolePath + "api/<operation>"), "An operation of the Cahut of the domain"},
+		{code("POST " + web.ConsolePath + "api/server/<operation>"), "An operation of the server, for its administrators"},
 	})
 	m.block("The body of the request is the input of the operation, in JSON, and the body of the response its output, " +
 		"with the same names and schemas as the MCP tools. Fields that the operation does not know are refused. " +
 		"The API takes `POST` only, reads included, and answers no CORS preflight.")
-	m.code("bash", fmt.Sprintf(`curl -X POST https://cahut.example.com:%d/api/list_rooms \
-  -H "Authorization: Bearer <session token>" -d '{}'`, web.ConsolePort))
+	m.code("bash", `curl -X POST https://cahut.example.com`+web.ConsolePath+`api/list_rooms \
+  -H "Authorization: Bearer <session token>" -d '{}'`)
 
 	m.block("## Sessions")
 	m.block("The operations that sign in take no session: " + code("sign_in") + " and " + code("activate_account") +

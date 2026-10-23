@@ -44,9 +44,8 @@ cahut serve [flags]
 | --- | --- | --- |
 | `--acme-ca string` |  | ACME directory, or "staging" for Let's Encrypt's staging environment (env CAHUT_ACME_CA) |
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
-| `--dev` |  | serve plain HTTP on `--dev-addr` and `--dev-console-addr`, for Cahuts at localhost and \*.localhost |
+| `--dev` |  | serve plain HTTP on `--dev-addr`, for Cahuts at localhost and \*.localhost |
 | `--dev-addr string` | `localhost:8080` | address for `--dev` |
-| `--dev-console-addr string` | `localhost:8081` | address of the console for `--dev` |
 | `--email string` |  | contact of the Let's Encrypt account, optional (env CAHUT_ACME_EMAIL) |
 | `--http string` | `:80` | address for HTTP, which answers ACME challenges and redirects |
 | `--https string` | `:443` | address for HTTPS |
