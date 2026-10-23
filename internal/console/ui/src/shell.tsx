@@ -1,7 +1,22 @@
 // The frame of every page once signed in: the top bar, with the account, and
 // the navigation, which a button opens on a narrow screen. The screens of
 // the console fill its main area.
-import { Bot, DoorClosed, House, LogOut, Menu, NotebookText, Palette, Plus, Server, ShieldCheck, User, Users, X } from "lucide-preact";
+import {
+	Bot,
+	DoorClosed,
+	House,
+	LogOut,
+	Menu,
+	NotebookText,
+	Palette,
+	Plus,
+	RefreshCw,
+	Server,
+	ShieldCheck,
+	User,
+	Users,
+	X,
+} from "lucide-preact";
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import type { Room } from "./api.gen";
@@ -83,6 +98,7 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 						<div class="c-label">This server</div>
 						{nav("/server/admins", <ShieldCheck class="i" size={18} aria-hidden="true" />, "Administrators")}
 						{nav("/server/logbook", <NotebookText class="i" size={18} aria-hidden="true" />, "Logbook of the server")}
+						{nav("/server/updates", <RefreshCw class="i" size={18} aria-hidden="true" />, "Updates")}
 					</>
 				)}
 				<div class="c-label">This Cahut</div>

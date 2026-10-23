@@ -18,6 +18,7 @@ import { Read } from "./pages/read";
 import { RoomPage, RoomsPage } from "./pages/rooms";
 import { Setup } from "./pages/setup";
 import { SignIn } from "./pages/sign-in";
+import { Updates } from "./pages/updates";
 import { WindowPage } from "./pages/window";
 import { navigate, Redirect, usePath } from "./router";
 import { clear, load, save, type Session } from "./session";
@@ -210,6 +211,8 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 			return <Admins />;
 		case "/server/logbook":
 			return <Logbook of="server" />;
+		case "/server/updates":
+			return <Updates />;
 	}
 	return <PageHead label="Not found" title="Nothing here">This page does not exist.</PageHead>;
 }
