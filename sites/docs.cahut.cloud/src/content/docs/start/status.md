@@ -3,7 +3,7 @@ title: Where Cahut stands
 description: What works in Cahut today, and what comes later.
 ---
 
-Cahut is built in slices, each one working from the AI to the reader. Five slices work. In the first, an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at its own address, and the call goes to the Logbook. In the second, people sign in to a web console, gather in team Rooms, connect their AIs and read the Logbook, and administrators manage people, Rooms and the server. In the third, AI clients such as claude.ai connect with the address of a Cahut alone, and a person chooses on a consent screen the Rooms they reach and whether they may publish. In the fourth, a Window keeps its previous version and goes back to it, goes to a trash, opens to its Room, its Cahut, the holders of its Key or the public, and declares what it loads and calls. In the fifth, an AI that asks for something it cannot undo, or that changes what a person may do, knocks first: its person approves or declines in the console.
+Cahut is built in slices, each one working from the AI to the reader. Six slices work. In the first, an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at its own address, and the call goes to the Logbook. In the second, people sign in to a web console, gather in team Rooms, connect their AIs and read the Logbook, and administrators manage people, Rooms and the server. In the third, AI clients such as claude.ai connect with the address of a Cahut alone, and a person chooses on a consent screen the Rooms they reach and whether they may publish. In the fourth, a Window keeps its previous version and goes back to it, goes to a trash, opens to its Room, its Cahut, the holders of its Key or the public, and declares what it loads and calls. In the fifth, an AI that asks for something it cannot undo, or that changes what a person may do, knocks first: its person approves or declines in the console. In the sixth, each Cahut has a house style: its colors, fonts and logo, a template for each kind of Window and a deck engine, which AIs read before they make a Window, and a plugin gives Claude the skill to use them.
 
 ## What works today
 
@@ -18,6 +18,8 @@ Cahut is built in slices, each one working from the AI to the reader. Five slice
 | MCP | The [tools](/reference/mcp-tools/) of Windows, Rooms, people and the Logbook, over Streamable HTTP |
 | Windows | Documents, decks, dashboards and static sites, served at `<domain>/<room>/<window>/` in a sandbox, with a policy made from what their AI declares they load and call; two versions, a rollback, a trash and deletion for good. See [Rooms and Windows](/concepts/rooms-and-windows/) |
 | Access | Room only by default, internal, with a Key, or public, until a date; readers sign in through the console; an AI makes a Window public once its person approves. See [Who can open a Window](/concepts/access/) |
+| House style | The name, colors, fonts, logo and guidance of the organization, set in the console or by an AI and undone in one click; a style sheet, templates and a deck engine that Windows link under `/-/`; the pages that readers see in it. See [House style](/concepts/house-style/) |
+| Claude | A plugin for Claude Code that connects a Cahut and gives Claude the skill to make Windows, and the skill as a zip for the Claude apps. See [The Cahut plugin for Claude](/connect/claude-plugin/) |
 | Knock first | What an AI cannot undo, or what changes what a person may do, waits 24 hours for its person, who approves or declines it in the console. See [Knock first and the Logbook](/concepts/knock-first-and-logbook/#knock-first) |
 | Logbook | Every call of an AI, every change and every sign-in, read in the console or on the command line |
 
@@ -25,7 +27,6 @@ Cahut is built in slices, each one working from the AI to the reader. Five slice
 
 These are planned, in about this order, without dates:
 
-- **House style.** The organization's colors, fonts, logo and templates, given to every AI, and on the pages that Cahut shows readers, such as the page of a Key.
 - **Installation and updates.** A guided first start in the browser, and updates from the releases, with a rollback.
 - **A second AI client** besides Claude, tested from end to end.
 

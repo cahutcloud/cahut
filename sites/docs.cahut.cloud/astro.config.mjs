@@ -37,7 +37,7 @@ export default defineConfig({
 				},
 				{
 					label: 'Connect an AI',
-					items: ['connect/ai-clients', 'connect/claude-code', 'connect/tokens', 'connect/publish'],
+					items: ['connect/ai-clients', 'connect/claude-code', 'connect/claude-plugin', 'connect/tokens', 'connect/publish'],
 				},
 				{
 					label: 'Concepts',
@@ -46,6 +46,7 @@ export default defineConfig({
 						'concepts/cahuts',
 						'concepts/rooms-and-windows',
 						'concepts/access',
+						'concepts/house-style',
 						'concepts/knock-first-and-logbook',
 					],
 				},

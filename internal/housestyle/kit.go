@@ -33,6 +33,12 @@ func mustRead(name string) []byte {
 	return b
 }
 
+// Guide returns the guide to the variables and the classes of the style
+// sheet, in Markdown, as get_house_style gives it to AIs.
+func Guide() string {
+	return guide
+}
+
 // DeckPath is the address of the deck engine, from the root of the domain.
 const DeckPath = "/-/deck.js"
 

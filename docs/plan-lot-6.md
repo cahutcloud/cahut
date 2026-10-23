@@ -1,6 +1,6 @@
 # Cahut · Plan du lot 6 : house style et skill Claude
 
-23 octobre 2026 · Olivier Durand · Validé
+23 octobre 2026 · Olivier Durand · Validé, achevé
 
 ## En bref
 
@@ -153,3 +153,47 @@ Soit environ 8 jours. Les pull requests s'enchaînent dans l'ordre.
 - Un moteur de graphiques servi par Cahut : l'IA dessine en SVG ou déclare sa bibliothèque.
 - La house style dans les e-mails : avec l'envoi d'e-mails, après la V0.
 - Le plugin dans le répertoire d'Anthropic : à l'ouverture du dépôt.
+
+## Bilan
+
+Le lot 6 s'est achevé le 23 octobre 2026, en six pull requests :
+
+| # | Pull request | Contenu |
+| --- | --- | --- |
+| 1 | #63 | Le plan et l'ADR 22 |
+| 2 | #65 | La house style de chaque Cahut, ses trois opérations, la feuille, les logos et les polices sous `/-/`, les pages de Cahut à la house style |
+| 3 | #66 | Les classes de la feuille, le moteur de présentation, les trois gabarits et `/-/templates/`, le guide des classes, les consignes MCP |
+| 4 | #67 | L'écran House style de la console |
+| 5 | #68 | La skill pour Claude, son plugin, la marketplace du dépôt, l'archive servie par chaque Cahut |
+| 6 | #PR6 | Documentation, site, staging, bilan |
+
+**Écarts par rapport au plan.**
+
+- Sans version pour fond sombre, `/-/house-style/logo-inverse` donne le nom de l'organisation en lettres claires plutôt que le logo, qui se lisait mal sur la couleur principale ; la sortie de la house style en avertit.
+- `get_house_style` dit si les couleurs de graphiques sont celles de la house style (`own_chart_colors`), pour que la console laisse le champ vide tant que Cahut les dérive.
+- Les règles des éléments sous chaque racine n'ont aucune spécificité (`:where`) : les classes du kit et le CSS d'une Window l'emportent toujours sur elles.
+- Une présentation est un conteneur pour ses diapositives, ce qui empêche le navigateur de peindre le fond du `body` sur toute la page : la feuille le peint sur la racine, le temps d'une présentation.
+- La page de la documentation sur le plugin s'appelle `connect/claude-plugin` : macOS ignore la casse, et Claude Code lisait un fichier `claude.md` comme des consignes. CLAUDE.md l'interdit désormais, et rappelle que les classes du kit forment un contrat.
+- La référence de la documentation gagne une page, la feuille de la house style, que `make docs-reference` écrit depuis le guide que lisent les IA.
+- Le panneau de navigateur de l'application bloque de lui-même les requêtes d'une page en bac à sable (`ERR_BLOCKED_BY_CLIENT`) : les Windows et les gabarits ont été vérifiés dans Chrome.
+- Pas de nouvelle dépendance.
+
+**Essais.**
+
+- Les tests couvrent la house style neutre, les changements partiels, `neutral`, les couleurs dérivées et celles des graphiques, le contraste refusé et les avertissements, les polices (formats, poids, polices variables, fichiers gardés par leur nom, familles qui sortiraient du CSS), les logos (SVG, PNG, WebP, retrait, nom échappé), les deux versions et le retour arrière, les droits (membres, leurs IA, IA limitée à certaines Rooms, IA en lecture seule, IA d'un administrateur sans Knock), le Logbook sans contenu de fichier, la feuille et ses en-têtes, le cloisonnement entre deux Cahuts, les pages de Cahut, la politique d'une Window qui lie la feuille, les gabarits, le moteur, les consignes MCP, le guide qui nomme chaque classe, la marketplace, le manifeste du plugin et l'archive de la skill.
+- `claude plugin validate --strict` passe sur la marketplace et sur le plugin.
+- En local, dans Chrome, contre un Cahut de développement et une marque fictive (logo SVG, police de titres TrueType, quatre couleurs) : les pages de Cahut, une Window qui charge la feuille, le logo et la police dans son bac à sable par le cadre d'une Key, les trois gabarits à 1 280 px et sur un écran étroit, la présentation au clavier avec l'adresse qui suit chaque diapositive, la vue d'ensemble, le fond autour des diapositives. Dans le panneau de navigateur : l'écran House style, son aperçu qui suit le formulaire, l'enregistrement avec ses avertissements, le retour à la version précédente, l'écran à 375 px, la carte de la skill dans AIs and access.
+- Sur le staging, la version du lot est installée (0.3.1-0.20261023105550-97b30eb61391), avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-23-batch6`. La migration 11 est passée, et les deux Cahuts servent leur house style, le moteur, les gabarits et l'archive de la skill. Par MCP, avec un jeton personnel de démonstration d'Olivier, révoqué depuis, Claude a réglé la house style d'une marque fictive, Northbay, sans Knock, puis, sur le brief du plan, a lu le gabarit de présentation et publié [Third quarter results](https://staging.cahut.cloud/marketing/third-quarter-results/) dans `marketing`, en une demande. Le même brief sur `dev.cahut.cloud`, resté neutre, a donné [la même présentation](https://dev.cahut.cloud/oauth-test/third-quarter-results/) dans le style neutre. `/-/templates/deck` montre la marque sur le staging : titres en Georgia, logo pour fond sombre, couleur principale.
+
+**Reste à faire.**
+
+- La démonstration de fin de lot avec le compte d'Olivier : ouvrir la présentation de `marketing` et la mener au clavier ; changer la couleur principale dans la console, voir la présentation changer sans être republiée, puis « Go back to it ».
+- Installer le plugin dans Claude Code (`/plugin marketplace add getcahut/cahut`, puis `/plugin install cahut@cahut`, avec le domaine `staging.cahut.cloud`), retirer le serveur `cahut-staging` ajouté à la main, et refaire le brief en une demande.
+- Téléverser l'archive de la skill dans claude.ai, à côté du connecteur du staging, et refaire le brief.
+- Firefox et Safari, toujours, depuis le lot 4.
+
+**Suites.**
+
+- `TestShutdownWithAnOpenStream` a échoué une fois en CI, sur la PR #68, et passé à la relance : un test instable, à regarder.
+- Une icône et une adresse de politique de confidentialité pour le plugin, que demande le répertoire d'Anthropic, à l'ouverture du dépôt.
+- La version du plugin, 0.4.0, suit celle de Cahut : à relever à chaque release.

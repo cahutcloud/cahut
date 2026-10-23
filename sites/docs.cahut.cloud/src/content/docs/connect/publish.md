@@ -5,6 +5,10 @@ description: What an AI sends to publish a Window, what it declares, what comes 
 
 An AI publishes a Window with the `publish_window` tool. It sends the title, the kind and the files of the Window, with a declaration of what its pages do, and gets back the address where the Window opens. This page is for people who write prompts, skills or MCP clients. The [MCP tools reference](/reference/mcp-tools/#publish_window) gives the full schema.
 
+## In the house style
+
+Before it makes a Window, an AI calls `get_house_style` with its kind: `document`, `deck`, `dashboard` or `site`. It gets the name of the organization, its colors and fonts, what it asks of AIs, a guide to the classes of its style sheet, and a template to start from. The page links the sheet from the root of the domain, `<link rel="stylesheet" href="/-/house-style.css">`, and a deck the engine, `<script src="/-/deck.js" defer></script>`. See [House style](/concepts/house-style/).
+
 ## A publication
 
 The arguments of `publish_window`:
@@ -58,7 +62,7 @@ The AI gives the `url` to the user. The new Window opens to the members of its R
 - Two paths cannot differ by case alone, and a path cannot be both a file and the folder of another file.
 - Text goes as it is, in UTF-8. Binary files, such as images and fonts, go in base64, with `"encoding": "base64"`.
 - A Window holds at most 500 files and 32 MiB, once decoded.
-- Pages link their files with relative paths, such as `css/deck.css`. A path that starts with `/` points to the root of the Cahut, not to the Window.
+- Pages link their files with relative paths, such as `css/deck.css`. A path that starts with `/` points to the root of the Cahut, not to the Window: only the house style and the deck engine are there, under `/-/`.
 - A folder opens on its own `index.html`, so a site can have pages such as `about/index.html`. Cahut lists no folder.
 
 ## The declaration
@@ -72,7 +76,7 @@ Every publication declares what its pages do, and Cahut lets them do that and no
 | `forms` | The origins that the forms of the pages send to, if any. |
 
 - An origin is `https://` or `wss://`, a host and an optional port, without a path. Each list holds 20 origins at most.
-- The files of the Window need no origin: they come from the Cahut, which the policy always allows.
+- The files of the Window, and the house style under `/-/`, need no origin: they come from the Cahut, which the policy always allows. A deck that uses the engine declares `scripts`.
 - A page that loads from an origin it did not declare does not get it: the browser blocks the request, and the console of the browser says so. Declare every origin, or put the files in the Window.
 - A deck that only shows text and images declares `{"scripts": false}`: it can then call nothing at all.
 
@@ -121,7 +125,7 @@ The version it replaces is kept. `rollback_window`, with the Window alone, goes 
 
 | Field | What it holds |
 | --- | --- |
-| `access` | `room`, `internal`, `key` or `public`. An AI cannot set `public`: a person does it in the console. |
+| `access` | `room`, `internal`, `key` or `public`. `public` knocks first: the person the AI acts for approves it in the console. |
 | `ends_at` | Optional: when the access ends, after which the Window opens to its Room only. |
 | `key` | Optional, for `key`: the Key to set, of 10 characters at least. Without it, the Window keeps its Key, or Cahut draws one. |
 | `new_key` | Optional, for `key`: draw a new Key; the old one stops working. |

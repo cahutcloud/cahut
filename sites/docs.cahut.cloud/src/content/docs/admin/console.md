@@ -43,6 +43,13 @@ The same screens, and:
 - **Rooms**: every Room of the Cahut, whose people they manage. They open the Windows of the Rooms they are in only.
 - **Logbook**: every entry of the Cahut, from people and from AIs.
 - **AIs and access**: the connected AIs and the tokens of others too, which they can disconnect and revoke.
+- **House style**: see below.
+
+### House style
+
+The administrators set the [house style](/concepts/house-style/) of the Cahut here: the name of the organization, its logo and its version for dark backgrounds, its four colors with their contrasts, the colors of its charts, its fonts and their files, and its guidance for AIs. A preview shows the form in its colors and fonts before saving, and the three templates open in the house style that is saved. **Go back to it** restores the previous version, and **Back to neutral** starts again from the neutral house style, both after a confirmation.
+
+The **AIs and access** screen of every person gives the commands that install the [Cahut plugin](/connect/claude-plugin/) in Claude Code, and the skill as a zip for the Claude apps.
 
 ## Administrators of the server
 

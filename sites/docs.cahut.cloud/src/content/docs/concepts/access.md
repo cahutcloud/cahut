@@ -26,7 +26,7 @@ The administrators of a Cahut manage people and Rooms, not content: they open th
 
 A Key is a password that opens one Window. When the access is Key, Cahut draws one, such as `k7mp-x3qa-9rtw`, unless the person or the AI chooses one of 10 characters at least. Cahut shows it once, next to the address, and keeps only a hash of it: nobody can read it again. The Logbook never holds it.
 
-The reader who opens the address of a Key Window gets a page of Cahut that asks for its Key, in the neutral style of the Cahut until it has a house style. A right Key opens the Window, and the browser keeps a pass for it, in a cookie of its own, for 30 days at most and never beyond the end of the access. A new Key, or another access, ends every pass at once.
+The reader who opens the address of a Key Window gets a page of Cahut that asks for its Key, in the [house style](/concepts/house-style/) of the Cahut. A right Key opens the Window, and the browser keeps a pass for it, in a cookie of its own, for 30 days at most and never beyond the end of the access. A new Key, or another access, ends every pass at once.
 
 Tries are limited by address, and wrong Keys by Window: after a burst, the page asks the reader to wait a minute.
 
