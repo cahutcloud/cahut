@@ -526,13 +526,17 @@ func TestShutdownWithAnOpenStream(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	streaming := make(chan struct{})
-	var once sync.Once
+	streaming, ended := make(chan struct{}), make(chan struct{})
+	var opened, closed sync.Once
 	srv := f.web.httpServer(ln.Addr().String(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet && r.URL.Path == "/mcp" {
-			once.Do(func() { close(streaming) })
+		stream := r.Method == http.MethodGet && r.URL.Path == "/mcp"
+		if stream {
+			opened.Do(func() { close(streaming) })
 		}
 		f.web.ServeHTTP(w, r)
+		if stream {
+			closed.Do(func() { close(ended) })
+		}
 	}))
 	ctx, stop := context.WithCancel(context.Background())
 	defer stop()
@@ -557,11 +561,16 @@ func TestShutdownWithAnOpenStream(t *testing.T) {
 
 	stop()
 	select {
-	case err := <-done:
-		if err != nil {
-			t.Errorf("shutdown: %v", err)
-		}
+	case <-ended:
 	case <-time.After(5 * time.Second):
 		t.Fatal("the server still waits for the stream")
+	}
+	// The shutdown may then wait up to 6 seconds more, for a connection on
+	// which the client has sent nothing: net/http gives such a connection 5
+	// seconds to send its request, and the client's transport leaves one
+	// behind when it dials for a request that another connection serves
+	// first. The deadline of serve, 10 seconds, covers that wait.
+	if err := <-done; err != nil {
+		t.Errorf("shutdown: %v", err)
 	}
 }
