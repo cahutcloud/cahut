@@ -150,6 +150,7 @@ func ValidHandle(s string) bool {
 // handle, with an activation link.
 var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 	Name:        "create_user",
+	Title:       "Add a person",
 	Description: "Create a person, with their personal Room, and the link where they choose their password.",
 	Level:       operation.CahutAdmin,
 	KnockFirst:  true,
@@ -223,6 +224,7 @@ type UserList struct {
 // ListUsers lists the people of the Cahut, by handle.
 var ListUsers = &operation.Op[ListUsersInput, UserList]{
 	Name:        "list_users",
+	Title:       "List people",
 	Description: "List the people of the Cahut, with their handles, names, roles and states.",
 	ReadOnly:    true,
 	Run: func(ctx context.Context, c *operation.Call, _ ListUsersInput) (UserList, error) {
@@ -266,6 +268,7 @@ type Membership struct {
 // GetAccount describes the person the actor is, or acts for.
 var GetAccount = &operation.Op[GetAccountInput, Account]{
 	Name:        "get_account",
+	Title:       "Describe your account",
 	Description: "Describe the person you act for: their handle, name, role in the Cahut and Rooms.",
 	ReadOnly:    true,
 	Run: func(ctx context.Context, c *operation.Call, _ GetAccountInput) (Account, error) {
@@ -309,6 +312,7 @@ type SetUserRoleInput struct {
 // SetUserRole makes a person an administrator of the Cahut, or a member.
 var SetUserRole = &operation.Op[SetUserRoleInput, User]{
 	Name:        "set_user_role",
+	Title:       "Change the role of a person",
 	Description: "Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator.",
 	Level:       operation.CahutAdmin,
 	KnockFirst:  true,
@@ -360,7 +364,8 @@ type UserInput struct {
 // DisableUser disables a person: they can no longer sign in, and their AIs
 // can no longer act.
 var DisableUser = &operation.Op[UserInput, User]{
-	Name: "disable_user",
+	Name:  "disable_user",
+	Title: "Disable a person",
 	Description: "Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. " +
 		"Their Rooms and Windows stay.",
 	Level:      operation.CahutAdmin,
@@ -399,6 +404,7 @@ var DisableUser = &operation.Op[UserInput, User]{
 // EnableUser enables a disabled person again.
 var EnableUser = &operation.Op[UserInput, User]{
 	Name:        "enable_user",
+	Title:       "Enable a person",
 	Description: "Enable a disabled person again: they can sign in, and their AIs can act with their tokens.",
 	Level:       operation.CahutAdmin,
 	KnockFirst:  true,

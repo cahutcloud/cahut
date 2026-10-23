@@ -106,7 +106,8 @@ type GetInput struct {
 // to r.
 func Register(r *operation.Registry, domain string) {
 	operation.Register(r, &operation.Op[GetInput, HouseStyle]{
-		Name: "get_house_style",
+		Name:  "get_house_style",
+		Title: "Get the house style",
 		Description: "Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, " +
 			"what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, " +
 			"and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for.",
@@ -132,7 +133,8 @@ func Register(r *operation.Registry, domain string) {
 		},
 	})
 	operation.Register(r, &operation.Op[SetInput, HouseStyle]{
-		Name: "set_house_style",
+		Name:  "set_house_style",
+		Title: "Change the house style",
 		Description: "Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, " +
 			"what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. " +
 			"The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut.",
@@ -142,7 +144,8 @@ func Register(r *operation.Registry, domain string) {
 		},
 	})
 	operation.Register(r, &operation.Op[RollbackInput, HouseStyle]{
-		Name: "rollback_house_style",
+		Name:  "rollback_house_style",
+		Title: "Roll back the house style",
 		Description: "Go back to the previous house style of this Cahut. The house style you leave becomes the previous one, " +
 			"so calling rollback_house_style again returns to it. For the administrators of the Cahut.",
 		Level: operation.CahutAdmin,

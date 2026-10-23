@@ -45,6 +45,7 @@ type RequestedUpdate struct {
 func (s *Server) registerUpdates(r *operation.Registry) {
 	operation.Register(r, &operation.Op[UpdatesInput, Updates]{
 		Name:        "get_updates",
+		Title:       "Describe updates",
 		Description: "Say which version of Cahut runs, the newest release, and how the last check and the last update went.",
 		Level:       operation.ServerAdmin,
 		ReadOnly:    true,
@@ -53,7 +54,8 @@ func (s *Server) registerUpdates(r *operation.Registry) {
 		},
 	})
 	operation.Register(r, &operation.Op[RequestUpdateInput, RequestedUpdate]{
-		Name: "request_update",
+		Name:  "request_update",
+		Title: "Ask for an update",
 		Description: "Ask the updater of the server to check for new releases, or to install a release newer than the one running. " +
 			"It runs as root within a minute, checks the signature, and goes back to the version running if the new one fails.",
 		Level: operation.ServerAdmin,

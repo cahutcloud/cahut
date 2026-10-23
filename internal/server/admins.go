@@ -90,6 +90,7 @@ type NewAdmin struct {
 // link.
 var CreateAdmin = &operation.Op[CreateAdminInput, NewAdmin]{
 	Name:        "create_admin",
+	Title:       "Create a server administrator",
 	Description: "Create an administrator of the server, and the link where they choose their password.",
 	Level:       operation.ServerAdmin,
 	Run: func(ctx context.Context, c *operation.Call, in CreateAdminInput) (NewAdmin, error) {
@@ -128,6 +129,7 @@ type AdminList struct {
 // ListAdmins lists the administrators of the server, by handle.
 var ListAdmins = &operation.Op[ListAdminsInput, AdminList]{
 	Name:        "list_admins",
+	Title:       "List server administrators",
 	Description: "List the administrators of the server.",
 	Level:       operation.ServerAdmin,
 	ReadOnly:    true,
@@ -175,7 +177,8 @@ type AdminInput struct {
 // CreateActivationLink gives an administrator of the server a new link
 // where they choose their password.
 var CreateActivationLink = &operation.Op[AdminInput, account.Activation]{
-	Name: "create_activation_link",
+	Name:  "create_activation_link",
+	Title: "Give an administrator a new link",
 	Description: "Give an administrator of the server a new single-use link, valid 7 days, where they choose their password, " +
 		"for instance after they forgot it. Their password works until they use the link.",
 	Level:      operation.ServerAdmin,
@@ -223,6 +226,7 @@ func openSession(ctx context.Context, c *operation.Call, a adminRecord) (Session
 // and signs them in at the domain of the call. It ends their other sessions.
 var ActivateAccount = &operation.Op[account.ActivateInput, Session]{
 	Name:        "activate_account",
+	Title:       "Activate an administrator account",
 	Description: "Choose a password from a single-use activation link, as an administrator of the server, and sign in.",
 	PeopleOnly:  true,
 	Visitors:    true,
@@ -270,6 +274,7 @@ var ActivateAccount = &operation.Op[account.ActivateInput, Session]{
 // of the call.
 var SignIn = &operation.Op[account.SignInInput, Session]{
 	Name:        "sign_in",
+	Title:       "Sign in to the server",
 	Description: "Sign in as an administrator of the server, with a handle and a password, and open a session at this domain.",
 	PeopleOnly:  true,
 	Visitors:    true,
@@ -305,6 +310,7 @@ var SignIn = &operation.Op[account.SignInInput, Session]{
 // SignOut ends the session of the call.
 var SignOut = &operation.Op[account.SignOutInput, account.SignedOut]{
 	Name:        "sign_out",
+	Title:       "Sign out of the server",
 	Description: "End the session you signed in with, as an administrator of the server.",
 	Level:       operation.ServerAdmin,
 	PeopleOnly:  true,
@@ -324,6 +330,7 @@ var SignOut = &operation.Op[account.SignOutInput, account.SignedOut]{
 // ends their other sessions.
 var ChangePassword = &operation.Op[account.ChangePasswordInput, account.PasswordChanged]{
 	Name:        "change_password",
+	Title:       "Change your server password",
 	Description: "Change your password, as an administrator of the server. Your other sessions end.",
 	Level:       operation.ServerAdmin,
 	PeopleOnly:  true,

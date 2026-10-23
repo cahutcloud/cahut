@@ -96,6 +96,10 @@ func (l Level) String() string {
 type Op[In, Out any] struct {
 	// Name is stable and snake_case. It is also the name of the MCP tool.
 	Name string
+	// Title names the operation in a few words of plain English, such as
+	// "Publish a Window". MCP clients show it to the person, as ChatGPT
+	// does when it asks them to confirm a call.
+	Title string
 	// Description tells an AI what the operation does and when to use it.
 	Description string
 	// ReadOnly operations change nothing.
@@ -128,6 +132,7 @@ type Op[In, Out any] struct {
 // Info describes an operation to the adapters.
 type Info struct {
 	Name        string
+	Title       string
 	Description string
 	ReadOnly    bool
 	Level       Level
@@ -334,6 +339,7 @@ func (r *Registry) Invoke(ctx context.Context, name string, actor Actor, args js
 func (op *Op[In, Out]) info() Info {
 	return Info{
 		Name:        op.Name,
+		Title:       op.Title,
 		Description: op.Description,
 		ReadOnly:    op.ReadOnly,
 		Level:       op.Level,

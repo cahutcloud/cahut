@@ -51,6 +51,7 @@ func owner(ctx context.Context, c *operation.Call, op, user string) (person, err
 // a person.
 var CreateToken = &operation.Op[CreateTokenInput, NewToken]{
 	Name:        "create_token",
+	Title:       "Create a personal token",
 	Description: "Create a personal token that lets an AI act on behalf of a person.",
 	PeopleOnly:  true,
 	Run: func(ctx context.Context, c *operation.Call, in CreateTokenInput) (NewToken, error) {
@@ -97,6 +98,7 @@ type TokenList struct {
 // administrator, their own for anyone else.
 var ListTokens = &operation.Op[ListTokensInput, TokenList]{
 	Name:        "list_tokens",
+	Title:       "List personal tokens",
 	Description: "List personal tokens, newest first.",
 	PeopleOnly:  true,
 	ReadOnly:    true,
@@ -150,6 +152,7 @@ type RevokeTokenInput struct {
 // RevokeToken revokes a personal token at once.
 var RevokeToken = &operation.Op[RevokeTokenInput, TokenInfo]{
 	Name:        "revoke_token",
+	Title:       "Revoke a personal token",
 	Description: "Revoke a personal token. The AI that used it loses access at once.",
 	PeopleOnly:  true,
 	Run: func(ctx context.Context, c *operation.Call, in RevokeTokenInput) (TokenInfo, error) {

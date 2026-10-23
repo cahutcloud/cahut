@@ -68,7 +68,8 @@ func Register(r *operation.Registry, url func(id int64) string) {
 	s := &Service{reg: r, url: url}
 	r.Knock = s.record
 	operation.Register(r, &operation.Op[AnswerInput, Answer]{
-		Name: "approve_knock",
+		Name:  "approve_knock",
+		Title: "Approve a Knock",
 		Description: "Approve a Knock of one of your AIs: the call runs now, as the AI, " +
 			"and what it returns comes to you. It may still fail, if things changed since the AI called.",
 		PeopleOnly: true,
@@ -76,19 +77,22 @@ func Register(r *operation.Registry, url func(id int64) string) {
 	})
 	operation.Register(r, &operation.Op[AnswerInput, Knock]{
 		Name:        "deny_knock",
+		Title:       "Deny a Knock",
 		Description: "Deny a Knock of one of your AIs: the call never runs. The AI learns it from get_knock.",
 		PeopleOnly:  true,
 		Run:         s.deny,
 	})
 	operation.Register(r, &operation.Op[ListInput, List]{
-		Name: "list_knocks",
+		Name:  "list_knocks",
+		Title: "List Knocks",
 		Description: "List Knocks, those that wait first: the calls that cannot be undone, or that change what a person may do, " +
 			"which wait for a person to approve them. An AI lists the Knocks it made; a person, those of their AIs.",
 		ReadOnly: true,
 		Run:      s.list,
 	})
 	operation.Register(r, &operation.Op[GetInput, Knock]{
-		Name: "get_knock",
+		Name:  "get_knock",
+		Title: "Describe a Knock",
 		Description: "Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. " +
 			"Call it to learn what became of a call that knocked.",
 		ReadOnly: true,

@@ -1,11 +1,11 @@
 ---
 title: Connect an AI client
-description: Give an AI client the address of your Cahut, sign in, and choose the Rooms it reaches and whether it may publish. For claude.ai, Claude Desktop, ChatGPT and other MCP clients with OAuth.
+description: Give an AI client the address of your Cahut, sign in, and choose the Rooms it reaches and whether it may publish. For claude.ai, Claude Desktop, ChatGPT, Le Chat and other MCP clients with OAuth.
 ---
 
 An AI client connects to a Cahut with its address alone: `https://cahut.example.com/mcp`. The client sends you to the console of the Cahut, where you sign in and choose what it may do. Then it acts for you, within what you granted, and every call it makes goes to the Logbook.
 
-This works with the MCP clients that sign in with OAuth: claude.ai, Claude Desktop, Claude Code, ChatGPT and others. For a client that cannot, such as a script, use a [personal token](/connect/tokens/).
+This works with the MCP clients that sign in with OAuth: claude.ai, Claude Desktop, Claude Code, ChatGPT, Le Chat and others. For a client that cannot, such as a script, use a [personal token](/connect/tokens/).
 
 ## Add the Cahut to your client
 
@@ -15,10 +15,13 @@ The address to give is on the **AIs and access** screen of [the console](/admin/
 | --- | --- |
 | claude.ai, Claude Desktop | Settings, Connectors, Add custom connector: the address of the Cahut, nothing else |
 | Claude Code | `claude mcp add --transport http cahut https://cahut.example.com/mcp`, then `/mcp` and Authenticate. See [Connect Claude Code](/connect/claude-code/) |
-| ChatGPT | In developer mode, add a connector with the address of the Cahut, and OAuth as its authentication |
+| ChatGPT | On the web, Plugins, the plus button, Add custom MCP server: the address of the Cahut, and OAuth as its authentication. Custom MCP servers need a Business, Enterprise or Edu plan |
+| Le Chat | Connectors, add a custom MCP connector with the address of the Cahut. Le Chat finds OAuth by itself |
 | Others | The address of the Cahut. The client finds the rest by itself |
 
 The client opens a page of the console in your browser, at `https://<domain>/console/oauth/authorize`. The servers of the client, and your browser, reach the Cahut on port 443 only.
+
+Every client gets the same tools. Each tool has a title, such as *Publish a Window*, and says whether it only reads: ChatGPT shows the title when it asks you to confirm a call that changes something, and Le Chat lets you allow each tool always or ask each time. That confirmation comes on top of [Knock first](/concepts/knock-first-and-logbook/#knock-first), which no client can skip.
 
 ## Consent
 

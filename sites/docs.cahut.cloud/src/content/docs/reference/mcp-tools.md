@@ -17,7 +17,9 @@ A tool returns its result as structured content, and as the same JSON in a text 
 
 The Cahut gives these instructions to the AI when it connects:
 
-> This Cahut keeps what AIs make, on the user's own server. Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, and you get back the address where it opens; give that address to the user. Before you make one, call get_house_style with its kind. When the house style is active, start from its template, link the style sheet of the organization, /-/house-style.css, use its classes and variables, and follow its guidance; when it is inactive, make the Window in the style the user asks for. Make index.html a complete page that works on its own. Link its own files with relative paths, such as css/deck.css, never /css/deck.css: a Window is served under the address of its Room. Only the house style and the deck engine are under /-/. Declare what the pages do: whether they run scripts, every origin they load from or call, such as a CDN or a font service, and where their forms send. They can load and call nothing else. Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once. It makes a Knock, which waits for the person you act for: give them the link it returns, where they approve or deny it, then call get_knock to learn the outcome. Every call is recorded in the Logbook of the Cahut.
+> Cahut keeps what you make on the user's own server, as Windows. To publish a document, deck, dashboard or site: call get_house_style with its kind, then publish_window with a complete index.html, its files linked by relative paths (css/deck.css, never /css/deck.css), and a declaration of its scripts and of every origin it loads from or calls. Give the user the address it returns. A call that cannot be undone makes a Knock: give the user its link to approve it.
+>
+> House style: when it is active, start from its template, link the style sheet of the organization, /-/house-style.css, use its classes and variables, and follow its guidance; when it is inactive, make the Window in the style the user asks for. Only the house style and the deck engine are under /-/: a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -69,7 +71,7 @@ Add a person to a team Room, as a member or an owner. They can then open and pub
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+Title: Add a member to a Room. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -206,7 +208,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
 
 Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members.
 
-Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -313,7 +315,7 @@ Offered to the AIs of administrators of the Cahut only.
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+Title: Add a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -440,7 +442,7 @@ Delete a team Room for good, with its members and its Windows, those in its tras
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+Title: Delete a team Room. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -515,7 +517,7 @@ Offered to the AIs of administrators of the Cahut only.
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+Title: Disable a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -606,7 +608,7 @@ Offered to the AIs of administrators of the Cahut only.
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+Title: Enable a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -693,7 +695,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
 
 Describe the person you act for: their handle, name, role in the Cahut and Rooms.
 
-Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Describe your account. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -809,7 +811,7 @@ This tool takes no arguments.
 
 Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint.
 
-Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Describe the Cahut. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -867,7 +869,7 @@ This tool takes no arguments.
 
 Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for.
 
-Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Get the house style. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -1324,7 +1326,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 
 Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked.
 
-Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Describe a Knock. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -1456,7 +1458,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 
 Describe a Room: its title, its owners and members, and how many Windows it holds.
 
-Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Describe a Room. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -1582,7 +1584,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 
 Describe a Window and list its files, optionally with their contents.
 
-Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -1862,7 +1864,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 
 List Knocks, those that wait first: the calls that cannot be undone, or that change what a person may do, which wait for a person to approve them. An AI lists the Knocks it made; a person, those of their AIs.
 
-Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: List Knocks. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -2018,7 +2020,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 
 Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf.
 
-Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Read the Logbook. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -2160,7 +2162,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 
 List your Rooms, your personal Room first, with your role and how many members and Windows each has.
 
-Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: List Rooms. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -2266,7 +2268,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 
 List the people of the Cahut, with their handles, names, roles and states.
 
-Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: List people. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -2358,7 +2360,7 @@ This tool takes no arguments.
 
 List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first.
 
-Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -2559,7 +2561,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 
 Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens.
 
-Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -2830,7 +2832,7 @@ Delete a Window in the trash for good, with its versions and its files: this can
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -3015,7 +3017,7 @@ Remove a person from a team Room, or leave it yourself. They no longer open or p
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+Title: Remove a member from a Room. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -3147,7 +3149,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
 
 Bring a Window back from the trash, with its versions.
 
-Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -3332,7 +3334,7 @@ Go back to the previous house style of this Cahut. The house style you leave bec
 
 Offered to the AIs of administrators of the Cahut only.
 
-Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Roll back the house style. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -3781,7 +3783,7 @@ This tool takes no arguments.
 
 Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it.
 
-Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -3968,7 +3970,7 @@ Offered also to the AIs that may only read, though it changes things.
 
 Knock first when it widens the reach of an AI: that call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Change what an AI reaches. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -4126,7 +4128,7 @@ Change the house style of this Cahut: the name of the organization, its colors, 
 
 Offered to the AIs of administrators of the Cahut only.
 
-Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Change the house style. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -4819,7 +4821,7 @@ Make a person of a team Room an owner or a member of it. A Room keeps at least o
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+Title: Change a role in a Room. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -4960,7 +4962,7 @@ Offered to the AIs of administrators of the Cahut only.
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+Title: Change the role of a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -5055,7 +5057,7 @@ Set who opens a Window: room, the members of its Room (the default); internal, e
 
 Knock first when it makes a Window public: that call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -5267,7 +5269,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was.
 
-Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -5450,7 +5452,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 Change the title of a Room. Its name, and so its address, stays.
 
-Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Retitle a Room. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -5582,7 +5584,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted.
 
-Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
