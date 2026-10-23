@@ -1,6 +1,6 @@
 # 14. The console calls each operation at its own HTTP route
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 20](0020-console-under-a-path-of-port-443.md) (the API is under `/console/api/` on port 443)
 - Date: 2026-10-22
 
 ## Context

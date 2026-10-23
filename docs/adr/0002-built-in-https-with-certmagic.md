@@ -1,6 +1,6 @@
 # 2. The binary serves HTTPS itself, with CertMagic
 
-- Status: Accepted, superseded in part by [ADR 8](0008-several-cahuts-per-server.md) (one certificate per Cahut) and [ADR 11](0011-console-on-its-own-port.md) (port 8443)
+- Status: Accepted, superseded in part by [ADR 8](0008-several-cahuts-per-server.md) (one certificate per Cahut), [ADR 11](0011-console-on-its-own-port.md) (port 8443) and [ADR 20](0020-console-under-a-path-of-port-443.md) (no port 8443)
 - Date: 2026-10-21
 
 ## Context
