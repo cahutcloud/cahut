@@ -155,6 +155,9 @@ func toolsPage(s sample) (page, error) {
 		{"Files in one Window", strconv.Itoa(window.MaxFiles)},
 		{"Size of the files of one Window, decoded", mebibytes(window.MaxSize)},
 		{"Size of one request to " + code("/mcp"), "about " + mebibytes(web.MaxRequestSize) + ", room for the files in base64"},
+		{"Requests larger than " + mebibytes(web.BigRequest) + " served at once", strconv.Itoa(web.BigRequests) + ", the others wait their turn"},
+		{"Sessions opened with one token", fmt.Sprintf("%d at once, then one every %d seconds", web.MCPSessionBurst, int(web.MCPSessionEvery.Seconds()))},
+		{"Space left free on the disk of the server", mebibytes(window.MinFreeSpace) + ", below which a publication is refused"},
 	})
 
 	m.block("## Tools")

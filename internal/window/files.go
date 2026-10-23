@@ -2,17 +2,61 @@ package window
 
 import (
 	"encoding/base64"
+	"errors"
+	"fmt"
 	"io/fs"
 	"mime"
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"syscall"
 	"unicode"
 	"unicode/utf8"
 
 	"cahut.cloud/internal/operation"
 )
+
+// MinFreeSpace is the space that a publication leaves free on the disk of
+// the server, which all its Cahuts and their databases share: below it, a
+// Cahut refuses to publish, rather than let a full disk stop them all.
+// Quotas for each Cahut come after the V0.
+const MinFreeSpace = 1 << 30
+
+// freeSpace returns the bytes free for Cahut on the disk that holds dir,
+// or on that of its nearest folder that exists. Tests replace it.
+var freeSpace = func(dir string) (uint64, error) {
+	for {
+		var st syscall.Statfs_t
+		err := syscall.Statfs(dir, &st)
+		if err == nil {
+			// The size of a block is an int64 on Linux and a uint32 on
+			// macOS: its text reads the same on both.
+			block, err := strconv.ParseUint(fmt.Sprint(st.Bsize), 10, 64)
+			return st.Bavail * block, err
+		}
+		if parent := filepath.Dir(dir); parent != dir && errors.Is(err, fs.ErrNotExist) {
+			dir = parent
+			continue
+		}
+		return 0, err
+	}
+}
+
+// checkSpace refuses a publication of size bytes when the disk is short of
+// space.
+func (s *Service) checkSpace(size int64) error {
+	free, err := freeSpace(s.dir)
+	if err != nil {
+		return err
+	}
+	if free < MinFreeSpace+uint64(size) { //nolint:gosec // size is positive
+		return operation.Invalidf("the disk of the server is almost full, with %d MiB free: nothing was published. "+
+			"Ask its administrator to make room, or purge Windows from the trash", free>>20)
+	}
+	return nil
+}
 
 // Limits of a publication.
 const (

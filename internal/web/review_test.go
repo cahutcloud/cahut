@@ -185,3 +185,76 @@ func TestClientKey(t *testing.T) {
 		}
 	}
 }
+
+// TestMCPSessionsPerToken checks that a token opens a burst of MCP
+// sessions, then waits, while the sessions it has keep working.
+func TestMCPSessionsPerToken(t *testing.T) {
+	f := setup(t)
+	client := f.client("localhost", f.token)
+	initialize := func() (int, string) {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, f.ts.URL+"/mcp", strings.NewReader(
+			`{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "test", "version": "1"}}}`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json, text/event-stream")
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		return resp.StatusCode, resp.Header.Get("Mcp-Session-Id")
+	}
+	var session string
+	for range MCPSessionBurst {
+		status, id := initialize()
+		if status != http.StatusOK {
+			t.Fatalf("initialize = %d", status)
+		}
+		session = id
+	}
+	if status, _ := initialize(); status != http.StatusTooManyRequests {
+		t.Errorf("initialize past the burst = %d, want 429", status)
+	}
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, f.ts.URL+"/mcp", strings.NewReader(
+		`{"jsonrpc": "2.0", "id": 2, "method": "tools/list"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	req.Header.Set("Mcp-Session-Id", session)
+	req.Header.Set("Mcp-Protocol-Version", "2025-06-18")
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("tools/list in an open session = %d, want 200", resp.StatusCode)
+	}
+}
+
+// TestTokenEndpointLimit checks that one address calls the token endpoint
+// a burst of times, then waits.
+func TestTokenEndpointLimit(t *testing.T) {
+	f := setup(t)
+	post := func() int {
+		req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "http://localhost/oauth/token",
+			strings.NewReader("grant_type=authorization_code&code=nope"))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		req.RemoteAddr = "192.0.2.9:1234"
+		rec := httptest.NewRecorder()
+		f.web.ServeHTTP(rec, req)
+		return rec.Code
+	}
+	for range TokenBurst {
+		if code := post(); code == http.StatusTooManyRequests {
+			t.Fatal("the token endpoint refused a call within its burst")
+		}
+	}
+	if code := post(); code != http.StatusTooManyRequests {
+		t.Errorf("the token endpoint past its burst = %d, want 429", code)
+	}
+}

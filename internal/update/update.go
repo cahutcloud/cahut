@@ -479,7 +479,10 @@ func (u *Updater) health(ctx context.Context) (Health, error) {
 }
 
 // databases returns the files of the databases in dir, relative to it: the
-// server's and those of each Cahut, with their journals.
+// server's and those of each Cahut, with their journals. It refuses
+// anything but regular files in real folders: the service user owns the
+// data directory, and root, which runs the updater, must not follow a link
+// or open a pipe that it left there.
 func databases(dir string) ([]string, error) {
 	var files []string
 	for _, pattern := range []string{"server.db*", filepath.Join("cahuts", "*", "cahut.db*")} {
@@ -492,10 +495,35 @@ func databases(dir string) ([]string, error) {
 			if err != nil {
 				return nil, err
 			}
+			if err := plain(dir, rel); err != nil {
+				return nil, err
+			}
 			files = append(files, rel)
 		}
 	}
 	return files, nil
+}
+
+// plain checks that rel, in dir, is a regular file, and that each folder
+// on its way from dir is a folder, not a link.
+func plain(dir, rel string) error {
+	fi, err := os.Lstat(filepath.Join(dir, rel))
+	if err != nil {
+		return err
+	}
+	if !fi.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file: nothing was changed", filepath.Join(dir, rel))
+	}
+	for d := filepath.Dir(rel); d != "."; d = filepath.Dir(d) {
+		fi, err := os.Lstat(filepath.Join(dir, d))
+		if err != nil {
+			return err
+		}
+		if !fi.IsDir() {
+			return fmt.Errorf("%s is not a folder: nothing was changed", filepath.Join(dir, d))
+		}
+	}
+	return nil
 }
 
 // snapshot copies the databases, while the service is stopped, to the
@@ -545,7 +573,9 @@ func (u *Updater) restore() error {
 // copyFile copies src to dst, at once, with its mode and its owner, making
 // the directories of dst (readable by root only) as needed.
 func copyFile(src, dst string) error {
-	in, err := os.Open(src)
+	// databases checked src already; a link or a pipe that took its place
+	// since is refused all the same.
+	in, err := os.OpenFile(src, os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return err
 	}
@@ -553,6 +583,9 @@ func copyFile(src, dst string) error {
 	fi, err := in.Stat()
 	if err != nil {
 		return err
+	}
+	if !fi.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", src)
 	}
 	if err := os.MkdirAll(filepath.Dir(dst), 0o700); err != nil {
 		return err

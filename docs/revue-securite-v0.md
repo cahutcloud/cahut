@@ -4,7 +4,7 @@
 
 ## En bref
 
-Avant le jalon de la V0, cinq relecteurs ont lu le code de Cahut, chacun sur un domaine, à la recherche d'attaques concrètes : qui attaque, ce qu'il envoie, ce qu'il gagne. Ils n'ont trouvé aucun moyen de passer d'un Cahut à un autre, ni pour une IA d'approuver ses propres Knocks ou d'appeler une opération réservée aux personnes, ni pour le script d'une Window de lire la console ou la session d'un lecteur. Ils ont trouvé deux faiblesses graves, toutes deux d'épuisement du serveur, sept moyennes et une dizaine de faibles. Toutes sont corrigées dans le lot, avec un test, sauf une, qui tient à la conception et attend une décision après la V0 : une Window peut imiter la page de connexion de la console, sur la même adresse.
+Avant le jalon de la V0, cinq relecteurs ont lu le code de Cahut, chacun sur un domaine, à la recherche d'attaques concrètes : qui attaque, ce qu'il envoie, ce qu'il gagne. Ils n'ont trouvé aucun moyen de passer d'un Cahut à un autre, ni pour une IA d'approuver ses propres Knocks ou d'appeler une opération réservée aux personnes, ni pour le script d'une Window de lire la console ou la session d'un lecteur. Ils ont trouvé deux faiblesses graves, toutes deux d'épuisement du serveur, sept moyennes et dix faibles. Toutes sont corrigées dans le lot, avec un test, sauf une, qui tient à la conception et attend une décision après la V0 : une Window peut imiter la page de connexion de la console, sur la même adresse. Les corrections sont dans les pull requests 3 et 4 du lot, [getcahut/cahut#88](https://github.com/getcahut/cahut/pull/88) et la suivante.
 
 Cette revue est faite par le projet lui-même, avec des agents de Claude Code. Elle ne remplace pas un audit par un tiers, à décider avant l'ouverture du dépôt.
 
@@ -49,12 +49,12 @@ Chaque relecteur a prouvé ce qu'il pouvait par un test, dans une copie du dép�
 | 11 | Faible | OAuth, sessions | Une demande invalide renvoyait seule vers le site du client, ce qui faisait de la console une redirection ouverte | La console montre l'erreur et l'hôte, et n'y va que sur un clic (PR 3) |
 | 12 | Faible | OAuth | Un hôte de retour en lettres d'un autre alphabet passait pour un autre site sur l'écran de consentement | Les hôtes doivent être en ASCII, et l'écran les montre en minuscules, comme le navigateur les lit (PR 3) |
 | 13 | Faible | Bac à sable | Un autre site pouvait compter les cadres d'une page de Cahut et savoir si son visiteur ouvre une Window | Les pages de Cahut envoient `Cross-Origin-Opener-Policy: same-origin` (PR 3) |
-| 14 | Faible | Limites | Les sessions MCP n'avaient pas de plafond par jeton | PR 4 |
-| 15 | Faible | Limites | Rien ne bornait les grosses requêtes MCP simultanées ni la mémoire du service | PR 4 |
-| 16 | Faible | Limites | Les points `/oauth/token` et `/oauth/revoke` n'avaient pas de limite | PR 4 |
-| 17 | Faible | Limites | Une IA pouvait remplir le disque, partagé par tous les Cahuts, en publiant | PR 4 |
-| 18 | Faible | Cloisonnement | Le programme de mise à jour, en root, suivait les liens du dossier des données | PR 4 |
-| 19 | Faible | Cloisonnement | Tant que le serveur n'a pas d'administrateur, le premier démarrage de n'importe quel Cahut en fait un | PR 4 |
+| 14 | Faible | Limites | Les sessions MCP n'avaient pas de plafond par jeton | Un jeton ouvre vingt sessions d'un coup, puis une toutes les trois secondes (PR 4) |
+| 15 | Faible | Limites | Rien ne bornait les grosses requêtes MCP simultanées ni la mémoire du service | Deux requêtes de plus de 4 Mio à la fois, les autres attendent ; l'unité systemd pose `MemoryHigh=75%` et `MemoryMax=85%` (PR 4) |
+| 16 | Faible | Limites | Les points `/oauth/token` et `/oauth/revoke` n'avaient pas de limite | Soixante appels d'un coup par adresse, puis un par seconde (PR 4) |
+| 17 | Faible | Limites | Une IA pouvait remplir le disque, partagé par tous les Cahuts, en publiant | Une publication qui laisserait moins de 1 Gio libre est refusée ; les quotas par Cahut restent après la V0 (PR 4) |
+| 18 | Faible | Cloisonnement | Le programme de mise à jour, en root, suivait les liens du dossier des données | Il refuse tout ce qui n'est pas un fichier ordinaire dans un vrai dossier, et ouvre les fichiers sans suivre de lien (PR 4) |
+| 19 | Faible | Cloisonnement | Tant que le serveur n'a pas d'administrateur, le premier démarrage de n'importe quel Cahut en fait un | `cahut setup` le dit, pour que le lien n'aille qu'à la bonne personne ; la règle de l'ADR 25 reste (PR 4) |
 
 Deux durcissements, sans attaque connue, sont faits aussi (PR 3) : la console n'exécute que les scripts de `/console/assets/`, et les pages de Cahut que `/-/frame.js`, alors que les Windows publient des scripts à la même origine ; la garde des documents de client refuse aussi les plages IPv6 qui portent une adresse IPv4 (`::/96`, `::ffff:0:0:0/96`).
 

@@ -189,6 +189,9 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err != nil {
 		return Window{}, err
 	}
+	if err := s.checkSpace(size); err != nil {
+		return Window{}, err
+	}
 	declared, err := in.Declaration.check()
 	if err != nil {
 		return Window{}, err
@@ -260,6 +263,9 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 	}
 	files, size, err := decode(in.Files)
 	if err != nil {
+		return Window{}, err
+	}
+	if err := s.checkSpace(size); err != nil {
 		return Window{}, err
 	}
 	if w.Declaration, err = in.Declaration.check(); err != nil {

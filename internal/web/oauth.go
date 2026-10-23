@@ -25,6 +25,24 @@ const (
 	RegisterEvery = time.Minute
 )
 
+// Calls to the token and revocation endpoints are limited by address too,
+// more widely: the servers of an AI client refresh the tokens of all its
+// users from a few addresses.
+const (
+	TokenBurst = 60
+	TokenEvery = time.Second
+)
+
+// tooMany answers a call to an endpoint of OAuth that its address made too
+// often.
+func tooMany(w http.ResponseWriter, what string) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Retry-After", "60")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusTooManyRequests)
+	_, _ = w.Write([]byte(`{"error":"invalid_request","error_description":"too many ` + what + ` from this address: wait a minute"}` + "\n"))
+}
+
 // resourceMetadataURL is the address of the protected resource metadata of
 // the MCP endpoint of the Cahut at domain (RFC 9728).
 func (s *Server) resourceMetadataURL(domain string) string {
@@ -50,10 +68,18 @@ func (s *Server) serveAuthorizationMetadata(w http.ResponseWriter, r *http.Reque
 }
 
 func (s *Server) serveToken(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost && !s.tokens.allow(clientKey(r)) {
+		tooMany(w, "token requests")
+		return
+	}
 	siteOf(r).cahut.OAuth.ServeToken(w, r)
 }
 
 func (s *Server) serveRevoke(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost && !s.tokens.allow(clientKey(r)) {
+		tooMany(w, "token requests")
+		return
+	}
 	siteOf(r).cahut.OAuth.ServeRevoke(w, r)
 }
 
@@ -61,11 +87,7 @@ func (s *Server) serveRevoke(w http.ResponseWriter, r *http.Request) {
 // clients need, and limited by address.
 func (s *Server) serveRegister(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost && !s.registrations.allow(clientKey(r)) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Retry-After", "60")
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusTooManyRequests)
-		_, _ = w.Write([]byte(`{"error":"invalid_request","error_description":"too many registrations from this address: wait a minute"}` + "\n"))
+		tooMany(w, "registrations")
 		return
 	}
 	siteOf(r).cahut.OAuth.ServeRegister(w, r)

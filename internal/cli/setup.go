@@ -44,5 +44,10 @@ func runSetup(args []string, stdout, stderr io.Writer) int {
 	}
 	fmt.Fprintf(stdout, "Open this link to start your Cahut. It works once, until %s, and is shown only now.\n\n", day(link.ExpiresAt))
 	fmt.Fprintf(stdout, "  %ssetup#%s\n\n", web.ConsoleURL(link.Domain), link.Code)
+	if link.ServerAdmin {
+		fmt.Fprintln(stdout, "This server has no administrator yet: whoever opens this link first also becomes its administrator,")
+		fmt.Fprintln(stdout, "with every Cahut of the server in their hands. Give it to that person only.")
+		fmt.Fprintln(stdout)
+	}
 	return exitOK
 }

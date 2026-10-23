@@ -104,8 +104,13 @@ type Server struct {
 	console       *http.ServeMux
 	visitors      *limiter // calls that sign in, by address
 	registrations *limiter // registrations of OAuth clients, by address
-	keyTries      *limiter // Keys typed, by address
-	keyFailures   *limiter // wrong Keys, by Window
+	tokens        *limiter // calls to the token and revocation endpoints, by address
+	mcpSessions   *limiter // MCP sessions opened, by token
+	// bigRequests holds a place for each large request to /mcp served at
+	// once, such as a publication with images.
+	bigRequests chan struct{}
+	keyTries    *limiter // Keys typed, by address
+	keyFailures *limiter // wrong Keys, by Window
 	// wrong Keys, by Window and address
 	keyFailuresHere *limiter
 
@@ -172,6 +177,9 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 
 	s.visitors = newLimiter(SignInEvery, SignInBurst)
 	s.registrations = newLimiter(RegisterEvery, RegisterBurst)
+	s.tokens = newLimiter(TokenEvery, TokenBurst)
+	s.mcpSessions = newLimiter(MCPSessionEvery, MCPSessionBurst)
+	s.bigRequests = make(chan struct{}, BigRequests)
 	s.keyTries = newLimiter(KeyEvery, KeyBurst)
 	s.keyFailures = newLimiter(KeyWindowEvery, KeyWindowBurst)
 	s.keyFailuresHere = newLimiter(KeyHereEvery, KeyHereBurst)
