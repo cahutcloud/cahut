@@ -8,6 +8,7 @@ package web
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -24,6 +25,8 @@ import (
 	"cahut.cloud/internal/housestyle"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
+	"cahut.cloud/internal/update"
+	"cahut.cloud/internal/version"
 	"cahut.cloud/internal/window"
 )
 
@@ -353,6 +356,55 @@ func serveHealth(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprintln(w, "ok")
 }
 
+// localHealth answers /-/healthz on plain HTTP to the machine itself, at a
+// loopback address, with the version and the state of every Cahut, and
+// passes every other request to next. The updater checks a new version so,
+// and cahut doctor reads it. See docs/adr/0024-signed-releases-and-updates.md.
+func (s *Server) localHealth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/-/healthz" && fromLoopback(r) {
+			s.serveLocalHealth(w, r)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// fromLoopback reports whether r comes from the machine itself, for a
+// loopback address.
+func fromLoopback(r *http.Request) bool {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return false
+	}
+	remote, to := net.ParseIP(host), net.ParseIP(strings.Trim(hostOf(r), "[]"))
+	return remote != nil && remote.IsLoopback() && to != nil && to.IsLoopback()
+}
+
+// serveLocalHealth opens every Cahut, which runs its migrations, and says
+// how it went.
+func (s *Server) serveLocalHealth(w http.ResponseWriter, r *http.Request) {
+	h := update.Health{Version: version.Get().Version, OK: true, Cahuts: []update.CahutHealth{}}
+	domains, err := s.srv.Domains(r.Context())
+	if err != nil {
+		h.OK = false
+	}
+	for _, d := range domains {
+		c := update.CahutHealth{Domain: d, OK: true}
+		if _, err := s.site(r.Context(), d); err != nil {
+			c.OK, c.Error, h.OK = false, err.Error(), false
+		}
+		h.Cahuts = append(h.Cahuts, c)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	if !h.OK {
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}
+	_ = json.NewEncoder(w).Encode(h)
+}
+
 // Run serves until ctx is done, then shuts down gracefully.
 func (s *Server) Run(ctx context.Context) error {
 	domains, err := s.srv.Domains(ctx)
@@ -363,7 +415,7 @@ func (s *Server) Run(ctx context.Context) error {
 		s.log.Warn("this server holds no Cahut yet: declare one with cahut domain add <domain>")
 	}
 	if s.cfg.Dev {
-		srv := s.httpServer(s.cfg.DevAddr, s)
+		srv := s.httpServer(s.cfg.DevAddr, s.localHealth(s))
 		s.log.Info("serving over HTTP for development", "address", "http://"+s.cfg.DevAddr+"/",
 			"console", "http://"+s.cfg.DevAddr+ConsolePath, "cahuts", domains)
 		return serve(ctx, srv, srv.ListenAndServe)
@@ -376,7 +428,7 @@ func (s *Server) Run(ctx context.Context) error {
 	https := s.httpServer(s.cfg.HTTPSAddr, s)
 	https.TLSConfig = magic.TLSConfig()
 	https.TLSConfig.NextProtos = append([]string{"h2", "http/1.1"}, https.TLSConfig.NextProtos...)
-	plain := s.httpServer(s.cfg.HTTPAddr, issuer.HTTPChallengeHandler(redirectToHTTPS{srv: s.srv}))
+	plain := s.httpServer(s.cfg.HTTPAddr, s.localHealth(issuer.HTTPChallengeHandler(redirectToHTTPS{srv: s.srv})))
 
 	s.log.Info("serving over HTTPS", "cahuts", domains, "console", ConsolePath)
 	return serveAll(ctx,

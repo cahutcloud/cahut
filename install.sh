@@ -8,7 +8,8 @@
 # user, the data directory /var/lib/cahut, the settings file
 # /etc/cahut/cahut.env and the cahut service, declares the Cahut of
 # --domain, opens ports 80 and 443 in firewalld or ufw when one is active,
-# and starts the service.
+# and starts the service. A timer of systemd then installs new releases
+# every day, as --updates says, with a rollback if one fails.
 #
 # Options:
 #   --domain DOMAIN   domain of a Cahut to declare on this server, such as
@@ -19,12 +20,18 @@
 #   --version TAG     release to install, such as v0.4.0 (default: latest);
 #                     releases are signed from v0.4.0 on
 #   --binary PATH     install this cahut binary instead of downloading one
+#   --updates POLICY  what the daily update does: patch (the default)
+#                     installs the patch releases of the minor version
+#                     running, all installs any newer release, check only
+#                     reports them, off asks GitHub nothing
 #
 # Environment:
 #   CAHUT_REPO        GitHub repository of the releases (default: getcahut/cahut)
-#   GITHUB_TOKEN      token to read the releases of a private repository
+#   GITHUB_TOKEN      token to read the releases of a private repository,
+#                     kept for the updates in /etc/cahut/update.env
 #
-# Run it again to update Cahut or change its settings.
+# Run it again to change its settings. To update Cahut, run
+# sudo /usr/local/bin/cahut update.
 
 set -eu
 
@@ -34,12 +41,16 @@ email=""
 ca=""
 tag="latest"
 binary=""
+updates=""
 
 bin_path=/usr/local/bin/cahut
 data_dir=/var/lib/cahut
 conf_dir=/etc/cahut
 env_file=$conf_dir/cahut.env
 unit_file=/etc/systemd/system/cahut.service
+update_env=$conf_dir/update.env
+state_dir=/var/lib/cahut-update
+units=/etc/systemd/system
 
 say() { printf 'cahut: %s\n' "$*"; }
 die() { printf 'cahut: %s\n' "$*" >&2; exit 1; }
@@ -51,6 +62,7 @@ while [ $# -gt 0 ]; do
 	--staging) ca=staging; shift ;;
 	--version) tag="${2:?--version needs a value}"; shift 2 ;;
 	--binary) binary="${2:?--binary needs a value}"; shift 2 ;;
+	--updates) updates="${2:?--updates needs a value}"; shift 2 ;;
 	-h | --help) sed -n '2,/^$/s/^# \{0,1\}//p' "$0"; exit 0 ;;
 	*) die "unknown option $1 (see --help)" ;;
 	esac
@@ -61,6 +73,10 @@ command -v systemctl >/dev/null || die "systemd is required"
 if [ -z "$domain" ] && [ ! -f "$env_file" ]; then
 	die "give the domain of your first Cahut with --domain"
 fi
+case "$updates" in
+"" | patch | all | check | off) ;;
+*) die "--updates takes patch, all, check or off" ;;
+esac
 if [ -n "$domain" ]; then
 	domain=$(printf '%s' "$domain" | tr 'A-Z' 'a-z')
 	printf '%s' "$domain" | grep -Eq '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$' ||
@@ -170,18 +186,32 @@ fi
 install -d -m 0750 -o cahut -g cahut "$data_dir"
 install -d -m 0750 -o root -g cahut "$conf_dir"
 
-if [ ! -f "$env_file" ] || [ -n "$email$ca" ]; then
-	say "writing $env_file"
-	umask 027
-	cat >"$env_file" <<EOF
+# setting NAME prints the value of NAME in the settings file, if any.
+setting() { sed -n "s/^$1=//p" "$env_file" 2>/dev/null | tail -n 1; }
+[ -n "$email" ] || email=$(setting CAHUT_ACME_EMAIL)
+[ -n "$ca" ] || ca=$(setting CAHUT_ACME_CA)
+[ -n "$updates" ] || updates=$(setting CAHUT_UPDATES)
+[ -n "$updates" ] || updates=patch
+cat >"$tmp/cahut.env" <<EOF
 # Settings of the cahut service. Run install.sh again to change them.
 CAHUT_DATA=$data_dir
 CAHUT_ACME_EMAIL=$email
 CAHUT_ACME_CA=$ca
+# What the daily update does: patch, all, check or off.
+CAHUT_UPDATES=$updates
 EOF
-	chgrp cahut "$env_file"
-	umask 022
+if [ "$(cat "$tmp/cahut.env")" != "$(cat "$env_file" 2>/dev/null)" ]; then
+	say "writing $env_file"
+	install -m 0640 -o root -g cahut "$tmp/cahut.env" "$env_file"
 fi
+# The updater runs as root, reads the releases with this token while the
+# repository is private, and is the only one to read it.
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+	(umask 077 && printf 'GITHUB_TOKEN=%s\n' "$GITHUB_TOKEN" >"$tmp/update.env")
+	install -m 0600 -o root -g root "$tmp/update.env" "$update_env"
+fi
+# The state of updates: root writes it, the service reads it.
+install -d -m 2750 -o root -g cahut "$state_dir"
 
 cat >"$unit_file" <<EOF
 [Unit]
@@ -219,9 +249,46 @@ UMask=0027
 WantedBy=multi-user.target
 EOF
 
+# The updater: a daily timer, and a path unit that starts it when the
+# console asks. See docs/adr/0024-signed-releases-and-updates.md.
+cat >"$units/cahut-update.service" <<EOF
+[Unit]
+Description=Update Cahut from its signed releases
+Documentation=https://docs.cahut.cloud/admin/updates/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=$bin_path update --unattended
+EOF
+cat >"$units/cahut-update.timer" <<EOF
+[Unit]
+Description=Look for a new release of Cahut every day
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+RandomizedDelaySec=3h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+cat >"$units/cahut-update.path" <<EOF
+[Unit]
+Description=Update Cahut when its console asks
+
+[Path]
+PathExists=$data_dir/update-request
+
+[Install]
+WantedBy=paths.target
+EOF
+
 install -m 0755 "$tmp/cahut" "$bin_path"
 if command -v restorecon >/dev/null; then
-	restorecon "$bin_path" "$unit_file" || true # SELinux labels of the new files
+	# SELinux labels of the new files
+	restorecon "$bin_path" "$unit_file" "$units"/cahut-update.* "$state_dir" || true
 fi
 
 # as_cahut runs a cahut command as the service user, on its data.
@@ -253,6 +320,7 @@ fi
 
 systemctl daemon-reload
 systemctl enable --quiet cahut
+systemctl enable --quiet --now cahut-update.timer cahut-update.path
 systemctl restart cahut
 sleep 2
 systemctl is-active --quiet cahut || die "the service did not start: see journalctl -u cahut"
@@ -279,6 +347,10 @@ To administer the server itself, create an administrator of the server:
 
 Ports 80 and 443 must be open in the firewall of your hosting provider
 too, if it has one.
+
+Cahut updates itself every day ($updates: see CAHUT_UPDATES in
+$env_file). To update now, or to see what is new:
+       sudo $bin_path update --check
 
 The service logs go to the journal: journalctl -u cahut
 EOF
