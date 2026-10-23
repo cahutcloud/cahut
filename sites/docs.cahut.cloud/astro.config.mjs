@@ -22,6 +22,8 @@ export default defineConfig({
 				{ tag: 'link', attrs: { rel: 'manifest', href: '/site.webmanifest' } },
 			],
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/getcahut/cahut' }],
+			// The footer links to the legal notice and the privacy policy of cahut.cloud.
+			components: { Footer: './src/components/Footer.astro' },
 			customCss: ['@charte/tokens/cahut-fonts.css', '@charte/tokens/cahut-tokens.css', './src/styles/cahut.css'],
 			expressiveCode: {
 				styleOverrides: { borderRadius: 'var(--radius-md)' },

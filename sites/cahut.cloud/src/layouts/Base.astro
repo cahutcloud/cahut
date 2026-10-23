@@ -6,6 +6,7 @@ import '@charte/ui/cahut-ui.css';
 import '../styles/site.css';
 import Icon from '../components/Icon.astro';
 import { localize, otherLang, useTranslations, type Lang } from '../i18n';
+import { legalPages, legalPaths } from '../legal/legal';
 import { pages, paths } from '../project/community';
 import logo from '@charte/logos/cahut-logo-horizontal.svg?url';
 import logoInverse from '@charte/logos/cahut-logo-horizontal-inverse.svg?url';
@@ -216,7 +217,18 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 				}
 				<div class="about">
 					<p class="c-small c-muted">{t.base.about}</p>
-					<a class="c-small" href={otherHref} hreflang={other} lang={other}>{t.base.language.label}</a>
+					<ul class="c-small" role="list">
+						{
+							legalPages.map((page) => (
+								<li>
+									<a href={localize(lang, legalPaths[page])}>{t.legal.nav[page]}</a>
+								</li>
+							))
+						}
+						<li>
+							<a href={otherHref} hreflang={other} lang={other}>{t.base.language.label}</a>
+						</li>
+					</ul>
 				</div>
 			</div>
 		</footer>
@@ -501,6 +513,18 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 	.site-footer .about p {
 		max-width: var(--measure);
 		margin: 0;
+	}
+	/* The legal pages, then the other language. */
+	.site-footer .about ul {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2) var(--space-6);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.site-footer .about a:hover {
+		text-decoration: underline;
 	}
 
 	@media (max-width: 900px) {
