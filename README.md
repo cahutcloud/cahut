@@ -1,11 +1,9 @@
 <div align="center">
 
-<a href="https://cahut.cloud">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/charte-graphique/logos/cahut-logo-horizontal-inverse.svg">
-    <img alt="Cahut" src="docs/charte-graphique/logos/cahut-logo-horizontal.svg" width="300">
-  </picture>
-</a>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charte-graphique/logos/cahut-logo-horizontal-inverse.svg">
+  <img alt="Cahut" src="docs/charte-graphique/logos/cahut-logo-horizontal.svg" width="300">
+</picture>
 
 <h3>The home for everything your AIs make.</h3>
 
@@ -41,6 +39,10 @@ Today, what AIs make has no home:
 - **Uncontrolled**: who has access, until when, which version is the right one, where the data lives. Nobody really knows.
 - **Inconsistent**: every AI has its own style, and the organization's brand gets lost.
 - **Unguarded**: handing a server to an AI means giving it a root shell, or going through a platform built for humans that it can barely use.
+
+<p align="center">
+  <img alt="Documents, dashboards, code and images join the cloud house of Cahut" src="docs/charte-graphique/illustrations/maison-ouverte.svg" width="560">
+</p>
 
 **Your AIs make it, Cahut keeps it alive.** Everything they produce is published, shared, organized and protected in one place, in your colors, on your server, whatever the AI.
 
@@ -244,4 +246,15 @@ The name Cahut and its logo identify this project and are not covered by this li
 
 Cahut is a personal project by Olivier Durand, independent of any company and of any AI vendor.
 
-- Website: [cahut.cloud](https://cahut.cloud)
+<br>
+
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charte-graphique/logos/cahut-symbole-inverse.svg">
+  <img alt="" src="docs/charte-graphique/logos/cahut-symbole.svg" width="64">
+</picture>
+
+<sub><a href="https://cahut.cloud">cahut.cloud</a> · <a href="https://docs.cahut.cloud">docs.cahut.cloud</a></sub>
+
+</div>
