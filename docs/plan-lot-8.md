@@ -13,7 +13,7 @@ Le lot 8 clôt la V0. ChatGPT devient le deuxième client IA, de bout en bout : 
 Ce que les lots 1 à 7 ont laissé :
 
 - **Claude** se branche de trois façons : claude.ai et Claude Desktop par un connecteur personnalisé, Claude Code par `claude mcp add` ou par le plugin `cahut`, avec sa skill. Les trois s'identifient par leur Client ID Metadata Document (CIMD). Le jalon PoC est atteint depuis le lot 3 avec claude.ai.
-- **OpenAI.** Le serveur OAuth de chaque Cahut suit déjà ce que ChatGPT demande ([ADR 16](adr/0016-oauth-for-ai-clients.md), [ADR 17](adr/0017-oauth-endpoints-on-port-443.md)) : le CIMD `https://chatgpt.com/oauth/client.json` et son authentification `private_key_jwt`, `S256`, le paramètre `iss` dans la réponse d'autorisation, `resource` repris dans le jeton. Codex a passé le test de fumée du lot 3. ChatGPT sur le web, dont le connecteur passe par les serveurs d'OpenAI, n'a pas encore été essayé.
+- **OpenAI.** Le serveur OAuth de chaque Cahut suit déjà ce que ChatGPT demande ([ADR 16](adr/0016-oauth-for-ai-clients.md), [ADR 17](adr/0017-oauth-endpoints-on-port-443.md)) : le CIMD `https://chatgpt.com/oauth/client.json`, qui préfère `private_key_jwt` et offre aussi `none`, la seule méthode que Cahut prend ; `S256` ; le paramètre `iss` dans la réponse d'autorisation ; `resource` repris dans le jeton ; `offline_access` parmi les portées, pour les jetons de rafraîchissement. Codex a passé le test de fumée du lot 3. ChatGPT sur le web, dont le connecteur passe par les serveurs d'OpenAI, n'a pas encore été essayé.
 - **Le Chat** n'a jamais été essayé. L'[ADR 6](adr/0006-in-house-oauth-server.md) note qu'il s'enregistre par enregistrement dynamique (DCR), et que les champs inconnus doivent être ignorés : Cahut les ignore.
 - **Les outils.** Un administrateur qui peut écrire voit 31 outils ; `tools/list` pèse 87 Ko. Les schémas viennent des types Go ; chaque outil porte ses quatre indications (`readOnlyHint`, `destructiveHint` pour ce qui frappe d'abord, `idempotentHint`, `openWorldHint`), sans titre. Les instructions du serveur font 1 900 caractères ; Codex ne garantit que les 512 premiers.
 - **Les limites.** Une requête de publication tient en `MaxRequestSize`, une Window en 500 fichiers et en `window.MaxSize` ; des limiteurs par adresse comptent les connexions, les enregistrements de clients et les Keys tapées, et un autre les Keys fausses de chaque Window.
@@ -27,7 +27,7 @@ Ce que les lots 1 à 7 ont laissé :
 
 L'[ADR 29](adr/0029-chatgpt-second-ai-client.md) tranche la question ouverte du plan de la V0 et fixe :
 
-- **Le deuxième client** est ChatGPT, en mode développeur (offres Plus, Pro, Business, Enterprise et Edu) : le plus répandu après Claude, et celui dont Cahut suit déjà les exigences d'OAuth. Le Chat est essayé dans le lot, et documenté s'il marche, sans être un critère de la V0.
+- **Le deuxième client** est ChatGPT sur le web, par un serveur MCP personnalisé : le plus répandu après Claude, et celui dont Cahut suit déjà les exigences d'OAuth. Depuis octobre 2026, l'aide d'OpenAI le place dans la page Plugins (« Add custom MCP server »), sans mode développeur, pour les offres Business, Enterprise et Edu ; les offres individuelles passaient jusque-là par le mode développeur. Le Chat est essayé dans le lot, et documenté s'il marche, sans être un critère de la V0.
 - **Les mêmes outils pour tous les clients.** Aucun outil, schéma ou consigne n'est réservé à un client : ce qu'un client demande, tous le reçoivent.
 - **Les instructions du serveur** disent d'abord, en moins de 512 caractères, ce qu'une IA doit savoir pour publier ; le reste suit.
 - **Chaque outil** porte un titre lisible et ses quatre indications, et un schéma d'entrée, sans schéma de sortie : la liste des outils reste sous 32 Ko.
@@ -39,7 +39,7 @@ L'[ADR 29](adr/0029-chatgpt-second-ai-client.md) tranche la question ouverte du 
 | --- | --- | --- |
 | Claude Code | `claude mcp add`, puis `claude mcp login` ; CIMD | Claude, en local et sur le staging |
 | claude.ai, Claude Desktop | Connecteur personnalisé ; CIMD | Olivier, sur le staging |
-| ChatGPT | Mode développeur, une app à l'adresse MCP avec OAuth ; CIMD et `private_key_jwt` | Olivier, sur le staging |
+| ChatGPT | Plugins, « Add custom MCP server », à l'adresse MCP avec OAuth ; CIMD, méthode `none` | Olivier, sur le staging |
 | Codex | `codex mcp add --url`, puis `codex mcp login` ; CIMD en bouclage | Claude, en local, avec les modèles d'OpenAI |
 | Le Chat | Connecteur MCP personnalisé ; DCR | Olivier, sur le staging |
 | Mistral Vibe | Serveur MCP en HTTP avec un jeton personnel | Claude, en local, avec les modèles de Mistral |
@@ -51,7 +51,7 @@ Les ajustements, tirés des essais à l'ouverture du lot et de ce que publient O
 - **Les instructions du serveur** réordonnées : l'essentiel pour publier dans les 512 premiers caractères, le reste après.
 - **Un titre pour chaque outil**, en anglais simple (« Publish a Window ») : ChatGPT l'affiche quand il demande à la personne de confirmer un appel. Les opérations reçoivent un champ `Title`, qu'un test exige.
 - **Une liste d'outils plus légère.** Les outils ne portent plus de schéma de sortie : le résultat reste structuré, et la référence de la documentation décrit toujours chaque sortie. Un test borne la taille de `tools/list` à 32 Ko pour un administrateur qui peut écrire.
-- **Le pas à pas** de la console et la documentation pour ChatGPT (Settings, Apps, Advanced settings, Developer mode, puis « Create app ») et pour Le Chat (un connecteur MCP personnalisé), avec ce que chacun demande et ce qu'il affiche.
+- **Le pas à pas** de la console et la documentation pour ChatGPT (Plugins, puis « Add custom MCP server ») et pour Le Chat (un connecteur MCP personnalisé), avec ce que chacun demande et ce qu'il affiche.
 - **Un Cahut à l'adresse IP du staging**, pour obtenir un vrai certificat d'adresse IP et savoir quels clients acceptent un serveur MCP à une adresse IP.
 
 Les schémas d'entrée gardent leurs types multiples (`["null", "array"]`) : les modèles d'OpenAI et de Mistral les ont pris sans erreur.
@@ -110,7 +110,7 @@ Soit environ 7,5 jours. Les pull requests s'enchaînent dans l'ordre ; les corre
 
 ## Démonstration de fin de lot
 
-**Prérequis** : une release qui porte le lot ; un VPS vierge sous AlmaLinux 10 et un sous Ubuntu 24.04, chacun avec un domaine qui pointe sur lui ; un compte claude.ai et un compte ChatGPT en mode développeur ; une fenêtre de navigation privée.
+**Prérequis** : une release qui porte le lot ; un VPS vierge sous AlmaLinux 10 et un sous Ubuntu 24.04, chacun avec un domaine qui pointe sur lui ; un compte claude.ai et un compte ChatGPT qui ajoute un serveur MCP personnalisé (offre Business, Enterprise ou Edu, ou mode développeur d'une offre individuelle s'il existe encore) ; une fenêtre de navigation privée.
 
 Sur chaque VPS, en suivant [recette-v0.md](recette-v0.md) :
 
