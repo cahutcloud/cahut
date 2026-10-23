@@ -89,11 +89,77 @@ function ServerOverview() {
 								<ArrowUpRight class="i" size={14} aria-hidden="true" />
 							</a>
 						)}
+						<MoveCahut domain={c.domain} origin={origin} onMoved={reload} />
 					</article>
 				))}
 			</div>
 			<DeclareCahut origin={origin} onDeclared={reload} />
 		</>
+	);
+}
+
+/** An address that is an IPv4 address, not a domain. */
+const ipAddress = /^\d{1,3}(\.\d{1,3}){3}$/;
+
+/**
+ * Moves a Cahut to another domain, or from the address of the server to a
+ * domain. See docs/adr/0026-cahut-at-an-ip-address.md.
+ */
+function MoveCahut(props: { domain: string; origin: (domain: string) => string; onMoved: () => void }) {
+	const api = useConsole();
+	const [open, setOpen] = useState(false);
+	const [to, setTo] = useState("");
+	const [error, setError] = useState("");
+	const [busy, setBusy] = useState(false);
+	const ip = ipAddress.test(props.domain);
+	if (!open) {
+		return (
+			<div>
+				<button class={`c-btn c-btn--sm ${ip ? "c-btn--primary" : "c-btn--ghost"}`} type="button" onClick={() => setOpen(true)}>
+					{ip ? "Move to a domain" : "Change its domain"}
+				</button>
+			</div>
+		);
+	}
+	const move = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		try {
+			const moved = await api.server("rename_domain", { domain: props.domain, to });
+			// The sessions at the old address end with it: sign in again at the
+			// new one.
+			if (props.domain === location.hostname) {
+				location.assign(`${props.origin(moved.domain)}${href("/server/sign-in")}`);
+				return;
+			}
+			setOpen(false);
+			props.onMoved();
+		} catch (err) {
+			setError(explain(err));
+		}
+		setBusy(false);
+	};
+	return (
+		<form class="form" onSubmit={move}>
+			<p class="c-small">
+				Point the DNS record of the new domain to this server first. Everything in the Cahut stays, but the links that name{" "}
+				<span class="c-mono">{props.domain}</span> stop working, and AIs connect again at the new address.
+			</p>
+			<label class="c-field">
+				<span class="c-field__label">New domain</span>
+				<input class="c-input c-mono" required placeholder="cahut.example.com" value={to} onInput={(e) => setTo(e.currentTarget.value)} />
+			</label>
+			{error && <Failure message={error} />}
+			<div class="updates__actions">
+				<button class="c-btn c-btn--primary c-btn--sm" type="submit" disabled={busy}>
+					Move the Cahut
+				</button>
+				<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => setOpen(false)}>
+					Cancel
+				</button>
+			</div>
+		</form>
 	);
 }
 
@@ -155,7 +221,7 @@ function DeclareCahut({ origin, onDeclared }: { origin: (domain: string) => stri
 						{done.admin?.activation && ` Send ${done.admin.name} this link, where they choose their password. It works once, for 7 days.`}
 					</p>
 					{done.admin?.activation && (
-						<CopyField label="the activation link" value={`${origin(done.domain)}/activate#${done.admin.activation.code}`} />
+						<CopyField label="the activation link" value={`${origin(done.domain)}${href("/activate")}#${done.admin.activation.code}`} />
 					)}
 				</div>
 			)}

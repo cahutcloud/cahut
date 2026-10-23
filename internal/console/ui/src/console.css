@@ -200,6 +200,23 @@
 	}
 }
 
+/* The updates of the server */
+.updates__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-2);
+}
+.updates__spin {
+	vertical-align: -2px;
+	animation: connect-spin 1.2s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+	.updates__spin {
+		animation: none;
+	}
+}
+
 /* The consent screen of OAuth */
 .consent {
 	width: min(100%, 480px);
