@@ -28,12 +28,12 @@ sudo sh install.sh --domain cahut.example.com --email you@example.com
 The email address is optional: Let's Encrypt writes to it about your certificates. The script says what it does, then prints the next steps:
 
 ```text
-cahut: downloading Cahut 0.2.0 for linux/amd64
+cahut: downloading Cahut 0.3.0 for linux/amd64
 cahut: creating the cahut system user
 cahut: writing /etc/cahut/cahut.env
 cahut: declaring the Cahut of cahut.example.com
 cahut: opening ports 80 and 443 in firewalld
-cahut: cahut 0.2.0 (commit 39dd726, 2026-10-23T06:08:00Z, go1.27.3 linux/amd64) is running
+cahut: cahut 0.3.0 (commit 6db98c0, 2026-10-23T09:31:18Z, go1.27.3 linux/amd64) is running
   https://cahut.example.com/
 
 Next steps for the Cahut of cahut.example.com:
@@ -76,7 +76,7 @@ The service runs as the `cahut` user, with the one capability it needs to listen
 | `--domain DOMAIN` | Declares the Cahut of `DOMAIN`, such as `cahut.example.com`. It must point to this server. The first run needs it. |
 | `--email EMAIL` | Sets the contact of the Let's Encrypt account. Optional. |
 | `--staging` | Uses the staging environment of Let's Encrypt, for tests. Browsers do not trust its certificates. |
-| `--version TAG` | Installs this release, such as `v0.2.0`, instead of the latest. |
+| `--version TAG` | Installs this release, such as `v0.3.0`, instead of the latest. |
 | `--binary PATH` | Installs this `cahut` binary instead of downloading a release. |
 | `--help` | Prints the options. |
 
