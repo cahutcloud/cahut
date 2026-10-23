@@ -31,7 +31,7 @@ L'[ADR 24](adr/0024-signed-releases-and-updates.md) fixe :
 - **`cahut update`**, lancé par root : lit les releases publiées, prend la dernière ou celle de `--version`, refuse de revenir à une version plus ancienne, télécharge l'archive, sa somme et la signature, les vérifie, essaie le binaire, arrête le service, copie les bases de données, remplace le binaire, redémarre, attend que le service réponde avec la nouvelle version et ouvre chaque Cahut. Sinon, il remet l'ancien binaire et les bases, redémarre et le dit. `--binary` installe un binaire local avec les mêmes garde-fous, sans signature, comme `install.sh --binary`.
 - **L'automatique.** Un minuteur systemd lance `cahut update --unattended` chaque jour. `CAHUT_UPDATES`, dans `/etc/cahut/cahut.env`, dit ce qu'il fait : `patch` (par défaut) installe seul les versions correctives de la version mineure en place et signale les autres, `all` installe toute nouvelle release, `check` signale seulement, `off` ne demande rien à GitHub.
 - **La séparation des droits.** Le service, sous l'utilisateur `cahut`, ne peut ni remplacer son binaire ni se redémarrer, et ne parle jamais à GitHub. Root met à jour ; l'état des mises à jour est dans `/var/lib/cahut-update/`, que le service lit. Depuis la console, un administrateur du serveur demande une mise à jour : le service écrit une demande, une unité `.path` de systemd la remet au programme de mise à jour, qui ne lit qu'un numéro de version, ne descend jamais et vérifie la signature. Root n'ouvre jamais les bases : il copie des fichiers, service arrêté.
-- **Les bases plus récentes que le binaire** ne s'ouvrent plus : la commande dit d'installer la version qui les a faites, ou une plus récente.
+- **Les bases plus récentes que le binaire** ne s'ouvrent plus : le message dit qu'une version plus récente de Cahut les a faites, et qu'il faut la réinstaller.
 - **Logbook.** Le service, au démarrage, écrit au Logbook du serveur chaque mise à jour qu'il n'y a pas encore vue, réussie ou défaite, d'après l'état que root a laissé. La demande faite dans la console y figure aussi.
 
 ### ADR 25 · The first start is guided in the browser, from a single-use link
@@ -160,7 +160,7 @@ Soit environ 11 jours. Les pull requests s'enchaînent dans l'ordre.
 ## Hors du lot 7
 
 - Les sauvegardes S3 ou SFTP et leur restauration : après la V0. Les testeurs gardent des instantanés de leur VPS ; la copie des bases avant une mise à jour n'en tient pas lieu.
-- Le retour arrière à la main, des jours après une mise à jour : il perdrait ce qui a changé depuis. Une base plus récente que le binaire est refusée ; il faut réinstaller la version qui l'a faite.
+- Le retour arrière à la main, des jours après une mise à jour : il perdrait ce qui a changé depuis. Une base plus récente que le binaire est refusée ; il faut réinstaller une version au moins aussi récente que celle qui l'a faite.
 - Les mises à jour par un dépôt de paquets (dnf, apt) et les images de conteneur : après la V0.
 - Un domaine fourni par le projet, du type `<adresse>.cahut.cloud` : écarté par l'ADR 26.
 - Les autres systèmes que AlmaLinux et Ubuntu : Debian et Rocky devraient marcher, sans être testés.
