@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cahut, couverture de la page LinkedIn</title>
+<link rel="stylesheet" href="../../tokens/cahut-fonts.css">
+<link rel="stylesheet" href="../../tokens/cahut-tokens.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+body{width:1512px;height:256px;overflow:hidden;font-family:var(--font-sans);color:var(--cahut-ink);background:var(--cahut-paper);-webkit-font-smoothing:antialiased;position:relative}
+.mono{font-family:var(--font-mono)}
+.label{font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase}
+h1,h2,p{margin:0}
+
+</style>
+</head>
+<body>
+
+<!-- Le logo de la page couvre le quart gauche, de la mi-hauteur jusqu'en bas : rien avant x = 420. -->
+<img src="../../illustrations/maison-ouverte.svg" alt="" style="position:absolute;right:56px;top:-22px;width:420px;-webkit-mask-image:radial-gradient(ellipse 72% 70% at 55% 46%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 72% 70% at 55% 46%,#000 62%,transparent 100%)">
+<div style="position:absolute;left:436px;top:66px;width:600px">
+  <div class="label" style="font-size:15px;color:var(--cahut-sky-700)">cahut.cloud</div>
+  <h1 style="font-size:40px;line-height:46px;font-weight:800;letter-spacing:-0.02em;margin-top:12px">Your own cloud for<br>everything your AI makes.</h1>
+</div>
+
+</body>
+</html>

@@ -80,7 +80,7 @@ Un nuage dessiné d'un seul trait, dont la base s'ouvre sur une porte. Le nuage 
 | Logo inversé | Sur Ink ou fond sombre | [`cahut-logo-inverse.svg`](logos/cahut-logo-inverse.svg) |
 | Monochrome | Impression une couleur, gravure, tampon | [`cahut-logo-noir.svg`](logos/cahut-logo-noir.svg), [`cahut-logo-blanc.svg`](logos/cahut-logo-blanc.svg) |
 | Logo horizontal | En-têtes, barres de navigation, pieds de page | [`cahut-logo-horizontal.svg`](logos/cahut-logo-horizontal.svg) et ses variantes |
-| Symbole seul | Avatar, petits espaces, filigrane | [`cahut-symbole.svg`](logos/cahut-symbole.svg) et ses variantes |
+| Symbole seul | Petits espaces, filigrane ; sur Sky, l'avatar des réseaux (section 10) | [`cahut-symbole.svg`](logos/cahut-symbole.svg) et ses variantes |
 | Symbole petites tailles | Sous 64 px, trait renforcé | [`cahut-symbole-petites-tailles.svg`](logos/cahut-symbole-petites-tailles.svg) |
 | Logotype seul | Quand le symbole figure déjà à côté | [`cahut-logotype.svg`](logos/cahut-logotype.svg) |
 | Icône d'application | Sky, symbole blanc | [`cahut-icone-app.svg`](logos/cahut-icone-app.svg), variante [Ink](logos/cahut-icone-app-ink.svg) |
@@ -299,7 +299,8 @@ Chaque visuel a son gabarit HTML modifiable dans [`applications/gabarits/`](appl
 | --- | --- | --- |
 | Image de partage (Open Graph) | 1200 × 630 | [`og-image.png`](applications/og-image.png) |
 | Aperçu du dépôt GitHub | 1280 × 640 | [`github-social-preview.png`](applications/github-social-preview.png) |
-| Bannière LinkedIn | 1584 × 396 | [`banniere-linkedin.png`](applications/banniere-linkedin.png) |
+| Couverture de la page LinkedIn | 1512 × 256 | [`banniere-linkedin-page.png`](applications/banniere-linkedin-page.png) |
+| Bannière du profil LinkedIn | 1584 × 396 | [`banniere-linkedin-profil.png`](applications/banniere-linkedin-profil.png) |
 | Bannière X | 1500 × 500 | [`banniere-x.png`](applications/banniere-x.png) |
 | Avatar des réseaux | 400 × 400 | [`avatar-reseaux.png`](applications/avatar-reseaux.png) |
 | Diapositive de titre | 1920 × 1080 | [`diapo-titre.png`](applications/diapo-titre.png) |
@@ -315,7 +316,11 @@ Chaque visuel a son gabarit HTML modifiable dans [`applications/gabarits/`](appl
 <img src="applications/diapo-contenu.png" alt="Diapositive de contenu" width="32%">
 </p>
 
-Pour les bannières, gardez le coin inférieur gauche libre : la photo de profil s'y superpose. Pour la signature e-mail, remplacez l'image par une adresse publique avant usage.
+**Réseaux.** L'avatar est le même sur GitHub, LinkedIn, X et ailleurs : [`avatar-reseaux.png`](applications/avatar-reseaux.png), un carré Sky plein avec le symbole blanc. Il n'a pas de coins arrondis, car chaque réseau pose son propre masque : un cercle sur X et les profils GitHub, un carré arrondi sur les organisations GitHub et les pages LinkedIn. Le symbole tient dans le cercle. L'icône d'application ne convient pas, ses coins arrondis laisseraient des angles vides, ni le symbole seul, transparent.
+
+Sur les bannières, le logo de la page ou la photo du profil se pose en bas à gauche. Sur LinkedIn, ne mettez rien dans le quart gauche de la couverture d'une page, ni dans le tiers gauche de la bannière d'un profil ; sur X, gardez libre le coin inférieur gauche. LinkedIn recadre une image qui n'a pas le format attendu, et ce format n'est pas le même pour une page et pour un profil.
+
+Pour la signature e-mail, remplacez l'image par une adresse publique avant usage.
 
 **Favicon et icônes web**, à placer à la racine du site :
 
@@ -394,5 +399,6 @@ charte-graphique/
 | --- | --- | --- |
 | 1.0 | 20 octobre 2026 | Première version, à partir de la planche retenue |
 | 1.1 | 21 octobre 2026 | Vocabulaire : Cahut remplace Home, Door disparaît, chaque Window a son accès. Pictogramme `cahut.svg`, plus de `door.svg`, gabarit de la planche. Badges d'accès `c-badge--key` et `c-badge--room` à la place de `--password` et `--invited`. Maquettes, hiérarchie typographique et diapositive de contenu mises à jour |
+| 1.2 | 23 octobre 2026 | Couverture de la page LinkedIn au format des pages, 1512 × 256 ; bannière du profil renommée `banniere-linkedin-profil` et recomposée hors de la photo. Règle de l'avatar des réseaux et des zones que couvrent le logo ou la photo |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.
