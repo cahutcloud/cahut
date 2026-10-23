@@ -63,6 +63,26 @@ jobs:
           go-version-file: go.mod
       - run: make test
 
+  # install.sh on the blank Ubuntu machine of GitHub, then an update and a
+  # rollback. test/install/lima.sh runs the same on AlmaLinux.
+  install:
+    name: Install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build two versions of the binary
+        run: |
+          for v in 0.0.0-ci.1 0.0.0-ci.2; do
+            CGO_ENABLED=0 go build -trimpath -ldflags "-X cahut.cloud/internal/version.version=$v" -o "$RUNNER_TEMP/cahut-$v" ./cmd/cahut
+          done
+      - name: Install, update and roll back
+        run: sudo sh test/install/run.sh install.sh "$RUNNER_TEMP/cahut-0.0.0-ci.1" "$RUNNER_TEMP/cahut-0.0.0-ci.2"
+
   build:
     name: Build
     runs-on: ubuntu-latest

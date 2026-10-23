@@ -14,7 +14,7 @@ GORELEASER    ?= go run github.com/goreleaser/goreleaser/v2@$(GORELEASER_VERSION
 # The sites need Node.js at the version of .nvmrc: run "nvm use" first.
 SITES_DEPS := sites/node_modules/.package-lock.json
 
-.PHONY: help build dev test lint fmt check snapshot release-check console console-dev console-types sites site-dev docs-dev docs-reference clean
+.PHONY: help build dev test lint fmt check snapshot release-check install-test console console-dev console-types sites site-dev docs-dev docs-reference clean
 
 help: ## List the tasks
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -55,6 +55,13 @@ snapshot: ## Build the release archives into dist/, without publishing or signin
 
 release-check: ## Validate the GoReleaser configuration
 	$(GORELEASER) check
+
+# The install test runs install.sh, an update and a rollback in a blank
+# virtual machine, made by Lima from one of its templates.
+SYSTEM ?= almalinux-10
+
+install-test: ## Test install.sh in a blank VM with Lima (SYSTEM=almalinux-10 or ubuntu-24.04)
+	sh test/install/lima.sh $(SYSTEM)
 
 sites: $(SITES_DEPS) ## Build cahut.cloud and docs.cahut.cloud into sites/*/dist
 	cd sites && npm run build

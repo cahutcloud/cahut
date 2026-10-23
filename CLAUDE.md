@@ -50,6 +50,7 @@ The Go version is set by the `toolchain` line of `go.mod`; the `go` command down
 | `make check` | Lint and tests, as CI runs them: run it before pushing |
 | `make snapshot` | Builds the release archives into `dist/`, without publishing |
 | `make release-check` | Validates `.goreleaser.yaml` |
+| `make install-test` | Runs `install.sh`, an update and a rollback in a blank virtual machine with Lima (`SYSTEM=almalinux-10` or `ubuntu-24.04`) |
 | `make site-dev` | Serves cahut.cloud on http://localhost:4321 |
 | `make docs-dev` | Serves docs.cahut.cloud on http://localhost:4322 |
 | `make docs-reference` | Writes the reference of the docs from the code: run it after changing an operation or a command |
@@ -73,7 +74,7 @@ Windows open at `http://localhost:8080/<room>/<window>/`, to the members of thei
 
 On a server, [install.sh](install.sh) installs a release, or a binary given with `--binary`, as the `cahut` systemd service, and declares the Cahut of `--domain`; run it with `--help`. Administration commands run as the service user, with the binary's full path, since sudo on AlmaLinux does not search `/usr/local/bin`: `sudo -u cahut /usr/local/bin/cahut token create ...`. `sudo /usr/local/bin/cahut update` installs a new release as root, with a snapshot of the databases, a health check on `http://127.0.0.1/-/healthz` and a rollback; `--binary` does the same with a local build, and the `cahut-update` timer of systemd runs it every day as `CAHUT_UPDATES` says ([ADR 24](docs/adr/0024-signed-releases-and-updates.md)). Never run a command that opens the databases as root: SQLite would leave root-owned files that the service cannot open.
 
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on `main`: lint, a check that the reference of the docs is up to date, tests, and a GoReleaser snapshot build that checks the linux/amd64 and linux/arm64 binaries are static. [sites.yml](.github/workflows/sites.yml) builds the sites on pull requests that touch them or the brand, and on `main` uploads them to the web server with rsync over SSH, once the repository's variables name it ([sites/README.md](sites/README.md#deployment)). Pushing a `v*` tag runs [release.yml](.github/workflows/release.yml), which drafts a GitHub release with the archives, their checksums and the Ed25519 signature of the checksums, made with the `CAHUT_RELEASE_KEY` secret ([ADR 24](docs/adr/0024-signed-releases-and-updates.md)); a person reviews and publishes it. The public keys live in `internal/release/release-keys.pem` and in `install.sh`, which a test keeps the same.
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on `main`: lint, a check that the reference of the docs is up to date, tests, an install test on the blank Ubuntu machine of GitHub ([test/install/run.sh](test/install/run.sh): install.sh, cahut doctor, an update and a rollback), and a GoReleaser snapshot build that checks the linux/amd64 and linux/arm64 binaries are static. [sites.yml](.github/workflows/sites.yml) builds the sites on pull requests that touch them, the brand or `install.sh`, and on `main` uploads them to the web server with rsync over SSH, once the repository's variables name it ([sites/README.md](sites/README.md#deployment)). Pushing a `v*` tag runs [release.yml](.github/workflows/release.yml), which drafts a GitHub release with the archives, their checksums and the Ed25519 signature of the checksums, made with the `CAHUT_RELEASE_KEY` secret ([ADR 24](docs/adr/0024-signed-releases-and-updates.md)); a person reviews and publishes it. The public keys live in `internal/release/release-keys.pem` and in `install.sh`, which a test keeps the same.
 
 ## Code conventions
 
@@ -199,7 +200,8 @@ SECURITY.md            How to report a vulnerability
 SUPPORT.md             Where to ask for help
 TRADEMARK.md           Using the name and the logo
 LICENSE                The AGPL-3.0 (ADR 15)
-install.sh             Installs Cahut on a server as a systemd service
+install.sh             Installs Cahut on a server as a systemd service; cahut.cloud serves it at /install.sh
+test/install/          The install test, run by CI on Ubuntu and by make install-test in virtual machines
 Makefile               Development tasks
 .nvmrc                 Node.js version, for the sites
 .golangci.yml          Linter configuration
