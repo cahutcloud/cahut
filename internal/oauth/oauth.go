@@ -99,6 +99,7 @@ func (s *Server) Register(r *operation.Registry) {
 	operation.Register(r, s.denyOp())
 	operation.Register(r, ListConnectedAIs)
 	operation.Register(r, DisconnectAI)
+	operation.Register(r, SetAIReach)
 }
 
 // Issuer returns the address of the authorization server.

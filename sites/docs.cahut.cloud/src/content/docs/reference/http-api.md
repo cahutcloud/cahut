@@ -64,6 +64,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/create_room` | Any person | yes |
 | `POST /api/create_token` | Any person | yes |
 | `POST /api/create_user` | Administrators of the Cahut | yes |
+| `POST /api/delete_room` | Any person | yes |
 | `POST /api/deny_authorization` | Any person | yes |
 | `POST /api/deny_knock` | Any person | yes |
 | `POST /api/describe_authorization` | Any person | yes |
@@ -83,10 +84,12 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/list_users` | Any person | yes |
 | `POST /api/list_windows` | Any person | yes |
 | `POST /api/publish_window` | Any person | yes |
+| `POST /api/purge_window` | Any person | yes |
 | `POST /api/remove_room_member` | Any person | yes |
 | `POST /api/restore_window` | Any person | yes |
 | `POST /api/revoke_token` | Any person | yes |
 | `POST /api/rollback_window` | Any person | yes |
+| `POST /api/set_ai_reach` | Any person | yes |
 | `POST /api/set_room_member_role` | Any person | yes |
 | `POST /api/set_user_role` | Administrators of the Cahut | yes |
 | `POST /api/set_window_access` | Any person | yes |

@@ -24,6 +24,7 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | [`create_room`](/reference/mcp-tools/#create_room) | Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. | Any person | yes | yes |
 | `create_token` | Create a personal token that lets an AI act on behalf of a person. | Any person | yes | no, people only |
 | [`create_user`](/reference/mcp-tools/#create_user) | Create a person, with their personal Room, and the link where they choose their password. | Administrators of the Cahut | yes | to the AIs of administrators |
+| [`delete_room`](/reference/mcp-tools/#delete_room) | Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. | Any person | yes | yes |
 | `deny_authorization` | Refuse the request of an AI client to connect to this Cahut. Returns the address that tells the client so. | Any person | yes | no, people only |
 | `deny_knock` | Deny a Knock of one of your AIs: the call never runs. The AI learns it from get_knock. | Any person | yes | no, people only |
 | `describe_authorization` | Check the request of an AI client to connect to this Cahut, and describe it to the person who consents: the client, where it will be sent back, the scope it asks for, and the Rooms the person may grant. | Any person | no | no, people only |
@@ -43,10 +44,12 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | [`list_users`](/reference/mcp-tools/#list_users) | List the people of the Cahut, with their handles, names, roles and states. | Any person | no | yes |
 | [`list_windows`](/reference/mcp-tools/#list_windows) | List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. | Any person | no | yes |
 | [`publish_window`](/reference/mcp-tools/#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. | Any person | yes | yes |
+| [`purge_window`](/reference/mcp-tools/#purge_window) | Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. | Any person | yes | yes |
 | [`remove_room_member`](/reference/mcp-tools/#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. | Any person | yes | yes |
 | [`restore_window`](/reference/mcp-tools/#restore_window) | Bring a Window back from the trash, with its versions. | Any person | yes | yes |
 | `revoke_token` | Revoke a personal token. The AI that used it loses access at once. | Any person | yes | no, people only |
 | [`rollback_window`](/reference/mcp-tools/#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. | Any person | yes | yes |
+| [`set_ai_reach`](/reference/mcp-tools/#set_ai_reach) | Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. | Any person | yes | yes |
 | [`set_room_member_role`](/reference/mcp-tools/#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. | Any person | yes | yes |
 | [`set_user_role`](/reference/mcp-tools/#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. | Administrators of the Cahut | yes | to the AIs of administrators |
 | [`set_window_access`](/reference/mcp-tools/#set_window_access) | Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. | Any person | yes | yes |
@@ -78,6 +81,6 @@ They are not offered over MCP.
 
 An operation that cannot be undone, or that changes what a person may do, knocks first. When an AI calls it, the call does not run: Cahut checks it, then makes a Knock, which waits 24 hours for the person the AI acts for to approve or deny it in the console. Approving runs the call, as the AI. A person who calls the operation in the console acts at once, after a confirmation.
 
-These operations knock first: `add_room_member`, `create_user`, `disable_user`, `enable_user`, `remove_room_member`, `set_room_member_role`, `set_user_role`.
+These operations knock first: `add_room_member`, `create_user`, `delete_room`, `disable_user`, `enable_user`, `purge_window`, `remove_room_member`, `set_room_member_role`, `set_user_role`.
 
-These knock first for some calls only: `set_window_access`, when it makes a Window public.
+These knock first for some calls only: `set_ai_reach`, when it widens the reach of an AI; `set_window_access`, when it makes a Window public.

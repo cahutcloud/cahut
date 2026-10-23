@@ -115,6 +115,9 @@ type Op[In, Out any] struct {
 	// only, which ones, such as "it makes a Window public". Run calls
 	// Call.Knock for them.
 	KnocksWhen string
+	// ReadOnlyAIs operations change things, yet are offered to the AIs that
+	// may only read: set_ai_reach is how they ask for more.
+	ReadOnlyAIs bool
 	// Run does the work, inside the transaction of the call. It returns an
 	// error wrapping ErrInvalid, ErrNotFound or ErrForbidden when the caller
 	// is at fault.
@@ -131,6 +134,7 @@ type Info struct {
 	Visitors    bool
 	KnockFirst  bool
 	KnocksWhen  string
+	ReadOnlyAIs bool
 	Input       reflect.Type
 	Output      reflect.Type
 }
@@ -139,7 +143,7 @@ type Info struct {
 // who administers the Cahut or not, when they may change things or only
 // read.
 func (i Info) ForAIs(admin, readOnly bool) bool {
-	return !i.PeopleOnly && (i.Level == AnyPerson || i.Level == CahutAdmin && admin) && (i.ReadOnly || !readOnly)
+	return !i.PeopleOnly && (i.Level == AnyPerson || i.Level == CahutAdmin && admin) && (i.ReadOnly || i.ReadOnlyAIs || !readOnly)
 }
 
 // Call is one call of an operation, as Run sees it.
@@ -336,6 +340,7 @@ func (op *Op[In, Out]) info() Info {
 		Visitors:    op.Visitors,
 		KnockFirst:  op.KnockFirst,
 		KnocksWhen:  op.KnocksWhen,
+		ReadOnlyAIs: op.ReadOnlyAIs,
 		Input:       reflect.TypeFor[In](),
 		Output:      reflect.TypeFor[Out](),
 	}
@@ -491,7 +496,7 @@ func authorize(info Info, a Actor) error {
 		if info.PeopleOnly {
 			return Forbiddenf("%s is for people, not for AIs: it proves who someone is", info.Name)
 		}
-		if a.ReadOnly && !info.ReadOnly {
+		if a.ReadOnly && !info.ReadOnly && !info.ReadOnlyAIs {
 			return Forbiddenf("%s changes things, and this AI may only read: "+
 				"%s can connect it again with write access, in the console of the Cahut", info.Name, a.Handle)
 		}

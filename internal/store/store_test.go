@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"path/filepath"
 	"testing"
+	"testing/fstest"
 	"time"
 )
 
@@ -87,5 +88,86 @@ func TestTimeRoundTrip(t *testing.T) {
 	}
 	if !back.Equal(at) {
 		t.Errorf("ParseTime(FormatTime(t)) = %v, want %v", back, at)
+	}
+}
+
+// TestRemadeTablesKeepTheirRows fills a Cahut's database of migration 9,
+// then opens it: migration 10 makes rooms and windows again, with
+// AUTOINCREMENT, and the foreign keys off. The rows that refer to them
+// stay, and a deleted id is not given again.
+func TestRemadeTablesKeepTheirRows(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "cahut.db")
+	before := fstest.MapFS{}
+	names, err := fs.Glob(CahutSchema, "*.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range names {
+		if name < "0010" {
+			data, err := fs.ReadFile(CahutSchema, name)
+			if err != nil {
+				t.Fatal(err)
+			}
+			before[name] = &fstest.MapFile{Data: data}
+		}
+	}
+	db, err := Open(ctx, path, before)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range []string{
+		"INSERT INTO users (id, handle, name, role, created_at) VALUES (1, 'olivier', 'Olivier', 'admin', 'now')",
+		"INSERT INTO rooms (id, name, kind, title, created_at) VALUES (1, 'olivier', 'personal', 'Olivier', 'now')",
+		"INSERT INTO rooms (id, name, kind, title, created_at) VALUES (2, 'marketing', 'team', 'Marketing', 'now')",
+		"INSERT INTO room_members (room_id, user_id, role) VALUES (1, 1, 'owner'), (2, 1, 'owner')",
+		`INSERT INTO windows (id, room_id, name, title, kind, version, size, file_count, created_by, created_at, updated_at, access)
+			VALUES (1, 2, 'q3', 'Q3', 'deck', 1, 10, 1, 1, 'now', 'now', 'key')`,
+		"INSERT INTO window_versions (window_id, number, size, file_count, published_by, published_at) VALUES (1, 1, 10, 1, 1, 'now')",
+		"INSERT INTO window_passes (window_id, hash, created_at, expires_at) VALUES (1, x'01', 'now', 'later')",
+	} {
+		if _, err := db.Write.ExecContext(ctx, q); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	db, err = Open(ctx, path, CahutSchema)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer db.Close()
+	for q, want := range map[string]int{
+		"SELECT count(*) FROM room_members":                                                 2,
+		"SELECT count(*) FROM window_versions":                                              1,
+		"SELECT count(*) FROM window_passes":                                                1,
+		"SELECT count(*) FROM windows WHERE access = 'key'":                                 1,
+		"SELECT count(*) FROM rooms WHERE name = 'marketing'":                               1,
+		"SELECT count(*) FROM sqlite_sequence WHERE seq >= 1":                               2,
+		"SELECT count(*) FROM pragma_foreign_key_list('windows') WHERE \"table\" = 'rooms'": 1,
+	} {
+		var got int
+		if err := db.Read.QueryRowContext(ctx, q).Scan(&got); err != nil || got != want {
+			t.Errorf("%s = %d, %v; want %d", q, got, err, want)
+		}
+	}
+
+	// The foreign keys hold again, and delete what refers to a Room.
+	if _, err := db.Write.ExecContext(ctx, "DELETE FROM windows WHERE id = 1"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Write.ExecContext(ctx, "DELETE FROM rooms WHERE id = 2"); err != nil {
+		t.Fatal(err)
+	}
+	var members int
+	if err := db.Read.QueryRowContext(ctx, "SELECT count(*) FROM room_members").Scan(&members); err != nil || members != 1 {
+		t.Errorf("room_members = %d, %v, want 1", members, err)
+	}
+	var id int64
+	err = db.Write.QueryRowContext(ctx, "INSERT INTO rooms (name, kind, title, created_at) VALUES ('sales', 'team', 'Sales', 'now') RETURNING id").Scan(&id)
+	if err != nil || id != 3 {
+		t.Errorf("a new Room takes id %d, %v, want 3", id, err)
 	}
 }

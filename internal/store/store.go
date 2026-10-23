@@ -101,7 +101,21 @@ func migrate(ctx context.Context, db *sql.DB, schema fs.FS) error {
 	return nil
 }
 
+// keysOff starts a migration that makes again a table that others refer
+// to. SQLite asks for the foreign keys to be off while the old table is
+// dropped, lest its rows take those of other tables with them: the
+// migration runs with them off, and checks them before it commits.
+const keysOff = "-- foreign keys off\n"
+
 func apply(ctx context.Context, db *sql.DB, version int, script string) error {
+	// The pragma does nothing in a transaction, and db has one connection.
+	off := strings.HasPrefix(script, keysOff)
+	if off {
+		if _, err := db.ExecContext(ctx, "PRAGMA foreign_keys = OFF"); err != nil {
+			return err
+		}
+		defer db.ExecContext(ctx, "PRAGMA foreign_keys = ON") //nolint:errcheck // a later query would fail on a closed connection anyway
+	}
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -109,6 +123,16 @@ func apply(ctx context.Context, db *sql.DB, version int, script string) error {
 	defer tx.Rollback() //nolint:errcheck // a no-op after Commit
 	if _, err := tx.ExecContext(ctx, script); err != nil {
 		return err
+	}
+	if off {
+		var table string
+		err := tx.QueryRowContext(ctx, "PRAGMA foreign_key_check").Scan(&table, new(any), new(any), new(any))
+		if err == nil {
+			return fmt.Errorf("a row of %s refers to a row that is gone", table)
+		}
+		if !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
 	}
 	if _, err := tx.ExecContext(ctx, fmt.Sprintf("PRAGMA user_version = %d", version)); err != nil {
 		return err

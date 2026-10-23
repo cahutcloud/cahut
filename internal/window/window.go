@@ -74,6 +74,21 @@ func (s *Service) Register(r *operation.Registry) {
 		Description: "Bring a Window back from the trash, with its versions.",
 		Run:         s.restore,
 	})
+	operation.Register(r, &operation.Op[RefInput, Window]{
+		Name: "purge_window",
+		Description: "Delete a Window in the trash for good, with its versions and its files: this cannot be undone. " +
+			"Its address becomes free. Put the Window in the trash first, with trash_window.",
+		KnockFirst: true,
+		Run:        s.purge,
+	})
+	operation.Register(r, &operation.Op[DeleteRoomInput, DeletedRoom]{
+		Name: "delete_room",
+		Description: "Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: " +
+			"this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; " +
+			"a personal Room is never deleted.",
+		KnockFirst: true,
+		Run:        s.deleteRoom,
+	})
 	operation.Register(r, &operation.Op[AccessInput, AccessSet]{
 		Name: "set_window_access",
 		Description: "Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; " +

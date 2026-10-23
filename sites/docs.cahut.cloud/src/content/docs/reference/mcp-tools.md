@@ -34,6 +34,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`add_room_member`](#add_room_member) | Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. Knock first: a person approves the call before it runs. |
 | [`create_room`](#create_room) | Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. |
 | [`create_user`](#create_user) | Create a person, with their personal Room, and the link where they choose their password. Knock first: a person approves the call before it runs. |
+| [`delete_room`](#delete_room) | Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. Knock first: a person approves the call before it runs. |
 | [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. Knock first: a person approves the call before it runs. |
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
@@ -47,9 +48,11 @@ The Cahut gives these instructions to the AI when it connects:
 | [`list_users`](#list_users) | List the people of the Cahut, with their handles, names, roles and states. |
 | [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. |
 | [`publish_window`](#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. |
+| [`purge_window`](#purge_window) | Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs. |
 | [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`restore_window`](#restore_window) | Bring a Window back from the trash, with its versions. |
 | [`rollback_window`](#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
+| [`set_ai_reach`](#set_ai_reach) | Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs. |
 | [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs. |
 | [`set_window_access`](#set_window_access) | Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
@@ -421,6 +424,79 @@ Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: fal
     "role",
     "status",
     "personal_room"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `delete_room`
+
+Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. Knock first: a person approves the call before it runs.
+
+Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
+
+Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `room` | string | yes | the name of the team Room |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "room": {
+      "description": "the name of the team Room",
+      "type": "string"
+    }
+  },
+  "required": [
+    "room"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `room` | string | yes | the name of the Room, now free |
+| `title` | string | yes |  |
+| `windows` | integer | yes | how many Windows were deleted with it, those in its trash included |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "room": {
+      "description": "the name of the Room, now free",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "windows": {
+      "description": "how many Windows were deleted with it, those in its trash included",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "room",
+    "title",
+    "windows"
   ],
   "type": "object"
 }
@@ -2288,6 +2364,191 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 </details>
 
+## `purge_window`
+
+Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs.
+
+Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
+
+Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "window": {
+      "description": "the Window's address, or its Room and its name as room/name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "window"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `created_at` | string | yes |  |
+| `created_by` | string | yes | handle of the person it was first published for |
+| `file_count` | integer | yes |  |
+| `kind` | string | yes |  |
+| `name` | string | yes | the Window's name, last part of its address |
+| `room` | string | yes | the name of its Room, the part of its address before its name |
+| `size` | integer | yes | total size of the files of the current version, in bytes |
+| `title` | string | yes |  |
+| `updated_at` | string | yes |  |
+| `url` | string | yes | where the Window opens |
+| `version` | integer | yes | the number of the version that readers see |
+| `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
+| `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "access": {
+      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "type": "string"
+    },
+    "access_ends_at": {
+      "description": "when the access ends, after which the Window opens to its Room only; absent when it does not end",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "created_by": {
+      "description": "handle of the person it was first published for",
+      "type": "string"
+    },
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "file_count": {
+      "type": "integer"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "name": {
+      "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "previous_version": {
+      "description": "the number of the version that rollback_window goes back to; absent when there is none",
+      "type": "integer"
+    },
+    "room": {
+      "description": "the name of its Room, the part of its address before its name",
+      "type": "string"
+    },
+    "size": {
+      "description": "total size of the files of the current version, in bytes",
+      "type": "integer"
+    },
+    "title": {
+      "type": "string"
+    },
+    "trashed_at": {
+      "description": "when the Window went to the trash; absent when it is not in it",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "url": {
+      "description": "where the Window opens",
+      "type": "string"
+    },
+    "version": {
+      "description": "the number of the version that readers see",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "url",
+    "room",
+    "version",
+    "size",
+    "file_count",
+    "created_by",
+    "created_at",
+    "updated_at",
+    "access"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
 ## `remove_room_member`
 
 Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs.
@@ -2781,6 +3042,166 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "created_at",
     "updated_at",
     "access"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `set_ai_reach`
+
+Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs.
+
+Offered also to the AIs that may only read, though it changes things.
+
+Knock first when it widens the reach of an AI: that call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
+
+Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `scope` | string | yes | read, or write |
+| `all_rooms` | boolean | no | every Room of the person, including those they join later |
+| `id` | integer | no | the connection, from list_connected_ais; an AI leaves it out, to set its own |
+| `rooms` | array of strings or null | no | the names of the Rooms the AI reaches, when all_rooms is false |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "all_rooms": {
+      "description": "every Room of the person, including those they join later",
+      "type": "boolean"
+    },
+    "id": {
+      "description": "the connection, from list_connected_ais; an AI leaves it out, to set its own",
+      "type": "integer"
+    },
+    "rooms": {
+      "description": "the names of the Rooms the AI reaches, when all_rooms is false",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "scope": {
+      "description": "read, or write",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scope"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `all_rooms` | boolean | yes | every Room of the person, including those they join later |
+| `client` | string | yes | the name of the AI client |
+| `client_id` | string | yes |  |
+| `created_at` | string | yes |  |
+| `id` | integer | yes |  |
+| `redirect_host` | string | yes | where its authorization went back to |
+| `rooms` | array of strings or null | yes | the Rooms granted, when all_rooms is false |
+| `scope` | string | yes | read, or write |
+| `status` | string | yes | active, expired after 30 days without use, or ended |
+| `user` | string | yes | the person the AI acts for |
+| `end_reason` | string | no |  |
+| `ended_at` | string or null | no |  |
+| `last_used_at` | string or null | no |  |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "all_rooms": {
+      "description": "every Room of the person, including those they join later",
+      "type": "boolean"
+    },
+    "client": {
+      "description": "the name of the AI client",
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "end_reason": {
+      "type": "string"
+    },
+    "ended_at": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "id": {
+      "type": "integer"
+    },
+    "last_used_at": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "redirect_host": {
+      "description": "where its authorization went back to",
+      "type": "string"
+    },
+    "rooms": {
+      "description": "the Rooms granted, when all_rooms is false",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "scope": {
+      "description": "read, or write",
+      "type": "string"
+    },
+    "status": {
+      "description": "active, expired after 30 days without use, or ended",
+      "type": "string"
+    },
+    "user": {
+      "description": "the person the AI acts for",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "user",
+    "client",
+    "client_id",
+    "redirect_host",
+    "scope",
+    "all_rooms",
+    "rooms",
+    "status",
+    "created_at"
   ],
   "type": "object"
 }
