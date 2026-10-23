@@ -88,7 +88,7 @@ func (s *Server) serveWindow(w http.ResponseWriter, r *http.Request) {
 		src += "?" + r.URL.RawQuery
 	}
 	// The frame has the sandbox of the Window's files.
-	s.render(w, http.StatusOK, "frame", struct{ Title, Src, Sandbox string }{win.Title, src, win.Declaration.Sandbox()})
+	s.render(w, r, http.StatusOK, "frame", struct{ Title, Src, Sandbox string }{win.Title, src, win.Declaration.Sandbox()})
 }
 
 // serveFrame serves the files of a Window in its frame, under the

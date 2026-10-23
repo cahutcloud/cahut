@@ -21,6 +21,7 @@ import (
 	"cahut.cloud/internal/oauth"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
+	"cahut.cloud/internal/store"
 )
 
 const (
@@ -441,12 +442,19 @@ func TestApproveChecks(t *testing.T) {
 
 func TestRegister(t *testing.T) {
 	f := setup(t)
+	many := make([]string, 11)
+	for i := range many {
+		many[i] = fmt.Sprintf("https://claude.ai/callback/%d", i)
+	}
 	for _, uris := range [][]string{
 		{},
 		{"http://claude.ai/callback"},
 		{"javascript:alert(1)"},
 		{"https://claude.ai/callback#fragment"},
 		{"/relative"},
+		{"https://\u0441laude.ai/callback"}, // a Cyrillic с, which the consent screen would show as a c
+		{"https://claude.ai/" + strings.Repeat("x", 512)},
+		many,
 	} {
 		body, _ := json.Marshal(map[string]any{"redirect_uris": uris})
 		rec := httptest.NewRecorder()
@@ -481,17 +489,32 @@ func TestRegister(t *testing.T) {
 		}
 	}
 
-	// A client that receives no connection within 7 days is deleted at the
+	// A client that receives no connection within a day is deleted at the
 	// next registration; a connected one stays.
 	unused, used := f.register(redirect), f.register(redirect)
 	f.approve(f.olivier, oauth.ApproveInput{Request: f.request(used), Scope: oauth.Read, AllRooms: true})
-	f.now = f.now.Add(8 * 24 * time.Hour)
+	f.now = f.now.Add(oauth.ClientLifetime + time.Hour)
 	f.register(redirect)
 	for id, want := range map[string]bool{unused: false, used: true} {
 		var n int
 		if err := f.c.DB.Read.QueryRow("SELECT count(*) FROM oauth_clients WHERE id = ?", id).Scan(&n); err != nil || (n == 1) != want {
 			t.Errorf("client kept = %v, want %v (%v)", n == 1, want, err)
 		}
+	}
+
+	// Clients that wait for a first connection are a thousand at most: the
+	// oldest give way.
+	for i := range 1005 {
+		if _, err := f.c.DB.Write.Exec("INSERT INTO oauth_clients (id, name, redirect_uris, created_at) VALUES (?, 'Spam', '[]', ?)",
+			fmt.Sprintf("spam-%d", i), store.FormatTime(f.now.Add(-time.Minute))); err != nil {
+			t.Fatal(err)
+		}
+	}
+	newest := f.register(redirect)
+	var waiting, kept int
+	if err := f.c.DB.Read.QueryRow("SELECT count(*), count(*) FILTER (WHERE id = ?) FROM oauth_clients WHERE connected_at IS NULL", newest).
+		Scan(&waiting, &kept); err != nil || waiting != 1000 || kept != 1 {
+		t.Errorf("clients waiting = %d, the newest kept = %d (%v)", waiting, kept, err)
 	}
 }
 
@@ -731,9 +754,56 @@ func TestPublicAddresses(t *testing.T) {
 		"::ffff:10.0.0.1": false,
 		"64:ff9b::a00:1":  false,
 		"224.0.0.1":       false,
+		"::127.0.0.1":     false,
+		"::ffff:0:a00:1":  false,
 	} {
 		if got := oauth.Public(ip); got != want {
 			t.Errorf("public(%s) = %v, want %v", ip, got, want)
 		}
+	}
+}
+
+// TestSlowDocumentHoldsNoWrite checks that a client metadata document that
+// answers slowly holds no connection to the database: other calls of the
+// Cahut write meanwhile.
+func TestSlowDocumentHoldsNoWrite(t *testing.T) {
+	f := setup(t)
+	arrived, release := make(chan struct{}, 1), make(chan struct{})
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		arrived <- struct{}{}
+		<-release
+		_ = json.NewEncoder(w).Encode(map[string]any{"client_id": "https://" + r.Host + r.URL.Path, "client_name": "Slow",
+			"redirect_uris": []string{redirect}, "token_endpoint_auth_method": "none"})
+	}))
+	defer srv.Close()
+	oauth.UseDocumentTransport(f.c.OAuth, srv.Client().Transport)
+
+	done := make(chan error, 1)
+	go func() {
+		_, err := f.invoke(f.olivier, "approve_authorization", oauth.ApproveInput{Request: f.request(srv.URL + "/client.json"), Scope: oauth.Read, AllRooms: true})
+		done <- err
+	}()
+	<-arrived
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if _, err := f.c.DB.Write.ExecContext(ctx, "DELETE FROM oauth_clients WHERE id = 'none'"); err != nil {
+		t.Errorf("a write while a document is fetched: %v", err)
+	}
+	close(release)
+	if err := <-done; err != nil {
+		t.Errorf("approve with a slow document: %v", err)
+	}
+}
+
+// TestRedirectHostAsTheBrowserReadsIt checks that the consent screen names
+// the host where the browser goes, in lowercase: cIaude.ai is ciaude.ai.
+func TestRedirectHostAsTheBrowserReadsIt(t *testing.T) {
+	f := setup(t)
+	client := f.register("https://cIaude.AI/callback")
+	req := f.request(client)
+	req.RedirectURI = "https://cIaude.AI/callback"
+	out, err := f.invoke(f.olivier, "describe_authorization", oauth.DescribeInput{Request: req})
+	if err != nil || out.(oauth.Authorization).RedirectHost != "ciaude.ai" {
+		t.Errorf("describe = %+v, %v; want the host ciaude.ai", out, err)
 	}
 }

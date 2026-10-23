@@ -28,12 +28,18 @@ const (
 	passCookie   = "cahut-key-" //nolint:gosec // a prefix, not a credential
 )
 
-// Attempts at a Key are limited by address, and their failures by Window.
+// Attempts at a Key are limited by address, and their failures by Window,
+// and by Window and address. A Window that many wrong Keys reach, from
+// anywhere, takes Keys only from the addresses that have not sent it a
+// wrong one lately: a reader who comes with the right Key gets in, and each
+// address of a guesser waits a minute between guesses.
 const (
 	KeyBurst       = 10
 	KeyEvery       = 6 * time.Second
 	KeyWindowBurst = 20
 	KeyWindowEvery = 3 * time.Second
+	KeyHereBurst   = 5
+	KeyHereEvery   = time.Minute
 )
 
 // cookieName returns the name of a cookie of Cahut: with the __Host- prefix,
@@ -141,7 +147,7 @@ func (s *Server) serveSession(w http.ResponseWriter, r *http.Request) {
 	if errors.Is(err, account.ErrInvalidSession) {
 		p := s.page(r, "")
 		p.SignIn = "/-/sign-in?to=" + url.QueryEscape(to)
-		s.render(w, http.StatusForbidden, "expired", p)
+		s.render(w, r, http.StatusForbidden, "expired", p)
 		return
 	}
 	if err != nil {
@@ -173,7 +179,7 @@ type keyPage struct {
 func (s *Server) askKey(w http.ResponseWriter, r *http.Request, win window.Served, reader, msg string, status int) {
 	p := s.page(r, reader)
 	p.SignIn = "/-/sign-in?to=" + url.QueryEscape("/"+win.Room+"/"+win.Name+"/")
-	s.render(w, status, "key", keyPage{page: p, Title: win.Title, Window: win.Room + "/" + win.Name, Error: msg})
+	s.render(w, r, status, "key", keyPage{page: p, Title: win.Title, Window: win.Room + "/" + win.Name, Error: msg})
 }
 
 // serveKey checks the Key that a reader typed, and gives them a pass for
@@ -202,7 +208,9 @@ func (s *Server) serveKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	byWindow := fmt.Sprintf("%s/%d", c.Domain, win.ID)
-	if !s.keyTries.allow(clientIP(r)) || s.keyFailures.spent(byWindow) {
+	here := byWindow + " " + clientKey(r)
+	if !s.keyTries.allow(clientKey(r)) || s.keyFailuresHere.spent(here) ||
+		s.keyFailures.spent(byWindow) && !s.keyFailuresHere.full(here) {
 		s.askKey(w, r, win, reader.Handle, "Too many tries: wait a minute, then try again.", http.StatusTooManyRequests)
 		return
 	}
@@ -213,6 +221,7 @@ func (s *Server) serveKey(w http.ResponseWriter, r *http.Request) {
 	token, expires, err := window.OpenWithKey(r.Context(), c.DB, win, key, now)
 	if errors.Is(err, window.ErrWrongKey) {
 		s.keyFailures.allow(byWindow)
+		s.keyFailuresHere.allow(here)
 		s.askKey(w, r, win, reader.Handle, "This Key does not open this Window.", http.StatusForbidden)
 		return
 	}

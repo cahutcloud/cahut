@@ -111,7 +111,7 @@ func (f *fixture) frame(t *testing.T, path string, cookies ...*http.Cookie) stri
 	if resp.StatusCode != http.StatusOK || m == nil {
 		t.Fatalf("GET %s = %d %q, want a frame", path, resp.StatusCode, body)
 	}
-	if csp := resp.Header.Get("Content-Security-Policy"); csp != pagePolicy {
+	if csp := resp.Header.Get("Content-Security-Policy"); csp != pagePolicy("https://localhost/") {
 		t.Errorf("the frame of %s has the policy %q", path, csp)
 	}
 	return strings.ReplaceAll(m[1], "&amp;", "&")

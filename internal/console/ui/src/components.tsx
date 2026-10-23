@@ -38,6 +38,46 @@ export function Notice({ children }: { children: ComponentChildren }) {
 }
 
 /** A value to copy, such as a link or a command, with its button. */
+/** How long a page stays in front before its buttons that grant something arm. */
+const armDelay = 800;
+
+/**
+ * Arms the buttons that grant something, such as Approve or Connect, once
+ * the page has been in front, focused, for a moment, and the person has
+ * moved the pointer or pressed a key since: a page that opens this one
+ * under a double-click, or switches what lies under the cursor, cannot land
+ * the second click on them. The page disarms when it loses the focus.
+ */
+export function useArmed(): boolean {
+	const [armed, setArmed] = useState(false);
+	useEffect(() => {
+		let since = 0;
+		const watch = () => {
+			if (document.visibilityState === "visible" && document.hasFocus()) {
+				since ||= Date.now();
+				return;
+			}
+			since = 0;
+			setArmed(false);
+		};
+		const act = () => {
+			if (since && Date.now() - since >= armDelay) setArmed(true);
+		};
+		watch();
+		const timer = setInterval(watch, 100);
+		window.addEventListener("blur", watch);
+		window.addEventListener("pointermove", act);
+		window.addEventListener("keydown", act);
+		return () => {
+			clearInterval(timer);
+			window.removeEventListener("blur", watch);
+			window.removeEventListener("pointermove", act);
+			window.removeEventListener("keydown", act);
+		};
+	}, []);
+	return armed;
+}
+
 export function CopyField({ value, label }: { value: string; label: string }) {
 	const [copied, setCopied] = useState(false);
 	const copy = async () => {

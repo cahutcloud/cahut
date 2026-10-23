@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -250,6 +251,51 @@ func TestSignInLimit(t *testing.T) {
 	f.now = f.now.Add(credential.RefusalWindow + time.Minute)
 	if _, err := operation.Do(ctx, f.r, SignIn, visitor, SignInInput{Handle: "olivier", Password: password}); err != nil {
 		t.Errorf("sign_in once the refusals are old: %v", err)
+	}
+}
+
+// TestSignInLimitByAddress checks that wrong passwords from one address
+// make that address wait, not the person, until they come from everywhere;
+// and that an unknown handle answers as a known one does.
+func TestSignInLimitByAddress(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	f.active(t, "olivier", true)
+	from := func(address string) operation.Actor {
+		a := visitor
+		a.Address = address
+		return a
+	}
+	signIn := func(address, handle, password string) error {
+		_, err := operation.Do(ctx, f.r, SignIn, from(address), SignInInput{Handle: handle, Password: password})
+		return err
+	}
+	for range credential.MaxRefusals {
+		if err := signIn("192.0.2.1", "olivier", "wrong"); !errors.Is(err, operation.ErrForbidden) {
+			t.Fatalf("wrong password: err = %v", err)
+		}
+		if err := signIn("192.0.2.1", "nobody", "wrong"); !errors.Is(err, operation.ErrForbidden) {
+			t.Fatalf("unknown handle: err = %v", err)
+		}
+	}
+	for _, handle := range []string{"olivier", "nobody"} {
+		if err := signIn("192.0.2.1", handle, password); !errors.Is(err, operation.ErrTooMany) {
+			t.Errorf("sign_in as %s from the address that guessed wrong: err = %v, want ErrTooMany", handle, err)
+		}
+	}
+	if err := signIn("192.0.2.2", "olivier", password); err != nil {
+		t.Errorf("sign_in from another address: %v", err)
+	}
+
+	// From many addresses, the handle waits everywhere.
+	for i := range credential.MaxHandleRefusals {
+		_ = signIn(fmt.Sprintf("198.51.100.%d", i), "olivier", "wrong")
+	}
+	if err := signIn("192.0.2.3", "olivier", password); !errors.Is(err, operation.ErrTooMany) {
+		t.Errorf("sign_in after %d refusals from everywhere: err = %v, want ErrTooMany", credential.MaxHandleRefusals, err)
+	}
+	if entries, err := logbook.List(ctx, f.db.Read, 1); err != nil || len(entries) != 1 || entries[0].Address != "192.0.2.3" {
+		t.Errorf("the Logbook does not keep the address of a sign-in: %+v, %v", entries, err)
 	}
 }
 

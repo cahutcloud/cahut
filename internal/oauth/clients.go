@@ -113,6 +113,25 @@ func isLoopback(host string) bool {
 	return err == nil && ip.IsLoopback()
 }
 
+// maxRedirectURI bounds a redirect URI, and maxRedirectURIs their number
+// for a client that registers, so that registrations stay small.
+const (
+	maxRedirectURI  = 512
+	maxRedirectURIs = 10
+	// maxPendingClients bounds the clients that registered and never
+	// connected: the oldest give way to new ones.
+	maxPendingClients = 1000
+)
+
+func ascii(s string) bool {
+	for i := range len(s) {
+		if s[i] >= 0x80 {
+			return false
+		}
+	}
+	return true
+}
+
 // refusedSchemes cannot be redirect URIs: a browser would run them, or
 // read local files.
 var refusedSchemes = []string{"javascript", "data", "file", "blob", "about", "vbscript", "filesystem"}
@@ -125,14 +144,18 @@ func checkRedirectURI(uri string) error {
 	switch {
 	case err != nil || u.Scheme == "":
 		return fmt.Errorf("%q is not an absolute address", uri)
-	case len(uri) > 2000:
-		return fmt.Errorf("%q is longer than 2000 bytes", uri)
+	case len(uri) > maxRedirectURI:
+		return fmt.Errorf("a redirect URI is longer than %d bytes", maxRedirectURI)
 	case u.Fragment != "" || strings.Contains(uri, "#"):
 		return fmt.Errorf("%q has a fragment", uri)
 	case slices.Contains(refusedSchemes, strings.ToLower(u.Scheme)):
 		return fmt.Errorf("%q: the scheme %s cannot receive a code", uri, u.Scheme)
 	case u.Scheme == "https" && u.Host == "":
 		return fmt.Errorf("%q has no host", uri)
+	case !ascii(u.Host):
+		// The consent screen shows the host: a letter of another alphabet
+		// that looks like a Latin one would pass for another site.
+		return fmt.Errorf("%q: write its host in ASCII, as its xn-- form for an international name", uri)
 	case u.Scheme == "http" && !isLoopback(u.Hostname()):
 		return fmt.Errorf("%q: http is for loopback addresses only, use https", uri)
 	}
@@ -173,8 +196,8 @@ func (s *Server) register(ctx context.Context, req RegistrationRequest) (Registr
 	if len(req.RedirectURIs) == 0 {
 		return Registration{}, &errClientMetadata{"invalid_redirect_uri", "redirect_uris is empty"}
 	}
-	if len(req.RedirectURIs) > 20 {
-		return Registration{}, &errClientMetadata{"invalid_redirect_uri", "a client has at most 20 redirect URIs"}
+	if len(req.RedirectURIs) > maxRedirectURIs {
+		return Registration{}, &errClientMetadata{"invalid_redirect_uri", fmt.Sprintf("a client has at most %d redirect URIs", maxRedirectURIs)}
 	}
 	for _, uri := range req.RedirectURIs {
 		if err := checkRedirectURI(uri); err != nil {
@@ -229,6 +252,12 @@ func (s *Server) register(ctx context.Context, req RegistrationRequest) (Registr
 		store.FormatTime(now.Add(-ClientLifetime))); err != nil {
 		return Registration{}, err
 	}
+	if _, err := tx.ExecContext(ctx, `
+		DELETE FROM oauth_clients WHERE id IN (
+			SELECT id FROM oauth_clients WHERE connected_at IS NULL ORDER BY created_at DESC LIMIT -1 OFFSET ?)`,
+		maxPendingClients-1); err != nil {
+		return Registration{}, err
+	}
 	_, err = tx.ExecContext(ctx, "INSERT INTO oauth_clients (id, name, uri, redirect_uris, created_at) VALUES (?, ?, ?, ?, ?)",
 		reg.ClientID, name, sql.NullString{String: uri, Valid: uri != ""}, string(redirects), store.FormatTime(now))
 	if err != nil {
@@ -270,6 +299,7 @@ const (
 	documentMaxSize  = 16 << 10
 	documentLifetime = time.Hour
 	documentsKept    = 1000
+	documentsFetched = 8 // at once, on the whole server
 	// documentStale is how long the last valid copy of a document stands
 	// in for a document that no longer answers.
 	documentStale = 30 * 24 * time.Hour
@@ -282,6 +312,8 @@ const (
 // a while.
 type documents struct {
 	client *http.Client
+	// fetching bounds the documents fetched at once.
+	fetching chan struct{}
 
 	mu   sync.Mutex
 	docs map[string]document
@@ -293,7 +325,7 @@ type document struct {
 }
 
 func newDocuments() *documents {
-	return &documents{client: guardedClient(), docs: map[string]document{}}
+	return &documents{client: guardedClient(), fetching: make(chan struct{}, documentsFetched), docs: map[string]document{}}
 }
 
 // guardedClient fetches public addresses only. It checks the address it
@@ -338,6 +370,8 @@ var nonPublic = []netip.Prefix{
 	netip.MustParsePrefix("198.18.0.0/15"),   // benchmarking
 	netip.MustParsePrefix("240.0.0.0/4"),     // reserved, and broadcast
 	netip.MustParsePrefix("64:ff9b::/96"),    // NAT64, which reaches IPv4 addresses
+	netip.MustParsePrefix("::/96"),           // IPv4-compatible, deprecated, such as ::127.0.0.1
+	netip.MustParsePrefix("::ffff:0:0:0/96"), // IPv4-translated, such as ::ffff:0:127.0.0.1
 	netip.MustParsePrefix("64:ff9b:1::/48"),  // local NAT64
 	netip.MustParsePrefix("2001:db8::/32"),   // documentation
 	netip.MustParsePrefix("2002::/16"),       // 6to4, which reaches IPv4 addresses
@@ -392,21 +426,18 @@ func (doc metadataDocument) public() bool {
 // the database once the call succeeds. When the document no longer answers,
 // as when its host is down, its last valid copy stands in, for 30 days. A
 // document that answers but is invalid is refused, whatever its copy says.
+//
+// The document is fetched before the call's transaction opens, by
+// prefetch, so that a slow document holds no connection to the database:
+// document itself never fetches.
 func (s *Server) document(ctx context.Context, c *operation.Call, id string) (Client, error) {
 	now := s.Now()
 	if cl, ok := s.docs.kept(id, now); ok {
 		return cl, nil
 	}
-	body, err := s.docs.fetch(ctx, id)
+	err, _ := c.Kept().(error)
 	if err == nil {
-		cl, err := parseDocument(id, body)
-		if err != nil {
-			return Client{}, operation.Invalidf("the client metadata document at %s: %v", id, err)
-		}
-		s.docs.keep(id, cl, now)
-		at := c.Now
-		c.AfterCommit(func() { s.saveDocument(id, body, at) })
-		return cl, nil
+		err = errors.New("it could not be fetched")
 	}
 	var stored, fetched string
 	serr := c.Tx.QueryRowContext(ctx, "SELECT document, fetched_at FROM client_documents WHERE client_id = ? AND fetched_at > ?",
@@ -423,7 +454,34 @@ func (s *Server) document(ctx context.Context, c *operation.Call, id string) (Cl
 	return cl, nil
 }
 
-// saveDocument keeps the copy of a valid document. It runs after the call
+// prefetch fetches the metadata document of the client id, when id is the
+// address of one that is not kept, and keeps its client: it runs before
+// the transaction of the call, in Prepare. A document that cannot be
+// fetched keeps its error in c, for document to say; one that answers but
+// is invalid fails the call.
+func (s *Server) prefetch(ctx context.Context, c *operation.Call, id string) error {
+	now := s.Now()
+	if !isDocumentID(id) {
+		return nil
+	}
+	if _, ok := s.docs.kept(id, now); ok {
+		return nil
+	}
+	body, err := s.docs.fetch(ctx, id)
+	if err != nil {
+		c.Keep(err)
+		return nil
+	}
+	cl, err := parseDocument(id, body)
+	if err != nil {
+		return operation.Invalidf("the client metadata document at %s: %v", id, err)
+	}
+	s.docs.keep(id, cl, now)
+	s.saveDocument(id, body, c.Now)
+	return nil
+}
+
+// saveDocument keeps the copy of a valid document. It runs before the call
 // that fetched it, outside its transaction: a copy that cannot be written
 // waits for the next fetch.
 func (s *Server) saveDocument(id string, body []byte, at time.Time) {
@@ -459,6 +517,12 @@ func (d *documents) keep(id string, c Client, at time.Time) {
 
 // fetch fetches the metadata document at id.
 func (d *documents) fetch(ctx context.Context, id string) ([]byte, error) {
+	select {
+	case d.fetching <- struct{}{}:
+		defer func() { <-d.fetching }()
+	default:
+		return nil, errors.New("too many documents are being fetched: try again in a few seconds")
+	}
 	ctx, cancel := context.WithTimeout(ctx, documentTimeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, id, nil)

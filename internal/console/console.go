@@ -19,10 +19,19 @@ import (
 
 // policy lets the console load its own files, call its own API and frame
 // the previews of Windows, and nothing else: no inline script, no other
-// origin, no frame around it. See
+// origin, no frame around it. Its scripts come from its assets only, which
+// Vite builds for /console/: the Windows that AIs publish at the same
+// origin hold scripts too, and none of them may run in the console, should
+// a flaw ever let one in. See
 // docs/adr/0027-previews-of-windows-in-the-console.md.
-const policy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; " +
-	"connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+func policy(r *http.Request) string {
+	origin := "http://" + r.Host
+	if r.TLS != nil {
+		origin = "https://" + r.Host
+	}
+	return "default-src 'self'; script-src " + origin + "/console/assets/; style-src 'self'; img-src 'self' data:; font-src 'self'; " +
+		"connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+}
 
 // notice is the page of a binary built without the console.
 const notice = `<!doctype html>
@@ -43,7 +52,7 @@ func Handler() http.Handler {
 func newHandler(files fs.FS) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
-		h.Set("Content-Security-Policy", policy)
+		h.Set("Content-Security-Policy", policy(r))
 		h.Set("X-Content-Type-Options", "nosniff")
 		h.Set("Referrer-Policy", "no-referrer")
 		h.Set("Cross-Origin-Opener-Policy", "same-origin")

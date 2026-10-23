@@ -2057,6 +2057,7 @@ Title: Read the Logbook. Annotations: `readOnlyHint: true`, `destructiveHint: fa
 | `entries[].operation` | string | yes |  |
 | `entries[].outcome` | string | yes | ok, knocked (waiting for a person's approval), refused or failed |
 | `entries[].via` | string | yes | the adapter the call came through: cli, api, mcp or oauth |
+| `entries[].address` | string | no | where a call that signs in came from: an IPv4 address, or the /64 of an IPv6 one |
 | `entries[].client` | string | no | the AI, as its token or its connection, and its software, name it |
 | `entries[].connection_id` | integer | no | the connection of the AI, when it connected over OAuth |
 | `entries[].detail` | string | no |  |
@@ -2080,6 +2081,10 @@ Title: Read the Logbook. Annotations: `readOnlyHint: true`, `destructiveHint: fa
         "properties": {
           "actor": {
             "description": "admin, person or ai",
+            "type": "string"
+          },
+          "address": {
+            "description": "where a call that signs in came from: an IPv4 address, or the /64 of an IPv6 one",
             "type": "string"
           },
           "at": {

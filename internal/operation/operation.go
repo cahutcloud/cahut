@@ -43,6 +43,9 @@ type Actor struct {
 	TokenID int64  // the personal token an AI presented
 	Conn    int64  // the connection of an AI that connected over OAuth
 	Client  string // the AI, as its token or its connection, and its software, name it
+	// Address is the client's address on the network, as limits count it:
+	// an IPv4 address, or the /64 of an IPv6 one. Empty on the command line.
+	Address string
 
 	// The reach that a person granted an AI. See
 	// docs/adr/0016-oauth-for-ai-clients.md.
@@ -123,6 +126,13 @@ type Op[In, Out any] struct {
 	// ReadOnlyAIs operations change things, yet are offered to the AIs that
 	// may only read: set_ai_reach is how they ask for more.
 	ReadOnlyAIs bool
+	// Prepare, when set, does the slow part of a call before its
+	// transaction opens, so that the call holds no connection to the
+	// database meanwhile: checking a password, fetching a document. c.Tx is
+	// nil; c.Read reads, and c.Keep keeps what Run needs. An error fails the
+	// call. An operation that knocks first has no Prepare: a Knock runs
+	// again later, without it.
+	Prepare func(ctx context.Context, c *Call, in In) error
 	// Run does the work, inside the transaction of the call. It returns an
 	// error wrapping ErrInvalid, ErrNotFound or ErrForbidden when the caller
 	// is at fault.
@@ -156,7 +166,7 @@ func (i Info) ForAIs(admin, readOnly bool) bool {
 type Call struct {
 	Actor Actor
 	Now   time.Time // when the call started, in UTC, to the millisecond
-	Tx    *sql.Tx   // read-only for a ReadOnly operation
+	Tx    *sql.Tx   // read-only for a ReadOnly operation; nil in Prepare
 	// Admin reports whether the actor administers the Cahut: the person who
 	// acts, or for whom an AI acts, is an administrator of the Cahut, or the
 	// actor administers the server.
@@ -168,6 +178,8 @@ type Call struct {
 	afterCommit    []func()
 	onFailure      []func()
 
+	db       *store.DB
+	kept     any   // what Prepare kept for Run
 	input    any   // the input of the call, which a Knock keeps
 	knocks   bool  // the call waits for a person: an AI made it, and it knocks first
 	approved int64 // the Knock that a person approved for the call to run
@@ -195,6 +207,27 @@ func (c *Call) Identify(kind ActorKind, userID int64, handle string) {
 	if c.Actor.Kind == Visitor {
 		c.as, c.Actor.UserID, c.Actor.Handle = kind, userID, handle
 	}
+}
+
+// Read runs fn in a read-only transaction of its own, for Prepare, which runs
+// before the call's transaction.
+func (c *Call) Read(ctx context.Context, fn func(tx *sql.Tx) error) error {
+	tx, err := c.db.Read.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }() // it only read
+	return fn(tx)
+}
+
+// Keep keeps v, from Prepare, for Run.
+func (c *Call) Keep(v any) {
+	c.kept = v
+}
+
+// Kept returns what Prepare kept, or nil.
+func (c *Call) Kept() any {
+	return c.kept
 }
 
 // AfterCommit runs fn once the call has succeeded and its transaction is
@@ -288,6 +321,9 @@ func Register[In, Out any](r *Registry, op *Op[In, Out]) {
 	if op.KnockFirst && op.KnocksWhen != "" {
 		panic("operation: " + op.Name + " knocks first always and when " + op.KnocksWhen)
 	}
+	if op.Prepare != nil && (op.KnockFirst || op.KnocksWhen != "") {
+		panic("operation: " + op.Name + " knocks first and has a Prepare, which an approved Knock would skip")
+	}
 	r.ops[op.Name] = op
 }
 
@@ -313,7 +349,7 @@ func (r *Registry) Lookup(name string) (Info, bool) {
 // Do runs op for actor.
 func Do[In, Out any](ctx context.Context, r *Registry, op *Op[In, Out], actor Actor, in In) (Out, error) {
 	var out Out
-	err := r.run(ctx, op.info(), actor, func(ctx context.Context, c *Call) error {
+	err := r.run(ctx, op.info(), actor, op.prepare(in, nil), func(ctx context.Context, c *Call) error {
 		var err error
 		c.input = in
 		out, err = op.Run(ctx, c, in)
@@ -354,10 +390,12 @@ func (op *Op[In, Out]) info() Info {
 }
 
 func (op *Op[In, Out]) invoke(ctx context.Context, r *Registry, actor Actor, args json.RawMessage) (any, error) {
+	in, decodeErr := decode[In](args)
 	var out any
-	err := r.run(ctx, op.info(), actor, func(ctx context.Context, c *Call) error {
-		var err error
-		out, err = op.runJSON(ctx, c, args)
+	err := r.run(ctx, op.info(), actor, op.prepare(in, decodeErr), func(ctx context.Context, c *Call) error {
+		c.input = in
+		o, err := op.Run(ctx, c, in)
+		out = o
 		return err
 	})
 	if err != nil {
@@ -366,16 +404,37 @@ func (op *Op[In, Out]) invoke(ctx context.Context, r *Registry, actor Actor, arg
 	return out, nil
 }
 
-// runJSON decodes args, refusing unknown fields, and runs the operation in
-// the call c.
-func (op *Op[In, Out]) runJSON(ctx context.Context, c *Call, args json.RawMessage) (any, error) {
+// prepare returns what runs before the transaction of a call with the
+// input in: the error of decoding it, if any, then Prepare.
+func (op *Op[In, Out]) prepare(in In, decodeErr error) func(context.Context, *Call) error {
+	return func(ctx context.Context, c *Call) error {
+		if decodeErr != nil || op.Prepare == nil {
+			return decodeErr
+		}
+		c.input = in
+		return op.Prepare(ctx, c, in)
+	}
+}
+
+// decode decodes the arguments of a call in JSON, refusing unknown fields.
+func decode[In any](args json.RawMessage) (In, error) {
 	var in In
 	if len(bytes.TrimSpace(args)) > 0 {
 		dec := json.NewDecoder(bytes.NewReader(args))
 		dec.DisallowUnknownFields()
 		if err := dec.Decode(&in); err != nil {
-			return nil, Invalidf("arguments: %v", err)
+			return in, Invalidf("arguments: %v", err)
 		}
+	}
+	return in, nil
+}
+
+// runJSON decodes args, refusing unknown fields, and runs the operation in
+// the call c.
+func (op *Op[In, Out]) runJSON(ctx context.Context, c *Call, args json.RawMessage) (any, error) {
+	in, err := decode[In](args)
+	if err != nil {
+		return nil, err
 	}
 	c.input = in
 	out, err := op.Run(ctx, c, in)
@@ -390,13 +449,16 @@ func (op *Op[In, Out]) runJSON(ctx context.Context, c *Call, args json.RawMessag
 // Every call by an AI is logged, reads included; reads by the
 // administrator or a person are not. A call that knocks first runs to its
 // end, to check it, and is rolled back: it makes a Knock instead.
-func (r *Registry) run(ctx context.Context, info Info, actor Actor, fn func(context.Context, *Call) error) error {
+func (r *Registry) run(ctx context.Context, info Info, actor Actor, prepare, fn func(context.Context, *Call) error) error {
 	logged := !info.ReadOnly || actor.Kind == AI
 	// The precision of the times the store keeps.
-	c := &Call{Actor: actor, Now: r.Now().UTC().Truncate(time.Millisecond)}
+	c := &Call{Actor: actor, Now: r.Now().UTC().Truncate(time.Millisecond), db: r.db}
 	c.knocks = info.KnockFirst && actor.Kind == AI
 
 	if err := authorize(info, actor); err != nil {
+		return r.fail(ctx, info, c, logged, err)
+	}
+	if err := prepare(ctx, c); err != nil {
 		return r.fail(ctx, info, c, logged, err)
 	}
 	db := r.db.Write
@@ -476,6 +538,10 @@ func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
 		RoomID:     c.room,
 		KnockID:    c.knock,
 		Outcome:    logbook.OK,
+	}
+	if c.Actor.Kind == Visitor {
+		// Where a sign-in came from, which limits count.
+		e.Address = c.Actor.Address
 	}
 	if err != nil {
 		e.Outcome = logbook.Failed

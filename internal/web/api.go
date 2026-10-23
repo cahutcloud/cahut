@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/netip"
 	"strings"
 	"sync"
 	"time"
@@ -25,8 +26,12 @@ import (
 // CORS access. See docs/adr/0014-console-http-api.md.
 
 // MaxAPIRequestSize bounds the body of a request to the API. The console
-// does not publish: Windows come from AIs, over MCP.
-const MaxAPIRequestSize = 1 << 20
+// does not publish: Windows come from AIs, over MCP. The calls of visitors,
+// who sign in, take a handle, a password or a code: MaxVisitorRequestSize.
+const (
+	MaxAPIRequestSize     = 1 << 20
+	MaxVisitorRequestSize = 16 << 10
+)
 
 // The calls that sign in, which take no session, are limited by address: a
 // burst of SignInBurst, then one every SignInEvery.
@@ -80,10 +85,14 @@ func (s *Server) callAPI(w http.ResponseWriter, r *http.Request, reg *operation.
 		apiError(w, http.StatusNotFound, fmt.Sprintf("no operation %q: the reference of the operations lists them", name))
 		return
 	}
-	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, MaxAPIRequestSize))
+	limit := int64(MaxAPIRequestSize)
+	if info.Visitors {
+		limit = MaxVisitorRequestSize
+	}
+	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, limit))
 	var tooLarge *http.MaxBytesError
 	if errors.As(err, &tooLarge) {
-		apiError(w, http.StatusRequestEntityTooLarge, fmt.Sprintf("the body holds more than %d MiB", MaxAPIRequestSize>>20))
+		apiError(w, http.StatusRequestEntityTooLarge, fmt.Sprintf("the body holds more than %d KiB", limit>>10))
 		return
 	}
 	if err != nil {
@@ -92,11 +101,11 @@ func (s *Server) callAPI(w http.ResponseWriter, r *http.Request, reg *operation.
 	}
 
 	st := siteOf(r)
-	actor := operation.Actor{Kind: operation.Visitor, Via: "api", Domain: st.cahut.Domain}
+	actor := operation.Actor{Kind: operation.Visitor, Via: "api", Domain: st.cahut.Domain, Address: clientKey(r)}
 	if info.Visitors {
 		// Signing in takes no session; it is limited by address, on top of
-		// the limit by handle that the operation applies.
-		if !s.visitors.allow(clientIP(r)) {
+		// the limits by handle that the operation applies.
+		if !s.visitors.allow(clientKey(r)) {
 			apiError(w, http.StatusTooManyRequests, "too many attempts from this address: wait a minute")
 			return
 		}
@@ -204,6 +213,23 @@ func clientIP(r *http.Request) string {
 	return host
 }
 
+// clientKey returns the address of the request's client as limits count
+// it: an IPv4 address, or the /64 of an IPv6 address, which one machine
+// usually holds whole. Counting each IPv6 address would let a single
+// machine dodge every limit.
+func clientKey(r *http.Request) string {
+	ip, err := netip.ParseAddr(clientIP(r))
+	if err != nil {
+		return clientIP(r)
+	}
+	ip = ip.Unmap()
+	if ip.Is4() {
+		return ip.String()
+	}
+	p, _ := ip.Prefix(64) // cannot fail for an IPv6 address
+	return p.String()
+}
+
 // limiter allows each address a burst of calls, then one every so often.
 // It forgets the addresses it has not seen for a while.
 type limiter struct {
@@ -231,6 +257,15 @@ func (l *limiter) spent(addr string) bool {
 	defer l.mu.Unlock()
 	v, ok := l.seen[addr]
 	return ok && v.limiter.TokensAt(time.Now()) < 1
+}
+
+// full reports whether the address addr has its whole burst now: it made no
+// call lately.
+func (l *limiter) full(addr string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	v, ok := l.seen[addr]
+	return !ok || v.limiter.TokensAt(time.Now()) >= float64(l.burst)
 }
 
 // allow reports whether the address addr may make a call now.

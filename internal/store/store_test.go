@@ -142,12 +142,15 @@ func TestRemadeTablesKeepTheirRows(t *testing.T) {
 	}
 	defer db.Close()
 	for q, want := range map[string]int{
-		"SELECT count(*) FROM room_members":                                                 2,
-		"SELECT count(*) FROM window_versions":                                              1,
-		"SELECT count(*) FROM window_passes":                                                1,
-		"SELECT count(*) FROM windows WHERE access = 'key'":                                 1,
-		"SELECT count(*) FROM rooms WHERE name = 'marketing'":                               1,
-		"SELECT count(*) FROM sqlite_sequence WHERE seq >= 1":                               2,
+		"SELECT count(*) FROM room_members":                                                    2,
+		"SELECT count(*) FROM window_versions":                                                 1,
+		"SELECT count(*) FROM window_passes":                                                   1,
+		"SELECT count(*) FROM windows WHERE access = 'key'":                                    1,
+		"SELECT count(*) FROM rooms WHERE name = 'marketing'":                                  1,
+		"SELECT count(*) FROM sqlite_sequence WHERE seq >= 1 AND name IN ('rooms', 'windows')": 2,
+		// Migration 13 makes sessions and passes again, the same way.
+		"SELECT count(*) FROM sqlite_sequence WHERE seq >= 1 AND name = 'window_passes'":    1,
+		"SELECT count(*) FROM pragma_table_info('sessions') WHERE name = 'opened_by'":       1,
 		"SELECT count(*) FROM pragma_foreign_key_list('windows') WHERE \"table\" = 'rooms'": 1,
 	} {
 		var got int

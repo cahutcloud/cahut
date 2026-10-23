@@ -106,6 +106,8 @@ type Server struct {
 	registrations *limiter // registrations of OAuth clients, by address
 	keyTries      *limiter // Keys typed, by address
 	keyFailures   *limiter // wrong Keys, by Window
+	// wrong Keys, by Window and address
+	keyFailuresHere *limiter
 
 	// streams is canceled when the server shuts down, to end the
 	// standalone streams of MCP sessions.
@@ -172,6 +174,7 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.registrations = newLimiter(RegisterEvery, RegisterBurst)
 	s.keyTries = newLimiter(KeyEvery, KeyBurst)
 	s.keyFailures = newLimiter(KeyWindowEvery, KeyWindowBurst)
+	s.keyFailuresHere = newLimiter(KeyHereEvery, KeyHereBurst)
 	// The console, its API and the consent screen of OAuth. See
 	// docs/adr/0020-console-under-a-path-of-port-443.md.
 	s.console = http.NewServeMux()
