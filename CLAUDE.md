@@ -23,6 +23,7 @@ Read before working on anything substantial:
 - [docs/plan-lot-7.md](docs/plan-lot-7.md): the detailed plan of batch 7 (installation, first start and updates), in French.
 - [docs/plan-lot-8.md](docs/plan-lot-8.md): the detailed plan of batch 8 (second AI client and acceptance of the V0), in French.
 - [docs/revue-securite-v0.md](docs/revue-securite-v0.md): the security review of the V0, in French: its method, what was found sound, each finding and what was done about it.
+- [docs/recette-v0.md](docs/recette-v0.md): the acceptance of the V0, in French: the five criteria, what CI checks, the steps on two blank servers, and the results of each run.
 - [docs/gouvernance.md](docs/gouvernance.md): how the project is governed and how it lives, in French: roles, contributions, channels, releases, security, name, license and money, and the decisions still open.
 - [docs/adr/README.md](docs/adr/README.md): the architecture decision records, in English. They settle the web server and TLS, the database, the console, OAuth, the module path and releases, then several Cahuts per server, the addresses of Rooms and Windows, the Window sandbox, the console's port, the website and documentation, and then people, sessions and rights, the console's HTTP API, the license, OAuth for AI clients, the port of its endpoints, the project pages of the website, the versions, access and declaration of Windows, the console under a path of port 443, Knock first, the house style of each Cahut, a house style inactive for AIs, signed releases and updates, the first start in the browser, a Cahut at an IP address, the previews of Windows in the console, the IPv4 address of a Cahut without a domain, and ChatGPT as the second AI client.
 - [docs/charte-graphique/README.md](docs/charte-graphique/README.md): the brand guidelines, in French.
@@ -177,6 +178,7 @@ docs/
   plan-lot-7.md        Detailed plan of batch 7 (French)
   plan-lot-8.md        Detailed plan of batch 8 (French)
   revue-securite-v0.md Security review of the V0 (French)
+  recette-v0.md        Acceptance of the V0 (French)
   gouvernance.md       Governance and project life (French)
   charte-graphique/    Brand guidelines with all source files (French)
 plugins/               Plugins for AI clients, under Apache-2.0; plugins.go embeds the skill that each Cahut serves (ADR 22)

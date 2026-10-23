@@ -10,7 +10,7 @@ import (
 // so that tests reach a server on a loopback address. The other guards
 // stay.
 func UseDocumentTransport(s *Server, rt http.RoundTripper) {
-	s.docs.client.Transport = rt
+	s.SetDocumentTransport(rt)
 }
 
 // FetchDocument fetches the metadata document at id, without the cache.
