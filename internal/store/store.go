@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -71,8 +72,12 @@ func (db *DB) Close() error {
 	return errors.Join(db.Read.Close(), db.Write.Close())
 }
 
+// ErrNewer is the error of a database that a newer version of Cahut made.
+var ErrNewer = errors.New("the database was made by a newer version of Cahut")
+
 // migrate applies, in order and each in its own transaction, the migration
-// files of schema numbered above the database's user_version.
+// files of schema numbered above the database's user_version. It refuses a
+// database whose user_version is above every migration of schema.
 func migrate(ctx context.Context, db *sql.DB, schema fs.FS) error {
 	var current int
 	if err := db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&current); err != nil {
@@ -82,11 +87,20 @@ func migrate(ctx context.Context, db *sql.DB, schema fs.FS) error {
 	if err != nil {
 		return err
 	}
-	for _, name := range names { // fs.Glob returns names in lexical order
-		version, err := strconv.Atoi(strings.SplitN(name, "_", 2)[0])
-		if err != nil {
+	versions := make([]int, len(names))
+	for i, name := range names { // fs.Glob returns names in lexical order
+		if versions[i], err = strconv.Atoi(strings.SplitN(name, "_", 2)[0]); err != nil {
 			return fmt.Errorf("migration %s: name must start with its number", name)
 		}
+	}
+	// A binary put back after an update would run on a schema it does not
+	// know. See docs/adr/0024-signed-releases-and-updates.md.
+	if last := slices.Max(append(versions, 0)); current > last {
+		return fmt.Errorf("%w: its schema is at version %d, and this binary knows versions up to %d; "+
+			"install the version of Cahut that made it, or a newer one", ErrNewer, current, last)
+	}
+	for i, name := range names {
+		version := versions[i]
 		if version <= current {
 			continue
 		}

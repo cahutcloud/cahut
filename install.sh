@@ -3,8 +3,8 @@
 #
 #   sudo sh install.sh --domain cahut.example.com [--email you@example.com]
 #
-# The script downloads a release from GitHub and checks its checksum, or
-# takes a binary you give it with --binary. It then creates the cahut system
+# The script downloads a release from GitHub and checks its signature and
+# its checksum, or takes a binary you give it with --binary. It then creates the cahut system
 # user, the data directory /var/lib/cahut, the settings file
 # /etc/cahut/cahut.env and the cahut service, declares the Cahut of
 # --domain, opens ports 80 and 443 in firewalld or ufw when one is active,
@@ -16,7 +16,8 @@
 #                     the script again with another domain to add a Cahut.
 #   --email EMAIL     contact of the Let's Encrypt account (optional)
 #   --staging         use Let's Encrypt's staging environment, for tests
-#   --version TAG     release to install, such as v0.1.0 (default: latest)
+#   --version TAG     release to install, such as v0.4.0 (default: latest);
+#                     releases are signed from v0.4.0 on
 #   --binary PATH     install this cahut binary instead of downloading one
 #
 # Environment:
@@ -78,6 +79,32 @@ fetch() {
 	fi
 }
 
+# The public keys that sign the releases: the checksum file of each release
+# is signed with one of them. They are those of internal/release/release-keys.pem.
+# See docs/adr/0024-signed-releases-and-updates.md.
+release_keys() {
+	cat <<'EOF'
+-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAEKEIUk1PktFCPrG//Y8BJ9CMQnNLTn9ibkurcJxQQi4=
+-----END PUBLIC KEY-----
+EOF
+}
+
+# verify_signature FILE SIGNATURE checks that one of the release keys signed
+# FILE. OpenSSL 3 verifies Ed25519 signatures of raw data.
+verify_signature() {
+	release_keys | awk -v dir="$tmp" '
+		/-----BEGIN PUBLIC KEY-----/ { n++ }
+		n { print > (dir "/release-key-" n ".pem") }
+	'
+	for key in "$tmp"/release-key-*.pem; do
+		if openssl pkeyutl -verify -pubin -inkey "$key" -rawin -in "$1" -sigfile "$2" >/dev/null 2>&1; then
+			return 0
+		fi
+	done
+	return 1
+}
+
 # asset_url NAME prints the API address of a release asset, from the
 # release description in $tmp/release.txt. In each asset, the GitHub API
 # gives the url member before the name.
@@ -98,6 +125,8 @@ if [ -n "$binary" ]; then
 	cp "$binary" "$tmp/cahut"
 else
 	command -v curl >/dev/null || die "curl is required to download Cahut"
+	command -v openssl >/dev/null ||
+		die "openssl is required to check the signature of the release: install it with dnf install openssl, or apt install openssl"
 	case "$(uname -m)" in
 	x86_64 | amd64) arch=amd64 ;;
 	aarch64 | arm64) arch=arm64 ;;
@@ -116,12 +145,18 @@ else
 	[ -n "$version" ] || die "cannot read the version of the release"
 	archive="cahut_${version}_linux_${arch}.tar.gz"
 	say "downloading Cahut $version for linux/$arch"
-	for file in "$archive" checksums.txt; do
+	for file in "$archive" checksums.txt checksums.txt.sig; do
 		url=$(asset_url "$file")
+		if [ -z "$url" ] && [ "$file" = checksums.txt.sig ]; then
+			die "release $version is not signed: install v0.4.0 or later, or give a binary with --binary"
+		fi
 		[ -n "$url" ] || die "the release has no $file"
 		fetch "$url" "$tmp/$file" application/octet-stream || die "cannot download $file"
 	done
+	verify_signature "$tmp/checksums.txt" "$tmp/checksums.txt.sig" ||
+		die "the signature of release $version does not match the keys of Cahut: it was not made by the project"
 	(cd "$tmp" && grep " $archive\$" checksums.txt | sha256sum -c --quiet -) || die "checksum mismatch for $archive"
+	say "signature and checksum checked"
 	tar -xzf "$tmp/$archive" -C "$tmp" cahut
 fi
 chmod 0755 "$tmp/cahut"

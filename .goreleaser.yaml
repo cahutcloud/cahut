@@ -31,6 +31,18 @@ builds:
 checksum:
   name_template: checksums.txt
 
+# An Ed25519 key signs the checksum file, which names every archive: servers
+# check the signature against the keys embedded in Cahut before they install
+# a release. The key comes from the CAHUT_RELEASE_KEY secret of the release
+# workflow; make snapshot skips the signature. See
+# docs/adr/0024-signed-releases-and-updates.md.
+signs:
+  - id: checksums
+    artifacts: checksum
+    cmd: go
+    args: ["run", "./internal/releasesign", "-output", "${signature}", "${artifact}"]
+    signature: "${artifact}.sig"
+
 snapshot:
   version_template: "{{ incpatch .Version }}-dev+{{ .ShortCommit }}"
 

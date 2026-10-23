@@ -2,8 +2,10 @@ package store
 
 import (
 	"context"
+	"errors"
 	"io/fs"
 	"path/filepath"
+	"strings"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -169,5 +171,32 @@ func TestRemadeTablesKeepTheirRows(t *testing.T) {
 	err = db.Write.QueryRowContext(ctx, "INSERT INTO rooms (name, kind, title, created_at) VALUES ('sales', 'team', 'Sales', 'now') RETURNING id").Scan(&id)
 	if err != nil || id != 3 {
 		t.Errorf("a new Room takes id %d, %v, want 3", id, err)
+	}
+}
+
+func TestNewerDatabaseDoesNotOpen(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "cahut.db")
+	newer := fstest.MapFS{
+		"0001_one.sql": {Data: []byte("CREATE TABLE one (id INTEGER PRIMARY KEY);")},
+		"0002_two.sql": {Data: []byte("CREATE TABLE two (id INTEGER PRIMARY KEY);")},
+	}
+	db, err := Open(ctx, path, newer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+	older := fstest.MapFS{"0001_one.sql": newer["0001_one.sql"]}
+	_, err = Open(ctx, path, older)
+	if !errors.Is(err, ErrNewer) {
+		t.Fatalf("Open with an older schema: err = %v, want ErrNewer", err)
+	}
+	if want := "schema is at version 2, and this binary knows versions up to 1"; !strings.Contains(err.Error(), want) {
+		t.Errorf("error %q does not say %q", err, want)
+	}
+	if _, err := Open(ctx, path, newer); err != nil {
+		t.Errorf("Open with the schema that made it: %v", err)
 	}
 }

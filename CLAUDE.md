@@ -73,7 +73,7 @@ Windows open at `http://localhost:8080/<room>/<window>/`, to the members of thei
 
 On a server, [install.sh](install.sh) installs a release, or a binary given with `--binary`, as the `cahut` systemd service, and declares the Cahut of `--domain`; run it with `--help`. Administration commands run as the service user, with the binary's full path, since sudo on AlmaLinux does not search `/usr/local/bin`: `sudo -u cahut /usr/local/bin/cahut token create ...`.
 
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on `main`: lint, a check that the reference of the docs is up to date, tests, and a GoReleaser snapshot build that checks the linux/amd64 and linux/arm64 binaries are static. [sites.yml](.github/workflows/sites.yml) builds the sites on pull requests that touch them or the brand, and on `main` uploads them to the web server with rsync over SSH, once the repository's variables name it ([sites/README.md](sites/README.md#deployment)). Pushing a `v*` tag runs [release.yml](.github/workflows/release.yml), which drafts a GitHub release with the archives and checksums; a person reviews and publishes it.
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on `main`: lint, a check that the reference of the docs is up to date, tests, and a GoReleaser snapshot build that checks the linux/amd64 and linux/arm64 binaries are static. [sites.yml](.github/workflows/sites.yml) builds the sites on pull requests that touch them or the brand, and on `main` uploads them to the web server with rsync over SSH, once the repository's variables name it ([sites/README.md](sites/README.md#deployment)). Pushing a `v*` tag runs [release.yml](.github/workflows/release.yml), which drafts a GitHub release with the archives, their checksums and the Ed25519 signature of the checksums, made with the `CAHUT_RELEASE_KEY` secret ([ADR 24](docs/adr/0024-signed-releases-and-updates.md)); a person reviews and publishes it. The public keys live in `internal/release/release-keys.pem` and in `install.sh`, which a test keeps the same.
 
 ## Code conventions
 
@@ -159,6 +159,8 @@ internal/
   console/             The web console, embedded with the console build tag (ADR 5)
     ui/                Its Preact app, built by Vite; src/api.gen.ts comes from make console-types
   version/             Build information, printed by cahut version
+  release/             The keys that sign releases, and the check of a release's signature and checksums (ADR 24)
+  releasesign/         Signs the checksum file of a release, run by GoReleaser
 docs/
   adr/                 Architecture decision records (English)
   brief-projet.md      Project brief (French)

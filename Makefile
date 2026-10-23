@@ -50,8 +50,8 @@ fmt: ## Format the code
 
 check: lint test ## Run everything CI runs, before pushing
 
-snapshot: ## Build the release archives into dist/, without publishing
-	$(GORELEASER) release --snapshot --clean
+snapshot: ## Build the release archives into dist/, without publishing or signing
+	$(GORELEASER) release --snapshot --clean --skip=sign
 
 release-check: ## Validate the GoReleaser configuration
 	$(GORELEASER) check

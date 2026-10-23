@@ -37,3 +37,5 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signs checksums.txt. See docs/adr/0024-signed-releases-and-updates.md.
+          CAHUT_RELEASE_KEY: ${{ secrets.CAHUT_RELEASE_KEY }}
