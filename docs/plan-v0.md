@@ -116,6 +116,8 @@ Le détail du lot est dans le [plan du lot 4](plan-lot-4.md).
 
 ### Lot 5 · Knock first
 
+Le détail du lot est dans le [plan du lot 5](plan-lot-5.md).
+
 - Une opération irréversible demandée par une IA crée un Knock : une demande en attente, avec une expiration. L'IA reçoit le statut et le lien d'approbation, qu'elle transmet à l'utilisateur.
 - Boîte des Knocks dans la console : approuver ou refuser. L'exécution est tracée avec l'IA, l'humain qui a approuvé et le résultat.
 - Liste proposée pour la V0 : purger une Window, rendre une Window publique, élargir la portée d'une IA, ajouter une personne, changer les droits d'une personne (son rôle, son état, ses Rooms), supprimer une Room. Le lot 2 marque déjà celles qui existent ([ADR 13](adr/0013-people-sessions-and-rights.md)).
@@ -192,7 +194,7 @@ Proposition d'ordre pour atteindre le périmètre complet du lancement, en répo
 
 - [x] Une Window ouverte par l'IA en interne ou avec une Key doit-elle frapper (Knock first) ? Non : seul l'accès public frappe ([ADR 19](adr/0019-window-versions-access-and-declaration.md)).
 - [ ] Quelle adresse de repli pour essayer Cahut sans domaine ?
-- [ ] La liste des actions irréversibles de la V0 est-elle la bonne ?
-- [ ] Quelle expiration par défaut pour un Knock ?
+- [x] La liste des actions irréversibles de la V0 est-elle la bonne ? Oui, telle que proposée ([ADR 21](adr/0021-ais-knock-first.md)) ; effacer des sauvegardes frappera quand elles viendront.
+- [x] Quelle expiration par défaut pour un Knock ? 24 heures, sans réglage en V0 ([ADR 21](adr/0021-ais-knock-first.md)).
 - [ ] Le deuxième client de la recette : ChatGPT ou Le Chat ?
 - [ ] Les hypothèses du périmètre tiennent-elles (pas d'éditeur, premiers testeurs « geek sur VPS ») ?
