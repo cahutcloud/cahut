@@ -149,6 +149,8 @@ Le détail du lot est dans le [plan du lot 7](plan-lot-7.md).
 
 ### Lot 8 · Deuxième client IA et recette
 
+Le détail du lot est dans le [plan du lot 8](plan-lot-8.md).
+
 - ChatGPT (mode développeur) ou Le Chat de bout en bout, avec les ajustements que chaque client demande : schémas d'outils, taille des contenus, consignes.
 - Revue de sécurité : OAuth, bac à sable des Windows, cloisonnement entre Cahuts, sessions de la console et des lecteurs, limites de taille et de débit.
 - Recette sur les cinq critères de réussite du README, ramenés au périmètre de la V0.
@@ -200,5 +202,5 @@ Proposition d'ordre pour atteindre le périmètre complet du lancement, en répo
 - [x] Quelle adresse de repli pour essayer Cahut sans domaine ? L'adresse IP du serveur, avec un certificat de Let's Encrypt pour cette adresse ([ADR 26](adr/0026-cahut-at-an-ip-address.md)).
 - [x] La liste des actions irréversibles de la V0 est-elle la bonne ? Oui, telle que proposée ([ADR 21](adr/0021-ais-knock-first.md)) ; effacer des sauvegardes frappera quand elles viendront.
 - [x] Quelle expiration par défaut pour un Knock ? 24 heures, sans réglage en V0 ([ADR 21](adr/0021-ais-knock-first.md)).
-- [ ] Le deuxième client de la recette : ChatGPT ou Le Chat ?
+- [x] Le deuxième client de la recette : ChatGPT ou Le Chat ? ChatGPT, sur le web ; Le Chat est essayé aussi, sans être un critère ([ADR 29](adr/0029-chatgpt-second-ai-client.md)).
 - [ ] Les hypothèses du périmètre tiennent-elles (pas d'éditeur, premiers testeurs « geek sur VPS ») ?
