@@ -1,6 +1,6 @@
 # Cahut · Plan du lot 5 : Knock first
 
-23 octobre 2026 · Olivier Durand · Proposition à valider
+23 octobre 2026 · Olivier Durand · Validé
 
 ## En bref
 
