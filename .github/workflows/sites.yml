@@ -9,6 +9,7 @@ on:
     paths:
       - sites/**
       - docs/charte-graphique/**
+      - install.sh
       - .nvmrc
       - .github/workflows/sites.yml
   # Runs from the Actions tab upload main again, without a change.
@@ -17,6 +18,7 @@ on:
     paths:
       - sites/**
       - docs/charte-graphique/**
+      - install.sh
       - .nvmrc
       - .github/workflows/sites.yml
 
