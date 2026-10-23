@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net"
@@ -22,6 +23,8 @@ import (
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
+	"cahut.cloud/internal/update"
+	"cahut.cloud/internal/version"
 	"cahut.cloud/internal/window"
 )
 
@@ -572,5 +575,38 @@ func TestShutdownWithAnOpenStream(t *testing.T) {
 	// first. The deadline of serve, 10 seconds, covers that wait.
 	if err := <-done; err != nil {
 		t.Errorf("shutdown: %v", err)
+	}
+}
+
+func TestLocalHealth(t *testing.T) {
+	f := setup(t)
+	next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { http.Error(w, "next", http.StatusTeapot) })
+	h := f.web.localHealth(next)
+	for _, tt := range []struct {
+		name, host, remote string
+		local              bool
+	}{
+		{"loopback", "127.0.0.1:80", "127.0.0.1:50000", true},
+		{"loopback IPv6", "[::1]:80", "[::1]:50000", true},
+		{"from elsewhere", "127.0.0.1:80", "203.0.113.9:50000", false},
+		{"for a Cahut", "localhost", "127.0.0.1:50000", false},
+	} {
+		r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://"+tt.host+"/-/healthz", nil)
+		r.RemoteAddr = tt.remote
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		if !tt.local {
+			if w.Code != http.StatusTeapot {
+				t.Errorf("%s: answered %d, want the request passed on", tt.name, w.Code)
+			}
+			continue
+		}
+		var got update.Health
+		if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil || w.Code != http.StatusOK {
+			t.Fatalf("%s: %d %s", tt.name, w.Code, w.Body)
+		}
+		if got.Version != version.Get().Version || !got.OK || len(got.Cahuts) != 2 || !got.Cahuts[1].OK {
+			t.Errorf("%s: health = %+v", tt.name, got)
+		}
 	}
 }

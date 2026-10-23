@@ -162,6 +162,16 @@ export interface ChangePasswordInput {
   new_password: string;
 }
 
+export interface Check {
+  at: string;
+  /** the newest published release */
+  latest?: string;
+  /** the page of that release, with its notes */
+  url?: string;
+  /** why the releases could not be read */
+  error?: string;
+}
+
 export interface ColorsInput {
   /** body text, as #rrggbb */
   text?: string;
@@ -654,6 +664,16 @@ export interface Request {
   resource?: string;
 }
 
+export interface RequestUpdateInput {
+  /** a published release newer than the version running, such as 0.4.1; empty to check for new releases only */
+  version?: string;
+}
+
+export interface RequestedUpdate {
+  /** check, or the version to install */
+  requested: string;
+}
+
 export interface RevokeTokenInput {
   id: number;
 }
@@ -706,6 +726,20 @@ export interface RoomGetInput {
 
 export interface RoomList {
   rooms: Room[];
+}
+
+export interface Run {
+  id: string;
+  from: string;
+  to: string;
+  /** command line, timer or console */
+  by: string;
+  started: string;
+  ended: string;
+  /** updated, rolled_back, refused or failed */
+  result: string;
+  /** why it did not update */
+  reason?: string;
 }
 
 export interface ServerSession {
@@ -809,6 +843,21 @@ export interface UpdateRoomInput {
   /** the new title */
   title: string;
 }
+
+export interface Updates {
+  /** the version of Cahut running */
+  running: string;
+  /** whether the server updates itself, as install.sh sets it up */
+  managed: boolean;
+  /** what the daily run does: patch (installs the patch releases of the minor version running), all, check or off */
+  policy?: string;
+  check?: Check;
+  last?: Run;
+  /** what an administrator asked for, check or a version, which the updater has not taken yet */
+  requested?: string;
+}
+
+export type UpdatesInput = Record<string, never>;
 
 export interface User {
   id: number;
@@ -1035,12 +1084,16 @@ export interface ServerOperations {
   create_activation_link: { input: AdminInput; output: Activation };
   /** Create an administrator of the server, and the link where they choose their password. */
   create_admin: { input: CreateAdminInput; output: NewAdmin };
+  /** Say which version of Cahut runs, the newest release, and how the last check and the last update went. */
+  get_updates: { input: UpdatesInput; output: Updates };
   /** List the administrators of the server. */
   list_admins: { input: ListAdminsInput; output: AdminList };
   /** List the Cahuts of this server and their domains. */
   list_domains: { input: ListDomainsInput; output: DomainList };
   /** Read the latest entries of the server's Logbook, newest first. */
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
+  /** Ask the updater of the server to check for new releases, or to install a release newer than the one running. It runs as root within a minute, checks the signature, and goes back to the version running if the new one fails. */
+  request_update: { input: RequestUpdateInput; output: RequestedUpdate };
   /** Sign in as an administrator of the server, with a handle and a password, and open a session at this domain. */
   sign_in: { input: SignInInput; output: ServerSession };
   /** End the session you signed in with, as an administrator of the server. */

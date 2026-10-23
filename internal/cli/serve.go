@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"cahut.cloud/internal/server"
+	"cahut.cloud/internal/update"
 	"cahut.cloud/internal/web"
 )
 
@@ -27,6 +28,8 @@ func runServe(args []string, _, stderr io.Writer) int {
 	fs.StringVar(&cfg.HTTPSAddr, "https", ":443", "address for HTTPS")
 	fs.BoolVar(&cfg.Dev, "dev", false, "serve plain HTTP on --dev-addr, for Cahuts at localhost and *.localhost")
 	fs.StringVar(&cfg.DevAddr, "dev-addr", fmt.Sprintf("localhost:%d", web.DevPort), "address for --dev")
+	updates := fs.String("update-state", envOr("CAHUT_UPDATE_STATE", update.DefaultStateDir),
+		"directory where the updater leaves the state of updates (env CAHUT_UPDATE_STATE)")
 	if code, ok := parse(fs, args); !ok {
 		return code
 	}
@@ -36,17 +39,32 @@ func runServe(args []string, _, stderr io.Writer) int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	srv, err := server.Open(ctx, server.Config{DataDir: *data, BaseURL: cfg.BaseURL, ConsoleURL: cfg.ConsoleURL})
+	srv, err := server.Open(ctx, server.Config{DataDir: *data, BaseURL: cfg.BaseURL, ConsoleURL: cfg.ConsoleURL, UpdateDir: *updates})
 	if err != nil {
 		log.Error("open the server", "error", err)
 		return exitError
 	}
+	watched := make(chan struct{})
+	go func() {
+		defer close(watched)
+		srv.WatchUpdates(ctx, log)
+	}()
 	w := web.New(srv, cfg, log)
 	err = w.Run(ctx)
+	stop()
+	<-watched
 	err = errors.Join(err, w.Close(), srv.Close())
 	if err != nil {
 		log.Error("serve", "error", err)
 		return exitError
 	}
 	return exitOK
+}
+
+// envOr returns the environment variable name, or else value.
+func envOr(name, value string) string {
+	if v := os.Getenv(name); v != "" {
+		return v
+	}
+	return value
 }

@@ -36,6 +36,10 @@ type Config struct {
 	// such as https://cahut.example.com/console/, where people consent to AI
 	// clients. It may be nil, as BaseURL may.
 	ConsoleURL func(domain string) string
+	// UpdateDir is where the updater, run as root, leaves the state of
+	// updates (update.DefaultStateDir). Empty, the server does not update
+	// itself.
+	UpdateDir string
 }
 
 // Server is the open server.
@@ -68,6 +72,7 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 	operation.Register(s.Registry, ListDomains)
 	operation.Register(s.Registry, cahut.ListServerLogbook)
 	registerAdmins(s.Registry)
+	s.registerUpdates(s.Registry)
 	return s, nil
 }
 

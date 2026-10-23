@@ -31,6 +31,7 @@ var commands = []command{
 	{name: "user", summary: "Manage the people of a Cahut", run: group("user", userCommands)},
 	{name: "token", summary: "Manage the personal tokens of AIs", run: group("token", tokenCommands)},
 	{name: "logbook", summary: "Print the latest entries of the Logbook", run: runLogbook},
+	{name: "update", summary: "Install a new release, as root, and go back if it fails", run: runUpdate},
 	{name: "version", summary: "Print the version of this binary", run: runVersion},
 }
 

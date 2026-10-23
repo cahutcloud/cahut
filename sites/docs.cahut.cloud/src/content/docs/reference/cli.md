@@ -30,6 +30,7 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut token list`](#cahut-token-list) | List personal tokens |
 | [`cahut token revoke`](#cahut-token-revoke) | Revoke a personal token |
 | [`cahut logbook`](#cahut-logbook) | Print the latest entries of the Logbook |
+| [`cahut update`](#cahut-update) | Install a new release, as root, and go back if it fails |
 | [`cahut version`](#cahut-version) | Print the version of this binary |
 
 ## `cahut serve`
@@ -49,6 +50,7 @@ cahut serve [flags]
 | `--email string` |  | contact of the Let's Encrypt account, optional (env CAHUT_ACME_EMAIL) |
 | `--http string` | `:80` | address for HTTP, which answers ACME challenges and redirects |
 | `--https string` | `:443` | address for HTTPS |
+| `--update-state string` | `/var/lib/cahut-update` | directory where the updater leaves the state of updates (env CAHUT_UPDATE_STATE) |
 
 ## `cahut domain`
 
@@ -233,6 +235,24 @@ cahut logbook [flags]
 | `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
 | `--limit int` | `20` | how many entries |
 | `--server` |  | print the Logbook of the server, not of a Cahut |
+
+## `cahut update`
+
+Install a new release, as root, and go back if it fails.
+
+```text
+sudo cahut update [--check] [--version VERSION] [--binary FILE]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--bin string` | `/usr/local/bin/cahut` | the binary that the service runs |
+| `--binary string` |  | install this cahut binary instead of a release, with the same check and rollback, without signature |
+| `--check` |  | read the releases and say whether a newer one is out, without installing it |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--state string` | `/var/lib/cahut-update` | directory of the state of updates |
+| `--unattended` |  | run as systemd does: what the console asked for, or else what CAHUT_UPDATES says |
+| `--version string` |  | install this release, such as 0.4.1, instead of the newest; never an older one |
 
 ## `cahut version`
 
