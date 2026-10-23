@@ -2,12 +2,15 @@ package web
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"net/http"
 	"strings"
 	"time"
 
 	"cahut.cloud/internal/housestyle"
 	"cahut.cloud/internal/window"
+	"cahut.cloud/plugins"
 )
 
 // The files of the house style of a Cahut: its style sheet, its logos, its
@@ -79,6 +82,23 @@ func (s *Server) serveTemplate(w http.ResponseWriter, r *http.Request) {
 	h.Set("Referrer-Policy", "strict-origin-when-cross-origin")
 	h.Set("Cache-Control", "no-cache")
 	_, _ = w.Write(page)
+}
+
+// SkillPath is where each Cahut serves the skill for Claude, as a zip,
+// for the Claude apps where skills are uploaded.
+const SkillPath = "/-/cahut-skill.zip"
+
+// serveSkill serves the skill for Claude, the same as its plugin's. See
+// docs/adr/0022-house-style-of-each-cahut.md.
+func (s *Server) serveSkill(w http.ResponseWriter, r *http.Request) {
+	b, err := plugins.SkillZip()
+	if err != nil {
+		s.internal(w, "make the zip of the skill", err)
+		return
+	}
+	sum := sha256.Sum256(b)
+	w.Header().Set("Content-Disposition", `attachment; filename="cahut-skill.zip"`)
+	serveHouseAsset(w, r, housestyle.Asset{Type: "application/zip", ETag: `"` + hex.EncodeToString(sum[:16]) + `"`, Content: b})
 }
 
 func serveHouseAsset(w http.ResponseWriter, r *http.Request, a housestyle.Asset) {

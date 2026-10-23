@@ -153,6 +153,7 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.mux.HandleFunc("GET "+housestyle.FontsPath+"{file}", s.serveFont)
 	s.mux.HandleFunc("GET "+housestyle.DeckPath, serveDeckEngine)
 	s.mux.HandleFunc("GET /-/templates/{kind}", s.serveTemplate)
+	s.mux.HandleFunc("GET "+SkillPath, s.serveSkill)
 	s.mux.HandleFunc("GET /-/sign-in", s.serveSignIn)
 	s.mux.HandleFunc("GET /-/session", s.serveSession)
 	s.mux.HandleFunc("POST /-/sign-out", s.serveSignOut)

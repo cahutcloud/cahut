@@ -1,0 +1,22 @@
+{
+  "name": "cahut",
+  "displayName": "Cahut",
+  "version": "0.4.0",
+  "description": "Publish documents, decks and dashboards to your Cahut, in the house style of your organization, and share them by link. It connects Claude to your Cahut over MCP, and teaches it the formats, the house style, the sandbox of Windows and Knock first.",
+  "author": {
+    "name": "Olivier Durand",
+    "url": "https://cahut.cloud"
+  },
+  "homepage": "https://docs.cahut.cloud/connect/claude-plugin/",
+  "repository": "https://github.com/getcahut/cahut",
+  "license": "Apache-2.0",
+  "keywords": ["cahut", "publish", "house style", "deck", "dashboard", "mcp"],
+  "userConfig": {
+    "domain": {
+      "type": "string",
+      "title": "Domain of your Cahut",
+      "description": "The domain where your Cahut answers, such as cahut.example.com, without https://. Claude connects to its MCP endpoint, and you sign in to choose what it may do.",
+      "required": true
+    }
+  }
+}

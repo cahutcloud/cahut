@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "cahut": {
+      "type": "http",
+      "url": "https://${user_config.domain}/mcp"
+    }
+  }
+}
