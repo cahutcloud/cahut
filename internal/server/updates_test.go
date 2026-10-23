@@ -145,13 +145,25 @@ func TestLogUpdates(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Two updates within a minute, which the history holds both of.
+	writeStatus(t, state, update.Status{History: []update.Run{
+		{ID: "four", From: "0.4.3", To: "0.4.4", Result: update.Updated, Ended: at.Add(3 * time.Hour)},
+		{ID: "three", From: "0.4.2", To: "0.4.3", Result: update.Updated, Ended: at.Add(2 * time.Hour)},
+		{ID: "two", From: "0.4.0", To: "0.4.2", By: update.ByConsole, Result: update.Updated, Ended: at.Add(time.Hour)},
+		{ID: "running", From: "0.4.4", To: "0.4.5"}, // not ended yet
+	}})
+	if err := s.LogUpdates(ctx); err != nil {
+		t.Fatal(err)
+	}
+
 	entries, err := logbook.List(ctx, s.DB.Read, 10)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(entries) != 2 {
-		t.Fatalf("%d entries, want 2: %+v", len(entries), entries)
+	if len(entries) != 4 || entries[0].Target != "0.4.3 to 0.4.4" || entries[1].Target != "0.4.2 to 0.4.3" {
+		t.Fatalf("%d entries, want 4, the newest first: %+v", len(entries), entries)
 	}
+	entries = entries[2:]
 	updated, undone := entries[0], entries[1]
 	if updated.Operation != "update" || updated.Target != "0.4.0 to 0.4.2" || updated.Outcome != logbook.OK || updated.Via != "api" {
 		t.Errorf("the update = %+v", updated)

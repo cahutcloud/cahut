@@ -112,7 +112,7 @@ func (u *Updater) Run(ctx context.Context, opts Options) (Status, error) {
 	if opts.Binary != "" {
 		run := u.newRun(by)
 		u.installBinary(ctx, opts.Binary, run)
-		st.Last = run
+		st.record(run)
 		return st, u.save(st, run)
 	}
 
@@ -136,7 +136,7 @@ func (u *Updater) Run(ctx context.Context, opts Options) (Status, error) {
 	run := u.newRun(by)
 	run.To = target.Version.String()
 	u.installRelease(ctx, *target, run)
-	st.Last = run
+	st.record(run)
 	return st, u.save(st, run)
 }
 

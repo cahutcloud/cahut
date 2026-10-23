@@ -109,7 +109,7 @@ func (s *Server) requestUpdate(_ context.Context, c *operation.Call, in RequestU
 }
 
 // WatchUpdates writes to the Logbook of the server, every minute until ctx
-// is done, the update that the updater last made, once. The updater runs
+// is done, the updates that the updater made, each once. The updater runs
 // as root and never opens the databases.
 func (s *Server) WatchUpdates(ctx context.Context, log *slog.Logger) {
 	if s.cfg.UpdateDir == "" {
@@ -129,14 +129,22 @@ func (s *Server) WatchUpdates(ctx context.Context, log *slog.Logger) {
 	}
 }
 
-// LogUpdates writes the last update to the Logbook of the server, unless it
-// is there already.
+// LogUpdates writes the updates that the updater made to the Logbook of the
+// server, those that are not there already.
 func (s *Server) LogUpdates(ctx context.Context) error {
 	st, managed, err := update.ReadStatus(s.cfg.UpdateDir)
-	if err != nil || !managed || st.Last == nil || st.Last.Ended.IsZero() {
+	if err != nil || !managed {
 		return err
 	}
-	run := st.Last
+	for _, run := range st.Runs() {
+		if err := s.logUpdate(ctx, run); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Server) logUpdate(ctx context.Context, run update.Run) error {
 	tx, err := s.DB.Write.BeginTx(ctx, nil)
 	if err != nil {
 		return err

@@ -259,7 +259,7 @@ func TestUpdateToTheNewestRelease(t *testing.T) {
 		t.Errorf("check = %+v, want the latest release 0.5.0", st.Check)
 	}
 	saved, managed, err := ReadStatus(f.u.StateDir)
-	if err != nil || !managed || saved.Last == nil || saved.Last.ID != st.Last.ID {
+	if err != nil || !managed || saved.Last == nil || saved.Last.ID != st.Last.ID || len(saved.Runs()) != 1 {
 		t.Errorf("ReadStatus = %+v, %v, %v; want the run saved", saved, managed, err)
 	}
 	if got := read(t, filepath.Join(f.u.StateDir, "snapshot", "server.db")); got != "server of 0.4.0" {
@@ -574,5 +574,16 @@ func TestStatusOfAServerThatDoesNotUpdate(t *testing.T) {
 	dir := t.TempDir()
 	if st, managed, err := ReadStatus(dir); !managed || err != nil || st.Last != nil {
 		t.Errorf("ReadStatus of an empty directory: %+v, %v, %v", st, managed, err)
+	}
+}
+
+func TestHistoryKeepsTheLastUpdates(t *testing.T) {
+	var st Status
+	for i := range keep + 3 {
+		st.record(&Run{ID: fmt.Sprint(i), Ended: time.Now()})
+	}
+	runs := st.Runs()
+	if len(runs) != keep || runs[0].ID != "3" || runs[keep-1].ID != fmt.Sprint(keep+2) || st.Last.ID != fmt.Sprint(keep+2) {
+		t.Errorf("runs = %+v, last = %+v", runs, st.Last)
 	}
 }

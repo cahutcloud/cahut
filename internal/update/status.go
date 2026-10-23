@@ -80,6 +80,39 @@ type Status struct {
 	Policy Policy `json:"policy,omitempty"`
 	Check  *Check `json:"check,omitempty" jsonschema:"the last time the updater read the releases"`
 	Last   *Run   `json:"last,omitempty" jsonschema:"the last update, done or undone"`
+	// History holds the last updates, newest first, so that the service
+	// records each of them even when two come within a minute.
+	History []Run `json:"history,omitempty"`
+}
+
+// keep is how many updates History holds.
+const keep = 10
+
+// record makes run the last update.
+func (s *Status) record(run *Run) {
+	s.Last = run
+	s.History = append([]Run{*run}, s.History...)
+	if len(s.History) > keep {
+		s.History = s.History[:keep]
+	}
+}
+
+// Runs returns the updates of s that have ended, oldest first.
+func (s Status) Runs() []Run {
+	var runs []Run
+	for i := len(s.History) - 1; i >= 0; i-- {
+		runs = append(runs, s.History[i])
+	}
+	if len(runs) == 0 && s.Last != nil {
+		runs = append(runs, *s.Last)
+	}
+	ended := runs[:0]
+	for _, r := range runs {
+		if !r.Ended.IsZero() {
+			ended = append(ended, r)
+		}
+	}
+	return ended
 }
 
 // Check is a reading of the published releases.
