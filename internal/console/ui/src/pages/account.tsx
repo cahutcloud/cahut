@@ -40,6 +40,11 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 			</PageHead>
 			<section class="section c-card panel narrow">
 				<h2 class="c-h4">Change your password</h2>
+				<p class="c-small c-muted">
+					{api.session.kind === "admin"
+						? "This is your password as an administrator of the server. Your account as a person of a Cahut, if you have one, keeps its own."
+						: "This is your password in this Cahut. Your account as an administrator of the server, if you have one, keeps its own."}
+				</p>
 				<form class="form" onSubmit={submit}>
 					<label class="c-field">
 						<span class="c-field__label">Current password</span>

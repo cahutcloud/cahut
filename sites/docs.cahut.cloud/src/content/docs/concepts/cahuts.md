@@ -11,6 +11,10 @@ A Cahut needs one DNS record, A or AAAA, that points its domain to the server. I
 
 The service routes each request to the Cahut of its host name. A name that no Cahut declares gets `421 Misdirected Request`. The service obtains one certificate per Cahut from Let's Encrypt, for its domain only, and renews it. It never asks for a certificate for a name that no Cahut declares.
 
+## Without a domain
+
+To try Cahut before it has a domain, a Cahut can live at the public IPv4 address of its server, such as `https://203.0.113.7/`, with a certificate of Let's Encrypt for that address. A server holds one such Cahut. It moves to a domain later, with everything in it: its links at the address stop working, and AIs connect again. See [Without a domain](/install/server/#without-a-domain).
+
 ## Sealed off from each other
 
 Cahuts share nothing but the server. Each has:

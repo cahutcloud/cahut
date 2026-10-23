@@ -58,9 +58,9 @@ const fr: Dictionary = {
 			local: { label: 'Sur votre machine', meta: 'Git · make · Go' },
 		},
 		comments: {
-			install: 'Installer Cahut comme service, et déclarer votre premier Cahut',
-			account: 'Créer votre compte, et un jeton pour votre IA',
-			connect: 'Ajouter votre Cahut à Claude Code, avec le jeton',
+			install: 'Installer Cahut comme service, avec votre premier Cahut',
+			account: "Ouvrir le lien qu'il affiche : votre compte, votre house style, votre IA",
+			connect: 'Ou ajouter vous-même votre Cahut à Claude Code, et vous connecter',
 			build: 'Compiler Cahut depuis les sources',
 			declare: 'Déclarer un Cahut sur localhost, avec votre compte et un jeton',
 			serve: 'Le servir sur http://localhost:8080',
@@ -75,7 +75,7 @@ const fr: Dictionary = {
 			label: 'Il vous faut',
 			items: [
 				'Un serveur Linux avec systemd',
-				'Un domaine qui pointe vers lui',
+				'Un domaine qui pointe vers lui, ou son adresse IPv4',
 				'Les ports 80 et 443 ouverts',
 				"Un client d'IA qui parle MCP, comme Claude Code",
 			],

@@ -9,7 +9,7 @@ Port 443 keeps the Windows and MCP. Some company networks let only port 443 out:
 
 ## Sign in for the first time
 
-Nobody chooses a password for someone else. An administrator creates the account, and Cahut gives a link that works once, for 7 days:
+The first person of a Cahut starts from the link that the installation prints, at `/console/setup#...`: see [The first start](/install/first-start/). After them, nobody chooses a password for someone else. An administrator creates the account, and Cahut gives a link that works once, for 7 days:
 
 ```text
 https://cahut.example.com/console/activate#...
@@ -57,9 +57,10 @@ The administrators of the server have accounts of their own, apart from the peop
 
 They find:
 
-- **Overview**: the Cahuts of the server, and a form that declares one with its first administrator, whose link the console shows.
+- **Overview**: the Cahuts of the server, a form that declares one with its first administrator, whose link the console shows, and on each Cahut **Move to a domain** or **Change its domain**. When the Cahut of the console moves, the console sends you to sign in again at its new address.
 - **Administrators**: the list, a new administrator with their link, and a new link.
-- **Logbook of the server**: the Cahuts declared, the administrators and their sign-ins.
+- **Logbook of the server**: the Cahuts declared and moved, the administrators and their sign-ins, and the updates.
+- **Updates**: the version running, the newest release, the last update and how it ended, with **Check now** and **Update**. See [Updates](/admin/updates/).
 - In the Cahut of the domain where they signed in, **People**, **Rooms** and its **Logbook**, as its administrators have them, without its Windows.
 
 A session holds at the domain where it opened: to look after another Cahut, sign in at its own console.

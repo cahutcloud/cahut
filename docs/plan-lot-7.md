@@ -1,6 +1,6 @@
 # Cahut · Plan du lot 7 : installation, premier démarrage, mises à jour
 
-23 octobre 2026 · Olivier Durand · Validé
+23 octobre 2026 · Olivier Durand · Validé, achevé
 
 ## En bref
 
@@ -59,8 +59,8 @@ Deux migrations :
 
 | Migration | Contenu |
 | --- | --- |
-| `server/0006_setup_links` | Table `setup_links` : Cahut, empreinte du code, expiration, date d'usage. Un lien par Cahut au plus |
-| `server/0007_updates` | Table `updates_logged` : l'identifiant de chaque mise à jour déjà écrite au Logbook du serveur |
+| `server/0006_updates` | Table `updates_logged` : l'identifiant de chaque mise à jour déjà écrite au Logbook du serveur |
+| `server/0007_setup_links` | Table `setup_links` : Cahut, empreinte du code, création, expiration. Un lien par Cahut au plus ; un lien servi s'efface |
 
 L'état des mises à jour vit hors des bases, dans `/var/lib/cahut-update/` (root, lisible du groupe `cahut`) :
 
@@ -165,3 +165,47 @@ Soit environ 11 jours. Les pull requests s'enchaînent dans l'ordre.
 - Un domaine fourni par le projet, du type `<adresse>.cahut.cloud` : écarté par l'ADR 26.
 - Les autres systèmes que AlmaLinux et Ubuntu : Debian et Rocky devraient marcher, sans être testés.
 - La section Installation du README : lot 8.
+
+## Bilan
+
+Le lot 7 s'est achevé le 23 octobre 2026, en neuf pull requests :
+
+| # | Pull request | Contenu |
+| --- | --- | --- |
+| 1 | #74 | Le plan et les ADR 24, 25 et 26 |
+| 2 | #75 | Les releases signées, la vérification dans `install.sh`, les bases plus récentes que le binaire refusées |
+| 3 | #76 | `cahut update`, la santé sur la boucle locale, le retour arrière, les unités systemd, `get_updates` et `request_update`, le Logbook |
+| 4 | #78 | `cahut doctor`, lancé par `install.sh` |
+| 5 | #79 | Un Cahut à l'adresse IPv4 de son serveur, les certificats `shortlived`, `rename_domain`, l'ADR 28 |
+| 6 | #80 | Le premier démarrage guidé, le pas à pas par client IA |
+| 7 | #81 | L'écran Updates et « Move to a domain » dans la console |
+| 8 | #82 | Le test d'installation en CI et sous Lima, `install.sh` servi par cahut.cloud |
+| 9 | #83 | Documentation, staging, bilan |
+
+**Écarts par rapport au plan.**
+
+- **IPv4 seulement.** La grammaire des sources de CSP Level 3 n'admet pas d'adresse IPv6, et la politique d'une Window nomme l'origine de son Cahut : l'[ADR 28](adr/0028-ip-address-of-a-cahut-is-ipv4.md) restreint l'adresse de repli à IPv4 et remplace en partie l'ADR 26. Le numéro 27 était pris entre-temps par une autre session, pour les aperçus des Windows dans la console.
+- **Les migrations** se sont suivies dans l'ordre des pull requests : `0006_updates`, puis `0007_setup_links`.
+- **L'historique des mises à jour.** Le service écrit les mises à jour au Logbook une fois par minute ; une mise à jour et son retour arrière, dans la même minute, n'y laissaient que la dernière. `status.json` garde les dix dernières, et le service écrit chacune une fois.
+- **Deux configurations CertMagic**, sur un même cache et un même stockage : les domaines gardent le profil classique et ARI, les adresses IP prennent `shortlived` et le défi HTTP seul. Derrière un NAT, l'adresse du Cahut sert de nom par défaut quand le client n'en envoie aucun.
+- **`rename_domain`** déplace n'importe quel Cahut, pas seulement un Cahut à une adresse IP ; le serveur relit le domaine de chaque Cahut à chaque requête et ferme l'ancien accès une minute plus tard.
+- **`cahut doctor`** signale aussi un domaine qui ne pointe que sur la boucle locale, et ne demande le pare-feu et SELinux qu'en root.
+- **`install.sh`** écrit ses réglages quand ils changent, en gardant ceux qu'on ne redonne pas, et ne demande le lien du premier démarrage que pour un Cahut qui n'a personne : sinon l'échec allait au Logbook à chaque réinstallation.
+- **La console.** AIs and access perd sa carte de la skill, reprise par le pas à pas ; la page du compte dit que chaque compte garde son mot de passe, comme le prévoyait l'ADR 25 ; le fragment de l'adresse est lu une fois pour toute la console ; le lien d'activation du premier administrateur d'un Cahut déclaré dans la console retrouve `/console/`, perdu à l'ADR 20.
+- **La clé de signature** a été faite avec OpenSSL sur le Mac d'Olivier et posée en secret du dépôt, `CAHUT_RELEASE_KEY` ; sa copie hors ligne attend dans `tmp/release-key.pem`, ignoré de git.
+- Pas de nouvelle dépendance. Lima s'installe sur l'ordinateur qui lance le test, hors du dépôt.
+
+**Essais.**
+
+- Les tests couvrent la signature (bonne, d'une autre clé, fichier changé, trop courte), les sommes, l'ordre des versions, les bases plus récentes, le programme de mise à jour contre un faux GitHub, un faux systemd et de faux binaires (mise à jour, règles `patch`, `all`, `check` et `off`, retour arrière, retour arrière raté, releases refusées, jamais de descente, demandes de la console acceptées ou refusées, `--binary`, une exécution à la fois), la santé sur la boucle locale, `get_updates` et `request_update`, le Logbook des mises à jour, les trente cas de `cahut doctor`, les adresses IP acceptées et refusées, `rename_domain` et le service qui suit sans redémarrage, le choix du certificat par nom ou par adresse, le premier démarrage par les opérations et par l'API HTTP.
+- **Machines vierges.** AlmaLinux 10.2 arm64 sous Lima, SELinux en mode `Enforcing` : `install.sh` en 59 s, dont la moitié à attendre un certificat que le domaine d'essai ne peut pas avoir, le test entier en 152 s. Ubuntu 24.04 arm64 sous Lima : 59 s et 152 s ; un premier essai n'a pas démarré, Lima ayant dépassé son délai avant d'ouvrir SSH. Ubuntu 24.04 amd64 de GitHub, dans le job *Install* de la CI : 49 s et 133 s.
+- **Navigateur.** Dans le panneau de navigateur, contre un Cahut de développement vierge : les trois étapes du premier démarrage, le handle tiré du nom, la house style, l'écran qui voit une IA dès qu'un jeton sert, un lien servi à 375 px ; AIs and access et ses onglets ; l'écran Updates à 1 280 px et 375 px, « Check now » et sa demande ; « Move to a domain » d'un Cahut à une adresse IP.
+- **Staging.** La version du lot est installée (0.3.1-0.20261023132022-861c5fc724d9), avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-23-batch7`, par le nouvel `install.sh`, qui a posé les unités du programme de mise à jour et le jeton. `cahut doctor` n'y trouve aucun problème : SELinux, les deux domaines, leurs certificats, Let's Encrypt et GitHub. `cahut update --check` lit les releases ; un binaire qui ne démarre pas est revenu seul à la version du lot en une minute, ses deux Cahuts ouverts.
+
+**Reste à faire.**
+
+- Publier la release 0.4.0, la première signée, puis `sudo cahut update` sur le staging pour éprouver le chemin signé contre GitHub, et relever la version dans la documentation et le badge du README.
+- La démonstration de fin de lot sur deux VPS vierges, AlmaLinux avec un domaine et Ubuntu sans domaine, chronomètre en main ; un certificat d'adresse IP n'a pas encore été obtenu pour de vrai, faute de serveur d'essai à adresse publique.
+- Ranger la clé privée des releases dans le gestionnaire de mots de passe d'Olivier, puis effacer `tmp/release-key.pem`.
+- Vérifier au lot 8 que claude.ai et ChatGPT acceptent un serveur MCP à une adresse IP.
+- Firefox et Safari, toujours, depuis le lot 4.

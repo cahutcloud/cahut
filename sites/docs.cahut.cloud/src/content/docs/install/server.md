@@ -1,71 +1,98 @@
 ---
 title: Install on a server
-description: Install Cahut as a systemd service on a Linux server with install.sh, and declare your first Cahut.
+description: Install Cahut on a Linux server in one command, which checks the signature of the release, sets up the service and its updates, and ends with the link to the first start.
 ---
 
-`install.sh` installs Cahut on a Linux server as the `cahut` systemd service, declares a Cahut at your domain, and starts the service. Run it again to update Cahut or to add a Cahut.
+One command installs Cahut on a Linux server as the `cahut` systemd service. It checks the signature of the release, declares your first Cahut, opens the firewall, sets up the daily updates, runs `cahut doctor`, and ends with a link to the [first start](/install/first-start/), where you create your account and connect your AI in the browser.
 
 ## Before you start
 
 You need:
 
-- **A Linux server with systemd**, on amd64 or arm64, where you can run commands as root. Cahut targets AlmaLinux and Ubuntu, from the provider's standard image. Plan 2 vCPU, 4 GB of RAM and 40 GB of disk, the size the project aims at for its launch: today's Cahut needs less, and the disk fills with the Windows you publish.
-- **A domain or a subdomain for each Cahut**, such as `cahut.example.com`, with an A or AAAA record that points to the server. No wildcard record is needed.
+- **A Linux server with systemd**, on amd64 or arm64, where you can run commands as root. Cahut is tested on AlmaLinux 9 and 10 and Ubuntu 22.04 and 24.04, from the provider's standard image. Plan 2 vCPU, 4 GB of RAM and 40 GB of disk, the size the project aims at for its launch: today's Cahut needs less, and the disk fills with the Windows you publish.
+- **A domain or a subdomain**, such as `cahut.example.com`, with an A or AAAA record that points to the server. No wildcard record is needed. Without a domain, Cahut takes the public IPv4 address of the server, and moves to a domain later: see [Without a domain](#without-a-domain).
 - **Ports 80 and 443 open** to the internet, in the provider's firewall too. Port 80 answers the challenges of Let's Encrypt and redirects to HTTPS. Port 443 serves everything else: the Windows, MCP, OAuth, and the console under `/console/`.
-- **curl**, to download the release.
+- **curl** and **openssl**, which the standard images of AlmaLinux and Ubuntu have.
 
-Create the DNS record first: the service asks Let's Encrypt for the certificate of each domain as soon as it starts.
+Create the DNS record first: the service asks Let's Encrypt for the certificate as soon as it starts.
 
 ## Run the installer
 
-Download the script, then run it as root with the domain of your first Cahut:
-
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/getcahut/cahut/main/install.sh
-sudo sh install.sh --domain cahut.example.com --email you@example.com
+curl -fsSL https://cahut.cloud/install.sh | sudo sh -s -- --domain cahut.example.com
 ```
 
-The email address is optional: Let's Encrypt writes to it about your certificates. The script says what it does, then prints the next steps:
+Add `--email you@example.com` for Let's Encrypt to write to you about your certificates. The script says what it does, runs [cahut doctor](/admin/doctor/), and prints the link to the first start:
 
 ```text
-cahut: downloading Cahut 0.3.0 for linux/amd64
+cahut: downloading Cahut 0.4.0 for linux/amd64
+cahut: signature and checksum checked
 cahut: creating the cahut system user
 cahut: writing /etc/cahut/cahut.env
 cahut: declaring the Cahut of cahut.example.com
 cahut: opening ports 80 and 443 in firewalld
-cahut: cahut 0.3.0 (commit 6db98c0, 2026-10-23T09:31:18Z, go1.27.3 linux/amd64) is running
+cahut: cahut 0.4.0 (commit 1a2b3c4, 2026-10-24T08:00:00Z, go1.27.3 linux/amd64) is running
+cahut: waiting for the certificate of cahut.example.com
+
+ok    System             AlmaLinux 10.2 (Lavender Lion), amd64.
+ok    Clock              Synchronized.
+ok    Service            The cahut service runs, and starts at boot.
+ok    Service            Cahut 0.4.0 answers, with 1 Cahut.
+…
+ok    cahut.example.com  Its certificate, from Let's Encrypt, is valid until 22 January 2027.
+ok    cahut.example.com  https://cahut.example.com/ answers.
+…
+No problem.
+
   https://cahut.example.com/
 
-Next steps for the Cahut of cahut.example.com:
+Open this link to start your Cahut. It works once, until 2026-10-25, and is shown only now.
 
-  1. Create your account, as an administrator of the Cahut. The command
-     prints a link where you choose your password:
-       sudo -u cahut /usr/local/bin/cahut user create --domain cahut.example.com --handle you --name "Your Name" --admin
-  2. Open that link: it signs you in to the console, at https://cahut.example.com/console/
-  3. In the console, AIs and access creates a token for your AI, with the
-     command that adds the Cahut to Claude Code.
+  https://cahut.example.com/console/setup#k7n3…
 
-To administer the server itself, create an administrator of the server:
-       sudo -u cahut /usr/local/bin/cahut admin create --handle you --name "Your Name"
-
-Ports 80 and 443 must be open in the firewall of your hosting provider
-too, if it has one.
-
-The service logs go to the journal: journalctl -u cahut
+It creates your account, sets the house style of your organization, and
+connects your first AI. For a new link: sudo -u cahut /usr/local/bin/cahut setup
 ```
 
-[Connect Claude Code](/connect/claude-code/) explains these three steps, and [The console](/admin/console/) what you find there.
+Open the link in your browser: [The first start](/install/first-start/) walks through it.
+
+While the repository of Cahut is private, reading its releases takes a token. Give it to the script on the command line of `sudo`, and it keeps it for the updates, readable by root only:
+
+```bash
+curl -fsSL https://cahut.cloud/install.sh | sudo GITHUB_TOKEN=github_pat_… sh -s -- --domain cahut.example.com
+```
+
+## Without a domain
+
+To try Cahut before you have a domain, give the public IPv4 address of the server instead:
+
+```bash
+curl -fsSL https://cahut.cloud/install.sh | sudo sh -s -- --ip 203.0.113.7
+```
+
+With neither `--domain` nor `--ip`, the script takes the address of the server's default route, when it is public. Behind NAT, the server does not know its public address: give it with `--ip`.
+
+The Cahut then answers at `https://203.0.113.7/`, with a certificate of Let's Encrypt for that address. Such certificates last six days, and the service renews them every few days: port 80 must stay open. IPv6 addresses are not supported, since the policy of a Window could not name them.
+
+When you have a domain, point it to the server, then move the Cahut there, in the console of the administrator of the server or on the command line:
+
+```bash
+sudo -u cahut /usr/local/bin/cahut domain rename 203.0.113.7 cahut.example.com
+```
+
+Everything in the Cahut stays. The links that name the address stop working, and AIs connect again at the new one.
 
 ## What the installer does
 
-1. It downloads the release for the server's architecture from GitHub, the latest one unless you name another, and checks its SHA-256 checksum. With `--binary`, it takes the binary you give instead.
+1. It downloads the release for the server's architecture from GitHub, the latest one unless you name another, with its checksum file and the signature of that file. It checks the signature against the keys of Cahut written in the script, then the checksum of the archive: a release that the project did not sign does not install. With `--binary`, it takes the binary you give instead.
 2. It checks that the binary runs on the server.
 3. It creates the `cahut` system user, with no shell, and the data folder `/var/lib/cahut`, which only that user and its group can read.
-4. It writes the settings file `/etc/cahut/cahut.env`, unless the file exists already.
-5. It writes the systemd unit `/etc/systemd/system/cahut.service` and installs the binary as `/usr/local/bin/cahut`. On a server with SELinux, it restores the labels of both files.
-6. It declares the Cahut of `--domain`, unless the server holds it already.
-7. It opens ports 80 and 443 in firewalld or ufw, when one of them is active. Earlier versions opened port 8443 for the console too: the script leaves that port as it is and prints the command that closes it.
-8. It enables and restarts the service, then checks that it runs.
+4. It writes the settings file `/etc/cahut/cahut.env` when its content changes, keeping the values you do not give again.
+5. It writes the systemd units of the service and of the updater, and installs the binary as `/usr/local/bin/cahut`. On a server with SELinux, it restores the labels of the files.
+6. It declares the Cahut of `--domain` or `--ip`, unless the server holds it already.
+7. It opens ports 80 and 443 in firewalld or ufw, when one of them is active.
+8. It enables and restarts the service, checks that it runs, and enables the daily update.
+9. It waits up to half a minute for the certificate of a new Cahut, runs `cahut doctor`, and prints the link to the first start when the Cahut has nobody yet.
 
 The service runs as the `cahut` user, with the one capability it needs to listen on ports 80 and 443, and can write only to its data folder. See [The cahut service](/admin/service/).
 
@@ -73,53 +100,45 @@ The service runs as the `cahut` user, with the one capability it needs to listen
 
 | Option | What it does |
 | --- | --- |
-| `--domain DOMAIN` | Declares the Cahut of `DOMAIN`, such as `cahut.example.com`. It must point to this server. The first run needs it. |
+| `--domain DOMAIN` | Declares the Cahut of `DOMAIN`, such as `cahut.example.com`. It must point to this server. |
+| `--ip ADDRESS` | Declares a Cahut at the public IPv4 address of the server, without a domain. |
 | `--email EMAIL` | Sets the contact of the Let's Encrypt account. Optional. |
 | `--staging` | Uses the staging environment of Let's Encrypt, for tests. Browsers do not trust its certificates. |
-| `--version TAG` | Installs this release, such as `v0.3.0`, instead of the latest. |
+| `--version TAG` | Installs this release, such as `v0.4.0`, instead of the latest. Releases are signed from v0.4.0 on. |
 | `--binary PATH` | Installs this `cahut` binary instead of downloading a release. |
+| `--updates POLICY` | What the daily update does: `patch` (the default), `all`, `check` or `off`. See [Updates](/admin/updates/). |
 | `--help` | Prints the options. |
 
-Two environment variables choose where releases come from: `CAHUT_REPO`, the GitHub repository of the releases, `getcahut/cahut` by default, and `GITHUB_TOKEN`, a token that can read the releases of a private repository. Give them on the command line of `sudo`:
-
-```bash
-sudo CAHUT_REPO=you/cahut sh install.sh --domain cahut.example.com
-```
+Two environment variables choose where releases come from: `CAHUT_REPO`, the GitHub repository of the releases, `getcahut/cahut` by default, and `GITHUB_TOKEN`, a token that can read the releases of a private repository.
 
 ## Add a Cahut
 
-Point the DNS record of the new domain to the server, then run the script again with that domain:
-
-```bash
-sudo sh install.sh --domain docs.example.org
-```
-
-The script also installs the latest release, as for an update. To declare the domain without updating, use the command line instead: the running service gets the new certificate at the first HTTPS connection to that domain.
+Point the DNS record of the new domain to the server, then declare it:
 
 ```bash
 sudo -u cahut /usr/local/bin/cahut domain add docs.example.org
+sudo -u cahut /usr/local/bin/cahut setup --domain docs.example.org
 ```
+
+The running service gets the certificate at the first HTTPS connection to that domain. The second command prints the link to the first start of the new Cahut; its first person becomes its administrator.
 
 ## Update Cahut
 
-Run the script again. It installs the latest release, or the one of `--version`, and restarts the service. The data and the Cahuts stay as they are.
+The server updates itself every day, as [Updates](/admin/updates/) explains. To update now:
 
 ```bash
-sudo sh install.sh
+sudo /usr/local/bin/cahut update
 ```
 
-The settings file stays as it is too, unless you pass `--email` or `--staging`: the script then writes it again from the options you give. A run with `--email` and without `--staging` therefore returns to the production environment of Let's Encrypt.
-
-To go back to an earlier release, run the script with its `--version`.
+Running the script again installs the latest release too, without the health check and the rollback of `cahut update`: use it to change the settings.
 
 ## Check that it runs
 
 ```bash
-systemctl status cahut
-curl https://cahut.example.com/-/healthz
+sudo /usr/local/bin/cahut doctor
 ```
 
-The health check answers `ok`. The address of the Cahut answers with one line:
+[cahut doctor](/admin/doctor/) checks the service, the firewall, SELinux, the address and the certificate of each Cahut, and says what to fix. The address of a Cahut answers with one line:
 
 ```text
 This is cahut.example.com, a Cahut. AIs connect to it over MCP at /mcp.
@@ -132,9 +151,10 @@ If the service does not start, its logs say why: `journalctl -u cahut`.
 There is no uninstaller yet. To remove the service and keep the data:
 
 ```bash
-sudo systemctl disable --now cahut
-sudo rm /etc/systemd/system/cahut.service /usr/local/bin/cahut
-sudo rm -r /etc/cahut
+sudo systemctl disable --now cahut cahut-update.timer cahut-update.path
+sudo rm /etc/systemd/system/cahut.service /etc/systemd/system/cahut-update.*
+sudo rm /usr/local/bin/cahut
+sudo rm -r /etc/cahut /var/lib/cahut-update
 sudo systemctl daemon-reload
 ```
 

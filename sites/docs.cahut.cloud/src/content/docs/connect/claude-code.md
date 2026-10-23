@@ -5,11 +5,11 @@ description: Add your Cahut to Claude Code over MCP, sign in to choose what it m
 
 Claude Code connects to a Cahut over MCP. The [Cahut plugin](/connect/claude-plugin/) does it in two commands, and adds the skill that teaches Claude to make Windows in your house style; this page connects it by hand. It signs in with OAuth, like the other [AI clients](/connect/ai-clients/): you give it the address of the Cahut, and you choose in the console the Rooms it reaches and whether it may publish. A personal token in a header works too, for a machine without a browser.
 
-Your account comes from an administrator, or from the command line on the server, as the `cahut` user. With a single Cahut on the server, `--domain` may be left out.
+Your account comes from the [first start](/install/first-start/) of the Cahut, which also gives the steps below, from an administrator, or from the command line on the server, as the `cahut` user. With a single Cahut on the server, `--domain` may be left out.
 
 ## 1. Create your account
 
-An AI acts for a person of the Cahut. Create yours, if it does not exist yet:
+An AI acts for a person of the Cahut. Without the first start, create yours, if it does not exist yet:
 
 ```bash
 sudo -u cahut /usr/local/bin/cahut user create --domain cahut.example.com --handle you --name "Your Name" --admin
