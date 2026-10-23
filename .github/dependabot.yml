@@ -1,11 +1,23 @@
 # Weekly pull requests for Go modules, for the npm packages of the sites,
 # and for the actions pinned by commit hash in .github/workflows.
+#
+# Minor and patch updates of each ecosystem come in one pull request a week.
+# Major updates keep a pull request each, since they may need code changes.
+# A package matches the first group that names it: astro and vite stay
+# together with their plugins, majors included.
 version: 2
 updates:
   - package-ecosystem: gomod
     directory: /
     schedule:
       interval: weekly
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: npm
     directory: /sites
     schedule:
@@ -18,6 +30,12 @@ updates:
         patterns:
           - astro
           - "@astrojs/*"
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: npm
     directory: /internal/console/ui
     schedule:
@@ -29,7 +47,20 @@ updates:
         patterns:
           - vite
           - "@preact/*"
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
