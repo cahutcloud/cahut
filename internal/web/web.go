@@ -213,9 +213,19 @@ func siteOf(r *http.Request) *site {
 // by its path. A host that no Cahut declares gets 421: this is also the
 // guard against DNS rebinding, since a page that points its own name at this
 // server still sends its own name as the host.
+//
+// Every response starts sandboxed: only the handlers of Cahut's own pages
+// replace the policy. See docs/adr/0020-console-under-a-path-of-port-443.md.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Security-Policy", defaultPolicy)
 	s.route(w, r, s.mux)
 }
+
+// defaultPolicy sandboxes what no handler gives a policy of its own: an
+// error, a redirect, a path that no route names. A file of a Window served
+// by mistake without its policy still gets an opaque origin, and reaches
+// neither the reader's session nor the storage of the domain.
+const defaultPolicy = "sandbox; default-src 'none'; base-uri 'none'; form-action 'none'"
 
 // route serves r with mux, as the Cahut of its host.
 func (s *Server) route(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
