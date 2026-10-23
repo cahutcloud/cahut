@@ -126,7 +126,7 @@ The first command prints the latest entries of a Cahut's Logbook, the second tho
 ```
 
 ```text
-cahut 0.1.0 (commit 0123abc, 2026-10-21T08:00:00Z, go1.27.3 linux/amd64)
+cahut 0.2.0 (commit 39dd726, 2026-10-23T06:08:00Z, go1.27.3 linux/amd64)
 ```
 
 ## When a command fails
