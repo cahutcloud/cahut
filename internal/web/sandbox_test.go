@@ -44,7 +44,7 @@ func TestSandboxByDefault(t *testing.T) {
 
 	for _, p := range pages {
 		resp, _ := f.do(t, "localhost", http.MethodGet, p, nil, nil)
-		if csp := resp.Header.Get("Content-Security-Policy"); csp != pagePolicy {
+		if csp := resp.Header.Get("Content-Security-Policy"); csp != pagePolicy("https://localhost/") {
 			t.Errorf("GET %s = %d with the policy %q, want the policy of a page", p, resp.StatusCode, csp)
 		}
 	}

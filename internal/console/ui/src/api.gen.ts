@@ -306,6 +306,8 @@ export interface Entry {
   error?: string;
   /** the Knock that the call made, answered or ran for */
   knock_id?: number;
+  /** where a call that signs in came from: an IPv4 address, or the /64 of an IPv6 one */
+  address?: string;
 }
 
 export interface File {
@@ -1130,7 +1132,7 @@ export interface CahutOperations {
   sign_in: { input: SignInInput; output: AccountSession };
   /** Get a single-use code, valid one minute, that signs you in to read the Windows of this Cahut at its address: the browser takes it to /-/session. */
   sign_in_to_windows: { input: SignInToWindowsInput; output: ReaderCode };
-  /** End the session you signed in with. */
+  /** End the session you signed in with, and the sessions it opened to read Windows. */
   sign_out: { input: SignOutInput; output: SignedOut };
   /** Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. */
   trash_window: { input: RefInput; output: Window };

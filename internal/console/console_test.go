@@ -51,7 +51,8 @@ func TestHandler(t *testing.T) {
 		if resp.status != tt.status || !strings.Contains(body, tt.body) || tt.cache != "" && resp.header.Get("Cache-Control") != tt.cache {
 			t.Errorf("GET %s = %d %q, Cache-Control %q", tt.path, resp.status, body, resp.header.Get("Cache-Control"))
 		}
-		if csp := resp.header.Get("Content-Security-Policy"); !strings.Contains(csp, "script-src 'self';") || !strings.Contains(csp, "frame-ancestors 'none'") {
+		if csp := resp.header.Get("Content-Security-Policy"); !strings.Contains(csp, "script-src http://example.com/console/assets/;") ||
+			!strings.Contains(csp, "frame-ancestors 'none'") {
 			t.Errorf("GET %s: Content-Security-Policy = %q", tt.path, csp)
 		}
 	}

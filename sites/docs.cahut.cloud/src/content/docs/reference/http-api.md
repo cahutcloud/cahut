@@ -48,7 +48,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | 409 Conflict | The operation needs the approval of a person, which only AIs meet |
 | 413 Request Entity Too Large | The body is larger than 1 MiB |
 | 421 Misdirected Request | The domain is not that of a Cahut of the server |
-| 429 Too Many Requests | Too many sign-ins: from one address, 10 at once, then one every 6 seconds; for one handle, 10 refused in 15 minutes |
+| 429 Too Many Requests | Too many sign-ins: from one address, 10 at once, then one every 6 seconds; for one handle, 10 refused from one address or 100 from everywhere in 15 minutes. An IPv6 address counts with its /64 |
 | 500 Internal Server Error | Anything else |
 
 ## Operations of a Cahut

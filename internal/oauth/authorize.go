@@ -107,6 +107,7 @@ func (s *Server) back(ch checked, req Request, params url.Values) string {
 // redirectHost names where a redirect URI leads, for a person to read: its
 // host, or its scheme and host for the private scheme of an application.
 func redirectHost(uri string) string {
+	uri = strings.ToLower(uri) // as the browser reads it: cIaude.ai is ciaude.ai
 	u, err := url.Parse(uri)
 	if err != nil {
 		return uri
@@ -183,6 +184,9 @@ func (s *Server) describeOp() *operation.Op[DescribeInput, Authorization] {
 			"the client, where it will be sent back, the scope it asks for, and the Rooms the person may grant.",
 		PeopleOnly: true,
 		ReadOnly:   true,
+		Prepare: func(ctx context.Context, c *operation.Call, in DescribeInput) error {
+			return s.prefetch(ctx, c, in.Request.ClientID)
+		},
 		Run: func(ctx context.Context, c *operation.Call, in DescribeInput) (Authorization, error) {
 			userID, err := person(c)
 			if err != nil {
@@ -228,6 +232,9 @@ func (s *Server) approveOp() *operation.Op[ApproveInput, Redirect] {
 		Description: "Connect an AI client to this Cahut, for the person who consents, with the scope and the Rooms they grant. " +
 			"Returns the address that sends the browser back to the client, with its authorization code.",
 		PeopleOnly: true,
+		Prepare: func(ctx context.Context, c *operation.Call, in ApproveInput) error {
+			return s.prefetch(ctx, c, in.Request.ClientID)
+		},
 		Run: func(ctx context.Context, c *operation.Call, in ApproveInput) (Redirect, error) {
 			userID, err := person(c)
 			if err != nil {

@@ -67,7 +67,11 @@ A session holds at the domain where it opened: to look after another Cahut, sign
 
 ## Sessions
 
-A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. After 10 refused sign-ins in 15 minutes, a handle must wait; an address that tries too often must wait too.
+A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. Signing out also ends the reader session that the console opened in that browser.
+
+After 10 refused sign-ins to one handle from one address in 15 minutes, that address must wait; after 100 from everywhere, the handle waits everywhere. An address that tries too often must wait too, and an IPv6 address counts with its whole /64. The Logbook keeps the address of every sign-in.
+
+On a Knock, **Approve** and, on the consent screen of an AI, **Connect** become active once the page has been in front for a moment and you have moved the pointer or pressed a key: a page that would slip them under a double-click gets nowhere.
 
 ## Readers
 

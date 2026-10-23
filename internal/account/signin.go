@@ -149,40 +149,69 @@ type SignInInput struct {
 }
 
 // SignIn opens a session for a person who gives their handle and password.
+// The password is checked before the call's transaction opens, so that a
+// burst of sign-ins does not hold the Cahut's writes behind its hashes.
 var SignIn = &operation.Op[SignInInput, Session]{
 	Name:        "sign_in",
 	Title:       "Sign in",
 	Description: "Sign in with a handle and a password, and open a session.",
 	PeopleOnly:  true,
 	Visitors:    true,
-	Run: func(ctx context.Context, c *operation.Call, in SignInInput) (Session, error) {
-		// An unknown handle is not logged: it may be a password typed in the
-		// wrong field.
+	Prepare: func(ctx context.Context, c *operation.Call, in SignInInput) error {
 		handle := strings.ToLower(strings.TrimSpace(in.Handle))
-		p, err := findUser(ctx, c.Tx, handle)
-		if errors.Is(err, operation.ErrNotFound) {
-			c.Log("", "unknown handle")
-			return Session{}, credential.CheckSignIn(ctx, "", 0, in.Password)
-		}
+		var p person
+		attempt := credential.SignIn{Password: in.Password}
+		// A call without an address, from a test, counts as one address.
+		address := sql.NullString{String: c.Actor.Address, Valid: c.Actor.Address != ""}
+		err := c.Read(ctx, func(tx *sql.Tx) error {
+			var err error
+			p, err = findUser(ctx, tx, handle)
+			if errors.Is(err, operation.ErrNotFound) {
+				// An unknown handle is not logged: it may be a password
+				// typed in the wrong field. Its refusals count at the
+				// address, as those of a handle that exists do.
+				return tx.QueryRowContext(ctx, `
+					SELECT count(*) FROM logbook
+					WHERE operation = 'sign_in' AND outcome = 'refused' AND user_id IS NULL AND address IS ? AND at > ?`,
+					address, store.FormatTime(c.Now.Add(-credential.RefusalWindow))).Scan(&attempt.RefusedHere)
+			}
+			if err != nil {
+				return err
+			}
+			attempt.Hash = p.passwordHash
+			return tx.QueryRowContext(ctx, `
+				SELECT count(*), count(*) FILTER (WHERE address IS ?) FROM logbook
+				WHERE operation = 'sign_in' AND outcome = 'refused' AND user_id = ? AND at > ?`,
+				address, p.ID, store.FormatTime(c.Now.Add(-credential.RefusalWindow))).Scan(&attempt.RefusedAll, &attempt.RefusedHere)
+		})
 		if err != nil {
-			return Session{}, err
+			return err
+		}
+		if p.ID == 0 {
+			c.Log("", "unknown handle")
+			return credential.CheckSignIn(ctx, attempt)
 		}
 		c.Identify(operation.Person, p.ID, p.Handle)
 		c.Log(p.Handle, "")
 		if p.passwordHash == "" {
 			c.Log(p.Handle, "account not activated")
 		}
-
-		var refusals int
-		err = c.Tx.QueryRowContext(ctx, `
-			SELECT count(*) FROM logbook
-			WHERE operation = 'sign_in' AND outcome = 'refused' AND user_id = ? AND at > ?`,
-			p.ID, store.FormatTime(c.Now.Add(-credential.RefusalWindow))).Scan(&refusals)
+		if err := credential.CheckSignIn(ctx, attempt); err != nil {
+			return err
+		}
+		c.Keep(p.passwordHash)
+		return nil
+	},
+	Run: func(ctx context.Context, c *operation.Call, in SignInInput) (Session, error) {
+		p, err := findUser(ctx, c.Tx, strings.ToLower(strings.TrimSpace(in.Handle)))
+		if errors.Is(err, operation.ErrNotFound) {
+			return Session{}, credential.ErrWrongPassword // deleted since its password was checked
+		}
 		if err != nil {
 			return Session{}, err
 		}
-		if err := credential.CheckSignIn(ctx, p.passwordHash, refusals, in.Password); err != nil {
-			return Session{}, err
+		if checked, _ := c.Kept().(string); checked == "" || checked != p.passwordHash {
+			return Session{}, credential.ErrWrongPassword // its password changed since it was checked
 		}
 		if p.Status == Disabled {
 			return Session{}, operation.Forbiddenf("this account is disabled: an administrator of the Cahut can enable it")
@@ -201,14 +230,17 @@ type SignedOut struct{}
 var SignOut = &operation.Op[SignOutInput, SignedOut]{
 	Name:        "sign_out",
 	Title:       "Sign out",
-	Description: "End the session you signed in with.",
+	Description: "End the session you signed in with, and the sessions it opened to read Windows.",
 	PeopleOnly:  true,
 	Run: func(ctx context.Context, c *operation.Call, _ SignOutInput) (SignedOut, error) {
 		c.Log(c.Actor.Handle, "")
 		if c.Actor.Session == 0 {
 			return SignedOut{}, operation.Invalidf("sign_out ends a session, and this call comes with none")
 		}
-		_, err := c.Tx.ExecContext(ctx, "DELETE FROM sessions WHERE id = ? AND user_id = ?", c.Actor.Session, c.Actor.UserID)
+		// The reader sessions that this session opened end with it: whoever
+		// uses the browser next opens no Window as this person.
+		_, err := c.Tx.ExecContext(ctx, "DELETE FROM sessions WHERE (id = ? OR opened_by = ? AND reader = 1) AND user_id = ?",
+			c.Actor.Session, c.Actor.Session, c.Actor.UserID)
 		return SignedOut{}, err
 	},
 }

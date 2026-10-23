@@ -47,34 +47,56 @@ const (
 	SessionIdle   = 7 * 24 * time.Hour  // a session ends this long after its last use
 	SessionMax    = 30 * 24 * time.Hour // and this long after it opened in any case
 
-	MaxRefusals   = 10
-	RefusalWindow = 15 * time.Minute
+	// MaxRefusals refused sign-ins to one handle, from one address, make
+	// that address wait; MaxHandleRefusals, from everywhere, make everyone
+	// wait. A stranger who knows a handle cannot lock its person out from
+	// a few addresses, and guessing a password from many takes years.
+	MaxRefusals       = 10
+	MaxHandleRefusals = 100
+	RefusalWindow     = 15 * time.Minute
 )
 
 // ErrWrongPassword answers every failed sign-in alike, so that it does not
 // tell whether a handle exists.
 var ErrWrongPassword = operation.Forbiddenf("wrong handle or password")
 
-// CheckSignIn checks the password of someone who signs in. hash is their
-// password hash, empty when they have none or the handle is unknown, and
-// refusals counts their refused sign-ins of the last RefusalWindow. Every
-// refusal costs the time of a password check, so that response times do not
-// tell why it came.
-func CheckSignIn(ctx context.Context, hash string, refusals int, password string) error {
-	refuse := func(refusal error) error {
-		if err := CheckNoPassword(ctx, password); err != nil {
+// SignIn is an attempt to sign in, as CheckSignIn checks it.
+type SignIn struct {
+	// Hash is the password hash of the account, empty when it has none or
+	// the handle is unknown.
+	Hash     string
+	Password string
+	// RefusedHere counts the refused sign-ins of the last RefusalWindow to
+	// this handle from this address, or, for an unknown handle, to unknown
+	// handles from this address; RefusedAll counts those to this handle
+	// from everywhere.
+	RefusedHere, RefusedAll int
+}
+
+// CheckSignIn checks the password of someone who signs in. A refusal for a
+// wrong password costs the time of a password check, so that response
+// times do not tell why it came; a sign-in that must wait costs nothing.
+// Sign-ins wait their turn, a few at a time.
+func CheckSignIn(ctx context.Context, in SignIn) error {
+	switch {
+	case in.RefusedHere >= MaxRefusals || in.RefusedAll >= MaxHandleRefusals:
+		return fmt.Errorf("%w: too many refused sign-ins for this handle: try again in %d minutes",
+			operation.ErrTooMany, int(RefusalWindow.Minutes()))
+	case utf8.RuneCountInString(in.Password) > MaxPassword:
+		return ErrWrongPassword // no password is this long: nothing to hash
+	}
+	release, err := signInTurn(ctx)
+	if err != nil {
+		return err
+	}
+	defer release()
+	if in.Hash == "" {
+		if err := CheckNoPassword(ctx, in.Password); err != nil {
 			return err
 		}
-		return refusal
+		return ErrWrongPassword
 	}
-	switch {
-	case refusals >= MaxRefusals:
-		return refuse(fmt.Errorf("%w: too many refused sign-ins for this handle: try again in %d minutes",
-			operation.ErrTooMany, int(RefusalWindow.Minutes())))
-	case hash == "":
-		return refuse(ErrWrongPassword)
-	}
-	ok, err := CheckPassword(ctx, hash, password)
+	ok, err := CheckPassword(ctx, in.Hash, in.Password)
 	if err != nil {
 		return err
 	}
@@ -82,6 +104,26 @@ func CheckSignIn(ctx context.Context, hash string, refusals int, password string
 		return ErrWrongPassword
 	}
 	return nil
+}
+
+// signIns bounds the sign-ins checked at once, and signInWait how long one
+// waits for its turn: a burst of sign-ins is refused rather than queued
+// behind the hashes of the others.
+var signIns = make(chan struct{}, 8)
+
+const signInWait = 2 * time.Second
+
+func signInTurn(ctx context.Context) (release func(), err error) {
+	timer := time.NewTimer(signInWait)
+	defer timer.Stop()
+	select {
+	case signIns <- struct{}{}:
+		return func() { <-signIns }, nil
+	case <-timer.C:
+		return nil, fmt.Errorf("%w: too many sign-ins at once: try again in a few seconds", operation.ErrTooMany)
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
 // slots bounds the hashes computed at once, so that a burst of sign-ins

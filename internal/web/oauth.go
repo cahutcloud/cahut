@@ -60,7 +60,7 @@ func (s *Server) serveRevoke(w http.ResponseWriter, r *http.Request) {
 // serveRegister registers an OAuth client. Registration is open, as MCP
 // clients need, and limited by address.
 func (s *Server) serveRegister(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost && !s.registrations.allow(clientIP(r)) {
+	if r.Method == http.MethodPost && !s.registrations.allow(clientKey(r)) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Retry-After", "60")
 		w.Header().Set("Content-Type", "application/json")

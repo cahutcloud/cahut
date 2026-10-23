@@ -4,7 +4,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { ApiError, cahut, explain } from "../api";
 import type { Authorization, Request as AuthRequest } from "../api.gen";
-import { Failure } from "../components";
+import { Failure, useArmed } from "../components";
 import { Logo } from "../logo";
 import type { Session } from "../session";
 
@@ -30,6 +30,11 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 	const [scope, setScope] = useState("write");
 	const [allRooms, setAllRooms] = useState(true);
 	const [rooms, setRooms] = useState<string[]>([]);
+	// An invalid request, which the client learns at this address, once the
+	// person chooses to go back: the console sends nobody to a site that
+	// they did not see named.
+	const [back, setBack] = useState<Authorization | null>(null);
+	const armed = useArmed();
 
 	// A session that has ended signs in again, on this page.
 	const handle = (err: unknown) => {
@@ -48,7 +53,7 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 	useEffect(() => {
 		cahut("describe_authorization", { request: req }, session.token).then((a) => {
 			if (a.redirect) {
-				leave(a.redirect);
+				setBack(a);
 				return;
 			}
 			setAuth(a);
@@ -58,6 +63,7 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 
 	const approve = async (e: Event) => {
 		e.preventDefault();
+		if (!armed) return; // Enter in the form, before the page armed
 		setError("");
 		setLeaving(true);
 		try {
@@ -83,7 +89,21 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 		<main class="auth">
 			<div class="c-card auth__card consent">
 				<Logo height={32} />
-				{!auth && !error && <p class="c-muted">{leaving ? "Sending you back…" : "Reading the request…"}</p>}
+				{!auth && !error && !back && <p class="c-muted">{leaving ? "Sending you back…" : "Reading the request…"}</p>}
+				{back && (
+					<div class="auth__head">
+						<h1 class="c-h3">This AI cannot connect</h1>
+						<Failure message={back.error ?? "The request is invalid."} />
+						<p class="c-small c-muted">
+							Nothing was granted. {back.client} learns why at <b class="c-mono">{back.redirect_host}</b>, if you go back there.
+						</p>
+						<div>
+							<button class="c-btn c-btn--secondary" type="button" disabled={leaving} onClick={() => leave(back.redirect ?? "")}>
+								Go back to {back.redirect_host}
+							</button>
+						</div>
+					</div>
+				)}
 				{!auth && error && (
 					<div class="auth__head">
 						<h1 class="c-h3">This AI cannot connect</h1>
@@ -151,7 +171,7 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 
 						{error && <Failure message={error} />}
 						<div class="consent__actions">
-							<button class="c-btn c-btn--primary" type="submit" disabled={leaving || (!allRooms && rooms.length === 0)}>
+							<button class="c-btn c-btn--primary" type="submit" disabled={leaving || !armed || (!allRooms && rooms.length === 0)}>
 								Connect
 							</button>
 							<button class="c-btn c-btn--secondary" type="button" disabled={leaving} onClick={deny}>

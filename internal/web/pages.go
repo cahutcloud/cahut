@@ -24,11 +24,14 @@ var pageFiles embed.FS
 
 var pages = template.Must(template.ParseFS(pageFiles, "pages/pages.html"))
 
-// pagePolicy lets a page of Cahut load its style sheets, the logo and the
-// fonts of the house style and its script, and frame a Window of its own
-// origin, and nothing else.
-const pagePolicy = "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; frame-src 'self'; " +
-	"form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
+// pagePolicy lets a page of the Cahut at base load its style sheets, the
+// logo and the fonts of the house style and its one script, and frame a
+// Window of its own origin, and nothing else. The script is named: the
+// Windows at the same origin hold scripts too, and none may run here.
+func pagePolicy(base string) string {
+	return "default-src 'none'; style-src 'self'; script-src " + base + "-/frame.js; img-src 'self' data:; font-src 'self'; frame-src 'self'; " +
+		"form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
+}
 
 // page is what every page shows at its top, and where to sign in. The
 // pages carry the house style of their Cahut. See
@@ -52,7 +55,7 @@ func (s *Server) page(r *http.Request, reader string) page {
 
 // render writes the page called name with data, and the headers of every
 // page of Cahut. The pages depend on who reads them: no cache keeps them.
-func (s *Server) render(w http.ResponseWriter, status int, name string, data any) {
+func (s *Server) render(w http.ResponseWriter, r *http.Request, status int, name string, data any) {
 	var b bytes.Buffer
 	if err := pages.ExecuteTemplate(&b, name, data); err != nil {
 		s.log.Error("render a page", "page", name, "error", err)
@@ -61,9 +64,12 @@ func (s *Server) render(w http.ResponseWriter, status int, name string, data any
 	}
 	h := w.Header()
 	h.Set("Content-Type", "text/html; charset=utf-8")
-	h.Set("Content-Security-Policy", pagePolicy)
+	h.Set("Content-Security-Policy", pagePolicy(s.cfg.BaseURL(siteOf(r).cahut.Domain)))
 	h.Set("X-Content-Type-Options", "nosniff")
 	h.Set("Referrer-Policy", "same-origin")
+	// Another site that opens a page of Cahut cannot count its frames,
+	// which would tell whether its visitor may open a Window.
+	h.Set("Cross-Origin-Opener-Policy", "same-origin")
 	h.Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
 	_, _ = w.Write(b.Bytes())
@@ -82,7 +88,7 @@ func serveAsset(name string) http.HandlerFunc {
 // notFound answers what does not exist, and what its reader may not open,
 // alike, with a link to sign in.
 func (s *Server) notFound(w http.ResponseWriter, r *http.Request, reader string) {
-	s.render(w, http.StatusNotFound, "notfound", s.page(r, reader))
+	s.render(w, r, http.StatusNotFound, "notfound", s.page(r, reader))
 }
 
 // serveRoot serves the home of the Cahut: the Rooms of a reader signed in,
@@ -102,7 +108,7 @@ func (s *Server) serveRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	s.render(w, http.StatusOK, "home", data)
+	s.render(w, r, http.StatusOK, "home", data)
 }
 
 // serveRoom serves the page of a Room: the Windows that its reader opens.
@@ -130,7 +136,7 @@ func (s *Server) serveRoom(w http.ResponseWriter, r *http.Request) {
 	for _, w := range v.Windows {
 		data.Windows = append(data.Windows, item{URL: "/" + w.Room + "/" + w.Name + "/", Title: w.Title, Kind: w.Kind, Access: accessNames[w.Access]})
 	}
-	s.render(w, http.StatusOK, "room", data)
+	s.render(w, r, http.StatusOK, "room", data)
 }
 
 // accessNames says who opens a Window, on the page of its Room.

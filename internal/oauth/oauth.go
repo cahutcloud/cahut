@@ -34,7 +34,7 @@ const (
 	RefreshGrace = 30 * time.Second
 	// ClientLifetime is how long a registered client waits for a first
 	// connection before it is deleted.
-	ClientLifetime = 7 * 24 * time.Hour
+	ClientLifetime = 24 * time.Hour
 )
 
 // Scopes: read allows the operations that change nothing, write everything

@@ -106,7 +106,7 @@ func TestPagesInTheHouseStyle(t *testing.T) {
 		!strings.Contains(home, `<link rel="stylesheet" href="/-/house-style.css">`+"\n"+`<link rel="stylesheet" href="/-/pages.css">`) {
 		t.Errorf("home of the neutral house style = %q", home)
 	}
-	if csp := resp.Header.Get("Content-Security-Policy"); csp != pagePolicy || !strings.Contains(csp, "font-src 'self'") {
+	if csp := resp.Header.Get("Content-Security-Policy"); csp != pagePolicy("https://localhost/") || !strings.Contains(csp, "font-src 'self'") {
 		t.Errorf("the policy of the home = %q", csp)
 	}
 	if resp, css := f.get(t, "localhost", http.MethodGet, "/-/pages.css"); resp.StatusCode != http.StatusOK || !strings.Contains(css, "var(--hs-primary)") {

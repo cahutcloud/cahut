@@ -28,11 +28,11 @@ A Key is a password that opens one Window. When the access is Key, Cahut draws o
 
 The reader who opens the address of a Key Window gets a page of Cahut that asks for its Key, in the [house style](/concepts/house-style/) of the Cahut. A right Key opens the Window, and the browser keeps a pass for it, in a cookie of its own, for 30 days at most and never beyond the end of the access. A new Key, or another access, ends every pass at once.
 
-Tries are limited by address, and wrong Keys by Window: after a burst, the page asks the reader to wait a minute.
+Tries are limited by address, and wrong Keys by Window: after a burst, the page asks the reader to wait a minute. When many wrong Keys reach a Window, from anywhere, it still opens to a reader who comes with the right Key, and each address that guessed wrong waits a minute between tries.
 
 ## Readers who sign in
 
-To open a Window that is Room only or internal, a reader signs in. The link on the page of a closed Window, or on the home of the Cahut, `https://<domain>/`, goes through the [console](/admin/console/): the reader signs in there if they need to, and comes back to the Window at once. The browser then keeps a reader session on the address of the Windows, which lasts like a session of the console: 7 days without use, 30 days in any case. **Sign out**, on the home of the Cahut, ends it.
+To open a Window that is Room only or internal, a reader signs in. The link on the page of a closed Window, or on the home of the Cahut, `https://<domain>/`, goes through the [console](/admin/console/): the reader signs in there if they need to, and comes back to the Window at once. The browser then keeps a reader session on the address of the Windows, which lasts like a session of the console: 7 days without use, 30 days in any case. **Sign out**, on the home of the Cahut, ends it, and so does signing out of the console in that browser.
 
 A reader session is no session of the console: it opens Windows, and calls no operation. Disabling a person, or a change of their password, ends their reader sessions too. The administrators of the server are not people of a Cahut, and do not sign in as readers.
 

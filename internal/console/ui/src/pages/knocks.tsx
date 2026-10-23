@@ -6,7 +6,7 @@ import { Check } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Activation, Answer, Knock } from "../api.gen";
-import { CopyField, Failure, Notice, PageHead } from "../components";
+import { CopyField, Failure, Notice, PageHead, useArmed } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
 import { href, Link } from "../router";
@@ -95,6 +95,7 @@ function KnockCard(props: { knock: Knock; onAnswer?: (a: Answer | Knock) => void
 	const k = props.knock;
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	const armed = useArmed();
 	const state = states[k.state] ?? states.expired;
 	const answer = async (approve: boolean) => {
 		setBusy(true);
@@ -139,7 +140,7 @@ function KnockCard(props: { knock: Knock; onAnswer?: (a: Answer | Knock) => void
 			{error && <Failure message={error} />}
 			{k.state === "waiting" && (
 				<div class="c-knock__actions">
-					<button class="c-btn c-btn--primary c-btn--sm" type="button" disabled={busy} onClick={() => answer(true)}>
+					<button class="c-btn c-btn--primary c-btn--sm" type="button" disabled={busy || !armed} onClick={() => answer(true)}>
 						<Check class="i" size={14} aria-hidden="true" />
 						Approve
 					</button>

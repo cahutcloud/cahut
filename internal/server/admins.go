@@ -278,30 +278,58 @@ var SignIn = &operation.Op[account.SignInInput, Session]{
 	Description: "Sign in as an administrator of the server, with a handle and a password, and open a session at this domain.",
 	PeopleOnly:  true,
 	Visitors:    true,
-	Run: func(ctx context.Context, c *operation.Call, in account.SignInInput) (Session, error) {
-		// An unknown handle is not logged: it may be a password typed in the
-		// wrong field.
+	Prepare: func(ctx context.Context, c *operation.Call, in account.SignInInput) error {
+		// The password is checked before the call's transaction opens, as
+		// for the people of a Cahut.
 		c.Identify(operation.Admin, 0, "")
-		a, err := findAdmin(ctx, c.Tx, strings.ToLower(strings.TrimSpace(in.Handle)))
-		if errors.Is(err, operation.ErrNotFound) {
-			c.Log("", "unknown handle")
-			return Session{}, credential.CheckSignIn(ctx, "", 0, in.Password)
-		}
+		var a adminRecord
+		attempt := credential.SignIn{Password: in.Password}
+		address := sql.NullString{String: c.Actor.Address, Valid: c.Actor.Address != ""}
+		err := c.Read(ctx, func(tx *sql.Tx) error {
+			var err error
+			a, err = findAdmin(ctx, tx, strings.ToLower(strings.TrimSpace(in.Handle)))
+			if errors.Is(err, operation.ErrNotFound) {
+				// An unknown handle is not logged: it may be a password
+				// typed in the wrong field.
+				return tx.QueryRowContext(ctx, `
+					SELECT count(*) FROM logbook
+					WHERE operation = 'sign_in' AND outcome = 'refused' AND user_handle IS NULL AND address IS ? AND at > ?`,
+					address, store.FormatTime(c.Now.Add(-credential.RefusalWindow))).Scan(&attempt.RefusedHere)
+			}
+			if err != nil {
+				return err
+			}
+			attempt.Hash = a.passwordHash
+			return tx.QueryRowContext(ctx, `
+				SELECT count(*), count(*) FILTER (WHERE address IS ?) FROM logbook
+				WHERE operation = 'sign_in' AND outcome = 'refused' AND user_handle = ? AND at > ?`,
+				address, a.Handle, store.FormatTime(c.Now.Add(-credential.RefusalWindow))).Scan(&attempt.RefusedAll, &attempt.RefusedHere)
+		})
 		if err != nil {
-			return Session{}, err
+			return err
+		}
+		if a.id == 0 {
+			c.Log("", "unknown handle")
+			return credential.CheckSignIn(ctx, attempt)
 		}
 		c.Identify(operation.Admin, 0, a.Handle)
 		c.Log(a.Handle, "at "+c.Actor.Domain)
-		var refusals int
-		err = c.Tx.QueryRowContext(ctx, `
-			SELECT count(*) FROM logbook
-			WHERE operation = 'sign_in' AND outcome = 'refused' AND user_handle = ? AND at > ?`,
-			a.Handle, store.FormatTime(c.Now.Add(-credential.RefusalWindow))).Scan(&refusals)
+		if err := credential.CheckSignIn(ctx, attempt); err != nil {
+			return err
+		}
+		c.Keep(a.passwordHash)
+		return nil
+	},
+	Run: func(ctx context.Context, c *operation.Call, in account.SignInInput) (Session, error) {
+		a, err := findAdmin(ctx, c.Tx, strings.ToLower(strings.TrimSpace(in.Handle)))
+		if errors.Is(err, operation.ErrNotFound) {
+			return Session{}, credential.ErrWrongPassword // deleted since its password was checked
+		}
 		if err != nil {
 			return Session{}, err
 		}
-		if err := credential.CheckSignIn(ctx, a.passwordHash, refusals, in.Password); err != nil {
-			return Session{}, err
+		if checked, _ := c.Kept().(string); checked == "" || checked != a.passwordHash {
+			return Session{}, credential.ErrWrongPassword // its password changed since it was checked
 		}
 		return openSession(ctx, c, a)
 	},

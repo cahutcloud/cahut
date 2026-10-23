@@ -53,8 +53,10 @@ var SignInToWindows = &operation.Op[SignInToWindowsInput, ReaderCode]{
 			return ReaderCode{}, err
 		}
 		rc := ReaderCode{Code: credential.Token(""), ExpiresAt: c.Now.Add(ReaderCodeTTL)}
-		_, err = c.Tx.ExecContext(ctx, "INSERT INTO reader_codes (hash, user_id, expires_at) VALUES (?, ?, ?)",
-			credential.Hash(rc.Code), c.Actor.UserID, store.FormatTime(rc.ExpiresAt))
+		// The code remembers the console session, which ends the reader
+		// session it opens when it signs out.
+		_, err = c.Tx.ExecContext(ctx, "INSERT INTO reader_codes (hash, user_id, expires_at, session_id) VALUES (?, ?, ?, ?)",
+			credential.Hash(rc.Code), c.Actor.UserID, store.FormatTime(rc.ExpiresAt), nullID(c.Actor.Session))
 		return rc, err
 	},
 }
@@ -78,10 +80,11 @@ func OpenReaderSession(ctx context.Context, db *store.DB, code string, now time.
 	defer tx.Rollback() //nolint:errcheck // a no-op after Commit
 
 	var userID int64
+	var openedBy sql.NullInt64
 	err = tx.QueryRowContext(ctx, `
 		DELETE FROM reader_codes WHERE hash = ? AND expires_at > ?
-		AND user_id IN (SELECT id FROM users WHERE disabled_at IS NULL) RETURNING user_id`,
-		credential.Hash(strings.TrimSpace(code)), store.FormatTime(now)).Scan(&userID)
+		AND user_id IN (SELECT id FROM users WHERE disabled_at IS NULL) RETURNING user_id, session_id`,
+		credential.Hash(strings.TrimSpace(code)), store.FormatTime(now)).Scan(&userID, &openedBy)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ReaderSession{}, ErrInvalidSession
 	}
@@ -95,8 +98,8 @@ func OpenReaderSession(ctx context.Context, db *store.DB, code string, now time.
 	}
 	s := ReaderSession{Token: credential.Token(ReaderPrefix), ExpiresAt: now.Add(credential.SessionMax)}
 	_, err = tx.ExecContext(ctx, `
-		INSERT INTO sessions (user_id, hash, created_at, last_used_at, expires_at, reader) VALUES (?, ?, ?, ?, ?, 1)`,
-		userID, credential.Hash(s.Token), store.FormatTime(now), store.FormatTime(now), store.FormatTime(s.ExpiresAt))
+		INSERT INTO sessions (user_id, hash, created_at, last_used_at, expires_at, reader, opened_by) VALUES (?, ?, ?, ?, ?, 1, ?)`,
+		userID, credential.Hash(s.Token), store.FormatTime(now), store.FormatTime(now), store.FormatTime(s.ExpiresAt), openedBy)
 	if err != nil {
 		return ReaderSession{}, err
 	}
@@ -123,6 +126,10 @@ func Reader(ctx context.Context, db *store.DB, id int64, now time.Time) (Session
 // See docs/adr/0027-previews-of-windows-in-the-console.md.
 func Console(ctx context.Context, db *store.DB, id int64, now time.Time) (SessionOwner, error) {
 	return lookupSession(ctx, db, "s.id = ? AND s.reader = 0", id, now)
+}
+
+func nullID(id int64) sql.NullInt64 {
+	return sql.NullInt64{Int64: id, Valid: id != 0}
 }
 
 // EndReaderSession ends the reader session of token, if it is one.
