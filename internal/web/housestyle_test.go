@@ -171,3 +171,12 @@ func TestDeckEngineAndTemplates(t *testing.T) {
 		t.Errorf("the instructions of the MCP server do not send AIs to the house style: %q", instructions)
 	}
 }
+
+func TestSkillServed(t *testing.T) {
+	f := setup(t)
+	resp, body := f.get(t, "localhost", http.MethodGet, SkillPath)
+	if resp.StatusCode != http.StatusOK || resp.Header.Get("Content-Type") != "application/zip" ||
+		resp.Header.Get("Content-Disposition") != `attachment; filename="cahut-skill.zip"` || !strings.HasPrefix(body, "PK") {
+		t.Errorf("GET %s = %d %v", SkillPath, resp.StatusCode, resp.Header)
+	}
+}
