@@ -37,9 +37,9 @@ The last command prints the token once: copy it.
 bin/cahut serve --dev --data ./cahut-data
 ```
 
-With `--dev`, Cahut serves plain HTTP on `localhost:8080`, without certificates, and the console and its [API](/reference/http-api/) on `localhost:8081`. `--dev-addr` and `--dev-console-addr` change the addresses.
+With `--dev`, Cahut serves plain HTTP on `localhost:8080`, without certificates, with the console and its [API](/reference/http-api/) under `/console/`. `--dev-addr` changes the address.
 
-The link that `user create` prints opens the console at `http://localhost:8081/activate#…`, where you choose your password and sign in.
+The link that `user create` prints opens the console at `http://localhost:8080/console/activate#…`, where you choose your password and sign in.
 
 Add the Cahut to Claude Code, with the token:
 

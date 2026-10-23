@@ -20,7 +20,7 @@ Created you (Your Name), admin of cahut.example.com, with a personal Room at cah
 
 Send you this link, where they choose their password. It works once, until 2026-10-29, and is shown only now.
 
-https://cahut.example.com:8443/activate#...
+https://cahut.example.com/console/activate#...
 ```
 
 Open the link: you choose your password, and you are signed in to the console. `cahut user link` gives you a new one if it expires.

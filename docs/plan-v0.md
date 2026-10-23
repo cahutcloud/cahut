@@ -85,7 +85,7 @@ Le détail du lot est dans le [plan du lot 2](plan-lot-2.md).
 
 - Administrateurs du serveur, qui déclarent les Cahuts, et administrateurs de chaque Cahut, qui en gèrent les personnes ; mot de passe haché en argon2id, sessions. L'administrateur crée un compte et transmet un lien d'activation à usage unique : pas d'e-mail en V0.
 - Room personnelle créée d'office pour chaque personne, au nom de son handle ; Rooms d'équipe avec propriétaires et membres ; les droits sont appliqués par le registre d'opérations.
-- Coquille de la console : connexion, navigation, liste des Rooms et des Windows, lecture du Logbook, déclaration des Cahuts. Application légère embarquée dans le binaire, construite avec `cahut-ui.css`, qui n'appelle que l'API publique. Servie sur le port 8443 de chaque domaine, cloisonnée par Cahut, authentifiée par jeton et non par cookie (ADR 11).
+- Coquille de la console : connexion, navigation, liste des Rooms et des Windows, lecture du Logbook, déclaration des Cahuts. Application légère embarquée dans le binaire, construite avec `cahut-ui.css`, qui n'appelle que l'API publique. Servie sur le port 8443 de chaque domaine, cloisonnée par Cahut, authentifiée par jeton et non par cookie (ADR 11), puis sous `/console/` sur le port 443 (ADR 20).
 
 **Fin de lot** : deux Cahuts sur le même serveur ; dans l'un, deux comptes et une Room d'équipe ; chacun ne voit que ses Windows ; le Logbook se lit dans la console.
 
@@ -134,7 +134,7 @@ Le détail du lot est dans le [plan du lot 4](plan-lot-4.md).
 
 ### Lot 7 · Installation, premier démarrage, mises à jour
 
-- Une commande sur AlmaLinux et Ubuntu vierges : utilisateur système, service systemd avec `CAP_NET_BIND_SERVICE`, pare-feu (firewalld ou ufw) pour les ports 80, 443 et 8443, contextes SELinux sur AlmaLinux, commande `cahut doctor` pour diagnostiquer, rappel d'ouvrir le port 8443 chez l'hébergeur.
+- Une commande sur AlmaLinux et Ubuntu vierges : utilisateur système, service systemd avec `CAP_NET_BIND_SERVICE`, pare-feu (firewalld ou ufw) pour les ports 80 et 443, contextes SELinux sur AlmaLinux, commande `cahut doctor` pour diagnostiquer, rappel d'ouvrir ces ports chez l'hébergeur.
 - Premier démarrage guidé dans le navigateur, ouvert par un lien à usage unique affiché en fin d'installation : administrateur du serveur, premier Cahut et son domaine, house style de base, première IA (adresse MCP à copier, pas à pas pour chaque client). Adresse de repli sans domaine à trancher : un certificat d'adresse IP est une piste.
 - Mises à jour : vérification des releases GitHub signées, remplacement du binaire, contrôle de santé, retour arrière automatique.
 - Test d'installation automatisé sur machines virtuelles vierges (Lima en local).
@@ -165,7 +165,7 @@ Le détail du lot est dans le [plan du lot 4](plan-lot-4.md).
 | Sujet | Recommandation |
 | --- | --- |
 | Web et TLS | Intégré au binaire avec certmagic plutôt que Caddy à côté : un seul binaire à installer et à mettre à jour |
-| Origine des Windows | Une origine par Window (`<window>.home.example.com`) dès qu'un wildcard existe, certificats à la demande. Sinon une CSP `sandbox`, qui protège la console mais casse `localStorage` dans les pages. Le premier démarrage demande donc un wildcard, avec une adresse de repli de type sslip.io, à vérifier. Revu ensuite : un domaine par Cahut sans wildcard, les Windows en chemins dans un bac à sable CSP, la console sur son propre port (ADR 8 à 11) |
+| Origine des Windows | Une origine par Window (`<window>.home.example.com`) dès qu'un wildcard existe, certificats à la demande. Sinon une CSP `sandbox`, qui protège la console mais casse `localStorage` dans les pages. Le premier démarrage demande donc un wildcard, avec une adresse de repli de type sslip.io, à vérifier. Revu ensuite : un domaine par Cahut sans wildcard, les Windows en chemins dans un bac à sable CSP, la console sur son propre port (ADR 8 à 11), puis sous `/console/` du port 443 (ADR 20) |
 | Base de données | SQLite en pur Go (`modernc.org/sqlite`), pour garder un binaire statique |
 | Console | Petite application TypeScript (Preact ou Svelte, construite avec Vite) embarquée par `go:embed`, cliente de l'API publique : la règle d'une seule API se vérifie d'elle-même |
 | OAuth | Bibliothèque éprouvée (fosite) ou implémentation minimale bien testée : à comparer |
@@ -177,7 +177,7 @@ Le détail du lot est dans le [plan du lot 4](plan-lot-4.md).
 - **Différences entre clients MCP.** OAuth, schémas d'outils et limites varient d'un client à l'autre, d'où le test avec ChatGPT dès le lot 3.
 - **HTML non maîtrisé.** Une Window peut contenir n'importe quel script : le bac à sable CSP est la protection principale des autres Windows, de la console et des sessions. Il casse `localStorage` dans les pages : les consignes aux IA doivent le dire.
 - **Cloisonnement entre Cahuts.** Une fuite d'un Cahut vers un autre serait grave pour un hébergeur ; une base par Cahut la rend structurellement difficile.
-- **Port 8443.** Certains réseaux d'entreprise ne laissent sortir que le port 443 : la console y est inaccessible, les Windows non.
+- **Port 8443.** Certains réseaux d'entreprise ne laissent sortir que le port 443 : la console y était inaccessible, les Windows non. Levé par l'ADR 20 : la console est servie sous `/console/` sur le port 443.
 - **SELinux et pare-feu sur AlmaLinux.** C'est le principal danger pour le critère des 10 minutes.
 
 ## Après la V0

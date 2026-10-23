@@ -18,7 +18,7 @@ The address to give is on the **AIs and access** screen of [the console](/admin/
 | ChatGPT | In developer mode, add a connector with the address of the Cahut, and OAuth as its authentication |
 | Others | The address of the Cahut. The client finds the rest by itself |
 
-The client opens a page of the console in your browser, on port 8443 of the Cahut's domain. That port must be open in the firewall of your hosting provider: see [Install on a server](/install/server/). The servers of the client reach the Cahut on port 443 only.
+The client opens a page of the console in your browser, at `https://<domain>/console/oauth/authorize`. The servers of the client, and your browser, reach the Cahut on port 443 only.
 
 ## Consent
 
@@ -56,9 +56,9 @@ Each Cahut is its own OAuth 2.1 authorization server, as the [MCP authorization 
 | Issuer | `https://cahut.example.com` |
 | Authorization server metadata (RFC 8414) | `https://cahut.example.com/.well-known/oauth-authorization-server` |
 | Token, registration, revocation | `https://cahut.example.com/oauth/token`, `/oauth/register`, `/oauth/revoke` |
-| Authorization | `https://cahut.example.com:8443/oauth/authorize`, a page of the console |
+| Authorization | `https://cahut.example.com/console/oauth/authorize`, a page of the console |
 
-The servers of a client need port 443 only. The person's browser opens the authorization page, on the console's port.
+Everything is on port 443. The servers of a client call the endpoints of the protocol, and the person's browser opens the authorization page, in the console.
 
 - Clients register with a Client ID Metadata Document or by dynamic registration (RFC 7591). Both make public clients, which authenticate with `none`: there is no client secret. A metadata document may prefer another method, such as `private_key_jwt` for ChatGPT, as long as it lists `none` in `token_endpoint_auth_methods_supported`.
 - Cahut fetches a metadata document as `Cahut/<version>`, from public addresses only, and keeps it in memory for an hour. It also keeps the last valid copy of each document a person connected: when the document no longer answers, the copy stands in for 30 days. A document that answers but is invalid is refused.
