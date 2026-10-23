@@ -229,3 +229,36 @@ func TestKnockAnsweredInTheConsole(t *testing.T) {
 		t.Errorf("get_knock: %v %+v", err, res)
 	}
 }
+
+// The first start goes through the API of the server, without a session,
+// at the domain of its Cahut only. See
+// docs/adr/0025-first-start-in-the-browser.md.
+func TestFirstStartOverTheAPI(t *testing.T) {
+	f := setup(t)
+	console := f.ts
+	link, err := operation.Do(context.Background(), f.srv.Registry, f.srv.CreateSetupLink, admin, server.CreateSetupLinkInput{Domain: "beta.localhost"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	body := `{"code": "` + link.Code + `"}`
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/server/get_setup", "", body); r.status != http.StatusNotFound {
+		t.Errorf("get_setup at another Cahut: %d %s", r.status, r.raw)
+	}
+	r := call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/server/get_setup", "", body)
+	if r.status != http.StatusOK || r.body["server_admin"] != true {
+		t.Fatalf("get_setup: %d %s", r.status, r.raw)
+	}
+	r = call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/server/set_up", "",
+		`{"code": "`+link.Code+`", "handle": "ana", "name": "Ana", "password": "`+password+`"}`)
+	if r.status != http.StatusOK {
+		t.Fatalf("set_up: %d %s", r.status, r.raw)
+	}
+	token := r.body["session"].(map[string]any)["token"].(string)
+	if r := call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/get_account", token, ``); r.status != http.StatusOK || r.body["role"] != "admin" {
+		t.Errorf("get_account with the session of the first start: %d %s", r.status, r.raw)
+	}
+	if r := call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/server/set_up", "",
+		`{"code": "`+link.Code+`", "handle": "eve", "name": "Eve", "password": "`+password+`"}`); r.status != http.StatusNotFound {
+		t.Errorf("set_up again: %d %s", r.status, r.raw)
+	}
+}

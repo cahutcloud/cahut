@@ -48,7 +48,9 @@ type Server struct {
 	Registry *operation.Registry
 	// AddDomain declares a domain, which creates its Cahut.
 	AddDomain *operation.Op[AddDomainInput, NewCahut]
-	cfg       Config
+	// CreateSetupLink gives the link to the first start of a Cahut.
+	CreateSetupLink *operation.Op[CreateSetupLinkInput, SetupLink]
+	cfg             Config
 }
 
 // Open opens the server's records in cfg.DataDir, creating them if needed.
@@ -74,6 +76,7 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 	operation.Register(s.Registry, cahut.ListServerLogbook)
 	registerAdmins(s.Registry)
 	s.registerUpdates(s.Registry)
+	s.registerSetup(s.Registry)
 	return s, nil
 }
 

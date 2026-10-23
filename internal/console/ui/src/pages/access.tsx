@@ -1,12 +1,13 @@
 // AIs and access: the AIs connected over OAuth, and the personal tokens with
 // which AIs act for a person, over MCP. A token shows once, with the command
 // that connects Claude Code. See docs/adr/0016-oauth-for-ai-clients.md.
-import { Download, Plug } from "lucide-preact";
+import { Plug } from "lucide-preact";
 import { Fragment } from "preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Connection, NewToken, TokenInfo } from "../api.gen";
 import { ConfirmButton, CopyField, Failure, PageHead } from "../components";
+import { ConnectSteps } from "../connect";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
 
@@ -37,33 +38,9 @@ export function Access() {
 				<h2 class="c-h4">Connect an AI</h2>
 				<p class="c-small">
 					Give your AI client the address of this Cahut. It sends you here to sign in, and you choose the Rooms it reaches and
-					whether it may publish.
+					whether it may publish. For Claude, the skill teaches it the formats, the sandbox of Windows, sharing them, and Knock first.
 				</p>
-				<CopyField label="the address" value={about.mcp ?? ""} />
-				<p class="c-small c-muted">
-					In claude.ai or Claude Desktop, add it as a custom connector. In Claude Code, run{" "}
-					<code class="c-mono">claude mcp add --transport http cahut {about.mcp}</code>, then <code class="c-mono">/mcp</code>.
-				</p>
-			</section>
-			<section class="section c-card panel">
-				<h2 class="c-h4">The skill for Claude</h2>
-				<p class="c-small">
-					It teaches Claude to make Windows in the house style of this Cahut: the formats, the sandbox of Windows, sharing them, and
-					Knock first.
-				</p>
-				<p class="c-small">In Claude Code, the Cahut plugin installs the skill and connects this Cahut at once:</p>
-				<CopyField label="the command that adds the marketplace" value="/plugin marketplace add getcahut/cahut" />
-				<CopyField label="the command that installs the plugin" value="/plugin install cahut@cahut" />
-				<p class="c-small c-muted">
-					It asks for the domain of this Cahut, <code class="c-mono">{location.hostname}</code>. In claude.ai or Claude Desktop, upload
-					the skill in the settings of Claude, beside the connector.
-				</p>
-				<div>
-					<a class="c-btn c-btn--secondary c-btn--sm" href="/-/cahut-skill.zip" download>
-						<Download class="i" size={14} aria-hidden="true" />
-						Download the skill
-					</a>
-				</div>
+				<ConnectSteps mcp={about.mcp ?? ""} />
 			</section>
 			<section class="section">
 				<h2 class="c-h4">Your connected AIs</h2>

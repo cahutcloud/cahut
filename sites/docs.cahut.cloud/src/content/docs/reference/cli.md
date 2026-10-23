@@ -18,6 +18,7 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | Command | What it does |
 | --- | --- |
 | [`cahut serve`](#cahut-serve) | Serve the Cahuts of this server: MCP for AIs, and the Windows |
+| [`cahut setup`](#cahut-setup) | Give the link to the first start of a Cahut, in the browser |
 | [`cahut domain add`](#cahut-domain-add) | Declare a domain, which creates its Cahut |
 | [`cahut domain list`](#cahut-domain-list) | List the Cahuts of this server |
 | [`cahut domain rename`](#cahut-domain-rename) | Move a Cahut to another domain, or from the IP address of the server to a domain |
@@ -53,6 +54,19 @@ cahut serve [flags]
 | `--http string` | `:80` | address for HTTP, which answers ACME challenges and redirects |
 | `--https string` | `:443` | address for HTTPS |
 | `--update-state string` | `/var/lib/cahut-update` | directory where the updater leaves the state of updates (env CAHUT_UPDATE_STATE) |
+
+## `cahut setup`
+
+Give the link to the first start of a Cahut, in the browser.
+
+```text
+cahut setup [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
 
 ## `cahut domain`
 
