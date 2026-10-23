@@ -9,6 +9,7 @@ import { Account } from "./pages/account";
 import { Activate } from "./pages/activate";
 import { Admins } from "./pages/admins";
 import { Consent } from "./pages/consent";
+import { KnockPage, Knocks } from "./pages/knocks";
 import { Logbook } from "./pages/logbook";
 import { Overview } from "./pages/overview";
 import { People } from "./pages/people";
@@ -34,11 +35,14 @@ export function App() {
 		setSession(s);
 		navigate("/", true);
 	};
-	// The session has ended: forget it, and sign in again.
+	// The session has ended: forget it, and sign in again. The page of a
+	// Knock keeps its address, and signs in on the spot.
 	const expired = () => {
 		clear();
 		setSession(null);
-		navigate(signInPage(session), true);
+		if (!path.startsWith("/knocks/")) {
+			navigate(signInPage(session), true);
+		}
 	};
 	const signOut = async () => {
 		if (session) {
@@ -86,6 +90,15 @@ export function App() {
 			<SignIn kind="person" purpose="to open its Windows" onSignIn={stay} />
 		);
 	}
+	// An AI gives its person the link of its Knock: they sign in on the
+	// spot, and the address keeps the Knock.
+	if (!session && path.startsWith("/knocks/")) {
+		const stay = (s: Session) => {
+			save(s);
+			setSession(s);
+		};
+		return <SignIn kind="person" purpose="to answer a Knock" onSignIn={stay} />;
+	}
 	if (!session) {
 		return <Redirect to="/sign-in" />;
 	}
@@ -108,8 +121,16 @@ function SignedIn(props: { session: Session; path: string; onExpired: () => void
 			api.cahut("get_account", {}).then((a) => setAdmin(a.role === "admin"), () => undefined);
 		}
 	}, []);
+	const knocks = useWaitingKnocks(api, session);
 
-	const value = { ...api, isAdmin, roomsVersion, reloadRooms: () => setRoomsVersion((n) => n + 1) };
+	const value = {
+		...api,
+		isAdmin,
+		roomsVersion,
+		reloadRooms: () => setRoomsVersion((n) => n + 1),
+		knocks: knocks.count,
+		reloadKnocks: knocks.reload,
+	};
 	return (
 		<ConsoleProvider value={value}>
 			<Shell path={path} rooms={rooms} onSignOut={props.onSignOut}>
@@ -119,7 +140,40 @@ function SignedIn(props: { session: Session; path: string; onExpired: () => void
 	);
 }
 
+/** How often the console asks again how many Knocks wait. */
+const knockEvery = 30_000;
+
+/**
+ * Counts the Knocks that wait for the person, every 30 seconds and when the
+ * tab comes back to the front, and says it in the title of the tab.
+ */
+function useWaitingKnocks(api: ReturnType<typeof bind>, session: Session): { count: number; reload: () => void } {
+	const [count, setCount] = useState(0);
+	const [round, setRound] = useState(0);
+	useEffect(() => {
+		if (session.kind !== "person") return;
+		const ask = () => {
+			if (document.visibilityState === "visible") {
+				api.cahut("list_knocks", { waiting: true, limit: 1 }).then((l) => setCount(l.waiting), () => undefined);
+			}
+		};
+		ask();
+		const timer = setInterval(ask, knockEvery);
+		document.addEventListener("visibilitychange", ask);
+		return () => {
+			clearInterval(timer);
+			document.removeEventListener("visibilitychange", ask);
+		};
+	}, [round]);
+	useEffect(() => {
+		document.title = count > 0 ? `(${count}) Cahut` : "Cahut";
+	}, [count]);
+	return { count, reload: () => setRound((n) => n + 1) };
+}
+
 function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
+	const knock = path.match(/^\/knocks\/([0-9]+)\/?$/);
+	if (knock) return <KnockPage key={path} id={Number(knock[1])} />;
 	const room = path.match(/^\/rooms\/([a-z0-9-]+)\/?$/);
 	if (room) return <RoomPage name={room[1]} />;
 	const win = path.match(/^\/rooms\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
@@ -131,6 +185,8 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 			return <RoomsPage />;
 		case "/logbook":
 			return <Logbook of="cahut" />;
+		case "/knocks":
+			return <Knocks />;
 		case "/people":
 			return <People />;
 		case "/access":

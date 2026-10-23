@@ -8,7 +8,7 @@ import type { AccessSet, Declaration, WindowDetail } from "../api.gen";
 import { AccessBadge, accesses, ago, bytes, ConfirmButton, CopyField, Failure, kindName, Notice, PageHead, plural } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
-import { Link } from "../router";
+import { Link, navigate } from "../router";
 
 export function WindowPage({ room, name }: { room: string; name: string }) {
 	const api = useConsole();
@@ -49,12 +49,27 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 			{failure && <Failure message={failure} />}
 			{w.trashed_at ? (
 				<section class="section">
-					<Notice>This Window is in the trash: it does not open, and it is in no list. Restore it to open it again, as it was.</Notice>
-					<div>
+					<Notice>
+						This Window is in the trash: it does not open, and it is in no list. Restore it to open it again, as it was, or delete
+						it for good.
+					</Notice>
+					<div class="actions">
 						<button class="c-btn c-btn--primary" type="button" onClick={() => act(() => api.cahut("restore_window", { window: `${w.room}/${w.name}` }))}>
 							<Undo2 class="i" size={16} aria-hidden="true" />
 							Restore
 						</button>
+						<ConfirmButton
+							label="Delete for good"
+							question="Delete it with its versions and its files? This cannot be undone."
+							confirm="Delete for good"
+							danger
+							onConfirm={() =>
+								act(async () => {
+									await api.cahut("purge_window", { window: `${w.room}/${w.name}` });
+									navigate(`/rooms/${w.room}`);
+								})
+							}
+						/>
 					</div>
 				</section>
 			) : (
