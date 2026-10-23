@@ -204,7 +204,7 @@ Le lot 7 s'est achevé le 23 octobre 2026, en neuf pull requests :
 
 **Reste à faire.**
 
-- Publier la release 0.4.0, la première signée, puis `sudo cahut update` sur le staging pour éprouver le chemin signé contre GitHub, et relever la version dans la documentation et le badge du README.
+- Publier la release 0.4.0, la première signée. Elle attend en brouillon, au commit 81e81b8 ; sa signature et ses sommes ont été vérifiées avec la clé d'`install.sh`, et la documentation et le badge du README la nomment déjà. Une fois publiée, `sudo cahut update` sur le staging éprouvera le chemin signé contre GitHub.
 - La démonstration de fin de lot sur deux VPS vierges, AlmaLinux avec un domaine et Ubuntu sans domaine, chronomètre en main ; un certificat d'adresse IP n'a pas encore été obtenu pour de vrai, faute de serveur d'essai à adresse publique.
 - Ranger la clé privée des releases dans le gestionnaire de mots de passe d'Olivier, puis effacer `tmp/release-key.pem`.
 - Vérifier au lot 8 que claude.ai et ChatGPT acceptent un serveur MCP à une adresse IP.
