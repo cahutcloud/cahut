@@ -135,7 +135,7 @@ Each Window opens to its Room only, to everyone in the Cahut, to anyone with its
 - One server, a VPS or a dedicated machine, for one or more Cahuts.
 - Minimum 2 vCPU, 4 GB of RAM, 40 GB of disk.
 - AlmaLinux or Ubuntu, from the provider's standard image.
-- One domain or subdomain per Cahut, pointing to the server. Ports 80, 443 and 8443 open.
+- One domain or subdomain per Cahut, pointing to the server. Ports 80 and 443 open.
 
 ## Installation
 

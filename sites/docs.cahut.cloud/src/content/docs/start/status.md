@@ -12,7 +12,7 @@ Cahut is built in slices, each one working from the AI to the reader. Four slice
 | Server | One `cahut` service on a Linux server with systemd, installed with `install.sh`, holding one or more Cahuts, each at its own domain |
 | HTTPS | A certificate from Let's Encrypt for the domain of each Cahut, obtained and renewed by the service |
 | People | Created by an administrator, each with a personal Room named after their handle and a link to choose a password; administrators of the Cahut and of the server, with rights checked on every call |
-| Console | At port 8443 of each Cahut's domain: sign-in, Rooms and their people, Windows with their access, versions and declaration, the Logbook, personal tokens, people and the server. See [The console](/admin/console/) |
+| Console | Under `/console/` of each Cahut's domain: sign-in, Rooms and their people, Windows with their access, versions and declaration, the Logbook, personal tokens, people and the server. See [The console](/admin/console/) |
 | Rooms | Team Rooms with owners and members, created by any person or AI; their members publish in them |
 | AI access | OAuth for AI clients, with a consent screen where a person grants read or write access to all their Rooms or some of them, and a list of connected AIs to disconnect; personal tokens too, sent in a header. See [Connect an AI client](/connect/ai-clients/) |
 | MCP | The [tools](/reference/mcp-tools/) of Windows, Rooms, people and the Logbook, over Streamable HTTP |

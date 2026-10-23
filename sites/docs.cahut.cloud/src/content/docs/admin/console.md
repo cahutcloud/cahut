@@ -1,9 +1,9 @@
 ---
 title: The console
-description: Sign in to the web console of a Cahut, on port 8443 of its domain, and what each person and each administrator finds there.
+description: Sign in to the web console of a Cahut, under /console/ of its domain, and what each person and each administrator finds there.
 ---
 
-Each Cahut has a web console, at port 8443 of its domain: `https://cahut.example.com:8443/`. People sign in there, see their Rooms and Windows, connect their AIs and read the Logbook; administrators manage people, Rooms and the server. The console uses the same [API](/reference/http-api/) as the AIs, and nothing else.
+Each Cahut has a web console, under `/console/` of its domain: `https://cahut.example.com/console/`. `/admin` leads there too. People sign in there, see their Rooms and Windows, connect their AIs and read the Logbook; administrators manage people, Rooms and the server. The console uses the same [API](/reference/http-api/) as the AIs, and nothing else.
 
 Port 443 keeps the Windows and MCP. Some company networks let only port 443 out: from there, the console is out of reach, the Windows are not.
 
@@ -12,7 +12,7 @@ Port 443 keeps the Windows and MCP. Some company networks let only port 443 out:
 Nobody chooses a password for someone else. An administrator creates the account, and Cahut gives a link that works once, for 7 days:
 
 ```text
-https://cahut.example.com:8443/activate#...
+https://cahut.example.com/console/activate#...
 ```
 
 The person opens it, chooses a password of 15 characters at least, and is signed in. The code of the link stays in the browser: it never reaches the server's logs, and the console takes it out of the address once read.
@@ -61,8 +61,8 @@ A session ends 7 days after its last use, and 30 days after it opened in any cas
 
 ## Readers
 
-To open a Window that is not public, a reader signs in through the console: the link on the page of a closed Window sends them to `/read` on the console's port, which signs them in if needed, then sends them back to the Window on port 443. See [Who can open a Window](/concepts/access/#readers-who-sign-in).
+To open a Window that is not public, a reader signs in through the console: the link on the page of a closed Window sends them to `/console/read`, which signs them in if needed, then sends them back to the Window. See [Who can open a Window](/concepts/access/#readers-who-sign-in).
 
 ## Consent
 
-When an AI client connects with OAuth, it sends you to `/oauth/authorize` on the console's port. You sign in there if you need to, and choose what the AI may do and in which Rooms. See [Connect an AI client](/connect/ai-clients/#consent).
+When an AI client connects with OAuth, it sends you to `/console/oauth/authorize`. You sign in there if you need to, and choose what the AI may do and in which Rooms. See [Connect an AI client](/connect/ai-clients/#consent).

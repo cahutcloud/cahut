@@ -41,7 +41,7 @@ sudo systemctl status cahut
 sudo systemctl restart cahut
 ```
 
-The service runs as the `cahut` user and restarts 5 seconds after a failure. It listens on port 80, which answers the challenges of Let's Encrypt and redirects to HTTPS, on port 443, for the Windows and MCP, and on port 8443, for the console and its [API](/reference/http-api/), with the same certificates. When it stops, it lets the requests in progress finish, for up to 10 seconds.
+The service runs as the `cahut` user and restarts 5 seconds after a failure. It listens on port 80, which answers the challenges of Let's Encrypt and redirects to HTTPS, and on port 443, for the Windows, MCP, OAuth, and the console and its [API](/reference/http-api/) under `/console/`. When it stops, it lets the requests in progress finish, for up to 10 seconds.
 
 The unit limits what the service can do: it keeps one capability, to listen on ports below 1024, cannot gain others, sees the system as read-only except its data folder, and has no access to home folders, devices or kernel settings.
 

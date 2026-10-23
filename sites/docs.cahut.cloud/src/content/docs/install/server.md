@@ -11,7 +11,7 @@ You need:
 
 - **A Linux server with systemd**, on amd64 or arm64, where you can run commands as root. Cahut targets AlmaLinux and Ubuntu, from the provider's standard image. Plan 2 vCPU, 4 GB of RAM and 40 GB of disk, the size the project aims at for its launch: today's Cahut needs less, and the disk fills with the Windows you publish.
 - **A domain or a subdomain for each Cahut**, such as `cahut.example.com`, with an A or AAAA record that points to the server. No wildcard record is needed.
-- **Ports 80, 443 and 8443 open** to the internet, in the provider's firewall too. Port 80 answers the challenges of Let's Encrypt and redirects to HTTPS. Port 443 serves the Windows and MCP, and port 8443 the console and its API. Some company networks let only port 443 out: from there, the console is out of reach, the Windows are not.
+- **Ports 80 and 443 open** to the internet, in the provider's firewall too. Port 80 answers the challenges of Let's Encrypt and redirects to HTTPS. Port 443 serves everything else: the Windows, MCP, OAuth, and the console under `/console/`.
 - **curl**, to download the release.
 
 Create the DNS record first: the service asks Let's Encrypt for the certificate of each domain as soon as it starts.
@@ -32,7 +32,7 @@ cahut: downloading Cahut 0.1.0 for linux/amd64
 cahut: creating the cahut system user
 cahut: writing /etc/cahut/cahut.env
 cahut: declaring the Cahut of cahut.example.com
-cahut: opening ports 80, 443 and 8443 in firewalld
+cahut: opening ports 80 and 443 in firewalld
 cahut: cahut 0.1.0 (commit 0123abc, 2026-10-21T08:00:00Z, go1.27.3 linux/amd64) is running
   https://cahut.example.com/
 
@@ -41,15 +41,15 @@ Next steps for the Cahut of cahut.example.com:
   1. Create your account, as an administrator of the Cahut. The command
      prints a link where you choose your password:
        sudo -u cahut /usr/local/bin/cahut user create --domain cahut.example.com --handle you --name "Your Name" --admin
-  2. Open that link: it signs you in to the console, at https://cahut.example.com:8443/
+  2. Open that link: it signs you in to the console, at https://cahut.example.com/console/
   3. In the console, AIs and access creates a token for your AI, with the
      command that adds the Cahut to Claude Code.
 
 To administer the server itself, create an administrator of the server:
        sudo -u cahut /usr/local/bin/cahut admin create --handle you --name "Your Name"
 
-The console answers on port 8443 of the domain: open that port in the
-firewall of your hosting provider too, if it has one.
+Ports 80 and 443 must be open in the firewall of your hosting provider
+too, if it has one.
 
 The service logs go to the journal: journalctl -u cahut
 ```
@@ -64,7 +64,7 @@ The service logs go to the journal: journalctl -u cahut
 4. It writes the settings file `/etc/cahut/cahut.env`, unless the file exists already.
 5. It writes the systemd unit `/etc/systemd/system/cahut.service` and installs the binary as `/usr/local/bin/cahut`. On a server with SELinux, it restores the labels of both files.
 6. It declares the Cahut of `--domain`, unless the server holds it already.
-7. It opens ports 80, 443 and 8443 in firewalld or ufw, when one of them is active.
+7. It opens ports 80 and 443 in firewalld or ufw, when one of them is active. Earlier versions opened port 8443 for the console too: the script leaves that port as it is and prints the command that closes it.
 8. It enables and restarts the service, then checks that it runs.
 
 The service runs as the `cahut` user, with the one capability it needs to listen on ports 80 and 443, and can write only to its data folder. See [The cahut service](/admin/service/).
