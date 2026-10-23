@@ -565,7 +565,7 @@ const fr: Dictionary = {
 			],
 			milestones: 'Les jalons sur GitHub',
 			todayTitle: "Ce qui marche aujourd'hui",
-			todayLead: "Les lots 0 à 5 sont faits. Aujourd'hui, dans un Cahut :",
+			todayLead: "Les lots 0 à 6 sont faits. Aujourd'hui, dans un Cahut :",
 			today: [
 				'Un service sur un serveur Linux, qui porte un ou plusieurs Cahuts, chacun à son domaine avec son certificat.',
 				"Des personnes qui se connectent, des administrateurs du Cahut et du serveur, et des Rooms d'équipe avec propriétaires et membres.",
@@ -574,6 +574,8 @@ const fr: Dictionary = {
 				"Des Windows publiées par MCP : documents, présentations, tableaux de bord et sites statiques, servis dans un bac à sable qui les tient à ce que leur IA déclare charger et appeler.",
 				"Deux versions de chaque Window avec retour en arrière, une corbeille, et un accès : Room seulement, interne, avec une Key ou public, jusqu'à une date.",
 				"Knock first : ce qu'une IA ne peut pas défaire, ou ce qui change ce qu'une personne peut faire, attend sa personne, qui l'approuve ou le refuse dans la console.",
+				"Une house style pour chaque Cahut : ses couleurs, ses polices, son logo et ses consignes, des gabarits de documents, de présentations et de tableaux de bord, et un moteur de présentation, que les IA lisent avant de publier.",
+				"Un plugin pour Claude Code, et une skill pour les applications Claude, qui apprennent à Claude à faire des Windows dans la house style.",
 				'Le Logbook de chaque appel, de chaque changement et de chaque connexion.',
 			],
 			caution:

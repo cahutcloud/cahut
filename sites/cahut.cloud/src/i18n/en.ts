@@ -537,7 +537,7 @@ export default {
 			],
 			milestones: 'The milestones on GitHub',
 			todayTitle: 'What works today',
-			todayLead: 'Batches 0 to 5 are done. In a Cahut, today:',
+			todayLead: 'Batches 0 to 6 are done. In a Cahut, today:',
 			today: [
 				'One service on a Linux server, holding one or more Cahuts, each at its own domain with its certificate.',
 				'People who sign in, administrators of the Cahut and of the server, and team Rooms with owners and members.',
@@ -546,6 +546,8 @@ export default {
 				'Windows published over MCP: documents, decks, dashboards and static sites, served in a sandbox that holds them to what their AI declares they load and call.',
 				'Two versions of each Window with a rollback, a trash, and an access: Room only, internal, with a Key or public, until a date.',
 				'Knock first: what an AI cannot undo, or what changes what a person may do, waits for its person, who approves or declines it in the console.',
+				'A house style for each Cahut: its colors, fonts, logo and guidance, templates for documents, decks and dashboards, and a deck engine, which AIs read before they publish.',
+				'A plugin for Claude Code, and a skill for the Claude apps, that teach Claude to make Windows in the house style.',
 				'The Logbook of every call, every change and every sign-in.',
 			],
 			caution: 'No backups yet: keep snapshots of your server, and Cahut is not ready for work you cannot lose.',
