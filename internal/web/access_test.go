@@ -180,8 +180,8 @@ func TestProtectedWindows(t *testing.T) {
 	signed := strings.Split(src, "/")[3]
 	tampered := []byte(signed)
 	tampered[5] ^= 1
-	expired := capability{Window: 1, Kind: bySession, ID: 1, Expires: time.Now().Add(-time.Minute).Unix()}.sign(c.FrameKey)
-	other := capability{Window: 2, Kind: bySession, ID: 1, Expires: time.Now().Add(time.Hour).Unix()}.sign(c.FrameKey)
+	expired := window.Frame{Window: 1, Kind: window.FrameBySession, ID: 1, Expires: time.Now().Add(-time.Minute).Unix()}.Sign(c.FrameKey)
+	other := window.Frame{Window: 2, Kind: window.FrameBySession, ID: 1, Expires: time.Now().Add(time.Hour).Unix()}.Sign(c.FrameKey)
 	for name, capa := range map[string]string{"tampered": string(tampered), "expired": expired, "of a missing Window": other, "garbage": "abc"} {
 		if resp, _ := f.do(t, "localhost", http.MethodGet, "/-/w/"+capa+"/", nil, nil); resp.StatusCode != http.StatusNotFound {
 			t.Errorf("a capability %s = %d, want 404", name, resp.StatusCode)

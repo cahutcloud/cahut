@@ -600,6 +600,25 @@ export interface Person {
   role: string;
 }
 
+export interface Preview {
+  /** the Window, as room/name */
+  window: string;
+  /** the path of the frame that shows the Window, on the domain of the Cahut, such as /-/w/<capability>/ */
+  frame: string;
+  /** when the frame stops showing the Window, if the session has not ended before */
+  expires_at: string;
+}
+
+export interface PreviewInput {
+  /** the Windows to preview, by their address or as room/name, at most 100 */
+  windows: string[];
+}
+
+export interface Previews {
+  /** the previews of the Windows asked for that are in your Rooms and out of the trash, in the same order */
+  previews: Preview[];
+}
+
 export interface Previous {
   /** whether it is the neutral house style */
   neutral: boolean;
@@ -985,6 +1004,8 @@ export interface CahutOperations {
   list_users: { input: ListUsersInput; output: UserList };
   /** List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. */
   list_windows: { input: WindowListInput; output: WindowList };
+  /** Get the frames that show Windows of your Rooms in the console, as previews: each opens one Window, while your session lasts and four hours at most. */
+  preview_windows: { input: PreviewInput; output: Previews };
   /** Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. */
   publish_window: { input: PublishInput; output: Window };
   /** Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. */

@@ -23,10 +23,10 @@ An administrator creates accounts in the console, under **People**, or on the co
 
 | Screen | What it shows |
 | --- | --- |
-| Overview | The latest Windows of your Rooms, and your Rooms |
+| Overview | The latest Windows of your Rooms, each with a preview, and your Rooms |
 | Knocks | What your AIs asked that waits for you, with Approve and Decline, then what you answered and what expired; the navigation counts those that wait |
 | A Knock | Where the link of an AI leads: what it asks, the details of the call, when it expires, Approve and Decline, then what the call gave back |
-| A Room | Its Windows, each with its access, its trash, and its people; owners add and remove people, rename the Room, and delete a team Room for good once its name is typed |
+| A Room | Its Windows, each with a preview and its access, its trash, and its people; owners add and remove people, rename the Room, and delete a team Room for good once its name is typed |
 | A Window | Where it opens; its access, its end date and its Key, which shows once, next to the address, ready to copy; its two versions, with a button that goes back; what its AI declared it does; the trash, and deleting it for good from there |
 | Rooms | A new team Room, of which you become the owner |
 | Logbook | What you did, what your AIs did, and what happened in your Rooms, by day, with filters |

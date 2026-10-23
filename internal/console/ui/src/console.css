@@ -713,3 +713,32 @@
 	font-family: var(--p-heading);
 	font-size: 12px;
 }
+
+/* The preview of a Window in its card: the Window drawn 1280 px wide, then
+   shrunk to the width of the card, over the icon of its kind. Its frame
+   paints white behind a page that sets no background, as a browser does. */
+.window-thumb {
+	position: relative;
+}
+.window-preview {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1280px;
+	height: 800px;
+	border: 0;
+	background: white;
+	transform: scale(var(--preview-scale));
+	transform-origin: 0 0;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity var(--duration-slow) var(--ease-out);
+}
+.window-preview--shown {
+	opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+	.window-preview {
+		transition: none;
+	}
+}

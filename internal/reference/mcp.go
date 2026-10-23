@@ -138,7 +138,7 @@ func toolsPage(s sample) (page, error) {
 		"see [Connect an AI](/connect/claude-code/).")
 	m.block("The tools are the operations of the Cahut that are open to AIs ([Operations](/reference/operations/)). " +
 		"An AI sees the tools that the person it acts for may use: some are for the AIs of administrators of the Cahut only. " +
-		"The operations that prove who someone is, such as signing in, are for people only. " +
+		"The operations that prove who someone is, such as signing in, and those that serve the console are for people only. " +
 		"Every call goes through the registry of operations, which checks it, runs it and writes it to the Logbook, " +
 		"reads included. Arguments with unknown fields are refused.")
 	m.block("A tool returns its result as structured content, and as the same JSON in a text block. " +

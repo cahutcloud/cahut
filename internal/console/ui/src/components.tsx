@@ -1,8 +1,10 @@
 // Small pieces that the screens share.
 import { AppWindow, ChartColumn, Check, Copy, FileText, Globe, KeyRound, Lock, Presentation, Users } from "lucide-preact";
 import type { ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import type { Window } from "./api.gen";
+import { useConsole } from "./context";
+import { useLoad } from "./load";
 import { Link } from "./router";
 
 /** The head of a screen: a label, a title and a line under it. */
@@ -132,14 +134,37 @@ export function kindName(kind: string): string {
 	return (kinds[kind] ?? kinds.site).name;
 }
 
+/** The most Windows that one call of preview_windows previews. */
+const maxPreviews = 100;
+
+/**
+ * Windows, as cards, each with a preview of the Window itself when the API
+ * gives one. See docs/adr/0027-previews-of-windows-in-the-console.md.
+ */
+export function WindowCards({ windows, showRoom }: { windows: Window[]; showRoom?: boolean }) {
+	const api = useConsole();
+	const names = windows.slice(0, maxPreviews).map((w) => `${w.room}/${w.name}`);
+	// Without previews, the cards keep the icon of their kind.
+	const { data } = useLoad(() => api.cahut("preview_windows", { windows: names }).catch(() => null), [names.join(" ")]);
+	const frames = new Map(data?.previews.map((p) => [p.window, p.frame]));
+	return (
+		<div class="cards cards--windows">
+			{windows.map((w) => (
+				<WindowCard key={w.url} window={w} showRoom={showRoom} preview={frames.get(`${w.room}/${w.name}`)} />
+			))}
+		</div>
+	);
+}
+
 /** A Window, as a card that leads to its page. */
-export function WindowCard({ window: w, showRoom }: { window: Window; showRoom?: boolean }) {
+export function WindowCard({ window: w, showRoom, preview }: { window: Window; showRoom?: boolean; preview?: string }) {
 	const kind = kinds[w.kind] ?? kinds.site;
 	const Icon = kind.icon;
 	return (
 		<article class="c-card c-window">
 			<Link class="c-window__thumb window-thumb" href={windowPage(w)} aria-label={w.title}>
 				<Icon size={40} aria-hidden="true" />
+				{preview && <WindowPreview src={preview} title={w.title} />}
 			</Link>
 			<div class="c-window__body">
 				<Link class="c-window__title window-title" href={windowPage(w)}>
@@ -154,6 +179,43 @@ export function WindowCard({ window: w, showRoom }: { window: Window; showRoom?:
 				</div>
 			</div>
 		</article>
+	);
+}
+
+/** How wide a preview draws its Window, before it shrinks to its card. */
+const previewWidth = 1280;
+
+/**
+ * The Window itself, drawn at the width of a laptop and shrunk to its card,
+ * over the icon of its kind once it loads. Its frame keeps the sandbox of
+ * the Window's files, and drops forms, pop-ups, dialogs and downloads; it
+ * takes neither clicks nor focus.
+ */
+function WindowPreview({ src, title }: { src: string; title: string }) {
+	const frame = useRef<HTMLIFrameElement>(null);
+	const [scale, setScale] = useState(0);
+	const [loaded, setLoaded] = useState(false);
+	useEffect(() => {
+		const thumb = frame.current?.parentElement;
+		if (!thumb) return;
+		const observer = new ResizeObserver(([entry]) => setScale(entry.contentRect.width / previewWidth));
+		observer.observe(thumb);
+		return () => observer.disconnect();
+	}, []);
+	return (
+		<iframe
+			ref={frame}
+			class={`window-preview${loaded ? " window-preview--shown" : ""}`}
+			style={{ "--preview-scale": scale }}
+			src={src}
+			title={`Preview of ${title}`}
+			sandbox="allow-scripts"
+			loading="lazy"
+			referrerpolicy="no-referrer"
+			tabIndex={-1}
+			aria-hidden="true"
+			onLoad={() => setLoaded(true)}
+		/>
 	);
 }
 

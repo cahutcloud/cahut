@@ -44,6 +44,7 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | `list_tokens` | List personal tokens, newest first. | Any person | no | no, people only |
 | [`list_users`](/reference/mcp-tools/#list_users) | List the people of the Cahut, with their handles, names, roles and states. | Any person | no | yes |
 | [`list_windows`](/reference/mcp-tools/#list_windows) | List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. | Any person | no | yes |
+| `preview_windows` | Get the frames that show Windows of your Rooms in the console, as previews: each opens one Window, while your session lasts and four hours at most. | Any person | no | no, people only |
 | [`publish_window`](/reference/mcp-tools/#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. | Any person | yes | yes |
 | [`purge_window`](/reference/mcp-tools/#purge_window) | Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. | Any person | yes | yes |
 | [`remove_room_member`](/reference/mcp-tools/#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. | Any person | yes | yes |

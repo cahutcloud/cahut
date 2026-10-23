@@ -37,7 +37,7 @@ func setup(t *testing.T) *fixture {
 	r := operation.NewRegistry(db)
 	account.Register(r)
 	room.Register(r)
-	s := NewService(filepath.Join(dir, "windows"), func(room, name string) string { return "https://cahut.test/" + room + "/" + name + "/" })
+	s := NewService(filepath.Join(dir, "windows"), func(room, name string) string { return "https://cahut.test/" + room + "/" + name + "/" }, frameKey)
 	s.Register(r)
 
 	f := &fixture{r: r, db: db, s: s}

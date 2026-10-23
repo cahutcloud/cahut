@@ -17,10 +17,12 @@ import (
 	"time"
 )
 
-// policy lets the console load its own files and call its own API, and
-// nothing else: no inline script, no other origin, no frame around it.
+// policy lets the console load its own files, call its own API and frame
+// the previews of Windows, and nothing else: no inline script, no other
+// origin, no frame around it. See
+// docs/adr/0027-previews-of-windows-in-the-console.md.
 const policy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; " +
-	"connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+	"connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 
 // notice is the page of a binary built without the console.
 const notice = `<!doctype html>

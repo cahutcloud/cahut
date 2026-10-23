@@ -33,14 +33,16 @@ const (
 
 // Service runs the Window operations and knows where their files live.
 type Service struct {
-	dir string
-	url func(room, name string) string
+	dir      string
+	url      func(room, name string) string
+	frameKey []byte
 }
 
-// NewService returns a service that keeps Window files under dir and gives
-// Window addresses with url.
-func NewService(dir string, url func(room, name string) string) *Service {
-	return &Service{dir: dir, url: url}
+// NewService returns a service that keeps Window files under dir, gives
+// Window addresses with url, and signs the frames of previews with
+// frameKey.
+func NewService(dir string, url func(room, name string) string, frameKey []byte) *Service {
+	return &Service{dir: dir, url: url, frameKey: frameKey}
 }
 
 // Register adds the Window operations to r.
@@ -109,6 +111,14 @@ func (s *Service) Register(r *operation.Registry) {
 		Description: "List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first.",
 		ReadOnly:    true,
 		Run:         s.list,
+	})
+	operation.Register(r, &operation.Op[PreviewInput, Previews]{
+		Name: "preview_windows",
+		Description: "Get the frames that show Windows of your Rooms in the console, as previews: " +
+			"each opens one Window, while your session lasts and four hours at most.",
+		ReadOnly:   true,
+		PeopleOnly: true,
+		Run:        s.preview,
 	})
 }
 
