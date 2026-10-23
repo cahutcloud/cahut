@@ -7,8 +7,8 @@
 # takes a binary you give it with --binary. It then creates the cahut system
 # user, the data directory /var/lib/cahut, the settings file
 # /etc/cahut/cahut.env and the cahut service, declares the Cahut of
-# --domain, opens ports 80, 443 and 8443 (the console) in firewalld or ufw
-# when one is active, and starts the service.
+# --domain, opens ports 80 and 443 in firewalld or ufw when one is active,
+# and starts the service.
 #
 # Options:
 #   --domain DOMAIN   domain of a Cahut to declare on this server, such as
@@ -197,15 +197,23 @@ if [ -n "$domain" ] && ! as_cahut domain list | awk 'NR > 1 { print $2 }' | grep
 	as_cahut domain add "$domain" >/dev/null
 fi
 
+# The console is served under /console/ on port 443: port 8443, which
+# releases before it opened, serves nothing. The script leaves it as it is
+# and says how to close it.
 if systemctl is-active --quiet firewalld 2>/dev/null; then
-	say "opening ports 80, 443 and 8443 in firewalld"
-	firewall-cmd --quiet --permanent --add-service=http --add-service=https --add-port=8443/tcp
+	say "opening ports 80 and 443 in firewalld"
+	firewall-cmd --quiet --permanent --add-service=http --add-service=https
 	firewall-cmd --quiet --reload
+	if firewall-cmd --quiet --permanent --query-port=8443/tcp; then
+		say "port 8443 is open but no longer used: firewall-cmd --permanent --remove-port=8443/tcp && firewall-cmd --reload"
+	fi
 elif command -v ufw >/dev/null && ufw status 2>/dev/null | grep -q '^Status: active'; then
-	say "opening ports 80, 443 and 8443 in ufw"
+	say "opening ports 80 and 443 in ufw"
 	ufw allow 80/tcp >/dev/null
 	ufw allow 443/tcp >/dev/null
-	ufw allow 8443/tcp >/dev/null
+	if ufw status | grep -q '^8443/tcp'; then
+		say "port 8443 is open but no longer used: ufw delete allow 8443/tcp"
+	fi
 fi
 
 systemctl daemon-reload
@@ -227,15 +235,15 @@ Next steps for the Cahut of $domain:
   1. Create your account, as an administrator of the Cahut. The command
      prints a link where you choose your password:
        sudo -u cahut $bin_path user create --domain $domain --handle you --name "Your Name" --admin
-  2. Open that link: it signs you in to the console, at https://$domain:8443/
+  2. Open that link: it signs you in to the console, at https://$domain/console/
   3. In the console, AIs and access creates a token for your AI, with the
      command that adds the Cahut to Claude Code.
 
 To administer the server itself, create an administrator of the server:
        sudo -u cahut $bin_path admin create --handle you --name "Your Name"
 
-The console answers on port 8443 of the domain: open that port in the
-firewall of your hosting provider too, if it has one.
+Ports 80 and 443 must be open in the firewall of your hosting provider
+too, if it has one.
 
 The service logs go to the journal: journalctl -u cahut
 EOF
