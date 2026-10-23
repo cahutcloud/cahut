@@ -454,6 +454,14 @@ func (s *Server) document(ctx context.Context, c *operation.Call, id string) (Cl
 	return cl, nil
 }
 
+// SetDocumentTransport makes s fetch client metadata documents through rt,
+// in place of the transport that refuses addresses that are not public.
+// Only tests call it, to reach a server on a loopback address; the other
+// guards stay.
+func (s *Server) SetDocumentTransport(rt http.RoundTripper) {
+	s.docs.client.Transport = rt
+}
+
 // prefetch fetches the metadata document of the client id, when id is the
 // address of one that is not kept, and keeps its client: it runs before
 // the transaction of the call, in Prepare. A document that cannot be
