@@ -155,7 +155,9 @@ Le lot 3 s'est achevé le 22 octobre 2026, en cinq pull requests :
 
 **Jalon PoC, atteint le 22 octobre 2026.** Olivier a ajouté `https://staging.cahut.cloud/mcp` comme connecteur dans claude.ai, avec l'identité publiée de Claude (CIMD), et a consenti dans la console : écriture, toutes ses Rooms. Le journal du service montre la découverte, puis l'échange du code depuis les serveurs d'Anthropic. Par ce connecteur, Claude a créé la Room d'équipe `marketing` et y a publié la présentation [Proof of concept](https://staging.cahut.cloud/marketing/proof-of-concept/). Le Logbook inscrit chaque appel sous « Claude (Anthropic/ClaudeAI 1.0.0) », au nom d'Olivier, avec la connexion 1.
 
-**Reste à faire.** Le test de fumée avec ChatGPT en mode développeur, qui demande le compte d'Olivier.
+**Test de fumée avec un client d'OpenAI, réussi le 22 octobre 2026.** Olivier a connecté Codex, qui tourne sur sa machine, au staging. Codex s'est identifié par son Client ID Metadata Document, `https://chatgpt.com/oauth/codex/client.json`, avec une adresse de retour en bouclage. Olivier a consenti (écriture, toutes ses Rooms), Codex a reçu ses jetons, puis `list_windows` a répondu et s'est inscrit au Logbook sous « Codex (codex-mcp-client 0.163.0-alpha.10.2) », au nom d'Olivier, avec la connexion 2. ChatGPT sur le web, dont le connecteur passe par les serveurs d'OpenAI, reste à essayer de bout en bout au lot 8.
+
+Le lot 3 est clos.
 
 **Suites.**
 
