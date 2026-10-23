@@ -26,7 +26,7 @@ in your house style, on your own server, whichever AI made them.
 Cahut installs with one command on a Linux server. Claude, ChatGPT, Mistral or Copilot publish to it over MCP, and you share a link instead of sending a file. The AI does on its own what can be undone, a human approves the rest, and every action is logged.
 
 > [!WARNING]
-> Cahut is in early development. Nothing is usable yet, and everything below describes the target for the public launch.
+> Cahut is in early development. Its first version installs on a server, connects Claude and ChatGPT, and publishes and shares documents, decks, dashboards and sites, as [Installation](#installation) shows. Apps, comments, search, export, single sign-on and backups come before the public launch: the rest of this page describes the launch. There are no backups yet, so keep snapshots of your server.
 
 ## Why Cahut
 
@@ -103,7 +103,7 @@ The full scope ships at launch, with no reduced trial version.
 | House style | The organization's colors, fonts, logos and templates, given to every AI so everything comes out on brand |
 | Users and Rooms | The people of each Cahut and its admins, a personal Room for each person, team Rooms with owners and members |
 | Sign-in | Accounts of each Cahut, and single sign-on with OpenID Connect (Google, Microsoft Entra, Okta...) |
-| Web console | See what is published, share, comment, approve irreversible actions, administer the server and its Cahuts, on its own HTTPS port |
+| Web console | See what is published, share, comment, approve irreversible actions, administer the server and its Cahuts, under `/console/` of each Cahut |
 | Domains and TLS | Several Cahuts per server, each at its own domain or subdomain, no wildcard needed, automatic certificates |
 | Logbook | History of every action: who, which AI, on whose behalf, with what result |
 | Backups | Optional, to external S3 or SFTP storage, restore from the console |
@@ -158,11 +158,31 @@ Each Window opens to its Room only, to everyone in the Cahut, to anyone with its
 - One server, a VPS or a dedicated machine, for one or more Cahuts.
 - Minimum 2 vCPU, 4 GB of RAM, 40 GB of disk.
 - AlmaLinux or Ubuntu, from the provider's standard image.
-- One domain or subdomain per Cahut, pointing to the server. Ports 80 and 443 open.
+- One domain or subdomain per Cahut, pointing to the server; until it has one, a Cahut can live at the server's public IPv4 address. Ports 80 and 443 open.
 
 ## Installation
 
-Not available yet. The target is a single command on a fresh server, finished in under 10 minutes, followed by a guided first start.
+On a fresh AlmaLinux or Ubuntu server, with ports 80 and 443 open and a domain that points to it, run:
+
+```bash
+curl -fsSL https://cahut.cloud/install.sh | sudo sh -s -- --domain cahut.example.com
+```
+
+The script checks the signature of the release and installs Cahut as a systemd service. It opens the firewall, sets up the daily updates and runs `cahut doctor`. It ends with a single-use link: open it to finish in the browser, where you choose your account and the name and color of your organization, and connect your first AI. Without `--domain`, Cahut takes the server's public IPv4 address, with a certificate for that address. You can move it to a domain later, from the console.
+
+Then give your AI the address of the MCP server, `https://cahut.example.com/mcp`. It sends you to the console to sign in and choose what it may do:
+
+| AI client | Where |
+| --- | --- |
+| claude.ai, Claude Desktop | Settings, Connectors, add a custom connector |
+| Claude Code | `/plugin marketplace add getcahut/cahut`, then `/plugin install cahut@cahut`, which also brings the skill for the house style |
+| ChatGPT | On the web, Plugins, Add custom MCP server, with OAuth (Business, Enterprise and Edu plans) |
+| Le Chat | Connectors, add a custom MCP connector |
+| Others | Any MCP client over HTTP, with OAuth or a personal token |
+
+Ask it for a deck: it publishes a Window and gives you its address. You choose who opens it in the console.
+
+Cahut updates itself every day from the signed releases, patch releases by default. It snapshots the databases first, and goes back on its own if the new version does not start. `sudo /usr/local/bin/cahut doctor` says what is wrong with the server, and `sudo /usr/local/bin/cahut update` updates at once. The [documentation](https://docs.cahut.cloud/install/server/) covers the rest: the options of the installer, a Cahut without a domain, several Cahuts on one server, and updates.
 
 ## Development
 
@@ -176,7 +196,7 @@ Cahut is written in **Go**: a new, clean codebase built for Cahut, which one per
 | Hosting | One server holds one or more Cahuts, each with its own domain, people and data | Decided |
 | Language | Go | Decided |
 | AI interface | MCP over HTTP with OAuth, forced-command SSH for the same operations | Decided |
-| Web console | A Preact app embedded in the binary, on its own HTTPS port, using the same API as the AIs: no capability is reserved for it | Decided |
+| Web console | A Preact app embedded in the binary, served under `/console/` of each Cahut, using the same API as the AIs: no capability is reserved for it | Decided |
 | Web and TLS | Built into the binary, automatic certificates with CertMagic, Windows at paths of their Cahut's domain, each in a CSP sandbox | Decided |
 | Database | SQLite in pure Go, so the binary stays static, one database per Cahut | Decided |
 | Authorization | Cahut's own minimal OAuth 2.1 server, built for MCP clients | Decided |
