@@ -21,25 +21,27 @@ import (
 	"cahut.cloud/internal/version"
 )
 
-const instructions = `This Cahut keeps what AIs make, on the user's own server. ` +
-	`Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, ` +
-	`and you get back the address where it opens; give that address to the user. ` +
-	`Before you make one, call get_house_style with its kind. When the house style is active, start from its template, ` +
-	`link the style sheet of the organization, /-/house-style.css, use its classes and variables, and follow its guidance; ` +
-	`when it is inactive, make the Window in the style the user asks for. ` +
-	`Make index.html a complete page that works on its own. ` +
-	`Link its own files with relative paths, such as css/deck.css, never /css/deck.css: ` +
-	`a Window is served under the address of its Room. Only the house style and the deck engine are under /-/. ` +
-	`Declare what the pages do: whether they run scripts, every origin they load from or call, such as a CDN or a font service, ` +
-	`and where their forms send. They can load and call nothing else. ` +
-	`Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: ` +
+// instructions guide the AIs that connect. What an AI needs to publish
+// comes first, within the 512 characters that some clients, such as Codex,
+// are sure to keep (docs/adr/0029-chatgpt-second-ai-client.md).
+const instructions = `Cahut keeps what you make on the user's own server, as Windows. ` +
+	`To publish a document, deck, dashboard or site: call get_house_style with its kind, then publish_window ` +
+	`with a complete index.html, its files linked by relative paths (css/deck.css, never /css/deck.css), ` +
+	`and a declaration of its scripts and of every origin it loads from or calls. Give the user the address it returns. ` +
+	`A call that cannot be undone makes a Knock: give the user its link to approve it.
+
+` +
+	`House style: when it is active, start from its template, link the style sheet of the organization, /-/house-style.css, ` +
+	`use its classes and variables, and follow its guidance; when it is inactive, make the Window in the style the user asks for. ` +
+	`Only the house style and the deck engine are under /-/: a Window is served under the address of its Room. ` +
+	`Pages can load and call nothing that their declaration does not list, and send forms only where it says. ` +
+	`They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: ` +
 	`keep state in memory or in the address. ` +
 	`To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. ` +
 	`A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; ` +
 	`making it public waits for a person. ` +
-	`Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once. ` +
-	`It makes a Knock, which waits for the person you act for: give them the link it returns, ` +
-	`where they approve or deny it, then call get_knock to learn the outcome. ` +
+	`Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; ` +
+	`once the person has answered its Knock, get_knock gives the outcome. ` +
 	`Every call is recorded in the Logbook of the Cahut.`
 
 // mcpHandler returns the MCP endpoint (Streamable HTTP) of the Cahut c, which
@@ -118,10 +120,6 @@ func toolFor(info operation.Info) (*mcp.Tool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("input schema of %s: %w", info.Name, err)
 	}
-	out, err := jsonschema.ForType(info.Output, nil)
-	if err != nil {
-		return nil, fmt.Errorf("output schema of %s: %w", info.Name, err)
-	}
 	destructive, openWorld := info.KnockFirst, false
 	description := info.Description
 	switch {
@@ -130,12 +128,15 @@ func toolFor(info operation.Info) (*mcp.Tool, error) {
 	case info.KnocksWhen != "":
 		description += " Knock first when " + info.KnocksWhen + ": a person approves the call before it runs."
 	}
+	// No output schema: the results stay structured, and the list of tools
+	// stays light for the clients that load it whole.
 	return &mcp.Tool{
-		Name:         info.Name,
-		Description:  description,
-		InputSchema:  in,
-		OutputSchema: out,
+		Name:        info.Name,
+		Title:       info.Title,
+		Description: description,
+		InputSchema: in,
 		Annotations: &mcp.ToolAnnotations{
+			Title:           info.Title,
 			ReadOnlyHint:    info.ReadOnly,
 			DestructiveHint: &destructive,
 			OpenWorldHint:   &openWorld,

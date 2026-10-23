@@ -62,7 +62,8 @@ type SetUp struct {
 
 func (s *Server) registerSetup(r *operation.Registry) {
 	s.CreateSetupLink = &operation.Op[CreateSetupLinkInput, SetupLink]{
-		Name: "create_setup_link",
+		Name:  "create_setup_link",
+		Title: "Give a first start link",
 		Description: "Give the link to the first start of a Cahut that has nobody yet, single-use and valid for 24 hours, " +
 			"where its first person chooses their handle and password. It replaces the previous link.",
 		Level:      operation.ServerAdmin,
@@ -72,6 +73,7 @@ func (s *Server) registerSetup(r *operation.Registry) {
 	operation.Register(r, s.CreateSetupLink)
 	operation.Register(r, &operation.Op[SetupInput, Setup]{
 		Name:        "get_setup",
+		Title:       "Check a first start link",
 		Description: "Say whether a link to the first start still works at this domain.",
 		PeopleOnly:  true,
 		Visitors:    true,
@@ -85,7 +87,8 @@ func (s *Server) registerSetup(r *operation.Registry) {
 		},
 	})
 	operation.Register(r, &operation.Op[SetUpInput, SetUp]{
-		Name: "set_up",
+		Name:  "set_up",
+		Title: "Start a Cahut",
 		Description: "Use a link to the first start: create the first person of the Cahut, its administrator, " +
 			"and the administrator of the server if it has none, with the same handle and password; then sign the person in.",
 		PeopleOnly: true,

@@ -331,6 +331,20 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)
 	}
+	// Every client gets light tools with a title (ADR 29): ChatGPT shows
+	// the title when it asks the person to confirm a call, and Codex cut a
+	// list of 87 KB short.
+	for _, tool := range tools.Tools {
+		if tool.Title == "" || tool.Annotations == nil || tool.Annotations.Title != tool.Title {
+			t.Errorf("%s has no title: %q, %+v", tool.Name, tool.Title, tool.Annotations)
+		}
+		if tool.OutputSchema != nil {
+			t.Errorf("%s has an output schema", tool.Name)
+		}
+	}
+	if list, _ := json.Marshal(tools); len(list) > 32<<10 {
+		t.Errorf("the list of tools weighs %d bytes, more than 32 KB", len(list))
+	}
 
 	res, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "disable_user", Arguments: map[string]any{"user": "olivier"}})
 	if err != nil {
@@ -648,5 +662,29 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 	f.web.mu.Unlock()
 	if open != 1 {
 		t.Errorf("%d Cahuts open, want the moved one only", open)
+	}
+}
+
+// TestInstructionsStartWithWhatToPublish checks that the first 512
+// characters of the instructions, all that some clients keep, tell an AI
+// how to publish (ADR 29).
+func TestInstructionsStartWithWhatToPublish(t *testing.T) {
+	head := instructions[:512]
+	for _, want := range []string{"get_house_style", "publish_window", "relative paths", "declaration", "address", "Knock"} {
+		if !strings.Contains(head, want) {
+			t.Errorf("the first 512 characters of the instructions do not say %q: %q", want, head)
+		}
+	}
+}
+
+// TestEveryOperationHasATitle checks the operations of a Cahut and of the
+// server, which the console and MCP clients name by their titles.
+func TestEveryOperationHasATitle(t *testing.T) {
+	f := setup(t)
+	c := f.open(t, "localhost")
+	for _, op := range append(c.Registry.Ops(), f.srv.Registry.Ops()...) {
+		if op.Title == "" || len(op.Title) > 40 || strings.HasSuffix(op.Title, ".") {
+			t.Errorf("%s: title %q, want a few words without a final period", op.Name, op.Title)
+		}
 	}
 }

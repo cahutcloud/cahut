@@ -39,7 +39,8 @@ func newActivation(ctx context.Context, c *operation.Call, userID int64, handle 
 // CreateActivationLink gives a person a new activation link, for instance
 // after they forgot their password.
 var CreateActivationLink = &operation.Op[UserInput, Activation]{
-	Name: "create_activation_link",
+	Name:  "create_activation_link",
+	Title: "Give a person a new link",
 	Description: "Give a person a new single-use link, valid 7 days, where they choose their password, " +
 		"for instance after they forgot it. Their password works until they use the link.",
 	Level:      operation.CahutAdmin,
@@ -95,6 +96,7 @@ type ActivateInput struct {
 // signs them in. It ends their other sessions.
 var ActivateAccount = &operation.Op[ActivateInput, Session]{
 	Name:        "activate_account",
+	Title:       "Activate an account",
 	Description: "Choose a password from a single-use activation link, and sign in.",
 	PeopleOnly:  true,
 	Visitors:    true,
@@ -149,6 +151,7 @@ type SignInInput struct {
 // SignIn opens a session for a person who gives their handle and password.
 var SignIn = &operation.Op[SignInInput, Session]{
 	Name:        "sign_in",
+	Title:       "Sign in",
 	Description: "Sign in with a handle and a password, and open a session.",
 	PeopleOnly:  true,
 	Visitors:    true,
@@ -197,6 +200,7 @@ type SignedOut struct{}
 // SignOut ends the session of the call.
 var SignOut = &operation.Op[SignOutInput, SignedOut]{
 	Name:        "sign_out",
+	Title:       "Sign out",
 	Description: "End the session you signed in with.",
 	PeopleOnly:  true,
 	Run: func(ctx context.Context, c *operation.Call, _ SignOutInput) (SignedOut, error) {
@@ -222,6 +226,7 @@ type PasswordChanged struct{}
 // their other sessions.
 var ChangePassword = &operation.Op[ChangePasswordInput, PasswordChanged]{
 	Name:        "change_password",
+	Title:       "Change your password",
 	Description: "Change your password. Your other sessions end.",
 	PeopleOnly:  true,
 	Run: func(ctx context.Context, c *operation.Call, in ChangePasswordInput) (PasswordChanged, error) {

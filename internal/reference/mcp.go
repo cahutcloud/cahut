@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"cahut.cloud/internal/account"
@@ -147,7 +148,7 @@ func toolsPage(s sample) (page, error) {
 
 	m.block("## Instructions")
 	m.block("The Cahut gives these instructions to the AI when it connects:")
-	m.block("> " + text(s.instructions))
+	m.block("> " + strings.ReplaceAll(text(s.instructions), "\n\n", "\n>\n> "))
 
 	m.block("## Limits")
 	m.table([]string{"Limit", "Value"}, [][]string{
@@ -185,15 +186,36 @@ func toolsPage(s sample) (page, error) {
 			m.block("Knock first when " + op.KnocksWhen + ": that call of an AI makes a Knock, which the person it acts for approves " +
 				"([Operations](/reference/operations/#knock-first)).")
 		}
-		m.block("Annotations: " + annotations(t.Annotations) + ".")
+		m.block("Title: " + text(t.Title) + ". Annotations: " + annotations(t.Annotations) + ".")
 		if err := describeSchema(m, "Arguments", "Required", t.InputSchema, "This tool takes no arguments."); err != nil {
 			return page{}, fmt.Errorf("arguments of %s: %w", t.Name, err)
 		}
-		if err := describeSchema(m, "Result", "Always present", t.OutputSchema, "This tool returns no structured result."); err != nil {
+		// Tools carry no output schema (ADR 29): the result is described
+		// from the Go type of the operation's output.
+		out, err := outputSchema(op)
+		if err != nil {
+			return page{}, fmt.Errorf("result of %s: %w", t.Name, err)
+		}
+		if err := describeSchema(m, "Result", "Always present", out, "This tool returns no structured result."); err != nil {
 			return page{}, fmt.Errorf("result of %s: %w", t.Name, err)
 		}
 	}
 	return p, nil
+}
+
+// outputSchema describes the output of op as JSON, with its keys in the
+// same order as those of the input schemas that the MCP server gives.
+func outputSchema(op operation.Info) (any, error) {
+	schema, err := jsonschema.ForType(op.Output, nil)
+	if err != nil {
+		return nil, err
+	}
+	raw, err := json.Marshal(schema)
+	if err != nil {
+		return nil, err
+	}
+	var v any
+	return v, json.Unmarshal(raw, &v)
 }
 
 // annotations lists the hints that a tool gives to its clients.

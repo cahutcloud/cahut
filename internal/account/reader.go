@@ -37,7 +37,8 @@ type ReaderCode struct {
 // SignInToWindows gives a person, signed in to the console, the code that
 // signs them in to read Windows.
 var SignInToWindows = &operation.Op[SignInToWindowsInput, ReaderCode]{
-	Name: "sign_in_to_windows",
+	Name:  "sign_in_to_windows",
+	Title: "Sign in to read Windows",
 	Description: "Get a single-use code, valid one minute, that signs you in to read the Windows of this Cahut " +
 		"at its address: the browser takes it to /-/session.",
 	PeopleOnly: true,

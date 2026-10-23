@@ -48,43 +48,50 @@ func NewService(dir string, url func(room, name string) string, frameKey []byte)
 // Register adds the Window operations to r.
 func (s *Service) Register(r *operation.Registry) {
 	operation.Register(r, &operation.Op[PublishInput, Window]{
-		Name: "publish_window",
+		Name:  "publish_window",
+		Title: "Publish a Window",
 		Description: "Publish a new Window: a document, deck, dashboard or site made of HTML and its files, " +
 			"in a Room of the person you act for, by default their personal Room. Returns the address where it opens.",
 		Run: s.publish,
 	})
 	operation.Register(r, &operation.Op[UpdateInput, Window]{
-		Name: "update_window",
+		Name:  "update_window",
+		Title: "Update a Window",
 		Description: "Publish a new version of a Window: give all its files again, as for publish_window. " +
 			"Its address stays. Its current version becomes the previous one, which rollback_window goes back to; " +
 			"the version before that is deleted.",
 		Run: s.update,
 	})
 	operation.Register(r, &operation.Op[RefInput, Window]{
-		Name: "rollback_window",
+		Name:  "rollback_window",
+		Title: "Roll back a Window",
 		Description: "Go back to the previous version of a Window. The version you leave becomes the previous one, " +
 			"so calling rollback_window again returns to it.",
 		Run: s.rollback,
 	})
 	operation.Register(r, &operation.Op[RefInput, Window]{
 		Name:        "trash_window",
+		Title:       "Put a Window in the trash",
 		Description: "Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was.",
 		Run:         s.trash,
 	})
 	operation.Register(r, &operation.Op[RefInput, Window]{
 		Name:        "restore_window",
+		Title:       "Restore a Window",
 		Description: "Bring a Window back from the trash, with its versions.",
 		Run:         s.restore,
 	})
 	operation.Register(r, &operation.Op[RefInput, Window]{
-		Name: "purge_window",
+		Name:  "purge_window",
+		Title: "Delete a Window for good",
 		Description: "Delete a Window in the trash for good, with its versions and its files: this cannot be undone. " +
 			"Its address becomes free. Put the Window in the trash first, with trash_window.",
 		KnockFirst: true,
 		Run:        s.purge,
 	})
 	operation.Register(r, &operation.Op[DeleteRoomInput, DeletedRoom]{
-		Name: "delete_room",
+		Name:  "delete_room",
+		Title: "Delete a team Room",
 		Description: "Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: " +
 			"this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; " +
 			"a personal Room is never deleted.",
@@ -92,7 +99,8 @@ func (s *Service) Register(r *operation.Registry) {
 		Run:        s.deleteRoom,
 	})
 	operation.Register(r, &operation.Op[AccessInput, AccessSet]{
-		Name: "set_window_access",
+		Name:  "set_window_access",
+		Title: "Set who opens a Window",
 		Description: "Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; " +
 			"key, anyone who types its Key; or public, anyone with its address. The access may end at a date, " +
 			"after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, " +
@@ -102,18 +110,21 @@ func (s *Service) Register(r *operation.Registry) {
 	})
 	operation.Register(r, &operation.Op[GetInput, Detail]{
 		Name:        "get_window",
+		Title:       "Describe a Window",
 		Description: "Describe a Window and list its files, optionally with their contents.",
 		ReadOnly:    true,
 		Run:         s.get,
 	})
 	operation.Register(r, &operation.Op[ListInput, List]{
 		Name:        "list_windows",
+		Title:       "List Windows",
 		Description: "List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first.",
 		ReadOnly:    true,
 		Run:         s.list,
 	})
 	operation.Register(r, &operation.Op[PreviewInput, Previews]{
-		Name: "preview_windows",
+		Name:  "preview_windows",
+		Title: "Preview Windows",
 		Description: "Get the frames that show Windows of your Rooms in the console, as previews: " +
 			"each opens one Window, while your session lasts and four hours at most.",
 		ReadOnly:   true,

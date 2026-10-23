@@ -11,6 +11,7 @@ const clients = [
 	{ id: "claude-code", name: "Claude Code" },
 	{ id: "claude", name: "Claude apps" },
 	{ id: "chatgpt", name: "ChatGPT" },
+	{ id: "le-chat", name: "Le Chat" },
 	{ id: "other", name: "Other clients" },
 ] as const;
 
@@ -41,6 +42,7 @@ export function ConnectSteps({ mcp }: { mcp: string }) {
 				{client === "claude-code" && <ClaudeCode mcp={mcp} />}
 				{client === "claude" && <ClaudeApps mcp={mcp} />}
 				{client === "chatgpt" && <ChatGPT mcp={mcp} />}
+				{client === "le-chat" && <LeChat mcp={mcp} />}
 				{client === "other" && <Other mcp={mcp} />}
 			</div>
 		</div>
@@ -86,8 +88,22 @@ function ChatGPT({ mcp }: { mcp: string }) {
 	return (
 		<>
 			<p class="c-small">
-				In ChatGPT, turn on developer mode in the advanced settings of Apps and connectors, then create a connector with this
-				address and OAuth. ChatGPT sends you here to sign in.
+				In ChatGPT on the web, open Plugins, select the plus button, then Add custom MCP server. Give it a name, this address,
+				and OAuth as its authentication, then create it. ChatGPT sends you here to sign in, and you choose the Rooms it reaches.
+				It asks you to confirm the calls that change something.
+			</p>
+			<CopyField label="the address" value={mcp} />
+			<p class="c-small">Custom MCP servers need a Business, Enterprise or Edu plan of ChatGPT.</p>
+		</>
+	);
+}
+
+function LeChat({ mcp }: { mcp: string }) {
+	return (
+		<>
+			<p class="c-small">
+				In Le Chat, open Connectors and add a custom MCP connector with this address. Le Chat finds that the Cahut signs in with
+				OAuth and sends you here to sign in.
 			</p>
 			<CopyField label="the address" value={mcp} />
 		</>

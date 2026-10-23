@@ -48,6 +48,7 @@ type ConnectedAIs struct {
 // of them for an administrator, their own for anyone else.
 var ListConnectedAIs = &operation.Op[ListConnectedAIsInput, ConnectedAIs]{
 	Name:        "list_connected_ais",
+	Title:       "List connected AIs",
 	Description: "List the AIs connected over OAuth, newest first, with the person each acts for, its scope and its Rooms.",
 	PeopleOnly:  true,
 	ReadOnly:    true,
@@ -162,6 +163,7 @@ type DisconnectAIInput struct {
 // DisconnectAI ends a connection: its tokens stop working at once.
 var DisconnectAI = &operation.Op[DisconnectAIInput, Connection]{
 	Name:        "disconnect_ai",
+	Title:       "Disconnect an AI",
 	Description: "Disconnect an AI connected over OAuth. Its tokens stop working at once; to use it again, the person connects it again.",
 	PeopleOnly:  true,
 	Run: func(ctx context.Context, c *operation.Call, in DisconnectAIInput) (Connection, error) {
@@ -222,7 +224,8 @@ type endInput struct {
 // or a refresh token that came back. It is not registered: only the
 // protocol's endpoints run it, so that the Logbook records it.
 var endConnection = &operation.Op[endInput, struct{}]{
-	Name: "end_connection",
+	Name:  "end_connection",
+	Title: "End a connection",
 	Run: func(ctx context.Context, c *operation.Call, in endInput) (struct{}, error) {
 		c.Log(fmt.Sprintf("connection %d of %s", in.Connection, c.Actor.Handle), in.Reason)
 		return struct{}{}, endIn(ctx, c.Tx, in.Connection, c.Now, in.Reason)

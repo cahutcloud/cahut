@@ -64,7 +64,8 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 	}
 	s := &Server{DB: db, Registry: operation.NewRegistry(db), cfg: cfg}
 	s.AddDomain = &operation.Op[AddDomainInput, NewCahut]{
-		Name: "add_domain",
+		Name:  "add_domain",
+		Title: "Declare a Cahut",
 		Description: "Declare a domain on this server, which creates the Cahut at that domain, " +
 			"optionally with its first administrator and the link where they choose their password.",
 		Level: operation.ServerAdmin,
@@ -177,7 +178,8 @@ type RenameDomainInput struct {
 // the server to a domain. Everything in it stays; its old address serves
 // nothing any more. See docs/adr/0026-cahut-at-an-ip-address.md.
 var RenameDomain = &operation.Op[RenameDomainInput, Info]{
-	Name: "rename_domain",
+	Name:  "rename_domain",
+	Title: "Move a Cahut to a domain",
 	Description: "Move a Cahut to another domain, or from the IP address of the server to a domain. " +
 		"Its people, Rooms, Windows, house style and Logbook stay; the links that name its old address stop working, " +
 		"and AIs connect again at the new one.",
@@ -231,6 +233,7 @@ type DomainList struct {
 // declared.
 var ListDomains = &operation.Op[ListDomainsInput, DomainList]{
 	Name:        "list_domains",
+	Title:       "List Cahuts",
 	Description: "List the Cahuts of this server and their domains.",
 	Level:       operation.ServerAdmin,
 	ReadOnly:    true,

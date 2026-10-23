@@ -22,7 +22,8 @@ type SetAIReachInput struct {
 // widening knocks first. It is how an AI that may only read asks to write.
 // See docs/adr/0021-ais-knock-first.md.
 var SetAIReach = &operation.Op[SetAIReachInput, Connection]{
-	Name: "set_ai_reach",
+	Name:  "set_ai_reach",
+	Title: "Change what an AI reaches",
 	Description: "Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. " +
 		"A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, " +
 		"and widening it, such as asking for write or for another Room, waits for its person to approve.",

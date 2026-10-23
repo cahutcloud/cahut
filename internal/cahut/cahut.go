@@ -94,6 +94,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	operation.Register(r, ListLogbook)
 	operation.Register(r, &operation.Op[GetCahutInput, About]{
 		Name:        "get_cahut",
+		Title:       "Describe the Cahut",
 		Description: "Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint.",
 		ReadOnly:    true,
 		Run: func(_ context.Context, c *operation.Call, _ GetCahutInput) (About, error) {
@@ -149,7 +150,8 @@ type LogbookPage struct {
 // of them for an administrator, and for anyone else what they did and what
 // their AIs did. An AI granted some Rooms only reads what happened in them.
 var ListLogbook = &operation.Op[ListLogbookInput, LogbookPage]{
-	Name: "list_logbook",
+	Name:  "list_logbook",
+	Title: "Read the Logbook",
 	Description: "Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, " +
 		"and for anyone else what they did and what AIs did on their behalf.",
 	ReadOnly: true,
@@ -160,6 +162,7 @@ var ListLogbook = &operation.Op[ListLogbookInput, LogbookPage]{
 // newest first.
 var ListServerLogbook = &operation.Op[ListLogbookInput, LogbookPage]{
 	Name:        "list_logbook",
+	Title:       "Read the server's Logbook",
 	Description: "Read the latest entries of the server's Logbook, newest first.",
 	Level:       operation.ServerAdmin,
 	ReadOnly:    true,

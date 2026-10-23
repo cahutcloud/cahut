@@ -131,7 +131,8 @@ type CreateRoomInput struct {
 // CreateRoom creates a team Room, whose first owner is the person who calls
 // it, or the one an administrator names.
 var CreateRoom = &operation.Op[CreateRoomInput, Room]{
-	Name: "create_room",
+	Name:  "create_room",
+	Title: "Create a team Room",
 	Description: "Create a team Room, at <domain>/<name>/. You become its owner, and can then add members. " +
 		"Windows published in it are for its members.",
 	Run: func(ctx context.Context, c *operation.Call, in CreateRoomInput) (Room, error) {
@@ -228,6 +229,7 @@ type List struct {
 // for an administrator.
 var ListRooms = &operation.Op[ListRoomsInput, List]{
 	Name:        "list_rooms",
+	Title:       "List Rooms",
 	Description: "List your Rooms, your personal Room first, with your role and how many members and Windows each has.",
 	ReadOnly:    true,
 	Run: func(ctx context.Context, c *operation.Call, in ListRoomsInput) (List, error) {
@@ -293,6 +295,7 @@ type Person struct {
 // GetRoom describes a Room and lists its members.
 var GetRoom = &operation.Op[GetInput, Detail]{
 	Name:        "get_room",
+	Title:       "Describe a Room",
 	Description: "Describe a Room: its title, its owners and members, and how many Windows it holds.",
 	ReadOnly:    true,
 	Run: func(ctx context.Context, c *operation.Call, in GetInput) (Detail, error) {
@@ -346,6 +349,7 @@ type UpdateRoomInput struct {
 // UpdateRoom changes the title of a Room.
 var UpdateRoom = &operation.Op[UpdateRoomInput, Detail]{
 	Name:        "update_room",
+	Title:       "Retitle a Room",
 	Description: "Change the title of a Room. Its name, and so its address, stays.",
 	Run: func(ctx context.Context, c *operation.Call, in UpdateRoomInput) (Detail, error) {
 		title := strings.TrimSpace(in.Title)
@@ -379,6 +383,7 @@ type MemberInput struct {
 // AddMember adds a person to a team Room.
 var AddMember = &operation.Op[MemberInput, Detail]{
 	Name:        "add_room_member",
+	Title:       "Add a member to a Room",
 	Description: "Add a person to a team Room, as a member or an owner. They can then open and publish its Windows.",
 	KnockFirst:  true,
 	Run: func(ctx context.Context, c *operation.Call, in MemberInput) (Detail, error) {
@@ -408,6 +413,7 @@ var AddMember = &operation.Op[MemberInput, Detail]{
 // SetMemberRole makes a person of a team Room an owner or a member.
 var SetMemberRole = &operation.Op[MemberInput, Detail]{
 	Name:        "set_room_member_role",
+	Title:       "Change a role in a Room",
 	Description: "Make a person of a team Room an owner or a member of it. A Room keeps at least one owner.",
 	KnockFirst:  true,
 	Run: func(ctx context.Context, c *operation.Call, in MemberInput) (Detail, error) {
@@ -439,7 +445,8 @@ type RemoveMemberInput struct {
 
 // RemoveMember removes a person from a team Room. Anyone can leave a Room.
 var RemoveMember = &operation.Op[RemoveMemberInput, Detail]{
-	Name: "remove_room_member",
+	Name:  "remove_room_member",
+	Title: "Remove a member from a Room",
 	Description: "Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. " +
 		"A Room keeps at least one owner.",
 	KnockFirst: true,

@@ -177,7 +177,8 @@ type Authorization struct {
 
 func (s *Server) describeOp() *operation.Op[DescribeInput, Authorization] {
 	return &operation.Op[DescribeInput, Authorization]{
-		Name: "describe_authorization",
+		Name:  "describe_authorization",
+		Title: "Describe a connection request",
 		Description: "Check the request of an AI client to connect to this Cahut, and describe it to the person who consents: " +
 			"the client, where it will be sent back, the scope it asks for, and the Rooms the person may grant.",
 		PeopleOnly: true,
@@ -222,7 +223,8 @@ type Redirect struct {
 
 func (s *Server) approveOp() *operation.Op[ApproveInput, Redirect] {
 	return &operation.Op[ApproveInput, Redirect]{
-		Name: "approve_authorization",
+		Name:  "approve_authorization",
+		Title: "Connect an AI",
 		Description: "Connect an AI client to this Cahut, for the person who consents, with the scope and the Rooms they grant. " +
 			"Returns the address that sends the browser back to the client, with its authorization code.",
 		PeopleOnly: true,
@@ -322,6 +324,7 @@ type DenyInput struct {
 func (s *Server) denyOp() *operation.Op[DenyInput, Redirect] {
 	return &operation.Op[DenyInput, Redirect]{
 		Name:        "deny_authorization",
+		Title:       "Refuse an AI",
 		Description: "Refuse the request of an AI client to connect to this Cahut. Returns the address that tells the client so.",
 		PeopleOnly:  true,
 		Run: func(ctx context.Context, c *operation.Call, in DenyInput) (Redirect, error) {
