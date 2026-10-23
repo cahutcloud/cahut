@@ -70,6 +70,7 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 	}
 	operation.Register(s.Registry, s.AddDomain)
 	operation.Register(s.Registry, ListDomains)
+	operation.Register(s.Registry, RenameDomain)
 	operation.Register(s.Registry, cahut.ListServerLogbook)
 	registerAdmins(s.Registry)
 	s.registerUpdates(s.Registry)
@@ -90,7 +91,7 @@ type Info struct {
 
 // AddDomainInput is the input of add_domain.
 type AddDomainInput struct {
-	Domain string      `json:"domain" jsonschema:"the domain of the new Cahut, such as cahut.example.com"`
+	Domain string      `json:"domain" jsonschema:"the domain of the new Cahut, such as cahut.example.com, or the public IPv4 address of the server, for a Cahut without a domain"`
 	Admin  *FirstAdmin `json:"admin,omitempty" jsonschema:"the first administrator of the Cahut, a person of it"`
 }
 
@@ -106,11 +107,30 @@ type NewCahut struct {
 	Admin *account.NewUser `json:"admin,omitempty" jsonschema:"the first administrator of the Cahut, with their activation link"`
 }
 
+// cleanAddress returns the address of a Cahut as it is kept: in lowercase,
+// without a final dot.
+func cleanAddress(s string) string {
+	return strings.TrimSuffix(strings.ToLower(strings.TrimSpace(s)), ".")
+}
+
+// checkAddress returns an error that says what is wrong with the address
+// of a Cahut. See docs/adr/0026-cahut-at-an-ip-address.md.
+func checkAddress(given, domain string) error {
+	if address.ValidAddress(domain) {
+		return nil
+	}
+	if address.IsIP(domain) {
+		return operation.Invalidf("%q is not the public IPv4 address of a server: a Cahut without a domain takes "+
+			"the public IPv4 address of its server, not a private, local or IPv6 address", given)
+	}
+	return operation.Invalidf("%q is not a domain name, such as cahut.example.com, or the public IPv4 address of the server", given)
+}
+
 func (s *Server) addDomain(ctx context.Context, c *operation.Call, in AddDomainInput) (NewCahut, error) {
-	domain := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(in.Domain)), ".")
+	domain := cleanAddress(in.Domain)
 	c.Log(domain, "")
-	if !address.ValidDomain(domain) {
-		return NewCahut{}, operation.Invalidf("%q is not a domain name, such as cahut.example.com; IP addresses are not supported", in.Domain)
+	if err := checkAddress(in.Domain, domain); err != nil {
+		return NewCahut{}, err
 	}
 	n := NewCahut{Info: Info{Domain: domain, CreatedAt: c.Now}}
 	err := c.Tx.QueryRowContext(ctx, "INSERT INTO cahuts (domain, created_at) VALUES (?, ?) ON CONFLICT DO NOTHING RETURNING id",
@@ -142,6 +162,58 @@ func (s *Server) addDomain(ctx context.Context, c *operation.Call, in AddDomainI
 		c.Log(domain, "with "+u.Handle)
 	}
 	return n, created.Close()
+}
+
+// RenameDomainInput is the input of rename_domain.
+type RenameDomainInput struct {
+	Domain string `json:"domain" jsonschema:"the domain or the address of the Cahut now"`
+	To     string `json:"to" jsonschema:"its new domain, such as cahut.example.com, which must point to this server, or the public IPv4 address of the server"`
+}
+
+// RenameDomain moves a Cahut to another domain, or from the IP address of
+// the server to a domain. Everything in it stays; its old address serves
+// nothing any more. See docs/adr/0026-cahut-at-an-ip-address.md.
+var RenameDomain = &operation.Op[RenameDomainInput, Info]{
+	Name: "rename_domain",
+	Description: "Move a Cahut to another domain, or from the IP address of the server to a domain. " +
+		"Its people, Rooms, Windows, house style and Logbook stay; the links that name its old address stop working, " +
+		"and AIs connect again at the new one.",
+	Level: operation.ServerAdmin,
+	Run: func(ctx context.Context, c *operation.Call, in RenameDomainInput) (Info, error) {
+		from, to := cleanAddress(in.Domain), cleanAddress(in.To)
+		c.Log(from, "to "+to)
+		if err := checkAddress(in.To, to); err != nil {
+			return Info{}, err
+		}
+		var info Info
+		var created string
+		err := c.Tx.QueryRowContext(ctx, "SELECT id, created_at FROM cahuts WHERE domain = ?", from).Scan(&info.ID, &created)
+		if errors.Is(err, sql.ErrNoRows) {
+			return Info{}, operation.NotFoundf("no Cahut at %s: list_domains lists them", from)
+		}
+		if err != nil {
+			return Info{}, err
+		}
+		if from == to {
+			return Info{}, operation.Invalidf("the Cahut is at %s already", to)
+		}
+		res, err := c.Tx.ExecContext(ctx, "UPDATE cahuts SET domain = ? WHERE id = ? AND NOT EXISTS (SELECT 1 FROM cahuts WHERE domain = ?)",
+			to, info.ID, to)
+		if err != nil {
+			return Info{}, err
+		}
+		if n, err := res.RowsAffected(); err != nil || n != 1 {
+			return Info{}, errors.Join(err, operation.Invalidf("%s is already the address of a Cahut", to))
+		}
+		// The sessions of administrators hold at a domain: those at the
+		// old one end.
+		if _, err := c.Tx.ExecContext(ctx, "DELETE FROM admin_sessions WHERE domain = ?", from); err != nil {
+			return Info{}, err
+		}
+		info.Domain = to
+		info.CreatedAt, err = store.ParseTime(created)
+		return info, err
+	},
 }
 
 // ListDomainsInput is the input of list_domains.
@@ -200,10 +272,16 @@ func (s *Server) Domains(ctx context.Context) ([]string, error) {
 	return domains, rows.Err()
 }
 
+// CahutID returns the id of the Cahut at domain, which stays when its
+// domain changes, or an error wrapping operation.ErrNotFound.
+func (s *Server) CahutID(ctx context.Context, domain string) (int64, error) {
+	return s.lookup(ctx, domain)
+}
+
 // lookup returns the id of the Cahut at domain, or an error wrapping
 // operation.ErrNotFound.
 func (s *Server) lookup(ctx context.Context, domain string) (int64, error) {
-	if !address.ValidDomain(domain) {
+	if !address.ValidAddress(domain) {
 		return 0, operation.NotFoundf("no Cahut at %q", domain)
 	}
 	var id int64

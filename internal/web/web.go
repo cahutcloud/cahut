@@ -118,6 +118,7 @@ type Server struct {
 
 // site is an open Cahut and its MCP endpoint.
 type site struct {
+	id    int64 // of the Cahut, which stays when its domain changes
 	cahut *cahut.Cahut
 	mcp   http.Handler
 }
@@ -248,20 +249,48 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // neither the reader's session nor the storage of the domain.
 const defaultPolicy = "sandbox; default-src 'none'; base-uri 'none'; form-action 'none'"
 
-// site returns the open Cahut at domain, opening it on first use.
+// site returns the open Cahut at domain, opening it on first use. It reads
+// the domains of the server each time, so that a Cahut moved to another
+// domain, even from the command line, no longer answers at the old one.
+// See docs/adr/0026-cahut-at-an-ip-address.md.
 func (s *Server) site(ctx context.Context, domain string) (*site, error) {
+	id, err := s.srv.CahutID(ctx, domain)
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if st, ok := s.sites[domain]; ok {
+	st, ok := s.sites[domain]
+	switch {
+	case err != nil:
+		if ok && errors.Is(err, operation.ErrNotFound) {
+			s.retire(domain, st)
+		}
+		return nil, err
+	case ok && st.id == id:
 		return st, nil
+	}
+	// The Cahut is open once: under its old domain, it goes.
+	for d, other := range s.sites {
+		if other.id == id || d == domain {
+			s.retire(d, other)
+		}
 	}
 	c, err := s.srv.OpenCahut(ctx, domain)
 	if err != nil {
 		return nil, err
 	}
-	st := &site{cahut: c, mcp: s.mcpHandler(c)}
+	st = &site{id: id, cahut: c, mcp: s.mcpHandler(c)}
 	s.sites[domain] = st
 	return st, nil
+}
+
+// retire forgets the open Cahut at domain, and closes it once the requests
+// it serves are likely done. s.mu is held.
+func (s *Server) retire(domain string, st *site) {
+	delete(s.sites, domain)
+	time.AfterFunc(time.Minute, func() {
+		if err := st.cahut.Close(); err != nil {
+			s.log.Warn("close a Cahut that moved", "cahut", domain, "error", err)
+		}
+	})
 }
 
 // hostOf returns the host a request is for, in lowercase and without port.
@@ -421,14 +450,13 @@ func (s *Server) Run(ctx context.Context) error {
 		return serve(ctx, srv, srv.ListenAndServe)
 	}
 
-	magic, issuer, err := s.certificates(ctx, domains)
+	c, err := s.certificates(ctx, domains)
 	if err != nil {
 		return err
 	}
 	https := s.httpServer(s.cfg.HTTPSAddr, s)
-	https.TLSConfig = magic.TLSConfig()
-	https.TLSConfig.NextProtos = append([]string{"h2", "http/1.1"}, https.TLSConfig.NextProtos...)
-	plain := s.httpServer(s.cfg.HTTPAddr, s.localHealth(issuer.HTTPChallengeHandler(redirectToHTTPS{srv: s.srv})))
+	https.TLSConfig = c.tlsConfig()
+	plain := s.httpServer(s.cfg.HTTPAddr, s.localHealth(c.issuer.HTTPChallengeHandler(redirectToHTTPS{srv: s.srv})))
 
 	s.log.Info("serving over HTTPS", "cahuts", domains, "console", ConsolePath)
 	return serveAll(ctx,

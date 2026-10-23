@@ -2,6 +2,7 @@
 # Install or update Cahut on a Linux server with systemd.
 #
 #   sudo sh install.sh --domain cahut.example.com [--email you@example.com]
+#   sudo sh install.sh --ip 203.0.113.7
 #
 # The script downloads a release from GitHub and checks its signature and
 # its checksum, or takes a binary you give it with --binary. It then creates the cahut system
@@ -16,6 +17,11 @@
 #   --domain DOMAIN   domain of a Cahut to declare on this server, such as
 #                     cahut.example.com; it must point to this server. Run
 #                     the script again with another domain to add a Cahut.
+#   --ip ADDRESS      without a domain, the public IPv4 address of this
+#                     server, where a Cahut answers with a certificate of
+#                     its own; it moves to a domain later. Without --domain
+#                     and --ip, the script takes the address of the default
+#                     route when it is public
 #   --email EMAIL     contact of the Let's Encrypt account (optional)
 #   --staging         use Let's Encrypt's staging environment, for tests
 #   --version TAG     release to install, such as v0.4.0 (default: latest);
@@ -38,6 +44,7 @@ set -eu
 
 repo="${CAHUT_REPO:-getcahut/cahut}"
 domain=""
+ip=""
 email=""
 ca=""
 tag="latest"
@@ -59,6 +66,7 @@ die() { printf 'cahut: %s\n' "$*" >&2; exit 1; }
 while [ $# -gt 0 ]; do
 	case "$1" in
 	--domain) domain="${2:?--domain needs a value}"; shift 2 ;;
+	--ip) ip="${2:?--ip needs a value}"; shift 2 ;;
 	--email) email="${2:?--email needs a value}"; shift 2 ;;
 	--staging) ca=staging; shift ;;
 	--version) tag="${2:?--version needs a value}"; shift 2 ;;
@@ -71,14 +79,36 @@ done
 
 [ "$(id -u)" -eq 0 ] || die "run this script as root, for instance with sudo"
 command -v systemctl >/dev/null || die "systemd is required"
-if [ -z "$domain" ] && [ ! -f "$env_file" ]; then
-	die "give the domain of your first Cahut with --domain"
+# public_ip ADDRESS succeeds when ADDRESS is an IPv4 address that the world
+# can reach: not private, loopback, link-local or shared. cahut checks it
+# again when it declares it.
+public_ip() {
+	printf '%s' "$1" | grep -Eq '^[0-9]{1,3}(\.[0-9]{1,3}){3}$' || return 1
+	case "$1" in
+	10.* | 127.* | 169.254.* | 192.168.* | 0.*) return 1 ;;
+	172.1[6-9].* | 172.2[0-9].* | 172.3[01].*) return 1 ;;
+	100.6[4-9].* | 100.[7-9][0-9].* | 100.1[01][0-9].* | 100.12[0-7].*) return 1 ;;
+	esac
+}
+
+[ -z "$domain" ] || [ -z "$ip" ] || die "give --domain or --ip, not both"
+if [ -n "$ip" ]; then
+	public_ip "$ip" || die "$ip is not a public IPv4 address"
+	domain=$ip
+elif [ -z "$domain" ] && [ ! -f "$env_file" ]; then
+	# A first install without a domain: the Cahut takes the address of the
+	# server. Behind NAT, the machine does not know its public address.
+	ip=$(ip -4 route get 1.1.1.1 2>/dev/null | sed -n 's/.* src \([0-9.]*\).*/\1/p')
+	public_ip "$ip" ||
+		die "give the domain of your first Cahut with --domain, or the public IPv4 address of this server with --ip"
+	say "no --domain: the Cahut takes the address of this server, $ip"
+	domain=$ip
 fi
 case "$updates" in
 "" | patch | all | check | off) ;;
 *) die "--updates takes patch, all, check or off" ;;
 esac
-if [ -n "$domain" ]; then
+if [ -n "$domain" ] && [ -z "$ip" ]; then
 	domain=$(printf '%s' "$domain" | tr 'A-Z' 'a-z')
 	printf '%s' "$domain" | grep -Eq '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$' ||
 		die "$domain is not a domain name"

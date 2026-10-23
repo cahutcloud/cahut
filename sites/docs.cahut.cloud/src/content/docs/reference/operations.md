@@ -79,6 +79,7 @@ They are not offered over MCP.
 | `list_admins` | List the administrators of the server. | Administrators of the server | no | no |
 | `list_domains` | List the Cahuts of this server and their domains. | Administrators of the server | no | no |
 | `list_logbook` | Read the latest entries of the server's Logbook, newest first. | Administrators of the server | no | no |
+| `rename_domain` | Move a Cahut to another domain, or from the IP address of the server to a domain. Its people, Rooms, Windows, house style and Logbook stay; the links that name its old address stop working, and AIs connect again at the new one. | Administrators of the server | yes | no |
 | `request_update` | Ask the updater of the server to check for new releases, or to install a release newer than the one running. It runs as root within a minute, checks the signature, and goes back to the version running if the new one fails. | Administrators of the server | yes | no |
 | `sign_in` | Sign in as an administrator of the server, with a handle and a password, and open a session at this domain. | Anyone, to sign in | yes | no, people only |
 | `sign_out` | End the session you signed in with, as an administrator of the server. | Administrators of the server | yes | no, people only |

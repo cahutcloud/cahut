@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"cahut.cloud/internal/account"
+	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/operation"
@@ -25,6 +26,7 @@ var admin = operation.Actor{Kind: operation.Admin, Via: "cli"}
 var domainCommands = []command{
 	{name: "add", summary: "Declare a domain, which creates its Cahut", run: runDomainAdd},
 	{name: "list", summary: "List the Cahuts of this server", run: runDomainList},
+	{name: "rename", summary: "Move a Cahut to another domain, or from the IP address of the server to a domain", run: runDomainRename},
 }
 
 var adminCommands = []command{
@@ -132,11 +134,35 @@ func runDomainAdd(args []string, stdout, stderr io.Writer) int {
 	if !ok {
 		return exitError
 	}
-	fmt.Fprintf(stdout, "Declared %s: its Cahut is ready. Point its DNS to this server, then serve it.\n", n.Domain)
+	if address.IsIP(n.Domain) {
+		fmt.Fprintf(stdout, "Declared a Cahut at %s, without a domain. Move it to one later with cahut domain rename.\n", n.Domain)
+	} else {
+		fmt.Fprintf(stdout, "Declared %s: its Cahut is ready. Point its DNS to this server, then serve it.\n", n.Domain)
+	}
 	if u := n.Admin; u != nil {
 		fmt.Fprintf(stdout, "\nCreated %s (%s), admin of %s, with a personal Room at %s/%s.\n\n", u.Handle, u.Name, n.Domain, n.Domain, u.PersonalRoom)
 		printActivation(stdout, web.ActivationURL(n.Domain), *u.Activation)
 	}
+	return exitOK
+}
+
+func runDomainRename(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("domain rename", stderr)
+	data := dataFlag(fs)
+	fs.Usage = func() {
+		fmt.Fprintln(stderr, "Usage: cahut domain rename [--data DIR] <domain> <new domain>")
+		fs.PrintDefaults()
+	}
+	rest, code, ok := parseWithArgs(fs, args, 2)
+	if !ok {
+		return code
+	}
+	info, ok := onServer(*data, server.RenameDomain, server.RenameDomainInput{Domain: rest[0], To: rest[1]}, stderr)
+	if !ok {
+		return exitError
+	}
+	fmt.Fprintf(stdout, "The Cahut of %s is now at https://%s/. Its links to %s stop working; AIs connect again at https://%s/mcp.\n",
+		rest[0], info.Domain, rest[0], info.Domain)
 	return exitOK
 }
 

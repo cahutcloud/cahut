@@ -610,3 +610,43 @@ func TestLocalHealth(t *testing.T) {
 		}
 	}
 }
+
+// A Cahut at the IP address of its server answers there, and once moved to
+// a domain, at the domain only, without a restart. See
+// docs/adr/0026-cahut-at-an-ip-address.md.
+func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	if _, err := operation.Do(ctx, f.srv.Registry, f.srv.AddDomain, admin, server.AddDomainInput{Domain: "203.0.113.7"}); err != nil {
+		t.Fatal(err)
+	}
+	for _, host := range []string{"203.0.113.7", "203.0.113.7:443"} {
+		if resp, body := f.get(t, host, http.MethodGet, "/"); resp.StatusCode != http.StatusOK || !strings.Contains(body, "<h1>203.0.113.7</h1>") {
+			t.Errorf("GET %s/ = %d %q", host, resp.StatusCode, body)
+		}
+	}
+	if _, err := operation.Do(ctx, f.srv.Registry, server.RenameDomain, admin,
+		server.RenameDomainInput{Domain: "203.0.113.7", To: "gamma.localhost"}); err != nil {
+		t.Fatal(err)
+	}
+	if resp, _ := f.get(t, "203.0.113.7", http.MethodGet, "/"); resp.StatusCode != http.StatusMisdirectedRequest {
+		t.Errorf("GET at the old address = %d, want 421", resp.StatusCode)
+	}
+	if resp, body := f.get(t, "gamma.localhost", http.MethodGet, "/"); resp.StatusCode != http.StatusOK || !strings.Contains(body, "<h1>gamma.localhost</h1>") {
+		t.Errorf("GET at the new domain = %d %q", resp.StatusCode, body)
+	}
+	// Moved back, the Cahut is opened once, at its address.
+	if _, err := operation.Do(ctx, f.srv.Registry, server.RenameDomain, admin,
+		server.RenameDomainInput{Domain: "gamma.localhost", To: "203.0.113.7"}); err != nil {
+		t.Fatal(err)
+	}
+	if resp, _ := f.get(t, "203.0.113.7", http.MethodGet, "/"); resp.StatusCode != http.StatusOK {
+		t.Errorf("GET at the address again = %d", resp.StatusCode)
+	}
+	f.web.mu.Lock()
+	open := len(f.web.sites)
+	f.web.mu.Unlock()
+	if open != 1 {
+		t.Errorf("%d Cahuts open, want the moved one only", open)
+	}
+}

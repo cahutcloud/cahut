@@ -29,8 +29,9 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [23](0023-house-style-inactive-for-ais.md) | The house style can be inactive for AIs | Accepted |
 | [24](0024-signed-releases-and-updates.md) | Releases are signed, and servers update themselves with a rollback | Accepted |
 | [25](0025-first-start-in-the-browser.md) | The first start is guided in the browser, from a single-use link | Accepted |
-| [26](0026-cahut-at-an-ip-address.md) | A Cahut can live at the IP address of its server until it has a domain | Accepted |
+| [26](0026-cahut-at-an-ip-address.md) | A Cahut can live at the IP address of its server until it has a domain | Accepted, superseded in part by 28 |
 | [27](0027-previews-of-windows-in-the-console.md) | The console shows each Window in a live preview | Accepted |
+| [28](0028-ip-address-of-a-cahut-is-ipv4.md) | The IP address of a Cahut is an IPv4 address, for now | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 
