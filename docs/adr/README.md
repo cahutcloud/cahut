@@ -10,8 +10,8 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [4](0004-sqlite-in-pure-go.md) | SQLite in pure Go | Accepted, extended by 8 |
 | [5](0005-preact-console-embedded.md) | The console is a Preact app embedded in the binary | Accepted, superseded in part by 11 |
 | [6](0006-in-house-oauth-server.md) | Cahut runs its own minimal OAuth authorization server | Accepted, extended by 16 |
-| [7](0007-module-path-repository-and-releases.md) | Module path, repository and releases | Accepted |
-| [8](0008-several-cahuts-per-server.md) | A server holds several Cahuts, each at its own domain | Accepted |
+| [7](0007-module-path-repository-and-releases.md) | Module path, repository and releases | Accepted, extended by 24 |
+| [8](0008-several-cahuts-per-server.md) | A server holds several Cahuts, each at its own domain | Accepted, extended by 26 |
 | [9](0009-rooms-and-windows-as-paths.md) | Rooms and Windows are paths of their Cahut's domain | Accepted, extended by 22 |
 | [10](0010-windows-in-a-csp-sandbox.md) | Windows run in a CSP sandbox | Accepted |
 | [11](0011-console-on-its-own-port.md) | The console has its own port | Accepted, superseded in part by 13, 17 and 20 |
@@ -27,6 +27,9 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [21](0021-ais-knock-first.md) | An AI knocks first, and the person it acts for answers | Accepted |
 | [22](0022-house-style-of-each-cahut.md) | Each Cahut has a house style, served to its Windows and given to AIs | Accepted, extended by 23 |
 | [23](0023-house-style-inactive-for-ais.md) | The house style can be inactive for AIs | Accepted |
+| [24](0024-signed-releases-and-updates.md) | Releases are signed, and servers update themselves with a rollback | Accepted |
+| [25](0025-first-start-in-the-browser.md) | The first start is guided in the browser, from a single-use link | Accepted |
+| [26](0026-cahut-at-an-ip-address.md) | A Cahut can live at the IP address of its server until it has a domain | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

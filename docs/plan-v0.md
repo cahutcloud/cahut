@@ -138,6 +138,8 @@ Le détail du lot est dans le [plan du lot 6](plan-lot-6.md).
 
 ### Lot 7 · Installation, premier démarrage, mises à jour
 
+Le détail du lot est dans le [plan du lot 7](plan-lot-7.md).
+
 - Une commande sur AlmaLinux et Ubuntu vierges : utilisateur système, service systemd avec `CAP_NET_BIND_SERVICE`, pare-feu (firewalld ou ufw) pour les ports 80 et 443, contextes SELinux sur AlmaLinux, commande `cahut doctor` pour diagnostiquer, rappel d'ouvrir ces ports chez l'hébergeur.
 - Premier démarrage guidé dans le navigateur, ouvert par un lien à usage unique affiché en fin d'installation : administrateur du serveur, premier Cahut et son domaine, house style de base, première IA (adresse MCP à copier, pas à pas pour chaque client). Adresse de repli sans domaine à trancher : un certificat d'adresse IP est une piste.
 - Mises à jour : vérification des releases GitHub signées, remplacement du binaire, contrôle de santé, retour arrière automatique.
@@ -195,7 +197,7 @@ Proposition d'ordre pour atteindre le périmètre complet du lancement, en répo
 ## Questions ouvertes
 
 - [x] Une Window ouverte par l'IA en interne ou avec une Key doit-elle frapper (Knock first) ? Non : seul l'accès public frappe ([ADR 19](adr/0019-window-versions-access-and-declaration.md)).
-- [ ] Quelle adresse de repli pour essayer Cahut sans domaine ?
+- [x] Quelle adresse de repli pour essayer Cahut sans domaine ? L'adresse IP du serveur, avec un certificat de Let's Encrypt pour cette adresse ([ADR 26](adr/0026-cahut-at-an-ip-address.md)).
 - [x] La liste des actions irréversibles de la V0 est-elle la bonne ? Oui, telle que proposée ([ADR 21](adr/0021-ais-knock-first.md)) ; effacer des sauvegardes frappera quand elles viendront.
 - [x] Quelle expiration par défaut pour un Knock ? 24 heures, sans réglage en V0 ([ADR 21](adr/0021-ais-knock-first.md)).
 - [ ] Le deuxième client de la recette : ChatGPT ou Le Chat ?
