@@ -504,3 +504,19 @@ func current(ctx context.Context, db *store.DB, room, name string) (int64, int, 
 	w, err := Lookup(ctx, db, room, name, time.Now())
 	return w.ID, w.Version, err
 }
+
+// TestFullDiskRefusesPublications checks that a Cahut refuses to publish
+// rather than fill the disk that every Cahut of the server shares.
+func TestFullDiskRefusesPublications(t *testing.T) {
+	f := setup(t)
+	free := uint64(MinFreeSpace + 1<<20)
+	defer func(old func(string) (uint64, error)) { freeSpace = old }(freeSpace)
+	freeSpace = func(string) (uint64, error) { return free, nil }
+	if _, err := f.invoke(t, f.olivier, "publish_window", deck); err != nil {
+		t.Fatalf("publish with room on the disk: %v", err)
+	}
+	free = MinFreeSpace
+	if _, err := f.invoke(t, f.olivier, "publish_window", strings.Replace(deck, "Revue", "Autre revue", 1)); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "almost full") {
+		t.Errorf("publish on a full disk: err = %v", err)
+	}
+}

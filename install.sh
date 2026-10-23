@@ -275,6 +275,11 @@ LockPersonality=yes
 MemoryDenyWriteExecute=yes
 SystemCallArchitectures=native
 UMask=0027
+# Past MemoryHigh, the service is slowed to give way to the rest of the
+# machine, such as SSH; past MemoryMax, the kernel ends it, and systemd
+# starts it again.
+MemoryHigh=75%
+MemoryMax=85%
 
 [Install]
 WantedBy=multi-user.target

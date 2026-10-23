@@ -45,6 +45,8 @@ The running service serves the new Cahut at once, and gets its certificate at th
 sudo -u cahut /usr/local/bin/cahut setup --domain docs.example.org
 ```
 
+While the server has no administrator, the first person of any of its Cahuts also becomes the administrator of the server: the command says so, and the link is then for the person who looks after the whole server.
+
 ## Move a Cahut to another domain
 
 ```bash

@@ -44,6 +44,24 @@ const instructions = `Cahut keeps what you make on the user's own server, as Win
 	`once the person has answered its Knock, get_knock gives the outcome. ` +
 	`Every call is recorded in the Logbook of the Cahut.`
 
+// An AI opens MCP sessions with its token: a burst of MCPSessionBurst, then
+// one every MCPSessionEvery, so that one token cannot keep thousands of
+// sessions in memory for an hour.
+const (
+	MCPSessionBurst = 20
+	MCPSessionEvery = 3 * time.Second
+)
+
+// Requests to /mcp larger than BigRequest, such as a publication with
+// images, are served BigRequests at a time: each takes several times its
+// size in memory while it is decoded. The others wait their turn, up to
+// BigRequestWait.
+const (
+	BigRequest     = 4 << 20
+	BigRequests    = 2
+	BigRequestWait = time.Minute
+)
+
 // mcpHandler returns the MCP endpoint (Streamable HTTP) of the Cahut c, which
 // asks for a personal token of c. It offers an AI the operations of c that
 // its person may call, as tools.
@@ -80,13 +98,49 @@ func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
 	verify := func(ctx context.Context, token string, _ *http.Request) (*auth.TokenInfo, error) {
 		return s.verifyToken(ctx, c, token)
 	}
+	limited := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost && r.Header.Get("Mcp-Session-Id") == "" && !s.mcpSessions.allow(sessionKey(c, r)) {
+			w.Header().Set("Retry-After", "10")
+			http.Error(w, "Too many MCP sessions opened with this token: wait a few seconds.", http.StatusTooManyRequests)
+			return
+		}
+		if r.ContentLength > BigRequest || r.ContentLength < 0 && r.Method == http.MethodPost {
+			timer := time.NewTimer(BigRequestWait)
+			defer timer.Stop()
+			select {
+			case s.bigRequests <- struct{}{}:
+				defer func() { <-s.bigRequests }()
+			case <-timer.C:
+				w.Header().Set("Retry-After", "30")
+				http.Error(w, "The server is busy with other large requests: try again in a moment.", http.StatusServiceUnavailable)
+				return
+			case <-r.Context().Done():
+				return
+			}
+		}
+		handler.ServeHTTP(w, r)
+	})
 	// A request without a valid token learns where to get one: the
 	// metadata of the resource names the Cahut's authorization server.
 	// Personal tokens do not expire.
 	return auth.RequireBearerToken(verify, &auth.RequireBearerTokenOptions{
 		ResourceMetadataURL:    s.resourceMetadataURL(c.Domain),
 		AllowMissingExpiration: true,
-	})(handler)
+	})(limited)
+}
+
+// sessionKey names the token of a request to the MCP endpoint of c, which
+// the bearer guard verified: a personal token, or a connection over OAuth.
+func sessionKey(c *cahut.Cahut, r *http.Request) string {
+	if info := auth.TokenInfoFromContext(r.Context()); info != nil {
+		if owner, ok := info.Extra["owner"].(account.Owner); ok {
+			if owner.Connection != 0 {
+				return c.Domain + " c" + strconv.FormatInt(owner.Connection, 10)
+			}
+			return c.Domain + " t" + strconv.FormatInt(owner.TokenID, 10)
+		}
+	}
+	return c.Domain + " " + clientKey(r)
 }
 
 func b2i(b bool) int {

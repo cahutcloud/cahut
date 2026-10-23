@@ -590,3 +590,51 @@ func TestHistoryKeepsTheLastUpdates(t *testing.T) {
 		t.Errorf("runs = %+v, last = %+v", runs, st.Last)
 	}
 }
+
+// TestSnapshotRefusesLinks checks that root copies no file that a link in
+// the data directory, which the service user owns, points to.
+func TestSnapshotRefusesLinks(t *testing.T) {
+	for name, plant := range map[string]func(t *testing.T, data, outside string){
+		"a file": func(t *testing.T, data, outside string) {
+			if err := os.MkdirAll(filepath.Join(data, "cahuts", "7"), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.Symlink(outside, filepath.Join(data, "cahuts", "7", "cahut.db")); err != nil {
+				t.Fatal(err)
+			}
+		},
+		"a folder": func(t *testing.T, data, outside string) {
+			if err := os.MkdirAll(filepath.Join(filepath.Dir(outside), "elsewhere"), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(filepath.Dir(outside), "elsewhere", "cahut.db"), []byte("secret"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.MkdirAll(filepath.Join(data, "cahuts"), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.Symlink(filepath.Join(filepath.Dir(outside), "elsewhere"), filepath.Join(data, "cahuts", "8")); err != nil {
+				t.Fatal(err)
+			}
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			f := newFixture(t, "0.4.0")
+			f.github.add(t, "0.4.1", f.key, nil)
+			outside := filepath.Join(t.TempDir(), "secret")
+			if err := os.WriteFile(outside, []byte("secret"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			plant(t, f.u.DataDir, outside)
+			if _, err := f.u.Run(context.Background(), Options{}); err == nil {
+				t.Error("an update went through a link in the data directory")
+			}
+			if v := f.installed(t); v != "0.4.0" {
+				t.Errorf("installed %s, want nothing changed", v)
+			}
+			if _, err := os.Stat(filepath.Join(f.u.StateDir, "snapshot", "cahuts")); err == nil {
+				t.Error("the snapshot holds a file that a link points to")
+			}
+		})
+	}
+}

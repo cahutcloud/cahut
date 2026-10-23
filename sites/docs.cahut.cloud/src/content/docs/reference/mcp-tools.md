@@ -28,6 +28,9 @@ The Cahut gives these instructions to the AI when it connects:
 | Files in one Window | 500 |
 | Size of the files of one Window, decoded | 32 MiB |
 | Size of one request to `/mcp` | about 43.7 MiB, room for the files in base64 |
+| Requests larger than 4 MiB served at once | 2, the others wait their turn |
+| Sessions opened with one token | 20 at once, then one every 3 seconds |
+| Space left free on the disk of the server | 1024 MiB, below which a publication is refused |
 
 ## Tools
 

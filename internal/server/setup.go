@@ -32,6 +32,9 @@ type SetupLink struct {
 	Domain    string    `json:"domain"`
 	Code      string    `json:"code" jsonschema:"the first person opens the console of the Cahut at /setup#<code>"`
 	ExpiresAt time.Time `json:"expires_at"`
+	// ServerAdmin warns whoever hands out the link: while the server has
+	// no administrator, the first set-up of any of its Cahuts makes one.
+	ServerAdmin bool `json:"server_admin" jsonschema:"whether the first person, today, would also become the administrator of the server, which has none"`
 }
 
 // SetupInput is the input of get_setup.
@@ -113,6 +116,11 @@ func (s *Server) createSetupLink(ctx context.Context, c *operation.Call, in Crea
 			"and its administrators add people at its console", domain))
 	}
 	link := SetupLink{Domain: domain, Code: credential.Token(""), ExpiresAt: c.Now.Add(SetupTTL)}
+	var admins int
+	if err := c.Tx.QueryRowContext(ctx, "SELECT count(*) FROM admins").Scan(&admins); err != nil {
+		return SetupLink{}, err
+	}
+	link.ServerAdmin = admins == 0
 	_, err = c.Tx.ExecContext(ctx, `
 		INSERT INTO setup_links (cahut_id, hash, created_at, expires_at) VALUES (?, ?, ?, ?)
 		ON CONFLICT (cahut_id) DO UPDATE SET hash = excluded.hash, created_at = excluded.created_at, expires_at = excluded.expires_at`,
