@@ -56,9 +56,9 @@ export default {
 			local: { label: 'On your machine', meta: 'Git · make · Go' },
 		},
 		comments: {
-			install: 'Install Cahut as a service, and declare your first Cahut',
-			account: 'Create your account, and a token for your AI',
-			connect: 'Add your Cahut to Claude Code, with the token',
+			install: 'Install Cahut as a service, with your first Cahut',
+			account: 'Open the link it prints: your account, your house style, your AI',
+			connect: 'Or add your Cahut to Claude Code yourself, and sign in',
 			build: 'Build Cahut from source',
 			declare: 'Declare a Cahut at localhost, with your account and a token',
 			serve: 'Serve it on http://localhost:8080',
@@ -73,7 +73,7 @@ export default {
 			label: 'You need',
 			items: [
 				'A Linux server with systemd',
-				'A domain that points to it',
+				'A domain that points to it, or its IPv4 address',
 				'Ports 80 and 443 open',
 				'An AI client that speaks MCP, such as Claude Code',
 			],

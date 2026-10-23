@@ -193,7 +193,7 @@ func (u *Updater) choose(releases []Release, opts Options, by string) (*Release,
 		candidates = append(candidates, r)
 	}
 	target := newestOf(candidates, false)
-	if target == nil {
+	if target == nil && !opts.Check { // a check reports on its own
 		u.say("cahut %s is up to date", u.Running)
 		if newest := newestOf(releases, false); newest != nil && runErr == nil && newest.Version.Compare(running) > 0 {
 			u.say("%s is available: install it with sudo %s update", newest.Version, u.BinPath)

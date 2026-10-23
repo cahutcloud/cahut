@@ -334,6 +334,9 @@ func TestTimerCheckAndOff(t *testing.T) {
 	if st.Check == nil || st.Check.Latest != "0.4.1" {
 		t.Errorf("check = %+v", st.Check)
 	}
+	if n := strings.Count(f.out.String(), "0.4.1 is available"); n != 1 {
+		t.Errorf("the check says %d times that 0.4.1 is available:\n%s", n, f.out)
+	}
 }
 
 func TestBrokenReleaseRollsBack(t *testing.T) {

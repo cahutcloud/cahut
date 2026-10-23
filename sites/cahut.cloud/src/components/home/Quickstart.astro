@@ -21,23 +21,15 @@ const tabs = [
 		steps: [
 			{
 				comment: t.comments.install,
-				lines: [
-					'curl -fsSLO https://raw.githubusercontent.com/getcahut/cahut/main/install.sh',
-					'sudo sh install.sh --domain cahut.example.com',
-				],
+				lines: ['curl -fsSL https://cahut.cloud/install.sh | sudo sh -s -- --domain cahut.example.com'],
 			},
 			{
 				comment: t.comments.account,
-				lines: [
-					'sudo -u cahut /usr/local/bin/cahut user create --handle you --name "Your Name" --admin',
-					'sudo -u cahut /usr/local/bin/cahut token create --user you --name "Claude Code"',
-				],
+				lines: ['https://cahut.example.com/console/setup#<code>'],
 			},
 			{
 				comment: t.comments.connect,
-				lines: [
-					'claude mcp add --transport http cahut https://cahut.example.com/mcp --header "Authorization: Bearer <token>"',
-				],
+				lines: ['claude mcp add --transport http cahut https://cahut.example.com/mcp', 'claude mcp login cahut'],
 			},
 		],
 	},
@@ -74,7 +66,7 @@ const escape = (text: string) =>
 	text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const highlight = (line: string) =>
 	escape(line).replace(
-		/cahut\.example\.com|&lt;token&gt;|&quot;Your Name&quot;|--handle you|--user you/g,
+		/cahut\.example\.com|&lt;token&gt;|&lt;code&gt;|&quot;Your Name&quot;|--handle you|--user you/g,
 		(match) => {
 			const [flag, value] = match.startsWith('--') ? match.split(' ') : ['', match];
 			return `${flag ? `${flag} ` : ''}<span class="term__var">${value}</span>`;

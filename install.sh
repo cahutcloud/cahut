@@ -384,7 +384,8 @@ as_cahut domain list | awk 'NR > 1 { print "  https://" $2 "/" }'
 # the binary by its full path: sudo searches only its secure_path, which
 # leaves out /usr/local/bin on AlmaLinux.
 echo
-if link=$(as_cahut setup --domain "$domain" 2>/dev/null); then
+people=$(as_cahut user list --domain "$domain" 2>/dev/null | awk 'NR > 1' | wc -l)
+if [ "$people" -eq 0 ] && link=$(as_cahut setup --domain "$domain" 2>/dev/null); then
 	printf '%s\n\n' "$link"
 	cat <<EOF
 It creates your account, sets the house style of your organization, and
