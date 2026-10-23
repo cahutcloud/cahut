@@ -659,7 +659,7 @@ export interface WindowList {
   windows: Window[];
 }
 
-/** The operations of a Cahut, at POST /api/<operation> on the console's port of its domain. */
+/** The operations of a Cahut, at POST /console/api/<operation> of its domain. */
 export interface CahutOperations {
   /** Choose a password from a single-use activation link, and sign in. */
   activate_account: { input: ActivateInput; output: AccountSession };
@@ -737,7 +737,7 @@ export interface CahutOperations {
   update_window: { input: UpdateInput; output: Window };
 }
 
-/** The operations of the server, at POST /api/server/<operation>, for its administrators. */
+/** The operations of the server, at POST /console/api/server/<operation>, for its administrators. */
 export interface ServerOperations {
   /** Choose a password from a single-use activation link, as an administrator of the server, and sign in. */
   activate_account: { input: ActivateInput; output: ServerSession };

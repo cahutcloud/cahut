@@ -7,6 +7,7 @@ import type { Activation, User } from "../api.gen";
 import { ConfirmButton, CopyField, Failure, initials, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
+import { href } from "../router";
 
 const statuses: Record<string, { word: string; badge: string }> = {
 	active: { word: "Active", badge: "c-badge--success" },
@@ -16,7 +17,7 @@ const statuses: Record<string, { word: string; badge: string }> = {
 
 /** The address where a person uses an activation code, at this console. */
 function activationLink(a: Activation): string {
-	return `${location.origin}/activate#${a.code}`;
+	return `${location.origin}${href("/activate")}#${a.code}`;
 }
 
 export function People() {

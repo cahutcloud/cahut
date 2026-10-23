@@ -18,10 +18,10 @@ import (
 	"cahut.cloud/internal/server"
 )
 
-// The HTTP API of the console calls each operation at its own route, on
-// the console's port: POST /api/<operation> for the operations of the
-// Cahut of the request's domain, and POST /api/server/<operation> for those
-// of the server. It takes session tokens only, reads no cookie and grants no
+// The HTTP API of the console calls each operation at its own route, under
+// the console's path: POST /console/api/<operation> for the operations of
+// the Cahut of the request's domain, and POST /console/api/server/<operation>
+// for those of the server. It takes session tokens only, reads no cookie and grants no
 // CORS access. See docs/adr/0014-console-http-api.md.
 
 // MaxAPIRequestSize bounds the body of a request to the API. The console

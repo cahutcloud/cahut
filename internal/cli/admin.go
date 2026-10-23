@@ -338,7 +338,7 @@ func printAdminActivation(w io.Writer, domain string, a account.Activation) {
 	if domain == "" {
 		fmt.Fprintln(w, "This server holds no Cahut yet. Once you declare one, put its domain in the link: "+
 			"it opens in the console of any Cahut of the server.")
-		printActivation(w, fmt.Sprintf("https://<domain>:%d/server/activate#", web.ConsolePort), a)
+		printActivation(w, "https://<domain>"+web.ConsolePath+"server/activate#", a)
 		return
 	}
 	printActivation(w, web.AdminActivationURL(domain), a)

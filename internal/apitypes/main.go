@@ -97,8 +97,8 @@ func generate(cahutOps, serverOps []operation.Info) string {
 		b.WriteString("\n")
 		g.declare(&b, t)
 	}
-	g.operations(&b, "CahutOperations", "The operations of a Cahut, at POST /api/<operation> on the console's port of its domain.", cahutOps)
-	g.operations(&b, "ServerOperations", "The operations of the server, at POST /api/server/<operation>, for its administrators.", serverOps)
+	g.operations(&b, "CahutOperations", "The operations of a Cahut, at POST /console/api/<operation> of its domain.", cahutOps)
+	g.operations(&b, "ServerOperations", "The operations of the server, at POST /console/api/server/<operation>, for its administrators.", serverOps)
 	return b.String()
 }
 

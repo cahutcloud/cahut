@@ -68,7 +68,7 @@ type Config struct {
 	// it.
 	Issuer string
 	// Authorize is the address of the consent screen, a page of the
-	// console, such as https://cahut.example.com:8443/oauth/authorize.
+	// console, such as https://cahut.example.com/console/oauth/authorize.
 	Authorize string
 	// Resource is the address of the MCP endpoint, such as
 	// https://cahut.example.com/mcp.

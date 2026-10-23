@@ -1,25 +1,44 @@
 // A small router over the History API: the console has a few pages, and
 // the server answers every one of their addresses with the app.
+//
+// The console is served under /console/ of its Cahut's domain (see
+// docs/adr/0020-console-under-a-path-of-port-443.md). Its pages name their
+// paths without that prefix, such as /logbook: the router adds it to the
+// address and takes it off again.
 import type { AccessibleAnchorHTMLAttributes, TargetedMouseEvent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 const changed = "cahut:navigate";
 
+/** The path of the console, without its final slash: /console. */
+export const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+/** Returns the address of the page at to, a path of the console. */
+export function href(to: string): string {
+	return to.startsWith("/") ? base + to : to;
+}
+
+/** Returns the path of the current page, without the console's prefix. */
+function current(): string {
+	const p = location.pathname;
+	return p === base ? "/" : p.startsWith(`${base}/`) ? p.slice(base.length) : p;
+}
+
 /** Goes to the page at to, as a link would. */
 export function navigate(to: string, replace = false): void {
 	if (replace) {
-		history.replaceState(null, "", to);
+		history.replaceState(null, "", href(to));
 	} else {
-		history.pushState(null, "", to);
+		history.pushState(null, "", href(to));
 	}
 	dispatchEvent(new Event(changed));
 }
 
 /** Returns the path of the current page, and follows it. */
 export function usePath(): string {
-	const [path, setPath] = useState(location.pathname);
+	const [path, setPath] = useState(current);
 	useEffect(() => {
-		const update = () => setPath(location.pathname);
+		const update = () => setPath(current());
 		addEventListener("popstate", update);
 		addEventListener(changed, update);
 		// A child may have navigated already, as Redirect does: the effects
@@ -42,7 +61,7 @@ export function Link(props: AccessibleAnchorHTMLAttributes<HTMLAnchorElement> & 
 		e.preventDefault();
 		navigate(props.href);
 	};
-	return <a {...props} onClick={onClick} />;
+	return <a {...props} href={href(props.href)} onClick={onClick} />;
 }
 
 /** Goes to the page at to once it renders. */

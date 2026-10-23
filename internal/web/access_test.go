@@ -290,7 +290,7 @@ func TestReaders(t *testing.T) {
 		"":                        "/",
 	} {
 		resp, _ := f.do(t, "localhost", http.MethodGet, "/-/sign-in?to="+url.QueryEscape(to), nil, nil)
-		if loc := resp.Header.Get("Location"); resp.StatusCode != http.StatusSeeOther || loc != "http://localhost:8081/read?to="+url.QueryEscape(want) {
+		if loc := resp.Header.Get("Location"); resp.StatusCode != http.StatusSeeOther || loc != "https://localhost/console/read?to="+url.QueryEscape(want) {
 			t.Errorf("sign in to %q = %d %q", to, resp.StatusCode, loc)
 		}
 	}
@@ -314,10 +314,10 @@ func TestReaders(t *testing.T) {
 	}
 	// A reader session is no session of the console.
 	reader := f.signIn(t, "localhost", "olivier")
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "http://localhost/api/get_account", strings.NewReader(`{}`))
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "http://localhost/console/api/get_account", strings.NewReader(`{}`))
 	req.Header.Set("Authorization", "Bearer "+reader.Value)
 	rec := httptest.NewRecorder()
-	f.web.Console().ServeHTTP(rec, req)
+	f.web.ServeHTTP(rec, req)
 	if rec.Code != http.StatusUnauthorized {
 		t.Errorf("the API with a reader session = %d, want 401", rec.Code)
 	}

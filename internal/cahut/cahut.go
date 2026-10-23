@@ -31,7 +31,7 @@ type Config struct {
 	// addresses are not needed, as on the command line.
 	BaseURL string
 	// ConsoleURL is the address of the console of the Cahut, such as
-	// https://cahut.example.com:8443/, where people consent to AI clients.
+	// https://cahut.example.com/console/, where people consent to AI clients.
 	// It may be empty, as BaseURL may.
 	ConsoleURL string
 }

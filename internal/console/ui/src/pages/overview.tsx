@@ -7,7 +7,7 @@ import type { NewCahut } from "../api.gen";
 import { CopyField, Failure, Notice, PageHead, plural, WindowCard } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
-import { Link } from "../router";
+import { href, Link } from "../router";
 import { RoomCards } from "./rooms";
 
 export function Overview() {
@@ -69,7 +69,7 @@ function ServerOverview() {
 						{c.domain === location.hostname ? (
 							<span class="c-small">You are at its console.</span>
 						) : (
-							<a class="c-link c-small" href={`${origin(c.domain)}/server/sign-in`}>
+							<a class="c-link c-small" href={`${origin(c.domain)}${href("/server/sign-in")}`}>
 								Open its console
 								<ArrowUpRight class="i" size={14} aria-hidden="true" />
 							</a>

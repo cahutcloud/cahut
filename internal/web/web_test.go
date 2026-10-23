@@ -399,7 +399,9 @@ func TestRouting(t *testing.T) {
 		{"beta.localhost", "/", http.StatusOK},
 		{"localhost", "/-/healthz", http.StatusOK},
 		{"localhost", "/-/nope", http.StatusNotFound},
-		{"localhost", "/console", http.StatusNotFound},
+		{"localhost", "/console", http.StatusMovedPermanently},
+		{"localhost", "/admin", http.StatusMovedPermanently},
+		{"localhost", "/admin/logbook", http.StatusMovedPermanently},
 		{"nope.localhost", "/", http.StatusMisdirectedRequest},
 		{"example.org", "/", http.StatusMisdirectedRequest},
 	}
@@ -421,11 +423,11 @@ func TestBaseURL(t *testing.T) {
 		t.Errorf("dev BaseURL = %q", got)
 	}
 	for domain, want := range map[string]string{
-		"cahut.example.com": "https://cahut.example.com:8443/",
-		"localhost.example": "https://localhost.example:8443/",
-		"localhost":         "http://localhost:8081/",
-		"beta.localhost":    "http://beta.localhost:8081/",
-		"notlocalhost":      "https://notlocalhost:8443/",
+		"cahut.example.com": "https://cahut.example.com/console/",
+		"localhost.example": "https://localhost.example/console/",
+		"localhost":         "http://localhost:8080/console/",
+		"beta.localhost":    "http://beta.localhost:8080/console/",
+		"notlocalhost":      "https://notlocalhost/console/",
 	} {
 		if got := ConsoleURL(domain); got != want {
 			t.Errorf("ConsoleURL(%q) = %q, want %q", domain, got, want)
@@ -502,7 +504,7 @@ func TestRunStopsWhenAPortIsTaken(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer taken.Close()
-	f.web.cfg = Config{Dev: true, DevAddr: "127.0.0.1:0", DevConsoleAddr: taken.Addr().String()}
+	f.web.cfg = Config{Dev: true, DevAddr: taken.Addr().String()}
 	done := make(chan error, 1)
 	go func() { done <- f.web.Run(context.Background()) }()
 	select {

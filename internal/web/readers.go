@@ -18,8 +18,8 @@ import (
 // Readers open Windows on port 443. A person signs in there through the
 // console, which hands a single-use code to /-/session; a reader who types
 // the Key of a Window gets a pass for it. Both live in cookies that only
-// Cahut sets. See docs/adr/0011-console-on-its-own-port.md and
-// docs/adr/0019-window-versions-access-and-declaration.md.
+// Cahut sets. See docs/adr/0019-window-versions-access-and-declaration.md
+// and docs/adr/0020-console-under-a-path-of-port-443.md.
 
 // The cookies of readers, without the __Host- prefix that they take over
 // HTTPS. A pass takes the id of its Window after its name.

@@ -7,6 +7,7 @@ import type { Activation } from "../api.gen";
 import { ConfirmButton, CopyField, Failure, initials, PageHead } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
+import { href } from "../router";
 
 export function Admins() {
 	const api = useConsole();
@@ -68,7 +69,7 @@ export function Admins() {
 					<p class="c-small">
 						Send {link.name} this link, where they choose their password. It works once, for 7 days, and is shown only now.
 					</p>
-					<CopyField label="the activation link" value={`${location.origin}/server/activate#${link.activation.code}`} />
+					<CopyField label="the activation link" value={`${location.origin}${href("/server/activate")}#${link.activation.code}`} />
 				</div>
 			)}
 			<div class="table-wrap section">

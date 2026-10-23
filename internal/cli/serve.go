@@ -25,14 +25,12 @@ func runServe(args []string, _, stderr io.Writer) int {
 		`ACME directory, or "staging" for Let's Encrypt's staging environment (env CAHUT_ACME_CA)`)
 	fs.StringVar(&cfg.HTTPAddr, "http", ":80", "address for HTTP, which answers ACME challenges and redirects")
 	fs.StringVar(&cfg.HTTPSAddr, "https", ":443", "address for HTTPS")
-	fs.BoolVar(&cfg.Dev, "dev", false, "serve plain HTTP on --dev-addr and --dev-console-addr, for Cahuts at localhost and *.localhost")
-	fs.StringVar(&cfg.DevAddr, "dev-addr", "localhost:8080", "address for --dev")
-	fs.StringVar(&cfg.DevConsoleAddr, "dev-console-addr", fmt.Sprintf("localhost:%d", web.DevConsolePort), "address of the console for --dev")
+	fs.BoolVar(&cfg.Dev, "dev", false, "serve plain HTTP on --dev-addr, for Cahuts at localhost and *.localhost")
+	fs.StringVar(&cfg.DevAddr, "dev-addr", fmt.Sprintf("localhost:%d", web.DevPort), "address for --dev")
 	if code, ok := parse(fs, args); !ok {
 		return code
 	}
 	cfg.CertDir = filepath.Join(*data, "certificates")
-	cfg.ConsoleAddr = fmt.Sprintf(":%d", web.ConsolePort)
 
 	log := slog.New(slog.NewTextHandler(stderr, nil))
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

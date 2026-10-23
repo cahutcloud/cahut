@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"net/http/httptest"
 	"slices"
 	"strings"
 	"testing"
@@ -21,8 +20,7 @@ import (
 // publish, and the Logbook.
 func TestBatch2Scenario(t *testing.T) {
 	f := setup(t)
-	console := httptest.NewServer(f.web.Console())
-	t.Cleanup(console.Close)
+	console := f.ts
 	ctx := context.Background()
 	must := func(step string, r apiResponse, status int) map[string]any {
 		t.Helper()
@@ -53,32 +51,32 @@ func TestBatch2Scenario(t *testing.T) {
 		t.Fatal(err)
 	}
 	root := code(must("1. activate the administrator of the server",
-		post("localhost", "/api/server/activate_account", "", map[string]string{"code": a.Activation.Code, "password": password}), 200), "token")
+		post("localhost", "/console/api/server/activate_account", "", map[string]string{"code": a.Activation.Code, "password": password}), 200), "token")
 
 	// 2. They declare a third Cahut, with its first administrator, who
 	// activates their account there.
-	n := must("2. declare a Cahut", post("localhost", "/api/server/add_domain", root,
+	n := must("2. declare a Cahut", post("localhost", "/console/api/server/add_domain", root,
 		map[string]any{"domain": "gamma.localhost", "admin": map[string]string{"handle": "zoe", "name": "Zoé"}}), 200)
-	zoe := code(must("2. activate its first administrator", post("gamma.localhost", "/api/activate_account", "",
+	zoe := code(must("2. activate its first administrator", post("gamma.localhost", "/console/api/activate_account", "",
 		map[string]string{"code": code(n, "admin", "activation", "code"), "password": password}), 200), "token")
 
 	// 3. In the first Cahut, the administrator creates two people, who
 	// activate their accounts.
 	sessions := map[string]string{}
 	for _, handle := range []string{"alice", "bruno"} {
-		u := must("3. create "+handle, post("localhost", "/api/create_user", root, map[string]string{"handle": handle, "name": handle}), 200)
-		sessions[handle] = code(must("3. activate "+handle, post("localhost", "/api/activate_account", "",
+		u := must("3. create "+handle, post("localhost", "/console/api/create_user", root, map[string]string{"handle": handle, "name": handle}), 200)
+		sessions[handle] = code(must("3. activate "+handle, post("localhost", "/console/api/activate_account", "",
 			map[string]string{"code": code(u, "activation", "code"), "password": password}), 200), "token")
 	}
 
 	// 4. Alice creates the team Room marketing and adds Bruno.
-	must("4. create marketing", post("localhost", "/api/create_room", sessions["alice"], map[string]string{"title": "Marketing"}), 200)
-	must("4. add bruno", post("localhost", "/api/add_room_member", sessions["alice"], map[string]string{"room": "marketing", "user": "bruno"}), 200)
+	must("4. create marketing", post("localhost", "/console/api/create_room", sessions["alice"], map[string]string{"title": "Marketing"}), 200)
+	must("4. add bruno", post("localhost", "/console/api/add_room_member", sessions["alice"], map[string]string{"room": "marketing", "user": "bruno"}), 200)
 
 	// 5. Each creates a token and connects an AI, which publishes.
 	ais := map[string]*mcp.ClientSession{}
 	for _, handle := range []string{"alice", "bruno"} {
-		tok := code(must("5. create a token for "+handle, post("localhost", "/api/create_token", sessions[handle], map[string]string{"name": "Claude Code"}), 200), "token")
+		tok := code(must("5. create a token for "+handle, post("localhost", "/console/api/create_token", sessions[handle], map[string]string{"name": "Claude Code"}), 200), "token")
 		ais[handle] = f.connect(t, "localhost", tok)
 	}
 	publish := func(handle, title, room string) *mcp.CallToolResult {
@@ -99,7 +97,7 @@ func TestBatch2Scenario(t *testing.T) {
 
 	// 6. Bruno sees the Window of marketing, not the personal Room of
 	// Alice; the third Cahut sees nothing of the first.
-	ws := must("6. bruno's Windows", post("localhost", "/api/list_windows", sessions["bruno"], map[string]string{}), 200)["windows"].([]any)
+	ws := must("6. bruno's Windows", post("localhost", "/console/api/list_windows", sessions["bruno"], map[string]string{}), 200)["windows"].([]any)
 	var names []string
 	for _, w := range ws {
 		m := w.(map[string]any)
@@ -113,14 +111,14 @@ func TestBatch2Scenario(t *testing.T) {
 	if err != nil || !res.IsError {
 		t.Errorf("6. the AI of bruno opens the personal Room of alice: %v %v", res, err)
 	}
-	if ws := must("6. zoe's Windows", post("gamma.localhost", "/api/list_windows", zoe, map[string]string{}), 200)["windows"].([]any); len(ws) != 0 {
+	if ws := must("6. zoe's Windows", post("gamma.localhost", "/console/api/list_windows", zoe, map[string]string{}), 200)["windows"].([]any); len(ws) != 0 {
 		t.Errorf("6. zoe sees %v", ws)
 	}
-	must("6. zoe's session at localhost", post("localhost", "/api/list_windows", zoe, map[string]string{}), 401)
+	must("6. zoe's session at localhost", post("localhost", "/console/api/list_windows", zoe, map[string]string{}), 401)
 
 	// 7. The Logbook shows the publications, the accounts and the Room, with
 	// the AI and the person.
-	entries := must("7. the Logbook", post("localhost", "/api/list_logbook", root, map[string]int{"limit": 200}), 200)["entries"].([]any)
+	entries := must("7. the Logbook", post("localhost", "/console/api/list_logbook", root, map[string]int{"limit": 200}), 200)["entries"].([]any)
 	seen := map[string]int{}
 	for _, e := range entries {
 		m := e.(map[string]any)
