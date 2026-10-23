@@ -1,6 +1,6 @@
 # 19. Windows keep two versions, open to an access, and declare what they call
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 21](0021-ais-knock-first.md) (an AI that makes a Window public knocks first, and a Window in the trash can be purged)
 - Date: 2026-10-22
 
 ## Context
