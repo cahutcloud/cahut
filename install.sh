@@ -8,8 +8,9 @@
 # user, the data directory /var/lib/cahut, the settings file
 # /etc/cahut/cahut.env and the cahut service, declares the Cahut of
 # --domain, opens ports 80 and 443 in firewalld or ufw when one is active,
-# and starts the service. A timer of systemd then installs new releases
-# every day, as --updates says, with a rollback if one fails.
+# starts the service, and runs cahut doctor to say what is left to fix. A
+# timer of systemd then installs new releases every day, as --updates
+# says, with a rollback if one fails.
 #
 # Options:
 #   --domain DOMAIN   domain of a Cahut to declare on this server, such as
@@ -326,6 +327,22 @@ sleep 2
 systemctl is-active --quiet cahut || die "the service did not start: see journalctl -u cahut"
 
 say "$("$bin_path" version) is running"
+
+# A new Cahut gets its certificate within seconds once Let's Encrypt
+# reaches it: wait for it, then diagnose the server.
+if [ -n "$domain" ]; then
+	say "waiting for the certificate of $domain"
+	tries=0
+	until curl -fsk --max-time 10 --resolve "$domain:443:127.0.0.1" "https://$domain/-/healthz" >/dev/null 2>&1; do
+		tries=$((tries + 1))
+		[ "$tries" -lt 6 ] || break
+		sleep 5
+	done
+fi
+echo
+"$bin_path" doctor --data "$data_dir" ||
+	say "fix what fails above, then run sudo $bin_path doctor again"
+echo
 as_cahut domain list | awk 'NR > 1 { print "  https://" $2 "/" }'
 [ -n "$domain" ] || domain=$(as_cahut domain list | awk 'NR == 2 { print $2 }')
 [ -n "$domain" ] || die "this server holds no Cahut yet: run the script again with --domain"
@@ -344,9 +361,6 @@ Next steps for the Cahut of $domain:
 
 To administer the server itself, create an administrator of the server:
        sudo -u cahut $bin_path admin create --handle you --name "Your Name"
-
-Ports 80 and 443 must be open in the firewall of your hosting provider
-too, if it has one.
 
 Cahut updates itself every day ($updates: see CAHUT_UPDATES in
 $env_file). To update now, or to see what is new:
