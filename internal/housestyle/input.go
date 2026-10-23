@@ -25,6 +25,7 @@ import (
 // is.
 type SetInput struct {
 	Neutral     bool         `json:"neutral,omitempty" jsonschema:"start again from the neutral house style, then apply the other fields"`
+	Active      *bool        `json:"active,omitempty" jsonschema:"whether AIs use the house style: false makes it inactive, and get_house_style then gives them nothing of it; the pages of Cahut and the Windows that link its sheet keep it"`
 	Name        *string      `json:"name,omitempty" jsonschema:"the name of the organization; empty for the domain of the Cahut"`
 	Colors      *ColorsInput `json:"colors,omitempty" jsonschema:"the colors to change; those left out stay"`
 	ChartColors []string     `json:"chart_colors,omitempty" jsonschema:"up to 8 colors for the series of charts, in order, each as #rrggbb; an empty list goes back to those that Cahut derives from the primary and secondary colors"`
@@ -98,6 +99,10 @@ func set(ctx context.Context, c *operation.Call, in SetInput, domain string) (Ho
 	var changes []string
 	if in.Neutral {
 		changes = append(changes, "neutral")
+	}
+	if in.Active != nil {
+		next.settings.Inactive = !*in.Active
+		changes = append(changes, map[bool]string{true: "active", false: "inactive"}[*in.Active])
 	}
 	if in.Name != nil {
 		name := strings.TrimSpace(*in.Name)
@@ -187,7 +192,7 @@ func set(ctx context.Context, c *operation.Call, in SetInput, domain string) (Ho
 		changes = append(changes, fmt.Sprintf("guidance, %d characters", utf8.RuneCountInString(g)))
 	}
 	if len(changes) == 0 {
-		return HouseStyle{}, operation.Invalidf("give what changes: name, colors, chart_colors, heading_font, body_font, logo, logo_inverse or guidance, or neutral")
+		return HouseStyle{}, operation.Invalidf("give what changes: name, colors, chart_colors, heading_font, body_font, logo, logo_inverse, guidance or active, or neutral")
 	}
 	if err := check(next); err != nil {
 		return HouseStyle{}, err

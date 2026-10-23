@@ -47,7 +47,7 @@ The same screens, and:
 
 ### House style
 
-The administrators set the [house style](/concepts/house-style/) of the Cahut here: the name of the organization, its logo and its version for dark backgrounds, its four colors with their contrasts, the colors of its charts, its fonts and their files, and its guidance for AIs. A preview shows the form in its colors and fonts before saving, and the three templates open in the house style that is saved. **Go back to it** restores the previous version, and **Back to neutral** starts again from the neutral house style, both after a confirmation.
+The administrators set the [house style](/concepts/house-style/) of the Cahut here: the name of the organization, its logo and its version for dark backgrounds, its four colors with their contrasts, the colors of its charts, its fonts and their files, and its guidance for AIs. The switch **AIs use this house style** makes it inactive for AIs, for an organization that gives them guidelines of its own. A preview shows the form in its colors and fonts before saving, and the three templates open in the house style that is saved. **Go back to it** restores the previous version, and **Back to neutral** starts again from the neutral house style, both after a confirmation.
 
 The **AIs and access** screen of every person gives the commands that install the [Cahut plugin](/connect/claude-plugin/) in Claude Code, and the skill as a zip for the Claude apps.
 

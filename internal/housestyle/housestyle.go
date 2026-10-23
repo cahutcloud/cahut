@@ -29,6 +29,8 @@ const (
 // with the colors and the fonts that Cahut derives.
 type HouseStyle struct {
 	Name           string     `json:"name" jsonschema:"the name of the organization; the domain of the Cahut until an administrator sets one"`
+	Active         bool       `json:"active" jsonschema:"whether AIs use the house style; when it is inactive, make the Window in the style the user asks for"`
+	Message        string     `json:"message,omitempty" jsonschema:"what to do when the house style is inactive"`
 	Neutral        bool       `json:"neutral" jsonschema:"whether the Cahut has the neutral house style, which no administrator has changed"`
 	Stylesheet     string     `json:"stylesheet" jsonschema:"the style sheet of the house style, at this path from the root of the domain: link it with <link rel=\"stylesheet\" href=\"/-/house-style.css\">. The Window declares nothing for it"`
 	Logo           string     `json:"logo" jsonschema:"the path of the logo, from the root of the domain; without a logo, it shows the name of the organization"`
@@ -107,7 +109,7 @@ func Register(r *operation.Registry, domain string) {
 		Name: "get_house_style",
 		Description: "Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, " +
 			"what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, " +
-			"and the template of the kind of Window you make.",
+			"and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for.",
 		ReadOnly: true,
 		Run: func(ctx context.Context, c *operation.Call, in GetInput) (HouseStyle, error) {
 			c.Log("house style", in.Kind)
@@ -119,6 +121,11 @@ func Register(r *operation.Registry, domain string) {
 				return HouseStyle{}, err
 			}
 			h := describe(cur, prev, domain)
+			if !h.Active && c.Actor.Kind == operation.AI {
+				// An AI gets nothing of an inactive house style. See
+				// docs/adr/0023-house-style-inactive-for-ais.md.
+				return HouseStyle{Name: h.Name, Message: inactive}, nil
+			}
 			h.Guide = guide
 			h.Template, err = render(in.Kind, h.Name, c.Now)
 			return h, err
@@ -127,7 +134,7 @@ func Register(r *operation.Registry, domain string) {
 	operation.Register(r, &operation.Op[SetInput, HouseStyle]{
 		Name: "set_house_style",
 		Description: "Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, " +
-			"and what it asks of AIs. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. " +
+			"what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. " +
 			"The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut.",
 		Level: operation.CahutAdmin,
 		Run: func(ctx context.Context, c *operation.Call, in SetInput) (HouseStyle, error) {
@@ -144,6 +151,11 @@ func Register(r *operation.Registry, domain string) {
 		},
 	})
 }
+
+// inactive tells an AI what to do when the house style is inactive.
+const inactive = "The house style of this Cahut is inactive: its administrators ask AIs not to use it. " +
+	"Make the Window in the style that the user asks for, with its own CSS among its files; " +
+	"do not link /-/house-style.css, and do not start from its templates."
 
 // RollbackInput is the input of rollback_house_style.
 type RollbackInput struct{}
@@ -180,6 +192,7 @@ func describe(cur, prev *version, domain string) HouseStyle {
 	}
 	h := HouseStyle{
 		Name:       s.Name,
+		Active:     !s.Inactive,
 		Neutral:    cur == nil || cur.neutral(),
 		Stylesheet: SheetPath, Logo: LogoPath, LogoInverse: LogoInversePath, DeckEngine: DeckPath,
 		Guidance: s.Guidance,

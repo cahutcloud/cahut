@@ -17,7 +17,7 @@ A tool returns its result as structured content, and as the same JSON in a text 
 
 The Cahut gives these instructions to the AI when it connects:
 
-> This Cahut keeps what AIs make, on the user's own server. Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, and you get back the address where it opens; give that address to the user. Before you make one, call get_house_style with its kind: start from its template, link the style sheet of the organization, /-/house-style.css, use its classes and variables, and follow its guidance. Make index.html a complete page that works on its own. Link its own files with relative paths, such as css/deck.css, never /css/deck.css: a Window is served under the address of its Room. Only the house style and the deck engine are under /-/. Declare what the pages do: whether they run scripts, every origin they load from or call, such as a CDN or a font service, and where their forms send. They can load and call nothing else. Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once. It makes a Knock, which waits for the person you act for: give them the link it returns, where they approve or deny it, then call get_knock to learn the outcome. Every call is recorded in the Logbook of the Cahut.
+> This Cahut keeps what AIs make, on the user's own server. Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, and you get back the address where it opens; give that address to the user. Before you make one, call get_house_style with its kind. When the house style is active, start from its template, link the style sheet of the organization, /-/house-style.css, use its classes and variables, and follow its guidance; when it is inactive, make the Window in the style the user asks for. Make index.html a complete page that works on its own. Link its own files with relative paths, such as css/deck.css, never /css/deck.css: a Window is served under the address of its Room. Only the house style and the deck engine are under /-/. Declare what the pages do: whether they run scripts, every origin they load from or call, such as a CDN or a font service, and where their forms send. They can load and call nothing else. Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once. It makes a Knock, which waits for the person you act for: give them the link it returns, where they approve or deny it, then call get_knock to learn the outcome. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -39,7 +39,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
 | [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. |
-| [`get_house_style`](#get_house_style) | Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. |
+| [`get_house_style`](#get_house_style) | Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for. |
 | [`get_knock`](#get_knock) | Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
 | [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
 | [`get_window`](#get_window) | Describe a Window and list its files, optionally with their contents. |
@@ -55,7 +55,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`rollback_house_style`](#rollback_house_style) | Go back to the previous house style of this Cahut. The house style you leave becomes the previous one, so calling rollback_house_style again returns to it. For the administrators of the Cahut. |
 | [`rollback_window`](#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
 | [`set_ai_reach`](#set_ai_reach) | Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs. |
-| [`set_house_style`](#set_house_style) | Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, and what it asks of AIs. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. |
+| [`set_house_style`](#set_house_style) | Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. |
 | [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs. |
 | [`set_window_access`](#set_window_access) | Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
@@ -865,7 +865,7 @@ This tool takes no arguments.
 
 ## `get_house_style`
 
-Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make.
+Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for.
 
 Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -897,6 +897,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
+| `active` | boolean | yes | whether AIs use the house style; when it is inactive, make the Window in the style the user asks for |
 | `chart_colors` | array of strings or null | yes | the colors of the series of charts, in their order, as `--hs-chart-1` to `--hs-chart-8` in the style sheet: give them to series in this order, never cycled |
 | `colors` | object | yes |  |
 | `colors.background` | string | yes | the background of pages, `--hs-background` |
@@ -943,6 +944,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
 | `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
 | `guide` | string | no | how to use the style sheet, its variables and its classes, in Markdown |
+| `message` | string | no | what to do when the house style is inactive |
 | `previous` | object or null | no | the previous house style, which rollback_house_style restores; absent when there is none |
 | `previous.neutral` | boolean | yes | whether it is the neutral house style |
 | `previous.set_at` | string | yes |  |
@@ -962,6 +964,10 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 {
   "additionalProperties": false,
   "properties": {
+    "active": {
+      "description": "whether AIs use the house style; when it is inactive, make the Window in the style the user asks for",
+      "type": "boolean"
+    },
     "chart_colors": {
       "description": "the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled",
       "items": {
@@ -1200,6 +1206,10 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
       "description": "the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters",
       "type": "string"
     },
+    "message": {
+      "description": "what to do when the house style is inactive",
+      "type": "string"
+    },
     "name": {
       "description": "the name of the organization; the domain of the Cahut until an administrator sets one",
       "type": "string"
@@ -1291,6 +1301,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
   },
   "required": [
     "name",
+    "active",
     "neutral",
     "stylesheet",
     "logo",
@@ -3343,6 +3354,7 @@ This tool takes no arguments.
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
+| `active` | boolean | yes | whether AIs use the house style; when it is inactive, make the Window in the style the user asks for |
 | `chart_colors` | array of strings or null | yes | the colors of the series of charts, in their order, as `--hs-chart-1` to `--hs-chart-8` in the style sheet: give them to series in this order, never cycled |
 | `colors` | object | yes |  |
 | `colors.background` | string | yes | the background of pages, `--hs-background` |
@@ -3389,6 +3401,7 @@ This tool takes no arguments.
 | `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
 | `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
 | `guide` | string | no | how to use the style sheet, its variables and its classes, in Markdown |
+| `message` | string | no | what to do when the house style is inactive |
 | `previous` | object or null | no | the previous house style, which rollback_house_style restores; absent when there is none |
 | `previous.neutral` | boolean | yes | whether it is the neutral house style |
 | `previous.set_at` | string | yes |  |
@@ -3408,6 +3421,10 @@ This tool takes no arguments.
 {
   "additionalProperties": false,
   "properties": {
+    "active": {
+      "description": "whether AIs use the house style; when it is inactive, make the Window in the style the user asks for",
+      "type": "boolean"
+    },
     "chart_colors": {
       "description": "the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled",
       "items": {
@@ -3646,6 +3663,10 @@ This tool takes no arguments.
       "description": "the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters",
       "type": "string"
     },
+    "message": {
+      "description": "what to do when the house style is inactive",
+      "type": "string"
+    },
     "name": {
       "description": "the name of the organization; the domain of the Cahut until an administrator sets one",
       "type": "string"
@@ -3737,6 +3758,7 @@ This tool takes no arguments.
   },
   "required": [
     "name",
+    "active",
     "neutral",
     "stylesheet",
     "logo",
@@ -4100,7 +4122,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 ## `set_house_style`
 
-Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, and what it asks of AIs. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut.
+Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut.
 
 Offered to the AIs of administrators of the Cahut only.
 
@@ -4110,6 +4132,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
+| `active` | boolean or null | no | whether AIs use the house style: false makes it inactive, and get_house_style then gives them nothing of it; the pages of Cahut and the Windows that link its sheet keep it |
 | `body_font` | object or null | no | the font of body text, which replaces the current one with its files; with no family, the font of the system |
 | `body_font.fallback` | string | no | the generic family to fall back on: sans-serif (the default), serif or monospace |
 | `body_font.family` | string | no | the family, such as Inter or Georgia; empty for the default |
@@ -4151,6 +4174,13 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 {
   "additionalProperties": false,
   "properties": {
+    "active": {
+      "description": "whether AIs use the house style: false makes it inactive, and get_house_style then gives them nothing of it; the pages of Cahut and the Windows that link its sheet keep it",
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
     "body_font": {
       "additionalProperties": false,
       "description": "the font of body text, which replaces the current one with its files; with no family, the font of the system",
@@ -4360,6 +4390,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
+| `active` | boolean | yes | whether AIs use the house style; when it is inactive, make the Window in the style the user asks for |
 | `chart_colors` | array of strings or null | yes | the colors of the series of charts, in their order, as `--hs-chart-1` to `--hs-chart-8` in the style sheet: give them to series in this order, never cycled |
 | `colors` | object | yes |  |
 | `colors.background` | string | yes | the background of pages, `--hs-background` |
@@ -4406,6 +4437,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
 | `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
 | `guide` | string | no | how to use the style sheet, its variables and its classes, in Markdown |
+| `message` | string | no | what to do when the house style is inactive |
 | `previous` | object or null | no | the previous house style, which rollback_house_style restores; absent when there is none |
 | `previous.neutral` | boolean | yes | whether it is the neutral house style |
 | `previous.set_at` | string | yes |  |
@@ -4425,6 +4457,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 {
   "additionalProperties": false,
   "properties": {
+    "active": {
+      "description": "whether AIs use the house style; when it is inactive, make the Window in the style the user asks for",
+      "type": "boolean"
+    },
     "chart_colors": {
       "description": "the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled",
       "items": {
@@ -4663,6 +4699,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
       "description": "the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters",
       "type": "string"
     },
+    "message": {
+      "description": "what to do when the house style is inactive",
+      "type": "string"
+    },
     "name": {
       "description": "the name of the organization; the domain of the Cahut until an administrator sets one",
       "type": "string"
@@ -4754,6 +4794,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
   },
   "required": [
     "name",
+    "active",
     "neutral",
     "stylesheet",
     "logo",

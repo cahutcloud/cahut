@@ -20,6 +20,9 @@ type settings struct {
 	Heading     *font    `json:"heading_font,omitempty"` // the body font when nil
 	Body        *font    `json:"body_font,omitempty"`    // the font of the system when nil
 	Guidance    string   `json:"guidance,omitempty"`
+	// Inactive house styles are not given to AIs. See
+	// docs/adr/0023-house-style-inactive-for-ais.md.
+	Inactive bool `json:"inactive,omitempty"`
 }
 
 type colors struct {

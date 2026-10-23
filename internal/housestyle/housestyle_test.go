@@ -534,3 +534,39 @@ func TestGuideNamesEveryClass(t *testing.T) {
 		}
 	}
 }
+
+// An inactive house style gives an AI nothing of itself; people and the
+// sheet keep it. See docs/adr/0023-house-style-inactive-for-ais.md.
+func TestInactive(t *testing.T) {
+	f := setup(t)
+	if h := f.must(t, f.memberAI, "get_house_style", ``); !h.Active || h.Message != "" {
+		t.Fatalf("a new house style = active %v, message %q", h.Active, h.Message)
+	}
+	f.must(t, f.admin, "set_house_style", `{"name": "Example Co", "colors": {"primary": "#0b5fff"}, "guidance": "Keep it short."}`)
+	h := f.must(t, f.ai, "set_house_style", `{"active": false}`)
+	if h.Active || h.Name != "Example Co" || h.Colors.Primary != "#0b5fff" || h.Previous == nil || h.Previous.Neutral {
+		t.Fatalf("after active false, set_house_style gives %+v", h)
+	}
+	for _, args := range []string{``, `{"kind": "deck"}`} {
+		h := f.must(t, f.memberAI, "get_house_style", args)
+		if h.Active || !strings.HasPrefix(h.Message, "The house style of this Cahut is inactive") || h.Colors.Primary != "" ||
+			h.Guidance != "" || h.Template != nil || h.Guide != "" || h.Stylesheet != "" || len(h.ChartColors) != 0 {
+			t.Errorf("an inactive house style gives an AI %+v", h)
+		}
+	}
+	if h := f.must(t, f.member, "get_house_style", ``); h.Active || h.Colors.Primary != "#0b5fff" || h.Guidance != "Keep it short." || h.Message != "" {
+		t.Errorf("an inactive house style gives a person %+v", h)
+	}
+	a, _ := Sheet(context.Background(), f.db, "cahut.test")
+	if !strings.Contains(string(a.Content), "--hs-primary: #0b5fff;") {
+		t.Error("the sheet of an inactive house style lost its colors")
+	}
+	entries, _ := logbook.List(context.Background(), f.db.Read, 5)
+	if !slices.ContainsFunc(entries, func(e logbook.Entry) bool { return e.Operation == "set_house_style" && e.Detail == "inactive" }) {
+		t.Errorf("the Logbook does not say that the house style went inactive: %+v", entries)
+	}
+	f.must(t, f.admin, "set_house_style", `{"active": true}`)
+	if h := f.must(t, f.memberAI, "get_house_style", `{"kind": "deck"}`); !h.Active || h.Template == nil || h.Colors.Primary != "#0b5fff" {
+		t.Errorf("active again, the house style gives an AI %+v", h)
+	}
+}
