@@ -165,7 +165,7 @@ Le lot 6 s'est achevé le 23 octobre 2026, en six pull requests :
 | 3 | #66 | Les classes de la feuille, le moteur de présentation, les trois gabarits et `/-/templates/`, le guide des classes, les consignes MCP |
 | 4 | #67 | L'écran House style de la console |
 | 5 | #68 | La skill pour Claude, son plugin, la marketplace du dépôt, l'archive servie par chaque Cahut |
-| 6 | #PR6 | Documentation, site, staging, bilan |
+| 6 | #69 | Documentation, site, staging, bilan |
 
 **Écarts par rapport au plan.**
 
