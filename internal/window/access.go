@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -73,9 +72,8 @@ func (s *Service) setAccess(ctx context.Context, c *operation.Call, in AccessInp
 	default:
 		return AccessSet{}, operation.Invalidf("access %q: use room, internal, key or public", in.Access)
 	}
-	if in.Access == AccessPublic && c.Actor.Kind == operation.AI {
-		return AccessSet{}, fmt.Errorf("%w: once a public Window is read, that cannot be undone, and approvals are not available yet: "+
-			"%s can make it public in the console of the Cahut, or you can open it with a Key", operation.ErrApprovalRequired, c.Actor.Handle)
+	if in.Access == AccessPublic {
+		c.Knock() // once a public Window is read, that cannot be undone
 	}
 	var ends sql.NullString
 	if in.EndsAt != nil {

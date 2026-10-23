@@ -80,7 +80,8 @@ func (s *Service) Register(r *operation.Registry) {
 			"key, anyone who types its Key; or public, anyone with its address. The access may end at a date, " +
 			"after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, " +
 			"and returns it once: give it to the person. Making a Window public waits for the approval of a person.",
-		Run: s.setAccess,
+		KnocksWhen: "it makes a Window public",
+		Run:        s.setAccess,
 	})
 	operation.Register(r, &operation.Op[GetInput, Detail]{
 		Name:        "get_window",

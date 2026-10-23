@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
@@ -186,5 +188,44 @@ func TestAPISignInLimit(t *testing.T) {
 	r := call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/sign_in", "", body)
 	if r.status != http.StatusTooManyRequests || !strings.Contains(r.raw, "this address") {
 		t.Errorf("the 11th sign-in from an address: %d %s", r.status, r.raw)
+	}
+}
+
+// TestKnockAnsweredInTheConsole has an AI knock over MCP, and its person
+// approve the Knock in the console. See docs/adr/0021-ais-knock-first.md.
+func TestKnockAnsweredInTheConsole(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	console := f.ts
+	camille := activate(t, f, console, "camille", true)
+	c := f.open(t, "localhost")
+	tok, err := operation.Do(ctx, c.Registry, account.CreateToken, admin, account.CreateTokenInput{User: "camille", Name: "Claude Code"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ai := f.connect(t, "localhost", tok.Token)
+
+	res, err := ai.CallTool(ctx, &mcp.CallToolParams{Name: "disable_user", Arguments: map[string]any{"user": "olivier"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if text := res.Content[0].(*mcp.TextContent).Text; !res.IsError || !strings.Contains(text, "/console/knocks/1.") ||
+		res.StructuredContent != nil {
+		t.Fatalf("disable_user by an AI: %v %q", res.IsError, text)
+	}
+
+	r := call(t, f, console, http.MethodPost, "localhost", "/console/api/list_knocks", camille, `{"waiting": true}`)
+	if r.status != http.StatusOK || r.body["waiting"] != float64(1) {
+		t.Fatalf("list_knocks: %d %s", r.status, r.raw)
+	}
+	r = call(t, f, console, http.MethodPost, "localhost", "/console/api/approve_knock", camille, `{"knock": 1}`)
+	if r.status != http.StatusOK || r.body["knock"].(map[string]any)["state"] != "done" ||
+		r.body["output"].(map[string]any)["status"] != "disabled" {
+		t.Fatalf("approve_knock: %d %s", r.status, r.raw)
+	}
+
+	res, err = ai.CallTool(ctx, &mcp.CallToolParams{Name: "get_knock", Arguments: map[string]any{"knock": 1}})
+	if err != nil || res.IsError || res.StructuredContent.(map[string]any)["state"] != "done" {
+		t.Errorf("get_knock: %v %+v", err, res)
 	}
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"cahut.cloud/internal/account"
+	"cahut.cloud/internal/knock"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
 	"cahut.cloud/internal/web"
@@ -173,8 +174,13 @@ func toolsPage(s sample) (page, error) {
 		if op.Level == operation.CahutAdmin {
 			m.block("Offered to the AIs of administrators of the Cahut only.")
 		}
-		if op.KnockFirst {
-			m.block("Knock first: an AI needs the approval of a person to run it ([Operations](/reference/operations/#knock-first)).")
+		switch {
+		case op.KnockFirst:
+			m.block("Knock first: the call of an AI makes a Knock, which the person it acts for approves " +
+				"([Operations](/reference/operations/#knock-first)).")
+		case op.KnocksWhen != "":
+			m.block("Knock first when " + op.KnocksWhen + ": that call of an AI makes a Knock, which the person it acts for approves " +
+				"([Operations](/reference/operations/#knock-first)).")
 		}
 		m.block("Annotations: " + annotations(t.Annotations) + ".")
 		if err := describeSchema(m, "Arguments", "Required", t.InputSchema, "This tool takes no arguments."); err != nil {
@@ -341,19 +347,25 @@ func operationsPage(s sample) page {
 	m.table(head, opRows(s.serverOps, nil))
 
 	m.block("## Knock first")
-	var knock []string
+	var always, when []string
 	for _, op := range slices.Concat(s.cahutOps, s.serverOps) {
-		if op.KnockFirst {
-			knock = append(knock, code(op.Name))
+		switch {
+		case op.KnockFirst:
+			always = append(always, code(op.Name))
+		case op.KnocksWhen != "":
+			when = append(when, code(op.Name)+", when "+op.KnocksWhen)
 		}
 	}
-	rule := "An operation that cannot be undone, or that changes what a person may do, needs the approval of a person " +
-		"before an AI can run it. A person who calls it in the console acts at once. "
-	if len(knock) == 0 {
-		m.block(rule + "No operation knocks first yet, and approvals are not available yet.")
-	} else {
-		m.block(rule + "Approvals are not available yet, so AIs cannot run these operations: " +
-			strings.Join(knock, ", ") + ".")
+	m.block(fmt.Sprintf("An operation that cannot be undone, or that changes what a person may do, knocks first. "+
+		"When an AI calls it, the call does not run: Cahut checks it, then makes a Knock, "+
+		"which waits %d hours for the person the AI acts for to approve or deny it in the console. "+
+		"Approving runs the call, as the AI. A person who calls the operation in the console acts at once, after a confirmation.",
+		int(knock.Lifetime.Hours())))
+	if len(always) > 0 {
+		m.block("These operations knock first: " + strings.Join(always, ", ") + ".")
+	}
+	if len(when) > 0 {
+		m.block("These knock first for some calls only: " + strings.Join(when, "; ") + ".")
 	}
 	return p
 }

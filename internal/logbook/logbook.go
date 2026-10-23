@@ -18,7 +18,8 @@ type Outcome string
 // Outcomes of a call.
 const (
 	OK      Outcome = "ok"
-	Refused Outcome = "refused" // not allowed, or waiting for a person's approval
+	Knocked Outcome = "knocked" // waiting for a person's approval: Knock first
+	Refused Outcome = "refused" // not allowed
 	Failed  Outcome = "failed"
 )
 
@@ -36,8 +37,9 @@ type Entry struct {
 	Via        string    `json:"via" jsonschema:"the adapter the call came through: cli, api, mcp or oauth"`
 	Target     string    `json:"target,omitempty" jsonschema:"what the operation acted on"`
 	Detail     string    `json:"detail,omitempty"`
-	Outcome    Outcome   `json:"outcome" jsonschema:"ok, refused or failed"`
+	Outcome    Outcome   `json:"outcome" jsonschema:"ok, knocked (waiting for a person's approval), refused or failed"`
 	Error      string    `json:"error,omitempty"`
+	KnockID    int64     `json:"knock_id,omitempty" jsonschema:"the Knock that the call made, answered or ran for"`
 	RoomID     int64     `json:"-"` // the Room the entry concerns, whose members read it
 }
 
@@ -56,11 +58,12 @@ type Queryer interface {
 func Write(ctx context.Context, db Execer, e Entry) error {
 	_, err := db.ExecContext(ctx, `
 		INSERT INTO logbook (at, operation, actor, user_id, user_handle, token_id,
-			client, via, target, detail, outcome, error, room_id, connection_id)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			client, via, target, detail, outcome, error, room_id, connection_id, knock_id)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		store.FormatTime(e.At), e.Operation, e.Actor, nullInt(e.UserID), nullString(e.UserHandle),
 		nullInt(e.TokenID), nullString(e.Client), e.Via, nullString(e.Target),
-		nullString(e.Detail), string(e.Outcome), nullString(e.Error), nullInt(e.RoomID), nullInt(e.Connection))
+		nullString(e.Detail), string(e.Outcome), nullString(e.Error), nullInt(e.RoomID), nullInt(e.Connection),
+		nullInt(e.KnockID))
 	if err != nil {
 		return fmt.Errorf("write logbook: %w", err)
 	}
@@ -103,7 +106,7 @@ func ListIn(ctx context.Context, db Queryer, rooms []int64, member int64, limit 
 func list(ctx context.Context, db Queryer, where string, args ...any) ([]Entry, error) {
 	rows, err := db.QueryContext(ctx, `
 		SELECT id, at, operation, actor, user_id, user_handle, token_id,
-			client, via, target, detail, outcome, error, room_id, connection_id
+			client, via, target, detail, outcome, error, room_id, connection_id, knock_id
 		FROM logbook WHERE `+where+` ORDER BY id DESC LIMIT ?`, args...)
 	if err != nil {
 		return nil, err
@@ -115,17 +118,17 @@ func list(ctx context.Context, db Queryer, where string, args ...any) ([]Entry, 
 		var (
 			e                                           Entry
 			at, outcome                                 string
-			userID, tokenID, roomID, connection         sql.NullInt64
+			userID, tokenID, roomID, connection, knock  sql.NullInt64
 			handle, client, target, detail, errorString sql.NullString
 		)
 		if err := rows.Scan(&e.ID, &at, &e.Operation, &e.Actor, &userID, &handle, &tokenID,
-			&client, &e.Via, &target, &detail, &outcome, &errorString, &roomID, &connection); err != nil {
+			&client, &e.Via, &target, &detail, &outcome, &errorString, &roomID, &connection, &knock); err != nil {
 			return nil, err
 		}
 		if e.At, err = store.ParseTime(at); err != nil {
 			return nil, err
 		}
-		e.UserID, e.TokenID, e.RoomID, e.Connection = userID.Int64, tokenID.Int64, roomID.Int64, connection.Int64
+		e.UserID, e.TokenID, e.RoomID, e.Connection, e.KnockID = userID.Int64, tokenID.Int64, roomID.Int64, connection.Int64, knock.Int64
 		e.UserHandle, e.Client, e.Target = handle.String, client.String, target.String
 		e.Detail, e.Error = detail.String, errorString.String
 		e.Outcome = Outcome(outcome)

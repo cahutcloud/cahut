@@ -138,10 +138,10 @@ func TestBatch2Scenario(t *testing.T) {
 		}
 	}
 
-	// 8. The AI of Bruno tries to add someone to marketing: refused, with a
-	// message for the console.
+	// 8. The AI of Bruno tries to add someone to marketing, which only its
+	// owners do: the call is checked before it could knock, and refused.
 	res, err = ais["bruno"].CallTool(ctx, &mcp.CallToolParams{Name: "add_room_member", Arguments: map[string]any{"room": "marketing", "user": "alice"}})
-	if err != nil || !res.IsError || !strings.Contains(res.Content[0].(*mcp.TextContent).Text, "approval") {
+	if err != nil || !res.IsError || !strings.Contains(res.Content[0].(*mcp.TextContent).Text, "only the owners of the Room marketing") {
 		t.Errorf("8. the AI of bruno changes the people of marketing: %v %v", res, err)
 	}
 }

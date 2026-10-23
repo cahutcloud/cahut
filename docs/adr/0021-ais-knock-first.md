@@ -40,7 +40,7 @@ Batch 5 turns these refusals into Knocks: a request that waits for a person, who
 - Approving runs the operation as the AI, with the input of the Knock, in the transaction that marks the Knock answered. The registry checks the call again, as it stands then: the role and the state of the person, the reach of the AI, the input against the records. If the operation fails, the Knock is marked failed with its message, and nothing else changes.
 - The output of the operation goes to the person who approves, in the console, and never to the AI. Approved, `create_user` gives the person the activation link of the new account, which an AI never gets.
 - A Knock ends without running when its person denies it, when it expires, or when its AI loses access before an answer: its token revoked, its connection cut, its person disabled.
-- A Knock is in one of six states: `waiting`, `done`, `failed`, `denied`, `expired`, `cancelled`.
+- A Knock is in one of six states: `waiting`, `done`, `failed`, `denied`, `expired`, `canceled`.
 
 ### Notification
 

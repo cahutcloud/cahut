@@ -200,7 +200,8 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 		}
 		c.InRoom(room) // the person reads how their account began
 		// An AI never gets the code: it could choose the password itself.
-		if c.Actor.Kind != operation.AI {
+		// Once a person approves the Knock of an AI, the code goes to them.
+		if c.Actor.Kind != operation.AI || c.Approved() {
 			a, err := newActivation(ctx, c, u.ID, u.Handle)
 			if err != nil {
 				return NewUser{}, err
