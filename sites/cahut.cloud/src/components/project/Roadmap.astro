@@ -14,8 +14,8 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 
-// Batches 0 to 6 are done; the one after them is next.
-const done = 7;
+// Batches 0 to 8 are done: the first version is complete.
+const done = 9;
 const batches = t.project.roadmap.batches.map((batch, index) => ({
 	...batch,
 	index,

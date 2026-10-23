@@ -106,3 +106,4 @@ Sans terminal, dans la console :
 | 23/10/2026 | Ubuntu 24.04 arm64, Lima | 0.4.0 | 59 s | | | | | Lot 7, idem |
 | 23/10/2026 | Ubuntu 24.04 amd64, CI | lot 8 | 49 s | | | | | Job *Install*, à chaque pull request |
 | 23/10/2026 | Cahut de test, CI | lot 8 | | passe | passe | passe (CIMD et DCR) | passe | `TestV0Acceptance` |
+| 23/10/2026 | AlmaLinux 10.2 amd64, staging, Cahut à `51.83.68.4` | lot 8 | | | passe, avec la Key | Codex et Vibe, par Internet, jetons personnels | passe : accès public en Knock | Certificat d'adresse IP de Let's Encrypt, `shortlived` ; pas un VPS vierge |
