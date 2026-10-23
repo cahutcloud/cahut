@@ -1,0 +1,4 @@
+# The lead maintainer reviews every pull request (GOVERNANCE.md).
+# Once there are two maintainers, the paths that touch security and
+# releases name both, and the main ruleset requires a code owner review.
+* @odura

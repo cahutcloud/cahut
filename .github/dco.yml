@@ -1,0 +1,5 @@
+# The DCO app (https://github.com/apps/dco) checks that every commit of a
+# pull request is signed off (CONTRIBUTING.md). A contributor who forgot can
+# add a remediation commit instead of rewriting the branch.
+allowRemediationCommits:
+  individual: true
