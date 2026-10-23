@@ -31,6 +31,7 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut token revoke`](#cahut-token-revoke) | Revoke a personal token |
 | [`cahut logbook`](#cahut-logbook) | Print the latest entries of the Logbook |
 | [`cahut update`](#cahut-update) | Install a new release, as root, and go back if it fails |
+| [`cahut doctor`](#cahut-doctor) | Diagnose this server, and say what to fix |
 | [`cahut version`](#cahut-version) | Print the version of this binary |
 
 ## `cahut serve`
@@ -253,6 +254,20 @@ sudo cahut update [--check] [--version VERSION] [--binary FILE]
 | `--state string` | `/var/lib/cahut-update` | directory of the state of updates |
 | `--unattended` |  | run as systemd does: what the console asked for, or else what CAHUT_UPDATES says |
 | `--version string` |  | install this release, such as 0.4.1, instead of the newest; never an older one |
+
+## `cahut doctor`
+
+Diagnose this server, and say what to fix.
+
+```text
+sudo cahut doctor [--data DIR]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--bin string` | `/usr/local/bin/cahut` | the binary that the service runs |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--state string` | `/var/lib/cahut-update` | directory of the state of updates |
 
 ## `cahut version`
 

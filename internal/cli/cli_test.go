@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"cahut.cloud/internal/doctor"
 )
 
 func TestRun(t *testing.T) {
@@ -47,5 +49,31 @@ func check(t *testing.T, stream, got, want string) {
 	}
 	if !strings.Contains(got, want) {
 		t.Errorf("%s = %q, want it to contain %q", stream, got, want)
+	}
+}
+
+func TestDoctorReport(t *testing.T) {
+	for _, tt := range []struct {
+		results []doctor.Result
+		code    int
+		summary string
+	}{
+		{[]doctor.Result{{Status: doctor.OK, Topic: "Clock", Text: "Synchronized."}}, exitOK, "No problem.\n"},
+		{[]doctor.Result{{Status: doctor.Warn, Topic: "Data", Text: "3.0 GiB free."}}, exitOK, "No problem, 1 warning.\n"},
+		{[]doctor.Result{
+			{Status: doctor.Fail, Topic: "Clock", Text: "Not synchronized."},
+			{Status: doctor.Fail, Topic: "Ports", Text: "Nothing listens."},
+			{Status: doctor.Warn, Topic: "Data", Text: "3.0 GiB free."},
+		}, exitError, "2 problems and 1 warning: fix what fails above, then run cahut doctor again.\n"},
+	} {
+		var out bytes.Buffer
+		if code := report(&out, tt.results); code != tt.code || !strings.HasSuffix(out.String(), tt.summary) {
+			t.Errorf("report = %d\n%s\nwant %d, ending with %q", code, out.String(), tt.code, tt.summary)
+		}
+	}
+	var out bytes.Buffer
+	report(&out, []doctor.Result{{Status: doctor.OK, Topic: "Clock", Text: "Synchronized."}, {Status: doctor.Fail, Topic: "Let's Encrypt", Text: "Cannot be reached."}})
+	if want := "ok    Clock          Synchronized.\nfail  Let's Encrypt  Cannot be reached.\n"; !strings.HasPrefix(out.String(), want) {
+		t.Errorf("report printed\n%s\nwant it to start with\n%s", out.String(), want)
 	}
 }
