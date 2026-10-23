@@ -142,7 +142,7 @@ The first command prints the latest entries of a Cahut's Logbook, the second tho
 ```
 
 ```text
-cahut 0.4.0 (commit 81e81b8, 2026-10-23T13:30:00Z, go1.27.3 linux/amd64)
+cahut 0.5.0 (commit 6c25197, 2026-10-23T15:48:39Z, go1.27.3 linux/amd64)
 ```
 
 ## Update and diagnose
