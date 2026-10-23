@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cahut.cloud/internal/address"
+	"cahut.cloud/internal/housestyle"
 	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/window"
 )
@@ -23,20 +24,30 @@ var pageFiles embed.FS
 
 var pages = template.Must(template.ParseFS(pageFiles, "pages/pages.html"))
 
-// pagePolicy lets a page of Cahut load its style sheet and its script, and
-// frame a Window of its own origin, and nothing else.
-const pagePolicy = "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; frame-src 'self'; " +
+// pagePolicy lets a page of Cahut load its style sheets, the logo and the
+// fonts of the house style and its script, and frame a Window of its own
+// origin, and nothing else.
+const pagePolicy = "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; frame-src 'self'; " +
 	"form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
 
-// page is what every page shows at its top, and where to sign in.
+// page is what every page shows at its top, and where to sign in. The
+// pages carry the house style of their Cahut. See
+// docs/adr/0022-house-style-of-each-cahut.md.
 type page struct {
 	Domain string
+	Brand  housestyle.Brand
 	Reader string // the handle of the reader signed in; empty when there is none
 	SignIn string // where to sign in, to come back to this page
 }
 
 func (s *Server) page(r *http.Request, reader string) page {
-	return page{Domain: siteOf(r).cahut.Domain, Reader: reader, SignIn: "/-/sign-in?to=" + url.QueryEscape(r.URL.RequestURI())}
+	c := siteOf(r).cahut
+	brand, err := housestyle.LoadBrand(r.Context(), c.DB, c.Domain)
+	if err != nil {
+		s.log.Error("read the house style", "cahut", c.Domain, "error", err)
+		brand = housestyle.Brand{Name: c.Domain}
+	}
+	return page{Domain: c.Domain, Brand: brand, Reader: reader, SignIn: "/-/sign-in?to=" + url.QueryEscape(r.URL.RequestURI())}
 }
 
 // render writes the page called name with data, and the headers of every

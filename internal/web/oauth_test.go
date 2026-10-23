@@ -196,7 +196,7 @@ func TestOAuthWithTheSDKClient(t *testing.T) {
 	for _, tool := range tools.Tools {
 		names = append(names, tool.Name)
 	}
-	want := []string{"get_account", "get_cahut", "get_knock", "get_room", "get_window", "list_knocks", "list_logbook", "list_rooms", "list_users", "list_windows", "set_ai_reach"}
+	want := []string{"get_account", "get_cahut", "get_house_style", "get_knock", "get_room", "get_window", "list_knocks", "list_logbook", "list_rooms", "list_users", "list_windows", "set_ai_reach"}
 	if !slices.Equal(names, want) {
 		t.Errorf("tools of an AI that may only read = %v, want %v", names, want)
 	}
