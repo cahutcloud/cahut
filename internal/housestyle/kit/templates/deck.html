@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quarterly review · {{.Name}}</title>
+<link rel="stylesheet" href="/-/house-style.css">
+<script src="/-/deck.js" defer></script>
+</head>
+<body class="hs-deck">
+
+<section class="hs-slide hs-slide--title">
+	<p class="hs-kicker">{{.Name}} · {{.Date}}</p>
+	<h1>Quarterly review</h1>
+	<p class="hs-lead">What we did, what we learned, and what comes next.</p>
+	<aside class="hs-notes">Notes for the speaker stay out of the slides.</aside>
+</section>
+
+<section class="hs-slide">
+	<h2>One title per slide, saying its point</h2>
+	<ul>
+		<li>Three to five points at most</li>
+		<li>Each one short enough to read at a glance</li>
+		<li>The details go to a document, linked from the last slide</li>
+	</ul>
+</section>
+
+<section class="hs-slide hs-slide--section">
+	<p class="hs-kicker">Part 1</p>
+	<h2>Results</h2>
+</section>
+
+<section class="hs-slide">
+	<h2>Three numbers that tell the quarter</h2>
+	<div class="hs-columns hs-columns--3">
+		<div class="hs-stat"><span class="hs-stat__value">+12%</span><span class="hs-stat__label">revenue over the last quarter</span></div>
+		<div class="hs-stat"><span class="hs-stat__value">4.6</span><span class="hs-stat__label">customer rating, out of 5</span></div>
+		<div class="hs-stat"><span class="hs-stat__value">38</span><span class="hs-stat__label">new customers</span></div>
+	</div>
+</section>
+
+<section class="hs-slide">
+	<h2>North leads, West slows down</h2>
+	<div class="hs-columns">
+		<ul class="hs-bars" aria-label="Revenue by region, in thousands">
+			<li class="hs-bar" style="--value: 1"><span>North</span><span>1,240</span></li>
+			<li class="hs-bar" style="--value: 0.79"><span>South</span><span>980</span></li>
+			<li class="hs-bar" style="--value: 0.61"><span>West</span><span>760</span></li>
+		</ul>
+		<div class="hs-card">
+			<h3>What it means</h3>
+			<p>West needs a plan of its own before the next quarter.</p>
+		</div>
+	</div>
+</section>
+
+<section class="hs-slide hs-slide--statement">
+	<p>Next quarter, we grow West before we open a new region.</p>
+</section>
+
+</body>
+</html>

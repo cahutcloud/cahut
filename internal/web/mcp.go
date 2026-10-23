@@ -24,9 +24,11 @@ import (
 const instructions = `This Cahut keeps what AIs make, on the user's own server. ` +
 	`Publish a document, deck, dashboard or site with publish_window: give its HTML and its other files, ` +
 	`and you get back the address where it opens; give that address to the user. ` +
+	`Before you make one, call get_house_style with its kind: start from its template, link the style sheet of the organization, ` +
+	`/-/house-style.css, use its classes and variables, and follow its guidance. ` +
 	`Make index.html a complete page that works on its own. ` +
-	`Link its files with relative paths, such as css/deck.css, never /css/deck.css: ` +
-	`a Window is served under the address of its Room. ` +
+	`Link its own files with relative paths, such as css/deck.css, never /css/deck.css: ` +
+	`a Window is served under the address of its Room. Only the house style and the deck engine are under /-/. ` +
 	`Declare what the pages do: whether they run scripts, every origin they load from or call, such as a CDN or a font service, ` +
 	`and where their forms send. They can load and call nothing else. ` +
 	`Pages run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: ` +

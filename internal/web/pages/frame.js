@@ -9,3 +9,6 @@ const follow = () => {
 };
 follow();
 addEventListener("hashchange", follow);
+
+// Gives the keyboard to the Window, so that the arrows move through a deck.
+frame.addEventListener("load", () => frame.focus());

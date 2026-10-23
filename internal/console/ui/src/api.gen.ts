@@ -385,12 +385,14 @@ export interface HouseStyle {
   stylesheet: string;
   /** the path of the logo, from the root of the domain; without a logo, it shows the name of the organization */
   logo: string;
-  /** the path of the logo for dark backgrounds; the logo itself when there is no such version */
+  /** the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters */
   logo_inverse: string;
   /** whether the house style has a logo */
   has_logo: boolean;
   /** whether it has a version of its logo for dark backgrounds */
   has_logo_inverse: boolean;
+  /** the path of the deck engine, from the root of the domain: <script src="/-/deck.js" defer></script> in the head of a deck, which then declares that it runs scripts */
+  deck_engine: string;
   colors: Palette;
   /** the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled */
   chart_colors: string[];
@@ -405,9 +407,16 @@ export interface HouseStyle {
   previous?: Previous;
   /** what may not read well, and what to change */
   warnings?: string[];
+  /** how to use the style sheet, its variables and its classes, in Markdown */
+  guide?: string;
+  /** the template of the kind asked for */
+  template?: Template;
 }
 
-export type HousestyleGetInput = Record<string, never>;
+export interface HousestyleGetInput {
+  /** the kind of Window you make, to get its template: document, deck, dashboard or site */
+  kind?: string;
+}
 
 export interface ImageInput {
   /** the image: SVG as text, or PNG or WebP in base64; empty to remove the logo */
@@ -753,6 +762,15 @@ export type SignOutInput = Record<string, never>;
 
 export type SignedOut = Record<string, never>;
 
+export interface Template {
+  /** the kind of Window it makes */
+  kind: string;
+  /** index.html of a Window of this kind: keep its structure and its classes, replace its sample content, and give it its own title */
+  html: string;
+  /** whether it runs scripts, which the Window then declares */
+  scripts: boolean;
+}
+
 export interface TokenInfo {
   id: number;
   user: string;
@@ -937,7 +955,7 @@ export interface CahutOperations {
   get_account: { input: GetAccountInput; output: Account };
   /** Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. */
   get_cahut: { input: GetCahutInput; output: About };
-  /** Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, and the path of its style sheet, which a Window links from the root of the domain. */
+  /** Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. */
   get_house_style: { input: HousestyleGetInput; output: HouseStyle };
   /** Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
   get_knock: { input: KnockGetInput; output: Knock };

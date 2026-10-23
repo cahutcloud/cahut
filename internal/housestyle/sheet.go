@@ -48,7 +48,8 @@ func LoadBrand(ctx context.Context, db *store.DB, domain string) (Brand, error) 
 }
 
 // Sheet returns the style sheet of the house style of the Cahut at domain:
-// its variables and the @font-face rules of its fonts.
+// its variables and the @font-face rules of its fonts, then the classes of
+// the kit.
 func Sheet(ctx context.Context, db *store.DB, domain string) (Asset, error) {
 	cur, err := loadState(ctx, db.Read, "current", false)
 	if err != nil {
@@ -92,6 +93,8 @@ func sheet(h HouseStyle) []byte {
 	}
 	fmt.Fprintf(&b, "\t--hs-font-heading: %s;\n\t--hs-font-body: %s;\n\t--hs-font-mono: %s;\n", h.Fonts.Heading.Stack, h.Fonts.Body.Stack, h.Fonts.Mono)
 	fmt.Fprintf(&b, "\t--hs-logo: url(%q);\n\t--hs-logo-inverse: url(%q);\n\t--hs-scheme: %s;\n}\n", LogoPath, LogoInversePath, scheme)
+	b.WriteString("\n")
+	b.Write(kitCSS)
 	return b.Bytes()
 }
 
@@ -113,20 +116,19 @@ func cssComment(s string) string {
 
 // Logo returns the logo of the house style of the Cahut at domain, or its
 // version for dark backgrounds when inverse is set. Without one, it returns
-// the name of the organization set in SVG.
+// the name of the organization set in SVG, in light letters for dark
+// backgrounds: a logo made for light backgrounds would not read there.
 func Logo(ctx context.Context, db *store.DB, domain string, inverse bool) (Asset, error) {
-	names := []string{logoFile}
+	name := logoFile
 	if inverse {
-		names = []string{logoInverseFile, logoFile}
+		name = logoInverseFile
 	}
-	for _, name := range names {
-		f, ok, err := loadFile(ctx, db.Read, name)
-		if err != nil {
-			return Asset{}, err
-		}
-		if ok {
-			return Asset{Type: f.typ, ETag: `"` + f.sha256[:32] + `"`, Content: f.content}, nil
-		}
+	f, ok, err := loadFile(ctx, db.Read, name)
+	if err != nil {
+		return Asset{}, err
+	}
+	if ok {
+		return Asset{Type: f.typ, ETag: `"` + f.sha256[:32] + `"`, Content: f.content}, nil
 	}
 	cur, err := loadState(ctx, db.Read, "current", false)
 	if err != nil {
