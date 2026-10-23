@@ -46,8 +46,10 @@ type Cahut struct {
 	Registry *operation.Registry
 	Windows  *window.Service
 	OAuth    *oauth.Server
-	// FrameKey signs the capabilities of the frames of protected Windows.
-	// See docs/adr/0019-window-versions-access-and-declaration.md.
+	// FrameKey signs the capabilities of the frames of Windows: those of
+	// protected Windows and those of previews in the console. See
+	// docs/adr/0019-window-versions-access-and-declaration.md and
+	// docs/adr/0027-previews-of-windows-in-the-console.md.
 	FrameKey []byte
 }
 
@@ -60,6 +62,11 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open the database of %s: %w", cfg.Domain, err)
 	}
+	frameKey, err := secret(ctx, db, "frames")
+	if err != nil {
+		db.Close()
+		return nil, fmt.Errorf("read the secrets of %s: %w", cfg.Domain, err)
+	}
 	url := func(room, name string) string {
 		if cfg.BaseURL == "" {
 			return ""
@@ -69,7 +76,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	r := operation.NewRegistry(db)
 	account.Register(r)
 	room.Register(r)
-	w := window.NewService(filepath.Join(cfg.Dir, "windows"), url)
+	w := window.NewService(filepath.Join(cfg.Dir, "windows"), url, frameKey)
 	w.Register(r)
 	auth := oauth.New(db, r, oauth.Config{
 		Issuer:    strings.TrimSuffix(cfg.BaseURL, "/"),
@@ -98,11 +105,6 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 			return a, nil
 		},
 	})
-	frameKey, err := secret(ctx, db, "frames")
-	if err != nil {
-		db.Close()
-		return nil, fmt.Errorf("read the secrets of %s: %w", cfg.Domain, err)
-	}
 	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w, OAuth: auth, FrameKey: frameKey}, nil
 }
 

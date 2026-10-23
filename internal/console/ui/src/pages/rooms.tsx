@@ -4,7 +4,7 @@ import { Plus, User, Users } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { ApiError, explain } from "../api";
 import type { Room, RoomDetail } from "../api.gen";
-import { ConfirmButton, Failure, initials, Notice, PageHead, plural, WindowCard } from "../components";
+import { ConfirmButton, Failure, initials, Notice, PageHead, plural, WindowCards } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
 import { Link, navigate } from "../router";
@@ -160,11 +160,7 @@ export function RoomPage({ name }: { name: string }) {
 					{windows.data === null && <Notice>You are not in this Room. As an administrator, you manage its people, not its Windows.</Notice>}
 					{windows.data && windows.data.windows.length === 0 && <Notice>No Window in this Room yet. An AI of one of its members publishes them.</Notice>}
 					{windows.data && windows.data.windows.length > 0 && (
-						<div class="cards cards--windows">
-							{windows.data.windows.map((w) => (
-								<WindowCard key={w.url} window={w} />
-							))}
-						</div>
+						<WindowCards windows={windows.data.windows} />
 					)}
 					{windows.data && <Trash room={r.name} />}
 				</section>

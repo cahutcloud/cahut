@@ -1,6 +1,6 @@
 # 10. Windows run in a CSP sandbox
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 27](0027-previews-of-windows-in-the-console.md) (the console shows each Window in a preview, in a sandboxed frame)
 - Date: 2026-10-21
 
 ## Context

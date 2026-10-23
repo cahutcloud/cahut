@@ -116,6 +116,14 @@ func Reader(ctx context.Context, db *store.DB, id int64, now time.Time) (Session
 	return verify(ctx, db, "s.id = ? AND s.reader = 1", id, now)
 }
 
+// Console returns who the console session id belongs to, while it lasts,
+// for the preview of a Window. It does not record a use: a preview that
+// keeps loading, as a dashboard does, must not keep an idle console open.
+// See docs/adr/0027-previews-of-windows-in-the-console.md.
+func Console(ctx context.Context, db *store.DB, id int64, now time.Time) (SessionOwner, error) {
+	return lookupSession(ctx, db, "s.id = ? AND s.reader = 0", id, now)
+}
+
 // EndReaderSession ends the reader session of token, if it is one.
 func EndReaderSession(ctx context.Context, db *store.DB, token string) error {
 	_, err := db.Write.ExecContext(ctx, "DELETE FROM sessions WHERE hash = ? AND reader = 1", credential.Hash(token))
@@ -125,6 +133,18 @@ func EndReaderSession(ctx context.Context, db *store.DB, token string) error {
 // verify returns the owner of the session that where finds, with arg, if it
 // lasts and its person is not disabled, and records its use.
 func verify(ctx context.Context, db *store.DB, where string, arg any, now time.Time) (SessionOwner, error) {
+	o, err := lookupSession(ctx, db, where, arg, now)
+	if err != nil {
+		return SessionOwner{}, err
+	}
+	_, err = db.Write.ExecContext(ctx, "UPDATE sessions SET last_used_at = ? WHERE id = ? AND last_used_at < ?",
+		store.FormatTime(now), o.SessionID, store.FormatTime(now.Add(-time.Minute)))
+	return o, err
+}
+
+// lookupSession returns the owner of the session that where finds, with
+// arg, if it lasts and its person is not disabled.
+func lookupSession(ctx context.Context, db *store.DB, where string, arg any, now time.Time) (SessionOwner, error) {
 	var o SessionOwner
 	err := db.Read.QueryRowContext(ctx, `
 		SELECT s.id, u.id, u.handle FROM sessions s JOIN users u ON u.id = s.user_id
@@ -133,10 +153,5 @@ func verify(ctx context.Context, db *store.DB, where string, arg any, now time.T
 	if errors.Is(err, sql.ErrNoRows) {
 		return SessionOwner{}, ErrInvalidSession
 	}
-	if err != nil {
-		return SessionOwner{}, err
-	}
-	_, err = db.Write.ExecContext(ctx, "UPDATE sessions SET last_used_at = ? WHERE id = ? AND last_used_at < ?",
-		store.FormatTime(now), o.SessionID, store.FormatTime(now.Add(-time.Minute)))
 	return o, err
 }

@@ -84,6 +84,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/list_tokens` | Any person | yes |
 | `POST /api/list_users` | Any person | yes |
 | `POST /api/list_windows` | Any person | yes |
+| `POST /api/preview_windows` | Any person | yes |
 | `POST /api/publish_window` | Any person | yes |
 | `POST /api/purge_window` | Any person | yes |
 | `POST /api/remove_room_member` | Any person | yes |

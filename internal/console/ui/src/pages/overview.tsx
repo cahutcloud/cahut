@@ -4,7 +4,7 @@ import { ArrowUpRight, Plus } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { NewCahut } from "../api.gen";
-import { CopyField, Failure, Notice, PageHead, plural, WindowCard } from "../components";
+import { CopyField, Failure, Notice, PageHead, plural, WindowCards } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
 import { href, Link } from "../router";
@@ -34,11 +34,7 @@ function PersonOverview() {
 						No Window yet. Ask your AI to publish one: <Link class="c-link" href="/access">connect an AI</Link> first.
 					</Notice>
 				) : (
-					<div class="cards cards--windows">
-						{windows.slice(0, 6).map((w) => (
-							<WindowCard key={w.url} window={w} showRoom />
-						))}
-					</div>
+					<WindowCards windows={windows.slice(0, 6)} showRoom />
 				)}
 			</section>
 			<section class="section">

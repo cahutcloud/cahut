@@ -102,7 +102,8 @@ type Op[In, Out any] struct {
 	ReadOnly bool
 	// Level is who may call the operation: any person when it is not set.
 	Level Level
-	// PeopleOnly operations prove who someone is, such as signing in. They
+	// PeopleOnly operations prove who someone is, such as signing in, or
+	// serve the session of a person in the console, such as previews. They
 	// are not offered to AIs.
 	PeopleOnly bool
 	// Visitors may call the operation before they sign in: it signs them in.
@@ -494,7 +495,7 @@ func authorize(info Info, a Actor) error {
 			return errors.New("operation: AI without a user, or without a token or a connection")
 		}
 		if info.PeopleOnly {
-			return Forbiddenf("%s is for people, not for AIs: it proves who someone is", info.Name)
+			return Forbiddenf("%s is for people, not for AIs: it proves who someone is, or serves the console", info.Name)
 		}
 		if a.ReadOnly && !info.ReadOnly && !info.ReadOnlyAIs {
 			return Forbiddenf("%s changes things, and this AI may only read: "+
