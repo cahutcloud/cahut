@@ -35,7 +35,7 @@ export default defineConfig({
 				},
 				{
 					label: 'Install',
-					items: ['install/server', 'install/local'],
+					items: ['install/server', 'install/first-start', 'install/local'],
 				},
 				{
 					label: 'Connect an AI',
@@ -54,7 +54,7 @@ export default defineConfig({
 				},
 				{
 					label: 'Administration',
-					items: ['admin/console', 'admin/commands', 'admin/service'],
+					items: ['admin/console', 'admin/commands', 'admin/service', 'admin/updates', 'admin/doctor'],
 				},
 				{
 					// Written from the code by make docs-reference.

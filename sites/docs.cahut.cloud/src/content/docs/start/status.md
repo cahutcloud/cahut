@@ -3,14 +3,17 @@ title: Where Cahut stands
 description: What works in Cahut today, and what comes later.
 ---
 
-Cahut is built in slices, each one working from the AI to the reader. Six slices work. In the first, an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at its own address, and the call goes to the Logbook. In the second, people sign in to a web console, gather in team Rooms, connect their AIs and read the Logbook, and administrators manage people, Rooms and the server. In the third, AI clients such as claude.ai connect with the address of a Cahut alone, and a person chooses on a consent screen the Rooms they reach and whether they may publish. In the fourth, a Window keeps its previous version and goes back to it, goes to a trash, opens to its Room, its Cahut, the holders of its Key or the public, and declares what it loads and calls. In the fifth, an AI that asks for something it cannot undo, or that changes what a person may do, knocks first: its person approves or declines in the console. In the sixth, each Cahut has a house style: its colors, fonts and logo, a template for each kind of Window and a deck engine, which AIs read before they make a Window, and a plugin gives Claude the skill to use them.
+Cahut is built in slices, each one working from the AI to the reader. Seven slices work. In the first, an AI publishes a Window over MCP with a personal token, Cahut serves it over HTTPS at its own address, and the call goes to the Logbook. In the second, people sign in to a web console, gather in team Rooms, connect their AIs and read the Logbook, and administrators manage people, Rooms and the server. In the third, AI clients such as claude.ai connect with the address of a Cahut alone, and a person chooses on a consent screen the Rooms they reach and whether they may publish. In the fourth, a Window keeps its previous version and goes back to it, goes to a trash, opens to its Room, its Cahut, the holders of its Key or the public, and declares what it loads and calls. In the fifth, an AI that asks for something it cannot undo, or that changes what a person may do, knocks first: its person approves or declines in the console. In the sixth, each Cahut has a house style: its colors, fonts and logo, a template for each kind of Window and a deck engine, which AIs read before they make a Window, and a plugin gives Claude the skill to use them. In the seventh, one command installs a server, a link opens the first start in the browser, and the server updates itself from signed releases, going back on its own when a new version fails.
 
 ## What works today
 
 | Area | Today |
 | --- | --- |
-| Server | One `cahut` service on a Linux server with systemd, installed with `install.sh`, holding one or more Cahuts, each at its own domain |
-| HTTPS | A certificate from Let's Encrypt for the domain of each Cahut, obtained and renewed by the service |
+| Server | One `cahut` service on a Linux server with systemd, installed in one command that checks the signature of the release, holding one or more Cahuts, each at its own domain, or one at the IPv4 address of the server until it has a domain. See [Install on a server](/install/server/) |
+| First start | A single-use link that opens the first start in the browser: your account, the house style, your first AI. See [The first start](/install/first-start/) |
+| Updates | Every day from the signed releases, with a health check and an automatic rollback, from the command line or the console. See [Updates](/admin/updates/) |
+| Diagnosis | `cahut doctor` checks the server, the firewall, SELinux, and the address and certificate of each Cahut. See [cahut doctor](/admin/doctor/) |
+| HTTPS | A certificate from Let's Encrypt for the domain of each Cahut, or for its IP address, obtained and renewed by the service |
 | People | Created by an administrator, each with a personal Room named after their handle and a link to choose a password; administrators of the Cahut and of the server, with rights checked on every call |
 | Console | Under `/console/` of each Cahut's domain: sign-in, Knocks, Rooms and their people, Windows with their access, versions and declaration, the Logbook, personal tokens, people and the server. See [The console](/admin/console/) |
 | Rooms | Team Rooms with owners and members, created by any person or AI, and deleted for good by their owners; their members publish in them |
@@ -27,7 +30,6 @@ Cahut is built in slices, each one working from the AI to the reader. Six slices
 
 These are planned, in about this order, without dates:
 
-- **Installation and updates.** A guided first start in the browser, and updates from the releases, with a rollback.
 - **A second AI client** besides Claude, tested from end to end.
 
 After that: apps in containers, comments, search, export to PDF and PowerPoint, single sign-on, and backups to S3 or SFTP storage.

@@ -37,7 +37,21 @@ ID  DOMAIN             CREATED
 2   docs.example.org   2026-10-21
 ```
 
-The running service serves the new Cahut at once, and gets its certificate at the first HTTPS connection to its domain. A domain is a host name such as `cahut.example.com`: IP addresses are not supported. There is no command yet to remove a Cahut or to change its domain.
+The running service serves the new Cahut at once, and gets its certificate at the first HTTPS connection to its domain. A domain is a host name such as `cahut.example.com`; a Cahut without a domain takes the public IPv4 address of the server instead, such as `203.0.113.7`. There is no command yet to remove a Cahut.
+
+`cahut setup` prints the link to the [first start](/install/first-start/) of a Cahut that has nobody yet, where its first person chooses their account:
+
+```bash
+sudo -u cahut /usr/local/bin/cahut setup --domain docs.example.org
+```
+
+## Move a Cahut to another domain
+
+```bash
+sudo -u cahut /usr/local/bin/cahut domain rename 203.0.113.7 cahut.example.com
+```
+
+Point the DNS record of the new domain to the server first. Everything in the Cahut stays; the links that name its old address stop working, the sessions of administrators there end, and AIs connect again at the new address. The running service follows at once.
 
 `--admin-handle` and `--admin-name` create the first administrator of the new Cahut at the same time, a person of it, and print their activation link, as [`user create`](#create-a-person) does:
 
@@ -128,6 +142,10 @@ The first command prints the latest entries of a Cahut's Logbook, the second tho
 ```text
 cahut 0.3.0 (commit 6db98c0, 2026-10-23T09:31:18Z, go1.27.3 linux/amd64)
 ```
+
+## Update and diagnose
+
+`sudo /usr/local/bin/cahut update` installs a new release, as root: see [Updates](/admin/updates/). `sudo /usr/local/bin/cahut doctor` checks the server: see [cahut doctor](/admin/doctor/). These two run as root, and never open the databases; the other commands run as the `cahut` user.
 
 ## When a command fails
 
