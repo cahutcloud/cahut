@@ -1,0 +1,9 @@
+---
+// The privacy policy, in French (see src/legal/legal.ts).
+import LegalPage from '../../components/legal/LegalPage.astro';
+import { Content, frontmatter } from '../../legal/fr/privacy.md';
+---
+
+<LegalPage lang="fr" page="privacy" frontmatter={frontmatter}>
+	<Content />
+</LegalPage>

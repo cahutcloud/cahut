@@ -596,6 +596,12 @@ const fr: Dictionary = {
 		github: 'Suivre le projet sur GitHub',
 		docs: 'Lire la documentation',
 	},
+
+	legal: {
+		label: 'Informations légales',
+		nav: { notice: 'Mentions légales', privacy: 'Confidentialité' },
+		updated: 'Dernière mise à jour le',
+	},
 };
 
 export default fr;

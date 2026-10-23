@@ -1,0 +1,35 @@
+---
+// The footer of every page of the docs: Starlight's own, then the legal notice
+// and the privacy policy, which cahut.cloud keeps for both sites.
+import Default from '@astrojs/starlight/components/Footer.astro';
+---
+
+<Default />
+<ul class="legal" role="list">
+	<li><a href="https://cahut.cloud/legal/">Legal notice</a></li>
+	<li><a href="https://cahut.cloud/privacy/">Privacy</a></li>
+</ul>
+
+<style>
+	.legal {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2) var(--space-6);
+		margin: var(--space-6) 0 0;
+		padding: var(--space-6) 0 0;
+		border-top: var(--border-width) solid var(--sl-color-hairline);
+		list-style: none;
+		font-size: var(--sl-text-sm);
+	}
+	.legal li {
+		margin: 0;
+	}
+	.legal a {
+		color: var(--sl-color-gray-3);
+		text-decoration: none;
+	}
+	.legal a:hover {
+		color: var(--sl-color-white);
+		text-decoration: underline;
+	}
+</style>

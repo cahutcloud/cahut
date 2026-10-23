@@ -1,0 +1,9 @@
+---
+// The legal notice, in French (see src/legal/legal.ts).
+import LegalPage from '../../components/legal/LegalPage.astro';
+import { Content, frontmatter } from '../../legal/fr/notice.md';
+---
+
+<LegalPage lang="fr" page="notice" frontmatter={frontmatter}>
+	<Content />
+</LegalPage>

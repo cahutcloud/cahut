@@ -1,0 +1,65 @@
+---
+// The frame of a legal page: its title, its text, and the date of its last
+// change, from the frontmatter of its Markdown file (see src/legal/legal.ts).
+import Base from '../../layouts/Base.astro';
+import { frenchSpaces, localize, useTranslations, type Lang } from '../../i18n';
+import { legalPaths, type LegalFrontmatter, type LegalPage } from '../../legal/legal';
+import '../../styles/prose.css';
+
+interface Props {
+	lang: Lang;
+	page: LegalPage;
+	/** The frontmatter of the Markdown file of the page. */
+	frontmatter: Record<string, unknown>;
+}
+
+const { lang, page } = Astro.props;
+const frontmatter = Astro.props.frontmatter as unknown as LegalFrontmatter;
+const t = useTranslations(lang);
+const alternates = { en: localize('en', legalPaths[page]), fr: localize('fr', legalPaths[page]) };
+const { title, description } = lang === 'fr' ? frenchSpaces(frontmatter) : frontmatter;
+const updated = frenchSpaces(
+	new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'fr-FR', { dateStyle: 'long', timeZone: 'UTC' }).format(
+		new Date(frontmatter.updated),
+	),
+);
+---
+
+<Base title={`${title} · Cahut`} description={description} lang={lang} alternates={alternates}>
+	<article class="legal">
+		<header>
+			<p class="c-label">{t.legal.label}</p>
+			<h1 class="c-h1">{title}</h1>
+		</header>
+		<div class="prose">
+			<slot />
+		</div>
+		<footer class="c-small c-muted">
+			<p>{t.legal.updated} <time datetime={frontmatter.updated}>{updated}</time>.</p>
+		</footer>
+	</article>
+</Base>
+
+<style>
+	.legal {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--space-6);
+		max-width: var(--measure);
+	}
+	header {
+		display: grid;
+		gap: var(--space-3);
+	}
+	header p {
+		margin: 0;
+	}
+	footer {
+		margin-top: var(--space-6);
+		padding-top: var(--space-6);
+		border-top: var(--border-width) solid var(--color-border);
+	}
+	footer p {
+		margin: 0;
+	}
+</style>

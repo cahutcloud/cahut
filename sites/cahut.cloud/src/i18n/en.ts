@@ -567,4 +567,10 @@ export default {
 		github: 'Follow the work on GitHub',
 		docs: 'Read the docs',
 	},
+
+	legal: {
+		label: 'Legal',
+		nav: { notice: 'Legal notice', privacy: 'Privacy' },
+		updated: 'Last updated on',
+	},
 };

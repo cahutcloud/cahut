@@ -47,6 +47,10 @@ import { Content, frontmatter } from '@repo/GOVERNANCE.md';
 
 The French pages, under `/fr/project/`, are translations kept in [`cahut.cloud/src/project/fr/`](cahut.cloud/src/project/fr/), one file per community file, with the same name and written like the original: the same links as paths from the root of the repository, and plain spaces before the French punctuation, which the plugin sets as the dictionaries do. The English file is the reference. The roadmap page is written in the site, in both languages, in the dictionaries of `src/i18n/`.
 
+## The legal pages
+
+The legal notice, at `/legal/`, and the privacy policy, at `/privacy/`, cover both sites. They are Markdown files of the site, in [`cahut.cloud/src/legal/en/`](cahut.cloud/src/legal/en/), with their translations of the same name in [`cahut.cloud/src/legal/fr/`](cahut.cloud/src/legal/fr/), served under `/fr/`. The frontmatter of each file gives its title, its description and the date of its last change, to move when the text changes. The footer of both sites links to them. They state what the web server keeps and for how long: a change to its logs or to its statistics changes them too.
+
 ## The brand
 
 The brand has one source: [`docs/charte-graphique`](../docs/charte-graphique/README.md). The sites never copy its files: they import them through the `@charte` alias, which the `@cahut/brand` integration maps to that folder.
