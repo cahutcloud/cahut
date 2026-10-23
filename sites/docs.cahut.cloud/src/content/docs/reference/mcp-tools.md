@@ -939,6 +939,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
 | `logo_inverse` | string | yes | the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters |
 | `name` | string | yes | the name of the organization; the domain of the Cahut until an administrator sets one |
 | `neutral` | boolean | yes | whether the Cahut has the neutral house style, which no administrator has changed |
+| `own_chart_colors` | boolean | yes | whether the house style sets the colors of its charts, rather than Cahut deriving them from its primary and secondary colors |
 | `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
 | `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
 | `guide` | string | no | how to use the style sheet, its variables and its classes, in Markdown |
@@ -1207,6 +1208,10 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
       "description": "whether the Cahut has the neutral house style, which no administrator has changed",
       "type": "boolean"
     },
+    "own_chart_colors": {
+      "description": "whether the house style sets the colors of its charts, rather than Cahut deriving them from its primary and secondary colors",
+      "type": "boolean"
+    },
     "previous": {
       "additionalProperties": false,
       "description": "the previous house style, which rollback_house_style restores; absent when there is none",
@@ -1294,6 +1299,7 @@ Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: fal
     "has_logo_inverse",
     "deck_engine",
     "colors",
+    "own_chart_colors",
     "chart_colors",
     "fonts"
   ],
@@ -3379,6 +3385,7 @@ This tool takes no arguments.
 | `logo_inverse` | string | yes | the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters |
 | `name` | string | yes | the name of the organization; the domain of the Cahut until an administrator sets one |
 | `neutral` | boolean | yes | whether the Cahut has the neutral house style, which no administrator has changed |
+| `own_chart_colors` | boolean | yes | whether the house style sets the colors of its charts, rather than Cahut deriving them from its primary and secondary colors |
 | `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
 | `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
 | `guide` | string | no | how to use the style sheet, its variables and its classes, in Markdown |
@@ -3647,6 +3654,10 @@ This tool takes no arguments.
       "description": "whether the Cahut has the neutral house style, which no administrator has changed",
       "type": "boolean"
     },
+    "own_chart_colors": {
+      "description": "whether the house style sets the colors of its charts, rather than Cahut deriving them from its primary and secondary colors",
+      "type": "boolean"
+    },
     "previous": {
       "additionalProperties": false,
       "description": "the previous house style, which rollback_house_style restores; absent when there is none",
@@ -3734,6 +3745,7 @@ This tool takes no arguments.
     "has_logo_inverse",
     "deck_engine",
     "colors",
+    "own_chart_colors",
     "chart_colors",
     "fonts"
   ],
@@ -4113,7 +4125,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `colors.primary` | string | no | the main color of the brand, as #rrggbb |
 | `colors.secondary` | string | no | the second color of the brand, as #rrggbb |
 | `colors.text` | string | no | body text, as #rrggbb |
-| `guidance` | string or null | no | what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Never readers see it |
+| `guidance` | string or null | no | what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Readers never see it |
 | `heading_font` | object or null | no | the font of headings, which replaces the current one with its files; with no family, headings take the body font |
 | `heading_font.fallback` | string | no | the generic family to fall back on: sans-serif (the default), serif or monospace |
 | `heading_font.family` | string | no | the family, such as Inter or Georgia; empty for the default |
@@ -4227,7 +4239,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
       ]
     },
     "guidance": {
-      "description": "what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Never readers see it",
+      "description": "what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Readers never see it",
       "type": [
         "null",
         "string"
@@ -4390,6 +4402,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 | `logo_inverse` | string | yes | the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters |
 | `name` | string | yes | the name of the organization; the domain of the Cahut until an administrator sets one |
 | `neutral` | boolean | yes | whether the Cahut has the neutral house style, which no administrator has changed |
+| `own_chart_colors` | boolean | yes | whether the house style sets the colors of its charts, rather than Cahut deriving them from its primary and secondary colors |
 | `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
 | `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
 | `guide` | string | no | how to use the style sheet, its variables and its classes, in Markdown |
@@ -4658,6 +4671,10 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
       "description": "whether the Cahut has the neutral house style, which no administrator has changed",
       "type": "boolean"
     },
+    "own_chart_colors": {
+      "description": "whether the house style sets the colors of its charts, rather than Cahut deriving them from its primary and secondary colors",
+      "type": "boolean"
+    },
     "previous": {
       "additionalProperties": false,
       "description": "the previous house style, which rollback_house_style restores; absent when there is none",
@@ -4745,6 +4762,7 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "has_logo_inverse",
     "deck_engine",
     "colors",
+    "own_chart_colors",
     "chart_colors",
     "fonts"
   ],
