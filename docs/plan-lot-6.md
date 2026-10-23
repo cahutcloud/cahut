@@ -194,6 +194,6 @@ Le lot 6 s'est achevé le 23 octobre 2026, en six pull requests :
 
 **Suites.**
 
-- `TestShutdownWithAnOpenStream` a échoué une fois en CI, sur la PR #68, et passé à la relance : un test instable, à regarder.
+- `TestShutdownWithAnOpenStream` a échoué une fois en CI, sur la PR #68, et passé à la relance. Réglé : le serveur termine bien le flux, mais le client laisse parfois une connexion ouverte sans y envoyer de requête, et `net/http` lui accorde 5 secondes avant de la fermer, plus que les 5 secondes qu'attendait le test. Le test attend maintenant la fin du flux, puis l'arrêt avant son échéance de 10 secondes.
 - Une icône et une adresse de politique de confidentialité pour le plugin, que demande le répertoire d'Anthropic, à l'ouverture du dépôt.
 - La version du plugin, 0.4.0, suit celle de Cahut : à relever à chaque release.
