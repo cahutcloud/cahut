@@ -92,7 +92,7 @@ export interface Activation {
 }
 
 export interface AddDomainInput {
-  /** the domain of the new Cahut, such as cahut.example.com */
+  /** the domain of the new Cahut, such as cahut.example.com, or the public IPv4 address of the server, for a Cahut without a domain */
   domain: string;
   /** the first administrator of the Cahut, a person of it */
   admin?: FirstAdmin;
@@ -672,6 +672,13 @@ export interface RemoveMemberInput {
   user: string;
 }
 
+export interface RenameDomainInput {
+  /** the domain or the address of the Cahut now */
+  domain: string;
+  /** its new domain, such as cahut.example.com, which must point to this server, or the public IPv4 address of the server */
+  to: string;
+}
+
 export interface Request {
   response_type?: string;
   client_id: string;
@@ -1113,6 +1120,8 @@ export interface ServerOperations {
   list_domains: { input: ListDomainsInput; output: DomainList };
   /** Read the latest entries of the server's Logbook, newest first. */
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
+  /** Move a Cahut to another domain, or from the IP address of the server to a domain. Its people, Rooms, Windows, house style and Logbook stay; the links that name its old address stop working, and AIs connect again at the new one. */
+  rename_domain: { input: RenameDomainInput; output: Info };
   /** Ask the updater of the server to check for new releases, or to install a release newer than the one running. It runs as root within a minute, checks the signature, and goes back to the version running if the new one fails. */
   request_update: { input: RequestUpdateInput; output: RequestedUpdate };
   /** Sign in as an administrator of the server, with a handle and a password, and open a session at this domain. */

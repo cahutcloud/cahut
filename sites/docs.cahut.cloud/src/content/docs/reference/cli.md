@@ -20,6 +20,7 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut serve`](#cahut-serve) | Serve the Cahuts of this server: MCP for AIs, and the Windows |
 | [`cahut domain add`](#cahut-domain-add) | Declare a domain, which creates its Cahut |
 | [`cahut domain list`](#cahut-domain-list) | List the Cahuts of this server |
+| [`cahut domain rename`](#cahut-domain-rename) | Move a Cahut to another domain, or from the IP address of the server to a domain |
 | [`cahut admin create`](#cahut-admin-create) | Create an administrator of the server, with an activation link |
 | [`cahut admin list`](#cahut-admin-list) | List the administrators of the server |
 | [`cahut admin link`](#cahut-admin-link) | Give an administrator of the server a new link where they choose their password |
@@ -77,6 +78,18 @@ List the Cahuts of this server.
 
 ```text
 cahut domain list [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+
+### `cahut domain rename`
+
+Move a Cahut to another domain, or from the IP address of the server to a domain.
+
+```text
+cahut domain rename [--data DIR] <domain> <new domain>
 ```
 
 | Flag | Default | Description |
