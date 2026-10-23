@@ -393,11 +393,13 @@ Environ quatre heures par semaine en dehors du développement, et pas plus penda
 - [x] Choisir la licence et écrire LICENSE, avec la mention sur le nom et le logo : fait le 22 octobre 2026 ([ADR 15](adr/0015-license.md)).
 - [ ] Déposer la marque « Cahut » à l'INPI ; réserver `getcahut` sur Mastodon, Bluesky, LinkedIn et X.
 - [x] Écrire GOVERNANCE.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, SUPPORT.md, TRADEMARK.md, les gabarits et FUNDING.yml ; compléter le README : fait le 22 octobre 2026.
-- [ ] Régler le dépôt : Discussions et leurs catégories, signalement privé des failles, double authentification obligatoire sur l'organisation, protection de `main`, application DCO, étiquettes, jalons par lot, GitHub Sponsors.
+- [x] Régler le dépôt autant que GitHub le permet à un dépôt privé du plan gratuit : Discussions et leurs catégories, étiquettes, jalons par lot, signature des commits faits sur le web : fait le 22 octobre 2026 ; fusion par squash seule, branches supprimées après fusion, alertes et correctifs de sécurité de Dependabot, actions épinglées par empreinte obligatoires, environnement `sites` réservé à `main`, CODEOWNERS et réglages de l'application DCO : fait le 23 octobre 2026.
+- [ ] Dans l'interface, par Olivier : la double authentification obligatoire sur l'organisation, l'application DCO (<https://github.com/apps/dco>) installée sur le dépôt, le profil GitHub Sponsors.
+- [ ] Le jour de l'ouverture, ce que GitHub refuse à un dépôt privé : appliquer les règles de `.github/rulesets/` (protection de `main` et des étiquettes de release), activer le signalement privé des failles, l'analyse des secrets avec la protection des envois, l'analyse CodeQL par défaut, et demander l'approbation des workflows pour toute contribution extérieure ; ajouter `DCO` aux vérifications requises de `main` une fois l'application installée.
 - [ ] Créer `security@`, `conduct@` et `contact@cahut.cloud` ; publier `security.txt`.
 - [ ] Désigner la personne de confiance, lui donner les accès de secours et la note scellée.
 - [ ] Ajouter `govulncheck` à la CI ; remplir le questionnaire du badge OpenSSF.
-- [ ] Écrire l'ADR des pages du projet et construire les pages `/project/` du site, en anglais et en français.
+- [x] Écrire l'ADR des pages du projet et construire les pages `/project/` du site, en anglais et en français : fait ([ADR 18](adr/0018-project-pages-from-community-files.md)).
 - [ ] Relire tout le dépôt et son historique avant l'ouverture, comme le brief le demande : l'historique s'ouvre tel quel et ne se réécrit pas, et le brief cite une vision extérieure (EKLOS) qu'il faut traiter.
 
 ## Décisions à prendre

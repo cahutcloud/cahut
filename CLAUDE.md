@@ -167,6 +167,9 @@ sites/                 npm workspace of the sites (ADR 12)
   workflows/           CI, sites and release
   ISSUE_TEMPLATE/      The bug report and accepted feature forms; config.yml sends questions to the Discussions
   PULL_REQUEST_TEMPLATE.md   What a pull request says
+  CODEOWNERS           Who reviews each path: the lead maintainer, for now
+  dco.yml              Settings of the DCO app, which checks the sign-offs
+  rulesets/            The protection of main and of release tags, to apply with the API
   FUNDING.yml          The Sponsor button
   dependabot.yml       Weekly updates of Go modules, npm packages and actions
 .claude/skills/
@@ -191,6 +194,7 @@ The README sets the tone: short sentences, concrete verbs, no hype. No exclamati
 
 ## Git
 
-- `main` is the default branch. Work on a topic branch (`claude/<topic>` for Claude sessions) and open a pull request. CI must be green before merging.
+- `main` is the default branch. Work on a topic branch (`claude/<topic>` for Claude sessions) and open a pull request. CI must be green before merging. Pull requests are merged by squash, the only method the repository allows.
+- Sign off every commit with `git commit -s`, as [CONTRIBUTING.md](CONTRIBUTING.md#sign-your-commits) asks: the DCO app checks it on every pull request. Olivier asks Claude sessions to sign off in his name, with the git identity of this checkout; he answers for what he merges.
 - Commit messages in English: a short imperative subject line, then a body that says what changed and why.
 - The repository is private until launch and will be opened as is, history included. Keep it free of references to other projects, employers or clients, and never commit secrets.
