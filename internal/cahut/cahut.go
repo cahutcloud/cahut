@@ -13,6 +13,7 @@ import (
 
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/credential"
+	"cahut.cloud/internal/housestyle"
 	"cahut.cloud/internal/knock"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/oauth"
@@ -82,6 +83,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		}
 		return cfg.ConsoleURL + "knocks/" + strconv.FormatInt(id, 10)
 	})
+	housestyle.Register(r, cfg.Domain)
 	operation.Register(r, ListLogbook)
 	operation.Register(r, &operation.Op[GetCahutInput, About]{
 		Name:        "get_cahut",

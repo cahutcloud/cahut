@@ -162,6 +162,17 @@ export interface ChangePasswordInput {
   new_password: string;
 }
 
+export interface ColorsInput {
+  /** body text, as #rrggbb */
+  text?: string;
+  /** the background of pages, as #rrggbb; body text must contrast 4.5:1 at least on it */
+  background?: string;
+  /** the main color of the brand, as #rrggbb */
+  primary?: string;
+  /** the second color of the brand, as #rrggbb */
+  secondary?: string;
+}
+
 export interface ConnectedAIs {
   connections: Connection[];
 }
@@ -305,9 +316,105 @@ export interface FirstAdmin {
   name: string;
 }
 
+export interface Font {
+  /** its family; absent for the font of the system */
+  family?: string;
+  /** the generic family it falls back on: sans-serif, serif or monospace */
+  fallback: string;
+  /** the CSS font-family of the font, its family first */
+  stack: string;
+  /** the files that readers' browsers load; none for a family that their systems have */
+  files?: FontFile[];
+}
+
+export interface FontFile {
+  /** the name of the file, which set_house_style keeps when given in keep */
+  name: string;
+  /** its path, from the root of the domain */
+  url: string;
+  weight: number;
+  /** for a variable font, the heaviest weight it covers */
+  max_weight?: number;
+  /** normal or italic */
+  style: string;
+  /** in bytes */
+  size: number;
+}
+
+export interface FontFileInput {
+  /** the file in base64: WOFF2, WOFF, TrueType or OpenType */
+  content?: string;
+  /** instead of content, the name of a file of the current house style to keep, as get_house_style lists it */
+  keep?: string;
+  /** its weight, from 100 to 900, 400 by default; for a variable font, the lightest weight it covers */
+  weight?: number;
+  /** for a variable font, the heaviest weight it covers */
+  max_weight?: number;
+  /** normal (the default) or italic */
+  style?: string;
+}
+
+export interface FontInput {
+  /** the family, such as Inter or Georgia; empty for the default */
+  family?: string;
+  /** the generic family to fall back on: sans-serif (the default), serif or monospace */
+  fallback?: string;
+  /** the files of the family, which readers' browsers load; none for a family that their systems have, such as Georgia */
+  files?: FontFileInput[];
+}
+
+export interface Fonts {
+  /** the font of headings, --hs-font-heading */
+  heading: Font;
+  /** the font of body text, --hs-font-body */
+  body: Font;
+  /** the CSS stack of code and figures in columns, --hs-font-mono */
+  mono: string;
+}
+
 export type GetAccountInput = Record<string, never>;
 
 export type GetCahutInput = Record<string, never>;
+
+export interface HouseStyle {
+  /** the name of the organization; the domain of the Cahut until an administrator sets one */
+  name: string;
+  /** whether the Cahut has the neutral house style, which no administrator has changed */
+  neutral: boolean;
+  /** the style sheet of the house style, at this path from the root of the domain: link it with <link rel="stylesheet" href="/-/house-style.css">. The Window declares nothing for it */
+  stylesheet: string;
+  /** the path of the logo, from the root of the domain; without a logo, it shows the name of the organization */
+  logo: string;
+  /** the path of the logo for dark backgrounds; the logo itself when there is no such version */
+  logo_inverse: string;
+  /** whether the house style has a logo */
+  has_logo: boolean;
+  /** whether it has a version of its logo for dark backgrounds */
+  has_logo_inverse: boolean;
+  colors: Palette;
+  /** the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled */
+  chart_colors: string[];
+  fonts: Fonts;
+  /** what the organization asks of AIs, such as its tone of voice or rules for charts: follow it */
+  guidance?: string;
+  /** when the house style was set; absent for the neutral house style */
+  set_at?: string;
+  /** the handle of the person who set it, or for whom an AI set it */
+  set_by?: string;
+  /** the previous house style, which rollback_house_style restores; absent when there is none */
+  previous?: Previous;
+  /** what may not read well, and what to change */
+  warnings?: string[];
+}
+
+export type HousestyleGetInput = Record<string, never>;
+
+export interface ImageInput {
+  /** the image: SVG as text, or PNG or WebP in base64; empty to remove the logo */
+  content: string;
+  /** utf-8 (the default, for SVG) or base64 */
+  encoding?: string;
+}
 
 export interface Info {
   id: number;
@@ -448,6 +555,27 @@ export interface NewUser {
   activation?: Activation;
 }
 
+export interface Palette {
+  /** body text, --hs-text */
+  text: string;
+  /** the background of pages, --hs-background */
+  background: string;
+  /** the main color of the brand, for headings, links, buttons and slides, --hs-primary */
+  primary: string;
+  /** text on the primary color, --hs-on-primary */
+  on_primary: string;
+  /** the second color of the brand, for accents, --hs-secondary */
+  secondary: string;
+  /** text on the secondary color, --hs-on-secondary */
+  on_secondary: string;
+  /** secondary text, such as captions, --hs-muted */
+  muted: string;
+  /** borders and rules, --hs-line */
+  line: string;
+  /** the background of cards and panels, --hs-surface */
+  surface: string;
+}
+
 export type PasswordChanged = Record<string, never>;
 
 export interface Person {
@@ -455,6 +583,13 @@ export interface Person {
   name: string;
   /** owner or member of the Room */
   role: string;
+}
+
+export interface Previous {
+  /** whether it is the neutral house style */
+  neutral: boolean;
+  set_at: string;
+  set_by?: string;
 }
 
 export interface PublishInput {
@@ -507,6 +642,8 @@ export interface Request {
 export interface RevokeTokenInput {
   id: number;
 }
+
+export type RollbackInput = Record<string, never>;
 
 export interface Room {
   /** the Room's name, first part of its address */
@@ -575,6 +712,27 @@ export interface SetAIReachInput {
   all_rooms?: boolean;
   /** the names of the Rooms the AI reaches, when all_rooms is false */
   rooms?: string[];
+}
+
+export interface SetInput {
+  /** start again from the neutral house style, then apply the other fields */
+  neutral?: boolean;
+  /** the name of the organization; empty for the domain of the Cahut */
+  name?: string;
+  /** the colors to change; those left out stay */
+  colors?: ColorsInput;
+  /** up to 8 colors for the series of charts, in order, each as #rrggbb; an empty list goes back to those that Cahut derives from the primary and secondary colors */
+  chart_colors?: string[];
+  /** the font of headings, which replaces the current one with its files; with no family, headings take the body font */
+  heading_font?: FontInput;
+  /** the font of body text, which replaces the current one with its files; with no family, the font of the system */
+  body_font?: FontInput;
+  /** the logo of the organization, for light backgrounds */
+  logo?: ImageInput;
+  /** the version of the logo for dark backgrounds, such as slides in the primary color */
+  logo_inverse?: ImageInput;
+  /** what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Never readers see it */
+  guidance?: string;
 }
 
 export interface SetUserRoleInput {
@@ -779,6 +937,8 @@ export interface CahutOperations {
   get_account: { input: GetAccountInput; output: Account };
   /** Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. */
   get_cahut: { input: GetCahutInput; output: About };
+  /** Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, and the path of its style sheet, which a Window links from the root of the domain. */
+  get_house_style: { input: HousestyleGetInput; output: HouseStyle };
   /** Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
   get_knock: { input: KnockGetInput; output: Knock };
   /** Describe a Room: its title, its owners and members, and how many Windows it holds. */
@@ -809,10 +969,14 @@ export interface CahutOperations {
   restore_window: { input: RefInput; output: Window };
   /** Revoke a personal token. The AI that used it loses access at once. */
   revoke_token: { input: RevokeTokenInput; output: TokenInfo };
+  /** Go back to the previous house style of this Cahut. The house style you leave becomes the previous one, so calling rollback_house_style again returns to it. For the administrators of the Cahut. */
+  rollback_house_style: { input: RollbackInput; output: HouseStyle };
   /** Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. */
   rollback_window: { input: RefInput; output: Window };
   /** Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. */
   set_ai_reach: { input: SetAIReachInput; output: Connection };
+  /** Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, and what it asks of AIs. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. */
+  set_house_style: { input: SetInput; output: HouseStyle };
   /** Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. */
   set_room_member_role: { input: MemberInput; output: RoomDetail };
   /** Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. */

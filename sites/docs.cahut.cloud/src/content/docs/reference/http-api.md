@@ -73,6 +73,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/enable_user` | Administrators of the Cahut | yes |
 | `POST /api/get_account` | Any person | yes |
 | `POST /api/get_cahut` | Any person | yes |
+| `POST /api/get_house_style` | Any person | yes |
 | `POST /api/get_knock` | Any person | yes |
 | `POST /api/get_room` | Any person | yes |
 | `POST /api/get_window` | Any person | yes |
@@ -88,8 +89,10 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/remove_room_member` | Any person | yes |
 | `POST /api/restore_window` | Any person | yes |
 | `POST /api/revoke_token` | Any person | yes |
+| `POST /api/rollback_house_style` | Administrators of the Cahut | yes |
 | `POST /api/rollback_window` | Any person | yes |
 | `POST /api/set_ai_reach` | Any person | yes |
+| `POST /api/set_house_style` | Administrators of the Cahut | yes |
 | `POST /api/set_room_member_role` | Any person | yes |
 | `POST /api/set_user_role` | Administrators of the Cahut | yes |
 | `POST /api/set_window_access` | Any person | yes |

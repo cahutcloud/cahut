@@ -39,6 +39,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
 | [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. |
+| [`get_house_style`](#get_house_style) | Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, and the path of its style sheet, which a Window links from the root of the domain. |
 | [`get_knock`](#get_knock) | Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
 | [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
 | [`get_window`](#get_window) | Describe a Window and list its files, optionally with their contents. |
@@ -51,8 +52,10 @@ The Cahut gives these instructions to the AI when it connects:
 | [`purge_window`](#purge_window) | Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs. |
 | [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`restore_window`](#restore_window) | Bring a Window back from the trash, with its versions. |
+| [`rollback_house_style`](#rollback_house_style) | Go back to the previous house style of this Cahut. The house style you leave becomes the previous one, so calling rollback_house_style again returns to it. For the administrators of the Cahut. |
 | [`rollback_window`](#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
 | [`set_ai_reach`](#set_ai_reach) | Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs. |
+| [`set_house_style`](#set_house_style) | Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, and what it asks of AIs. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. |
 | [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs. |
 | [`set_window_access`](#set_window_access) | Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
@@ -853,6 +856,396 @@ This tool takes no arguments.
   },
   "required": [
     "domain"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `get_house_style`
+
+Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, and the path of its style sheet, which a Window links from the root of the domain.
+
+Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+This tool takes no arguments.
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `chart_colors` | array of strings or null | yes | the colors of the series of charts, in their order, as `--hs-chart-1` to `--hs-chart-8` in the style sheet: give them to series in this order, never cycled |
+| `colors` | object | yes |  |
+| `colors.background` | string | yes | the background of pages, `--hs-background` |
+| `colors.line` | string | yes | borders and rules, `--hs-line` |
+| `colors.muted` | string | yes | secondary text, such as captions, `--hs-muted` |
+| `colors.on_primary` | string | yes | text on the primary color, `--hs-on-primary` |
+| `colors.on_secondary` | string | yes | text on the secondary color, `--hs-on-secondary` |
+| `colors.primary` | string | yes | the main color of the brand, for headings, links, buttons and slides, `--hs-primary` |
+| `colors.secondary` | string | yes | the second color of the brand, for accents, `--hs-secondary` |
+| `colors.surface` | string | yes | the background of cards and panels, `--hs-surface` |
+| `colors.text` | string | yes | body text, `--hs-text` |
+| `fonts` | object | yes |  |
+| `fonts.body` | object | yes | the font of body text, `--hs-font-body` |
+| `fonts.body.fallback` | string | yes | the generic family it falls back on: sans-serif, serif or monospace |
+| `fonts.body.stack` | string | yes | the CSS font-family of the font, its family first |
+| `fonts.body.family` | string | no | its family; absent for the font of the system |
+| `fonts.body.files` | array of objects or null | no | the files that readers' browsers load; none for a family that their systems have |
+| `fonts.body.files[].name` | string | yes | the name of the file, which set_house_style keeps when given in keep |
+| `fonts.body.files[].size` | integer | yes | in bytes |
+| `fonts.body.files[].style` | string | yes | normal or italic |
+| `fonts.body.files[].url` | string | yes | its path, from the root of the domain |
+| `fonts.body.files[].weight` | integer | yes |  |
+| `fonts.body.files[].max_weight` | integer | no | for a variable font, the heaviest weight it covers |
+| `fonts.heading` | object | yes | the font of headings, `--hs-font-heading` |
+| `fonts.heading.fallback` | string | yes | the generic family it falls back on: sans-serif, serif or monospace |
+| `fonts.heading.stack` | string | yes | the CSS font-family of the font, its family first |
+| `fonts.heading.family` | string | no | its family; absent for the font of the system |
+| `fonts.heading.files` | array of objects or null | no | the files that readers' browsers load; none for a family that their systems have |
+| `fonts.heading.files[].name` | string | yes | the name of the file, which set_house_style keeps when given in keep |
+| `fonts.heading.files[].size` | integer | yes | in bytes |
+| `fonts.heading.files[].style` | string | yes | normal or italic |
+| `fonts.heading.files[].url` | string | yes | its path, from the root of the domain |
+| `fonts.heading.files[].weight` | integer | yes |  |
+| `fonts.heading.files[].max_weight` | integer | no | for a variable font, the heaviest weight it covers |
+| `fonts.mono` | string | yes | the CSS stack of code and figures in columns, `--hs-font-mono` |
+| `has_logo` | boolean | yes | whether the house style has a logo |
+| `has_logo_inverse` | boolean | yes | whether it has a version of its logo for dark backgrounds |
+| `logo` | string | yes | the path of the logo, from the root of the domain; without a logo, it shows the name of the organization |
+| `logo_inverse` | string | yes | the path of the logo for dark backgrounds; the logo itself when there is no such version |
+| `name` | string | yes | the name of the organization; the domain of the Cahut until an administrator sets one |
+| `neutral` | boolean | yes | whether the Cahut has the neutral house style, which no administrator has changed |
+| `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
+| `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
+| `previous` | object or null | no | the previous house style, which rollback_house_style restores; absent when there is none |
+| `previous.neutral` | boolean | yes | whether it is the neutral house style |
+| `previous.set_at` | string | yes |  |
+| `previous.set_by` | string | no |  |
+| `set_at` | string or null | no | when the house style was set; absent for the neutral house style |
+| `set_by` | string | no | the handle of the person who set it, or for whom an AI set it |
+| `warnings` | array of strings or null | no | what may not read well, and what to change |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "chart_colors": {
+      "description": "the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "colors": {
+      "additionalProperties": false,
+      "properties": {
+        "background": {
+          "description": "the background of pages, --hs-background",
+          "type": "string"
+        },
+        "line": {
+          "description": "borders and rules, --hs-line",
+          "type": "string"
+        },
+        "muted": {
+          "description": "secondary text, such as captions, --hs-muted",
+          "type": "string"
+        },
+        "on_primary": {
+          "description": "text on the primary color, --hs-on-primary",
+          "type": "string"
+        },
+        "on_secondary": {
+          "description": "text on the secondary color, --hs-on-secondary",
+          "type": "string"
+        },
+        "primary": {
+          "description": "the main color of the brand, for headings, links, buttons and slides, --hs-primary",
+          "type": "string"
+        },
+        "secondary": {
+          "description": "the second color of the brand, for accents, --hs-secondary",
+          "type": "string"
+        },
+        "surface": {
+          "description": "the background of cards and panels, --hs-surface",
+          "type": "string"
+        },
+        "text": {
+          "description": "body text, --hs-text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "background",
+        "primary",
+        "on_primary",
+        "secondary",
+        "on_secondary",
+        "muted",
+        "line",
+        "surface"
+      ],
+      "type": "object"
+    },
+    "fonts": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "additionalProperties": false,
+          "description": "the font of body text, --hs-font-body",
+          "properties": {
+            "fallback": {
+              "description": "the generic family it falls back on: sans-serif, serif or monospace",
+              "type": "string"
+            },
+            "family": {
+              "description": "its family; absent for the font of the system",
+              "type": "string"
+            },
+            "files": {
+              "description": "the files that readers' browsers load; none for a family that their systems have",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "max_weight": {
+                    "description": "for a variable font, the heaviest weight it covers",
+                    "type": "integer"
+                  },
+                  "name": {
+                    "description": "the name of the file, which set_house_style keeps when given in keep",
+                    "type": "string"
+                  },
+                  "size": {
+                    "description": "in bytes",
+                    "type": "integer"
+                  },
+                  "style": {
+                    "description": "normal or italic",
+                    "type": "string"
+                  },
+                  "url": {
+                    "description": "its path, from the root of the domain",
+                    "type": "string"
+                  },
+                  "weight": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "name",
+                  "url",
+                  "weight",
+                  "style",
+                  "size"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "stack": {
+              "description": "the CSS font-family of the font, its family first",
+              "type": "string"
+            }
+          },
+          "required": [
+            "fallback",
+            "stack"
+          ],
+          "type": "object"
+        },
+        "heading": {
+          "additionalProperties": false,
+          "description": "the font of headings, --hs-font-heading",
+          "properties": {
+            "fallback": {
+              "description": "the generic family it falls back on: sans-serif, serif or monospace",
+              "type": "string"
+            },
+            "family": {
+              "description": "its family; absent for the font of the system",
+              "type": "string"
+            },
+            "files": {
+              "description": "the files that readers' browsers load; none for a family that their systems have",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "max_weight": {
+                    "description": "for a variable font, the heaviest weight it covers",
+                    "type": "integer"
+                  },
+                  "name": {
+                    "description": "the name of the file, which set_house_style keeps when given in keep",
+                    "type": "string"
+                  },
+                  "size": {
+                    "description": "in bytes",
+                    "type": "integer"
+                  },
+                  "style": {
+                    "description": "normal or italic",
+                    "type": "string"
+                  },
+                  "url": {
+                    "description": "its path, from the root of the domain",
+                    "type": "string"
+                  },
+                  "weight": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "name",
+                  "url",
+                  "weight",
+                  "style",
+                  "size"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "stack": {
+              "description": "the CSS font-family of the font, its family first",
+              "type": "string"
+            }
+          },
+          "required": [
+            "fallback",
+            "stack"
+          ],
+          "type": "object"
+        },
+        "mono": {
+          "description": "the CSS stack of code and figures in columns, --hs-font-mono",
+          "type": "string"
+        }
+      },
+      "required": [
+        "heading",
+        "body",
+        "mono"
+      ],
+      "type": "object"
+    },
+    "guidance": {
+      "description": "what the organization asks of AIs, such as its tone of voice or rules for charts: follow it",
+      "type": "string"
+    },
+    "has_logo": {
+      "description": "whether the house style has a logo",
+      "type": "boolean"
+    },
+    "has_logo_inverse": {
+      "description": "whether it has a version of its logo for dark backgrounds",
+      "type": "boolean"
+    },
+    "logo": {
+      "description": "the path of the logo, from the root of the domain; without a logo, it shows the name of the organization",
+      "type": "string"
+    },
+    "logo_inverse": {
+      "description": "the path of the logo for dark backgrounds; the logo itself when there is no such version",
+      "type": "string"
+    },
+    "name": {
+      "description": "the name of the organization; the domain of the Cahut until an administrator sets one",
+      "type": "string"
+    },
+    "neutral": {
+      "description": "whether the Cahut has the neutral house style, which no administrator has changed",
+      "type": "boolean"
+    },
+    "previous": {
+      "additionalProperties": false,
+      "description": "the previous house style, which rollback_house_style restores; absent when there is none",
+      "properties": {
+        "neutral": {
+          "description": "whether it is the neutral house style",
+          "type": "boolean"
+        },
+        "set_at": {
+          "type": "string"
+        },
+        "set_by": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "neutral",
+        "set_at"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "set_at": {
+      "description": "when the house style was set; absent for the neutral house style",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "set_by": {
+      "description": "the handle of the person who set it, or for whom an AI set it",
+      "type": "string"
+    },
+    "stylesheet": {
+      "description": "the style sheet of the house style, at this path from the root of the domain: link it with \u003clink rel=\"stylesheet\" href=\"/-/house-style.css\"\u003e. The Window declares nothing for it",
+      "type": "string"
+    },
+    "warnings": {
+      "description": "what may not read well, and what to change",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    }
+  },
+  "required": [
+    "name",
+    "neutral",
+    "stylesheet",
+    "logo",
+    "logo_inverse",
+    "has_logo",
+    "has_logo_inverse",
+    "colors",
+    "chart_colors",
+    "fonts"
   ],
   "type": "object"
 }
@@ -2866,6 +3259,398 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
 
 </details>
 
+## `rollback_house_style`
+
+Go back to the previous house style of this Cahut. The house style you leave becomes the previous one, so calling rollback_house_style again returns to it. For the administrators of the Cahut.
+
+Offered to the AIs of administrators of the Cahut only.
+
+Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+This tool takes no arguments.
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `chart_colors` | array of strings or null | yes | the colors of the series of charts, in their order, as `--hs-chart-1` to `--hs-chart-8` in the style sheet: give them to series in this order, never cycled |
+| `colors` | object | yes |  |
+| `colors.background` | string | yes | the background of pages, `--hs-background` |
+| `colors.line` | string | yes | borders and rules, `--hs-line` |
+| `colors.muted` | string | yes | secondary text, such as captions, `--hs-muted` |
+| `colors.on_primary` | string | yes | text on the primary color, `--hs-on-primary` |
+| `colors.on_secondary` | string | yes | text on the secondary color, `--hs-on-secondary` |
+| `colors.primary` | string | yes | the main color of the brand, for headings, links, buttons and slides, `--hs-primary` |
+| `colors.secondary` | string | yes | the second color of the brand, for accents, `--hs-secondary` |
+| `colors.surface` | string | yes | the background of cards and panels, `--hs-surface` |
+| `colors.text` | string | yes | body text, `--hs-text` |
+| `fonts` | object | yes |  |
+| `fonts.body` | object | yes | the font of body text, `--hs-font-body` |
+| `fonts.body.fallback` | string | yes | the generic family it falls back on: sans-serif, serif or monospace |
+| `fonts.body.stack` | string | yes | the CSS font-family of the font, its family first |
+| `fonts.body.family` | string | no | its family; absent for the font of the system |
+| `fonts.body.files` | array of objects or null | no | the files that readers' browsers load; none for a family that their systems have |
+| `fonts.body.files[].name` | string | yes | the name of the file, which set_house_style keeps when given in keep |
+| `fonts.body.files[].size` | integer | yes | in bytes |
+| `fonts.body.files[].style` | string | yes | normal or italic |
+| `fonts.body.files[].url` | string | yes | its path, from the root of the domain |
+| `fonts.body.files[].weight` | integer | yes |  |
+| `fonts.body.files[].max_weight` | integer | no | for a variable font, the heaviest weight it covers |
+| `fonts.heading` | object | yes | the font of headings, `--hs-font-heading` |
+| `fonts.heading.fallback` | string | yes | the generic family it falls back on: sans-serif, serif or monospace |
+| `fonts.heading.stack` | string | yes | the CSS font-family of the font, its family first |
+| `fonts.heading.family` | string | no | its family; absent for the font of the system |
+| `fonts.heading.files` | array of objects or null | no | the files that readers' browsers load; none for a family that their systems have |
+| `fonts.heading.files[].name` | string | yes | the name of the file, which set_house_style keeps when given in keep |
+| `fonts.heading.files[].size` | integer | yes | in bytes |
+| `fonts.heading.files[].style` | string | yes | normal or italic |
+| `fonts.heading.files[].url` | string | yes | its path, from the root of the domain |
+| `fonts.heading.files[].weight` | integer | yes |  |
+| `fonts.heading.files[].max_weight` | integer | no | for a variable font, the heaviest weight it covers |
+| `fonts.mono` | string | yes | the CSS stack of code and figures in columns, `--hs-font-mono` |
+| `has_logo` | boolean | yes | whether the house style has a logo |
+| `has_logo_inverse` | boolean | yes | whether it has a version of its logo for dark backgrounds |
+| `logo` | string | yes | the path of the logo, from the root of the domain; without a logo, it shows the name of the organization |
+| `logo_inverse` | string | yes | the path of the logo for dark backgrounds; the logo itself when there is no such version |
+| `name` | string | yes | the name of the organization; the domain of the Cahut until an administrator sets one |
+| `neutral` | boolean | yes | whether the Cahut has the neutral house style, which no administrator has changed |
+| `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
+| `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
+| `previous` | object or null | no | the previous house style, which rollback_house_style restores; absent when there is none |
+| `previous.neutral` | boolean | yes | whether it is the neutral house style |
+| `previous.set_at` | string | yes |  |
+| `previous.set_by` | string | no |  |
+| `set_at` | string or null | no | when the house style was set; absent for the neutral house style |
+| `set_by` | string | no | the handle of the person who set it, or for whom an AI set it |
+| `warnings` | array of strings or null | no | what may not read well, and what to change |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "chart_colors": {
+      "description": "the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "colors": {
+      "additionalProperties": false,
+      "properties": {
+        "background": {
+          "description": "the background of pages, --hs-background",
+          "type": "string"
+        },
+        "line": {
+          "description": "borders and rules, --hs-line",
+          "type": "string"
+        },
+        "muted": {
+          "description": "secondary text, such as captions, --hs-muted",
+          "type": "string"
+        },
+        "on_primary": {
+          "description": "text on the primary color, --hs-on-primary",
+          "type": "string"
+        },
+        "on_secondary": {
+          "description": "text on the secondary color, --hs-on-secondary",
+          "type": "string"
+        },
+        "primary": {
+          "description": "the main color of the brand, for headings, links, buttons and slides, --hs-primary",
+          "type": "string"
+        },
+        "secondary": {
+          "description": "the second color of the brand, for accents, --hs-secondary",
+          "type": "string"
+        },
+        "surface": {
+          "description": "the background of cards and panels, --hs-surface",
+          "type": "string"
+        },
+        "text": {
+          "description": "body text, --hs-text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "background",
+        "primary",
+        "on_primary",
+        "secondary",
+        "on_secondary",
+        "muted",
+        "line",
+        "surface"
+      ],
+      "type": "object"
+    },
+    "fonts": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "additionalProperties": false,
+          "description": "the font of body text, --hs-font-body",
+          "properties": {
+            "fallback": {
+              "description": "the generic family it falls back on: sans-serif, serif or monospace",
+              "type": "string"
+            },
+            "family": {
+              "description": "its family; absent for the font of the system",
+              "type": "string"
+            },
+            "files": {
+              "description": "the files that readers' browsers load; none for a family that their systems have",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "max_weight": {
+                    "description": "for a variable font, the heaviest weight it covers",
+                    "type": "integer"
+                  },
+                  "name": {
+                    "description": "the name of the file, which set_house_style keeps when given in keep",
+                    "type": "string"
+                  },
+                  "size": {
+                    "description": "in bytes",
+                    "type": "integer"
+                  },
+                  "style": {
+                    "description": "normal or italic",
+                    "type": "string"
+                  },
+                  "url": {
+                    "description": "its path, from the root of the domain",
+                    "type": "string"
+                  },
+                  "weight": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "name",
+                  "url",
+                  "weight",
+                  "style",
+                  "size"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "stack": {
+              "description": "the CSS font-family of the font, its family first",
+              "type": "string"
+            }
+          },
+          "required": [
+            "fallback",
+            "stack"
+          ],
+          "type": "object"
+        },
+        "heading": {
+          "additionalProperties": false,
+          "description": "the font of headings, --hs-font-heading",
+          "properties": {
+            "fallback": {
+              "description": "the generic family it falls back on: sans-serif, serif or monospace",
+              "type": "string"
+            },
+            "family": {
+              "description": "its family; absent for the font of the system",
+              "type": "string"
+            },
+            "files": {
+              "description": "the files that readers' browsers load; none for a family that their systems have",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "max_weight": {
+                    "description": "for a variable font, the heaviest weight it covers",
+                    "type": "integer"
+                  },
+                  "name": {
+                    "description": "the name of the file, which set_house_style keeps when given in keep",
+                    "type": "string"
+                  },
+                  "size": {
+                    "description": "in bytes",
+                    "type": "integer"
+                  },
+                  "style": {
+                    "description": "normal or italic",
+                    "type": "string"
+                  },
+                  "url": {
+                    "description": "its path, from the root of the domain",
+                    "type": "string"
+                  },
+                  "weight": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "name",
+                  "url",
+                  "weight",
+                  "style",
+                  "size"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "stack": {
+              "description": "the CSS font-family of the font, its family first",
+              "type": "string"
+            }
+          },
+          "required": [
+            "fallback",
+            "stack"
+          ],
+          "type": "object"
+        },
+        "mono": {
+          "description": "the CSS stack of code and figures in columns, --hs-font-mono",
+          "type": "string"
+        }
+      },
+      "required": [
+        "heading",
+        "body",
+        "mono"
+      ],
+      "type": "object"
+    },
+    "guidance": {
+      "description": "what the organization asks of AIs, such as its tone of voice or rules for charts: follow it",
+      "type": "string"
+    },
+    "has_logo": {
+      "description": "whether the house style has a logo",
+      "type": "boolean"
+    },
+    "has_logo_inverse": {
+      "description": "whether it has a version of its logo for dark backgrounds",
+      "type": "boolean"
+    },
+    "logo": {
+      "description": "the path of the logo, from the root of the domain; without a logo, it shows the name of the organization",
+      "type": "string"
+    },
+    "logo_inverse": {
+      "description": "the path of the logo for dark backgrounds; the logo itself when there is no such version",
+      "type": "string"
+    },
+    "name": {
+      "description": "the name of the organization; the domain of the Cahut until an administrator sets one",
+      "type": "string"
+    },
+    "neutral": {
+      "description": "whether the Cahut has the neutral house style, which no administrator has changed",
+      "type": "boolean"
+    },
+    "previous": {
+      "additionalProperties": false,
+      "description": "the previous house style, which rollback_house_style restores; absent when there is none",
+      "properties": {
+        "neutral": {
+          "description": "whether it is the neutral house style",
+          "type": "boolean"
+        },
+        "set_at": {
+          "type": "string"
+        },
+        "set_by": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "neutral",
+        "set_at"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "set_at": {
+      "description": "when the house style was set; absent for the neutral house style",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "set_by": {
+      "description": "the handle of the person who set it, or for whom an AI set it",
+      "type": "string"
+    },
+    "stylesheet": {
+      "description": "the style sheet of the house style, at this path from the root of the domain: link it with \u003clink rel=\"stylesheet\" href=\"/-/house-style.css\"\u003e. The Window declares nothing for it",
+      "type": "string"
+    },
+    "warnings": {
+      "description": "what may not read well, and what to change",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    }
+  },
+  "required": [
+    "name",
+    "neutral",
+    "stylesheet",
+    "logo",
+    "logo_inverse",
+    "has_logo",
+    "has_logo_inverse",
+    "colors",
+    "chart_colors",
+    "fonts"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
 ## `rollback_window`
 
 Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it.
@@ -3202,6 +3987,632 @@ Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: fa
     "rooms",
     "status",
     "created_at"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `set_house_style`
+
+Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, and what it asks of AIs. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut.
+
+Offered to the AIs of administrators of the Cahut only.
+
+Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `body_font` | object or null | no | the font of body text, which replaces the current one with its files; with no family, the font of the system |
+| `body_font.fallback` | string | no | the generic family to fall back on: sans-serif (the default), serif or monospace |
+| `body_font.family` | string | no | the family, such as Inter or Georgia; empty for the default |
+| `body_font.files` | array of objects or null | no | the files of the family, which readers' browsers load; none for a family that their systems have, such as Georgia |
+| `body_font.files[].content` | string | no | the file in base64: WOFF2, WOFF, TrueType or OpenType |
+| `body_font.files[].keep` | string | no | instead of content, the name of a file of the current house style to keep, as get_house_style lists it |
+| `body_font.files[].max_weight` | integer | no | for a variable font, the heaviest weight it covers |
+| `body_font.files[].style` | string | no | normal (the default) or italic |
+| `body_font.files[].weight` | integer | no | its weight, from 100 to 900, 400 by default; for a variable font, the lightest weight it covers |
+| `chart_colors` | array of strings or null | no | up to 8 colors for the series of charts, in order, each as #rrggbb; an empty list goes back to those that Cahut derives from the primary and secondary colors |
+| `colors` | object or null | no | the colors to change; those left out stay |
+| `colors.background` | string | no | the background of pages, as #rrggbb; body text must contrast 4.5:1 at least on it |
+| `colors.primary` | string | no | the main color of the brand, as #rrggbb |
+| `colors.secondary` | string | no | the second color of the brand, as #rrggbb |
+| `colors.text` | string | no | body text, as #rrggbb |
+| `guidance` | string or null | no | what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Never readers see it |
+| `heading_font` | object or null | no | the font of headings, which replaces the current one with its files; with no family, headings take the body font |
+| `heading_font.fallback` | string | no | the generic family to fall back on: sans-serif (the default), serif or monospace |
+| `heading_font.family` | string | no | the family, such as Inter or Georgia; empty for the default |
+| `heading_font.files` | array of objects or null | no | the files of the family, which readers' browsers load; none for a family that their systems have, such as Georgia |
+| `heading_font.files[].content` | string | no | the file in base64: WOFF2, WOFF, TrueType or OpenType |
+| `heading_font.files[].keep` | string | no | instead of content, the name of a file of the current house style to keep, as get_house_style lists it |
+| `heading_font.files[].max_weight` | integer | no | for a variable font, the heaviest weight it covers |
+| `heading_font.files[].style` | string | no | normal (the default) or italic |
+| `heading_font.files[].weight` | integer | no | its weight, from 100 to 900, 400 by default; for a variable font, the lightest weight it covers |
+| `logo` | object or null | no | the logo of the organization, for light backgrounds |
+| `logo.content` | string | yes | the image: SVG as text, or PNG or WebP in base64; empty to remove the logo |
+| `logo.encoding` | string | no | utf-8 (the default, for SVG) or base64 |
+| `logo_inverse` | object or null | no | the version of the logo for dark backgrounds, such as slides in the primary color |
+| `logo_inverse.content` | string | yes | the image: SVG as text, or PNG or WebP in base64; empty to remove the logo |
+| `logo_inverse.encoding` | string | no | utf-8 (the default, for SVG) or base64 |
+| `name` | string or null | no | the name of the organization; empty for the domain of the Cahut |
+| `neutral` | boolean | no | start again from the neutral house style, then apply the other fields |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "body_font": {
+      "additionalProperties": false,
+      "description": "the font of body text, which replaces the current one with its files; with no family, the font of the system",
+      "properties": {
+        "fallback": {
+          "description": "the generic family to fall back on: sans-serif (the default), serif or monospace",
+          "type": "string"
+        },
+        "family": {
+          "description": "the family, such as Inter or Georgia; empty for the default",
+          "type": "string"
+        },
+        "files": {
+          "description": "the files of the family, which readers' browsers load; none for a family that their systems have, such as Georgia",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "content": {
+                "description": "the file in base64: WOFF2, WOFF, TrueType or OpenType",
+                "type": "string"
+              },
+              "keep": {
+                "description": "instead of content, the name of a file of the current house style to keep, as get_house_style lists it",
+                "type": "string"
+              },
+              "max_weight": {
+                "description": "for a variable font, the heaviest weight it covers",
+                "type": "integer"
+              },
+              "style": {
+                "description": "normal (the default) or italic",
+                "type": "string"
+              },
+              "weight": {
+                "description": "its weight, from 100 to 900, 400 by default; for a variable font, the lightest weight it covers",
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        }
+      },
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "chart_colors": {
+      "description": "up to 8 colors for the series of charts, in order, each as #rrggbb; an empty list goes back to those that Cahut derives from the primary and secondary colors",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "colors": {
+      "additionalProperties": false,
+      "description": "the colors to change; those left out stay",
+      "properties": {
+        "background": {
+          "description": "the background of pages, as #rrggbb; body text must contrast 4.5:1 at least on it",
+          "type": "string"
+        },
+        "primary": {
+          "description": "the main color of the brand, as #rrggbb",
+          "type": "string"
+        },
+        "secondary": {
+          "description": "the second color of the brand, as #rrggbb",
+          "type": "string"
+        },
+        "text": {
+          "description": "body text, as #rrggbb",
+          "type": "string"
+        }
+      },
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "guidance": {
+      "description": "what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Never readers see it",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "heading_font": {
+      "additionalProperties": false,
+      "description": "the font of headings, which replaces the current one with its files; with no family, headings take the body font",
+      "properties": {
+        "fallback": {
+          "description": "the generic family to fall back on: sans-serif (the default), serif or monospace",
+          "type": "string"
+        },
+        "family": {
+          "description": "the family, such as Inter or Georgia; empty for the default",
+          "type": "string"
+        },
+        "files": {
+          "description": "the files of the family, which readers' browsers load; none for a family that their systems have, such as Georgia",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "content": {
+                "description": "the file in base64: WOFF2, WOFF, TrueType or OpenType",
+                "type": "string"
+              },
+              "keep": {
+                "description": "instead of content, the name of a file of the current house style to keep, as get_house_style lists it",
+                "type": "string"
+              },
+              "max_weight": {
+                "description": "for a variable font, the heaviest weight it covers",
+                "type": "integer"
+              },
+              "style": {
+                "description": "normal (the default) or italic",
+                "type": "string"
+              },
+              "weight": {
+                "description": "its weight, from 100 to 900, 400 by default; for a variable font, the lightest weight it covers",
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        }
+      },
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "logo": {
+      "additionalProperties": false,
+      "description": "the logo of the organization, for light backgrounds",
+      "properties": {
+        "content": {
+          "description": "the image: SVG as text, or PNG or WebP in base64; empty to remove the logo",
+          "type": "string"
+        },
+        "encoding": {
+          "description": "utf-8 (the default, for SVG) or base64",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "logo_inverse": {
+      "additionalProperties": false,
+      "description": "the version of the logo for dark backgrounds, such as slides in the primary color",
+      "properties": {
+        "content": {
+          "description": "the image: SVG as text, or PNG or WebP in base64; empty to remove the logo",
+          "type": "string"
+        },
+        "encoding": {
+          "description": "utf-8 (the default, for SVG) or base64",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "name": {
+      "description": "the name of the organization; empty for the domain of the Cahut",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "neutral": {
+      "description": "start again from the neutral house style, then apply the other fields",
+      "type": "boolean"
+    }
+  },
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `chart_colors` | array of strings or null | yes | the colors of the series of charts, in their order, as `--hs-chart-1` to `--hs-chart-8` in the style sheet: give them to series in this order, never cycled |
+| `colors` | object | yes |  |
+| `colors.background` | string | yes | the background of pages, `--hs-background` |
+| `colors.line` | string | yes | borders and rules, `--hs-line` |
+| `colors.muted` | string | yes | secondary text, such as captions, `--hs-muted` |
+| `colors.on_primary` | string | yes | text on the primary color, `--hs-on-primary` |
+| `colors.on_secondary` | string | yes | text on the secondary color, `--hs-on-secondary` |
+| `colors.primary` | string | yes | the main color of the brand, for headings, links, buttons and slides, `--hs-primary` |
+| `colors.secondary` | string | yes | the second color of the brand, for accents, `--hs-secondary` |
+| `colors.surface` | string | yes | the background of cards and panels, `--hs-surface` |
+| `colors.text` | string | yes | body text, `--hs-text` |
+| `fonts` | object | yes |  |
+| `fonts.body` | object | yes | the font of body text, `--hs-font-body` |
+| `fonts.body.fallback` | string | yes | the generic family it falls back on: sans-serif, serif or monospace |
+| `fonts.body.stack` | string | yes | the CSS font-family of the font, its family first |
+| `fonts.body.family` | string | no | its family; absent for the font of the system |
+| `fonts.body.files` | array of objects or null | no | the files that readers' browsers load; none for a family that their systems have |
+| `fonts.body.files[].name` | string | yes | the name of the file, which set_house_style keeps when given in keep |
+| `fonts.body.files[].size` | integer | yes | in bytes |
+| `fonts.body.files[].style` | string | yes | normal or italic |
+| `fonts.body.files[].url` | string | yes | its path, from the root of the domain |
+| `fonts.body.files[].weight` | integer | yes |  |
+| `fonts.body.files[].max_weight` | integer | no | for a variable font, the heaviest weight it covers |
+| `fonts.heading` | object | yes | the font of headings, `--hs-font-heading` |
+| `fonts.heading.fallback` | string | yes | the generic family it falls back on: sans-serif, serif or monospace |
+| `fonts.heading.stack` | string | yes | the CSS font-family of the font, its family first |
+| `fonts.heading.family` | string | no | its family; absent for the font of the system |
+| `fonts.heading.files` | array of objects or null | no | the files that readers' browsers load; none for a family that their systems have |
+| `fonts.heading.files[].name` | string | yes | the name of the file, which set_house_style keeps when given in keep |
+| `fonts.heading.files[].size` | integer | yes | in bytes |
+| `fonts.heading.files[].style` | string | yes | normal or italic |
+| `fonts.heading.files[].url` | string | yes | its path, from the root of the domain |
+| `fonts.heading.files[].weight` | integer | yes |  |
+| `fonts.heading.files[].max_weight` | integer | no | for a variable font, the heaviest weight it covers |
+| `fonts.mono` | string | yes | the CSS stack of code and figures in columns, `--hs-font-mono` |
+| `has_logo` | boolean | yes | whether the house style has a logo |
+| `has_logo_inverse` | boolean | yes | whether it has a version of its logo for dark backgrounds |
+| `logo` | string | yes | the path of the logo, from the root of the domain; without a logo, it shows the name of the organization |
+| `logo_inverse` | string | yes | the path of the logo for dark backgrounds; the logo itself when there is no such version |
+| `name` | string | yes | the name of the organization; the domain of the Cahut until an administrator sets one |
+| `neutral` | boolean | yes | whether the Cahut has the neutral house style, which no administrator has changed |
+| `stylesheet` | string | yes | the style sheet of the house style, at this path from the root of the domain: link it with &lt;link rel="stylesheet" href="/-/house-style.css"&gt;. The Window declares nothing for it |
+| `guidance` | string | no | what the organization asks of AIs, such as its tone of voice or rules for charts: follow it |
+| `previous` | object or null | no | the previous house style, which rollback_house_style restores; absent when there is none |
+| `previous.neutral` | boolean | yes | whether it is the neutral house style |
+| `previous.set_at` | string | yes |  |
+| `previous.set_by` | string | no |  |
+| `set_at` | string or null | no | when the house style was set; absent for the neutral house style |
+| `set_by` | string | no | the handle of the person who set it, or for whom an AI set it |
+| `warnings` | array of strings or null | no | what may not read well, and what to change |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "chart_colors": {
+      "description": "the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "colors": {
+      "additionalProperties": false,
+      "properties": {
+        "background": {
+          "description": "the background of pages, --hs-background",
+          "type": "string"
+        },
+        "line": {
+          "description": "borders and rules, --hs-line",
+          "type": "string"
+        },
+        "muted": {
+          "description": "secondary text, such as captions, --hs-muted",
+          "type": "string"
+        },
+        "on_primary": {
+          "description": "text on the primary color, --hs-on-primary",
+          "type": "string"
+        },
+        "on_secondary": {
+          "description": "text on the secondary color, --hs-on-secondary",
+          "type": "string"
+        },
+        "primary": {
+          "description": "the main color of the brand, for headings, links, buttons and slides, --hs-primary",
+          "type": "string"
+        },
+        "secondary": {
+          "description": "the second color of the brand, for accents, --hs-secondary",
+          "type": "string"
+        },
+        "surface": {
+          "description": "the background of cards and panels, --hs-surface",
+          "type": "string"
+        },
+        "text": {
+          "description": "body text, --hs-text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "background",
+        "primary",
+        "on_primary",
+        "secondary",
+        "on_secondary",
+        "muted",
+        "line",
+        "surface"
+      ],
+      "type": "object"
+    },
+    "fonts": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "additionalProperties": false,
+          "description": "the font of body text, --hs-font-body",
+          "properties": {
+            "fallback": {
+              "description": "the generic family it falls back on: sans-serif, serif or monospace",
+              "type": "string"
+            },
+            "family": {
+              "description": "its family; absent for the font of the system",
+              "type": "string"
+            },
+            "files": {
+              "description": "the files that readers' browsers load; none for a family that their systems have",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "max_weight": {
+                    "description": "for a variable font, the heaviest weight it covers",
+                    "type": "integer"
+                  },
+                  "name": {
+                    "description": "the name of the file, which set_house_style keeps when given in keep",
+                    "type": "string"
+                  },
+                  "size": {
+                    "description": "in bytes",
+                    "type": "integer"
+                  },
+                  "style": {
+                    "description": "normal or italic",
+                    "type": "string"
+                  },
+                  "url": {
+                    "description": "its path, from the root of the domain",
+                    "type": "string"
+                  },
+                  "weight": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "name",
+                  "url",
+                  "weight",
+                  "style",
+                  "size"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "stack": {
+              "description": "the CSS font-family of the font, its family first",
+              "type": "string"
+            }
+          },
+          "required": [
+            "fallback",
+            "stack"
+          ],
+          "type": "object"
+        },
+        "heading": {
+          "additionalProperties": false,
+          "description": "the font of headings, --hs-font-heading",
+          "properties": {
+            "fallback": {
+              "description": "the generic family it falls back on: sans-serif, serif or monospace",
+              "type": "string"
+            },
+            "family": {
+              "description": "its family; absent for the font of the system",
+              "type": "string"
+            },
+            "files": {
+              "description": "the files that readers' browsers load; none for a family that their systems have",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "max_weight": {
+                    "description": "for a variable font, the heaviest weight it covers",
+                    "type": "integer"
+                  },
+                  "name": {
+                    "description": "the name of the file, which set_house_style keeps when given in keep",
+                    "type": "string"
+                  },
+                  "size": {
+                    "description": "in bytes",
+                    "type": "integer"
+                  },
+                  "style": {
+                    "description": "normal or italic",
+                    "type": "string"
+                  },
+                  "url": {
+                    "description": "its path, from the root of the domain",
+                    "type": "string"
+                  },
+                  "weight": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "name",
+                  "url",
+                  "weight",
+                  "style",
+                  "size"
+                ],
+                "type": "object"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "stack": {
+              "description": "the CSS font-family of the font, its family first",
+              "type": "string"
+            }
+          },
+          "required": [
+            "fallback",
+            "stack"
+          ],
+          "type": "object"
+        },
+        "mono": {
+          "description": "the CSS stack of code and figures in columns, --hs-font-mono",
+          "type": "string"
+        }
+      },
+      "required": [
+        "heading",
+        "body",
+        "mono"
+      ],
+      "type": "object"
+    },
+    "guidance": {
+      "description": "what the organization asks of AIs, such as its tone of voice or rules for charts: follow it",
+      "type": "string"
+    },
+    "has_logo": {
+      "description": "whether the house style has a logo",
+      "type": "boolean"
+    },
+    "has_logo_inverse": {
+      "description": "whether it has a version of its logo for dark backgrounds",
+      "type": "boolean"
+    },
+    "logo": {
+      "description": "the path of the logo, from the root of the domain; without a logo, it shows the name of the organization",
+      "type": "string"
+    },
+    "logo_inverse": {
+      "description": "the path of the logo for dark backgrounds; the logo itself when there is no such version",
+      "type": "string"
+    },
+    "name": {
+      "description": "the name of the organization; the domain of the Cahut until an administrator sets one",
+      "type": "string"
+    },
+    "neutral": {
+      "description": "whether the Cahut has the neutral house style, which no administrator has changed",
+      "type": "boolean"
+    },
+    "previous": {
+      "additionalProperties": false,
+      "description": "the previous house style, which rollback_house_style restores; absent when there is none",
+      "properties": {
+        "neutral": {
+          "description": "whether it is the neutral house style",
+          "type": "boolean"
+        },
+        "set_at": {
+          "type": "string"
+        },
+        "set_by": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "neutral",
+        "set_at"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "set_at": {
+      "description": "when the house style was set; absent for the neutral house style",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "set_by": {
+      "description": "the handle of the person who set it, or for whom an AI set it",
+      "type": "string"
+    },
+    "stylesheet": {
+      "description": "the style sheet of the house style, at this path from the root of the domain: link it with \u003clink rel=\"stylesheet\" href=\"/-/house-style.css\"\u003e. The Window declares nothing for it",
+      "type": "string"
+    },
+    "warnings": {
+      "description": "what may not read well, and what to change",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    }
+  },
+  "required": [
+    "name",
+    "neutral",
+    "stylesheet",
+    "logo",
+    "logo_inverse",
+    "has_logo",
+    "has_logo_inverse",
+    "colors",
+    "chart_colors",
+    "fonts"
   ],
   "type": "object"
 }

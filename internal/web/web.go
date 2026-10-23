@@ -21,6 +21,7 @@ import (
 
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/console"
+	"cahut.cloud/internal/housestyle"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
 	"cahut.cloud/internal/window"
@@ -142,8 +143,14 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	}
 	// The pages of Cahut for readers, and the frames of protected Windows.
 	// See docs/adr/0019-window-versions-access-and-declaration.md.
-	s.mux.HandleFunc("GET /-/cahut.css", serveAsset("cahut.css"))
+	s.mux.HandleFunc("GET /-/pages.css", serveAsset("pages.css"))
 	s.mux.HandleFunc("GET /-/frame.js", serveAsset("frame.js"))
+	// The house style of the Cahut, for its Windows and its pages. See
+	// docs/adr/0022-house-style-of-each-cahut.md.
+	s.mux.HandleFunc("GET "+housestyle.SheetPath, s.serveHouseStyle)
+	s.mux.HandleFunc("GET "+housestyle.LogoPath, s.serveLogo(false))
+	s.mux.HandleFunc("GET "+housestyle.LogoInversePath, s.serveLogo(true))
+	s.mux.HandleFunc("GET "+housestyle.FontsPath+"{file}", s.serveFont)
 	s.mux.HandleFunc("GET /-/sign-in", s.serveSignIn)
 	s.mux.HandleFunc("GET /-/session", s.serveSession)
 	s.mux.HandleFunc("POST /-/sign-out", s.serveSignOut)

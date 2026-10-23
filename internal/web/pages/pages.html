@@ -1,6 +1,7 @@
 {{/* The pages that a Cahut serves to readers on the port of its Windows.
 They carry the house style of the Cahut, neutral until it has one, never
-the brand of Cahut. They run no inline script. */}}
+the brand of Cahut. They run no inline script. See
+docs/adr/0022-house-style-of-each-cahut.md. */}}
 
 {{define "head"}}<!doctype html>
 <html lang="en">
@@ -9,11 +10,12 @@ the brand of Cahut. They run no inline script. */}}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>{{.}}</title>
-<link rel="stylesheet" href="/-/cahut.css">
+<link rel="stylesheet" href="/-/house-style.css">
+<link rel="stylesheet" href="/-/pages.css">
 {{end}}
 
 {{define "top"}}<header class="top">
-<a class="top__home" href="/">{{.Domain}}</a>
+<a class="top__home" href="/">{{if .Brand.Logo}}<img class="top__logo" src="/-/house-style/logo" alt="{{.Brand.Name}}">{{else}}{{.Brand.Name}}{{end}}</a>
 {{if .Reader}}<form class="top__out" method="post" action="/-/sign-out"><span>{{.Reader}}</span> <button type="submit">Sign out</button></form>{{end}}
 </header>
 {{end}}
@@ -61,12 +63,12 @@ the brand of Cahut. They run no inline script. */}}
 </html>
 {{end}}
 
-{{define "home"}}{{template "head" .Domain}}</head>
+{{define "home"}}{{template "head" .Brand.Name}}</head>
 <body>
 {{template "top" .}}
 <main class="page">
 <p class="label">Cahut</p>
-<h1>{{.Domain}}</h1>
+<h1>{{.Brand.Name}}</h1>
 {{if .Reader}}{{if .Rooms}}<h2>Your Rooms</h2>
 <ul class="list">
 {{range .Rooms}}<li><a href="/{{.Name}}/">{{.Title}}</a> <span class="muted">/{{.Name}}/</span></li>
