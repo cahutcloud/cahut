@@ -36,7 +36,7 @@ const fr: Dictionary = {
 	},
 
 	hero: {
-		status: 'En début de développement : la première tranche fonctionne',
+		status: 'En début de développement : la première version fonctionne',
 		title: 'La maison de tout ce que fabriquent vos IA.',
 		lead: "Documents, présentations, tableaux de bord et petites applis deviennent des pages vivantes en ligne, à vos couleurs, sur votre propre serveur, quelle que soit l'IA qui les a faits.",
 		start: 'Démarrer',
@@ -565,12 +565,13 @@ const fr: Dictionary = {
 			],
 			milestones: 'Les jalons sur GitHub',
 			todayTitle: "Ce qui marche aujourd'hui",
-			todayLead: "Les lots 0 à 6 sont faits. Aujourd'hui, dans un Cahut :",
+			todayLead: "Les lots 0 à 8 sont faits. Aujourd'hui, dans un Cahut :",
 			today: [
-				'Un service sur un serveur Linux, qui porte un ou plusieurs Cahuts, chacun à son domaine avec son certificat.',
+				"Une commande qui installe un serveur Linux, un premier démarrage dans le navigateur, et des mises à jour quotidiennes depuis les releases signées, avec retour arrière.",
+				"Un service sur un serveur Linux, qui porte un ou plusieurs Cahuts, chacun à son domaine avec son certificat, ou à l'adresse IPv4 du serveur tant qu'il n'en a pas.",
 				"Des personnes qui se connectent, des administrateurs du Cahut et du serveur, et des Rooms d'équipe avec propriétaires et membres.",
 				'Une console web : Knocks, Rooms, Windows, Logbook, personnes, IA connectées et jetons personnels.',
-				"Des clients d'IA qui se connectent par OAuth, aux Rooms et dans la portée qu'une personne accorde, ou avec un jeton personnel.",
+				"Des clients d'IA qui se connectent par OAuth, comme claude.ai, Claude Code, ChatGPT et Le Chat, aux Rooms et dans la portée qu'une personne accorde, ou avec un jeton personnel.",
 				"Des Windows publiées par MCP : documents, présentations, tableaux de bord et sites statiques, servis dans un bac à sable qui les tient à ce que leur IA déclare charger et appeler.",
 				"Deux versions de chaque Window avec retour en arrière, une corbeille, et un accès : Room seulement, interne, avec une Key ou public, jusqu'à une date.",
 				"Knock first : ce qu'une IA ne peut pas défaire, ou ce qui change ce qu'une personne peut faire, attend sa personne, qui l'approuve ou le refuse dans la console.",

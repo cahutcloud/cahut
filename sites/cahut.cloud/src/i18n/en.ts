@@ -35,7 +35,7 @@ export default {
 	},
 
 	hero: {
-		status: 'In early development: the first slice works',
+		status: 'In early development: the first version works',
 		title: 'The home for everything your AIs make.',
 		lead: 'Documents, slide decks, dashboards and small apps live online as living pages, in your house style, on your own server, whichever AI made them.',
 		start: 'Get started',
@@ -537,12 +537,13 @@ export default {
 			],
 			milestones: 'The milestones on GitHub',
 			todayTitle: 'What works today',
-			todayLead: 'Batches 0 to 6 are done. In a Cahut, today:',
+			todayLead: 'Batches 0 to 8 are done. In a Cahut, today:',
 			today: [
-				'One service on a Linux server, holding one or more Cahuts, each at its own domain with its certificate.',
+				'One command that installs a Linux server, a first start in the browser, and daily updates from signed releases, with a rollback.',
+				'One service on a Linux server, holding one or more Cahuts, each at its own domain with its certificate, or at the IPv4 address of the server until it has one.',
 				'People who sign in, administrators of the Cahut and of the server, and team Rooms with owners and members.',
 				'A web console: Knocks, Rooms, Windows, the Logbook, people, connected AIs and personal tokens.',
-				'AI clients that connect over OAuth, to the Rooms and the scope a person grants, or with a personal token.',
+				'AI clients that connect over OAuth, such as claude.ai, Claude Code, ChatGPT and Le Chat, to the Rooms and the scope a person grants, or with a personal token.',
 				'Windows published over MCP: documents, decks, dashboards and static sites, served in a sandbox that holds them to what their AI declares they load and call.',
 				'Two versions of each Window with a rollback, a trash, and an access: Room only, internal, with a Key or public, until a date.',
 				'Knock first: what an AI cannot undo, or what changes what a person may do, waits for its person, who approves or declines it in the console.',

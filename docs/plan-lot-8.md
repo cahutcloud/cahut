@@ -1,6 +1,6 @@
 # Cahut · Plan du lot 8 : deuxième client IA et recette
 
-23 octobre 2026 · Olivier Durand · Validé
+23 octobre 2026 · Olivier Durand · Validé, achevé
 
 ## En bref
 
@@ -127,3 +127,45 @@ Sur chaque VPS, en suivant [recette-v0.md](recette-v0.md) :
 - Un audit de sécurité par un tiers : la revue du lot est faite par le projet lui-même ; un audit extérieur reste à décider avant l'ouverture du dépôt.
 - Les quotas par Cahut, les sauvegardes, l'envoi d'e-mails : après la V0, comme le prévoit son plan.
 - La release qui porte le lot : Olivier décide quand l'étiqueter et la publier.
+
+## Bilan
+
+Le lot 8 s'est achevé le 23 octobre 2026, en sept pull requests :
+
+| # | Pull request | Contenu |
+| --- | --- | --- |
+| 1 | #86 | Le plan et l'ADR 29 |
+| 2 | #87 | Un titre pour chaque outil, une liste d'outils sans schémas de sortie, les instructions réordonnées, ChatGPT et Le Chat dans la console et la documentation |
+| 3 | #88 | La revue de sécurité, et ses corrections de la connexion, des sessions, d'OAuth et du Logbook |
+| 4 | #89 | Les corrections des limites, du programme de mise à jour et du premier démarrage |
+| 5 | #90 | Le test de recette, la règle de gouvernance sur le registre, la procédure de recette |
+| 6 | #91 | La section Installation du README, l'état de Cahut dans la documentation |
+| 7 | #92 | Le staging, le site, le bilan |
+
+**Écarts par rapport au plan.**
+
+- **ChatGPT.** L'aide d'OpenAI a changé en octobre 2026 : un serveur MCP personnalisé s'ajoute depuis la page Plugins, « Add custom MCP server », sans mode développeur, et l'aide ne cite plus que les offres Business, Enterprise et Edu. Le plan et l'ADR 29 ont été corrigés avant leur fusion. Le document de ChatGPT préfère `private_key_jwt` et offre `none`, la seule méthode que Cahut prend.
+- **Les schémas d'entrée** n'ont pas changé : les modèles d'OpenAI et de Mistral ont pris les types multiples sans erreur. La liste des outils passe de 87 à 27 Ko sans les schémas de sortie ; Codex la tronque encore à la découverte, puis lit les définitions dont il a besoin, sans échec.
+- **La revue** a trouvé deux constats graves, sept moyens et dix faibles, et deux durcissements. Tous sont corrigés avec un test, sauf un risque de conception accepté pour la V0 : une Window peut imiter la connexion de la console, sur la même adresse ([revue-securite-v0.md](revue-securite-v0.md)). Les corrections ont pris deux pull requests, comme prévu.
+- **Le registre** gagne une étape `Prepare`, avant la transaction, que le plan ne prévoyait pas : la connexion et la lecture des documents des clients OAuth y passent, pour ne plus tenir la seule connexion d'écriture d'un Cahut.
+- **Trois migrations** : `cahut/0012` et `server/0008` gardent l'adresse des connexions au Logbook ; `cahut/0013` refait les sessions et les passes avec `AUTOINCREMENT`.
+- **`oauth.Server.SetDocumentTransport`** sert aux tests d'autres paquets, qui servent un document de client sur une adresse de bouclage.
+- **Le site** comptait encore les lots 0 à 6 comme faits : sa feuille de route compte maintenant les lots 0 à 8.
+- Pas de nouvelle dépendance.
+
+**Essais.**
+
+- **Clients locaux, à l'ouverture du lot.** Codex 0.159 (`gpt-6-astra`) et Mistral Vibe 2.1 (Devstral 2), contre un Cahut local et un jeton personnel : chacun a lu la house style, publié une présentation et l'a ouverte par une Key, du premier coup.
+- **Tests.** La revue a laissé un test par constat corrigé ; `TestV0Acceptance` rejoue les critères 2 à 5 avec un client par document (comme ChatGPT) et un client par enregistrement dynamique (comme Le Chat) ; `TestEveryAIOperationIsReversibleOrApproved` tient la règle de gouvernance sur le registre. Le lint passe pour macOS et pour Linux.
+- **Navigateur.** Le pas à pas de ChatGPT et de Le Chat à 1 280 px et 375 px, où les cinq onglets défilent dans leur barre ; le bouton « Approve » d'un Knock, inactif à l'ouverture de la page, actif après un moment au premier plan et un mouvement du pointeur.
+- **Staging.** La version du lot est installée (0.4.1-0.20261023153447-190b2860fe47) par le nouvel `install.sh`, avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-23-batch8` ; l'unité porte `MemoryHigh` et `MemoryMax`, et `cahut doctor` ne trouve aucun problème. Le connecteur de Claude Code de la session se rebranche seul.
+- **Un Cahut à l'adresse IP, pour de vrai.** Un troisième Cahut est déclaré à l'adresse du staging, `51.83.68.4` : Let's Encrypt lui a délivré un certificat d'adresse IP, au profil `shortlived`, valable du 23 au 30 octobre, que curl valide. Par Internet, avec des jetons personnels révoqués ensuite, Codex y a publié une présentation à la house style, l'a mise à jour, l'a ouverte par une Key, puis a demandé à la rendre publique : la demande a frappé (Knock 1). Vibe y a listé les Windows, publié un document et ramené la présentation à sa version précédente. Le Logbook nomme chaque appel, son client et sa personne. La présentation s'ouvre avec sa Key, sous une politique CSP qui nomme `https://51.83.68.4`.
+
+**Reste à faire.**
+
+- **Le jalon V0** : la recette sur deux VPS vierges, AlmaLinux et Ubuntu, avec claude.ai et ChatGPT, en suivant [recette-v0.md](recette-v0.md). Elle demande les VPS, leurs domaines, et les comptes d'Olivier, dont un ChatGPT qui ajoute un serveur MCP personnalisé.
+- **La release** qui porte le lot, pour cette recette : Olivier décide quand l'étiqueter et la publier.
+- Brancher claude.ai et ChatGPT au staging, et à `https://51.83.68.4/mcp`, pour savoir s'ils acceptent un serveur MCP à une adresse IP ; essayer Le Chat. Le Knock 1 du Cahut à l'adresse IP attend une réponse jusqu'au 24 octobre ; ce Cahut a une personne, `olivier`, dont le lien d'activation n'a pas servi, et rien ne supprime encore un Cahut.
+- La décision sur le risque accepté par la revue, après la V0.
+- Toujours : Firefox et Safari ; ranger la clé privée des releases dans le gestionnaire de mots de passe d'Olivier.
+
