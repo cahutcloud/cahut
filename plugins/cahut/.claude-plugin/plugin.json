@@ -7,7 +7,7 @@
     "name": "Olivier Durand",
     "url": "https://cahut.cloud"
   },
-  "homepage": "https://docs.cahut.cloud/connect/claude/",
+  "homepage": "https://docs.cahut.cloud/connect/claude-plugin/",
   "repository": "https://github.com/getcahut/cahut",
   "license": "Apache-2.0",
   "keywords": ["cahut", "publish", "house style", "deck", "dashboard", "mcp"],
