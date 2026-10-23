@@ -50,8 +50,10 @@ type conn struct {
 	local net.Addr
 }
 
-func (c conn) LocalAddr() net.Addr  { return c.local }
-func (c conn) RemoteAddr() net.Addr { return &net.TCPAddr{IP: net.ParseIP("198.51.100.9"), Port: 50000} }
+func (c conn) LocalAddr() net.Addr { return c.local }
+func (c conn) RemoteAddr() net.Addr {
+	return &net.TCPAddr{IP: net.ParseIP("198.51.100.9"), Port: 50000}
+}
 
 func TestCertificateByNameOrAddress(t *testing.T) {
 	f := setup(t)

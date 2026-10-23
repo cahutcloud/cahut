@@ -363,7 +363,10 @@ say "$("$bin_path" version) is running"
 if [ -n "$domain" ]; then
 	say "waiting for the certificate of $domain"
 	tries=0
-	until curl -fsk --max-time 10 --resolve "$domain:443:127.0.0.1" "https://$domain/-/healthz" >/dev/null 2>&1; do
+	# An IP address needs no resolving; a domain may not point here yet.
+	resolve="--resolve=$domain:443:127.0.0.1"
+	[ -z "$ip" ] || resolve="--noproxy=*"
+	until curl -fsk --max-time 10 "$resolve" "https://$domain/-/healthz" >/dev/null 2>&1; do
 		tries=$((tries + 1))
 		[ "$tries" -lt 6 ] || break
 		sleep 5
