@@ -31,7 +31,7 @@ cahut: creating the cahut system user
 cahut: writing /etc/cahut/cahut.env
 cahut: declaring the Cahut of cahut.example.com
 cahut: opening ports 80 and 443 in firewalld
-cahut: cahut 0.4.0 (commit 1a2b3c4, 2026-10-24T08:00:00Z, go1.27.3 linux/amd64) is running
+cahut: cahut 0.4.0 (commit 81e81b8, 2026-10-23T13:30:00Z, go1.27.3 linux/amd64) is running
 cahut: waiting for the certificate of cahut.example.com
 
 ok    System             AlmaLinux 10.2 (Lavender Lion), amd64.
