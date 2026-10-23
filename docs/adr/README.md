@@ -12,7 +12,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [6](0006-in-house-oauth-server.md) | Cahut runs its own minimal OAuth authorization server | Accepted, extended by 16 |
 | [7](0007-module-path-repository-and-releases.md) | Module path, repository and releases | Accepted |
 | [8](0008-several-cahuts-per-server.md) | A server holds several Cahuts, each at its own domain | Accepted |
-| [9](0009-rooms-and-windows-as-paths.md) | Rooms and Windows are paths of their Cahut's domain | Accepted |
+| [9](0009-rooms-and-windows-as-paths.md) | Rooms and Windows are paths of their Cahut's domain | Accepted, extended by 22 |
 | [10](0010-windows-in-a-csp-sandbox.md) | Windows run in a CSP sandbox | Accepted |
 | [11](0011-console-on-its-own-port.md) | The console has its own port | Accepted, superseded in part by 13, 17 and 20 |
 | [12](0012-website-and-docs-as-astro-sites.md) | The website and the docs are Astro sites in this repository | Accepted, extended by 18 |
@@ -22,9 +22,10 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [16](0016-oauth-for-ai-clients.md) | AI clients connect over OAuth, to the Rooms and the scope a person grants | Accepted, superseded in part by 17, 20 and 21 |
 | [17](0017-oauth-endpoints-on-port-443.md) | The OAuth endpoints that clients' servers call are on port 443 | Accepted, superseded in part by 20 |
 | [18](0018-project-pages-from-community-files.md) | The project pages are built from the community files of the repository | Accepted |
-| [19](0019-window-versions-access-and-declaration.md) | Windows keep two versions, open to an access, and declare what they call | Accepted, extended by 21 |
+| [19](0019-window-versions-access-and-declaration.md) | Windows keep two versions, open to an access, and declare what they call | Accepted, extended by 21 and 22 |
 | [20](0020-console-under-a-path-of-port-443.md) | The console is served under `/console/` on port 443 | Accepted |
 | [21](0021-ais-knock-first.md) | An AI knocks first, and the person it acts for answers | Accepted |
+| [22](0022-house-style-of-each-cahut.md) | Each Cahut has a house style, served to its Windows and given to AIs | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

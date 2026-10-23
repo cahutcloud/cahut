@@ -127,6 +127,8 @@ Le détail du lot est dans le [plan du lot 5](plan-lot-5.md).
 
 ### Lot 6 · House style et skill Claude
 
+Le détail du lot est dans le [plan du lot 6](plan-lot-6.md).
+
 - House style de chaque Cahut : couleurs, polices, logo, gabarits HTML pour document, présentation et tableau de bord, avec un petit moteur de présentation servi par Cahut.
 - Exposée aux IA par un outil `get_house_style`, car tous les clients ne lisent pas les ressources MCP, et par une feuille CSS à adresse stable, sous `/-/`.
 - Écran House style dans la console. Une house style neutre par défaut, distincte de la marque Cahut.
