@@ -394,6 +394,8 @@ export interface HouseStyle {
   /** the path of the deck engine, from the root of the domain: <script src="/-/deck.js" defer></script> in the head of a deck, which then declares that it runs scripts */
   deck_engine: string;
   colors: Palette;
+  /** whether the house style sets the colors of its charts, rather than Cahut deriving them from its primary and secondary colors */
+  own_chart_colors: boolean;
   /** the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled */
   chart_colors: string[];
   fonts: Fonts;
@@ -740,7 +742,7 @@ export interface SetInput {
   logo?: ImageInput;
   /** the version of the logo for dark backgrounds, such as slides in the primary color */
   logo_inverse?: ImageInput;
-  /** what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Never readers see it */
+  /** what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Readers never see it */
   guidance?: string;
 }
 

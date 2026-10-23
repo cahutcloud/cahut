@@ -9,6 +9,7 @@ import { Account } from "./pages/account";
 import { Activate } from "./pages/activate";
 import { Admins } from "./pages/admins";
 import { Consent } from "./pages/consent";
+import { HouseStylePage } from "./pages/house-style";
 import { KnockPage, Knocks } from "./pages/knocks";
 import { Logbook } from "./pages/logbook";
 import { Overview } from "./pages/overview";
@@ -189,6 +190,8 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 			return <Knocks />;
 		case "/people":
 			return <People />;
+		case "/house-style":
+			return <HouseStylePage />;
 		case "/access":
 			return <Access />;
 		case "/account":

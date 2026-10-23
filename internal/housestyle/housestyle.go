@@ -37,6 +37,7 @@ type HouseStyle struct {
 	HasLogoInverse bool       `json:"has_logo_inverse" jsonschema:"whether it has a version of its logo for dark backgrounds"`
 	DeckEngine     string     `json:"deck_engine" jsonschema:"the path of the deck engine, from the root of the domain: <script src=\"/-/deck.js\" defer></script> in the head of a deck, which then declares that it runs scripts"`
 	Colors         Palette    `json:"colors"`
+	OwnChartColors bool       `json:"own_chart_colors" jsonschema:"whether the house style sets the colors of its charts, rather than Cahut deriving them from its primary and secondary colors"`
 	ChartColors    []string   `json:"chart_colors" jsonschema:"the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled"`
 	Fonts          Fonts      `json:"fonts"`
 	Guidance       string     `json:"guidance,omitempty" jsonschema:"what the organization asks of AIs, such as its tone of voice or rules for charts: follow it"`
@@ -189,6 +190,7 @@ func describe(cur, prev *version, domain string) HouseStyle {
 	_, h.HasLogo = files[logoFile]
 	_, h.HasLogoInverse = files[logoInverseFile]
 	h.Colors, h.ChartColors = palette(s)
+	h.OwnChartColors = len(s.ChartColors) > 0
 	h.Fonts = Fonts{Body: fontOf(s.Body, files), Mono: stacks["monospace"]}
 	h.Fonts.Heading = h.Fonts.Body
 	if s.Heading != nil {

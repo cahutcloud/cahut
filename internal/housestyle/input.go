@@ -32,7 +32,7 @@ type SetInput struct {
 	BodyFont    *FontInput   `json:"body_font,omitempty" jsonschema:"the font of body text, which replaces the current one with its files; with no family, the font of the system"`
 	Logo        *ImageInput  `json:"logo,omitempty" jsonschema:"the logo of the organization, for light backgrounds"`
 	LogoInverse *ImageInput  `json:"logo_inverse,omitempty" jsonschema:"the version of the logo for dark backgrounds, such as slides in the primary color"`
-	Guidance    *string      `json:"guidance,omitempty" jsonschema:"what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Never readers see it"`
+	Guidance    *string      `json:"guidance,omitempty" jsonschema:"what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Readers never see it"`
 }
 
 // ColorsInput is the colors of a house style that set_house_style changes.
