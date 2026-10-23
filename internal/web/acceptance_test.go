@@ -236,7 +236,7 @@ func TestV0Acceptance(t *testing.T) {
 	// names the organization, and connects an AI: nobody touches the
 	// server.
 	var up server.SetUp
-	if status := a.api(t, "server/set_up", server.SetUpInput{Code: link.Code, Handle: "ana", Name: "Ana Lima", Password: "correct horse battery staple"}, &up); status != http.StatusOK {
+	if status := a.api(t, "server/set_up", server.SetUpInput{Code: link.Code, Handle: "ana", Name: "Ana Lima", Password: password}, &up); status != http.StatusOK {
 		t.Fatalf("set_up = %d", status)
 	}
 	if !up.ServerAdmin {
@@ -250,7 +250,7 @@ func TestV0Acceptance(t *testing.T) {
 	// ChatGPT identifies itself with its metadata document, which prefers
 	// private_key_jwt and offers none.
 	docs := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_ = json.NewEncoder(w).Encode(map[string]any{
+		_ = json.NewEncoder(w).Encode(map[string]any{ //nolint:gosec // a client metadata document, which holds no secret
 			"client_id": "https://" + r.Host + r.URL.Path, "client_name": "ChatGPT", "client_uri": "https://chatgpt.com/",
 			"redirect_uris": []string{"http://127.0.0.1:1/callback"}, "grant_types": []string{"authorization_code", "refresh_token"},
 			"token_endpoint_auth_method": "private_key_jwt", "token_endpoint_auth_methods_supported": []string{"none", "private_key_jwt"},
