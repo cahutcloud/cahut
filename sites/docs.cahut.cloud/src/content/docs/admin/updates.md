@@ -52,7 +52,7 @@ What happened during that minute is lost. The files of Windows are not copied: m
 
 ## Signatures
 
-An Ed25519 key signs the checksum file of each release, `checksums.txt.sig`. The checksum file names every archive, so one signature covers them all. The public keys are in the binary and in `install.sh`; the private key stays with the project. To check a release by hand, with the key of `install.sh` saved as `release-key.pem`:
+An Ed25519 key signs the checksum file of each release, `checksums.txt.sig`. The checksum file names every archive, so one signature covers them all. The public keys are in the binary and in `install.sh`; the private key stays with the project. To check a release by hand with OpenSSL 3, with the key of `install.sh` saved as `release-key.pem`:
 
 ```bash
 openssl pkeyutl -verify -pubin -inkey release-key.pem -rawin -in checksums.txt -sigfile checksums.txt.sig

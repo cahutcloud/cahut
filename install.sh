@@ -174,6 +174,10 @@ else
 	command -v curl >/dev/null || die "curl is required to download Cahut"
 	command -v openssl >/dev/null ||
 		die "openssl is required to check the signature of the release: install it with dnf install openssl, or apt install openssl"
+	# OpenSSL 1.1 has no -rawin, and its pkeyutl cannot check an Ed25519
+	# signature: it ships with Ubuntu 20.04 and AlmaLinux 8.
+	openssl pkeyutl -help 2>&1 | grep -q -e -rawin ||
+		die "this server has $(openssl version | cut -d ' ' -f 1,2), which cannot check the Ed25519 signature of a release: Cahut needs OpenSSL 3, as on AlmaLinux 9 and 10 and Ubuntu 22.04 and 24.04"
 	case "$(uname -m)" in
 	x86_64 | amd64) arch=amd64 ;;
 	aarch64 | arm64) arch=arm64 ;;
