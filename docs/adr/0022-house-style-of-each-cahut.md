@@ -1,6 +1,6 @@
 # 22. Each Cahut has a house style, served to its Windows and given to AIs
 
-- Status: Accepted, extended by [ADR 23](0023-house-style-inactive-for-ais.md) (the house style can be inactive for AIs)
+- Status: Accepted, extended by [ADR 23](0023-house-style-inactive-for-ais.md) (the house style can be inactive for AIs) and by [ADR 32](0032-the-page-of-a-room.md) (the pages of Cahut carry the brand of Cahut while the house style is neutral)
 - Date: 2026-10-23
 
 ## Context

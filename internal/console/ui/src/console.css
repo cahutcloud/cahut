@@ -441,6 +441,11 @@
 	display: grid;
 	gap: var(--space-4);
 }
+.aside-stack {
+	display: grid;
+	gap: var(--space-6);
+	align-content: start;
+}
 .people {
 	list-style: none;
 	margin: 0;

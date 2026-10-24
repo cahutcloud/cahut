@@ -1,64 +1,230 @@
-/* The pages that a Cahut serves to readers, in its house style: they read
-   the colors and the fonts of /-/house-style.css, linked before this
-   sheet, and keep no color of their own. */
+/* The pages that a Cahut serves to readers. They take the tokens and the
+   components of the brand of Cahut, linked before this sheet: in the brand
+   of Cahut, light or dark as the reader's system is, while the Cahut has
+   the neutral house style; in its house style once it has one, whose
+   variables, from /-/house-style.css, take the roles of the tokens under
+   [data-house-style]. See docs/adr/0032-the-page-of-a-room.md. */
 :root {
-	color-scheme: var(--hs-scheme);
-	--error: color-mix(in srgb, #d92d20 70%, var(--hs-text));
-	font-family: var(--hs-font-body);
-	font-size: 16px;
-	line-height: 1.5;
-	color: var(--hs-text);
-	background: var(--hs-background);
+	color-scheme: light dark;
+	--font-heading: var(--font-sans);
 }
-* { box-sizing: border-box; }
-body { margin: 0; }
-a { color: var(--hs-primary); }
+
+/* The house style has a single palette, and no dark variant. */
+:root[data-house-style] {
+	color-scheme: var(--hs-scheme);
+	--color-bg: var(--hs-background);
+	--color-surface: var(--hs-surface);
+	--color-surface-muted: color-mix(in srgb, var(--hs-text) 5%, var(--hs-background));
+	--color-border: var(--hs-line);
+	--color-border-strong: color-mix(in srgb, var(--hs-text) 28%, var(--hs-background));
+	--color-text: var(--hs-text);
+	--color-text-muted: var(--hs-muted);
+	--color-text-disabled: color-mix(in srgb, var(--hs-muted) 60%, var(--hs-background));
+	--color-accent: var(--hs-primary);
+	--color-accent-hover: color-mix(in srgb, var(--hs-primary) 88%, var(--hs-text));
+	--color-accent-soft: color-mix(in srgb, var(--hs-primary) 12%, var(--hs-background));
+	--color-on-accent: var(--hs-on-primary);
+	--color-link: var(--hs-primary);
+	--color-focus: var(--hs-primary);
+	--color-primary: var(--hs-primary);
+	--color-primary-hover: color-mix(in srgb, var(--hs-primary) 88%, var(--hs-text));
+	--color-on-primary: var(--hs-on-primary);
+	--color-highlight: var(--hs-secondary);
+	--color-highlight-soft: color-mix(in srgb, var(--hs-secondary) 14%, var(--hs-background));
+	--color-info: color-mix(in srgb, var(--hs-primary) 55%, var(--hs-text));
+	--color-info-bg: color-mix(in srgb, var(--hs-primary) 10%, var(--hs-background));
+	--color-info-border: color-mix(in srgb, var(--hs-primary) 35%, var(--hs-background));
+	--color-warning: color-mix(in srgb, var(--hs-secondary) 45%, var(--hs-text));
+	--color-warning-border: color-mix(in srgb, var(--hs-secondary) 45%, var(--hs-background));
+	--color-danger: color-mix(in srgb, var(--cahut-danger-600) 70%, var(--hs-text));
+	--color-danger-bg: color-mix(in srgb, var(--cahut-danger-600) 10%, var(--hs-background));
+	--color-danger-border: color-mix(in srgb, var(--cahut-danger-600) 35%, var(--hs-background));
+	--font-sans: var(--hs-font-body);
+	--font-heading: var(--hs-font-heading);
+	--font-mono: var(--hs-font-mono);
+	--ring: 0 0 0 3px color-mix(in srgb, var(--hs-primary) 45%, transparent);
+}
+
+body { min-height: 100vh; }
+a { color: var(--color-link); }
+h1, h2, h3 { font-family: var(--font-heading); }
+
+/* The top of every page: the Cahut, and who reads. */
 .top {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
-	gap: 16px;
+	gap: var(--space-3) var(--space-4);
 	min-height: 64px;
-	padding: 12px 24px;
-	border-bottom: 1px solid var(--hs-line);
+	padding: var(--space-3) var(--space-8);
+	border-bottom: var(--border-width) solid var(--color-border);
+	background: var(--color-surface);
 }
-.top__home { display: flex; align-items: center; color: inherit; font-family: var(--hs-font-heading); font-weight: 700; text-decoration: none; }
-.top__logo { display: block; max-width: 200px; max-height: 32px; }
-.top__out { display: flex; align-items: center; gap: 12px; margin: 0; color: var(--hs-muted); }
-.page { max-width: 760px; margin: 0 auto; padding: 48px 24px; }
-.page--narrow { max-width: 440px; }
-h1, h2 { font-family: var(--hs-font-heading); }
-h1 { font-size: 28px; line-height: 1.2; margin: 0 0 24px; overflow-wrap: anywhere; }
-h2 { font-size: 18px; margin: 32px 0 12px; }
-.label { margin: 0 0 8px; color: var(--hs-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
-.muted { color: var(--hs-muted); }
-.small { font-size: 14px; margin-top: 48px; }
-.list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hs-line); }
-.list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding: 12px 0; border-bottom: 1px solid var(--hs-line); }
-.form { display: grid; gap: 8px; margin: 0 0 24px; }
-label { font-weight: 600; font-size: 14px; }
-input {
-	font: inherit;
-	padding: 10px 12px;
-	border: 1px solid var(--hs-line);
-	border-radius: 6px;
-	background: var(--hs-background);
+.top__home {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	min-width: 0;
 	color: inherit;
-}
-input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--hs-primary); outline-offset: 2px; }
-button, .button {
-	display: inline-block;
-	font: inherit;
-	font-weight: 600;
-	padding: 10px 16px;
-	border: 0;
-	border-radius: 6px;
-	background: var(--hs-primary);
-	color: var(--hs-on-primary);
 	text-decoration: none;
-	cursor: pointer;
 }
-.top__out button { padding: 4px 10px; font-size: 14px; background: transparent; color: var(--hs-primary); border: 1px solid var(--hs-line); }
-.error { margin: 0; color: var(--error); }
-.frame { overflow: hidden; }
+.top__cahut { display: block; width: auto; height: 26px; }
+.top__domain {
+	padding-left: var(--space-3);
+	border-left: var(--border-width) solid var(--color-border);
+	font-family: var(--font-mono);
+	font-size: var(--text-sm);
+	color: var(--color-text-muted);
+	overflow-wrap: anywhere;
+}
+.top__logo { display: block; max-width: 200px; max-height: 32px; }
+.top__name { font-family: var(--font-heading); font-weight: var(--weight-bold); overflow-wrap: anywhere; }
+.top__reader { display: flex; align-items: center; gap: var(--space-2); margin: 0; }
+.top__handle { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-text-muted); }
+.top .c-btn--secondary { color: var(--color-text); }
+
+.page { max-width: 1120px; margin: 0 auto; padding: var(--space-12) var(--space-8) var(--space-16); }
+.page--narrow { max-width: 520px; }
+
+/* The head of a page: what it is, its title, and its address. */
+.hero { position: relative; isolation: isolate; margin-bottom: var(--space-10); }
+.hero--cahut::after {
+	/* The clouds of the brand, behind the head of the page. */
+	content: "";
+	position: absolute;
+	top: calc(-1 * var(--space-6));
+	right: 0;
+	width: 320px;
+	height: 160px;
+	background: url("/-/brand/illustrations/motif-nuages-sky.svg") right top / 160px repeat-x;
+	opacity: 0.7;
+	pointer-events: none;
+	z-index: -1;
+}
+@media (prefers-color-scheme: dark) {
+	.hero--cahut::after { opacity: 0.2; }
+}
+.hero__picto { display: block; width: 56px; height: 56px; margin-bottom: var(--space-4); color: var(--color-text); }
+.hero__picto svg { display: block; width: 100%; height: 100%; color: inherit; }
+.hero .c-label { margin: 0 0 var(--space-2); }
+.hero__title {
+	margin: 0 0 var(--space-3);
+	max-width: 22ch;
+	font-size: var(--text-4xl);
+	line-height: var(--leading-4xl);
+	font-weight: var(--weight-extrabold);
+	letter-spacing: var(--tracking-title);
+	overflow-wrap: anywhere;
+}
+.hero__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2);
+	margin: 0;
+	color: var(--color-text-muted);
+	font-size: var(--text-sm);
+}
+.hero__meta .c-mono { overflow-wrap: anywhere; }
+
+/* The Windows of a Room, as cards with a preview of each. */
+.cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: var(--space-6);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.card { position: relative; transition: box-shadow var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out); }
+.card:hover { box-shadow: var(--shadow-md); border-color: var(--color-border-strong); }
+.card__thumb { position: relative; color: var(--color-text-disabled); }
+.card__thumb > .i { width: 40px; height: 40px; }
+.card__preview {
+	/* The Window drawn 1280 px wide, as on a laptop, then shrunk to its
+	   card by pages.js, over the icon of its kind once it loads. Its
+	   frame paints white behind a page that sets no background, as a
+	   browser does. */
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1280px;
+	height: 800px;
+	border: 0;
+	background: white;
+	transform: scale(var(--preview-scale, 0.2));
+	transform-origin: 0 0;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity var(--duration-slow) var(--ease-out);
+}
+.card__preview--shown { opacity: 1; }
+.card__title { color: var(--color-text); text-decoration: none; }
+.card__title span { min-width: 0; overflow-wrap: anywhere; }
+.card__title::after {
+	/* The whole card leads to the Window. */
+	content: "";
+	position: absolute;
+	inset: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+	.card, .card__preview { transition: none; }
+}
+
+/* A Room without Windows, which only its members see. */
+.empty {
+	display: grid;
+	justify-items: center;
+	gap: var(--space-3);
+	max-width: 520px;
+	margin: var(--space-8) auto;
+	text-align: center;
+}
+.empty__picture { width: 240px; height: auto; margin-bottom: var(--space-4); }
+.empty h2, .empty p { margin: 0; }
+
+/* The Rooms of a reader, on the home of the Cahut. */
+.section-title { margin: 0 0 var(--space-4); }
+.rooms {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: var(--space-4);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.room {
+	display: grid;
+	gap: var(--space-1);
+	padding: var(--space-4) var(--space-5);
+	color: inherit;
+	text-decoration: none;
+	transition: box-shadow var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out);
+}
+.room:hover { box-shadow: var(--shadow-md); border-color: var(--color-border-strong); }
+.room__title { font-weight: var(--weight-bold); overflow-wrap: anywhere; }
+.room__address { font-size: var(--text-xs); color: var(--color-text-muted); overflow-wrap: anywhere; }
+
+/* A card of its own: the Key of a Window, what is not found, sign in. */
+.panel { padding: var(--space-8); }
+.panel > :first-child { margin-top: 0; }
+.panel > :last-child { margin-bottom: 0; }
+.panel .c-label { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-2); }
+.panel h1, .panel h2 { margin: 0 0 var(--space-4); overflow-wrap: anywhere; }
+.form { display: grid; gap: var(--space-4); margin: 0 0 var(--space-4); }
+.form p { margin: 0; }
+
+.foot { margin: var(--space-12) 0 0; }
+.foot .c-mono { overflow-wrap: anywhere; }
+
+/* The frame of a Window: the whole page. */
+.frame { margin: 0; overflow: hidden; }
 .frame iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
+
+@media (max-width: 760px) {
+	.top { padding: var(--space-3) var(--space-4); }
+	.page { padding: var(--space-8) var(--space-4) var(--space-12); }
+	.hero__title { font-size: var(--text-3xl); line-height: var(--leading-3xl); }
+	.hero--cahut::after { width: 120px; height: 120px; background-size: 120px; }
+	.panel { padding: var(--space-6); }
+}

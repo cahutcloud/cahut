@@ -61,6 +61,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`rollback_window`](#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
 | [`set_ai_reach`](#set_ai_reach) | Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs. |
 | [`set_house_style`](#set_house_style) | Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. |
+| [`set_room_home`](#set_room_home) | Show a Window of a Room at the Room's address, &lt;domain&gt;/&lt;room&gt;/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access. |
 | [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`set_user_email`](#set_user_email) | Give a person an e-mail address, where their activation links and notices go, or remove it with an empty address. Their old address gets a notice. For the administrators of the Cahut. Knock first: a person approves the call before it runs. |
 | [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs. |
@@ -131,6 +132,7 @@ Title: Add a member to a Room. Annotations: `readOnlyHint: false`, `destructiveH
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -141,6 +143,10 @@ Title: Add a member to a Room. Annotations: `readOnlyHint: false`, `destructiveH
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "home": {
+      "description": "the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them",
       "type": "string"
     },
     "kind": {
@@ -263,6 +269,7 @@ Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint:
 | `name` | string | yes | the Room's name, first part of its address |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -273,6 +280,10 @@ Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint:
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "home": {
+      "description": "the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them",
       "type": "string"
     },
     "kind": {
@@ -1728,6 +1739,7 @@ Title: Describe a Room. Annotations: `readOnlyHint: true`, `destructiveHint: fal
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -1738,6 +1750,10 @@ Title: Describe a Room. Annotations: `readOnlyHint: true`, `destructiveHint: fal
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "home": {
+      "description": "the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them",
       "type": "string"
     },
     "kind": {
@@ -2431,6 +2447,7 @@ Title: List Rooms. Annotations: `readOnlyHint: true`, `destructiveHint: false`, 
 | `rooms[].name` | string | yes | the Room's name, first part of its address |
 | `rooms[].title` | string | yes |  |
 | `rooms[].windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `rooms[].home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `rooms[].role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -2445,6 +2462,10 @@ Title: List Rooms. Annotations: `readOnlyHint: true`, `destructiveHint: false`, 
         "additionalProperties": false,
         "properties": {
           "created_at": {
+            "type": "string"
+          },
+          "home": {
+            "description": "the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them",
             "type": "string"
           },
           "kind": {
@@ -3307,6 +3328,7 @@ Title: Remove a member from a Room. Annotations: `readOnlyHint: false`, `destruc
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -3317,6 +3339,10 @@ Title: Remove a member from a Room. Annotations: `readOnlyHint: false`, `destruc
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "home": {
+      "description": "the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them",
       "type": "string"
     },
     "kind": {
@@ -5056,6 +5082,142 @@ Title: Change the house style. Annotations: `readOnlyHint: false`, `destructiveH
 
 </details>
 
+## `set_room_home`
+
+Show a Window of a Room at the Room's address, &lt;domain&gt;/&lt;room&gt;/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access.
+
+Title: Choose the home page of a Room. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `room` | string | yes | the Room's name |
+| `window` | string | no | name of a Window of the Room, shown at the Room's address; empty to go back to the page that lists the Room's Windows |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "room": {
+      "description": "the Room's name",
+      "type": "string"
+    },
+    "window": {
+      "description": "name of a Window of the Room, shown at the Room's address; empty to go back to the page that lists the Room's Windows",
+      "type": "string"
+    }
+  },
+  "required": [
+    "room"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `kind` | string | yes | personal or team |
+| `members` | integer | yes | how many people are in the Room |
+| `name` | string | yes | the Room's name, first part of its address |
+| `people` | array of objects or null | yes | the people in the Room, owners first |
+| `people[].handle` | string | yes |  |
+| `people[].name` | string | yes |  |
+| `people[].role` | string | yes | owner or member of the Room |
+| `title` | string | yes |  |
+| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
+| `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "home": {
+      "description": "the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them",
+      "type": "string"
+    },
+    "kind": {
+      "description": "personal or team",
+      "type": "string"
+    },
+    "members": {
+      "description": "how many people are in the Room",
+      "type": "integer"
+    },
+    "name": {
+      "description": "the Room's name, first part of its address",
+      "type": "string"
+    },
+    "people": {
+      "description": "the people in the Room, owners first",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "handle": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "description": "owner or member of the Room",
+            "type": "string"
+          }
+        },
+        "required": [
+          "handle",
+          "name",
+          "role"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "role": {
+      "description": "your role in the Room, owner or member; empty when you are not in it",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "windows": {
+      "description": "how many Windows the Room holds, out of the trash",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "kind",
+    "members",
+    "windows",
+    "created_at",
+    "people"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
 ## `set_room_member_role`
 
 Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs.
@@ -5118,6 +5280,7 @@ Title: Change a role in a Room. Annotations: `readOnlyHint: false`, `destructive
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -5128,6 +5291,10 @@ Title: Change a role in a Room. Annotations: `readOnlyHint: false`, `destructive
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "home": {
+      "description": "the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them",
       "type": "string"
     },
     "kind": {
@@ -5851,6 +6018,7 @@ Title: Retitle a Room. Annotations: `readOnlyHint: false`, `destructiveHint: fal
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
 <details>
@@ -5861,6 +6029,10 @@ Title: Retitle a Room. Annotations: `readOnlyHint: false`, `destructiveHint: fal
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "home": {
+      "description": "the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them",
       "type": "string"
     },
     "kind": {

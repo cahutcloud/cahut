@@ -845,6 +845,8 @@ export interface Room {
   members: number;
   /** how many Windows the Room holds, out of the trash */
   windows: number;
+  /** the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them */
+  home?: string;
   created_at: string;
 }
 
@@ -867,6 +869,8 @@ export interface RoomDetail {
   members: number;
   /** how many Windows the Room holds, out of the trash */
   windows: number;
+  /** the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them */
+  home?: string;
   created_at: string;
   /** the people in the Room, owners first */
   people: Person[];
@@ -926,6 +930,13 @@ export interface SetCahutSettingsInput {
   kind?: string;
   /** every limit of the Cahut: a limit left out is lifted */
   limits: Limits;
+}
+
+export interface SetHomeInput {
+  /** the Room's name */
+  room: string;
+  /** name of a Window of the Room, shown at the Room's address; empty to go back to the page that lists the Room's Windows */
+  window?: string;
 }
 
 export interface SetInput {
@@ -1328,6 +1339,8 @@ export interface CahutOperations {
   set_house_style: { input: SetInput; output: HouseStyle };
   /** Set the SMTP relay that sends the e-mail of this Cahut, such as activation links, from an address of its own. The relay is at a public address and speaks TLS. Cahut connects to it and signs in before it keeps it. An empty host removes it: the e-mail of the Cahut then goes through the relay of the server, when it has one. For the administrators of the Cahut. */
   set_mail_relay: { input: SetMailRelayInput; output: Delivery };
+  /** Show a Window of a Room at the Room's address, <domain>/<room>/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access. */
+  set_room_home: { input: SetHomeInput; output: RoomDetail };
   /** Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. */
   set_room_member_role: { input: MemberInput; output: RoomDetail };
   /** Give a person an e-mail address, where their activation links and notices go, or remove it with an empty address. Their old address gets a notice. For the administrators of the Cahut. */

@@ -18,7 +18,7 @@ The access of a Window says who can open it. A new Window opens to its Room only
 
 An access other than Room only can end on a date. After that date, the Window opens to its Room only, until someone sets its access again; setting it again moves the date or removes it.
 
-A Window that its reader may not open answers like a Window that does not exist, `404 Not Found`, with a link to sign in. The page of a Room, `https://<domain>/<room>/`, lists the Windows that its reader may open, and answers `404 Not Found` to a reader outside the Room who may open none.
+A Window that its reader may not open answers like a Window that does not exist, `404 Not Found`, with a link to sign in. The page of a Room, `https://<domain>/<room>/`, lists the Windows that its reader may open, or shows the Window that its owners chose to the readers who may open it, and answers `404 Not Found` to a reader outside the Room who may open none. See [The page of a Room](/concepts/rooms-and-windows/#the-page-of-a-room).
 
 The administrators of a Cahut manage people and Rooms, not content: they open the Windows of their own Rooms, and those open to them like to anyone else.
 

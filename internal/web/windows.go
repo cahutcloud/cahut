@@ -63,18 +63,13 @@ func (s *Server) serveWindow(w http.ResponseWriter, r *http.Request) {
 		s.notFound(w, r, reader.Handle)
 		return
 	}
-	how, err := win.Opens(r.Context(), c.DB, reader.UserID, s.passOf(r, win.ID, now))
+	pass := s.passOf(r, win.ID, now)
+	how, err := win.Opens(r.Context(), c.DB, reader.UserID, pass)
 	if err != nil {
 		s.internal(w, "check the access of a Window", err)
 		return
 	}
-	var frame window.Frame
-	switch how {
-	case window.BySession:
-		frame = window.Frame{Window: win.ID, Kind: window.FrameBySession, ID: reader.SessionID}
-	case window.ByPass:
-		frame = window.Frame{Window: win.ID, Kind: window.FrameByPass, ID: s.passOf(r, win.ID, now)}
-	default:
+	if how != window.BySession && how != window.ByPass {
 		if win.Access == window.AccessKey {
 			s.askKey(w, r, win, reader.Handle, "", http.StatusUnauthorized)
 		} else {
@@ -82,8 +77,8 @@ func (s *Server) serveWindow(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	frame.Expires = now.Add(window.FrameTTL).Unix()
-	src := window.FramePrefix + frame.Sign(c.FrameKey) + "/" + strings.TrimPrefix(r.URL.EscapedPath(), "/"+room+"/"+name+"/")
+	src := s.frameSrc(c, window.Opened{Served: win, How: how, Pass: pass}, reader.SessionID, now) +
+		strings.TrimPrefix(r.URL.EscapedPath(), "/"+room+"/"+name+"/")
 	if r.URL.RawQuery != "" {
 		src += "?" + r.URL.RawQuery
 	}
