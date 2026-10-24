@@ -38,7 +38,7 @@ The Cahut gives these instructions to the AI when it connects:
 | --- | --- |
 | [`add_room_member`](#add_room_member) | Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. Knock first: a person approves the call before it runs. |
 | [`create_room`](#create_room) | Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. In an individual Cahut, you stay its only member, and its name starts with your handle and a hyphen. |
-| [`create_user`](#create_user) | Create a person, with their personal Room, and the link where they choose their password. Knock first: a person approves the call before it runs. |
+| [`create_user`](#create_user) | Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. Knock first: a person approves the call before it runs. |
 | [`delete_room`](#delete_room) | Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. Knock first: a person approves the call before it runs. |
 | [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. Knock first: a person approves the call before it runs. |
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
@@ -62,6 +62,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`set_ai_reach`](#set_ai_reach) | Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs. |
 | [`set_house_style`](#set_house_style) | Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. |
 | [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
+| [`set_user_email`](#set_user_email) | Give a person an e-mail address, where their activation links and notices go, or remove it with an empty address. Their old address gets a notice. For the administrators of the Cahut. Knock first: a person approves the call before it runs. |
 | [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs. |
 | [`set_window_access`](#set_window_access) | Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
 | [`trash_window`](#trash_window) | Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. |
@@ -314,7 +315,7 @@ Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint:
 
 ## `create_user`
 
-Create a person, with their personal Room, and the link where they choose their password. Knock first: a person approves the call before it runs.
+Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. Knock first: a person approves the call before it runs.
 
 Offered to the AIs of administrators of the Cahut only.
 
@@ -329,6 +330,7 @@ Title: Add a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`
 | `handle` | string | yes |  |
 | `name` | string | yes |  |
 | `admin` | boolean | no |  |
+| `email` | string | no | the e-mail address of the person, where their activation link goes |
 
 <details>
 <summary>JSON Schema</summary>
@@ -339,6 +341,10 @@ Title: Add a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`
   "properties": {
     "admin": {
       "type": "boolean"
+    },
+    "email": {
+      "description": "the e-mail address of the person, where their activation link goes",
+      "type": "string"
     },
     "handle": {
       "type": "string"
@@ -371,6 +377,8 @@ Title: Add a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`
 | `activation.code` | string | yes | the person opens the console of the Cahut at /activate#&lt;code&gt; to choose their password |
 | `activation.expires_at` | string | yes |  |
 | `activation.user` | string | yes | handle of the person |
+| `activation.emailed` | boolean | no | the link went to the e-mail address of the person too |
+| `email` | string | no | the e-mail address of the person, which only the person and the administrators of the Cahut read |
 
 <details>
 <summary>JSON Schema</summary>
@@ -386,6 +394,10 @@ Title: Add a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`
         "code": {
           "description": "the person opens the console of the Cahut at /activate#\u003ccode\u003e to choose their password",
           "type": "string"
+        },
+        "emailed": {
+          "description": "the link went to the e-mail address of the person too",
+          "type": "boolean"
         },
         "expires_at": {
           "type": "string"
@@ -404,6 +416,10 @@ Title: Add a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`
         "null",
         "object"
       ]
+    },
+    "email": {
+      "description": "the e-mail address of the person, which only the person and the administrators of the Cahut read",
+      "type": "string"
     },
     "handle": {
       "type": "string"
@@ -561,6 +577,7 @@ Title: Disable a person. Annotations: `readOnlyHint: false`, `destructiveHint: t
 | `personal_room` | string | yes | name of the person's personal Room, the handle |
 | `role` | string | yes | admin or member of the Cahut |
 | `status` | string | yes | pending until the person chooses a password, then active, or disabled |
+| `email` | string | no | the e-mail address of the person, which only the person and the administrators of the Cahut read |
 
 <details>
 <summary>JSON Schema</summary>
@@ -569,6 +586,10 @@ Title: Disable a person. Annotations: `readOnlyHint: false`, `destructiveHint: t
 {
   "additionalProperties": false,
   "properties": {
+    "email": {
+      "description": "the e-mail address of the person, which only the person and the administrators of the Cahut read",
+      "type": "string"
+    },
     "handle": {
       "type": "string"
     },
@@ -652,6 +673,7 @@ Title: Enable a person. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `personal_room` | string | yes | name of the person's personal Room, the handle |
 | `role` | string | yes | admin or member of the Cahut |
 | `status` | string | yes | pending until the person chooses a password, then active, or disabled |
+| `email` | string | no | the e-mail address of the person, which only the person and the administrators of the Cahut read |
 
 <details>
 <summary>JSON Schema</summary>
@@ -660,6 +682,10 @@ Title: Enable a person. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 {
   "additionalProperties": false,
   "properties": {
+    "email": {
+      "description": "the e-mail address of the person, which only the person and the administrators of the Cahut read",
+      "type": "string"
+    },
     "handle": {
       "type": "string"
     },
@@ -733,6 +759,10 @@ This tool takes no arguments.
 | `rooms[].room` | string | yes | the Room's name, first part of its address |
 | `rooms[].title` | string | yes |  |
 | `status` | string | yes | pending until the person chooses a password, then active, or disabled |
+| `email` | string | no | the e-mail address of the person, which only the person and the administrators of the Cahut read |
+| `email_change` | object or null | no | the e-mail address that waits for the person to confirm it, from the link sent to it |
+| `email_change.email` | string | yes |  |
+| `email_change.expires_at` | string | yes | when the link sent to it stops working |
 
 <details>
 <summary>JSON Schema</summary>
@@ -741,6 +771,31 @@ This tool takes no arguments.
 {
   "additionalProperties": false,
   "properties": {
+    "email": {
+      "description": "the e-mail address of the person, which only the person and the administrators of the Cahut read",
+      "type": "string"
+    },
+    "email_change": {
+      "additionalProperties": false,
+      "description": "the e-mail address that waits for the person to confirm it, from the link sent to it",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "expires_at": {
+          "description": "when the link sent to it stops working",
+          "type": "string"
+        }
+      },
+      "required": [
+        "email",
+        "expires_at"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
     "handle": {
       "type": "string"
     },
@@ -2476,6 +2531,7 @@ This tool takes no arguments.
 | `users[].personal_room` | string | yes | name of the person's personal Room, the handle |
 | `users[].role` | string | yes | admin or member of the Cahut |
 | `users[].status` | string | yes | pending until the person chooses a password, then active, or disabled |
+| `users[].email` | string | no | the e-mail address of the person, which only the person and the administrators of the Cahut read |
 
 <details>
 <summary>JSON Schema</summary>
@@ -2488,6 +2544,10 @@ This tool takes no arguments.
       "items": {
         "additionalProperties": false,
         "properties": {
+          "email": {
+            "description": "the e-mail address of the person, which only the person and the administrators of the Cahut read",
+            "type": "string"
+          },
           "handle": {
             "type": "string"
           },
@@ -5137,6 +5197,108 @@ Title: Change a role in a Room. Annotations: `readOnlyHint: false`, `destructive
 
 </details>
 
+## `set_user_email`
+
+Give a person an e-mail address, where their activation links and notices go, or remove it with an empty address. Their old address gets a notice. For the administrators of the Cahut. Knock first: a person approves the call before it runs.
+
+Offered to the AIs of administrators of the Cahut only.
+
+Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
+
+Title: Set the e-mail address of a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `email` | string | yes | their e-mail address; empty removes it |
+| `user` | string | yes | handle of the person |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "email": {
+      "description": "their e-mail address; empty removes it",
+      "type": "string"
+    },
+    "user": {
+      "description": "handle of the person",
+      "type": "string"
+    }
+  },
+  "required": [
+    "user",
+    "email"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `handle` | string | yes |  |
+| `id` | integer | yes |  |
+| `name` | string | yes |  |
+| `personal_room` | string | yes | name of the person's personal Room, the handle |
+| `role` | string | yes | admin or member of the Cahut |
+| `status` | string | yes | pending until the person chooses a password, then active, or disabled |
+| `email` | string | no | the e-mail address of the person, which only the person and the administrators of the Cahut read |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "email": {
+      "description": "the e-mail address of the person, which only the person and the administrators of the Cahut read",
+      "type": "string"
+    },
+    "handle": {
+      "type": "string"
+    },
+    "id": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "personal_room": {
+      "description": "name of the person's personal Room, the handle",
+      "type": "string"
+    },
+    "role": {
+      "description": "admin or member of the Cahut",
+      "type": "string"
+    },
+    "status": {
+      "description": "pending until the person chooses a password, then active, or disabled",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "handle",
+    "name",
+    "role",
+    "status",
+    "personal_room"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
 ## `set_user_role`
 
 Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs.
@@ -5190,6 +5352,7 @@ Title: Change the role of a person. Annotations: `readOnlyHint: false`, `destruc
 | `personal_room` | string | yes | name of the person's personal Room, the handle |
 | `role` | string | yes | admin or member of the Cahut |
 | `status` | string | yes | pending until the person chooses a password, then active, or disabled |
+| `email` | string | no | the e-mail address of the person, which only the person and the administrators of the Cahut read |
 
 <details>
 <summary>JSON Schema</summary>
@@ -5198,6 +5361,10 @@ Title: Change the role of a person. Annotations: `readOnlyHint: false`, `destruc
 {
   "additionalProperties": false,
   "properties": {
+    "email": {
+      "description": "the e-mail address of the person, which only the person and the administrators of the Cahut read",
+      "type": "string"
+    },
     "handle": {
       "type": "string"
     },

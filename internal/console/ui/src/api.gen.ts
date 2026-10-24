@@ -74,6 +74,10 @@ export interface Account {
   status: string;
   /** name of the person's personal Room, the handle */
   personal_room: string;
+  /** the e-mail address of the person, which only the person and the administrators of the Cahut read */
+  email?: string;
+  /** the e-mail address that waits for the person to confirm it, from the link sent to it */
+  email_change?: EmailChange;
   /** the Rooms of the person, their personal Room first */
   rooms: Membership[];
 }
@@ -99,6 +103,8 @@ export interface Activation {
   /** the person opens the console of the Cahut at /activate#<code> to choose their password */
   code: string;
   expires_at: string;
+  /** the link went to the e-mail address of the person too */
+  emailed?: boolean;
 }
 
 export interface AddDomainInput {
@@ -113,6 +119,8 @@ export interface Admin {
   name: string;
   /** pending until the administrator chooses a password, then active; disabled while they may not sign in */
   status: string;
+  /** the e-mail address of the administrator, where their links and the notices of the server go */
+  email?: string;
   created_at: string;
 }
 
@@ -165,6 +173,11 @@ export interface Authorization {
   error?: string;
 }
 
+export interface ChangeEmailInput {
+  /** your new e-mail address, which a link sent to it confirms; empty removes yours */
+  email: string;
+}
+
 export interface ChangePasswordInput {
   /** the current password */
   password: string;
@@ -191,6 +204,11 @@ export interface ColorsInput {
   primary?: string;
   /** the second color of the brand, as #rrggbb */
   secondary?: string;
+}
+
+export interface ConfirmEmailInput {
+  /** the code of the link sent to the new address */
+  code: string;
 }
 
 export interface ConnectedAIs {
@@ -223,6 +241,8 @@ export interface Connection {
 export interface CreateAdminInput {
   handle: string;
   name: string;
+  /** the e-mail address of the administrator, where their activation link goes */
+  email?: string;
 }
 
 export interface CreateRoomInput {
@@ -250,6 +270,8 @@ export interface CreateUserInput {
   handle: string;
   name: string;
   admin?: boolean;
+  /** the e-mail address of the person, where their activation link goes */
+  email?: string;
 }
 
 export interface Declaration {
@@ -304,6 +326,19 @@ export interface DisconnectAIInput {
 
 export interface DomainList {
   cahuts: Info[];
+}
+
+export interface EmailChange {
+  email: string;
+  /** when the link sent to it stops working */
+  expires_at: string;
+}
+
+export interface EmailChanged {
+  /** your e-mail address now */
+  email?: string;
+  /** the address that waits for you to confirm it, from the link sent to it */
+  waiting?: EmailChange;
 }
 
 export interface Entry {
@@ -601,6 +636,8 @@ export interface NewAdmin {
   name: string;
   /** pending until the administrator chooses a password, then active; disabled while they may not sign in */
   status: string;
+  /** the e-mail address of the administrator, where their links and the notices of the server go */
+  email?: string;
   created_at: string;
   /** the link where the administrator chooses their password */
   activation: Activation;
@@ -631,6 +668,8 @@ export interface NewUser {
   status: string;
   /** name of the person's personal Room, the handle */
   personal_room: string;
+  /** the e-mail address of the person, which only the person and the administrators of the Cahut read */
+  email?: string;
   /** the link where the person chooses their password; an AI never gets it */
   activation?: Activation;
 }
@@ -657,6 +696,10 @@ export interface Palette {
 }
 
 export type PasswordChanged = Record<string, never>;
+
+export interface PasswordLinkRequested {
+  message: string;
+}
 
 export interface Person {
   handle: string;
@@ -769,6 +812,11 @@ export interface Request {
   resource?: string;
 }
 
+export interface RequestPasswordLinkInput {
+  /** the handle of the account, or its e-mail address */
+  who: string;
+}
+
 export interface RequestUpdateInput {
   /** a published release newer than the version running, such as 0.4.1; empty to check for new releases only */
   version?: string;
@@ -848,8 +896,8 @@ export interface Run {
 }
 
 export interface SendTestMailInput {
-  /** the address to send the test to */
-  to: string;
+  /** on the command line, the address to send the test to; a person's test goes to their own address */
+  to?: string;
 }
 
 export interface ServerSession {
@@ -934,6 +982,15 @@ export interface SetUpInput {
   name: string;
   /** of 15 characters at least */
   password: string;
+  /** the e-mail address of the first person, and of the administrator of the server, where their links go */
+  email?: string;
+}
+
+export interface SetUserEmailInput {
+  /** handle of the person */
+  user: string;
+  /** their e-mail address; empty removes it */
+  email: string;
 }
 
 export interface SetUserRoleInput {
@@ -1070,6 +1127,8 @@ export interface User {
   status: string;
   /** name of the person's personal Room, the handle */
   personal_room: string;
+  /** the e-mail address of the person, which only the person and the administrators of the Cahut read */
+  email?: string;
 }
 
 export interface UserInput {
@@ -1185,15 +1244,19 @@ export interface CahutOperations {
   approve_authorization: { input: ApproveInput; output: Redirect };
   /** Approve a Knock of one of your AIs: the call runs now, as the AI, and what it returns comes to you. It may still fail, if things changed since the AI called. */
   approve_knock: { input: AnswerInput; output: Answer };
+  /** Change your e-mail address: a link goes to the new one, which replaces yours once you use the link, within 24 hours, and your old address gets a notice. An empty address removes yours at once. */
+  change_email: { input: ChangeEmailInput; output: EmailChanged };
   /** Change your password. Your other sessions end. */
   change_password: { input: ChangePasswordInput; output: PasswordChanged };
-  /** Give a person a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. Their password works until they use the link. */
+  /** Confirm a new e-mail address from the link sent to it, which makes it the address of its person. */
+  confirm_email: { input: ConfirmEmailInput; output: EmailChanged };
+  /** Give a person a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. It goes to their e-mail address too, when they have one and the Cahut sends e-mail. Their password works until they use the link. */
   create_activation_link: { input: UserInput; output: Activation };
   /** Create a team Room, at <domain>/<name>/. You become its owner, and can then add members. Windows published in it are for its members. In an individual Cahut, you stay its only member, and its name starts with your handle and a hyphen. */
   create_room: { input: CreateRoomInput; output: Room };
   /** Create a personal token that lets an AI act on behalf of a person. */
   create_token: { input: CreateTokenInput; output: NewToken };
-  /** Create a person, with their personal Room, and the link where they choose their password. */
+  /** Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. */
   create_user: { input: CreateUserInput; output: NewUser };
   /** Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. */
   delete_room: { input: DeleteRoomInput; output: DeletedRoom };
@@ -1245,6 +1308,8 @@ export interface CahutOperations {
   purge_window: { input: RefInput; output: Window };
   /** Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. */
   remove_room_member: { input: RemoveMemberInput; output: RoomDetail };
+  /** Send the link where a person chooses a new password to the e-mail address of their account, given its handle or its address. The link works for one hour; the password works until it is used. The answer is the same whether the account exists or not. */
+  request_password_link: { input: RequestPasswordLinkInput; output: PasswordLinkRequested };
   /** Bring a Window back from the trash, with its versions. */
   restore_window: { input: RefInput; output: Window };
   /** Revoke a personal token. The AI that used it loses access at once. */
@@ -1265,6 +1330,8 @@ export interface CahutOperations {
   set_mail_relay: { input: SetMailRelayInput; output: Delivery };
   /** Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. */
   set_room_member_role: { input: MemberInput; output: RoomDetail };
+  /** Give a person an e-mail address, where their activation links and notices go, or remove it with an empty address. Their old address gets a notice. For the administrators of the Cahut. */
+  set_user_email: { input: SetUserEmailInput; output: User };
   /** Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. */
   set_user_role: { input: SetUserRoleInput; output: User };
   /** Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. */
@@ -1289,11 +1356,15 @@ export interface ServerOperations {
   activate_account: { input: ActivateInput; output: ServerSession };
   /** Declare a domain on this server, which creates the Cahut at that domain, optionally with its first administrator and the link where they choose their password. */
   add_domain: { input: AddDomainInput; output: NewCahut };
+  /** Change your e-mail address of administrator of the server: a link goes to the new one, which replaces yours once you use the link, within 24 hours, and your old address gets a notice. An empty address removes yours at once. */
+  change_email: { input: ChangeEmailInput; output: EmailChanged };
   /** Change your password, as an administrator of the server. Your other sessions end. */
   change_password: { input: ChangePasswordInput; output: PasswordChanged };
-  /** Give an administrator of the server a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. Their password works until they use the link. */
+  /** Confirm a new e-mail address of an administrator of the server, from the link sent to it. */
+  confirm_email: { input: ConfirmEmailInput; output: EmailChanged };
+  /** Give an administrator of the server a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. It goes to their e-mail address too, when they have one and the server sends e-mail. Their password works until they use the link. */
   create_activation_link: { input: AdminInput; output: Activation };
-  /** Create an administrator of the server, and the link where they choose their password. */
+  /** Create an administrator of the server, and the link where they choose their password, which goes to their e-mail address when you give one and the server sends e-mail. */
   create_admin: { input: CreateAdminInput; output: NewAdmin };
   /** Give the link to the first start of a Cahut that has nobody yet, single-use and valid for 24 hours, where its first person chooses their handle and password. It replaces the previous link. */
   create_setup_link: { input: CreateSetupLinkInput; output: SetupLink };
@@ -1315,6 +1386,8 @@ export interface ServerOperations {
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
   /** Move a Cahut to another domain, or from the IP address of the server to a domain. Its people, Rooms, Windows, house style and Logbook stay; the links that name its old address stop working, and AIs connect again at the new one. */
   rename_domain: { input: RenameDomainInput; output: Info };
+  /** Send the link where an administrator of the server chooses a new password to the e-mail address of their account, given its handle or its address. The link works for one hour. The answer is the same whether the account exists or not. */
+  request_password_link: { input: RequestPasswordLinkInput; output: PasswordLinkRequested };
   /** Ask the updater of the server to check for new releases, or to install a release newer than the one running. It runs as root within a minute, checks the signature, and goes back to the version running if the new one fails. */
   request_update: { input: RequestUpdateInput; output: RequestedUpdate };
   /** Send a test message through the relay of this server, and say whether the relay took it. For the administrators of the server. */

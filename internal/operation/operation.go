@@ -206,12 +206,13 @@ type Call struct {
 	onFailure      []func()
 
 	db       *store.DB
-	kept     any   // what Prepare kept for Run
-	input    any   // the input of the call, which a Knock keeps
-	knocks   bool  // the call waits for a person: an AI made it, and it knocks first
-	approved int64 // the Knock that a person approved for the call to run
-	knock    int64 // the Knock that the call made or answered, for the Logbook
-	unlogged bool  // the call wrote the entries that the Logbook needs
+	values   map[any]any // what the registry provides
+	kept     any         // what Prepare kept for Run
+	input    any         // the input of the call, which a Knock keeps
+	knocks   bool        // the call waits for a person: an AI made it, and it knocks first
+	approved int64       // the Knock that a person approved for the call to run
+	knock    int64       // the Knock that the call made or answered, for the Logbook
+	unlogged bool        // the call wrote the entries that the Logbook needs
 }
 
 // Log sets what the Logbook entry of the call says the operation acted on,
@@ -245,6 +246,11 @@ func (c *Call) Read(ctx context.Context, fn func(tx *sql.Tx) error) error {
 	}
 	defer func() { _ = tx.Rollback() }() // it only read
 	return fn(tx)
+}
+
+// Value returns what the registry of the call provides under key, or nil.
+func (c *Call) Value(key any) any {
+	return c.values[key]
 }
 
 // Keep keeps v, from Prepare, for Run.
@@ -326,6 +332,19 @@ type Registry struct {
 	// registry without it refuses the calls that knock. See
 	// docs/adr/0021-ais-knock-first.md.
 	Knock func(ctx context.Context, tx *sql.Tx, req KnockRequest) (*Knocked, error)
+
+	values map[any]any
+}
+
+// Provide makes v available to the operations of r, which read it with
+// Call.Value(key): a service of the Cahut, such as what sends its e-mail.
+// Keys follow the rules of context keys. Provide is called before r serves
+// any call.
+func (r *Registry) Provide(key, v any) {
+	if r.values == nil {
+		r.values = map[any]any{}
+	}
+	r.values[key] = v
 }
 
 type registered interface {
@@ -485,7 +504,7 @@ func (op *Op[In, Out]) runJSON(ctx context.Context, c *Call, args json.RawMessag
 func (r *Registry) run(ctx context.Context, info Info, actor Actor, prepare, fn func(context.Context, *Call) error) error {
 	logged := !info.ReadOnly || actor.Kind == AI
 	// The precision of the times the store keeps.
-	c := &Call{Actor: actor, Now: r.Now().UTC().Truncate(time.Millisecond), db: r.db}
+	c := &Call{Actor: actor, Now: r.Now().UTC().Truncate(time.Millisecond), db: r.db, values: r.values}
 	c.knocks = info.KnockFirst && actor.Kind == AI
 
 	if err := authorize(info, actor); err != nil {

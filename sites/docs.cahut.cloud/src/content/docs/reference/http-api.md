@@ -59,7 +59,9 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/add_room_member` | Any person | yes |
 | `POST /api/approve_authorization` | Any person | yes |
 | `POST /api/approve_knock` | Any person | yes |
+| `POST /api/change_email` | Any person | yes |
 | `POST /api/change_password` | Any person | yes |
+| `POST /api/confirm_email` | Anyone, to sign in | no |
 | `POST /api/create_activation_link` | Administrators of the Cahut | yes |
 | `POST /api/create_room` | Any person | yes |
 | `POST /api/create_token` | Any person | yes |
@@ -89,6 +91,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/publish_window` | Any person | yes |
 | `POST /api/purge_window` | Any person | yes |
 | `POST /api/remove_room_member` | Any person | yes |
+| `POST /api/request_password_link` | Anyone, to sign in | no |
 | `POST /api/restore_window` | Any person | yes |
 | `POST /api/revoke_token` | Any person | yes |
 | `POST /api/rollback_house_style` | Administrators of the Cahut | yes |
@@ -99,6 +102,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/set_house_style` | Administrators of the Cahut | yes |
 | `POST /api/set_mail_relay` | Administrators of the Cahut | yes |
 | `POST /api/set_room_member_role` | Any person | yes |
+| `POST /api/set_user_email` | Administrators of the Cahut | yes |
 | `POST /api/set_user_role` | Administrators of the Cahut | yes |
 | `POST /api/set_window_access` | Any person | yes |
 | `POST /api/sign_in` | Anyone, to sign in | no |
@@ -114,7 +118,9 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | --- | --- | --- |
 | `POST /api/server/activate_account` | Anyone, to sign in | no |
 | `POST /api/server/add_domain` | Administrators of the server | yes |
+| `POST /api/server/change_email` | Administrators of the server | yes |
 | `POST /api/server/change_password` | Administrators of the server | yes |
+| `POST /api/server/confirm_email` | Anyone, to sign in | no |
 | `POST /api/server/create_activation_link` | Administrators of the server | yes |
 | `POST /api/server/create_admin` | Administrators of the server | yes |
 | `POST /api/server/create_setup_link` | Administrators of the server | yes |
@@ -127,6 +133,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/server/list_domains` | Administrators of the server | yes |
 | `POST /api/server/list_logbook` | Administrators of the server | yes |
 | `POST /api/server/rename_domain` | Administrators of the server | yes |
+| `POST /api/server/request_password_link` | Anyone, to sign in | no |
 | `POST /api/server/request_update` | Administrators of the server | yes |
 | `POST /api/server/send_test_mail` | Administrators of the server | yes |
 | `POST /api/server/set_mail_relay` | Administrators of the server | yes |

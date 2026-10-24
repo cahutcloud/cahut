@@ -44,6 +44,9 @@ const (
 // a Cahut and for the administrators of the server alike.
 const (
 	ActivationTTL = 7 * 24 * time.Hour
+	ResetTTL      = time.Hour           // a link that a forgotten password sends by e-mail
+	ResetEvery    = 5 * time.Minute     // an account gets one such e-mail at most this often
+	ConfirmTTL    = 24 * time.Hour      // a link that confirms a new e-mail address
 	SessionIdle   = 7 * 24 * time.Hour  // a session ends this long after its last use
 	SessionMax    = 30 * 24 * time.Hour // and this long after it opened in any case
 

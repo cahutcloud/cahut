@@ -36,6 +36,7 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut user create`](#cahut-user-create) | Create a person, with their personal Room and an activation link |
 | [`cahut user list`](#cahut-user-list) | List the people of a Cahut |
 | [`cahut user link`](#cahut-user-link) | Give a person a new link where they choose their password |
+| [`cahut user email`](#cahut-user-email) | Give a person an e-mail address, where their links go, or remove it |
 | [`cahut token create`](#cahut-token-create) | Create a personal token for an AI |
 | [`cahut token list`](#cahut-token-list) | List personal tokens |
 | [`cahut token revoke`](#cahut-token-revoke) | Revoke a personal token |
@@ -238,6 +239,7 @@ cahut admin create [flags]
 | --- | --- | --- |
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
 | `--domain string` |  | the Cahut whose console the link opens; the first one declared when empty |
+| `--email string` |  | e-mail address of the administrator, where their link goes when the server sends e-mail |
 | `--handle string` |  | short name of the administrator: 2 to 32 lowercase letters, digits and hyphens |
 | `--name string` |  | full name |
 
@@ -310,6 +312,7 @@ cahut user create [flags]
 | `--admin` |  | make the person an administrator of the Cahut |
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
 | `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+| `--email string` |  | e-mail address of the person, where their link goes when the Cahut sends e-mail |
 | `--handle string` |  | short name, which also names the personal Room: 2 to 32 lowercase letters, digits and hyphens |
 | `--name string` |  | full name |
 
@@ -339,6 +342,21 @@ cahut user link [flags]
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
 | `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
 | `--handle string` |  | the person who chooses a new password |
+
+### `cahut user email`
+
+Give a person an e-mail address, where their links go, or remove it.
+
+```text
+cahut user email [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+| `--email string` |  | their e-mail address; empty removes it |
+| `--handle string` |  | the person |
 
 ## `cahut token`
 

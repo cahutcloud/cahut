@@ -22,15 +22,16 @@ type Activation struct {
 	User      string    `json:"user" jsonschema:"handle of the person"`
 	Code      string    `json:"code" jsonschema:"the person opens the console of the Cahut at /activate#<code> to choose their password"`
 	ExpiresAt time.Time `json:"expires_at"`
+	Emailed   bool      `json:"emailed,omitempty" jsonschema:"the link went to the e-mail address of the person too"`
 }
 
-// newActivation creates an activation link for the person userID, which
-// replaces any link they had.
-func newActivation(ctx context.Context, c *operation.Call, userID int64, handle string) (Activation, error) {
+// newActivation creates an activation link for the person userID, valid
+// for ttl, which replaces any link they had.
+func newActivation(ctx context.Context, c *operation.Call, userID int64, handle string, ttl time.Duration) (Activation, error) {
 	if _, err := c.Tx.ExecContext(ctx, "DELETE FROM activations WHERE user_id = ?", userID); err != nil {
 		return Activation{}, err
 	}
-	a := Activation{User: handle, Code: credential.Token(""), ExpiresAt: c.Now.Add(credential.ActivationTTL)}
+	a := Activation{User: handle, Code: credential.Token(""), ExpiresAt: c.Now.Add(ttl)}
 	_, err := c.Tx.ExecContext(ctx, "INSERT INTO activations (user_id, hash, created_at, expires_at) VALUES (?, ?, ?, ?)",
 		userID, credential.Hash(a.Code), store.FormatTime(c.Now), store.FormatTime(a.ExpiresAt))
 	return a, err
@@ -42,7 +43,8 @@ var CreateActivationLink = &operation.Op[UserInput, Activation]{
 	Name:  "create_activation_link",
 	Title: "Give a person a new link",
 	Description: "Give a person a new single-use link, valid 7 days, where they choose their password, " +
-		"for instance after they forgot it. Their password works until they use the link.",
+		"for instance after they forgot it. It goes to their e-mail address too, when they have one and the Cahut sends e-mail. " +
+		"Their password works until they use the link.",
 	Level:      operation.CahutAdmin,
 	PeopleOnly: true,
 	Run: func(ctx context.Context, c *operation.Call, in UserInput) (Activation, error) {
@@ -54,7 +56,12 @@ var CreateActivationLink = &operation.Op[UserInput, Activation]{
 		if p.Status == Disabled {
 			return Activation{}, operation.Invalidf("%s is disabled: enable them first", p.Handle)
 		}
-		return newActivation(ctx, c, p.ID, p.Handle)
+		a, err := newActivation(ctx, c, p.ID, p.Handle, credential.ActivationTTL)
+		if err != nil {
+			return Activation{}, err
+		}
+		a.Emailed, err = sendLink(ctx, c, p, a, activatePage, activationLetter)
+		return a, err
 	},
 }
 

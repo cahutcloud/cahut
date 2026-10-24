@@ -131,7 +131,7 @@ func (r *Registry) RunApproved(ctx context.Context, c *Call, name string, actor 
 		return nil, nil, fmt.Errorf("operation: knock %d holds an unknown operation %q", knock, name)
 	}
 	info := op.info()
-	run := &Call{Actor: actor, Now: c.Now, Tx: c.Tx, approved: knock, knock: knock}
+	run := &Call{Actor: actor, Now: c.Now, Tx: c.Tx, approved: knock, knock: knock, db: r.db, values: r.values}
 	c.unlogged = true
 
 	if _, err := c.Tx.ExecContext(ctx, "SAVEPOINT knock"); err != nil {

@@ -41,6 +41,7 @@ var userCommands = []command{
 	{name: "create", summary: "Create a person, with their personal Room and an activation link", run: runUserCreate},
 	{name: "list", summary: "List the people of a Cahut", run: runUserList},
 	{name: "link", summary: "Give a person a new link where they choose their password", run: runUserLink},
+	{name: "email", summary: "Give a person an e-mail address, where their links go, or remove it", run: runUserEmail},
 }
 
 var tokenCommands = []command{
@@ -101,7 +102,9 @@ func withCahut[Out any](dir, domain string, stderr io.Writer, fn func(context.Co
 func withServer[Out any](dir string, stderr io.Writer, fn func(context.Context, *server.Server) (Out, error)) (Out, bool) {
 	ctx := context.Background()
 	var zero Out
-	srv, err := server.Open(ctx, server.Config{DataDir: dir})
+	// The links that e-mail carries name the console of a Cahut, as those
+	// that commands print do.
+	srv, err := server.Open(ctx, server.Config{DataDir: dir, ConsoleURL: web.ConsoleURL})
 	if err != nil {
 		fmt.Fprintf(stderr, "cahut: %v\n", err)
 		return zero, false
@@ -183,6 +186,7 @@ func runAdminCreate(args []string, stdout, stderr io.Writer) int {
 	var in server.CreateAdminInput
 	fs.StringVar(&in.Handle, "handle", "", "short name of the administrator: 2 to 32 lowercase letters, digits and hyphens")
 	fs.StringVar(&in.Name, "name", "", "full name")
+	fs.StringVar(&in.Email, "email", "", "e-mail address of the administrator, where their link goes when the server sends e-mail")
 	domain := fs.String("domain", "", "the Cahut whose console the link opens; the first one declared when empty")
 	if code, ok := parse(fs, args); !ok {
 		return code
@@ -196,7 +200,7 @@ func runAdminCreate(args []string, stdout, stderr io.Writer) int {
 		if err != nil {
 			return created{}, err
 		}
-		a, err := operation.Do(ctx, srv.Registry, server.CreateAdmin, admin, in)
+		a, err := operation.Do(ctx, srv.Registry, server.CreateAdmin, consoleActor(d), in)
 		return created{admin: a, domain: d}, err
 	})
 	if !ok {
@@ -218,9 +222,9 @@ func runAdminList(args []string, stdout, stderr io.Writer) int {
 		return exitError
 	}
 	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
-	fmt.Fprintln(tw, "HANDLE\tNAME\tSTATUS\tCREATED")
+	fmt.Fprintln(tw, "HANDLE\tNAME\tSTATUS\tCREATED\tEMAIL")
 	for _, a := range list.Admins {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", a.Handle, a.Name, a.Status, day(a.CreatedAt))
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", a.Handle, a.Name, a.Status, day(a.CreatedAt), a.Email)
 	}
 	if err := tw.Flush(); err != nil {
 		return exitError
@@ -246,7 +250,7 @@ func runAdminLink(args []string, stdout, stderr io.Writer) int {
 		if err != nil {
 			return link{}, err
 		}
-		a, err := operation.Do(ctx, srv.Registry, server.CreateActivationLink, admin, in)
+		a, err := operation.Do(ctx, srv.Registry, server.CreateActivationLink, consoleActor(d), in)
 		return link{activation: a, domain: d}, err
 	})
 	if !ok {
@@ -334,6 +338,7 @@ func runUserCreate(args []string, stdout, stderr io.Writer) int {
 	fs.StringVar(&in.Handle, "handle", "", "short name, which also names the personal Room: 2 to 32 lowercase letters, digits and hyphens")
 	fs.StringVar(&in.Name, "name", "", "full name")
 	fs.BoolVar(&in.Admin, "admin", false, "make the person an administrator of the Cahut")
+	fs.StringVar(&in.Email, "email", "", "e-mail address of the person, where their link goes when the Cahut sends e-mail")
 	if code, ok := parse(fs, args); !ok {
 		return code
 	}
@@ -358,9 +363,9 @@ func runUserList(args []string, stdout, stderr io.Writer) int {
 		return exitError
 	}
 	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
-	fmt.Fprintln(tw, "HANDLE\tNAME\tROLE\tSTATUS")
+	fmt.Fprintln(tw, "HANDLE\tNAME\tROLE\tSTATUS\tEMAIL")
 	for _, u := range list.Users {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", u.Handle, u.Name, u.Role, u.Status)
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", u.Handle, u.Name, u.Role, u.Status, u.Email)
 	}
 	if err := tw.Flush(); err != nil {
 		return exitError
@@ -389,9 +394,44 @@ func runUserLink(args []string, stdout, stderr io.Writer) int {
 // printActivation prints the link of an activation: base, the page of the
 // console where it opens, then its code.
 func printActivation(w io.Writer, base string, a account.Activation) {
-	fmt.Fprintf(w, "Send %s this link, where they choose their password. It works once, until %s, and is shown only now.\n\n",
-		a.User, day(a.ExpiresAt))
+	if a.Emailed {
+		fmt.Fprintf(w, "The link where %s chooses their password went to their e-mail address. It works once, until %s; "+
+			"here it is too, shown only now.\n\n", a.User, day(a.ExpiresAt))
+	} else {
+		fmt.Fprintf(w, "Send %s this link, where they choose their password. It works once, until %s, and is shown only now.\n\n",
+			a.User, day(a.ExpiresAt))
+	}
 	fmt.Fprintf(w, "%s%s\n\n", base, a.Code)
+}
+
+// consoleActor returns the administrator of the command line, acting at
+// the console of the Cahut at domain, where the links of e-mail open.
+func consoleActor(domain string) operation.Actor {
+	a := admin
+	a.Domain = domain
+	return a
+}
+
+func runUserEmail(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("user email", stderr)
+	data := dataFlag(fs)
+	domain := domainFlag(fs)
+	var in account.SetUserEmailInput
+	fs.StringVar(&in.User, "handle", "", "the person")
+	fs.StringVar(&in.Email, "email", "", "their e-mail address; empty removes it")
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	u, at, ok := inCahut(*data, *domain, account.SetUserEmail, in, stderr)
+	if !ok {
+		return exitError
+	}
+	if u.Email == "" {
+		fmt.Fprintf(stdout, "%s of %s has no e-mail address now.\n", u.Handle, at)
+	} else {
+		fmt.Fprintf(stdout, "The e-mail address of %s of %s is %s now.\n", u.Handle, at, u.Email)
+	}
+	return exitOK
 }
 
 // printAdminActivation prints the link of an administrator's activation, at
