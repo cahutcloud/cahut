@@ -10,6 +10,7 @@ import { useConsole } from "../context";
 import { useLoad } from "../load";
 import { href, Link } from "../router";
 import { RoomCards } from "./rooms";
+import { LimitsTable } from "./settings";
 
 export function Overview() {
 	return useConsole().session.kind === "admin" ? <ServerOverview /> : <PersonOverview />;
@@ -60,6 +61,12 @@ function PersonOverview() {
 				<h2 class="c-h4">Your Rooms</h2>
 				<RoomCards rooms={rooms} />
 			</section>
+			{account.role !== "admin" && Object.keys(about.limits).length > 0 && (
+				<section class="section">
+					<h2 class="c-h4">{about.yours ? "Your limits" : "Limits of this Cahut"}</h2>
+					<LimitsTable settings={about} />
+				</section>
+			)}
 		</>
 	);
 }

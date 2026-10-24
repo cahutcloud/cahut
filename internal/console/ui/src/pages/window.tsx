@@ -113,6 +113,7 @@ type AccessInput = { window: string; access: string; ends_at?: string; key?: str
 
 /** The access of a Window, and the form that changes it. */
 function AccessPanel(props: { window: WindowDetail; shared: AccessSet | null; onSet: (input: AccessInput) => Promise<void> }) {
+	const { individual } = useConsole();
 	const w = props.window;
 	const [access, setAccess] = useState(w.access);
 	const [ends, setEnds] = useState(w.access_ends_at ? w.access_ends_at.slice(0, 10) : "");
@@ -178,7 +179,10 @@ function AccessPanel(props: { window: WindowDetail; shared: AccessSet | null; on
 			<form class="form" onSubmit={submit}>
 				<fieldset class="consent__group">
 					<legend class="c-field__label">Who opens it</legend>
-					{Object.entries(accesses).map(([value, a]) => (
+					{Object.entries(accesses)
+						// An individual Cahut opens no Window to everyone signed in to it.
+						.filter(([value]) => !individual || value !== "internal" || w.access === "internal")
+						.map(([value, a]) => (
 						<label class="c-check" key={value}>
 							<input type="radio" name="access" checked={access === value} onChange={() => setAccess(value)} />
 							<span>
