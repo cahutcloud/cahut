@@ -22,6 +22,8 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut domain add`](#cahut-domain-add) | Declare a domain, which creates its Cahut |
 | [`cahut domain list`](#cahut-domain-list) | List the Cahuts of this server |
 | [`cahut domain rename`](#cahut-domain-rename) | Move a Cahut to another domain, or from the IP address of the server to a domain |
+| [`cahut settings show`](#cahut-settings-show) | Print the limits of a Cahut, with what it holds |
+| [`cahut settings set`](#cahut-settings-set) | Change limits of a Cahut; those you leave out stay as they are |
 | [`cahut admin create`](#cahut-admin-create) | Create an administrator of the server, with an activation link |
 | [`cahut admin list`](#cahut-admin-list) | List the administrators of the server |
 | [`cahut admin link`](#cahut-admin-link) | Give an administrator of the server a new link where they choose their password |
@@ -109,6 +111,42 @@ cahut domain rename [--data DIR] <domain> <new domain>
 | Flag | Default | Description |
 | --- | --- | --- |
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+
+## `cahut settings`
+
+Set the limits of a Cahut.
+
+### `cahut settings show`
+
+Print the limits of a Cahut, with what it holds.
+
+```text
+cahut settings show [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+
+### `cahut settings set`
+
+Change limits of a Cahut; those you leave out stay as they are.
+
+```text
+cahut settings set [--data DIR] [--domain DOMAIN] [--people N] [--admins N] [--rooms N] [--windows N] [--windows-per-room N] [--disk SIZE]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--admins N` |  | N of them may be administrators of the Cahut; none lifts the limit |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--disk SIZE` |  | the Cahut may keep SIZE, such as 10GB or 500MB, in units of 1000 bytes; none lifts the limit |
+| `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+| `--people N` |  | the Cahut may have N people, administrators included, and disabled people do not count; none lifts the limit |
+| `--rooms N` |  | the Cahut may have N team Rooms; none lifts the limit |
+| `--windows N` |  | the Cahut may hold N Windows out of the trash; none lifts the limit |
+| `--windows-per-room N` |  | each Room may hold N Windows out of the trash; none lifts the limit |
 
 ## `cahut admin`
 

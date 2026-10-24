@@ -19,6 +19,7 @@ import (
 	"cahut.cloud/internal/oauth"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
 	"cahut.cloud/internal/window"
 )
@@ -46,6 +47,8 @@ type Cahut struct {
 	Registry *operation.Registry
 	Windows  *window.Service
 	OAuth    *oauth.Server
+	// About describes the Cahut: get_cahut.
+	About *operation.Op[GetCahutInput, About]
 	// FrameKey signs the capabilities of the frames of Windows: those of
 	// protected Windows and those of previews in the console. See
 	// docs/adr/0019-window-versions-access-and-declaration.md and
@@ -91,22 +94,27 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		return cfg.ConsoleURL + "knocks/" + strconv.FormatInt(id, 10)
 	})
 	housestyle.Register(r, cfg.Domain)
+	operation.Register(r, settings.Set)
 	operation.Register(r, ListLogbook)
-	operation.Register(r, &operation.Op[GetCahutInput, About]{
-		Name:        "get_cahut",
-		Title:       "Describe the Cahut",
-		Description: "Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint.",
-		ReadOnly:    true,
-		Run: func(_ context.Context, c *operation.Call, _ GetCahutInput) (About, error) {
+	about := &operation.Op[GetCahutInput, About]{
+		Name:  "get_cahut",
+		Title: "Describe the Cahut",
+		Description: "Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, " +
+			"and its limits with what it holds: a call that would cross a limit is refused.",
+		ReadOnly: true,
+		Run: func(ctx context.Context, c *operation.Call, _ GetCahutInput) (About, error) {
 			c.Log(cfg.Domain, "")
 			a := About{Domain: cfg.Domain, URL: cfg.BaseURL}
 			if cfg.BaseURL != "" {
 				a.MCP = cfg.BaseURL + "mcp"
 			}
-			return a, nil
+			var err error
+			a.Settings, err = settings.Read(ctx, c.Tx)
+			return a, err
 		},
-	})
-	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w, OAuth: auth, FrameKey: frameKey}, nil
+	}
+	operation.Register(r, about)
+	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w, OAuth: auth, About: about, FrameKey: frameKey}, nil
 }
 
 // secret returns the random secret of the Cahut called name, drawn on first
@@ -134,6 +142,7 @@ type About struct {
 	Domain string `json:"domain"`
 	URL    string `json:"url,omitempty" jsonschema:"the address of the Cahut, under which its Rooms and Windows open"`
 	MCP    string `json:"mcp,omitempty" jsonschema:"the address of its MCP endpoint, where AI clients connect"`
+	settings.Settings
 }
 
 // ListLogbookInput is the input of list_logbook.

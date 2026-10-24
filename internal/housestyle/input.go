@@ -19,6 +19,8 @@ import (
 	"unicode/utf8"
 
 	"cahut.cloud/internal/operation"
+	// The package has a type of its own called settings.
+	cahutsettings "cahut.cloud/internal/settings"
 )
 
 // SetInput is the input of set_house_style. What it leaves out stays as it
@@ -200,6 +202,11 @@ func set(ctx context.Context, c *operation.Call, in SetInput, domain string) (Ho
 	c.Log("house style", strings.Join(changes, "; "))
 	if cur != nil && same(cur, next) {
 		return describe(cur, prev, domain), nil
+	}
+	// The new house style keeps its files, and the previous one goes with
+	// its own: the disk of the Cahut grows by the difference.
+	if err := cahutsettings.CheckDisk(ctx, c, filesSize(next)-filesSize(prev)); err != nil {
+		return HouseStyle{}, err
 	}
 	if err := save(ctx, c.Tx, next, c.Actor.UserID, c.Now); err != nil {
 		return HouseStyle{}, err

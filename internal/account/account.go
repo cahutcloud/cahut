@@ -14,6 +14,7 @@ import (
 
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
 )
 
@@ -182,6 +183,9 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 		if taken {
 			return NewUser{}, operation.Invalidf("handle %q is taken, by a person or a Room", u.Handle)
 		}
+		if err := settings.CheckPerson(ctx, c, in.Admin); err != nil {
+			return NewUser{}, err
+		}
 		now := store.FormatTime(c.Now)
 		err = c.Tx.QueryRowContext(ctx, "INSERT INTO users (handle, name, role, created_at) VALUES (?, ?, ?, ?) RETURNING id",
 			u.Handle, u.Name, u.Role, now).Scan(&u.ID)
@@ -328,6 +332,11 @@ var SetUserRole = &operation.Op[SetUserRoleInput, User]{
 		if p.Role == in.Role {
 			return p.User, nil
 		}
+		if in.Role == Admin && p.Status != Disabled {
+			if err := settings.CheckAdmin(ctx, c); err != nil {
+				return User{}, err
+			}
+		}
 		if p.Role == Admin {
 			if err := keepAnAdmin(ctx, c.Tx, p.ID); err != nil {
 				return User{}, err
@@ -416,6 +425,9 @@ var EnableUser = &operation.Op[UserInput, User]{
 		}
 		if p.Status != Disabled {
 			return User{}, operation.Invalidf("%s is not disabled", p.Handle)
+		}
+		if err := settings.CheckPerson(ctx, c, p.Role == Admin); err != nil {
+			return User{}, err
 		}
 		if _, err := c.Tx.ExecContext(ctx, "UPDATE users SET disabled_at = NULL WHERE id = ?", p.ID); err != nil {
 			return User{}, err

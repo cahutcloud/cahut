@@ -20,6 +20,7 @@ import (
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
 )
 
@@ -212,6 +213,12 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	}
 	c.InRoom(r.ID)
 	roomID := r.ID
+	if err := settings.CheckWindow(ctx, c, roomID, r.Name); err != nil {
+		return Window{}, err
+	}
+	if err := settings.CheckDisk(ctx, c, size); err != nil {
+		return Window{}, err
+	}
 	w := Window{Title: title, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: AccessRoom,
 		CreatedBy: c.Actor.Handle, CreatedAt: c.Now, UpdatedAt: c.Now, Declaration: declared}
 	if w.Name, err = freeName(ctx, c.Tx, roomID, title); err != nil {
@@ -275,6 +282,16 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 	// The current version becomes the previous one, and the previous one
 	// goes, files included, once the call has succeeded.
 	dropped := w.Previous
+	var droppedSize int64
+	if dropped != 0 {
+		err := c.Tx.QueryRowContext(ctx, "SELECT size FROM window_versions WHERE window_id = ? AND number = ?", w.id, dropped).Scan(&droppedSize)
+		if err != nil {
+			return Window{}, err
+		}
+	}
+	if err := settings.CheckDisk(ctx, c, size-droppedSize); err != nil {
+		return Window{}, err
+	}
 	w.Previous, w.Version = w.Version, max(w.Version, w.Previous)+1
 	w.Size, w.FileCount, w.UpdatedAt = size, len(files), c.Now
 	now := store.FormatTime(c.Now)
@@ -378,6 +395,9 @@ func (s *Service) restore(ctx context.Context, c *operation.Call, in RefInput) (
 	}
 	if w.TrashedAt == nil {
 		return Window{}, operation.Invalidf("%s/%s is not in the trash", w.Room, w.Name)
+	}
+	if err := settings.CheckWindow(ctx, c, w.roomID, w.Room); err != nil {
+		return Window{}, err
 	}
 	if _, err := c.Tx.ExecContext(ctx, "UPDATE windows SET trashed_at = NULL WHERE id = ?", w.id); err != nil {
 		return Window{}, err

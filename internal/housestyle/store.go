@@ -61,6 +61,17 @@ type file struct {
 	content []byte
 }
 
+// filesSize returns the bytes of the files of v, or 0 when v is nil.
+func filesSize(v *version) int64 {
+	var n int64
+	if v != nil {
+		for _, f := range v.files {
+			n += f.size
+		}
+	}
+	return n
+}
+
 // version is a house style as the store keeps it: the current one, or the
 // previous one.
 type version struct {

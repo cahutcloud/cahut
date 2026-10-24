@@ -9,6 +9,7 @@ import (
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/window"
 )
 
@@ -78,7 +79,8 @@ func TestGetCahut(t *testing.T) {
 	}
 	ai := operation.Actor{Kind: operation.AI, Via: "mcp", UserID: u.ID, Handle: "olivier", TokenID: 1, Client: "Claude"}
 	out, err := c.Registry.Invoke(ctx, "get_cahut", ai, nil)
-	want := About{Domain: "cahut.example.com", URL: "https://cahut.example.com/", MCP: "https://cahut.example.com/mcp"}
+	want := About{Domain: "cahut.example.com", URL: "https://cahut.example.com/", MCP: "https://cahut.example.com/mcp",
+		Settings: settings.Settings{Usage: settings.Usage{People: 1}}}
 	if err != nil || out != want {
 		t.Errorf("get_cahut = %+v, %v; want %+v", out, err, want)
 	}
