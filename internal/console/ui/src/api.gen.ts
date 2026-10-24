@@ -274,6 +274,21 @@ export interface DeletedRoom {
   windows: number;
 }
 
+export interface Delivery {
+  /** the relay set here; absent when there is none */
+  relay?: RelayInfo;
+  /** for a Cahut without a relay of its own: the server has one, which sends the e-mail of the Cahut */
+  server?: boolean;
+  /** whether e-mail goes out: through the relay set here, or through that of the server */
+  sends: boolean;
+  /** when a message last went out */
+  last_sent?: string;
+  /** why the last message that failed did not go out */
+  last_error?: string;
+  /** when it failed */
+  last_error_at?: string;
+}
+
 export interface DenyInput {
   request: Request;
 }
@@ -562,21 +577,6 @@ export interface LogbookPage {
   entries: Entry[];
 }
 
-export interface MailSetup {
-  /** the relay set here; absent when there is none */
-  relay?: RelayInfo;
-  /** for a Cahut without a relay of its own: the server has one, which sends the e-mail of the Cahut */
-  server?: boolean;
-  /** whether e-mail goes out: through the relay set here, or through that of the server */
-  sends: boolean;
-  /** when a message last went out */
-  last_sent?: string;
-  /** why the last message that failed did not go out */
-  last_error?: string;
-  /** when it failed */
-  last_error_at?: string;
-}
-
 export interface MemberInput {
   /** the Room's name */
   room: string;
@@ -862,13 +862,6 @@ export interface ServerSession {
   admin: Admin;
 }
 
-export interface ServerSetup {
-  domain: string;
-  expires_at: string;
-  /** whether the first person also becomes the administrator of the server, which has none */
-  server_admin: boolean;
-}
-
 export interface SetAIReachInput {
   /** the connection, from list_connected_ais; an AI leaves it out, to set its own */
   id?: number;
@@ -959,6 +952,13 @@ export interface Settings {
   usage?: Usage;
   /** in an individual Cahut, what the person you act for holds, as the limits per person count it */
   yours?: PersonUsage;
+}
+
+export interface Setup {
+  domain: string;
+  expires_at: string;
+  /** whether the first person also becomes the administrator of the server, which has none */
+  server_admin: boolean;
 }
 
 export interface SetupInput {
@@ -1218,7 +1218,7 @@ export interface CahutOperations {
   /** Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
   get_knock: { input: KnockGetInput; output: Knock };
   /** Describe the SMTP relay of this Cahut, without its password, or say that its e-mail goes through the relay of the server; and when a message last went out, or last failed and why. For the administrators of the Cahut. */
-  get_mail_relay: { input: GetMailRelayInput; output: MailSetup };
+  get_mail_relay: { input: GetMailRelayInput; output: Delivery };
   /** Describe a Room: its title, its owners and members, and how many Windows it holds. */
   get_room: { input: RoomGetInput; output: RoomDetail };
   /** Describe a Window and list its files, optionally with their contents. */
@@ -1262,7 +1262,7 @@ export interface CahutOperations {
   /** Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. */
   set_house_style: { input: SetInput; output: HouseStyle };
   /** Set the SMTP relay that sends the e-mail of this Cahut, such as activation links, from an address of its own. The relay is at a public address and speaks TLS. Cahut connects to it and signs in before it keeps it. An empty host removes it: the e-mail of the Cahut then goes through the relay of the server, when it has one. For the administrators of the Cahut. */
-  set_mail_relay: { input: SetMailRelayInput; output: MailSetup };
+  set_mail_relay: { input: SetMailRelayInput; output: Delivery };
   /** Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. */
   set_room_member_role: { input: MemberInput; output: RoomDetail };
   /** Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. */
@@ -1302,9 +1302,9 @@ export interface ServerOperations {
   /** Enable a disabled administrator of the server again: they can sign in with their password, or with a new link. */
   enable_admin: { input: AdminInput; output: Admin };
   /** Describe the SMTP relay of this server, without its password, and when a message of the server last went out, or last failed and why. For the administrators of the server. */
-  get_mail_relay: { input: GetMailRelayInput; output: MailSetup };
+  get_mail_relay: { input: GetMailRelayInput; output: Delivery };
   /** Say whether a link to the first start still works at this domain. */
-  get_setup: { input: SetupInput; output: ServerSetup };
+  get_setup: { input: SetupInput; output: Setup };
   /** Say which version of Cahut runs, the newest release, and how the last check and the last update went. */
   get_updates: { input: UpdatesInput; output: Updates };
   /** List the administrators of the server. */
@@ -1320,7 +1320,7 @@ export interface ServerOperations {
   /** Send a test message through the relay of this server, and say whether the relay took it. For the administrators of the server. */
   send_test_mail: { input: SendTestMailInput; output: TestSent };
   /** Set the SMTP relay that sends the e-mail of this server, and that of every Cahut without a relay of its own. It may be on this machine or its network; without TLS, only on its loopback address. Cahut connects to it and signs in before it keeps it. An empty host removes it. For the administrators of the server. */
-  set_mail_relay: { input: SetMailRelayInput; output: MailSetup };
+  set_mail_relay: { input: SetMailRelayInput; output: Delivery };
   /** Use a link to the first start: create the first person of the Cahut, its administrator, and the administrator of the server if it has none, with the same handle and password; then sign the person in. */
   set_up: { input: SetUpInput; output: SetUp };
   /** Sign in as an administrator of the server, with a handle and a password, and open a session at this domain. */
