@@ -115,6 +115,8 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/server/create_activation_link` | Administrators of the server | yes |
 | `POST /api/server/create_admin` | Administrators of the server | yes |
 | `POST /api/server/create_setup_link` | Administrators of the server | yes |
+| `POST /api/server/disable_admin` | Administrators of the server | yes |
+| `POST /api/server/enable_admin` | Administrators of the server | yes |
 | `POST /api/server/get_setup` | Anyone, to sign in | no |
 | `POST /api/server/get_updates` | Administrators of the server | yes |
 | `POST /api/server/list_admins` | Administrators of the server | yes |

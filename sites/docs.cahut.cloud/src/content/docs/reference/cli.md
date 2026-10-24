@@ -27,6 +27,8 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut admin create`](#cahut-admin-create) | Create an administrator of the server, with an activation link |
 | [`cahut admin list`](#cahut-admin-list) | List the administrators of the server |
 | [`cahut admin link`](#cahut-admin-link) | Give an administrator of the server a new link where they choose their password |
+| [`cahut admin disable`](#cahut-admin-disable) | Disable an administrator of the server: their sessions end, and they cannot sign in |
+| [`cahut admin enable`](#cahut-admin-enable) | Enable a disabled administrator of the server again |
 | [`cahut user create`](#cahut-user-create) | Create a person, with their personal Room and an activation link |
 | [`cahut user list`](#cahut-user-list) | List the people of a Cahut |
 | [`cahut user link`](#cahut-user-link) | Give a person a new link where they choose their password |
@@ -196,6 +198,32 @@ cahut admin link [flags]
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
 | `--domain string` |  | the Cahut whose console the link opens; the first one declared when empty |
 | `--handle string` |  | the administrator who chooses a new password |
+
+### `cahut admin disable`
+
+Disable an administrator of the server: their sessions end, and they cannot sign in.
+
+```text
+cahut admin disable [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--handle string` |  | the administrator of the server |
+
+### `cahut admin enable`
+
+Enable a disabled administrator of the server again.
+
+```text
+cahut admin enable [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--handle string` |  | the administrator of the server |
 
 ## `cahut user`
 

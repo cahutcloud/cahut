@@ -33,6 +33,8 @@ var adminCommands = []command{
 	{name: "create", summary: "Create an administrator of the server, with an activation link", run: runAdminCreate},
 	{name: "list", summary: "List the administrators of the server", run: runAdminList},
 	{name: "link", summary: "Give an administrator of the server a new link where they choose their password", run: runAdminLink},
+	{name: "disable", summary: "Disable an administrator of the server: their sessions end, and they cannot sign in", run: runAdminDisable},
+	{name: "enable", summary: "Enable a disabled administrator of the server again", run: runAdminEnable},
 }
 
 var userCommands = []command{
@@ -252,6 +254,32 @@ func runAdminLink(args []string, stdout, stderr io.Writer) int {
 	}
 	printAdminActivation(stdout, l.domain, l.activation)
 	fmt.Fprintln(stdout, "Their password, if they have one, works until they use the link.")
+	return exitOK
+}
+
+func runAdminDisable(args []string, stdout, stderr io.Writer) int {
+	return runAdminSwitch("admin disable", server.DisableAdmin, "Disabled %s (%s): their sessions ended, and they cannot sign in.\n", args, stdout, stderr)
+}
+
+func runAdminEnable(args []string, stdout, stderr io.Writer) int {
+	return runAdminSwitch("admin enable", server.EnableAdmin, "Enabled %s (%s) again.\n", args, stdout, stderr)
+}
+
+// runAdminSwitch runs op, which disables or enables the administrator that
+// --handle names, and says what it did with done.
+func runAdminSwitch(name string, op *operation.Op[server.AdminInput, server.Admin], done string, args []string, stdout, stderr io.Writer) int {
+	fs := newFlags(name, stderr)
+	data := dataFlag(fs)
+	var in server.AdminInput
+	fs.StringVar(&in.Admin, "handle", "", "the administrator of the server")
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	a, ok := onServer(*data, op, in, stderr)
+	if !ok {
+		return exitError
+	}
+	fmt.Fprintf(stdout, done, a.Handle, a.Name)
 	return exitOK
 }
 

@@ -241,3 +241,92 @@ func TestAddDomainWithAdmin(t *testing.T) {
 		t.Errorf("Cahut directories: %v, %v; want only the first", dirs, err)
 	}
 }
+
+// activeAdmin creates an administrator of the server who chose their
+// password, and returns their session at cahut.example.com.
+func activeAdmin(t *testing.T, s *Server, handle string, now time.Time) operation.Actor {
+	t.Helper()
+	ctx := context.Background()
+	a, err := operation.Do(ctx, s.Registry, CreateAdmin, admin, CreateAdminInput{Handle: handle, Name: handle})
+	if err != nil {
+		t.Fatalf("create_admin %s: %v", handle, err)
+	}
+	sess, err := operation.Do(ctx, s.Registry, ActivateAccount, visitor, account.ActivateInput{Code: a.Activation.Code, Password: password})
+	if err != nil {
+		t.Fatalf("activate_account %s: %v", handle, err)
+	}
+	return signedIn(t, s, sess.Token, "cahut.example.com", now)
+}
+
+func TestDisableAdmins(t *testing.T) {
+	s := setup(t)
+	now := clock(s)
+	ctx := context.Background()
+	olivier := activeAdmin(t, s, "olivier", *now)
+	activeAdmin(t, s, "tester", *now)
+	session, err := operation.Do(ctx, s.Registry, SignIn, visitor, account.SignInInput{Handle: "tester", Password: password})
+	if err != nil {
+		t.Fatalf("sign_in: %v", err)
+	}
+
+	if _, err := operation.Do(ctx, s.Registry, DisableAdmin, olivier, AdminInput{Admin: "olivier"}); !errors.Is(err, operation.ErrInvalid) ||
+		!strings.Contains(err.Error(), "cannot disable yourself") {
+		t.Errorf("disable_admin of oneself: %v", err)
+	}
+	a, err := operation.Do(ctx, s.Registry, DisableAdmin, olivier, AdminInput{Admin: "tester"})
+	if err != nil || a.Status != account.Disabled {
+		t.Fatalf("disable_admin = %+v, %v", a, err)
+	}
+
+	// A disabled administrator loses their sessions, and can neither sign
+	// in nor get a link.
+	if _, err := s.VerifySession(ctx, session.Token, "cahut.example.com", *now); !errors.Is(err, account.ErrInvalidSession) {
+		t.Errorf("a session of a disabled administrator: %v", err)
+	}
+	if _, err := operation.Do(ctx, s.Registry, SignIn, visitor, account.SignInInput{Handle: "tester", Password: password}); !errors.Is(err, operation.ErrForbidden) ||
+		!strings.Contains(err.Error(), "disabled") {
+		t.Errorf("sign_in of a disabled administrator: %v", err)
+	}
+	if _, err := operation.Do(ctx, s.Registry, CreateActivationLink, olivier, AdminInput{Admin: "tester"}); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("create_activation_link of a disabled administrator: %v", err)
+	}
+	if _, err := operation.Do(ctx, s.Registry, DisableAdmin, olivier, AdminInput{Admin: "tester"}); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("disable_admin twice: %v", err)
+	}
+	list, err := operation.Do(ctx, s.Registry, ListAdmins, olivier, ListAdminsInput{})
+	if err != nil || len(list.Admins) != 2 || list.Admins[1].Status != account.Disabled {
+		t.Errorf("list_admins = %+v, %v", list, err)
+	}
+
+	// The server keeps an administrator who is not disabled.
+	if _, err := operation.Do(ctx, s.Registry, DisableAdmin, admin, AdminInput{Admin: "olivier"}); !errors.Is(err, operation.ErrInvalid) ||
+		!strings.Contains(err.Error(), "needs an administrator") {
+		t.Errorf("disable_admin of the last administrator: %v", err)
+	}
+
+	// Enabled again, they sign in with their password.
+	a, err = operation.Do(ctx, s.Registry, EnableAdmin, olivier, AdminInput{Admin: "tester"})
+	if err != nil || a.Status != account.Active {
+		t.Fatalf("enable_admin = %+v, %v", a, err)
+	}
+	if _, err := operation.Do(ctx, s.Registry, EnableAdmin, olivier, AdminInput{Admin: "tester"}); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("enable_admin of an administrator who is not disabled: %v", err)
+	}
+	if _, err := operation.Do(ctx, s.Registry, SignIn, visitor, account.SignInInput{Handle: "tester", Password: password}); err != nil {
+		t.Errorf("sign_in once enabled: %v", err)
+	}
+
+	entries, err := logbook.List(ctx, s.DB.Read, 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var ops []string
+	for _, e := range entries {
+		if strings.HasSuffix(e.Operation, "able_admin") && e.Outcome == logbook.OK {
+			ops = append(ops, e.Operation+" "+e.Target+" by "+e.UserHandle)
+		}
+	}
+	if want := []string{"enable_admin tester by olivier", "disable_admin tester by olivier"}; !slices.Equal(ops, want) {
+		t.Errorf("logbook = %q, want %q", ops, want)
+	}
+}
