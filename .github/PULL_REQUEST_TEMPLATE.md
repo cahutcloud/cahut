@@ -13,6 +13,7 @@
 ## Checklist
 
 - [ ] One topic, one pull request.
+- [ ] A new feature or a change of behavior comes with its tests; a bug fix with a test that fails without it.
 - [ ] `make check` passes.
 - [ ] Every commit is signed off with `git commit -s` (CONTRIBUTING.md).
 - [ ] If an AI helped, I say which and how much, and I have read, understood, run and tested all of it.

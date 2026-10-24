@@ -31,11 +31,12 @@ The README says it: create content, run an AI model on the server, give an AI a 
 ## How a pull request gets in
 
 1. One branch per topic, one pull request per topic, small when possible.
-2. `make check` passes: lint and tests, as CI runs them.
-3. The code follows [CLAUDE.md](CLAUDE.md): English everywhere, imperative commit subjects, every action through the operation registry, no business logic in the adapters, the standard library first. That file is written for the AIs working in this repository and applies to everyone.
-4. The description says what changes, why, and how it was tested. For a feature, it links the discussion.
-5. The maintainer reviews in a weekly slot. He asks for changes, merges, or explains why not.
-6. A pull request without an answer from its author for thirty days is closed. Reopen it any time.
+2. A new feature, or a change of behavior, comes with its tests: they show what it does and keep it from breaking later. A bug fix comes with a test that fails without it.
+3. `make check` passes: lint, govulncheck and tests, as CI runs them.
+4. The code follows [CLAUDE.md](CLAUDE.md): English everywhere, imperative commit subjects, every action through the operation registry, no business logic in the adapters, the standard library first. That file is written for the AIs working in this repository and applies to everyone.
+5. The description says what changes, why, and how it was tested. For a feature, it links the discussion.
+6. The maintainer reviews in a weekly slot. He asks for changes, merges, or explains why not.
+7. A pull request without an answer from its author for thirty days is closed. Reopen it any time.
 
 ### Sign your commits
 
