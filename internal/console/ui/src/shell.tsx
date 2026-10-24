@@ -4,6 +4,7 @@
 import {
 	Bot,
 	DoorClosed,
+	Gauge,
 	House,
 	LogOut,
 	Menu,
@@ -13,7 +14,6 @@ import {
 	RefreshCw,
 	Server,
 	ShieldCheck,
-	User,
 	Users,
 	X,
 } from "lucide-preact";
@@ -23,10 +23,11 @@ import type { Room } from "./api.gen";
 import { initials } from "./components";
 import { useConsole } from "./context";
 import { Logo } from "./logo";
+import { roomIcon } from "./pages/rooms";
 import { Link } from "./router";
 
 export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => void; children: ComponentChildren }) {
-	const { session, isAdmin, knocks } = useConsole();
+	const { session, isAdmin, individual, knocks } = useConsole();
 	const [open, setOpen] = useState(false);
 	useEffect(() => setOpen(false), [props.path]);
 
@@ -87,7 +88,7 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 					<>
 						<div class="c-label">Rooms</div>
 						{props.rooms.map((r) => {
-							const Icon = r.kind === "personal" ? User : Users;
+							const Icon = roomIcon(r, individual);
 							return <Fragment key={r.name}>{nav(`/rooms/${r.name}`, <Icon class="i" size={18} aria-hidden="true" />, r.title)}</Fragment>;
 						})}
 						{nav("/rooms", <Plus class="i" size={18} aria-hidden="true" />, isAdmin ? "Every Room" : "New Room")}
@@ -104,6 +105,7 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 				<div class="c-label">This Cahut</div>
 				{isAdmin && nav("/people", <Users class="i" size={18} aria-hidden="true" />, "People")}
 				{isAdmin && nav("/house-style", <Palette class="i" size={18} aria-hidden="true" />, "House style")}
+				{isAdmin && nav("/settings", <Gauge class="i" size={18} aria-hidden="true" />, "Kind and limits")}
 				{!person && nav("/rooms", <Server class="i" size={18} aria-hidden="true" />, "Rooms", false)}
 				{!person && nav("/logbook", <NotebookText class="i" size={18} aria-hidden="true" />, "Logbook")}
 				{person && nav("/access", <Bot class="i" size={18} aria-hidden="true" />, "AIs and access")}

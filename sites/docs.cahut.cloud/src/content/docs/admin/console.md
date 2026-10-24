@@ -23,7 +23,7 @@ An administrator creates accounts in the console, under **People**, or on the co
 
 | Screen | What it shows |
 | --- | --- |
-| Overview | The latest Windows of your Rooms, each with a preview, and your Rooms |
+| Overview | The latest Windows of your Rooms, each with a preview, your Rooms, and the limits of the Cahut, or yours in an individual Cahut, when there are some |
 | Knocks | What your AIs asked that waits for you, with Approve and Decline, then what you answered and what expired; the navigation counts those that wait |
 | A Knock | Where the link of an AI leads: what it asks, the details of the call, when it expires, Approve and Decline, then what the call gave back |
 | A Room | Its Windows, each with a preview and its access, its trash, and its people; owners add and remove people, rename the Room, and delete a team Room for good once its name is typed |
@@ -44,6 +44,9 @@ The same screens, and:
 - **Logbook**: every entry of the Cahut, from people and from AIs.
 - **AIs and access**: the connected AIs and the tokens of others too, which they can disconnect and revoke.
 - **House style**: see below.
+- **Kind and limits**: whether the Cahut is collaborative or individual, and its [limits](/concepts/cahuts/#limits) with what it holds. The administrators of the server set them.
+
+In an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), the page of a Room no longer adds or removes people, and the access of a Window no longer offers Internal.
 
 ### House style
 
@@ -62,6 +65,7 @@ They find:
 - **Logbook of the server**: the Cahuts declared and moved, the administrators and their sign-ins, and the updates.
 - **Updates**: the version running, the newest release, the last update and how it ended, with **Check now** and **Update**. See [Updates](/admin/updates/).
 - In the Cahut of the domain where they signed in, **People**, **Rooms** and its **Logbook**, as its administrators have them, without its Windows.
+- **Kind and limits**, where they make the Cahut collaborative or individual and set its limits: a field left empty lifts a limit, and the disk counts in gigabytes of a billion bytes. The change goes to the Logbook of the Cahut.
 
 A session holds at the domain where it opened: to look after another Cahut, sign in at its own console.
 

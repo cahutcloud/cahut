@@ -270,11 +270,12 @@ export function ago(at: string): string {
 	return then.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-/** Says a size in bytes, as in "12 KB" or "3.4 MB". */
+/** Says a size in bytes, as in "12 KB", "3.4 MB" or "10 GB", in units of 1000 bytes. */
 export function bytes(n: number): string {
 	if (n < 1000) return `${n} bytes`;
 	if (n < 1000 * 1000) return `${Math.round(n / 1000)} KB`;
-	return `${(n / 1000 / 1000).toFixed(1)} MB`;
+	if (n < 1000 * 1000 * 1000) return `${(n / 1000 / 1000).toFixed(1)} MB`;
+	return `${(n / 1000 / 1000 / 1000).toFixed(1).replace(/\.0$/, "")} GB`;
 }
 
 /** Says a count with its noun, as in "1 Window" or "3 Windows". */

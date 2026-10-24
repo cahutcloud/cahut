@@ -1,6 +1,6 @@
 // The Rooms: those of the person, every Room for an administrator, a new
 // team Room, and the page of one Room with its Windows and its people.
-import { Plus, User, Users } from "lucide-preact";
+import { Folder, Plus, User, Users } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { ApiError, explain } from "../api";
 import type { Room, RoomDetail } from "../api.gen";
@@ -10,12 +10,19 @@ import { useLoad } from "../load";
 import { Link, navigate } from "../router";
 import { Trash } from "./window";
 
+/** The icon of a Room: a person for a personal Room, a group for a team Room, a folder for a Room of one's own in an individual Cahut. */
+export function roomIcon(r: Pick<Room, "kind">, individual: boolean): typeof User {
+	if (r.kind === "personal") return User;
+	return individual ? Folder : Users;
+}
+
 /** Rooms as cards, each a link to its page. */
 export function RoomCards({ rooms }: { rooms: Room[] }) {
+	const { individual } = useConsole();
 	return (
 		<div class="cards">
 			{rooms.map((r) => {
-				const Icon = r.kind === "personal" ? User : Users;
+				const Icon = roomIcon(r, individual);
 				return (
 					<Link key={r.name} class="c-card card card--link" href={`/rooms/${r.name}`}>
 						<span class="c-window__title">
@@ -49,7 +56,9 @@ export function RoomsPage() {
 	return (
 		<>
 			<PageHead label="Rooms" title="Rooms">
-				A Room gathers its people and their Windows, at its own address. Windows published in a team Room are for its members.
+				{api.individual
+					? "A Room holds the Windows of its owner, at its own address. In this Cahut, each person works alone: a Room keeps one member."
+					: "A Room gathers its people and their Windows, at its own address. Windows published in a team Room are for its members."}
 			</PageHead>
 			{mine.rooms.length > 0 && (
 				<section class="section">
@@ -69,7 +78,7 @@ export function RoomsPage() {
 	);
 }
 
-/** The form that creates a team Room. */
+/** The form that creates a team Room, or in an individual Cahut a Room of one's own. */
 function NewRoom() {
 	const api = useConsole();
 	const [title, setTitle] = useState("");
@@ -91,7 +100,7 @@ function NewRoom() {
 	};
 	return (
 		<section class="section c-card panel">
-			<h2 class="c-h4">New team Room</h2>
+			<h2 class="c-h4">{api.individual ? "New Room" : "New team Room"}</h2>
 			<form class="form" onSubmit={submit}>
 				<div class="form__row">
 					<label class="c-field">
@@ -101,7 +110,11 @@ function NewRoom() {
 					<label class="c-field">
 						<span class="c-field__label">Name, in its address</span>
 						<input class="c-input c-mono" placeholder="marketing" autocapitalize="none" value={name} onInput={(e) => setName(e.currentTarget.value)} />
-						<span class="c-field__help">From the title when empty. It cannot change later.</span>
+						<span class="c-field__help">
+							{api.individual
+								? `From the title when empty, after ${api.session.kind === "admin" ? "the handle of its owner" : `${api.session.handle}-`}. It cannot change later.`
+								: "From the title when empty. It cannot change later."}
+						</span>
 					</label>
 				</div>
 				{people.data && (
@@ -145,6 +158,8 @@ export function RoomPage({ name }: { name: string }) {
 	if (!room.data) return null;
 	const r = room.data;
 	const manage = r.kind === "team" && (r.role === "owner" || api.isAdmin);
+	// In an individual Cahut, a Room keeps one member: nobody joins or leaves it.
+	const members = !api.individual;
 	return (
 		<>
 			<PageHead label={r.kind === "personal" ? "Personal Room" : "Room"} title={r.title}>
@@ -158,20 +173,22 @@ export function RoomPage({ name }: { name: string }) {
 					<h2 class="c-h4">Windows</h2>
 					{windows.error && <Failure message={windows.error} />}
 					{windows.data === null && <Notice>You are not in this Room. As an administrator, you manage its people, not its Windows.</Notice>}
-					{windows.data && windows.data.windows.length === 0 && <Notice>No Window in this Room yet. An AI of one of its members publishes them.</Notice>}
+					{windows.data && windows.data.windows.length === 0 && (
+						<Notice>No Window in this Room yet. {api.individual ? "An AI of its owner publishes them." : "An AI of one of its members publishes them."}</Notice>
+					)}
 					{windows.data && windows.data.windows.length > 0 && (
 						<WindowCards windows={windows.data.windows} />
 					)}
 					{windows.data && <Trash room={r.name} />}
 				</section>
-				<People room={r} manage={manage} onChange={room.reload} />
+				<People room={r} manage={manage} members={members} onChange={room.reload} />
 			</div>
 		</>
 	);
 }
 
-/** The people of a Room, and their management for its owners. */
-function People({ room, manage, onChange }: { room: RoomDetail; manage: boolean; onChange: () => void }) {
+/** The people of a Room, and their management for its owners, when its Cahut lets people share Rooms. */
+function People({ room, manage, members, onChange }: { room: RoomDetail; manage: boolean; members: boolean; onChange: () => void }) {
 	const api = useConsole();
 	const [error, setError] = useState("");
 	const act = async (run: () => Promise<unknown>) => {
@@ -200,7 +217,7 @@ function People({ room, manage, onChange }: { room: RoomDetail; manage: boolean;
 							<span class="c-mono c-muted people__handle">{p.handle}</span>
 						</span>
 						<span class="c-badge c-badge--neutral">{p.role === "owner" ? "Owner" : "Member"}</span>
-						{manage && p.handle !== me && (
+						{manage && members && p.handle !== me && (
 							<span class="people__actions">
 								{(p.role === "member" || owners > 1) && (
 									<ConfirmButton
@@ -229,10 +246,10 @@ function People({ room, manage, onChange }: { room: RoomDetail; manage: boolean;
 				))}
 			</ul>
 			{error && <Failure message={error} />}
-			{manage && <AddPerson room={room} onAdd={(handle, role) => act(() => api.cahut("add_room_member", { room: room.name, user: handle, role }))} />}
+			{manage && members && <AddPerson room={room} onAdd={(handle, role) => act(() => api.cahut("add_room_member", { room: room.name, user: handle, role }))} />}
 			{manage && <Retitle room={room} onRetitle={(title) => act(() => api.cahut("update_room", { room: room.name, title }))} />}
 			{manage && <DeleteRoom room={room} />}
-			{room.kind === "team" && room.role && (room.role === "member" || owners > 1) && (
+			{members && room.kind === "team" && room.role && (room.role === "member" || owners > 1) && (
 				<ConfirmButton
 					label="Leave this Room"
 					question="Leave this Room? You will no longer open its Windows."

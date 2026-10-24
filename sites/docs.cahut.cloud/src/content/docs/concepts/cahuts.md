@@ -51,7 +51,7 @@ The Cahuts of a server share its disk, memory and processor, its updates and its
 
 ## Collaborative or individual
 
-The administrators of the server choose the kind of each Cahut, with [`cahut settings set`](/admin/commands/#set-the-kind-and-limits-of-a-cahut). A Cahut is collaborative until they say otherwise.
+The administrators of the server choose the kind of each Cahut, in its console under **Kind and limits**, or with [`cahut settings set`](/admin/commands/#set-the-kind-and-limits-of-a-cahut). A Cahut is collaborative until they say otherwise.
 
 - **Collaborative**: people create team Rooms, add one another to them, and open Windows to the whole Cahut.
 - **Individual**: people share the Cahut, not their work, and do not see one another, such as the clients of one consultant or the students of one course.
@@ -67,7 +67,7 @@ The administrators of the Cahut see everyone, every Room and the whole Logbook, 
 
 ## Limits
 
-The administrators of the server can bound what each Cahut holds, such as when a host gives each organization its share of a server. A Cahut has no limit until they set some, with [`cahut settings set`](/admin/commands/#set-the-kind-and-limits-of-a-cahut). Each limit is optional:
+The administrators of the server can bound what each Cahut holds, such as when a host gives each organization its share of a server. A Cahut has no limit until they set some, in its console under **Kind and limits**, or with [`cahut settings set`](/admin/commands/#set-the-kind-and-limits-of-a-cahut). Each limit is optional:
 
 | Limit | What counts |
 | --- | --- |

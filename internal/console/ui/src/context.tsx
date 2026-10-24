@@ -14,6 +14,14 @@ export interface Console {
 	server<K extends keyof ServerOperations>(op: K, input: ServerOperations[K]["input"]): Promise<ServerOperations[K]["output"]>;
 	/** Whether the person administers this Cahut, or the server. */
 	isAdmin: boolean;
+	/**
+	 * Whether this Cahut is individual: each Room keeps one member, and
+	 * people do not see one another. See
+	 * docs/adr/0030-kind-and-limits-of-each-cahut.md.
+	 */
+	individual: boolean;
+	/** Reads the kind of this Cahut again, after its administrator of the server changes it. */
+	reloadKind(): void;
 	/** Loads the Rooms of the sidebar again, after a change. */
 	reloadRooms(): void;
 	/** Bumps when the Rooms change, for the screens that show them. */

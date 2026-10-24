@@ -17,6 +17,7 @@ import { People } from "./pages/people";
 import { Read } from "./pages/read";
 import { RoomPage, RoomsPage } from "./pages/rooms";
 import { Setup } from "./pages/setup";
+import { Settings } from "./pages/settings";
 import { SignIn } from "./pages/sign-in";
 import { Updates } from "./pages/updates";
 import { WindowPage } from "./pages/window";
@@ -123,6 +124,11 @@ function SignedIn(props: { session: Session; path: string; onExpired: () => void
 	const [rooms, setRooms] = useState<Room[]>([]);
 	const [roomsVersion, setRoomsVersion] = useState(0);
 	const [isAdmin, setAdmin] = useState(session.kind === "admin");
+	const [individual, setIndividual] = useState(false);
+	const [kindVersion, setKindVersion] = useState(0);
+	useEffect(() => {
+		api.cahut("get_cahut", {}).then((a) => setIndividual(a.kind === "individual"), () => undefined);
+	}, [kindVersion]);
 	useEffect(() => {
 		if (session.kind === "person") {
 			api.cahut("list_rooms", {}).then((r) => setRooms(r.rooms), () => undefined);
@@ -138,6 +144,8 @@ function SignedIn(props: { session: Session; path: string; onExpired: () => void
 	const value = {
 		...api,
 		isAdmin,
+		individual,
+		reloadKind: () => setKindVersion((n) => n + 1),
 		roomsVersion,
 		reloadRooms: () => setRoomsVersion((n) => n + 1),
 		knocks: knocks.count,
@@ -203,6 +211,8 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 			return <People />;
 		case "/house-style":
 			return <HouseStylePage />;
+		case "/settings":
+			return <Settings />;
 		case "/access":
 			return <Access />;
 		case "/account":
