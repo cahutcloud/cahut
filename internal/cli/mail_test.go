@@ -33,7 +33,7 @@ func TestMailCommands(t *testing.T) {
 	code, out, errOut := run(t, data, "mail", "set", "--host", "127.0.0.1", "--port", port, "--security", "none",
 		"--user", "cahut", "--password-stdin", "--from", "cahut@example.com", "--name", "Example")
 	if code != exitOK || !strings.Contains(out, "sends the e-mail of the server") ||
-		!regexp.MustCompile(`host\s+127.0.0.1:` + port + `, none`).MatchString(out) || !regexp.MustCompile(`from\s+Example <cahut@example.com>`).MatchString(out) {
+		!regexp.MustCompile(`host\s+127.0.0.1:`+port+`, none`).MatchString(out) || !regexp.MustCompile(`from\s+Example <cahut@example.com>`).MatchString(out) {
 		t.Fatalf("mail set: %d %q %q", code, out, errOut)
 	}
 	if strings.Contains(out, "s3cret") {
