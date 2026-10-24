@@ -109,7 +109,7 @@ https://cahut.example.com/console/activate#...
 
 The handle names the person and their personal Room: 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit. It must be free, as the name of a person and of a Room, and cannot be `mcp`, `api`, `admin`, `console`, `help` or `oauth`. `--admin` makes the person an administrator of the Cahut.
 
-The link opens the console of the Cahut, under `/console/`, where the person chooses a password of 15 characters at least, then is signed in. It works once, for 7 days. An administrator also creates people in the console, under **People**.
+The link opens the console of the Cahut, under `/console/`, where the person chooses a password of 15 characters at least, then is signed in. It works once, for 7 days. `--email` gives the person an address, where the link goes too when the Cahut [sends e-mail](/admin/mail/). An administrator also creates people in the console, under **People**.
 
 ## List people and give a new link
 
@@ -126,7 +126,17 @@ olivier  Olivier Durand  admin   active
 
 A person is `pending` until they choose a password, then `active`, or `disabled`. `user link` gives a new link to a person who lost theirs or forgot their password: it replaces their previous link, and their password, if they have one, works until they use the new one. It also works for administrators, so that the command line is the way back in when nobody can sign in.
 
-Changing a person's role, and disabling or enabling a person, happen in the console, under **People**.
+`user email --handle ana --email ana@example.com` gives a person an address, or removes it with `--email ""`; their old address gets a notice. Changing a person's role, and disabling or enabling a person, happen in the console, under **People**.
+
+## Set the e-mail relay
+
+```bash
+printf '%s' "$SMTP_PASSWORD" | sudo -u cahut /usr/local/bin/cahut mail set --host smtp.example.com \
+  --user cahut@example.com --password-stdin --from cahut@example.com
+sudo -u cahut /usr/local/bin/cahut mail test --to you@example.com
+```
+
+Without `--domain`, `cahut mail` acts on the relay of the server, which sends the e-mail of every Cahut without a relay of its own; with it, on the relay of that Cahut. `mail show` prints a relay, `mail remove` removes it. See [E-mail](/admin/mail/).
 
 ## Administrators of the server
 

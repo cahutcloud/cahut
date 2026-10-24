@@ -586,7 +586,7 @@ const fr: Dictionary = {
 			afterTitle: 'Après la première version',
 			afterLead: 'Puis, vers le périmètre complet du lancement, à peu près dans cet ordre :',
 			after: [
-				"Les commentaires, la recherche, l'authentification unique, les e-mails, les sauvegardes et leur restauration, et des quotas par Cahut.",
+				"Les commentaires, la recherche, l'authentification unique, les sauvegardes et leur restauration, et des quotas par Cahut.",
 				'Les applis dans des conteneurs sans privilèges : environnements, mode Dockerfile, bases de données, secrets, journaux et limites de ressources.',
 				"L'export en PDF et en PowerPoint, l'accès SSH limité aux mêmes opérations, et d'autres clients d'IA.",
 			],

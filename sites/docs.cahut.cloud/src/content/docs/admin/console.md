@@ -17,7 +17,7 @@ https://cahut.example.com/console/activate#...
 
 The person opens it, chooses a password of 15 characters at least, and is signed in. The code of the link stays in the browser: it never reaches the server's logs, and the console takes it out of the address once read.
 
-An administrator creates accounts in the console, under **People**, or on the command line with [`cahut user create`](/admin/commands/#create-a-person). A person who forgot their password gets a new link the same way: **New link** in People, or `cahut user link`. Their password works until they use the new link, and using it ends their other sessions.
+An administrator creates accounts in the console, under **People**, or on the command line with [`cahut user create`](/admin/commands/#create-a-person). When the Cahut [sends e-mail](/admin/mail/) and the person has an address, the link goes there too. A person who forgot their password asks for a link from **Forgot your password?**, on the page of sign-in: it goes to the address of their account and works for one hour. Without an address, an administrator gives a new link: **New link** in People, or `cahut user link`. The password works until the new link is used, and using it ends the other sessions.
 
 ## What a person finds
 

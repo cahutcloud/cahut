@@ -285,3 +285,70 @@ Soit environ 11,5 jours. Les pull requests s'enchaînent dans l'ordre. Chacune r
 - Une limite d'e-mails par Cahut parmi celles de l'ADR 30, si les hébergeurs la demandent.
 - Les lettres d'information et les résumés.
 - Les notifications des sauvegardes : avec les sauvegardes.
+
+## Bilan
+
+Le code du lot 9 est fusionné le 24 octobre 2026, en huit pull requests. Il reste le relais du staging et la démonstration.
+
+| # | Pull request | Contenu |
+| --- | --- | --- |
+| — | #104 | L'ADR 31 |
+| 1 | #108 | Ce plan |
+| 2 | #110 | Le paquet `mail` : les relais du serveur et de chaque Cahut, le scellement des mots de passe, la file, la mise en page à la charte de Cahut, `mailtest`, `cahut mail` |
+| 3 | #113 | Les adresses des personnes et des administrateurs du serveur, leur confirmation, le mot de passe oublié, les liens d'activation par e-mail |
+| 4 | #117 | Les invitations à lire une Window, le lien personnel et `/-/invitation` |
+| 5 | #118 | Les notifications : Knocks, comptes, Rooms, la tâche horaire, les certificats, les mises à jour |
+| 6 | #119 | Les écrans de la console |
+| 7 | celle-ci | La documentation, CLAUDE.md, la relecture de sécurité, ce bilan |
+
+**Écarts par rapport au plan.**
+
+- **Les numéros des migrations** ont suivi le travail des autres sessions :
+  - `server/0010_mail_relay`, `server/0011_addresses` et `server/0012_notices`, car la désactivation des administrateurs (#107) avait pris `server/0009` ;
+  - `cahut/0019_invitations` et `cahut/0020_notices`, car la page d'accueil d'une Room (#115) avait pris `cahut/0018`.
+- **Les opérations du relais** vivent dans le paquet `mail`, qui connaît donc les opérations, contrairement à ce que disait le plan.
+- **`get_cahut` dit si le Cahut envoie des e-mails** dès la pull request 2, et non la 3.
+- **Le registre fournit des services d'un Cahut à ses opérations** (`Registry.Provide`, `Call.Value`, `Registry.Value`), sans changer leur forme. Un Knock enregistré exécute `Knocked.Then`, qui envoie son e-mail.
+- **`send_test_mail`** va à l'adresse de la personne qui l'appelle ; seule la ligne de commande nomme une adresse, comme le dit l'ADR 31.
+- **Le type de sortie des opérations du relais** s'appelle `mail.Delivery` : `MailRelay` bégayait, et `Setup` entrait en collision avec la sortie de `get_setup` dans les types de la console.
+- **La ligne de commande** prend `cahut user email --handle --email` au lieu de `--user <handle> <adresse>`.
+- **En développement**, `Service.Sends` répond oui sans relais, pour que les parcours écrivent leurs messages sur le disque. Sans cela, les opérations, qui vérifient d'abord qu'un relais existe, n'envoyaient rien.
+- **La mesure du disque** passe par `doctor.DiskUsage`, que les tests remplacent. Le test des notifications échouait sur une machine dont le disque était plein à 96 %.
+- **La console** range les pages « E-mail » et « E-mail of the server », montre l'adresse d'une personne sous son nom, et ne propose de reprendre que les invitations qui portent un lien personnel.
+- Pas de nouvelle dépendance.
+
+**Relecture de sécurité** des parcours du mot de passe et des invitations.
+
+- **Vérifié.**
+  - `request_password_link` répond pareil pour un compte inconnu, sans adresse ou désactivé. Ses appels passent par le limiteur des visiteurs, par adresse IP, et un compte reçoit un lien toutes les 5 minutes au plus.
+  - Le lien vaut une heure, sert une fois, porte son code dans le fragment, et n'est gardé que haché. L'utiliser ferme les autres sessions et prévient l'adresse.
+  - Une IA ne change ni le relais, ni l'adresse de sa personne (`PeopleOnly`). Elle frappe pour l'adresse d'une autre personne.
+  - Un administrateur qui change l'adresse d'une personne n'a pas plus de pouvoir qu'avant : il lui donnait déjà un lien d'activation.
+  - Le relais d'un Cahut ne joint que des adresses publiques, vérifiées au moment de la connexion. Le mot de passe d'un relais ne part pas vers un nouvel hôte : il ne reste que si l'hôte et l'utilisateur ne changent pas, et son scellement est lié à eux.
+  - Les en-têtes n'admettent ni saut de ligne ni seconde adresse. Le HTML échappe la note, et refuse les liens `javascript:`.
+  - Ouvrir la page d'une invitation n'accorde rien. Le code qui donne le laissez-passer sert une fois, pendant une minute, et une invitation révoquée ou dépassée par une nouvelle Key n'en donne plus.
+  - Le Logbook ne contient aucun code, ni l'adresse d'une personne. Il nomme seulement les destinataires d'une invitation, tapés par les membres de la Room.
+- **Risques acceptés.**
+  - Le nom d'un client OAuth, écrit par un tiers, figure dans l'e-mail d'un Knock comme dans la console, coupé à 60 caractères sur une ligne.
+  - Un Cahut hébergé qui n'a pas de relais à lui envoie par celui du serveur sous son propre nom. Le pied de page dit de quel Cahut vient le message.
+  - La dernière erreur du relais du serveur, montrée aux administrateurs d'un tel Cahut, nomme l'hôte de ce relais.
+  - La note d'une invitation peut contenir une adresse web, que les clients de messagerie rendent cliquable. Le message la montre comme les mots de qui l'a écrite.
+
+**Essais.**
+
+- Les tests tournent contre un relais SMTP en mémoire et couvrent chaque opération, chaque refus et chaque message du plan, ainsi que la mise en page et la charte. Le test de gouvernance compte `invite_to_window` et `revoke_invitation`, et celui des outils MCP vérifie `openWorldHint`.
+- Dans le navigateur, contre `serve --dev` qui écrit ses messages sur le disque :
+  - le mot de passe oublié jusqu'à la page « Choose a new password » ;
+  - le changement d'adresse et sa confirmation ;
+  - les pages « E-mail » et « People » ;
+  - l'invitation d'une personne et d'une adresse, puis la page du lien personnel, qui ouvre la Window dans son cadre.
+
+**Reste à faire.**
+
+- Choisir le relais du staging : une boîte du serveur Plesk de cahut.cloud ou un fournisseur, avec le SPF et le DKIM de l'expéditeur.
+- Publier une release du lot, l'installer sur le staging, régler son relais, puis dérouler la démonstration.
+
+**Suites.**
+
+- La house style dans les e-mails, avec une décision à venir.
+- Les retours des messages non distribués, si les relais des hébergeurs en ont besoin.
