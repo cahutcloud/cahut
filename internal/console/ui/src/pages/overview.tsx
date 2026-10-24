@@ -5,7 +5,7 @@ import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { NewCahut } from "../api.gen";
 import { CopyField, Failure, Notice, PageHead, plural, WindowCards } from "../components";
-import { ConnectSteps } from "../connect";
+import { ConnectSteps, ipAddress } from "../connect";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
 import { href, Link } from "../router";
@@ -104,9 +104,6 @@ function ServerOverview() {
 		</>
 	);
 }
-
-/** An address that is an IPv4 address, not a domain. */
-const ipAddress = /^\d{1,3}(\.\d{1,3}){3}$/;
 
 /**
  * Moves a Cahut to another domain, or from the address of the server to a

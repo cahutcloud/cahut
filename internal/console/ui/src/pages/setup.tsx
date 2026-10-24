@@ -6,7 +6,7 @@ import { ArrowRight, Upload } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
 import type { Setup as SetupInfo } from "../api.gen";
-import { ConnectedStatus, ConnectSteps, useConnectedAI } from "../connect";
+import { ConnectedStatus, ConnectSteps, ipAddress, useConnectedAI } from "../connect";
 import { fragment as code } from "../fragment";
 import { Logo } from "../logo";
 import { Link, navigate } from "../router";
@@ -204,9 +204,6 @@ function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }
 		</form>
 	);
 }
-
-/** An address that is an IPv4 address, not a domain. */
-const ipAddress = /^\d{1,3}(\.\d{1,3}){3}$/;
 
 function YourCahut({ session, onDone }: { session: Session; onDone: () => void }) {
 	const [name, setName] = useState("");

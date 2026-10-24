@@ -70,6 +70,8 @@ With neither `--domain` nor `--ip`, the script takes the address of the server's
 
 The Cahut then answers at `https://203.0.113.7/`, with a certificate of Let's Encrypt for that address. Such certificates last six days, and the service renews them every few days: port 80 must stay open. IPv6 addresses are not supported, since the policy of a Window could not name them.
 
+ChatGPT does not connect to a Cahut at an IP address: move the Cahut to a domain before you add it to ChatGPT.
+
 When you have a domain, point it to the server, then move the Cahut there, in the console of the administrator of the server or on the command line:
 
 ```bash

@@ -94,7 +94,7 @@ Sans terminal, dans la console :
 ### 6. En option
 
 - **Le Chat** : dans Le Chat, Connectors, ajouter un connecteur MCP personnalisé à l'adresse du Cahut ; Le Chat trouve OAuth seul. Lister les Windows, puis en publier une.
-- **Sans domaine** : sur un troisième VPS, ou à la place du domaine sur l'Ubuntu, `install.sh` sans `--domain` installe le Cahut à l'adresse IPv4 du serveur, avec un certificat de Let's Encrypt pour cette adresse. Brancher claude.ai et ChatGPT à `https://<adresse>/mcp`, puis, dans la console, « Move to a domain ».
+- **Sans domaine** : sur un troisième VPS, ou à la place du domaine sur l'Ubuntu, `install.sh` sans `--domain` installe le Cahut à l'adresse IPv4 du serveur, avec un certificat de Let's Encrypt pour cette adresse. Brancher claude.ai à `https://<adresse>/mcp` ; ChatGPT ne se branche pas à un Cahut à une adresse IP, et l'onglet ChatGPT de la console le dit. Puis, dans la console, « Move to a domain ».
 
 ## Résultats
 

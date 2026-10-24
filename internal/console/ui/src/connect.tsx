@@ -4,8 +4,11 @@
 import { CircleCheck, Download, LoaderCircle } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
 import type { Connection, TokenInfo } from "./api.gen";
-import { CopyField } from "./components";
+import { CopyField, Notice } from "./components";
 import { Link } from "./router";
+
+/** An address that is an IPv4 address, not a domain. */
+export const ipAddress = /^\d{1,3}(\.\d{1,3}){3}$/;
 
 const clients = [
 	{ id: "claude-code", name: "Claude Code" },
@@ -85,6 +88,17 @@ function ClaudeApps({ mcp }: { mcp: string }) {
 }
 
 function ChatGPT({ mcp }: { mcp: string }) {
+	// The servers of ChatGPT never call an MCP server at an IP address, and
+	// it says it finds no OAuth settings there.
+	if (ipAddress.test(location.hostname)) {
+		return (
+			<Notice>
+				ChatGPT does not connect to a Cahut at an IP address. Point a domain to this server and move the Cahut there, in the
+				console of the administrator of the server or with <code class="c-mono">cahut domain rename</code>, then add it to ChatGPT
+				at its new address.
+			</Notice>
+		);
+	}
 	return (
 		<>
 			<p class="c-small">

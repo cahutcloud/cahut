@@ -21,6 +21,8 @@ The address to give is on the **AIs and access** screen of [the console](/admin/
 
 The client opens a page of the console in your browser, at `https://<domain>/console/oauth/authorize`. The servers of the client, and your browser, reach the Cahut on port 443 only.
 
+ChatGPT does not connect to a Cahut at the IP address of its server: its servers never call the Cahut, and ChatGPT says that it cannot find the OAuth settings. [Move the Cahut to a domain](/install/server/#without-a-domain) first, then add it to ChatGPT at its new address.
+
 Every client gets the same tools. Each tool has a title, such as *Publish a Window*, and says whether it only reads: ChatGPT shows the title when it asks you to confirm a call that changes something, and Le Chat lets you allow each tool always or ask each time. That confirmation comes on top of [Knock first](/concepts/knock-first-and-logbook/#knock-first), which no client can skip.
 
 ## Consent
