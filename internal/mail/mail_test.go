@@ -88,14 +88,14 @@ func TestRelayOfTheServer(t *testing.T) {
 	// A wrong password is refused, with the answer of the relay, and nothing is kept.
 	in := relayInput(relay, cmail.StartTLS)
 	in.Password = "wrong"
-	if _, err := call[cmail.MailRelay](t, f.srv.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "535") {
+	if _, err := call[cmail.Setup](t, f.srv.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "535") {
 		t.Fatalf("set_mail_relay with a wrong password: %v", err)
 	}
-	if got, _ := call[cmail.MailRelay](t, f.srv.Registry, "get_mail_relay", cmail.GetMailRelayInput{}); got.Relay != nil {
+	if got, _ := call[cmail.Setup](t, f.srv.Registry, "get_mail_relay", cmail.GetMailRelayInput{}); got.Relay != nil {
 		t.Fatalf("a refused relay was kept: %+v", got.Relay)
 	}
 
-	set, err := call[cmail.MailRelay](t, f.srv.Registry, "set_mail_relay", relayInput(relay, cmail.StartTLS))
+	set, err := call[cmail.Setup](t, f.srv.Registry, "set_mail_relay", relayInput(relay, cmail.StartTLS))
 	if err != nil {
 		t.Fatalf("set_mail_relay: %v", err)
 	}
@@ -122,7 +122,7 @@ func TestRelayOfTheServer(t *testing.T) {
 	if err != nil || !about.SendsMail {
 		t.Errorf("get_cahut with the relay of the server: %+v %v", about, err)
 	}
-	got, err := call[cmail.MailRelay](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{})
+	got, err := call[cmail.Setup](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{})
 	if err != nil || got.Relay != nil || !got.Server || !got.Sends {
 		t.Errorf("get_mail_relay of the Cahut: %+v %v", got, err)
 	}
@@ -143,7 +143,7 @@ func TestRelayOfTheServer(t *testing.T) {
 	if from, err := mail.ParseAddress(m.Header.Get("From")); err != nil || from.Name != "example.com" || from.Address != "cahut@example.net" {
 		t.Errorf("From = %q", m.Header.Get("From"))
 	}
-	if got, _ := call[cmail.MailRelay](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{}); got.LastSent == nil || got.LastError != "" {
+	if got, _ := call[cmail.Setup](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{}); got.LastSent == nil || got.LastError != "" {
 		t.Errorf("status after the test: %+v", got.Status)
 	}
 
@@ -151,11 +151,11 @@ func TestRelayOfTheServer(t *testing.T) {
 	// user name do not change.
 	in = relayInput(relay, cmail.StartTLS)
 	in.Password, in.Name = "", "Example"
-	if set, err := call[cmail.MailRelay](t, f.srv.Registry, "set_mail_relay", in); err != nil || set.Relay.Name != "Example" || !set.Relay.Password {
+	if set, err := call[cmail.Setup](t, f.srv.Registry, "set_mail_relay", in); err != nil || set.Relay.Name != "Example" || !set.Relay.Password {
 		t.Errorf("set_mail_relay keeping the password: %+v %v", set, err)
 	}
 	in.Username = "other"
-	if _, err := call[cmail.MailRelay](t, f.srv.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "give the password") {
+	if _, err := call[cmail.Setup](t, f.srv.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "give the password") {
 		t.Errorf("set_mail_relay with another user and no password: %v", err)
 	}
 
@@ -178,10 +178,10 @@ func TestRelayOfTheServer(t *testing.T) {
 	}
 
 	// Removing the relay stops the e-mail of the Cahut.
-	if set, err := call[cmail.MailRelay](t, f.srv.Registry, "set_mail_relay", cmail.SetMailRelayInput{}); err != nil || set.Relay != nil || set.Sends {
+	if set, err := call[cmail.Setup](t, f.srv.Registry, "set_mail_relay", cmail.SetMailRelayInput{}); err != nil || set.Relay != nil || set.Sends {
 		t.Errorf("set_mail_relay with an empty host: %+v %v", set, err)
 	}
-	if got, _ := call[cmail.MailRelay](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{}); got.Sends || got.Server {
+	if got, _ := call[cmail.Setup](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{}); got.Sends || got.Server {
 		t.Errorf("the Cahut after the relay of the server is removed: %+v", got)
 	}
 }
@@ -195,11 +195,11 @@ func TestRelayOfACahut(t *testing.T) {
 	for _, host := range []string{"127.0.0.1", "localhost", "10.0.0.1", "::1"} {
 		in := relayInput(relay, cmail.TLS)
 		in.Host = host
-		if _, err := call[cmail.MailRelay](t, f.cahut.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "public") {
+		if _, err := call[cmail.Setup](t, f.cahut.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "public") {
 			t.Errorf("set_mail_relay of a Cahut at %s: %v", host, err)
 		}
 	}
-	if _, err := call[cmail.MailRelay](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, cmail.Plain)); !errors.Is(err, operation.ErrInvalid) {
+	if _, err := call[cmail.Setup](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, cmail.Plain)); !errors.Is(err, operation.ErrInvalid) {
 		t.Errorf("set_mail_relay of a Cahut without TLS: %v", err)
 	}
 
@@ -208,10 +208,10 @@ func TestRelayOfACahut(t *testing.T) {
 	t.Cleanup(func() { cmail.SetGreeting(10 * time.Second) })
 	// starttls by default, which a relay that speaks TLS at once does not
 	// answer.
-	if _, err := call[cmail.MailRelay](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, "")); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "use security tls") {
+	if _, err := call[cmail.Setup](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, "")); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "use security tls") {
 		t.Errorf("set_mail_relay of a Cahut, STARTTLS with a relay of TLS: %v", err)
 	}
-	set, err := call[cmail.MailRelay](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, cmail.TLS))
+	set, err := call[cmail.Setup](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, cmail.TLS))
 	if err != nil || set.Relay == nil || set.Relay.Security != "tls" || set.Server {
 		t.Fatalf("set_mail_relay of a Cahut: %+v %v", set, err)
 	}
@@ -243,13 +243,13 @@ func TestRelayWithoutTLS(t *testing.T) {
 	// Without TLS, only on the loopback address.
 	in := relayInput(relay, cmail.Plain)
 	in.Host = "192.0.2.1"
-	if _, err := call[cmail.MailRelay](t, f.srv.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "loopback") {
+	if _, err := call[cmail.Setup](t, f.srv.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "loopback") {
 		t.Errorf("set_mail_relay without TLS away from this machine: %v", err)
 	}
-	if _, err := call[cmail.MailRelay](t, f.srv.Registry, "set_mail_relay", relayInput(relay, cmail.StartTLS)); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "STARTTLS") {
+	if _, err := call[cmail.Setup](t, f.srv.Registry, "set_mail_relay", relayInput(relay, cmail.StartTLS)); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "STARTTLS") {
 		t.Errorf("set_mail_relay with STARTTLS, which the relay does not offer: %v", err)
 	}
-	if _, err := call[cmail.MailRelay](t, f.srv.Registry, "set_mail_relay", relayInput(relay, cmail.Plain)); err != nil {
+	if _, err := call[cmail.Setup](t, f.srv.Registry, "set_mail_relay", relayInput(relay, cmail.Plain)); err != nil {
 		t.Fatalf("set_mail_relay without TLS on this machine: %v", err)
 	}
 	if _, err := call[cmail.TestSent](t, f.srv.Registry, "send_test_mail", cmail.SendTestMailInput{To: "jane@example.org"}); err != nil {
@@ -265,7 +265,7 @@ func TestQueueTriesAgain(t *testing.T) {
 	relay := mailtest.Start(t, mailtest.Options{NoStartTLS: true})
 	in := relayInput(relay, cmail.Plain)
 	in.Username, in.Password = "", ""
-	if _, err := call[cmail.MailRelay](t, f.srv.Registry, "set_mail_relay", in); err != nil {
+	if _, err := call[cmail.Setup](t, f.srv.Registry, "set_mail_relay", in); err != nil {
 		t.Fatal(err)
 	}
 	cmail.SetRetries(f.srv.Mail, 50*time.Millisecond, 50*time.Millisecond)
@@ -278,7 +278,7 @@ func TestQueueTriesAgain(t *testing.T) {
 		t.Fatal(err)
 	}
 	waitFor(t, func() bool {
-		got, _ := call[cmail.MailRelay](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{})
+		got, _ := call[cmail.Setup](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{})
 		return strings.Contains(got.LastError, "451")
 	})
 	relay.Refuse("")
@@ -290,7 +290,7 @@ func TestQueueTriesAgain(t *testing.T) {
 		t.Fatal(err)
 	}
 	waitFor(t, func() bool {
-		got, _ := call[cmail.MailRelay](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{})
+		got, _ := call[cmail.Setup](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{})
 		return strings.Contains(got.LastError, "550")
 	})
 	relay.Refuse("")

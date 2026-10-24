@@ -33,8 +33,9 @@ type SendTestMailInput struct {
 	To string `json:"to" jsonschema:"the address to send the test to"`
 }
 
-// MailRelay is the output of set_mail_relay and get_mail_relay.
-type MailRelay struct {
+// Setup is the output of set_mail_relay and get_mail_relay: the relay set
+// here, and how e-mail goes out.
+type Setup struct {
 	Relay  *RelayInfo `json:"relay,omitempty" jsonschema:"the relay set here; absent when there is none"`
 	Server bool       `json:"server,omitempty" jsonschema:"for a Cahut without a relay of its own: the server has one, which sends the e-mail of the Cahut"`
 	Sends  bool       `json:"sends" jsonschema:"whether e-mail goes out: through the relay set here, or through that of the server"`
@@ -77,7 +78,7 @@ var errNoService = errors.New("mail: this Cahut was opened without the e-mail of
 // s may be nil, where the Cahut sends no e-mail.
 func (s *Service) RegisterCahut(r *operation.Registry, db *store.DB, domain string, name func(context.Context) (string, error)) {
 	sc := &scope{s: s, db: db, domain: domain, name: name}
-	operation.Register(r, &operation.Op[SetMailRelayInput, MailRelay]{
+	operation.Register(r, &operation.Op[SetMailRelayInput, Setup]{
 		Name:  "set_mail_relay",
 		Title: "Set the e-mail relay",
 		Description: "Set the SMTP relay that sends the e-mail of this Cahut, such as activation links, from an address of its own. " +
@@ -89,7 +90,7 @@ func (s *Service) RegisterCahut(r *operation.Registry, db *store.DB, domain stri
 		Prepare:    sc.prepareSet,
 		Run:        sc.set,
 	})
-	operation.Register(r, &operation.Op[GetMailRelayInput, MailRelay]{
+	operation.Register(r, &operation.Op[GetMailRelayInput, Setup]{
 		Name:  "get_mail_relay",
 		Title: "Describe the e-mail relay",
 		Description: "Describe the SMTP relay of this Cahut, without its password, or say that its e-mail goes through the relay " +
@@ -115,7 +116,7 @@ func (s *Service) RegisterCahut(r *operation.Registry, db *store.DB, domain stri
 // that set its relay: set_mail_relay, get_mail_relay and send_test_mail.
 func (s *Service) RegisterServer(r *operation.Registry) {
 	sc := &scope{s: s, name: func(context.Context) (string, error) { return "Cahut", nil }}
-	operation.Register(r, &operation.Op[SetMailRelayInput, MailRelay]{
+	operation.Register(r, &operation.Op[SetMailRelayInput, Setup]{
 		Name:  "set_mail_relay",
 		Title: "Set the e-mail relay of the server",
 		Description: "Set the SMTP relay that sends the e-mail of this server, and that of every Cahut without a relay of its own. " +
@@ -126,7 +127,7 @@ func (s *Service) RegisterServer(r *operation.Registry) {
 		Prepare:    sc.prepareSet,
 		Run:        sc.set,
 	})
-	operation.Register(r, &operation.Op[GetMailRelayInput, MailRelay]{
+	operation.Register(r, &operation.Op[GetMailRelayInput, Setup]{
 		Name:  "get_mail_relay",
 		Title: "Describe the e-mail relay of the server",
 		Description: "Describe the SMTP relay of this server, without its password, and when a message of the server last went out, " +
@@ -212,15 +213,15 @@ func (sc *scope) prepareSet(ctx context.Context, c *operation.Call, in SetMailRe
 	return nil
 }
 
-func (sc *scope) set(ctx context.Context, c *operation.Call, _ SetMailRelayInput) (MailRelay, error) {
+func (sc *scope) set(ctx context.Context, c *operation.Call, _ SetMailRelayInput) (Setup, error) {
 	p, ok := c.Kept().(prepared)
 	if !ok {
-		return MailRelay{}, errors.New("mail: set_mail_relay ran without its Prepare")
+		return Setup{}, errors.New("mail: set_mail_relay ran without its Prepare")
 	}
 	if p.relay == nil {
 		c.Log("mail relay", "removed")
 		if err := remove(ctx, c.Tx); err != nil {
-			return MailRelay{}, err
+			return Setup{}, err
 		}
 		return sc.view(ctx, c.Tx)
 	}
@@ -237,25 +238,25 @@ func (sc *scope) set(ctx context.Context, c *operation.Call, _ SetMailRelayInput
 	}
 	c.Log("mail relay", detail)
 	if err := save(ctx, c.Tx, r); err != nil {
-		return MailRelay{}, err
+		return Setup{}, err
 	}
 	return sc.view(ctx, c.Tx)
 }
 
-func (sc *scope) get(ctx context.Context, c *operation.Call, _ GetMailRelayInput) (MailRelay, error) {
+func (sc *scope) get(ctx context.Context, c *operation.Call, _ GetMailRelayInput) (Setup, error) {
 	if sc.s == nil {
-		return MailRelay{}, errNoService
+		return Setup{}, errNoService
 	}
 	return sc.view(ctx, c.Tx)
 }
 
 // view describes the relay of the scope, as tx reads it.
-func (sc *scope) view(ctx context.Context, tx *sql.Tx) (MailRelay, error) {
+func (sc *scope) view(ctx context.Context, tx *sql.Tx) (Setup, error) {
 	own, err := load(ctx, tx)
 	if err != nil {
-		return MailRelay{}, err
+		return Setup{}, err
 	}
-	out := MailRelay{Status: sc.s.statusOf(sc.domain)}
+	out := Setup{Status: sc.s.statusOf(sc.domain)}
 	if own != nil {
 		out.Relay = &RelayInfo{
 			Host: own.Host, Port: own.Port, Security: own.Security, Username: own.Username, Password: own.sealed != nil,
@@ -267,7 +268,7 @@ func (sc *scope) view(ctx context.Context, tx *sql.Tx) (MailRelay, error) {
 	if sc.cahut() {
 		srv, err := load(ctx, sc.s.cfg.Server.Read)
 		if err != nil {
-			return MailRelay{}, err
+			return Setup{}, err
 		}
 		out.Server, out.Sends = srv != nil, srv != nil
 	}

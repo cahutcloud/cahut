@@ -70,7 +70,7 @@ func runMailShow(args []string, stdout, stderr io.Writer) int {
 	if code, ok := parse(fs, args); !ok {
 		return code
 	}
-	out, of, ok := onRelay[mail.MailRelay](*data, *domain, "get_mail_relay", mail.GetMailRelayInput{}, stderr)
+	out, of, ok := onRelay[mail.Setup](*data, *domain, "get_mail_relay", mail.GetMailRelayInput{}, stderr)
 	if !ok {
 		return exitError
 	}
@@ -115,7 +115,7 @@ func runMailSet(args []string, stdout, stderr io.Writer) int {
 			return exitUsage
 		}
 	}
-	out, of, ok := onRelay[mail.MailRelay](*data, *domain, "set_mail_relay", in, stderr)
+	out, of, ok := onRelay[mail.Setup](*data, *domain, "set_mail_relay", in, stderr)
 	if !ok {
 		return exitError
 	}
@@ -131,7 +131,7 @@ func runMailRemove(args []string, stdout, stderr io.Writer) int {
 	if code, ok := parse(fs, args); !ok {
 		return code
 	}
-	out, of, ok := onRelay[mail.MailRelay](*data, *domain, "set_mail_relay", mail.SetMailRelayInput{}, stderr)
+	out, of, ok := onRelay[mail.Setup](*data, *domain, "set_mail_relay", mail.SetMailRelayInput{}, stderr)
 	if !ok {
 		return exitError
 	}
@@ -166,7 +166,7 @@ func runMailTest(args []string, stdout, stderr io.Writer) int {
 }
 
 // printRelay prints the relay of the server, or of a Cahut, called of.
-func printRelay(w io.Writer, of string, m mail.MailRelay) {
+func printRelay(w io.Writer, of string, m mail.Setup) {
 	switch {
 	case m.Relay != nil:
 		r := m.Relay
