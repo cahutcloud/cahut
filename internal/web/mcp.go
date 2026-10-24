@@ -73,8 +73,9 @@ func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
 	// administrator, who may change things or only read, in a Cahut that is
 	// individual or not. Each is made when a session first needs it. The
 	// tools of a session follow the role its person had and the kind the
-	// Cahut had when it began. Should either change, the registry still
-	// checks every call.
+	// Cahut had when it began, and those of a request without a session,
+	// the role and the kind of the moment. Should either change, the
+	// registry still checks every call.
 	var mu sync.Mutex
 	servers := map[[3]bool]*mcp.Server{}
 	serverFor := func(individual, admin, readOnly bool) *mcp.Server {
@@ -109,11 +110,23 @@ func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
 			// answers only the domains of the Cahuts.
 			DisableLocalhostProtection: true,
 		})
+	// Clients of the protocol of 2026-07-28, such as ChatGPT, open no
+	// session: each request stands alone and says which client sends it.
+	// The SDK serves that protocol only without sessions. The clients of
+	// earlier protocols keep theirs: without one, the SDK would forget the
+	// name they gave at initialize, and the Logbook with it.
+	sessionless := mcp.NewStreamableHTTPHandler(server,
+		&mcp.StreamableHTTPOptions{
+			Stateless:                  true,
+			Logger:                     s.log,
+			MaxRequestBodyBytes:        MaxRequestSize,
+			DisableLocalhostProtection: true,
+		})
 	verify := func(ctx context.Context, token string, _ *http.Request) (*auth.TokenInfo, error) {
 		return s.verifyToken(ctx, c, token)
 	}
 	limited := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost && r.Header.Get("Mcp-Session-Id") == "" && !s.mcpSessions.allow(sessionKey(c, r)) {
+		if opensSession(r) && !s.mcpSessions.allow(sessionKey(c, r)) {
 			w.Header().Set("Retry-After", "10")
 			http.Error(w, "Too many MCP sessions opened with this token: wait a few seconds.", http.StatusTooManyRequests)
 			return
@@ -132,6 +145,10 @@ func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
 				return
 			}
 		}
+		if sessionlessProtocol(r) {
+			sessionless.ServeHTTP(w, r)
+			return
+		}
 		handler.ServeHTTP(w, r)
 	})
 	// A request without a valid token learns where to get one: the
@@ -141,6 +158,26 @@ func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
 		ResourceMetadataURL:    s.resourceMetadataURL(c.Domain),
 		AllowMissingExpiration: true,
 	})(limited)
+}
+
+// sessionlessProtocol reports whether a request to the MCP endpoint follows
+// the protocol of 2026-07-28 or a later one, which has no sessions. Its
+// clients name the protocol in a header of every request.
+func sessionlessProtocol(r *http.Request) bool {
+	return r.Header.Get("Mcp-Protocol-Version") >= "2026-07-28"
+}
+
+// opensSession reports whether a request to the MCP endpoint opens something
+// that lasts: a session of the earlier protocols, or a stream of
+// notifications of the later ones, which name their method in a header.
+func opensSession(r *http.Request) bool {
+	if r.Method != http.MethodPost {
+		return false
+	}
+	if sessionlessProtocol(r) {
+		return r.Header.Get("Mcp-Method") == "subscriptions/listen"
+	}
+	return r.Header.Get("Mcp-Session-Id") == ""
 }
 
 // sessionKey names the token of a request to the MCP endpoint of c, which

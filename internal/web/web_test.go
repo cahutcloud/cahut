@@ -298,6 +298,58 @@ func TestMCPNeedsAValidToken(t *testing.T) {
 	}
 }
 
+// TestMCPWithAndWithoutSessions checks that a client of the protocol of
+// 2025-11-25 works in a session, and a client of the protocol of 2026-07-28,
+// such as ChatGPT, without one: it calls more tools than a token may open
+// sessions in a burst, and the Logbook names each client.
+func TestMCPWithAndWithoutSessions(t *testing.T) {
+	for _, protocol := range []string{"2025-11-25", "2026-07-28"} {
+		t.Run(protocol, func(t *testing.T) {
+			f := setup(t)
+			ctx := context.Background()
+			client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0"}, nil)
+			session, err := client.Connect(ctx, &mcp.StreamableClientTransport{
+				Endpoint:             f.ts.URL + "/mcp",
+				HTTPClient:           f.client("localhost", f.token),
+				DisableStandaloneSSE: true,
+				MaxRetries:           -1,
+			}, &mcp.ClientSessionOptions{ProtocolVersion: protocol})
+			if err != nil {
+				t.Fatalf("connect: %v", err)
+			}
+			defer session.Close()
+			if got := session.InitializeResult().ProtocolVersion; got != protocol {
+				t.Errorf("protocol = %s, want %s", got, protocol)
+			}
+			if stateful := session.ID() != ""; stateful != (protocol < "2026-07-28") {
+				t.Errorf("session ID = %q", session.ID())
+			}
+			for range MCPSessionBurst + 1 {
+				res, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "get_account", Arguments: map[string]any{}})
+				if err != nil {
+					t.Fatal(err)
+				}
+				if res.IsError {
+					t.Fatalf("get_account failed: %v", res.Content[0].(*mcp.TextContent).Text)
+				}
+			}
+			entries, err := logbook.List(ctx, f.open(t, "localhost").DB.Read, 2*MCPSessionBurst)
+			if err != nil {
+				t.Fatal(err)
+			}
+			calls := 0
+			for _, e := range entries {
+				if e.Operation == "get_account" && e.Client == "Claude Code (test-client 1.0)" && e.Via == "mcp" {
+					calls++
+				}
+			}
+			if calls != MCPSessionBurst+1 {
+				t.Errorf("%d calls of get_account in the Logbook in the name of the client, want %d: %+v", calls, MCPSessionBurst+1, entries)
+			}
+		})
+	}
+}
+
 // TestMCPToolsFollowTheRole checks that the AI of an administrator sees the
 // tools for administrators, which knock first, and that a disabled person's
 // tokens stop working.
@@ -542,7 +594,16 @@ func TestRunStopsWhenAPortIsTaken(t *testing.T) {
 	}
 }
 
+// TestShutdownWithAnOpenStream checks that the server shuts down with a
+// stream open: the standalone stream of a session of the protocol of
+// 2025-11-25, or the stream of notifications of the protocol of 2026-07-28.
 func TestShutdownWithAnOpenStream(t *testing.T) {
+	for _, protocol := range []string{"2025-11-25", "2026-07-28"} {
+		t.Run(protocol, func(t *testing.T) { testShutdownWithAnOpenStream(t, protocol) })
+	}
+}
+
+func testShutdownWithAnOpenStream(t *testing.T, protocol string) {
 	f := setup(t)
 	ln, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
@@ -551,7 +612,7 @@ func TestShutdownWithAnOpenStream(t *testing.T) {
 	streaming, ended := make(chan struct{}), make(chan struct{})
 	var opened, closed sync.Once
 	srv := f.web.httpServer(ln.Addr().String(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		stream := r.Method == http.MethodGet && r.URL.Path == "/mcp"
+		stream := r.URL.Path == "/mcp" && (r.Method == http.MethodGet || r.Header.Get("Mcp-Method") == "subscriptions/listen")
 		if stream {
 			opened.Do(func() { close(streaming) })
 		}
@@ -565,12 +626,15 @@ func TestShutdownWithAnOpenStream(t *testing.T) {
 	done := make(chan error, 1)
 	go func() { done <- serve(ctx, srv, func() error { return srv.Serve(ln) }) }()
 
-	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0"}, nil)
+	// A client that follows the list of tools listens to its changes.
+	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0"}, &mcp.ClientOptions{
+		ToolListChangedHandler: func(context.Context, *mcp.ToolListChangedRequest) {},
+	})
 	session, err := client.Connect(context.Background(), &mcp.StreamableClientTransport{
 		Endpoint:   "http://" + ln.Addr().String() + "/mcp",
 		HTTPClient: &http.Client{Transport: rewrite{host: "localhost", token: f.token, next: http.DefaultTransport}},
 		MaxRetries: -1,
-	}, nil)
+	}, &mcp.ClientSessionOptions{ProtocolVersion: protocol})
 	if err != nil {
 		t.Fatalf("connect: %v", err)
 	}

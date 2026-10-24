@@ -9,6 +9,8 @@ sidebar:
 
 Each Cahut serves MCP at `https://<domain>/mcp`, over Streamable HTTP. An AI connects with a personal token of that Cahut, which it sends in the header `Authorization: Bearer <token>`: see [Connect an AI](/connect/claude-code/).
 
+A Cahut speaks the versions of the protocol from 2024-11-05 to 2026-07-28. A client of 2025-11-25 or earlier opens a session with `initialize`. A client of 2026-07-28, such as ChatGPT, calls `server/discover` and opens no session: each request names the version in the header `Mcp-Protocol-Version`.
+
 The tools are the operations of the Cahut that are open to AIs ([Operations](/reference/operations/)). An AI sees the tools that the person it acts for may use: some are for the AIs of administrators of the Cahut only. The operations that prove who someone is, such as signing in, and those that serve the console are for people only. Every call goes through the registry of operations, which checks it, runs it and writes it to the Logbook, reads included. Arguments with unknown fields are refused.
 
 A tool returns its result as structured content, and as the same JSON in a text block. When a call fails because of its arguments, the error says what to change. Any other error reads only as an internal error: the administrator of the Cahut finds the details in its Logbook.
