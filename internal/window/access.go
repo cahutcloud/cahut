@@ -127,9 +127,13 @@ func (s *Service) setAccess(ctx context.Context, c *operation.Call, in AccessInp
 	case in.Access != AccessKey:
 		set += ", key_hash = NULL"
 	}
-	// A new Key, or no Key at all, ends the passes of the old one.
+	// A new Key, or no Key at all, ends the passes of the old one, and the
+	// invitations that stood for it.
 	if key != "" || in.Access != AccessKey {
 		if _, err := c.Tx.ExecContext(ctx, "DELETE FROM window_passes WHERE window_id = ?", w.id); err != nil {
+			return AccessSet{}, err
+		}
+		if err := endKeyInvitations(ctx, c, w.id); err != nil {
 			return AccessSet{}, err
 		}
 	}

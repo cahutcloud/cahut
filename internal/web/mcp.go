@@ -42,6 +42,7 @@ const instructions = `Cahut keeps what you make on the user's own server, as Win
 	`To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. ` +
 	`A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; ` +
 	`making it public waits for a person. ` +
+	`invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. ` +
 	`Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; ` +
 	`once the person has answered its Knock, get_knock gives the outcome. ` +
 	`Every call is recorded in the Logbook of the Cahut.`
@@ -180,7 +181,7 @@ func toolFor(info operation.Info) (*mcp.Tool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("input schema of %s: %w", info.Name, err)
 	}
-	destructive, openWorld := info.KnockFirst, false
+	destructive, openWorld := info.KnockFirst, info.OpenWorld
 	description := info.Description
 	switch {
 	case info.KnockFirst:

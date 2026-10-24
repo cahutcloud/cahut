@@ -109,6 +109,47 @@ func (s *Service) Register(r *operation.Registry) {
 		KnocksWhen: "it makes a Window public",
 		Run:        s.setAccess,
 	})
+	operation.Register(r, &operation.Op[InviteInput, Invited]{
+		Name:  "invite_to_window",
+		Title: "Invite people to read a Window",
+		Description: "Send the address of a Window by e-mail, with a note: to people of the Cahut, named by handle, who sign in to read it, " +
+			"or to anyone else, named by address, when the Window opens with its Key or to the public. For a Window with a Key, " +
+			"each address gets a personal link that opens it for them alone, until revoke_invitation takes it back; the Key itself never goes. " +
+			"20 people a call, and 100 invitations a day. get_cahut says whether the Cahut sends e-mail.",
+		OpenWorld: true,
+		Run:       s.invite,
+	})
+	operation.Register(r, &operation.Op[ListInvitationsInput, InvitationList]{
+		Name:        "list_invitations",
+		Title:       "List the invitations to a Window",
+		Description: "List the invitations to a Window, the latest first: who got one, who invited, and whether it still stands.",
+		ReadOnly:    true,
+		Run:         s.listInvitations,
+	})
+	operation.Register(r, &operation.Op[RevokeInvitationInput, Invitation]{
+		Name:  "revoke_invitation",
+		Title: "Take back an invitation",
+		Description: "Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. " +
+			"The e-mail stays sent.",
+		Run: s.revokeInvitation,
+	})
+	operation.Register(r, &operation.Op[InvitationCodeInput, InvitationPage]{
+		Name:        "get_invitation",
+		Title:       "Describe an invitation",
+		Description: "Describe the invitation of a personal link: the Window, who invites, and their note.",
+		PeopleOnly:  true,
+		Visitors:    true,
+		ReadOnly:    true,
+		Run:         getInvitation,
+	})
+	operation.Register(r, &operation.Op[InvitationCodeInput, InvitationOpening]{
+		Name:        "open_invitation",
+		Title:       "Open an invitation",
+		Description: "Open the Window of the invitation of a personal link: a code, valid a minute, for /-/invitation, which gives a pass.",
+		PeopleOnly:  true,
+		Visitors:    true,
+		Run:         openInvitation,
+	})
 	operation.Register(r, &operation.Op[GetInput, Detail]{
 		Name:        "get_window",
 		Title:       "Describe a Window",

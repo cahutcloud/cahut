@@ -158,6 +158,25 @@ func (s *Server) serveSession(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, to, http.StatusSeeOther) //nolint:gosec // localPath keeps it on this host
 }
 
+// serveInvitation takes the code that the console got from open_invitation,
+// and gives the reader a pass to the Window of the invitation, as the right
+// Key does. See docs/adr/0031-e-mail-through-a-relay.md.
+func (s *Server) serveInvitation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Referrer-Policy", "no-referrer")
+	win, token, expires, err := window.OpenInvitation(r.Context(), siteOf(r).cahut.DB, r.URL.Query().Get("code"), time.Now())
+	if errors.Is(err, window.ErrOpeningGone) {
+		reader, _ := s.readerOf(r, time.Now())
+		s.render(w, r, http.StatusForbidden, "invitation", s.page(r, reader.Handle, "Open the invitation again"))
+		return
+	}
+	if err != nil {
+		s.internal(w, "open an invitation", err)
+		return
+	}
+	s.setCookie(w, passCookie+strconv.FormatInt(win.ID, 10), token, expires)
+	http.Redirect(w, r, "/"+win.Room+"/"+win.Name+"/", http.StatusSeeOther)
+}
+
 // serveSignOut ends the reader session of the request.
 func (s *Server) serveSignOut(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie(s.cookieName(readerCookie)); err == nil {

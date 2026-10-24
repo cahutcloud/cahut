@@ -76,23 +76,28 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/get_account` | Any person | yes |
 | `POST /api/get_cahut` | Any person | yes |
 | `POST /api/get_house_style` | Any person | yes |
+| `POST /api/get_invitation` | Anyone, to sign in | no |
 | `POST /api/get_knock` | Any person | yes |
 | `POST /api/get_mail_relay` | Administrators of the Cahut | yes |
 | `POST /api/get_room` | Any person | yes |
 | `POST /api/get_window` | Any person | yes |
+| `POST /api/invite_to_window` | Any person | yes |
 | `POST /api/list_connected_ais` | Any person | yes |
+| `POST /api/list_invitations` | Any person | yes |
 | `POST /api/list_knocks` | Any person | yes |
 | `POST /api/list_logbook` | Any person | yes |
 | `POST /api/list_rooms` | Any person | yes |
 | `POST /api/list_tokens` | Any person | yes |
 | `POST /api/list_users` | Any person | yes |
 | `POST /api/list_windows` | Any person | yes |
+| `POST /api/open_invitation` | Anyone, to sign in | no |
 | `POST /api/preview_windows` | Any person | yes |
 | `POST /api/publish_window` | Any person | yes |
 | `POST /api/purge_window` | Any person | yes |
 | `POST /api/remove_room_member` | Any person | yes |
 | `POST /api/request_password_link` | Anyone, to sign in | no |
 | `POST /api/restore_window` | Any person | yes |
+| `POST /api/revoke_invitation` | Any person | yes |
 | `POST /api/revoke_token` | Any person | yes |
 | `POST /api/rollback_house_style` | Administrators of the Cahut | yes |
 | `POST /api/rollback_window` | Any person | yes |

@@ -71,6 +71,20 @@ func (o *Outbox) Post(c *operation.Call, l Letter) {
 	})
 }
 
+// Where returns how a message names the Cahut of the outbox: its name, and
+// where it is, such as "Acme, at cahut.acme.com", or "the Cahut at
+// cahut.acme.com" when it has no name of its own.
+func (o *Outbox) Where(ctx context.Context) (name, where string, err error) {
+	name, err = o.Name(ctx)
+	if err != nil {
+		return "", "", err
+	}
+	if name == o.Domain {
+		return name, "the Cahut at " + o.Domain, nil
+	}
+	return name, name + ", at " + o.Domain, nil
+}
+
 // Link returns the address of the page path of the console, such as
 // "activate#<code>".
 func (o *Outbox) Link(path string) string {
