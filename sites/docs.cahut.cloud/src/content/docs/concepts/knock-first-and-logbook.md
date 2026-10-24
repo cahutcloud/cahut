@@ -30,7 +30,7 @@ The link opens the Knock in the console, where you sign in if you need to. It sa
 - Cahut checks the call again when you approve it, as things stand then. A Knock may still fail, if the Window is gone or the AI lost a Room: it says why, and nothing changes.
 - A Knock that nobody answers expires after 24 hours. A Knock whose AI lost its access before an answer is canceled: its token was revoked, its connection ended, or its person was disabled.
 - The same call, made again while its Knock waits, gets the same Knock. An AI has at most 20 Knocks waiting.
-- **Knocks**, in the console's navigation, counts those that wait for you, and so does the title of the console's tab.
+- **Knocks**, in the console's navigation, counts those that wait for you, and so does the title of the console's tab. When the Cahut [sends e-mail](/admin/mail/) and your account has an address, a new Knock reaches you there too, with its link, what it asks and when it expires.
 
 These operations knock first when an AI calls them:
 
@@ -40,6 +40,7 @@ These operations knock first when an AI calls them:
 | `purge_window` | It deletes a Window in the trash for good |
 | `delete_room` | It deletes a team Room for good, with its Windows |
 | `create_user`, `set_user_role`, `disable_user`, `enable_user` | They change who acts in the Cahut |
+| `set_user_email` | It decides where the links of a person go |
 | `add_room_member`, `set_room_member_role`, `remove_room_member` | They change who opens and publishes in a Room |
 | `set_ai_reach`, to widen what an AI reaches | It gives an AI more than its person granted |
 

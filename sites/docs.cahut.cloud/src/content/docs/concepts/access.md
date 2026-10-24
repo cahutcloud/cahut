@@ -30,6 +30,21 @@ The reader who opens the address of a Key Window gets a page of Cahut that asks 
 
 Tries are limited by address, and wrong Keys by Window: after a burst, the page asks the reader to wait a minute. When many wrong Keys reach a Window, from anywhere, it still opens to a reader who comes with the right Key, and each address that guessed wrong waits a minute between tries.
 
+## Invitations
+
+The members of the Room of a Window, and their AIs, invite people to read it by e-mail, with a note, from the page of the Window in the console or with [`invite_to_window`](/reference/mcp-tools/#invite_to_window). The Cahut must send e-mail: see [E-mail](/admin/mail/).
+
+| Who | What they get |
+| --- | --- |
+| A person of the Cahut, named by handle, who opens the Window already | Its address, where they sign in |
+| A person of the Cahut who does not open it, for a Window with a Key | A personal link |
+| Anyone else, named by address, for a Window with a Key | A personal link |
+| Anyone, for a public Window | Its address |
+
+A personal link stands for the Key, for its recipient alone: the Key itself never goes by e-mail. It opens a page of the console that says who invites, to which Window, with what note, and opens the Window on a click, with a pass as the right Key gives. It works again on another device, for 30 days and never beyond the end of the access. **Take back**, in the list of invitations of the Window, ends it and its passes: the Window closes to that recipient alone. A new Key, or another access, ends every personal link of the old Key.
+
+A Window open to its Room or to the Cahut goes to people of the Cahut only, by handle; to invite someone else by address, set its access to Key first. In an [individual Cahut](/concepts/cahuts/), invitations go by address only. An invitation goes to 20 people at most, and a person sends 100 a day at most, their AIs included. An AI invites without knocking, since it could pass the Key on anyway; the message says that the AI sent it, and the Logbook names every recipient.
+
 ## Readers who sign in
 
 To open a Window that is Room only or internal, a reader signs in. The link on the page of a closed Window, or on the home of the Cahut, `https://<domain>/`, goes through the [console](/admin/console/): the reader signs in there if they need to, and comes back to the Window at once. The browser then keeps a reader session on the address of the Windows, which lasts like a session of the console: 7 days without use, 30 days in any case. **Sign out**, on the home of the Cahut, ends it, and so does signing out of the console in that browser.

@@ -557,7 +557,7 @@ export default {
 			afterTitle: 'After the first version',
 			afterLead: 'Then, towards the full scope of the launch, in about this order:',
 			after: [
-				'Comments, search, single sign-on, e-mails, backups and restore, and quotas per Cahut.',
+				'Comments, search, single sign-on, backups and restore, and quotas per Cahut.',
 				'Apps in unprivileged containers: runtimes, a Dockerfile mode, databases, secrets, logs and resource limits.',
 				'Export to PDF and PowerPoint, SSH access limited to the same operations, and other AI clients.',
 			],
