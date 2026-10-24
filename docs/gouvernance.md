@@ -394,13 +394,16 @@ Environ quatre heures par semaine en dehors du développement, et pas plus penda
 - [ ] Déposer la marque « Cahut » à l'INPI ; réserver `getcahut` sur Mastodon, Bluesky, LinkedIn et X.
 - [x] Écrire GOVERNANCE.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, SUPPORT.md, TRADEMARK.md, les gabarits et FUNDING.yml ; compléter le README : fait le 22 octobre 2026.
 - [x] Régler le dépôt autant que GitHub le permet à un dépôt privé du plan gratuit : Discussions et leurs catégories, étiquettes, jalons par lot, signature des commits faits sur le web : fait le 22 octobre 2026 ; fusion par squash seule, branches supprimées après fusion, alertes et correctifs de sécurité de Dependabot, actions épinglées par empreinte obligatoires, environnement `sites` réservé à `main`, CODEOWNERS et réglages de l'application DCO : fait le 23 octobre 2026.
-- [ ] Dans l'interface, par Olivier : la double authentification obligatoire sur l'organisation, l'application DCO (<https://github.com/apps/dco>) installée sur le dépôt, le profil GitHub Sponsors.
+- [x] Dans l'interface, par Olivier : la double authentification obligatoire sur l'organisation et l'application DCO (<https://github.com/apps/dco>) installée sur le dépôt : fait, constaté le 24 octobre 2026.
+- [ ] Le profil GitHub Sponsors, par Olivier.
 - [ ] Le jour de l'ouverture, ce que GitHub refuse à un dépôt privé : appliquer les règles de `.github/rulesets/` (protection de `main` et des étiquettes de release), activer le signalement privé des failles, l'analyse des secrets avec la protection des envois, l'analyse CodeQL par défaut, et demander l'approbation des workflows pour toute contribution extérieure ; ajouter `DCO` aux vérifications requises de `main` une fois l'application installée. Le même jour, remplacer le badge de version du README, écrit à la main à chaque release tant que shields.io ne peut pas lire les releases d'un dépôt privé, par le badge dynamique `https://img.shields.io/github/v/release/getcahut/cahut?label=release&color=B9E1FB&labelColor=1F2A33`.
-- [ ] Créer `security@`, `conduct@` et `contact@cahut.cloud` ; publier `security.txt`.
+- [ ] Créer `security@`, `conduct@` et `contact@cahut.cloud`, par Olivier.
+- [x] Publier `security.txt` sur cahut.cloud : fait le 24 octobre 2026. Il nomme les deux canaux de SECURITY.md : `security@cahut.cloud`, dont la boîte reste à créer, et le signalement privé de GitHub, actif le jour de l'ouverture. Il expire 180 jours après chaque construction du site.
 - [ ] Désigner la personne de confiance, lui donner les accès de secours et la note scellée.
-- [ ] Ajouter `govulncheck` à la CI ; remplir le questionnaire du badge OpenSSF.
+- [x] Ajouter `govulncheck` à la CI : fait le 24 octobre 2026 (`make vuln`).
+- [ ] Remplir le questionnaire du badge OpenSSF, une fois le dépôt ouvert : il lit le dépôt public.
 - [x] Écrire l'ADR des pages du projet et construire les pages `/project/` du site, en anglais et en français : fait ([ADR 18](adr/0018-project-pages-from-community-files.md)).
-- [ ] Relire tout le dépôt et son historique avant l'ouverture, comme le brief le demande : l'historique s'ouvre tel quel et ne se réécrit pas, et le brief cite une vision extérieure (EKLOS) qu'il faut traiter.
+- [ ] Relire tout le dépôt et son historique avant l'ouverture, comme le brief le demande : l'historique s'ouvre tel quel et ne se réécrit pas. Un premier passage, le 24 octobre 2026, sur les 143 commits : aucun secret (clés privées, jetons de GitHub, d'OpenAI, d'AWS ou de Slack, jetons de Cahut), `tmp/` jamais commité, aucun nom d'autre projet ni de client. EKLOS, cité dans le brief, était un ancien nom de Cahut. Reste la relecture d'Olivier.
 
 ## Décisions à prendre
 
