@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -312,6 +313,67 @@ func TestForAIs(t *testing.T) {
 		if got := asks.ForAIs(true, true); got != tt.admin {
 			t.Errorf("%+v ForAIs(true, true) = %v", asks, got)
 		}
+	}
+}
+
+func TestForAIsIn(t *testing.T) {
+	tests := []struct {
+		info          Info
+		member, admin bool // in an individual Cahut
+	}{
+		{info: Info{}, member: true, admin: true},
+		{info: Info{InIndividual: CahutAdmin}, admin: true},
+		{info: Info{InIndividual: Nobody}},
+		{info: Info{Level: CahutAdmin, InIndividual: AnyPerson}, admin: true},
+		{info: Info{Level: ServerAdmin, InIndividual: CahutAdmin}},
+	}
+	for _, tt := range tests {
+		if got := tt.info.ForAIsIn(true, false, false); got != tt.member {
+			t.Errorf("%+v ForAIsIn(true, false, false) = %v", tt.info, got)
+		}
+		if got := tt.info.ForAIsIn(true, true, false); got != tt.admin {
+			t.Errorf("%+v ForAIsIn(true, true, false) = %v", tt.info, got)
+		}
+		// In a collaborative Cahut, InIndividual changes nothing.
+		if got, want := tt.info.ForAIsIn(false, false, false), tt.info.ForAIs(false, false); got != want {
+			t.Errorf("%+v ForAIsIn(false, false, false) = %v, want %v", tt.info, got, want)
+		}
+	}
+}
+
+// TestInIndividual checks that the registry applies the level of an
+// operation in an individual Cahut, which it reads in the transaction of
+// the call.
+func TestInIndividual(t *testing.T) {
+	r, _ := testRegistry(t)
+	individual := false
+	r.Individual = func(context.Context, *sql.Tx) (bool, error) { return individual, nil }
+	list := &Op[roomIn, roomOut]{Name: "list_people", ReadOnly: true, InIndividual: CahutAdmin,
+		Run: func(context.Context, *Call, roomIn) (roomOut, error) { return roomOut{}, nil }}
+	add := &Op[roomIn, roomOut]{Name: "add_member", InIndividual: Nobody,
+		Run: func(context.Context, *Call, roomIn) (roomOut, error) { return roomOut{}, nil }}
+	Register(r, list)
+	Register(r, add)
+	ctx := context.Background()
+	member := Actor{Kind: Person, Via: "api", UserID: 1}
+	cahutAdmin := Actor{Kind: Person, Via: "api", UserID: 2} // testRegistry makes person 2 an administrator
+	for _, who := range []Actor{member, cahutAdmin} {
+		if _, err := Do(ctx, r, list, who, roomIn{}); err != nil {
+			t.Errorf("list_people by %d in a collaborative Cahut: %v", who.UserID, err)
+		}
+		if _, err := Do(ctx, r, add, who, roomIn{}); err != nil {
+			t.Errorf("add_member by %d in a collaborative Cahut: %v", who.UserID, err)
+		}
+	}
+	individual = true
+	if _, err := Do(ctx, r, list, member, roomIn{}); !errors.Is(err, ErrForbidden) || !strings.Contains(err.Error(), "which is individual") {
+		t.Errorf("list_people by a member in an individual Cahut: %v", err)
+	}
+	if _, err := Do(ctx, r, list, cahutAdmin, roomIn{}); err != nil {
+		t.Errorf("list_people by an administrator in an individual Cahut: %v", err)
+	}
+	if _, err := Do(ctx, r, add, cahutAdmin, roomIn{}); !errors.Is(err, ErrForbidden) || !strings.Contains(err.Error(), "each Room keeps one member") {
+		t.Errorf("add_member by an administrator in an individual Cahut: %v", err)
 	}
 }
 

@@ -5,6 +5,7 @@
 package room
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"errors"
@@ -135,7 +136,8 @@ var CreateRoom = &operation.Op[CreateRoomInput, Room]{
 	Name:  "create_room",
 	Title: "Create a team Room",
 	Description: "Create a team Room, at <domain>/<name>/. You become its owner, and can then add members. " +
-		"Windows published in it are for its members.",
+		"Windows published in it are for its members. In an individual Cahut, you stay its only member, " +
+		"and its name starts with your handle and a hyphen.",
 	Run: func(ctx context.Context, c *operation.Call, in CreateRoomInput) (Room, error) {
 		title := strings.TrimSpace(in.Title)
 		if title == "" {
@@ -153,6 +155,18 @@ var CreateRoom = &operation.Op[CreateRoomInput, Room]{
 			return Room{}, operation.Forbiddenf("you were granted some Rooms only, and a new Room would be outside them: "+
 				"%s can create it in the console", c.Actor.Handle)
 		}
+		owner, err := owner(ctx, c, in.Owner)
+		if err != nil {
+			return Room{}, err
+		}
+		individual, err := settings.IsIndividual(ctx, c.Tx)
+		if err != nil {
+			return Room{}, err
+		}
+		if individual {
+			name = ownName(cmp.Or(in.Owner, c.Actor.Handle), in.Name, title)
+			c.Log(name, title)
+		}
 		switch {
 		case !address.ValidName(name):
 			return Room{}, operation.Invalidf("name %q: use 1 to 63 lowercase letters, digits and hyphens, "+
@@ -160,21 +174,24 @@ var CreateRoom = &operation.Op[CreateRoomInput, Room]{
 		case address.Reserved(name):
 			return Room{}, operation.Invalidf("name %q is reserved: it names a page of every Cahut", name)
 		}
-		owner, err := owner(ctx, c, in.Owner)
-		if err != nil {
-			return Room{}, err
-		}
-		var taken bool
+		var taken, theirs bool
 		err = c.Tx.QueryRowContext(ctx, `
-			SELECT EXISTS (SELECT 1 FROM rooms WHERE name = ?) OR EXISTS (SELECT 1 FROM users WHERE handle = ?)`,
-			name, name).Scan(&taken)
+			SELECT EXISTS (SELECT 1 FROM rooms WHERE name = ?1) OR EXISTS (SELECT 1 FROM users WHERE handle = ?1),
+			  EXISTS (SELECT 1 FROM rooms r JOIN room_members m ON m.room_id = r.id WHERE r.name = ?1 AND m.user_id = ?2)`,
+			name, owner).Scan(&taken, &theirs)
 		if err != nil {
 			return Room{}, err
 		}
-		if taken {
+		switch {
+		case taken && individual && theirs:
+			return Room{}, operation.Invalidf("you already have a Room %q: choose another name", name)
+		case taken && individual:
+			// People of an individual Cahut do not learn what others hold.
+			return Room{}, operation.Invalidf("name %q is not available: choose another", name)
+		case taken:
 			return Room{}, operation.Invalidf("name %q is taken, by a Room or a person: choose another", name)
 		}
-		if err := settings.CheckRoom(ctx, c); err != nil {
+		if err := settings.CheckRoom(ctx, c, owner); err != nil {
 			return Room{}, err
 		}
 		r := Room{Name: name, Title: title, Kind: Team, Members: 1, CreatedAt: c.Now}
@@ -193,6 +210,29 @@ var CreateRoom = &operation.Op[CreateRoomInput, Room]{
 		c.InRoom(id)
 		return r, nil
 	},
+}
+
+// ownName returns the name of a Room of the person handle in an individual
+// Cahut, where it starts with their handle and a hyphen: name with the
+// prefix added when it lacks it, or one made from the title. See
+// docs/adr/0030-kind-and-limits-of-each-cahut.md.
+func ownName(handle, name, title string) string {
+	prefix := handle + "-"
+	if name != "" {
+		if strings.HasPrefix(name, prefix) {
+			return name
+		}
+		return prefix + name
+	}
+	slug := address.Slug(title, "")
+	if slug == "" {
+		return ""
+	}
+	const longest = 63 // the longest name, as address.ValidName has it
+	if room := longest - len(prefix); len(slug) > room {
+		slug = strings.TrimRight(slug[:room], "-")
+	}
+	return prefix + slug
 }
 
 // owner returns the id of the person who becomes the first owner of a Room:
@@ -386,10 +426,11 @@ type MemberInput struct {
 
 // AddMember adds a person to a team Room.
 var AddMember = &operation.Op[MemberInput, Detail]{
-	Name:        "add_room_member",
-	Title:       "Add a member to a Room",
-	Description: "Add a person to a team Room, as a member or an owner. They can then open and publish its Windows.",
-	KnockFirst:  true,
+	Name:         "add_room_member",
+	Title:        "Add a member to a Room",
+	Description:  "Add a person to a team Room, as a member or an owner. They can then open and publish its Windows.",
+	KnockFirst:   true,
+	InIndividual: operation.Nobody,
 	Run: func(ctx context.Context, c *operation.Call, in MemberInput) (Detail, error) {
 		role := in.Role
 		if role == "" {
@@ -416,10 +457,11 @@ var AddMember = &operation.Op[MemberInput, Detail]{
 
 // SetMemberRole makes a person of a team Room an owner or a member.
 var SetMemberRole = &operation.Op[MemberInput, Detail]{
-	Name:        "set_room_member_role",
-	Title:       "Change a role in a Room",
-	Description: "Make a person of a team Room an owner or a member of it. A Room keeps at least one owner.",
-	KnockFirst:  true,
+	Name:         "set_room_member_role",
+	Title:        "Change a role in a Room",
+	Description:  "Make a person of a team Room an owner or a member of it. A Room keeps at least one owner.",
+	KnockFirst:   true,
+	InIndividual: operation.Nobody,
 	Run: func(ctx context.Context, c *operation.Call, in MemberInput) (Detail, error) {
 		a, id, err := member(ctx, c, in.Room, in.User, in.Role)
 		if err != nil {
@@ -453,7 +495,8 @@ var RemoveMember = &operation.Op[RemoveMemberInput, Detail]{
 	Title: "Remove a member from a Room",
 	Description: "Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. " +
 		"A Room keeps at least one owner.",
-	KnockFirst: true,
+	KnockFirst:   true,
+	InIndividual: operation.Nobody,
 	Run: func(ctx context.Context, c *operation.Call, in RemoveMemberInput) (Detail, error) {
 		c.Log(in.Room, in.User)
 		need := Owner

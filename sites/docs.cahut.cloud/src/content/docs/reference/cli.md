@@ -22,8 +22,8 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut domain add`](#cahut-domain-add) | Declare a domain, which creates its Cahut |
 | [`cahut domain list`](#cahut-domain-list) | List the Cahuts of this server |
 | [`cahut domain rename`](#cahut-domain-rename) | Move a Cahut to another domain, or from the IP address of the server to a domain |
-| [`cahut settings show`](#cahut-settings-show) | Print the limits of a Cahut, with what it holds |
-| [`cahut settings set`](#cahut-settings-set) | Change limits of a Cahut; those you leave out stay as they are |
+| [`cahut settings show`](#cahut-settings-show) | Print the kind and limits of a Cahut, with what it holds |
+| [`cahut settings set`](#cahut-settings-set) | Change the kind or limits of a Cahut; what you leave out stays as it is |
 | [`cahut admin create`](#cahut-admin-create) | Create an administrator of the server, with an activation link |
 | [`cahut admin list`](#cahut-admin-list) | List the administrators of the server |
 | [`cahut admin link`](#cahut-admin-link) | Give an administrator of the server a new link where they choose their password |
@@ -114,11 +114,11 @@ cahut domain rename [--data DIR] <domain> <new domain>
 
 ## `cahut settings`
 
-Set the limits of a Cahut.
+Set the kind and limits of a Cahut.
 
 ### `cahut settings show`
 
-Print the limits of a Cahut, with what it holds.
+Print the kind and limits of a Cahut, with what it holds.
 
 ```text
 cahut settings show [flags]
@@ -131,10 +131,10 @@ cahut settings show [flags]
 
 ### `cahut settings set`
 
-Change limits of a Cahut; those you leave out stay as they are.
+Change the kind or limits of a Cahut; what you leave out stays as it is.
 
 ```text
-cahut settings set [--data DIR] [--domain DOMAIN] [--people N] [--admins N] [--rooms N] [--windows N] [--windows-per-room N] [--disk SIZE]
+cahut settings set [--data DIR] [--domain DOMAIN] [--kind KIND] [--people N] [--admins N] [--rooms N] [--windows N] [--windows-per-room N] [--disk SIZE] [--rooms-per-person N] [--windows-per-person N] [--disk-per-person SIZE]
 ```
 
 | Flag | Default | Description |
@@ -142,10 +142,14 @@ cahut settings set [--data DIR] [--domain DOMAIN] [--people N] [--admins N] [--r
 | `--admins N` |  | N of them may be administrators of the Cahut; none lifts the limit |
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
 | `--disk SIZE` |  | the Cahut may keep SIZE, such as 10GB or 500MB, in units of 1000 bytes; none lifts the limit |
+| `--disk-per-person SIZE` |  | in an individual Cahut, the Windows of each person may keep SIZE; none lifts the limit |
 | `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+| `--kind string` |  | collaborative or individual; the kind stays when left out |
 | `--people N` |  | the Cahut may have N people, administrators included, and disabled people do not count; none lifts the limit |
 | `--rooms N` |  | the Cahut may have N team Rooms; none lifts the limit |
+| `--rooms-per-person N` |  | in an individual Cahut, each person may have N Rooms beside their personal Room; none lifts the limit |
 | `--windows N` |  | the Cahut may hold N Windows out of the trash; none lifts the limit |
+| `--windows-per-person N` |  | in an individual Cahut, each person may hold N Windows out of the trash; none lifts the limit |
 | `--windows-per-room N` |  | each Room may hold N Windows out of the trash; none lifts the limit |
 
 ## `cahut admin`

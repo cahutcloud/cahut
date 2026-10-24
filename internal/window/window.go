@@ -102,7 +102,7 @@ func (s *Service) Register(r *operation.Registry) {
 	operation.Register(r, &operation.Op[AccessInput, AccessSet]{
 		Name:  "set_window_access",
 		Title: "Set who opens a Window",
-		Description: "Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; " +
+		Description: "Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; " +
 			"key, anyone who types its Key; or public, anyone with its address. The access may end at a date, " +
 			"after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, " +
 			"and returns it once: give it to the person. Making a Window public waits for the approval of a person.",
@@ -216,7 +216,7 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err := settings.CheckWindow(ctx, c, roomID, r.Name); err != nil {
 		return Window{}, err
 	}
-	if err := settings.CheckDisk(ctx, c, size); err != nil {
+	if err := settings.CheckDisk(ctx, c, roomID, size); err != nil {
 		return Window{}, err
 	}
 	w := Window{Title: title, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: AccessRoom,
@@ -289,7 +289,7 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 			return Window{}, err
 		}
 	}
-	if err := settings.CheckDisk(ctx, c, size-droppedSize); err != nil {
+	if err := settings.CheckDisk(ctx, c, w.roomID, size-droppedSize); err != nil {
 		return Window{}, err
 	}
 	w.Previous, w.Version = w.Version, max(w.Version, w.Previous)+1

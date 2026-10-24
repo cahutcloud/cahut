@@ -9,6 +9,7 @@ import (
 
 	"cahut.cloud/internal/credential"
 	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
 )
 
@@ -71,6 +72,16 @@ func (s *Service) setAccess(ctx context.Context, c *operation.Call, in AccessInp
 	case AccessRoom, AccessInternal, AccessKey, AccessPublic:
 	default:
 		return AccessSet{}, operation.Invalidf("access %q: use room, internal, key or public", in.Access)
+	}
+	if in.Access == AccessInternal {
+		individual, err := settings.IsIndividual(ctx, c.Tx)
+		if err != nil {
+			return AccessSet{}, err
+		}
+		if individual {
+			return AccessSet{}, operation.Invalidf("this Cahut is individual, and its people do not see one another: " +
+				"a Window opens to its Room, to anyone with its Key, or to the public, not to everyone signed in to the Cahut")
+		}
 	}
 	if in.Access == AccessPublic {
 		c.Knock() // once a public Window is read, that cannot be undone

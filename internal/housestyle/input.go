@@ -205,7 +205,7 @@ func set(ctx context.Context, c *operation.Call, in SetInput, domain string) (Ho
 	}
 	// The new house style keeps its files, and the previous one goes with
 	// its own: the disk of the Cahut grows by the difference.
-	if err := cahutsettings.CheckDisk(ctx, c, filesSize(next)-filesSize(prev)); err != nil {
+	if err := cahutsettings.CheckDisk(ctx, c, 0, filesSize(next)-filesSize(prev)); err != nil {
 		return HouseStyle{}, err
 	}
 	if err := save(ctx, c.Tx, next, c.Actor.UserID, c.Now); err != nil {

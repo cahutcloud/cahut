@@ -81,6 +81,9 @@ const (
 	CahutAdmin
 	// ServerAdmin is the administrators of the server.
 	ServerAdmin
+	// Nobody may call the operation: in an individual Cahut, those that
+	// manage the members of a Room. See Op.InIndividual.
+	Nobody
 )
 
 func (l Level) String() string {
@@ -91,6 +94,8 @@ func (l Level) String() string {
 		return "administrators of the Cahut"
 	case ServerAdmin:
 		return "administrators of the server"
+	case Nobody:
+		return "nobody"
 	}
 	return fmt.Sprintf("level %d", int(l))
 }
@@ -109,6 +114,11 @@ type Op[In, Out any] struct {
 	ReadOnly bool
 	// Level is who may call the operation: any person when it is not set.
 	Level Level
+	// InIndividual is who may call the operation in an individual Cahut,
+	// when it is narrower than Level: the administrators of the Cahut for
+	// listing its people, Nobody for managing the members of a Room. See
+	// docs/adr/0030-kind-and-limits-of-each-cahut.md.
+	InIndividual Level
 	// PeopleOnly operations prove who someone is, such as signing in, or
 	// serve the session of a person in the console, such as previews. They
 	// are not offered to AIs.
@@ -141,25 +151,42 @@ type Op[In, Out any] struct {
 
 // Info describes an operation to the adapters.
 type Info struct {
-	Name        string
-	Title       string
-	Description string
-	ReadOnly    bool
-	Level       Level
-	PeopleOnly  bool
-	Visitors    bool
-	KnockFirst  bool
-	KnocksWhen  string
-	ReadOnlyAIs bool
-	Input       reflect.Type
-	Output      reflect.Type
+	Name         string
+	Title        string
+	Description  string
+	ReadOnly     bool
+	Level        Level
+	InIndividual Level
+	PeopleOnly   bool
+	Visitors     bool
+	KnockFirst   bool
+	KnocksWhen   string
+	ReadOnlyAIs  bool
+	Input        reflect.Type
+	Output       reflect.Type
 }
 
 // ForAIs reports whether the operation is offered to the AIs of a person,
 // who administers the Cahut or not, when they may change things or only
-// read.
+// read, in a collaborative Cahut.
 func (i Info) ForAIs(admin, readOnly bool) bool {
 	return !i.PeopleOnly && (i.Level == AnyPerson || i.Level == CahutAdmin && admin) && (i.ReadOnly || i.ReadOnlyAIs || !readOnly)
+}
+
+// ForAIsIn reports, as ForAIs does, whether the operation is offered to
+// the AIs of a person, in a Cahut that is individual or not.
+func (i Info) ForAIsIn(individual, admin, readOnly bool) bool {
+	l := i.LevelIn(individual)
+	return i.ForAIs(admin, readOnly) && (l == AnyPerson || l == CahutAdmin && admin)
+}
+
+// LevelIn returns who may call the operation in a Cahut that is individual
+// or not.
+func (i Info) LevelIn(individual bool) Level {
+	if individual && i.InIndividual > i.Level {
+		return i.InIndividual
+	}
+	return i.Level
 }
 
 // Call is one call of an operation, as Run sees it.
@@ -289,6 +316,11 @@ type Registry struct {
 	// not.
 	CheckPerson func(ctx context.Context, tx *sql.Tx, userID int64) (admin bool, err error)
 
+	// Individual reads, in the transaction of a call, whether the Cahut is
+	// individual, for the operations whose InIndividual is narrower than
+	// their Level. Each Cahut sets it; the registry of the server does not.
+	Individual func(ctx context.Context, tx *sql.Tx) (bool, error)
+
 	// Knock records, in tx, the Knock that a call of an AI makes, or returns
 	// the one that already waits for the same call. Each Cahut sets it; a
 	// registry without it refuses the calls that knock. See
@@ -374,18 +406,19 @@ func (r *Registry) Invoke(ctx context.Context, name string, actor Actor, args js
 
 func (op *Op[In, Out]) info() Info {
 	return Info{
-		Name:        op.Name,
-		Title:       op.Title,
-		Description: op.Description,
-		ReadOnly:    op.ReadOnly,
-		Level:       op.Level,
-		PeopleOnly:  op.PeopleOnly,
-		Visitors:    op.Visitors,
-		KnockFirst:  op.KnockFirst,
-		KnocksWhen:  op.KnocksWhen,
-		ReadOnlyAIs: op.ReadOnlyAIs,
-		Input:       reflect.TypeFor[In](),
-		Output:      reflect.TypeFor[Out](),
+		Name:         op.Name,
+		Title:        op.Title,
+		Description:  op.Description,
+		ReadOnly:     op.ReadOnly,
+		Level:        op.Level,
+		InIndividual: op.InIndividual,
+		PeopleOnly:   op.PeopleOnly,
+		Visitors:     op.Visitors,
+		KnockFirst:   op.KnockFirst,
+		KnocksWhen:   op.KnocksWhen,
+		ReadOnlyAIs:  op.ReadOnlyAIs,
+		Input:        reflect.TypeFor[In](),
+		Output:       reflect.TypeFor[Out](),
 	}
 }
 
@@ -605,6 +638,20 @@ func (r *Registry) admit(ctx context.Context, info Info, c *Call) error {
 	}
 	if info.Level == CahutAdmin && !c.Admin {
 		return Forbiddenf("%s is for the %s", info.Name, info.Level)
+	}
+	if info.InIndividual > info.Level && r.Individual != nil {
+		individual, err := r.Individual(ctx, c.Tx)
+		if err != nil {
+			return err
+		}
+		switch {
+		case !individual:
+		case info.InIndividual == Nobody:
+			return Forbiddenf("%s is not available in this Cahut, which is individual: each Room keeps one member, its owner, "+
+				"and people do not see one another", info.Name)
+		case info.InIndividual == CahutAdmin && !c.Admin:
+			return Forbiddenf("%s is for the administrators of this Cahut, which is individual: people do not see one another", info.Name)
+		}
 	}
 	return nil
 }

@@ -44,6 +44,8 @@ A team Room gathers its owners and members. Any person, or their AI, creates one
 
 A Room keeps at least one owner, and anyone can leave a team Room. Adding or removing a person, and changing their role, [knock first](/concepts/knock-first-and-logbook/#knock-first): when an AI asks, its person approves in the console. A Room's name, and so its address, does not change.
 
+In an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), each person still creates Rooms of their own, but stays their only member, and the name of each starts with their handle, such as `bob-projects`.
+
 Its owners, and the administrators of the Cahut, delete a team Room for good with `delete_room`, or on its page in the console once its name is typed: its people, its Windows, those in its trash included, and their files go with it, and its name becomes free. The Logbook keeps what happened in it. A personal Room is never deleted. Deleting a Room knocks first when an AI asks.
 
 ## Windows
