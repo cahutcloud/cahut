@@ -934,3 +934,37 @@
 		transition: none;
 	}
 }
+
+/* Words that a person or an AI wrote, apart from those of Cahut, as on the
+page of an invitation. */
+.quote {
+	margin: 0;
+	padding: var(--space-1) 0 var(--space-1) var(--space-4);
+	border-left: 3px solid var(--color-border);
+}
+.note {
+	margin: 0;
+	white-space: pre-wrap;
+}
+
+/* A button that reads as a link, for what stays on the page. */
+.link-button {
+	padding: 0;
+	border: 0;
+	background: none;
+	font: inherit;
+	cursor: pointer;
+}
+
+.email-cell {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-2);
+}
+.person + .email-cell {
+	margin-top: var(--space-2);
+}
+.email-cell .c-input {
+	max-width: 16rem;
+}

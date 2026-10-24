@@ -7,6 +7,7 @@ import {
 	Gauge,
 	House,
 	LogOut,
+	Mail,
 	Menu,
 	NotebookText,
 	Palette,
@@ -100,12 +101,14 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 						{nav("/server/admins", <ShieldCheck class="i" size={18} aria-hidden="true" />, "Server administrators")}
 						{nav("/server/logbook", <NotebookText class="i" size={18} aria-hidden="true" />, "Logbook of the server")}
 						{nav("/server/updates", <RefreshCw class="i" size={18} aria-hidden="true" />, "Updates")}
+						{nav("/server/mail", <Mail class="i" size={18} aria-hidden="true" />, "E-mail of the server")}
 					</>
 				)}
 				<div class="c-label">This Cahut</div>
 				{isAdmin && nav("/people", <Users class="i" size={18} aria-hidden="true" />, "People")}
 				{isAdmin && nav("/house-style", <Palette class="i" size={18} aria-hidden="true" />, "House style")}
 				{isAdmin && nav("/settings", <Gauge class="i" size={18} aria-hidden="true" />, "Kind and limits")}
+				{isAdmin && nav("/mail", <Mail class="i" size={18} aria-hidden="true" />, "E-mail")}
 				{!person && nav("/rooms", <Server class="i" size={18} aria-hidden="true" />, "Rooms", false)}
 				{!person && nav("/logbook", <NotebookText class="i" size={18} aria-hidden="true" />, "Logbook")}
 				{person && nav("/access", <Bot class="i" size={18} aria-hidden="true" />, "AIs and access")}

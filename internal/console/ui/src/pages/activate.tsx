@@ -9,6 +9,10 @@ import type { Session } from "../session";
 
 export const minPassword = 15;
 
+// A link that a forgotten password sent says so in its address, after a
+// question mark: the page then speaks of a new password.
+const reset = new URLSearchParams(location.search).has("reset");
+
 export function Activate({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: (s: Session) => void }) {
 	const [password, setPassword] = useState("");
 	const [again, setAgain] = useState("");
@@ -42,11 +46,13 @@ export function Activate({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: 
 			<div class="c-card auth__card">
 				<Logo height={32} />
 				<div class="auth__head">
-					<h1 class="c-h3">Choose your password</h1>
+					<h1 class="c-h3">{reset ? "Choose a new password" : "Choose your password"}</h1>
 					<p class="c-small c-muted">
-						{kind === "admin"
-							? "You administer the server. Choose the password you will sign in with."
-							: `Choose the password you will sign in to ${location.hostname} with.`}
+						{reset
+							? "Your current password works until you save this one. Your other sessions then end."
+							: kind === "admin"
+								? "You administer the server. Choose the password you will sign in with."
+								: `Choose the password you will sign in to ${location.hostname} with.`}
 					</p>
 				</div>
 				{code ? (

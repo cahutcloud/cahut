@@ -1,8 +1,11 @@
-// The account: who is signed in, a new password, and signing out.
+// The account: who is signed in, their e-mail address and notices, a new
+// password, and signing out.
 import { useState } from "preact/hooks";
 import { explain } from "../api";
+import type { EmailChange } from "../api.gen";
 import { Failure, PageHead } from "../components";
 import { useConsole } from "../context";
+import { useLoad } from "../load";
 
 const minPassword = 15;
 
@@ -38,6 +41,7 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 				<span class="c-mono">{api.session.handle}</span>
 				{api.session.kind === "admin" ? ", administrator of the server." : `, at ${location.hostname}.`}
 			</PageHead>
+			<EmailSection />
 			<section class="section c-card panel narrow">
 				<h2 class="c-h4">Change your password</h2>
 				<p class="c-small c-muted">
@@ -76,5 +80,124 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 				Sign out
 			</button>
 		</>
+	);
+}
+
+/** What the account says of its e-mail address and notices. */
+interface Mailbox {
+	email?: string;
+	change?: EmailChange;
+	noticesOff?: boolean;
+}
+
+/**
+ * The e-mail address of the account, where links and notices go: a new one
+ * takes effect once the link sent to it is used. A person also turns off the
+ * notices that are neither about their account nor about a Knock. See
+ * docs/adr/0031-e-mail-through-a-relay.md.
+ */
+function EmailSection() {
+	const api = useConsole();
+	const admin = api.session.kind === "admin";
+	const { data, reload } = useLoad(async (): Promise<Mailbox> => {
+		if (admin) {
+			const list = await api.server("list_admins", {});
+			return { email: list.admins.find((a) => a.handle === api.session.handle)?.email };
+		}
+		const a = await api.cahut("get_account", {});
+		return { email: a.email, change: a.email_change, noticesOff: a.notices_off };
+	});
+	const [email, setEmail] = useState("");
+	const [said, setSaid] = useState("");
+	const [error, setError] = useState("");
+	if (!data) return null;
+	const act = async (run: () => Promise<string>) => {
+		setError("");
+		setSaid("");
+		try {
+			setSaid(await run());
+			reload();
+		} catch (err) {
+			setError(explain(err));
+		}
+	};
+	const change = (e: Event) => {
+		e.preventDefault();
+		act(async () => {
+			const input = { email };
+			const r = admin ? await api.server("change_email", input) : await api.cahut("change_email", input);
+			setEmail("");
+			return r.waiting ? `A link went to ${r.waiting.email}. Your address changes once you use it.` : "Your address is removed.";
+		});
+	};
+	return (
+		<section class="section c-card panel narrow">
+			<h2 class="c-h4">E-mail</h2>
+			<p class="c-small">
+				{data.email ? (
+					<>
+						Links and notices go to <span class="c-mono">{data.email}</span>.
+					</>
+				) : (
+					"Your account has no e-mail address: links come from an administrator, and no notice reaches you."
+				)}
+			</p>
+			{data.change && (
+				<p class="c-small c-muted">
+					<span class="c-mono">{data.change.email}</span> waits for you to use the link sent to it, until{" "}
+					{new Date(data.change.expires_at).toLocaleString("en-GB", { dateStyle: "long", timeStyle: "short" })}.
+				</p>
+			)}
+			<form class="form" onSubmit={change}>
+				<label class="c-field">
+					<span class="c-field__label">{data.email ? "New address" : "Address"}</span>
+					<input class="c-input" type="email" autocomplete="email" required value={email} onInput={(e) => setEmail(e.currentTarget.value)} />
+					<span class="c-field__help">A link goes to it: your address changes once you use it, within 24 hours.</span>
+				</label>
+				<div class="actions">
+					<button class="c-btn c-btn--primary" type="submit">
+						Send the link
+					</button>
+					{data.email && (
+						<button
+							class="c-btn c-btn--secondary"
+							type="button"
+							onClick={() =>
+								act(async () => {
+									await (admin ? api.server("change_email", { email: "" }) : api.cahut("change_email", { email: "" }));
+									return "Your address is removed.";
+								})
+							}
+						>
+							Remove your address
+						</button>
+					)}
+				</div>
+			</form>
+			{!admin && (
+				<label class="c-check">
+					<input
+						type="checkbox"
+						checked={!data.noticesOff}
+						onChange={(e) => {
+							const off = !e.currentTarget.checked;
+							act(async () => {
+								await api.cahut("set_mail_notices", { off });
+								return off
+									? "Notices are off, but for those about your account and your Knocks."
+									: "Notices are on.";
+							});
+						}}
+					/>
+					Tell me by e-mail when I join a Room, or when the access of a Window that I set ends
+				</label>
+			)}
+			{said && (
+				<div class="c-alert c-alert--success" role="status">
+					{said}
+				</div>
+			)}
+			{error && <Failure message={error} />}
+		</section>
 	);
 }

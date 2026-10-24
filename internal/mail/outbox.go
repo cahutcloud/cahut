@@ -2,7 +2,6 @@ package mail
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"time"
 
@@ -54,7 +53,7 @@ func OutboxIn(r *operation.Registry) *Outbox {
 
 // Sends reports, in the transaction of a call, whether the Cahut sends
 // e-mail. A nil o sends none.
-func (o *Outbox) Sends(ctx context.Context, tx *sql.Tx) (bool, error) {
+func (o *Outbox) Sends(ctx context.Context, tx querier) (bool, error) {
 	if o == nil {
 		return false, nil
 	}

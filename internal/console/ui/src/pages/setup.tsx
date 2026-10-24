@@ -96,6 +96,7 @@ function handleOf(name: string): string {
 function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }) {
 	const [name, setName] = useState("");
 	const [handle, setHandle] = useState("");
+	const [email, setEmail] = useState("");
 	const [edited, setEdited] = useState(false);
 	const [password, setPassword] = useState("");
 	const [again, setAgain] = useState("");
@@ -111,7 +112,7 @@ function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }
 		setBusy(true);
 		setError("");
 		try {
-			const r = await server("set_up", { code, handle, name, password });
+			const r = await server("set_up", { code, handle, name, password, email });
 			const s = r.session;
 			onDone({ kind: "person", token: s.token, handle: s.user.handle, name: s.user.name, expiresAt: s.expires_at });
 		} catch (err) {
@@ -159,6 +160,11 @@ function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }
 					<span class="c-field__help">You sign in with it, and it names your personal Room.</span>
 				</label>
 			</div>
+			<label class="c-field">
+				<span class="c-field__label">E-mail address</span>
+				<input class="c-input" type="email" autocomplete="email" value={email} onInput={(e) => setEmail(e.currentTarget.value)} />
+				<span class="c-field__help">Optional. Once the server sends e-mail, a link reaches you there if you forget your password.</span>
+			</label>
 			<label class="c-field">
 				<span class="c-field__label">Password</span>
 				<input

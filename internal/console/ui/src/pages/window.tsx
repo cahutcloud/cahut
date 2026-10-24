@@ -1,7 +1,7 @@
 // The page of a Window: where it opens, who opens it and until when, its
 // two versions, what its AI declared it does, and the trash. See
 // docs/adr/0019-window-versions-access-and-declaration.md.
-import { ArrowUpRight, RotateCcw, Trash2, Undo2 } from "lucide-preact";
+import { ArrowUpRight, RotateCcw, Send, Trash2, Undo2 } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { AccessSet, Declaration, WindowDetail } from "../api.gen";
@@ -86,6 +86,7 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 							}}
 						/>
 						<Versions window={w} onRollback={() => act(() => api.cahut("rollback_window", { window: `${w.room}/${w.name}` }))} />
+						<Invitations window={w} />
 					</section>
 					<aside class="aside">
 						<DeclarationPanel declaration={w.declaration} />
@@ -327,5 +328,131 @@ export function Trash({ room }: { room: string }) {
 				))}
 			</ul>
 		</section>
+	);
+}
+
+/**
+ * The invitations to read a Window, sent by e-mail, and the form that sends
+ * them: people of the Cahut by handle, anyone else by address, with a
+ * personal link for a Window with a Key. See
+ * docs/adr/0031-e-mail-through-a-relay.md.
+ */
+function Invitations({ window: w }: { window: WindowDetail }) {
+	const api = useConsole();
+	const ref = `${w.room}/${w.name}`;
+	const { data, reload } = useLoad(() => api.cahut("list_invitations", { window: ref }), [ref]);
+	const [to, setTo] = useState("");
+	const [note, setNote] = useState("");
+	const [said, setSaid] = useState("");
+	const [error, setError] = useState("");
+	const [busy, setBusy] = useState(false);
+	const send = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		setSaid("");
+		try {
+			const out = await api.cahut("invite_to_window", { window: ref, to: to.split(/[\s,;]+/).filter(Boolean), note });
+			let msg = out.invitations.length > 0 ? `Sent to ${out.invitations.map((i) => i.to).join(", ")}.` : "";
+			if (out.unreachable?.length) {
+				msg += ` ${out.unreachable.join(", ")} ${plural(out.unreachable.length, "has", "have")} no e-mail address: nothing went to them.`;
+			}
+			setSaid(msg.trim());
+			setTo("");
+			setNote("");
+			reload();
+		} catch (err) {
+			setError(explain(err));
+		}
+		setBusy(false);
+	};
+	const how: Record<string, string> = {
+		key: "People of the Cahut, by handle, and anyone else, by address. Each address gets a personal link that opens it for them alone, until you take it back; the Key never goes.",
+		public: "Anyone, by handle or by address: the message gives its address.",
+		internal: "People of the Cahut, by handle: they sign in to read it. To invite someone else by address, set its access to key first.",
+		room: "The members of its Room, by handle. To invite someone else, set its access to internal or key first.",
+	};
+	return (
+		<div class="c-card panel section">
+			<h2 class="c-h4">Invite people</h2>
+			<p class="c-small c-muted">{how[w.access] ?? how.room}</p>
+			<form class="form" onSubmit={send}>
+				<label class="c-field">
+					<span class="c-field__label">To</span>
+					<input
+						class="c-input"
+						required
+						autocapitalize="none"
+						placeholder="ana, joe@example.com"
+						value={to}
+						onInput={(e) => setTo(e.currentTarget.value)}
+					/>
+					<span class="c-field__help">Handles or e-mail addresses, 20 at most, separated by commas.</span>
+				</label>
+				<label class="c-field">
+					<span class="c-field__label">Note</span>
+					<textarea class="c-input" rows={3} maxLength={500} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
+					<span class="c-field__help">Optional, in plain text. The message shows it as yours.</span>
+				</label>
+				{error && <Failure message={error} />}
+				{said && (
+					<div class="c-alert c-alert--success" role="status">
+						{said}
+					</div>
+				)}
+				<div>
+					<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
+						<Send class="i" size={16} aria-hidden="true" />
+						Send the invitation
+					</button>
+				</div>
+			</form>
+			{data && data.invitations.length > 0 && (
+				<div class="table-wrap">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>To</th>
+								<th>Sent</th>
+								<th>State</th>
+								<th />
+							</tr>
+						</thead>
+						<tbody>
+							{data.invitations.map((i) => {
+								const open = !i.ended_at && (!i.expires_at || new Date(i.expires_at) > new Date());
+								return (
+									<tr key={i.id}>
+										<td>
+											<span class="c-mono c-small">{i.to}</span>
+										</td>
+										<td class="c-small">
+											{ago(i.created_at)}
+											{i.by && `, by ${i.by}`}
+											{i.ai && ` through ${i.ai}`}
+										</td>
+										<td class="c-small">{i.ended_at ? "Ended" : !open ? "Expired" : i.link ? "Personal link" : "Sent"}</td>
+										<td class="table__actions">
+											{open && i.link && (
+												<ConfirmButton
+													label="Take back"
+													question={`Take back the link of ${i.to}? It no longer opens the Window.`}
+													confirm="Take back"
+													danger
+													onConfirm={async () => {
+														await api.cahut("revoke_invitation", { invitation: i.id });
+														reload();
+													}}
+												/>
+											)}
+										</td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
+				</div>
+			)}
+		</div>
 	);
 }

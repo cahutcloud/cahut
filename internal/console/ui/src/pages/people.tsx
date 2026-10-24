@@ -23,7 +23,7 @@ function activationLink(a: Activation): string {
 export function People() {
 	const api = useConsole();
 	const { data, error, reload } = useLoad(() => api.cahut("list_users", {}));
-	const [link, setLink] = useState<{ name: string; activation: Activation } | null>(null);
+	const [link, setLink] = useState<{ name: string; email?: string; activation: Activation } | null>(null);
 	const [failure, setFailure] = useState("");
 	if (!api.isAdmin) return <Notice>Only the administrators of this Cahut manage its people.</Notice>;
 	if (error) return <Failure message={error} />;
@@ -43,8 +43,8 @@ export function People() {
 			<PageHead label="This Cahut" title="People">
 				Each person signs in with their own password, has a personal Room, and connects their AIs.
 			</PageHead>
-			<NewPerson onCreated={(u, a) => (reload(), setLink({ name: u.name, activation: a }))} />
-			{link && <LinkPanel name={link.name} activation={link.activation} />}
+			<NewPerson onCreated={(u, a) => (reload(), setLink({ name: u.name, email: u.email, activation: a }))} />
+			{link && <LinkPanel name={link.name} email={link.email} activation={link.activation} />}
 			{failure && <Failure message={failure} />}
 			<div class="table-wrap section">
 				<table class="table">
@@ -65,8 +65,11 @@ export function People() {
 								onRole={(role) => act(() => api.cahut("set_user_role", { user: u.handle, role }))}
 								onDisable={() => act(() => api.cahut("disable_user", { user: u.handle }))}
 								onEnable={() => act(() => api.cahut("enable_user", { user: u.handle }))}
+								onEmail={(email) => act(() => api.cahut("set_user_email", { user: u.handle, email }))}
 								onLink={() =>
-									act(async () => setLink({ name: u.name, activation: await api.cahut("create_activation_link", { user: u.handle }) }))
+									act(async () =>
+										setLink({ name: u.name, email: u.email, activation: await api.cahut("create_activation_link", { user: u.handle }) }),
+									)
 								}
 							/>
 						))}
@@ -83,6 +86,7 @@ function Row(props: {
 	onRole: (role: string) => Promise<void>;
 	onDisable: () => Promise<void>;
 	onEnable: () => Promise<void>;
+	onEmail: (email: string) => Promise<void>;
 	onLink: () => Promise<void>;
 }) {
 	const u = props.user;
@@ -99,6 +103,7 @@ function Row(props: {
 						<span class="c-mono c-muted people__handle">{u.handle}</span>
 					</span>
 				</span>
+				<EmailCell email={u.email} onSave={props.onEmail} />
 			</td>
 			<td>{u.role === "admin" ? "Administrator" : "Member"}</td>
 			<td>
@@ -141,15 +146,17 @@ function NewPerson({ onCreated }: { onCreated: (u: User, a: Activation) => void 
 	const [handle, setHandle] = useState("");
 	const [name, setName] = useState("");
 	const [admin, setAdmin] = useState(false);
+	const [email, setEmail] = useState("");
 	const [error, setError] = useState("");
 	const submit = async (e: Event) => {
 		e.preventDefault();
 		setError("");
 		try {
-			const u = await api.cahut("create_user", { handle, name, admin });
+			const u = await api.cahut("create_user", { handle, name, admin, email });
 			if (u.activation) onCreated(u, u.activation);
 			setHandle("");
 			setName("");
+			setEmail("");
 			setAdmin(false);
 		} catch (err) {
 			setError(explain(err));
@@ -170,6 +177,11 @@ function NewPerson({ onCreated }: { onCreated: (u: User, a: Activation) => void 
 						<span class="c-field__help">It names their personal Room, at {location.hostname}/handle. It cannot change.</span>
 					</label>
 				</div>
+				<label class="c-field">
+					<span class="c-field__label">E-mail address</span>
+					<input class="c-input" type="email" placeholder="ana@example.com" value={email} onInput={(e) => setEmail(e.currentTarget.value)} />
+					<span class="c-field__help">Optional. Their link goes there, when this Cahut sends e-mail, and so do their notices.</span>
+				</label>
 				<label class="c-check">
 					<input type="checkbox" checked={admin} onChange={(e) => setAdmin(e.currentTarget.checked)} />
 					Administrator of this Cahut
@@ -186,14 +198,48 @@ function NewPerson({ onCreated }: { onCreated: (u: User, a: Activation) => void 
 	);
 }
 
-function LinkPanel({ name, activation }: { name: string; activation: Activation }) {
+function LinkPanel({ name, email, activation }: { name: string; email?: string; activation: Activation }) {
+	const until = new Date(activation.expires_at).toLocaleDateString("en-GB", { dateStyle: "long" });
 	return (
 		<div class="result section" role="status">
 			<p class="c-small">
-				Send {name} this link, where they choose their password. It works once, until{" "}
-				{new Date(activation.expires_at).toLocaleDateString("en-GB", { dateStyle: "long" })}, and is shown only now.
+				{activation.emailed
+					? `The link where ${name} chooses their password went to ${email ?? "their address"}. It works once, until ${until}; here it is too, shown only now.`
+					: `Send ${name} this link, where they choose their password. It works once, until ${until}, and is shown only now.`}
 			</p>
 			<CopyField label="the activation link" value={activationLink(activation)} />
 		</div>
+	);
+}
+
+/** The e-mail address of a person, which an administrator changes on the spot. */
+function EmailCell({ email, onSave }: { email?: string; onSave: (email: string) => Promise<void> }) {
+	const [editing, setEditing] = useState(false);
+	const [value, setValue] = useState(email ?? "");
+	if (!editing) {
+		return (
+			<span class="email-cell">
+				<span class={email ? "c-mono c-small" : "c-small c-muted"}>{email ?? "None"}</span>
+				<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => (setValue(email ?? ""), setEditing(true))}>
+					{email ? "Change" : "Add"}
+				</button>
+			</span>
+		);
+	}
+	const save = async (e: Event) => {
+		e.preventDefault();
+		await onSave(value.trim());
+		setEditing(false);
+	};
+	return (
+		<form class="email-cell" onSubmit={save}>
+			<input class="c-input" type="email" aria-label="E-mail address" value={value} onInput={(e) => setValue(e.currentTarget.value)} />
+			<button class="c-btn c-btn--primary c-btn--sm" type="submit">
+				Save
+			</button>
+			<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => setEditing(false)}>
+				Cancel
+			</button>
+		</form>
 	);
 }

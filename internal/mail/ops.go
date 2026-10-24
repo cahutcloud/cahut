@@ -331,12 +331,16 @@ func (sc *scope) recipient(ctx context.Context, c *operation.Call, given string)
 		return "", operation.Invalidf("a test goes to your own e-mail address: leave out to")
 	}
 	var email sql.NullString
-	err := c.Read(ctx, func(tx *sql.Tx) error {
-		if sc.cahut() {
+	var err error
+	if sc.cahut() && c.Actor.UserID != 0 {
+		err = c.Read(ctx, func(tx *sql.Tx) error {
 			return tx.QueryRowContext(ctx, "SELECT email FROM users WHERE id = ?", c.Actor.UserID).Scan(&email)
-		}
-		return tx.QueryRowContext(ctx, "SELECT email FROM admins WHERE handle = ?", c.Actor.Handle).Scan(&email)
-	})
+		})
+	} else {
+		// An administrator of the server, at the console of the server or
+		// of a Cahut, has their address in the database of the server.
+		err = sc.s.cfg.Server.Read.QueryRowContext(ctx, "SELECT email FROM admins WHERE handle = ?", c.Actor.Handle).Scan(&email)
+	}
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
@@ -360,11 +364,15 @@ func (sc *scope) test(_ context.Context, c *operation.Call, _ SendTestMailInput)
 }
 
 // Sends reports, in the transaction tx of a Cahut, whether the Cahut sends
-// e-mail: through a relay of its own, or that of the server. A nil s sends
-// none.
-func (s *Service) Sends(ctx context.Context, tx *sql.Tx) (bool, error) {
+// e-mail: through a relay of its own, or that of the server; in
+// development, always, since messages without a relay go to disk. A nil s
+// sends none.
+func (s *Service) Sends(ctx context.Context, tx querier) (bool, error) {
 	if s == nil {
 		return false, nil
+	}
+	if s.cfg.Dev {
+		return true, nil
 	}
 	for _, q := range []querier{tx, s.cfg.Server.Read} {
 		r, err := load(ctx, q)

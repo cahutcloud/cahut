@@ -7,6 +7,7 @@ import { Link } from "../router";
 import type { Session } from "../session";
 
 export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; purpose?: string; onSignIn: (s: Session) => void }) {
+	const [forgot, setForgot] = useState(false);
 	const [handle, setHandle] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
@@ -30,6 +31,7 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 		}
 	};
 
+	if (forgot) return <Forgot kind={kind} who={handle} onBack={() => setForgot(false)} />;
 	return (
 		<main class="auth">
 			<div class="c-card auth__card">
@@ -77,6 +79,11 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 						Sign in
 					</button>
 				</form>
+				<p class="c-small">
+					<button class="c-link link-button" type="button" onClick={() => setForgot(true)}>
+						Forgot your password?
+					</button>
+				</p>
 				{kind === "admin" ? (
 					<p class="c-small">
 						<Link class="c-link" href="/sign-in">
@@ -85,7 +92,6 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 					</p>
 				) : (
 					<div class="auth__foot">
-						<p class="c-small c-muted">Forgot your password? An administrator of the Cahut can give you a new link.</p>
 						<p class="c-small">
 							<Link class="c-link" href="/server/sign-in">
 								Administer the server
@@ -93,6 +99,79 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 						</p>
 					</div>
 				)}
+			</div>
+		</main>
+	);
+}
+
+/**
+ * Asks for a link where a person, or an administrator of the server, chooses
+ * a new password. It goes to the address of their account; the answer is the
+ * same whether the account exists or not. See
+ * docs/adr/0031-e-mail-through-a-relay.md.
+ */
+function Forgot({ kind, who: given, onBack }: { kind: Session["kind"]; who: string; onBack: () => void }) {
+	const [who, setWho] = useState(given);
+	const [sent, setSent] = useState("");
+	const [error, setError] = useState("");
+	const [busy, setBusy] = useState(false);
+	const submit = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		try {
+			const r = kind === "admin" ? await server("request_password_link", { who }) : await cahut("request_password_link", { who });
+			setSent(r.message);
+		} catch (err) {
+			setError(explain(err));
+		}
+		setBusy(false);
+	};
+	return (
+		<main class="auth">
+			<div class="c-card auth__card">
+				<Logo height={32} />
+				<div class="auth__head">
+					<h1 class="c-h3">Choose a new password</h1>
+					<p class="c-small c-muted">
+						Give your handle, or the e-mail address of your account. A link to choose a new password goes to that address. If your
+						account has none, {kind === "admin" ? "another administrator of the server" : "an administrator of the Cahut"} can give you a link.
+					</p>
+				</div>
+				{sent ? (
+					<div class="c-alert c-alert--success" role="status">
+						{sent}
+					</div>
+				) : (
+					<form onSubmit={submit}>
+						<label class="c-field">
+							<span class="c-field__label">Handle or e-mail address</span>
+							<input
+								class="c-input"
+								name="username"
+								autocomplete="username"
+								autocapitalize="none"
+								spellcheck={false}
+								required
+								value={who}
+								onInput={(e) => setWho(e.currentTarget.value)}
+							/>
+						</label>
+						{error && (
+							<div class="c-alert c-alert--danger" role="alert">
+								{error}
+							</div>
+						)}
+						<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
+							Send me a link
+						</button>
+					</form>
+				)}
+				<p class="c-small">
+					<button class="c-link link-button" type="button" onClick={onBack}>
+						Back to sign in
+					</button>
+				</p>
 			</div>
 		</main>
 	);
