@@ -1,6 +1,6 @@
 # Cahut · Plan du lot 9 : l'envoi d'e-mails
 
-24 octobre 2026 · Olivier Durand · À valider
+24 octobre 2026 · Olivier Durand · Validé
 
 ## En bref
 
