@@ -113,6 +113,14 @@ if [ -n "$domain" ] && [ -z "$ip" ]; then
 	printf '%s' "$domain" | grep -Eq '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$' ||
 		die "$domain is not a domain name"
 fi
+# The service runs as a system user of its own, with no shell. An account
+# named cahut that a person signs in with would give the service its rights.
+if uid=$(id -u cahut 2>/dev/null); then
+	uid_min=$(awk '$1 == "UID_MIN" { print $2 }' /etc/login.defs 2>/dev/null)
+	if [ "$uid" -eq 0 ] || [ "$uid" -ge "${uid_min:-1000}" ]; then
+		die "the user cahut exists and is not a system account (uid $uid): the service needs a cahut system user of its own. Sign in with another account, rename or delete this one, then run the script again"
+	fi
+fi
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -174,6 +182,10 @@ else
 	command -v curl >/dev/null || die "curl is required to download Cahut"
 	command -v openssl >/dev/null ||
 		die "openssl is required to check the signature of the release: install it with dnf install openssl, or apt install openssl"
+	# OpenSSL 1.1 has no -rawin, and its pkeyutl cannot check an Ed25519
+	# signature: it ships with Ubuntu 20.04 and AlmaLinux 8.
+	openssl pkeyutl -help 2>&1 | grep -q -e -rawin ||
+		die "this server has $(openssl version | cut -d ' ' -f 1,2), which cannot check the Ed25519 signature of a release: Cahut needs OpenSSL 3, as on AlmaLinux 9 and 10 and Ubuntu 22.04 and 24.04"
 	case "$(uname -m)" in
 	x86_64 | amd64) arch=amd64 ;;
 	aarch64 | arm64) arch=arm64 ;;

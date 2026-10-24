@@ -12,7 +12,7 @@ You need:
 - **A Linux server with systemd**, on amd64 or arm64, where you can run commands as root. Cahut is tested on AlmaLinux 9 and 10 and Ubuntu 22.04 and 24.04, from the provider's standard image. Plan 2 vCPU, 4 GB of RAM and 40 GB of disk, the size the project aims at for its launch: today's Cahut needs less, and the disk fills with the Windows you publish.
 - **A domain or a subdomain**, such as `cahut.example.com`, with an A or AAAA record that points to the server. No wildcard record is needed. Without a domain, Cahut takes the public IPv4 address of the server, and moves to a domain later: see [Without a domain](#without-a-domain).
 - **Ports 80 and 443 open** to the internet, in the provider's firewall too. Port 80 answers the challenges of Let's Encrypt and redirects to HTTPS. Port 443 serves everything else: the Windows, MCP, OAuth, and the console under `/console/`.
-- **curl** and **openssl**, which the standard images of AlmaLinux and Ubuntu have.
+- **curl** and **OpenSSL 3**, which the standard images of AlmaLinux 9 and Ubuntu 22.04 and later have. `install.sh` checks the Ed25519 signature of the release with it: OpenSSL 1.1, on Ubuntu 20.04 and AlmaLinux 8, cannot.
 
 Create the DNS record first: the service asks Let's Encrypt for the certificate as soon as it starts.
 
@@ -82,7 +82,7 @@ Everything in the Cahut stays. The links that name the address stop working, and
 
 1. It downloads the release for the server's architecture from GitHub, the latest one unless you name another, with its checksum file and the signature of that file. It checks the signature against the keys of Cahut written in the script, then the checksum of the archive: a release that the project did not sign does not install. With `--binary`, it takes the binary you give instead.
 2. It checks that the binary runs on the server.
-3. It creates the `cahut` system user, with no shell, and the data folder `/var/lib/cahut`, which only that user and its group can read.
+3. It creates the `cahut` system user, with no shell, and the data folder `/var/lib/cahut`, which only that user and its group can read. When the server already has an account named `cahut` that a person signs in with, the script stops before anything else: the service would run with that person's rights. Sign in with another account, rename or delete that one, then run the script again.
 4. It writes the settings file `/etc/cahut/cahut.env` when its content changes, keeping the values you do not give again.
 5. It writes the systemd units of the service and of the updater, and installs the binary as `/usr/local/bin/cahut`. On a server with SELinux, it restores the labels of the files.
 6. It declares the Cahut of `--domain` or `--ip`, unless the server holds it already.
