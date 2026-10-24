@@ -436,6 +436,9 @@ func (u *Updater) waitHealthy(ctx context.Context, want string) error {
 	for {
 		h, err := u.health(ctx)
 		switch {
+		case err != nil && ctx.Err() != nil && last != nil:
+			// The time ran out during this request: the answer before it
+			// says why the service is not healthy, such as an old version.
 		case err != nil:
 			last = fmt.Errorf("the service did not answer: %w", err)
 		case h.Version != want:

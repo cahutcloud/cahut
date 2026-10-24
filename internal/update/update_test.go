@@ -386,6 +386,31 @@ func TestOldVersionAnsweringRollsBack(t *testing.T) {
 	}
 }
 
+// TestDeadlineKeepsTheReason checks that when the wait ends during a
+// request to the health check, the reason is the answer before it, not the
+// request that the deadline cut.
+func TestDeadlineKeepsTheReason(t *testing.T) {
+	var mu sync.Mutex
+	calls := 0
+	health := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		calls++
+		first := calls == 1
+		mu.Unlock()
+		if first {
+			_ = json.NewEncoder(w).Encode(Health{Version: "0.4.0", OK: true})
+			return
+		}
+		<-r.Context().Done() // the next requests hang until the wait ends
+	}))
+	t.Cleanup(health.Close)
+	u := &Updater{Wait: 1500 * time.Millisecond, HealthURL: health.URL}
+	err := u.waitHealthy(context.Background(), "0.4.1")
+	if err == nil || !strings.Contains(err.Error(), "answers with version 0.4.0, not 0.4.1") {
+		t.Errorf("waitHealthy = %v, want the answer of the old version as the reason", err)
+	}
+}
+
 type serviceFunc struct{ start func() }
 
 func (serviceFunc) Stop(context.Context) error { return nil }
