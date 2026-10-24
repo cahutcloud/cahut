@@ -1,6 +1,6 @@
 # 21. An AI knocks first, and the person it acts for answers
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 31](0031-e-mail-through-a-relay.md) (a waiting Knock goes to its person by e-mail)
 - Date: 2026-10-23
 
 ## Context

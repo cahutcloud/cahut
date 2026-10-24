@@ -1,6 +1,6 @@
 # 25. The first start is guided in the browser, from a single-use link
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 31](0031-e-mail-through-a-relay.md) (the first start asks for the address of the first person)
 - Date: 2026-10-23
 
 ## Context
