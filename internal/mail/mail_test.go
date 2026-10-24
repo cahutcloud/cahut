@@ -546,3 +546,36 @@ func TestTestGoesToThePersonWhoAsks(t *testing.T) {
 		t.Errorf("the test went to %v", m[0].To)
 	}
 }
+
+// TestDevelopmentSends checks that in development, without a relay, a
+// Cahut sends e-mail, to disk, so that its flows can be tried.
+func TestDevelopmentSends(t *testing.T) {
+	f := setup(t, server.Config{MailDev: true})
+	about, err := operation.Do(context.Background(), f.cahut.Registry, f.cahut.About, cli, cahut.GetCahutInput{})
+	if err != nil || !about.SendsMail {
+		t.Errorf("get_cahut in development: %+v %v", about, err)
+	}
+}
+
+// TestTestOfAServerAdministrator checks that the test of an administrator
+// of the server, at the console of a Cahut, goes to their address.
+func TestTestOfAServerAdministrator(t *testing.T) {
+	f := setup(t, server.Config{})
+	ctx := context.Background()
+	relay := mailtest.Start(t, mailtest.Options{NoStartTLS: true})
+	in := relayInput(relay, cmail.Plain)
+	in.Username, in.Password = "", ""
+	if _, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", in); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := operation.Do(ctx, f.srv.Registry, server.CreateAdmin, cli, server.CreateAdminInput{Handle: "root", Name: "Root", Email: "root@example.org"}); err != nil {
+		t.Fatal(err)
+	}
+	root := operation.Actor{Kind: operation.Admin, Via: "api", Domain: "example.com", Handle: "root", Session: 1}
+	if _, err := f.cahut.Registry.Invoke(ctx, "send_test_mail", root, []byte(`{}`)); err != nil {
+		t.Fatalf("send_test_mail by an administrator of the server: %v", err)
+	}
+	if m := relay.Wait(t, 1); m[0].To[0] != "root@example.org" {
+		t.Errorf("the test went to %v", m[0].To)
+	}
+}

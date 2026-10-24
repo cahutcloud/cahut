@@ -51,23 +51,17 @@ func (o *Outbox) Prepare(ctx context.Context, q querier, userID int64, kind Noti
 	if !email.Valid || off && kind == Optional {
 		return nil, nil
 	}
-	for _, r := range []querier{q, o.Service.cfg.Server.Read} {
-		st, err := load(ctx, r)
-		if err != nil {
-			return nil, err
-		}
-		if st != nil {
-			p.Email = email.String
-			name, where, err := o.Where(ctx)
-			if err != nil {
-				return nil, err
-			}
-			l := write(p, name, where)
-			l.To = p.Email
-			return &l, nil
-		}
+	if ok, err := o.Service.Sends(ctx, q); err != nil || !ok {
+		return nil, err
 	}
-	return nil, nil
+	p.Email = email.String
+	name, where, err := o.Where(ctx)
+	if err != nil {
+		return nil, err
+	}
+	l := write(p, name, where)
+	l.To = p.Email
+	return &l, nil
 }
 
 // Notify sends to the person userID, once the call c is committed, the
