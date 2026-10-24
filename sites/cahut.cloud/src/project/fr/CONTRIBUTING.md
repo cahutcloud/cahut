@@ -31,11 +31,12 @@ Le README le dit : créer du contenu, faire tourner un modèle d'IA sur le serve
 ## Comment une pull request entre
 
 1. Une branche par sujet, une pull request par sujet, petite quand c'est possible.
-2. `make check` passe : le lint et les tests, tels que la CI les lance.
-3. Le code suit [CLAUDE.md](CLAUDE.md) : l'anglais partout, des sujets de commit à l'impératif, chaque action par le registre d'opérations, pas de logique métier dans les adaptateurs, la bibliothèque standard d'abord. Ce fichier est écrit pour les IA qui travaillent dans ce dépôt, et il s'applique à tout le monde.
-4. La description dit ce qui change, pourquoi, et comment cela a été testé. Pour une fonctionnalité, elle renvoie à la discussion.
-5. Le mainteneur relit dans un créneau hebdomadaire. Il demande des changements, fusionne, ou explique pourquoi non.
-6. Une pull request sans réponse de son auteur pendant trente jours est fermée. Rouvrez-la quand vous voulez.
+2. Une fonctionnalité nouvelle, ou un changement de comportement, vient avec ses tests : ils montrent ce qu'elle fait et l'empêchent de casser plus tard. Une correction de bug vient avec un test qui échoue sans elle.
+3. `make check` passe : le lint, govulncheck et les tests, tels que la CI les lance.
+4. Le code suit [CLAUDE.md](CLAUDE.md) : l'anglais partout, des sujets de commit à l'impératif, chaque action par le registre d'opérations, pas de logique métier dans les adaptateurs, la bibliothèque standard d'abord. Ce fichier est écrit pour les IA qui travaillent dans ce dépôt, et il s'applique à tout le monde.
+5. La description dit ce qui change, pourquoi, et comment cela a été testé. Pour une fonctionnalité, elle renvoie à la discussion.
+6. Le mainteneur relit dans un créneau hebdomadaire. Il demande des changements, fusionne, ou explique pourquoi non.
+7. Une pull request sans réponse de son auteur pendant trente jours est fermée. Rouvrez-la quand vous voulez.
 
 ### Signez vos commits
 
