@@ -139,6 +139,20 @@ docs/adr/0032-the-page-of-a-room.md. */}}
 </html>
 {{end}}
 
+{{define "invitation"}}{{template "head" .}}</head>
+<body>
+{{template "top" .}}
+<main class="page page--narrow">
+<section class="c-card panel">
+<p class="c-label">Invitation</p>
+<h1 class="c-h3">This link has expired</h1>
+<p>The step that opens a Window from an invitation works once, for a minute. Open the invitation again from its e-mail.</p>
+</section>
+</main>
+</body>
+</html>
+{{end}}
+
 {{define "expired"}}{{template "head" .}}</head>
 <body>
 {{template "top" .}}

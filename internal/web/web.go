@@ -169,6 +169,7 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.mux.HandleFunc("GET "+SkillPath, s.serveSkill)
 	s.mux.HandleFunc("GET /-/sign-in", s.serveSignIn)
 	s.mux.HandleFunc("GET /-/session", s.serveSession)
+	s.mux.HandleFunc("GET /-/invitation", s.serveInvitation)
 	s.mux.HandleFunc("POST /-/sign-out", s.serveSignOut)
 	s.mux.HandleFunc("POST /-/key", s.serveKey)
 	s.mux.HandleFunc("GET /-/w/{capability}/{file...}", s.serveFrame)

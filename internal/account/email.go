@@ -54,20 +54,6 @@ func pendingChange(ctx context.Context, c *operation.Call, userID int64) (*Email
 	return &e, err
 }
 
-// cahutName returns how a message names the Cahut of the outbox o: its
-// name, and where it is, such as "Acme, at cahut.acme.com", or "the Cahut
-// at cahut.acme.com" when it has no name of its own.
-func cahutName(ctx context.Context, o *mail.Outbox) (name, where string, err error) {
-	name, err = o.Name(ctx)
-	if err != nil {
-		return "", "", err
-	}
-	if name == o.Domain {
-		return name, "the Cahut at " + o.Domain, nil
-	}
-	return name, name + ", at " + o.Domain, nil
-}
-
 // letter makes a message to the person p from the Cahut of the outbox o.
 type letter func(name, where string, p person, link string, expires time.Time) mail.Letter
 
@@ -119,7 +105,7 @@ func sendLink(ctx context.Context, c *operation.Call, p person, a Activation, pa
 	if ok, err := o.Sends(ctx, c.Tx); err != nil || !ok {
 		return false, err
 	}
-	name, where, err := cahutName(ctx, o)
+	name, where, err := o.Where(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -139,7 +125,7 @@ func noticeChange(ctx context.Context, c *operation.Call, p person, old, email s
 	if ok, err := o.Sends(ctx, c.Tx); err != nil || !ok {
 		return err
 	}
-	name, where, err := cahutName(ctx, o)
+	name, where, err := o.Where(ctx)
 	if err != nil {
 		return err
 	}
@@ -271,7 +257,7 @@ var ChangeEmail = &operation.Op[ChangeEmailInput, EmailChanged]{
 			return EmailChanged{}, err
 		}
 		c.Log(p.Handle, "confirmation sent")
-		name, where, err := cahutName(ctx, o)
+		name, where, err := o.Where(ctx)
 		if err != nil {
 			return EmailChanged{}, err
 		}

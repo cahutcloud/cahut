@@ -136,6 +136,9 @@ type Op[In, Out any] struct {
 	// ReadOnlyAIs operations change things, yet are offered to the AIs that
 	// may only read: set_ai_reach is how they ask for more.
 	ReadOnlyAIs bool
+	// OpenWorld operations reach people outside the Cahut, such as
+	// invite_to_window, which sends e-mail. MCP tells AI clients so.
+	OpenWorld bool
 	// Prepare, when set, does the slow part of a call before its
 	// transaction opens, so that the call holds no connection to the
 	// database meanwhile: checking a password, fetching a document. c.Tx is
@@ -162,6 +165,7 @@ type Info struct {
 	KnockFirst   bool
 	KnocksWhen   string
 	ReadOnlyAIs  bool
+	OpenWorld    bool
 	Input        reflect.Type
 	Output       reflect.Type
 }
@@ -436,6 +440,7 @@ func (op *Op[In, Out]) info() Info {
 		KnockFirst:   op.KnockFirst,
 		KnocksWhen:   op.KnocksWhen,
 		ReadOnlyAIs:  op.ReadOnlyAIs,
+		OpenWorld:    op.OpenWorld,
 		Input:        reflect.TypeFor[In](),
 		Output:       reflect.TypeFor[Out](),
 	}

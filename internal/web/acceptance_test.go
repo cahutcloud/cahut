@@ -47,6 +47,9 @@ var undo = map[string]string{
 	"set_house_style":      "rollback_house_style",
 	"rollback_house_style": "rollback_house_style",
 	"set_ai_reach":         "set_ai_reach", // widening the reach knocks first
+	// The e-mail stays sent, and the link it carries opens nothing more.
+	"invite_to_window":  "revoke_invitation",
+	"revoke_invitation": "invite_to_window",
 }
 
 // TestEveryAIOperationIsReversibleOrApproved checks the rule of

@@ -19,7 +19,7 @@ The Cahut gives these instructions to the AI when it connects:
 
 > Cahut keeps what you make on the user's own server, as Windows. To publish a document, deck, dashboard or site: call get_house_style with its kind, then publish_window with a complete index.html, its files linked by relative paths (css/deck.css, never /css/deck.css), and a declaration of its scripts and of every origin it loads from or calls. Give the user the address it returns. A call that cannot be undone makes a Knock: give the user its link to approve it.
 >
-> House style: when it is active, start from its template, link the style sheet of the organization, /-/house-style.css, use its classes and variables, and follow its guidance; when it is inactive, make the Window in the style the user asks for. Only the house style and the deck engine are under /-/: a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
+> House style: when it is active, start from its template, link the style sheet of the organization, /-/house-style.css, use its classes and variables, and follow its guidance; when it is inactive, make the Window in the style the user asks for. Only the house style and the deck engine are under /-/: a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -48,6 +48,8 @@ The Cahut gives these instructions to the AI when it connects:
 | [`get_knock`](#get_knock) | Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
 | [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
 | [`get_window`](#get_window) | Describe a Window and list its files, optionally with their contents. |
+| [`invite_to_window`](#invite_to_window) | Send the address of a Window by e-mail, with a note: to people of the Cahut, named by handle, who sign in to read it, or to anyone else, named by address, when the Window opens with its Key or to the public. For a Window with a Key, each address gets a personal link that opens it for them alone, until revoke_invitation takes it back; the Key itself never goes. 20 people a call, and 100 invitations a day. get_cahut says whether the Cahut sends e-mail. |
+| [`list_invitations`](#list_invitations) | List the invitations to a Window, the latest first: who got one, who invited, and whether it still stands. |
 | [`list_knocks`](#list_knocks) | List Knocks, those that wait first: the calls that cannot be undone, or that change what a person may do, which wait for a person to approve them. An AI lists the Knocks it made; a person, those of their AIs. |
 | [`list_logbook`](#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. |
 | [`list_rooms`](#list_rooms) | List your Rooms, your personal Room first, with your role and how many members and Windows each has. |
@@ -57,6 +59,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`purge_window`](#purge_window) | Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs. |
 | [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`restore_window`](#restore_window) | Bring a Window back from the trash, with its versions. |
+| [`revoke_invitation`](#revoke_invitation) | Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. |
 | [`rollback_house_style`](#rollback_house_style) | Go back to the previous house style of this Cahut. The house style you leave becomes the previous one, so calling rollback_house_style again returns to it. For the administrators of the Cahut. |
 | [`rollback_window`](#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
 | [`set_ai_reach`](#set_ai_reach) | Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs. |
@@ -2103,6 +2106,276 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 
 </details>
 
+## `invite_to_window`
+
+Send the address of a Window by e-mail, with a note: to people of the Cahut, named by handle, who sign in to read it, or to anyone else, named by address, when the Window opens with its Key or to the public. For a Window with a Key, each address gets a personal link that opens it for them alone, until revoke_invitation takes it back; the Key itself never goes. 20 people a call, and 100 invitations a day. get_cahut says whether the Cahut sends e-mail.
+
+Title: Invite people to read a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: true`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `to` | array of strings or null | yes | who to invite, 20 at most: handles of people of the Cahut, who sign in to read it, or e-mail addresses of anyone else, for a Window with a Key or public |
+| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+| `note` | string | no | a few words for them, in plain text, 500 characters at most |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "note": {
+      "description": "a few words for them, in plain text, 500 characters at most",
+      "type": "string"
+    },
+    "to": {
+      "description": "who to invite, 20 at most: handles of people of the Cahut, who sign in to read it, or e-mail addresses of anyone else, for a Window with a Key or public",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "window": {
+      "description": "the Window's address, or its Room and its name as room/name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "window",
+    "to"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `invitations` | array of objects or null | yes |  |
+| `invitations[].created_at` | string | yes |  |
+| `invitations[].id` | integer | yes |  |
+| `invitations[].link` | boolean | yes | whether it carries a personal link, which opens the Window for this recipient alone |
+| `invitations[].to` | string | yes | the handle of the person invited, or the address |
+| `invitations[].ai` | string | no | the AI that sent the invitation for them |
+| `invitations[].by` | string | no | the handle of the person who invited |
+| `invitations[].ended_at` | string or null | no | when it was revoked, or ended with the Key or the access it stood for |
+| `invitations[].expires_at` | string or null | no | when its personal link stops working |
+| `window` | string | yes |  |
+| `unreachable` | array of strings or null | no | people of the Cahut who have no e-mail address, to whom nothing went |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "invitations": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "ai": {
+            "description": "the AI that sent the invitation for them",
+            "type": "string"
+          },
+          "by": {
+            "description": "the handle of the person who invited",
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "ended_at": {
+            "description": "when it was revoked, or ended with the Key or the access it stood for",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expires_at": {
+            "description": "when its personal link stops working",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "id": {
+            "type": "integer"
+          },
+          "link": {
+            "description": "whether it carries a personal link, which opens the Window for this recipient alone",
+            "type": "boolean"
+          },
+          "to": {
+            "description": "the handle of the person invited, or the address",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "to",
+          "link",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "unreachable": {
+      "description": "people of the Cahut who have no e-mail address, to whom nothing went",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "window": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "window",
+    "invitations"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `list_invitations`
+
+List the invitations to a Window, the latest first: who got one, who invited, and whether it still stands.
+
+Title: List the invitations to a Window. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "window": {
+      "description": "the Window's address, or its Room and its name as room/name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "window"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `invitations` | array of objects or null | yes | the latest first |
+| `invitations[].created_at` | string | yes |  |
+| `invitations[].id` | integer | yes |  |
+| `invitations[].link` | boolean | yes | whether it carries a personal link, which opens the Window for this recipient alone |
+| `invitations[].to` | string | yes | the handle of the person invited, or the address |
+| `invitations[].ai` | string | no | the AI that sent the invitation for them |
+| `invitations[].by` | string | no | the handle of the person who invited |
+| `invitations[].ended_at` | string or null | no | when it was revoked, or ended with the Key or the access it stood for |
+| `invitations[].expires_at` | string or null | no | when its personal link stops working |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "invitations": {
+      "description": "the latest first",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "ai": {
+            "description": "the AI that sent the invitation for them",
+            "type": "string"
+          },
+          "by": {
+            "description": "the handle of the person who invited",
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "ended_at": {
+            "description": "when it was revoked, or ended with the Key or the access it stood for",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expires_at": {
+            "description": "when its personal link stops working",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "id": {
+            "type": "integer"
+          },
+          "link": {
+            "description": "whether it carries a personal link, which opens the Window for this recipient alone",
+            "type": "boolean"
+          },
+          "to": {
+            "description": "the handle of the person invited, or the address",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "to",
+          "link",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    }
+  },
+  "required": [
+    "invitations"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
 ## `list_knocks`
 
 List Knocks, those that wait first: the calls that cannot be undone, or that change what a person may do, which wait for a person to approve them. An AI lists the Knocks it made; a person, those of their AIs.
@@ -3588,6 +3861,108 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     "created_at",
     "updated_at",
     "access"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `revoke_invitation`
+
+Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent.
+
+Title: Take back an invitation. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `invitation` | integer | yes | the id of the invitation, which list_invitations gives |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "invitation": {
+      "description": "the id of the invitation, which list_invitations gives",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "invitation"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `id` | integer | yes |  |
+| `link` | boolean | yes | whether it carries a personal link, which opens the Window for this recipient alone |
+| `to` | string | yes | the handle of the person invited, or the address |
+| `ai` | string | no | the AI that sent the invitation for them |
+| `by` | string | no | the handle of the person who invited |
+| `ended_at` | string or null | no | when it was revoked, or ended with the Key or the access it stood for |
+| `expires_at` | string or null | no | when its personal link stops working |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "ai": {
+      "description": "the AI that sent the invitation for them",
+      "type": "string"
+    },
+    "by": {
+      "description": "the handle of the person who invited",
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "ended_at": {
+      "description": "when it was revoked, or ended with the Key or the access it stood for",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "expires_at": {
+      "description": "when its personal link stops working",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "id": {
+      "type": "integer"
+    },
+    "link": {
+      "description": "whether it carries a personal link, which opens the Window for this recipient alone",
+      "type": "boolean"
+    },
+    "to": {
+      "description": "the handle of the person invited, or the address",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "to",
+    "link",
+    "created_at"
   ],
   "type": "object"
 }

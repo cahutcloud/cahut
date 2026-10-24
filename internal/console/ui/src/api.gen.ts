@@ -516,6 +516,67 @@ export interface Info {
   created_at: string;
 }
 
+export interface Invitation {
+  id: number;
+  /** the handle of the person invited, or the address */
+  to: string;
+  /** the handle of the person who invited */
+  by?: string;
+  /** the AI that sent the invitation for them */
+  ai?: string;
+  /** whether it carries a personal link, which opens the Window for this recipient alone */
+  link: boolean;
+  created_at: string;
+  /** when its personal link stops working */
+  expires_at?: string;
+  /** when it was revoked, or ended with the Key or the access it stood for */
+  ended_at?: string;
+}
+
+export interface InvitationCodeInput {
+  /** the code of the personal link of the invitation */
+  code: string;
+}
+
+export interface InvitationList {
+  /** the latest first */
+  invitations: Invitation[];
+}
+
+export interface InvitationOpening {
+  code: string;
+  /** the Window, as room/name */
+  window: string;
+}
+
+export interface InvitationPage {
+  /** the Window, as room/name */
+  window: string;
+  title: string;
+  /** the name of the person who invites */
+  by: string;
+  /** the AI that sent the invitation for them */
+  ai?: string;
+  note?: string;
+  expires_at: string;
+}
+
+export interface InviteInput {
+  /** the Window's address, or its Room and its name as room/name */
+  window: string;
+  /** who to invite, 20 at most: handles of people of the Cahut, who sign in to read it, or e-mail addresses of anyone else, for a Window with a Key or public */
+  to: string[];
+  /** a few words for them, in plain text, 500 characters at most */
+  note?: string;
+}
+
+export interface Invited {
+  window: string;
+  invitations: Invitation[];
+  /** people of the Cahut who have no e-mail address, to whom nothing went */
+  unreachable?: string[];
+}
+
 export interface Knock {
   id: number;
   /** the operation that the AI called */
@@ -590,6 +651,11 @@ export interface ListConnectedAIsInput {
 }
 
 export type ListDomainsInput = Record<string, never>;
+
+export interface ListInvitationsInput {
+  /** the Window's address, or its Room and its name as room/name */
+  window: string;
+}
 
 export interface ListLogbookInput {
   /** how many entries, 50 by default, at most 1000 */
@@ -825,6 +891,11 @@ export interface RequestUpdateInput {
 export interface RequestedUpdate {
   /** check, or the version to install */
   requested: string;
+}
+
+export interface RevokeInvitationInput {
+  /** the id of the invitation, which list_invitations gives */
+  invitation: number;
 }
 
 export interface RevokeTokenInput {
@@ -1289,6 +1360,8 @@ export interface CahutOperations {
   get_cahut: { input: GetCahutInput; output: About };
   /** Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for. */
   get_house_style: { input: HousestyleGetInput; output: HouseStyle };
+  /** Describe the invitation of a personal link: the Window, who invites, and their note. */
+  get_invitation: { input: InvitationCodeInput; output: InvitationPage };
   /** Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
   get_knock: { input: KnockGetInput; output: Knock };
   /** Describe the SMTP relay of this Cahut, without its password, or say that its e-mail goes through the relay of the server; and when a message last went out, or last failed and why. For the administrators of the Cahut. */
@@ -1297,8 +1370,12 @@ export interface CahutOperations {
   get_room: { input: RoomGetInput; output: RoomDetail };
   /** Describe a Window and list its files, optionally with their contents. */
   get_window: { input: WindowGetInput; output: WindowDetail };
+  /** Send the address of a Window by e-mail, with a note: to people of the Cahut, named by handle, who sign in to read it, or to anyone else, named by address, when the Window opens with its Key or to the public. For a Window with a Key, each address gets a personal link that opens it for them alone, until revoke_invitation takes it back; the Key itself never goes. 20 people a call, and 100 invitations a day. get_cahut says whether the Cahut sends e-mail. */
+  invite_to_window: { input: InviteInput; output: Invited };
   /** List the AIs connected over OAuth, newest first, with the person each acts for, its scope and its Rooms. */
   list_connected_ais: { input: ListConnectedAIsInput; output: ConnectedAIs };
+  /** List the invitations to a Window, the latest first: who got one, who invited, and whether it still stands. */
+  list_invitations: { input: ListInvitationsInput; output: InvitationList };
   /** List Knocks, those that wait first: the calls that cannot be undone, or that change what a person may do, which wait for a person to approve them. An AI lists the Knocks it made; a person, those of their AIs. */
   list_knocks: { input: KnockListInput; output: KnockList };
   /** Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. */
@@ -1311,6 +1388,8 @@ export interface CahutOperations {
   list_users: { input: ListUsersInput; output: UserList };
   /** List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. */
   list_windows: { input: WindowListInput; output: WindowList };
+  /** Open the Window of the invitation of a personal link: a code, valid a minute, for /-/invitation, which gives a pass. */
+  open_invitation: { input: InvitationCodeInput; output: InvitationOpening };
   /** Get the frames that show Windows of your Rooms in the console, as previews: each opens one Window, while your session lasts and four hours at most. */
   preview_windows: { input: PreviewInput; output: Previews };
   /** Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. */
@@ -1323,6 +1402,8 @@ export interface CahutOperations {
   request_password_link: { input: RequestPasswordLinkInput; output: PasswordLinkRequested };
   /** Bring a Window back from the trash, with its versions. */
   restore_window: { input: RefInput; output: Window };
+  /** Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. */
+  revoke_invitation: { input: RevokeInvitationInput; output: Invitation };
   /** Revoke a personal token. The AI that used it loses access at once. */
   revoke_token: { input: RevokeTokenInput; output: TokenInfo };
   /** Go back to the previous house style of this Cahut. The house style you leave becomes the previous one, so calling rollback_house_style again returns to it. For the administrators of the Cahut. */
