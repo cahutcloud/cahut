@@ -19,7 +19,7 @@ On a server with several Cahuts, name the Cahut with `--domain`.
 
 ## 1. You
 
-Your name, a handle and a password of 15 characters at least, and your e-mail address if you like. The handle is how you sign in, and the name of your personal Room; the console proposes one from your name. Once the server [sends e-mail](/admin/mail/), a link reaches that address when you forget your password.
+Your name, a handle and a password of 15 characters at least. The handle is how you sign in, and the name of your personal Room; the console proposes one from your name. Once you set the [e-mail relay](/admin/mail/) of the Cahut, your account takes an address, where a link reaches you when you forget your password.
 
 You become the first person of the Cahut, and its administrator. While the server has no administrator, you also become the administrator of the server, with the same handle and the same password: two accounts, since the people of a Cahut and the administrators of the server are kept apart. Sign in as the administrator of the server at `/console/server/sign-in`, to declare other Cahuts or to update the server. Changing the password of one account leaves the other as it is.
 

@@ -1,9 +1,10 @@
-// Package mail sends the e-mail of a server and of its Cahuts. It hands each
-// message to an SMTP relay with TLS: the relay of the Cahut, which its
-// administrators set, or else the relay of the server. It never delivers to
-// the servers of recipients itself. Messages leave from a queue in memory,
-// once the call that makes them is committed, and nothing of them waits on
-// disk. See docs/adr/0031-e-mail-through-a-relay.md.
+// Package mail sends the e-mail of the Cahuts of a server. It hands each
+// message to the SMTP relay of its Cahut, which its administrators set,
+// with TLS; a Cahut without a relay sends nothing, and the server has none.
+// It never delivers to the servers of recipients itself. Messages leave
+// from a queue in memory, once the call that makes them is committed, and
+// nothing of them waits on disk. See docs/adr/0031-e-mail-through-a-relay.md
+// and docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
 package mail
 
 import (
@@ -25,14 +26,12 @@ import (
 	"cahut.cloud/internal/store"
 )
 
-// Config says how a server sends e-mail.
+// Config says how the Cahuts of a server send e-mail.
 type Config struct {
 	// DataDir is the data directory of the server. It holds mail.key, the
 	// key that seals the passwords of relays, and, for development, the
 	// messages that no relay sends, in mail/.
 	DataDir string
-	// Server is the database of the server, which keeps its relay.
-	Server *store.DB
 	// Dev writes each message to DataDir/mail/ when no relay sends it, and
 	// logs its link, for development on one machine.
 	Dev bool
@@ -41,7 +40,7 @@ type Config struct {
 	Log *slog.Logger
 }
 
-// Service sends the e-mail of a server and of its Cahuts.
+// Service sends the e-mail of the Cahuts of a server.
 type Service struct {
 	cfg   Config
 	log   *slog.Logger
@@ -54,7 +53,7 @@ type Service struct {
 	key   []byte
 
 	mu      sync.Mutex
-	status  map[string]*Status // by sender: the domain of a Cahut, or "" for the server
+	status  map[string]*Status // by the domain of a Cahut
 	jobs    chan *job
 	timers  map[*time.Timer]struct{}
 	closed  bool
@@ -144,7 +143,7 @@ func (s *Service) DialAnywhere() {
 	s.dialAnywhere = true
 }
 
-// Status says how the e-mail of a Cahut, or of the server, went out lately.
+// Status says how the e-mail of a Cahut went out lately.
 // The server keeps it in memory: it starts empty with the service.
 type Status struct {
 	LastSent    *time.Time `json:"last_sent,omitempty" jsonschema:"when a message last went out"`
@@ -184,21 +183,19 @@ func (s *Service) note(sender string, err error) {
 	st.LastError, st.LastErrorAt = cut(err.Error(), 300), &now
 }
 
-// From says whose e-mail a message is: a Cahut's, or the server's.
+// From says which Cahut a message comes from.
 type From struct {
-	// DB is the database of the Cahut, which may keep a relay of its own.
-	// It is nil for the server.
+	// DB is the database of the Cahut, which keeps its relay.
 	DB *store.DB
-	// Domain is the domain of the Cahut, empty for the server.
+	// Domain is the domain of the Cahut.
 	Domain string
 	// Name is the name messages come from when their relay names none: the
 	// name of the Cahut.
 	Name string
 }
 
-// ErrNoRelay means that neither the Cahut nor the server has a relay: the
-// message does not go out.
-var ErrNoRelay = errors.New("no relay sends the e-mail of this Cahut: set one in its settings, or set the relay of the server")
+// ErrNoRelay means that the Cahut has no relay: the message does not go out.
+var ErrNoRelay = errors.New("this Cahut sends no e-mail: its administrators set its relay, on the page E-mail of the console")
 
 // Post hands l to the queue, which sends it through the relay of from. It
 // returns ErrNoRelay when there is none, and in development writes the
@@ -206,7 +203,7 @@ var ErrNoRelay = errors.New("no relay sends the e-mail of this Cahut: set one in
 // with operation.Call.AfterCommit, so that a call that fails or knocks
 // sends nothing.
 func (s *Service) Post(ctx context.Context, from From, l Letter) error {
-	r, own, err := s.relayOf(ctx, from)
+	r, err := s.relayOf(ctx, from)
 	if err != nil {
 		return err
 	}
@@ -220,7 +217,7 @@ func (s *Service) Post(ctx context.Context, from From, l Letter) error {
 	if err != nil {
 		return err
 	}
-	j := &job{sender: from.Domain, relay: *r, public: own && from.DB != nil, to: l.To, msg: msg}
+	j := &job{sender: from.Domain, relay: *r, to: l.To, msg: msg}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.closed {
@@ -238,9 +235,8 @@ func (s *Service) Post(ctx context.Context, from From, l Letter) error {
 
 // job is a message in the queue.
 type job struct {
-	sender string // the domain of the Cahut, or "" for the server
+	sender string // the domain of the Cahut
 	relay  Relay
-	public bool // the relay is a Cahut's, which must be at a public address
 	to     string
 	msg    []byte
 	tries  int
@@ -251,12 +247,12 @@ type job struct {
 func (s *Service) attempt(j *job) {
 	ctx, cancel := context.WithTimeout(s.stop, timeout)
 	defer cancel()
-	err := s.deliver(ctx, &j.relay, j.public, j.to, j.msg)
+	err := s.deliver(ctx, &j.relay, j.to, j.msg)
 	s.record(j.sender, err)
 	if err == nil {
 		return
 	}
-	who := cmp.Or(j.sender, "the server")
+	who := j.sender
 	if !temporary(err) || j.tries >= len(s.retries) {
 		s.log.Warn("send e-mail", "for", who, "error", err)
 		return
@@ -329,9 +325,4 @@ func cut(s string, n int) string {
 		n--
 	}
 	return s[:n] + "…"
-}
-
-// Host returns the name of the machine, as messages of the server name it.
-func (s *Service) Host() string {
-	return s.helo
 }

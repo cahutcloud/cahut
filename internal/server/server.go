@@ -57,8 +57,8 @@ type Server struct {
 	AddDomain *operation.Op[AddDomainInput, NewCahut]
 	// CreateSetupLink gives the link to the first start of a Cahut.
 	CreateSetupLink *operation.Op[CreateSetupLinkInput, SetupLink]
-	// Mail sends the e-mail of the server and of its Cahuts. See
-	// docs/adr/0031-e-mail-through-a-relay.md.
+	// Mail sends the e-mail of the Cahuts, each through its own relay. See
+	// docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
 	Mail *mail.Service
 	cfg  Config
 }
@@ -73,7 +73,7 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 		return nil, fmt.Errorf("open the server's database: %w", err)
 	}
 	s := &Server{DB: db, Registry: operation.NewRegistry(db), cfg: cfg}
-	s.Mail = mail.New(mail.Config{DataDir: cfg.DataDir, Server: db, Dev: cfg.MailDev, Log: cfg.Log})
+	s.Mail = mail.New(mail.Config{DataDir: cfg.DataDir, Dev: cfg.MailDev, Log: cfg.Log})
 	s.AddDomain = &operation.Op[AddDomainInput, NewCahut]{
 		Name:  "add_domain",
 		Title: "Declare a Cahut",
@@ -89,24 +89,11 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 	registerAdmins(s.Registry)
 	s.registerUpdates(s.Registry)
 	s.registerSetup(s.Registry)
-	s.Mail.RegisterServer(s.Registry)
-	if cfg.ConsoleURL != nil {
-		mail.Provide(s.Registry, &mail.Outbox{
-			Service:  s.Mail,
-			Name:     func(context.Context) (string, error) { return "Cahut", nil },
-			Consoles: cfg.ConsoleURL,
-		})
-	}
 	return s, nil
 }
 
 // mailDrain bounds the time Close gives the e-mail in the queue to go out.
 const mailDrain = 30 * time.Second
-
-// DataDir returns the directory of the server's data.
-func (s *Server) DataDir() string {
-	return s.cfg.DataDir
-}
 
 // Close sends the e-mail that waits in the queue, for a while, then closes
 // the server's database.

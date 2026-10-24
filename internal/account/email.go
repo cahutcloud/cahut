@@ -221,6 +221,10 @@ var ChangeEmail = &operation.Op[ChangeEmailInput, EmailChanged]{
 			return EmailChanged{}, err
 		}
 		c.Log(c.Actor.Handle, "")
+		o := mail.OutboxOf(c)
+		if ok, err := o.Sends(ctx, c.Tx); err != nil || !ok {
+			return EmailChanged{}, errors.Join(err, operation.Invalidf("%s", noMail))
+		}
 		p, err := findUser(ctx, c.Tx, c.Actor.Handle)
 		if err != nil {
 			return EmailChanged{}, err
@@ -241,11 +245,6 @@ var ChangeEmail = &operation.Op[ChangeEmailInput, EmailChanged]{
 		}
 		if strings.EqualFold(email, p.email) {
 			return EmailChanged{}, operation.Invalidf("%s is already your e-mail address", email)
-		}
-		o := mail.OutboxOf(c)
-		if ok, err := o.Sends(ctx, c.Tx); err != nil || !ok {
-			return EmailChanged{}, errors.Join(err, operation.Invalidf("this Cahut sends no e-mail, so the address cannot be confirmed: "+
-				"ask an administrator of the Cahut to set it"))
 		}
 		// Whether another person has this address is not said here, but
 		// once the link is used: only the owner of the address learns it.
@@ -314,6 +313,11 @@ var ConfirmEmail = &operation.Op[ConfirmEmailInput, EmailChanged]{
 	},
 }
 
+// noMail is what the operations that would send e-mail answer in a Cahut
+// without a relay. See
+// docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
+const noMail = "this Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console"
+
 // RequestPasswordLinkInput is the input of request_password_link.
 type RequestPasswordLinkInput struct {
 	Who string `json:"who" jsonschema:"the handle of the account, or its e-mail address"`
@@ -337,10 +341,15 @@ var RequestPasswordLink = &operation.Op[RequestPasswordLinkInput, PasswordLinkRe
 	Title: "Ask for a new password",
 	Description: "Send the link where a person chooses a new password to the e-mail address of their account, " +
 		"given its handle or its address. The link works for one hour; the password works until it is used. " +
-		"The answer is the same whether the account exists or not.",
+		"The answer is the same whether the account exists or not. A Cahut without an e-mail relay sends none: " +
+		"an administrator of the Cahut gives a new link instead.",
 	PeopleOnly: true,
 	Visitors:   true,
 	Run: func(ctx context.Context, c *operation.Call, in RequestPasswordLinkInput) (PasswordLinkRequested, error) {
+		if ok, err := mail.OutboxOf(c).Sends(ctx, c.Tx); err != nil || !ok {
+			return PasswordLinkRequested{}, errors.Join(err, operation.Invalidf("this Cahut sends no e-mail: "+
+				"an administrator of the Cahut can give you a new link"))
+		}
 		answer := PasswordLinkRequested{Message: passwordLinkAnswer}
 		who := strings.TrimSpace(in.Who)
 		handle := strings.ToLower(who)
@@ -368,17 +377,11 @@ var RequestPasswordLink = &operation.Op[RequestPasswordLinkInput, PasswordLinkRe
 		if err != nil {
 			return PasswordLinkRequested{}, err
 		}
-		sends, err := mail.OutboxOf(c).Sends(ctx, c.Tx)
-		if err != nil {
-			return PasswordLinkRequested{}, err
-		}
 		switch {
 		case p.Status == Disabled:
 			c.Log(p.Handle, "not sent: disabled")
 		case p.email == "":
 			c.Log(p.Handle, "not sent: no address")
-		case !sends:
-			c.Log(p.Handle, "not sent: the Cahut sends no e-mail")
 		case recent:
 			c.Log(p.Handle, "not sent: a link went out less than 5 minutes ago")
 		default:
@@ -392,6 +395,29 @@ var RequestPasswordLink = &operation.Op[RequestPasswordLinkInput, PasswordLinkRe
 			c.Log(p.Handle, "link sent")
 		}
 		return answer, nil
+	},
+}
+
+// DescribeSignInInput is the input of describe_sign_in.
+type DescribeSignInInput struct{}
+
+// SignInPage is the output of describe_sign_in.
+type SignInPage struct {
+	SendsMail bool `json:"sends_mail" jsonschema:"whether this Cahut sends e-mail, and so a link to a person who forgot their password"`
+}
+
+// DescribeSignIn says what the page of sign-in offers, before anyone signs
+// in: a Cahut without a relay offers no link for a forgotten password.
+var DescribeSignIn = &operation.Op[DescribeSignInInput, SignInPage]{
+	Name:        "describe_sign_in",
+	Title:       "Describe the sign-in page",
+	Description: "Say what the page of sign-in of this Cahut offers, before anyone signs in: whether it sends e-mail, and so a link to a person who forgot their password.",
+	PeopleOnly:  true,
+	Visitors:    true,
+	ReadOnly:    true,
+	Run: func(ctx context.Context, c *operation.Call, _ DescribeSignInInput) (SignInPage, error) {
+		sends, err := mail.OutboxOf(c).Sends(ctx, c.Tx)
+		return SignInPage{SendsMail: sends}, err
 	},
 }
 

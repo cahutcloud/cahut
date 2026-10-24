@@ -6,11 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/netip"
 	"net/smtp"
 	"net/textproto"
 	"strconv"
-	"syscall"
 	"time"
 
 	"cahut.cloud/internal/address"
@@ -23,14 +21,11 @@ const timeout = time.Minute
 // from the start says nothing to a client that waits for its greeting.
 var greeting = 10 * time.Second
 
-// session connects to the relay r, with TLS, and signs in when r has a user
-// name. The relay of a Cahut must be at a public address, public.
-func (s *Service) session(ctx context.Context, r *Relay, public bool) (*smtp.Client, error) {
+// session connects to the relay r, at a public address, with TLS, and signs
+// in when r has a user name.
+func (s *Service) session(ctx context.Context, r *Relay) (*smtp.Client, error) {
 	dialer := &net.Dialer{Timeout: 15 * time.Second}
-	switch {
-	case r.Security == Plain:
-		dialer.Control = dialLoopback
-	case public && !s.dialAnywhere:
+	if !s.dialAnywhere {
 		dialer.Control = address.DialPublic
 	}
 	addr := net.JoinHostPort(r.Host, strconv.Itoa(r.Port))
@@ -96,8 +91,8 @@ func (s *Service) session(ctx context.Context, r *Relay, public bool) (*smtp.Cli
 
 // try connects to the relay r and signs in, as set_mail_relay does before
 // it keeps a relay.
-func (s *Service) try(ctx context.Context, r *Relay, public bool) error {
-	c, err := s.session(ctx, r, public)
+func (s *Service) try(ctx context.Context, r *Relay) error {
+	c, err := s.session(ctx, r)
 	if err != nil {
 		return err
 	}
@@ -106,8 +101,8 @@ func (s *Service) try(ctx context.Context, r *Relay, public bool) error {
 }
 
 // deliver hands msg for the address to to the relay r.
-func (s *Service) deliver(ctx context.Context, r *Relay, public bool, to string, msg []byte) error {
-	c, err := s.session(ctx, r, public)
+func (s *Service) deliver(ctx context.Context, r *Relay, to string, msg []byte) error {
+	c, err := s.session(ctx, r)
 	if err != nil {
 		return err
 	}
@@ -141,17 +136,4 @@ func temporary(err error) bool {
 		return te.Code >= 400 && te.Code < 500
 	}
 	return true
-}
-
-// dialLoopback is the Control of a net.Dialer that connects to loopback
-// addresses only: a relay without TLS must be on this machine.
-func dialLoopback(_, addr string, _ syscall.RawConn) error {
-	ap, err := netip.ParseAddrPort(addr)
-	if err != nil {
-		return err
-	}
-	if !ap.Addr().Unmap().IsLoopback() {
-		return fmt.Errorf("%s is not a loopback address: a relay without TLS must be on this machine", ap.Addr())
-	}
-	return nil
 }

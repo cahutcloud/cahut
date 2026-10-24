@@ -69,9 +69,7 @@ export function App() {
 		case "/server/activate":
 			return <Activate kind="admin" onSignIn={signIn} />;
 		case "/confirm-email":
-			return <ConfirmEmail kind="person" />;
-		case "/server/confirm-email":
-			return <ConfirmEmail kind="admin" />;
+			return <ConfirmEmail />;
 		case "/invitation":
 			return <Invitation />;
 		case "/setup":
@@ -134,10 +132,14 @@ function SignedIn(props: { session: Session; path: string; onExpired: () => void
 	const [roomsVersion, setRoomsVersion] = useState(0);
 	const [isAdmin, setAdmin] = useState(session.kind === "admin");
 	const [individual, setIndividual] = useState(false);
-	const [kindVersion, setKindVersion] = useState(0);
+	const [sendsMail, setSendsMail] = useState(false);
+	const [cahutVersion, setCahutVersion] = useState(0);
 	useEffect(() => {
-		api.cahut("get_cahut", {}).then((a) => setIndividual(a.kind === "individual"), () => undefined);
-	}, [kindVersion]);
+		api.cahut("get_cahut", {}).then(
+			(a) => (setIndividual(a.kind === "individual"), setSendsMail(a.sends_mail)),
+			() => undefined,
+		);
+	}, [cahutVersion]);
 	useEffect(() => {
 		if (session.kind === "person") {
 			api.cahut("list_rooms", {}).then((r) => setRooms(r.rooms), () => undefined);
@@ -154,7 +156,8 @@ function SignedIn(props: { session: Session; path: string; onExpired: () => void
 		...api,
 		isAdmin,
 		individual,
-		reloadKind: () => setKindVersion((n) => n + 1),
+		sendsMail,
+		reloadCahut: () => setCahutVersion((n) => n + 1),
 		roomsVersion,
 		reloadRooms: () => setRoomsVersion((n) => n + 1),
 		knocks: knocks.count,
@@ -223,7 +226,7 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 		case "/settings":
 			return <Settings />;
 		case "/mail":
-			return <MailPage of="cahut" />;
+			return <MailPage />;
 		case "/access":
 			return <Access />;
 		case "/account":
@@ -234,8 +237,6 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 			return <Logbook of="server" />;
 		case "/server/updates":
 			return <Updates />;
-		case "/server/mail":
-			return <MailPage of="server" />;
 	}
 	return <PageHead label="Not found" title="Nothing here">This page does not exist.</PageHead>;
 }

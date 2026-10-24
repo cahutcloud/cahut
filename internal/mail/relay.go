@@ -26,9 +26,6 @@ const (
 	// StartTLS connects in clear, then asks for TLS before anything else,
 	// usually on port 587.
 	StartTLS = "starttls"
-	// Plain does without TLS: only the relay of the server may, on its
-	// loopback address, where the message does not leave the machine.
-	Plain = "none"
 )
 
 // Relay is an SMTP relay, with its password in clear once unsealed.
@@ -89,26 +86,17 @@ func remove(ctx context.Context, tx *sql.Tx) error {
 	return err
 }
 
-// relayOf returns the relay that sends the e-mail of from, with its
-// password unsealed: that of its Cahut, or else that of the server, or nil
-// when there is none. own reports whether it is the Cahut's.
-func (s *Service) relayOf(ctx context.Context, from From) (r *Relay, own bool, err error) {
-	if from.DB != nil {
-		st, err := load(ctx, from.DB.Read)
-		if err != nil {
-			return nil, false, err
-		}
-		if st != nil {
-			r, err := s.open(st)
-			return r, true, err
-		}
+// relayOf returns the relay of the Cahut of from, with its password
+// unsealed, or nil when it has none.
+func (s *Service) relayOf(ctx context.Context, from From) (*Relay, error) {
+	if from.DB == nil {
+		return nil, nil
 	}
-	st, err := load(ctx, s.cfg.Server.Read)
+	st, err := load(ctx, from.DB.Read)
 	if err != nil || st == nil {
-		return nil, false, err
+		return nil, err
 	}
-	r, err = s.open(st)
-	return r, from.DB == nil, err
+	return s.open(st)
 }
 
 // open returns the relay st with its password unsealed.
@@ -123,8 +111,8 @@ func (s *Service) open(st *stored) (*Relay, error) {
 }
 
 // check returns an error that says what is wrong with r, as given to
-// set_mail_relay, once cleaned. A Cahut's relay must speak TLS.
-func check(r *Relay, cahut bool) error {
+// set_mail_relay, once cleaned. The relay of a Cahut speaks TLS.
+func check(r *Relay) error {
 	r.Host = strings.TrimSuffix(strings.ToLower(strings.TrimSpace(r.Host)), ".")
 	r.Username = strings.TrimSpace(r.Username)
 	r.Name = strings.TrimSpace(r.Name)
@@ -146,10 +134,8 @@ func check(r *Relay, cahut bool) error {
 	switch {
 	case r.Port < 1 || r.Port > 65535:
 		return fmt.Errorf("port %d: give a port from 1 to 65535, usually 465 or 587", r.Port)
-	case r.Security == Plain && cahut:
-		return errors.New("security none: the relay of a Cahut speaks TLS, from the start (tls) or after STARTTLS (starttls)")
-	case r.Security != TLS && r.Security != StartTLS && r.Security != Plain:
-		return fmt.Errorf("security %q: use tls, starttls or, for a relay of the server on this machine, none", r.Security)
+	case r.Security != TLS && r.Security != StartTLS:
+		return fmt.Errorf("security %q: the relay of a Cahut speaks TLS, from the start (tls) or after STARTTLS (starttls)", r.Security)
 	case r.Username == "" && r.Password != "":
 		return errors.New("a password without a user name: give the user name at the relay too")
 	case len(r.Username) > 256 || len(r.Password) > 1024:

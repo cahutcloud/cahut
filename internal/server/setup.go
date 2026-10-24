@@ -9,7 +9,6 @@ import (
 
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/credential"
-	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
 )
@@ -56,7 +55,6 @@ type SetUpInput struct {
 	Handle   string `json:"handle"`
 	Name     string `json:"name"`
 	Password string `json:"password" jsonschema:"of 15 characters at least"`
-	Email    string `json:"email,omitempty" jsonschema:"the e-mail address of the first person, and of the administrator of the server, where their links go"`
 }
 
 // SetUp is the output of set_up.
@@ -195,14 +193,6 @@ func (s *Server) setUp(ctx context.Context, c *operation.Call, in SetUpInput) (S
 	if _, err := c.Tx.ExecContext(ctx, "DELETE FROM setup_links WHERE cahut_id = ?", link.cahutID); err != nil {
 		return SetUp{}, err
 	}
-	var email sql.NullString
-	if strings.TrimSpace(in.Email) != "" {
-		e, err := mail.Address(in.Email)
-		if err != nil {
-			return SetUp{}, operation.Invalidf("email: %v", err)
-		}
-		email = sql.NullString{String: e, Valid: true}
-	}
 	if link.noAdmin {
 		// The administrator of the server is checked first: it is the part
 		// that this transaction can undo.
@@ -214,8 +204,8 @@ func (s *Server) setUp(ctx context.Context, c *operation.Call, in SetUpInput) (S
 		if err != nil {
 			return SetUp{}, err
 		}
-		_, err = c.Tx.ExecContext(ctx, "INSERT INTO admins (handle, name, password_hash, created_at, email) VALUES (?, ?, ?, ?, ?)",
-			handle, strings.TrimSpace(in.Name), hash, store.FormatTime(c.Now), email)
+		_, err = c.Tx.ExecContext(ctx, "INSERT INTO admins (handle, name, password_hash, created_at) VALUES (?, ?, ?, ?)",
+			handle, strings.TrimSpace(in.Name), hash, store.FormatTime(c.Now))
 		if err != nil {
 			return SetUp{}, err
 		}
@@ -246,14 +236,6 @@ func (s *Server) setUp(ctx context.Context, c *operation.Call, in SetUpInput) (S
 		account.ActivateInput{Code: person.Activation.Code, Password: in.Password})
 	if err != nil {
 		return SetUp{}, err
-	}
-	// The address comes once the account is active: the person chose their
-	// password here, and needs no link to do it.
-	if email.Valid {
-		if _, err := operation.Do(ctx, ch.Registry, account.SetUserEmail, setup,
-			account.SetUserEmailInput{User: handle, Email: email.String}); err != nil {
-			return SetUp{}, err
-		}
 	}
 	return SetUp{Session: session, ServerAdmin: link.noAdmin}, nil
 }

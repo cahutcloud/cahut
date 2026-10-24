@@ -101,7 +101,6 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 						{nav("/server/admins", <ShieldCheck class="i" size={18} aria-hidden="true" />, "Server administrators")}
 						{nav("/server/logbook", <NotebookText class="i" size={18} aria-hidden="true" />, "Logbook of the server")}
 						{nav("/server/updates", <RefreshCw class="i" size={18} aria-hidden="true" />, "Updates")}
-						{nav("/server/mail", <Mail class="i" size={18} aria-hidden="true" />, "E-mail of the server")}
 					</>
 				)}
 				<div class="c-label">This Cahut</div>

@@ -10,7 +10,6 @@ import (
 
 	"cahut.cloud/internal/mail/mailtest"
 	"cahut.cloud/internal/operation"
-	"cahut.cloud/internal/server"
 	"cahut.cloud/internal/settings"
 )
 
@@ -32,8 +31,6 @@ func TestNotices(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
 	relay := f.relay(t)
-	// The disk of the machine that runs the test is its own business.
-	f.web.disk = func(string) (uint64, uint64, error) { return 100 << 30, 50 << 30, nil }
 	olivier := f.person(t, "localhost", "olivier")
 	camille := f.person(t, "localhost", "camille")
 	c := f.open(t, "localhost")
@@ -79,11 +76,7 @@ func TestNotices(t *testing.T) {
 	f.web.SendNotices(ctx, time.Now())
 	f.web.SendNotices(ctx, time.Now())
 
-	// A limit reached reaches the administrators of the Cahut, and those
-	// of the server, once a day.
-	if _, err := operation.Do(ctx, f.srv.Registry, server.CreateAdmin, admin, server.CreateAdminInput{Handle: "root", Name: "Root", Email: "root@example.org"}); err != nil {
-		t.Fatal(err)
-	}
+	// A limit reached reaches the administrators of the Cahut, once a day.
 	one := int64(1)
 	if _, err := operation.Do(ctx, c.Registry, settings.Set, admin, settings.SetCahutSettingsInput{Limits: settings.Limits{Windows: &one}}); err != nil {
 		t.Fatal(err)
@@ -91,14 +84,12 @@ func TestNotices(t *testing.T) {
 	f.web.SendNotices(ctx, time.Now())
 	f.web.SendNotices(ctx, time.Now())
 
-	got := subjects(t, relay, 6)
+	got := subjects(t, relay, 4)
 	want := []string{
 		"olivier@example.org: Claude Code is waiting for your answer",
 		"camille@example.org: You were added to Marketing",
 		"olivier@example.org: Q3 review closes to its readers on " + time.Now().UTC().Add(48*time.Hour).Format("2 January"),
-		"root@example.org: Choose your password for the Cahut server",
 		"olivier@example.org: localhost reached its limit of Windows",
-		"root@example.org: localhost reached its limit of Windows",
 	}
 	time.Sleep(200 * time.Millisecond)
 	if n := len(relay.Messages()); n != len(want) || !slices.Equal(slices.Sorted(slices.Values(got)), slices.Sorted(slices.Values(want))) {

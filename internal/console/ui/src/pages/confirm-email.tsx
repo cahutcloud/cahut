@@ -1,20 +1,17 @@
 // The page of the link that confirms a new e-mail address, for a person of
-// this Cahut or an administrator of the server. The link is the proof: no
-// sign-in is needed. Its code comes in the fragment of the address. See
-// docs/adr/0031-e-mail-through-a-relay.md.
+// this Cahut. The link is the proof: no sign-in is needed. Its code comes in
+// the fragment of the address. See docs/adr/0031-e-mail-through-a-relay.md.
 import { useEffect, useState } from "preact/hooks";
-import { cahut, explain, server } from "../api";
+import { cahut, explain } from "../api";
 import { fragment as code } from "../fragment";
 import { Logo } from "../logo";
 import { Link } from "../router";
-import type { Session } from "../session";
 
-export function ConfirmEmail({ kind }: { kind: Session["kind"] }) {
+export function ConfirmEmail() {
 	const [state, setState] = useState<{ email?: string; error?: string }>({});
 	useEffect(() => {
 		if (!code) return;
-		const confirm = kind === "admin" ? server("confirm_email", { code }) : cahut("confirm_email", { code });
-		confirm.then(
+		cahut("confirm_email", { code }).then(
 			(r) => setState({ email: r.email }),
 			(err) => setState({ error: explain(err) }),
 		);
@@ -44,7 +41,7 @@ export function ConfirmEmail({ kind }: { kind: Session["kind"] }) {
 					</div>
 				)}
 				<p class="c-small">
-					<Link class="c-link" href={kind === "admin" ? "/server/sign-in" : "/"}>
+					<Link class="c-link" href="/">
 						Go to the console
 					</Link>
 				</p>

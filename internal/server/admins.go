@@ -9,7 +9,6 @@ import (
 
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/credential"
-	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
 )
@@ -35,9 +34,6 @@ func registerAdmins(r *operation.Registry) {
 	operation.Register(r, SignIn)
 	operation.Register(r, SignOut)
 	operation.Register(r, ChangePassword)
-	operation.Register(r, ChangeEmail)
-	operation.Register(r, ConfirmEmail)
-	operation.Register(r, RequestPasswordLink)
 }
 
 // Admin is an administrator of the server.
@@ -45,7 +41,6 @@ type Admin struct {
 	Handle    string    `json:"handle"`
 	Name      string    `json:"name"`
 	Status    string    `json:"status" jsonschema:"pending until the administrator chooses a password, then active; disabled while they may not sign in"`
-	Email     string    `json:"email,omitempty" jsonschema:"the e-mail address of the administrator, where their links and the notices of the server go"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -58,17 +53,17 @@ type adminRecord struct {
 
 func findAdmin(ctx context.Context, tx *sql.Tx, handle string) (adminRecord, error) {
 	var a adminRecord
-	var hash, disabled, email sql.NullString
+	var hash, disabled sql.NullString
 	var created string
-	err := tx.QueryRowContext(ctx, "SELECT id, handle, name, password_hash, disabled_at, created_at, email FROM admins WHERE handle = ?",
-		handle).Scan(&a.id, &a.Handle, &a.Name, &hash, &disabled, &created, &email)
+	err := tx.QueryRowContext(ctx, "SELECT id, handle, name, password_hash, disabled_at, created_at FROM admins WHERE handle = ?",
+		handle).Scan(&a.id, &a.Handle, &a.Name, &hash, &disabled, &created)
 	if errors.Is(err, sql.ErrNoRows) {
 		return adminRecord{}, operation.NotFoundf("no administrator %q on this server", handle)
 	}
 	if err != nil {
 		return adminRecord{}, err
 	}
-	a.passwordHash, a.Email = hash.String, email.String
+	a.passwordHash = hash.String
 	a.Status = adminStatus(hash, disabled)
 	a.CreatedAt, err = store.ParseTime(created)
 	return a, err
@@ -88,7 +83,6 @@ func adminStatus(passwordHash, disabledAt sql.NullString) string {
 type CreateAdminInput struct {
 	Handle string `json:"handle"`
 	Name   string `json:"name"`
-	Email  string `json:"email,omitempty" jsonschema:"the e-mail address of the administrator, where their activation link goes"`
 }
 
 // NewAdmin is the output of create_admin.
@@ -100,11 +94,10 @@ type NewAdmin struct {
 // CreateAdmin creates an administrator of the server, with an activation
 // link.
 var CreateAdmin = &operation.Op[CreateAdminInput, NewAdmin]{
-	Name:  "create_admin",
-	Title: "Create a server administrator",
-	Description: "Create an administrator of the server, and the link where they choose their password, " +
-		"which goes to their e-mail address when you give one and the server sends e-mail.",
-	Level: operation.ServerAdmin,
+	Name:        "create_admin",
+	Title:       "Create a server administrator",
+	Description: "Create an administrator of the server, and the link where they choose their password.",
+	Level:       operation.ServerAdmin,
 	Run: func(ctx context.Context, c *operation.Call, in CreateAdminInput) (NewAdmin, error) {
 		c.Log(in.Handle, "")
 		if !account.ValidHandle(in.Handle) {
@@ -116,30 +109,16 @@ var CreateAdmin = &operation.Op[CreateAdminInput, NewAdmin]{
 			return NewAdmin{}, operation.Invalidf("name is empty")
 		}
 		a := NewAdmin{Admin: Admin{Handle: in.Handle, Name: name, Status: account.Pending, CreatedAt: c.Now}}
-		var email sql.NullString
-		if strings.TrimSpace(in.Email) != "" {
-			e, err := mail.Address(in.Email)
-			if err != nil {
-				return NewAdmin{}, operation.Invalidf("email: %v", err)
-			}
-			if err := adminAddressFree(ctx, c.Tx, e, 0); err != nil {
-				return NewAdmin{}, err
-			}
-			email, a.Email = sql.NullString{String: e, Valid: true}, e
-		}
 		var id int64
-		err := c.Tx.QueryRowContext(ctx, "INSERT INTO admins (handle, name, created_at, email) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING RETURNING id",
-			a.Handle, a.Name, store.FormatTime(c.Now), email).Scan(&id)
+		err := c.Tx.QueryRowContext(ctx, "INSERT INTO admins (handle, name, created_at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING RETURNING id",
+			a.Handle, a.Name, store.FormatTime(c.Now)).Scan(&id)
 		if errors.Is(err, sql.ErrNoRows) {
 			return NewAdmin{}, operation.Invalidf("handle %q is taken by another administrator", a.Handle)
 		}
 		if err != nil {
 			return NewAdmin{}, err
 		}
-		if a.Activation, err = newActivation(ctx, c, id, a.Handle, credential.ActivationTTL); err != nil {
-			return NewAdmin{}, err
-		}
-		a.Activation.Emailed, err = sendAdminLink(ctx, c, adminRecord{Admin: a.Admin, id: id}, a.Activation, adminActivatePage, adminActivationLetter)
+		a.Activation, err = newActivation(ctx, c, id, a.Handle)
 		return a, err
 	},
 }
@@ -160,7 +139,7 @@ var ListAdmins = &operation.Op[ListAdminsInput, AdminList]{
 	Level:       operation.ServerAdmin,
 	ReadOnly:    true,
 	Run: func(ctx context.Context, c *operation.Call, _ ListAdminsInput) (AdminList, error) {
-		rows, err := c.Tx.QueryContext(ctx, "SELECT handle, name, password_hash, disabled_at, created_at, email FROM admins ORDER BY handle")
+		rows, err := c.Tx.QueryContext(ctx, "SELECT handle, name, password_hash, disabled_at, created_at FROM admins ORDER BY handle")
 		if err != nil {
 			return AdminList{}, err
 		}
@@ -168,12 +147,12 @@ var ListAdmins = &operation.Op[ListAdminsInput, AdminList]{
 		list := AdminList{Admins: []Admin{}}
 		for rows.Next() {
 			var a Admin
-			var hash, disabled, email sql.NullString
+			var hash, disabled sql.NullString
 			var created string
-			if err := rows.Scan(&a.Handle, &a.Name, &hash, &disabled, &created, &email); err != nil {
+			if err := rows.Scan(&a.Handle, &a.Name, &hash, &disabled, &created); err != nil {
 				return AdminList{}, err
 			}
-			a.Status, a.Email = adminStatus(hash, disabled), email.String
+			a.Status = adminStatus(hash, disabled)
 			if a.CreatedAt, err = store.ParseTime(created); err != nil {
 				return AdminList{}, err
 			}
@@ -183,13 +162,13 @@ var ListAdmins = &operation.Op[ListAdminsInput, AdminList]{
 	},
 }
 
-// newActivation creates an activation link for the administrator id, valid
-// for ttl, which replaces any link they had.
-func newActivation(ctx context.Context, c *operation.Call, id int64, handle string, ttl time.Duration) (account.Activation, error) {
+// newActivation creates an activation link for the administrator id, which
+// replaces any link they had.
+func newActivation(ctx context.Context, c *operation.Call, id int64, handle string) (account.Activation, error) {
 	if _, err := c.Tx.ExecContext(ctx, "DELETE FROM admin_activations WHERE admin_id = ?", id); err != nil {
 		return account.Activation{}, err
 	}
-	a := account.Activation{User: handle, Code: credential.Token(""), ExpiresAt: c.Now.Add(ttl)}
+	a := account.Activation{User: handle, Code: credential.Token(""), ExpiresAt: c.Now.Add(credential.ActivationTTL)}
 	_, err := c.Tx.ExecContext(ctx, "INSERT INTO admin_activations (admin_id, hash, created_at, expires_at) VALUES (?, ?, ?, ?)",
 		id, credential.Hash(a.Code), store.FormatTime(c.Now), store.FormatTime(a.ExpiresAt))
 	return a, err
@@ -271,8 +250,7 @@ var CreateActivationLink = &operation.Op[AdminInput, account.Activation]{
 	Name:  "create_activation_link",
 	Title: "Give an administrator a new link",
 	Description: "Give an administrator of the server a new single-use link, valid 7 days, where they choose their password, " +
-		"for instance after they forgot it. It goes to their e-mail address too, when they have one and the server sends e-mail. " +
-		"Their password works until they use the link.",
+		"for instance after they forgot it. Their password works until they use the link.",
 	Level:      operation.ServerAdmin,
 	PeopleOnly: true,
 	Run: func(ctx context.Context, c *operation.Call, in AdminInput) (account.Activation, error) {
@@ -284,12 +262,7 @@ var CreateActivationLink = &operation.Op[AdminInput, account.Activation]{
 		if a.Status == account.Disabled {
 			return account.Activation{}, operation.Invalidf("%s is disabled: enable them first", a.Handle)
 		}
-		link, err := newActivation(ctx, c, a.id, a.Handle, credential.ActivationTTL)
-		if err != nil {
-			return account.Activation{}, err
-		}
-		link.Emailed, err = sendAdminLink(ctx, c, a, link, adminActivatePage, adminActivationLetter)
-		return link, err
+		return newActivation(ctx, c, a.id, a.Handle)
 	},
 }
 

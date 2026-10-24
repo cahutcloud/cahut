@@ -72,31 +72,77 @@ func relayInput(r *mailtest.Relay, security string) cmail.SetMailRelayInput {
 	return cmail.SetMailRelayInput{Host: r.Host, Port: r.Port, Security: security, Username: "cahut", Password: "s3cret pass", From: "cahut@example.net"}
 }
 
-func TestRelayOfTheServer(t *testing.T) {
+// cahutRelay starts a relay in memory, as the relay of the Cahut of f,
+// which reaches it on this machine as tests may. The relay offers STARTTLS.
+func cahutRelay(t *testing.T, f *fixture, opts mailtest.Options) *mailtest.Relay {
+	t.Helper()
+	relay := mailtest.Start(t, opts)
+	f.srv.Mail.UseRoots(relay.Roots)
+	f.srv.Mail.DialAnywhere()
+	in := relayInput(relay, cmail.StartTLS)
+	if opts.User == "" {
+		in.Username, in.Password = "", ""
+	}
+	if _, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", in); err != nil {
+		t.Fatal(err)
+	}
+	return relay
+}
+
+func TestRelay(t *testing.T) {
 	f := setup(t, server.Config{})
 	relay := mailtest.Start(t, mailtest.Options{User: "cahut", Password: "s3cret pass"})
 	f.srv.Mail.UseRoots(relay.Roots)
+	ctx := context.Background()
 
-	// Without a relay, the Cahut sends nothing.
-	about, err := operation.Do(context.Background(), f.cahut.Registry, f.cahut.About, cli, cahut.GetCahutInput{})
+	// Without a relay, the Cahut sends nothing, and nothing falls back to
+	// the server, which has no relay.
+	about, err := operation.Do(ctx, f.cahut.Registry, f.cahut.About, cli, cahut.GetCahutInput{})
 	if err != nil || about.SendsMail {
 		t.Fatalf("get_cahut without a relay: %+v %v", about, err)
 	}
-	if _, err := call[cmail.TestSent](t, f.srv.Registry, "send_test_mail", cmail.SendTestMailInput{To: "jane@example.org"}); !errors.Is(err, operation.ErrInvalid) {
+	if got, err := call[cmail.Delivery](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{}); err != nil || got.Relay != nil || got.Sends {
+		t.Fatalf("get_mail_relay without a relay: %+v %v", got, err)
+	}
+	if _, err := call[cmail.TestSent](t, f.cahut.Registry, "send_test_mail", cmail.SendTestMailInput{To: "jane@example.org"}); !errors.Is(err, operation.ErrInvalid) ||
+		!strings.Contains(err.Error(), "sends no e-mail") {
 		t.Fatalf("send_test_mail without a relay: %v", err)
 	}
+	if err := f.srv.Mail.Post(ctx, cmail.From{DB: f.cahut.DB, Domain: "example.com"}, cmail.Letter{To: "jane@example.org", Subject: "Hello"}); !errors.Is(err, cmail.ErrNoRelay) {
+		t.Errorf("Post without a relay: %v", err)
+	}
+	if _, ok := f.srv.Registry.Lookup("set_mail_relay"); ok {
+		t.Error("the server has an operation set_mail_relay")
+	}
+	var tables int
+	if err := f.srv.DB.Read.QueryRow("SELECT count(*) FROM sqlite_schema WHERE name IN ('mail_relay', 'notices_sent', 'admin_email_changes')").Scan(&tables); err != nil || tables != 0 {
+		t.Errorf("server.db keeps %d tables of e-mail: %v", tables, err)
+	}
+
+	// The relay of a Cahut is on the internet, and speaks TLS.
+	for _, host := range []string{"127.0.0.1", "localhost", "10.0.0.1", "::1"} {
+		in := relayInput(relay, cmail.StartTLS)
+		in.Host = host
+		if _, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "public") {
+			t.Errorf("set_mail_relay at %s: %v", host, err)
+		}
+	}
+	if _, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, "none")); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "TLS") {
+		t.Errorf("set_mail_relay without TLS: %v", err)
+	}
+	f.srv.Mail.DialAnywhere()
 
 	// A wrong password is refused, with the answer of the relay, and nothing is kept.
 	in := relayInput(relay, cmail.StartTLS)
 	in.Password = "wrong"
-	if _, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "535") {
+	if _, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "535") {
 		t.Fatalf("set_mail_relay with a wrong password: %v", err)
 	}
-	if got, _ := call[cmail.Delivery](t, f.srv.Registry, "get_mail_relay", cmail.GetMailRelayInput{}); got.Relay != nil {
+	if got, _ := call[cmail.Delivery](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{}); got.Relay != nil {
 		t.Fatalf("a refused relay was kept: %+v", got.Relay)
 	}
 
-	set, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", relayInput(relay, cmail.StartTLS))
+	set, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, cmail.StartTLS))
 	if err != nil {
 		t.Fatalf("set_mail_relay: %v", err)
 	}
@@ -111,26 +157,20 @@ func TestRelayOfTheServer(t *testing.T) {
 	// The password is sealed in the database, under a key of the server
 	// that only its user reads.
 	var sealed []byte
-	if err := f.srv.DB.Read.QueryRow("SELECT password FROM mail_relay").Scan(&sealed); err != nil || bytes.Contains(sealed, []byte("s3cret")) {
+	if err := f.cahut.DB.Read.QueryRow("SELECT password FROM mail_relay").Scan(&sealed); err != nil || bytes.Contains(sealed, []byte("s3cret")) {
 		t.Errorf("the password in the database: %q %v", sealed, err)
 	}
 	if fi, err := os.Stat(filepath.Join(f.dir, "mail.key")); err != nil || fi.Mode().Perm() != 0o600 || fi.Size() != 32 {
 		t.Errorf("mail.key: %v %v", fi, err)
 	}
 
-	// The Cahut, without a relay of its own, sends through that of the server.
-	about, err = operation.Do(context.Background(), f.cahut.Registry, f.cahut.About, cli, cahut.GetCahutInput{})
+	about, err = operation.Do(ctx, f.cahut.Registry, f.cahut.About, cli, cahut.GetCahutInput{})
 	if err != nil || !about.SendsMail {
-		t.Errorf("get_cahut with the relay of the server: %+v %v", about, err)
+		t.Errorf("get_cahut with a relay: %+v %v", about, err)
 	}
-	got, err := call[cmail.Delivery](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{})
-	if err != nil || got.Relay != nil || !got.Server || !got.Sends {
-		t.Errorf("get_mail_relay of the Cahut: %+v %v", got, err)
-	}
-
 	sent, err := call[cmail.TestSent](t, f.cahut.Registry, "send_test_mail", cmail.SendTestMailInput{To: "Jane@Example.ORG"})
-	if err != nil || sent.To != "Jane@example.org" || !sent.Server {
-		t.Fatalf("send_test_mail of the Cahut: %+v %v", sent, err)
+	if err != nil || sent.To != "Jane@example.org" {
+		t.Fatalf("send_test_mail: %+v %v", sent, err)
 	}
 	msgs := relay.Wait(t, 1)
 	m, err := mail.ReadMessage(msgs[0].Reader())
@@ -152,69 +192,56 @@ func TestRelayOfTheServer(t *testing.T) {
 	// user name do not change.
 	in = relayInput(relay, cmail.StartTLS)
 	in.Password, in.Name = "", "Example"
-	if set, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", in); err != nil || set.Relay.Name != "Example" || !set.Relay.Password {
+	if set, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", in); err != nil || set.Relay.Name != "Example" || !set.Relay.Password {
 		t.Errorf("set_mail_relay keeping the password: %+v %v", set, err)
 	}
 	in.Username = "other"
-	if _, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "give the password") {
+	if _, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "give the password") {
 		t.Errorf("set_mail_relay with another user and no password: %v", err)
 	}
 
 	// The Logbook says what changed, never the password.
-	entries, err := logbook.List(context.Background(), f.srv.DB.Read, 10)
+	entries, err := logbook.List(ctx, f.cahut.DB.Read, 20)
 	if err != nil {
 		t.Fatal(err)
 	}
 	var details []string
 	for _, e := range entries {
-		if e.Operation == "set_mail_relay" {
-			details = append(details, e.Detail+e.Error)
+		if e.Operation == "set_mail_relay" && e.Error == "" {
+			details = append(details, e.Detail)
 		}
 		if strings.Contains(e.Detail+e.Error, "s3cret") || strings.Contains(e.Detail+e.Error, "wrong") {
 			t.Errorf("a password in the Logbook: %+v", e)
 		}
 	}
-	if len(details) != 4 || !strings.Contains(details[1], "password kept") || !strings.Contains(details[2], "password set") {
+	if len(details) != 2 || !strings.Contains(details[0], "password kept") || !strings.Contains(details[1], "password set") {
 		t.Errorf("the Logbook of set_mail_relay: %q", details)
 	}
 
 	// Removing the relay stops the e-mail of the Cahut.
-	if set, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", cmail.SetMailRelayInput{}); err != nil || set.Relay != nil || set.Sends {
+	if set, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", cmail.SetMailRelayInput{}); err != nil || set.Relay != nil || set.Sends {
 		t.Errorf("set_mail_relay with an empty host: %+v %v", set, err)
 	}
-	if got, _ := call[cmail.Delivery](t, f.cahut.Registry, "get_mail_relay", cmail.GetMailRelayInput{}); got.Sends || got.Server {
-		t.Errorf("the Cahut after the relay of the server is removed: %+v", got)
+	if about, _ := operation.Do(ctx, f.cahut.Registry, f.cahut.About, cli, cahut.GetCahutInput{}); about.SendsMail {
+		t.Error("get_cahut says the Cahut sends e-mail after its relay is removed")
 	}
 }
 
-func TestRelayOfACahut(t *testing.T) {
+func TestRelayOfTLS(t *testing.T) {
 	f := setup(t, server.Config{})
 	relay := mailtest.Start(t, mailtest.Options{TLS: true, User: "cahut", Password: "s3cret pass"})
 	f.srv.Mail.UseRoots(relay.Roots)
-
-	// The relay of a Cahut is on the internet, and speaks TLS.
-	for _, host := range []string{"127.0.0.1", "localhost", "10.0.0.1", "::1"} {
-		in := relayInput(relay, cmail.TLS)
-		in.Host = host
-		if _, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "public") {
-			t.Errorf("set_mail_relay of a Cahut at %s: %v", host, err)
-		}
-	}
-	if _, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, cmail.Plain)); !errors.Is(err, operation.ErrInvalid) {
-		t.Errorf("set_mail_relay of a Cahut without TLS: %v", err)
-	}
-
 	f.srv.Mail.DialAnywhere()
 	cmail.SetGreeting(300 * time.Millisecond)
 	t.Cleanup(func() { cmail.SetGreeting(10 * time.Second) })
 	// starttls by default, which a relay that speaks TLS at once does not
 	// answer.
 	if _, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, "")); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "use security tls") {
-		t.Errorf("set_mail_relay of a Cahut, STARTTLS with a relay of TLS: %v", err)
+		t.Errorf("set_mail_relay, STARTTLS with a relay of TLS: %v", err)
 	}
 	set, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, cmail.TLS))
-	if err != nil || set.Relay == nil || set.Relay.Security != "tls" || set.Server {
-		t.Fatalf("set_mail_relay of a Cahut: %+v %v", set, err)
+	if err != nil || set.Relay == nil || set.Relay.Security != "tls" {
+		t.Fatalf("set_mail_relay: %+v %v", set, err)
 	}
 
 	// A message of the Cahut goes through its relay, from its address.
@@ -229,46 +256,20 @@ func TestRelayOfACahut(t *testing.T) {
 	if msgs[0].From != "cahut@example.net" || !bytes.Contains(msgs[0].Data, []byte("From: \"Example\" <cahut@example.net>")) {
 		t.Errorf("the message of the Cahut: %s", msgs[0].Data)
 	}
-
-	// The server has none: messages of the server do not go out.
-	err = f.srv.Mail.Post(ctx, cmail.From{}, cmail.Letter{To: "jane@example.org", Subject: "Hello"})
-	if !errors.Is(err, cmail.ErrNoRelay) {
-		t.Errorf("Post of the server without a relay: %v", err)
-	}
 }
 
-func TestRelayWithoutTLS(t *testing.T) {
+func TestRelayWithoutStartTLS(t *testing.T) {
 	f := setup(t, server.Config{})
 	relay := mailtest.Start(t, mailtest.Options{NoStartTLS: true, User: "cahut", Password: "s3cret pass"})
-
-	// Without TLS, only on the loopback address.
-	in := relayInput(relay, cmail.Plain)
-	in.Host = "192.0.2.1"
-	if _, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", in); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "loopback") {
-		t.Errorf("set_mail_relay without TLS away from this machine: %v", err)
-	}
-	if _, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", relayInput(relay, cmail.StartTLS)); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "STARTTLS") {
+	f.srv.Mail.DialAnywhere()
+	if _, err := call[cmail.Delivery](t, f.cahut.Registry, "set_mail_relay", relayInput(relay, cmail.StartTLS)); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "STARTTLS") {
 		t.Errorf("set_mail_relay with STARTTLS, which the relay does not offer: %v", err)
-	}
-	if _, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", relayInput(relay, cmail.Plain)); err != nil {
-		t.Fatalf("set_mail_relay without TLS on this machine: %v", err)
-	}
-	if _, err := call[cmail.TestSent](t, f.srv.Registry, "send_test_mail", cmail.SendTestMailInput{To: "jane@example.org"}); err != nil {
-		t.Fatalf("send_test_mail: %v", err)
-	}
-	if m := relay.Wait(t, 1); !strings.HasPrefix(string(m[0].Data), "From: \"Cahut\" <cahut@example.net>") {
-		t.Errorf("the test of the server: %s", m[0].Data[:80])
 	}
 }
 
 func TestQueueTriesAgain(t *testing.T) {
 	f := setup(t, server.Config{})
-	relay := mailtest.Start(t, mailtest.Options{NoStartTLS: true})
-	in := relayInput(relay, cmail.Plain)
-	in.Username, in.Password = "", ""
-	if _, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", in); err != nil {
-		t.Fatal(err)
-	}
+	relay := cahutRelay(t, f, mailtest.Options{})
 	cmail.SetRetries(f.srv.Mail, 50*time.Millisecond, 50*time.Millisecond)
 	ctx := context.Background()
 	from := cmail.From{DB: f.cahut.DB, Domain: "example.com"}
@@ -514,12 +515,7 @@ func TestAddress(t *testing.T) {
 func TestTestGoesToThePersonWhoAsks(t *testing.T) {
 	f := setup(t, server.Config{})
 	ctx := context.Background()
-	relay := mailtest.Start(t, mailtest.Options{NoStartTLS: true})
-	in := relayInput(relay, cmail.Plain)
-	in.Username, in.Password = "", ""
-	if _, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", in); err != nil {
-		t.Fatal(err)
-	}
+	relay := cahutRelay(t, f, mailtest.Options{})
 	u, err := operation.Do(ctx, f.cahut.Registry, account.CreateUser, cli, account.CreateUserInput{Handle: "olivier", Name: "Olivier", Admin: true, Email: "olivier@example.org"})
 	if err != nil {
 		t.Fatal(err)
@@ -557,22 +553,20 @@ func TestDevelopmentSends(t *testing.T) {
 	}
 }
 
-// TestTestOfAServerAdministrator checks that the test of an administrator
-// of the server, at the console of a Cahut, goes to their address.
+// TestTestOfAServerAdministrator checks that an administrator of the
+// server, who has no address, names where the test goes.
 func TestTestOfAServerAdministrator(t *testing.T) {
 	f := setup(t, server.Config{})
 	ctx := context.Background()
-	relay := mailtest.Start(t, mailtest.Options{NoStartTLS: true})
-	in := relayInput(relay, cmail.Plain)
-	in.Username, in.Password = "", ""
-	if _, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", in); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := operation.Do(ctx, f.srv.Registry, server.CreateAdmin, cli, server.CreateAdminInput{Handle: "root", Name: "Root", Email: "root@example.org"}); err != nil {
+	relay := cahutRelay(t, f, mailtest.Options{})
+	if _, err := operation.Do(ctx, f.srv.Registry, server.CreateAdmin, cli, server.CreateAdminInput{Handle: "root", Name: "Root"}); err != nil {
 		t.Fatal(err)
 	}
 	root := operation.Actor{Kind: operation.Admin, Via: "api", Domain: "example.com", Handle: "root", Session: 1}
-	if _, err := f.cahut.Registry.Invoke(ctx, "send_test_mail", root, []byte(`{}`)); err != nil {
+	if _, err := f.cahut.Registry.Invoke(ctx, "send_test_mail", root, []byte(`{}`)); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "to:") {
+		t.Errorf("send_test_mail by an administrator of the server, without an address: %v", err)
+	}
+	if _, err := f.cahut.Registry.Invoke(ctx, "send_test_mail", root, []byte(`{"to":"root@example.org"}`)); err != nil {
 		t.Fatalf("send_test_mail by an administrator of the server: %v", err)
 	}
 	if m := relay.Wait(t, 1); m[0].To[0] != "root@example.org" {

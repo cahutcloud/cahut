@@ -34,9 +34,10 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [28](0028-ip-address-of-a-cahut-is-ipv4.md) | The IP address of a Cahut is an IPv4 address, for now | Accepted |
 | [29](0029-chatgpt-second-ai-client.md) | ChatGPT is the second AI client of the V0, through the same tools as Claude | Accepted |
 | [30](0030-kind-and-limits-of-each-cahut.md) | Each Cahut has a kind and limits, set by the administrators of its server | Accepted |
-| [31](0031-e-mail-through-a-relay.md) | Each Cahut sends e-mail through its own relay or that of its server | Accepted |
+| [31](0031-e-mail-through-a-relay.md) | Each Cahut sends e-mail through its own relay or that of its server | Accepted, superseded in part by 34 |
 | [32](0032-the-page-of-a-room.md) | The page of a Room shows its Windows in previews, or a Window that its owners choose, in the brand of Cahut until the house style | Accepted, extended by 33 |
 | [33](0033-the-brand-of-cahut-until-the-house-style-has-a-look.md) | The pages of Cahut carry its brand until the house style has a look of its own | Accepted |
+| [34](0034-e-mail-through-the-relay-of-each-cahut-only.md) | E-mail goes through the relay of each Cahut only | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

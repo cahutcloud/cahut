@@ -110,6 +110,9 @@ func withServer[Out any](dir string, stderr io.Writer, fn func(context.Context, 
 		return zero, false
 	}
 	defer srv.Close()
+	if mailForTests != nil {
+		mailForTests(srv.Mail)
+	}
 	out, err := fn(ctx, srv)
 	if err != nil {
 		fmt.Fprintf(stderr, "cahut: %v\n", err)
@@ -186,7 +189,6 @@ func runAdminCreate(args []string, stdout, stderr io.Writer) int {
 	var in server.CreateAdminInput
 	fs.StringVar(&in.Handle, "handle", "", "short name of the administrator: 2 to 32 lowercase letters, digits and hyphens")
 	fs.StringVar(&in.Name, "name", "", "full name")
-	fs.StringVar(&in.Email, "email", "", "e-mail address of the administrator, where their link goes when the server sends e-mail")
 	domain := fs.String("domain", "", "the Cahut whose console the link opens; the first one declared when empty")
 	if code, ok := parse(fs, args); !ok {
 		return code
@@ -200,7 +202,7 @@ func runAdminCreate(args []string, stdout, stderr io.Writer) int {
 		if err != nil {
 			return created{}, err
 		}
-		a, err := operation.Do(ctx, srv.Registry, server.CreateAdmin, consoleActor(d), in)
+		a, err := operation.Do(ctx, srv.Registry, server.CreateAdmin, admin, in)
 		return created{admin: a, domain: d}, err
 	})
 	if !ok {
@@ -222,9 +224,9 @@ func runAdminList(args []string, stdout, stderr io.Writer) int {
 		return exitError
 	}
 	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
-	fmt.Fprintln(tw, "HANDLE\tNAME\tSTATUS\tCREATED\tEMAIL")
+	fmt.Fprintln(tw, "HANDLE\tNAME\tSTATUS\tCREATED")
 	for _, a := range list.Admins {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", a.Handle, a.Name, a.Status, day(a.CreatedAt), a.Email)
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", a.Handle, a.Name, a.Status, day(a.CreatedAt))
 	}
 	if err := tw.Flush(); err != nil {
 		return exitError
@@ -250,7 +252,7 @@ func runAdminLink(args []string, stdout, stderr io.Writer) int {
 		if err != nil {
 			return link{}, err
 		}
-		a, err := operation.Do(ctx, srv.Registry, server.CreateActivationLink, consoleActor(d), in)
+		a, err := operation.Do(ctx, srv.Registry, server.CreateActivationLink, admin, in)
 		return link{activation: a, domain: d}, err
 	})
 	if !ok {
@@ -402,14 +404,6 @@ func printActivation(w io.Writer, base string, a account.Activation) {
 			a.User, day(a.ExpiresAt))
 	}
 	fmt.Fprintf(w, "%s%s\n\n", base, a.Code)
-}
-
-// consoleActor returns the administrator of the command line, acting at
-// the console of the Cahut at domain, where the links of e-mail open.
-func consoleActor(domain string) operation.Actor {
-	a := admin
-	a.Domain = domain
-	return a
 }
 
 func runUserEmail(args []string, stdout, stderr io.Writer) int {

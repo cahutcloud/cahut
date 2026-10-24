@@ -41,7 +41,7 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 				<span class="c-mono">{api.session.handle}</span>
 				{api.session.kind === "admin" ? ", administrator of the server." : `, at ${location.hostname}.`}
 			</PageHead>
-			<EmailSection />
+			{api.session.kind === "person" && api.sendsMail && <EmailSection />}
 			<section class="section c-card panel narrow">
 				<h2 class="c-h4">Change your password</h2>
 				<p class="c-small c-muted">
@@ -91,19 +91,15 @@ interface Mailbox {
 }
 
 /**
- * The e-mail address of the account, where links and notices go: a new one
- * takes effect once the link sent to it is used. A person also turns off the
- * notices that are neither about their account nor about a Knock. See
- * docs/adr/0031-e-mail-through-a-relay.md.
+ * The e-mail address of a person, where links and notices go, in a Cahut
+ * that sends e-mail: a new one takes effect once the link sent to it is
+ * used. The person also turns off the notices that are neither about their
+ * account nor about a Knock. See docs/adr/0031-e-mail-through-a-relay.md and
+ * docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
  */
 function EmailSection() {
 	const api = useConsole();
-	const admin = api.session.kind === "admin";
 	const { data, reload } = useLoad(async (): Promise<Mailbox> => {
-		if (admin) {
-			const list = await api.server("list_admins", {});
-			return { email: list.admins.find((a) => a.handle === api.session.handle)?.email };
-		}
 		const a = await api.cahut("get_account", {});
 		return { email: a.email, change: a.email_change, noticesOff: a.notices_off };
 	});
@@ -125,7 +121,7 @@ function EmailSection() {
 		e.preventDefault();
 		act(async () => {
 			const input = { email };
-			const r = admin ? await api.server("change_email", input) : await api.cahut("change_email", input);
+			const r = await api.cahut("change_email", input);
 			setEmail("");
 			return r.waiting ? `A link went to ${r.waiting.email}. Your address changes once you use it.` : "Your address is removed.";
 		});
@@ -164,7 +160,7 @@ function EmailSection() {
 							type="button"
 							onClick={() =>
 								act(async () => {
-									await (admin ? api.server("change_email", { email: "" }) : api.cahut("change_email", { email: "" }));
+									await api.cahut("change_email", { email: "" });
 									return "Your address is removed.";
 								})
 							}
@@ -174,24 +170,22 @@ function EmailSection() {
 					)}
 				</div>
 			</form>
-			{!admin && (
-				<label class="c-check">
-					<input
-						type="checkbox"
-						checked={!data.noticesOff}
-						onChange={(e) => {
-							const off = !e.currentTarget.checked;
-							act(async () => {
-								await api.cahut("set_mail_notices", { off });
-								return off
-									? "Notices are off, but for those about your account and your Knocks."
-									: "Notices are on.";
-							});
-						}}
-					/>
-					Tell me by e-mail when I join a Room, or when the access of a Window that I set ends
-				</label>
-			)}
+			<label class="c-check">
+				<input
+					type="checkbox"
+					checked={!data.noticesOff}
+					onChange={(e) => {
+						const off = !e.currentTarget.checked;
+						act(async () => {
+							await api.cahut("set_mail_notices", { off });
+							return off
+								? "Notices are off, but for those about your account and your Knocks."
+								: "Notices are on.";
+						});
+					}}
+				/>
+				Tell me by e-mail when I join a Room, or when the access of a Window that I set ends
+			</label>
 			{said && (
 				<div class="c-alert c-alert--success" role="status">
 					{said}

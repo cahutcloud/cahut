@@ -18,7 +18,7 @@ import (
 type SetMailRelayInput struct {
 	Host     string `json:"host" jsonschema:"the name or the address of the SMTP relay, such as smtp.example.com, without a scheme or a port; empty removes the relay"`
 	Port     int    `json:"port,omitempty" jsonschema:"its port: 465 for TLS from the start, 587 for STARTTLS; 465 with tls and 587 otherwise when left out"`
-	Security string `json:"security,omitempty" jsonschema:"tls, from the start; starttls; or none, for a relay of the server on its loopback address only. tls on port 465 and starttls otherwise when left out"`
+	Security string `json:"security,omitempty" jsonschema:"tls, from the start, or starttls; tls on port 465 and starttls otherwise when left out"`
 	Username string `json:"username,omitempty" jsonschema:"the user name at the relay; leave it out when the relay takes no authentication"`
 	Password string `json:"password,omitempty" jsonschema:"the password at the relay; when left out, the password kept stays, as long as the host and the user name do not change"`
 	From     string `json:"from,omitempty" jsonschema:"the address that messages come from, one that the relay accepts, such as cahut@example.com"`
@@ -30,15 +30,14 @@ type GetMailRelayInput struct{}
 
 // SendTestMailInput is the input of send_test_mail.
 type SendTestMailInput struct {
-	To string `json:"to,omitempty" jsonschema:"on the command line, the address to send the test to; a person's test goes to their own address"`
+	To string `json:"to,omitempty" jsonschema:"on the command line, or for an administrator of the server, the address to send the test to; a person's test goes to their own address"`
 }
 
-// Delivery is the output of set_mail_relay and get_mail_relay: the relay set
-// here, and how e-mail goes out.
+// Delivery is the output of set_mail_relay and get_mail_relay: the relay of
+// the Cahut, and how its e-mail goes out.
 type Delivery struct {
-	Relay  *RelayInfo `json:"relay,omitempty" jsonschema:"the relay set here; absent when there is none"`
-	Server bool       `json:"server,omitempty" jsonschema:"for a Cahut without a relay of its own: the server has one, which sends the e-mail of the Cahut"`
-	Sends  bool       `json:"sends" jsonschema:"whether e-mail goes out: through the relay set here, or through that of the server"`
+	Relay *RelayInfo `json:"relay,omitempty" jsonschema:"the relay of the Cahut; absent when there is none, and the Cahut then sends no e-mail"`
+	Sends bool       `json:"sends" jsonschema:"whether the Cahut sends e-mail: it has a relay, or the server runs for development and writes its messages to disk"`
 	Status
 }
 
@@ -46,7 +45,7 @@ type Delivery struct {
 type RelayInfo struct {
 	Host     string    `json:"host"`
 	Port     int       `json:"port"`
-	Security string    `json:"security" jsonschema:"tls, starttls or none"`
+	Security string    `json:"security" jsonschema:"tls or starttls"`
 	Username string    `json:"username,omitempty"`
 	Password bool      `json:"password" jsonschema:"whether a password is kept; it is never given back"`
 	From     string    `json:"from" jsonschema:"the address that messages come from"`
@@ -56,15 +55,14 @@ type RelayInfo struct {
 
 // TestSent is the output of send_test_mail.
 type TestSent struct {
-	To     string `json:"to"`
-	Server bool   `json:"server,omitempty" jsonschema:"the test went through the relay of the server, since the Cahut has none of its own"`
+	To string `json:"to"`
 }
 
-// scope is where a relay is set: a Cahut, or the server.
+// scope is the Cahut whose relay the operations set.
 type scope struct {
 	s      *Service
-	db     *store.DB // of the Cahut; nil for the server
-	domain string    // of the Cahut; empty for the server
+	db     *store.DB
+	domain string
 	name   func(ctx context.Context) (string, error)
 }
 
@@ -83,7 +81,7 @@ func (s *Service) RegisterCahut(r *operation.Registry, db *store.DB, domain stri
 		Title: "Set the e-mail relay",
 		Description: "Set the SMTP relay that sends the e-mail of this Cahut, such as activation links, from an address of its own. " +
 			"The relay is at a public address and speaks TLS. Cahut connects to it and signs in before it keeps it. " +
-			"An empty host removes it: the e-mail of the Cahut then goes through the relay of the server, when it has one. " +
+			"An empty host removes it: the Cahut then sends no e-mail, and its console offers nothing that would. " +
 			"For the administrators of the Cahut.",
 		Level:      operation.CahutAdmin,
 		PeopleOnly: true,
@@ -93,8 +91,8 @@ func (s *Service) RegisterCahut(r *operation.Registry, db *store.DB, domain stri
 	operation.Register(r, &operation.Op[GetMailRelayInput, Delivery]{
 		Name:  "get_mail_relay",
 		Title: "Describe the e-mail relay",
-		Description: "Describe the SMTP relay of this Cahut, without its password, or say that its e-mail goes through the relay " +
-			"of the server; and when a message last went out, or last failed and why. For the administrators of the Cahut.",
+		Description: "Describe the SMTP relay of this Cahut, without its password, or say that it has none and sends no e-mail; " +
+			"and when a message last went out, or last failed and why. For the administrators of the Cahut.",
 		Level:      operation.CahutAdmin,
 		PeopleOnly: true,
 		ReadOnly:   true,
@@ -103,55 +101,13 @@ func (s *Service) RegisterCahut(r *operation.Registry, db *store.DB, domain stri
 	operation.Register(r, &operation.Op[SendTestMailInput, TestSent]{
 		Name:  "send_test_mail",
 		Title: "Send a test e-mail",
-		Description: "Send a test message through the relay of this Cahut, or that of the server, and say whether the relay took it. " +
+		Description: "Send a test message through the relay of this Cahut, and say whether the relay took it. " +
 			"For the administrators of the Cahut.",
 		Level:      operation.CahutAdmin,
 		PeopleOnly: true,
 		Prepare:    sc.prepareTest,
 		Run:        sc.test,
 	})
-}
-
-// RegisterServer registers, in the registry r of the server, the operations
-// that set its relay: set_mail_relay, get_mail_relay and send_test_mail.
-func (s *Service) RegisterServer(r *operation.Registry) {
-	sc := &scope{s: s, name: func(context.Context) (string, error) { return "Cahut", nil }}
-	operation.Register(r, &operation.Op[SetMailRelayInput, Delivery]{
-		Name:  "set_mail_relay",
-		Title: "Set the e-mail relay of the server",
-		Description: "Set the SMTP relay that sends the e-mail of this server, and that of every Cahut without a relay of its own. " +
-			"It may be on this machine or its network; without TLS, only on its loopback address. " +
-			"Cahut connects to it and signs in before it keeps it. An empty host removes it. For the administrators of the server.",
-		Level:      operation.ServerAdmin,
-		PeopleOnly: true,
-		Prepare:    sc.prepareSet,
-		Run:        sc.set,
-	})
-	operation.Register(r, &operation.Op[GetMailRelayInput, Delivery]{
-		Name:  "get_mail_relay",
-		Title: "Describe the e-mail relay of the server",
-		Description: "Describe the SMTP relay of this server, without its password, and when a message of the server last went out, " +
-			"or last failed and why. For the administrators of the server.",
-		Level:      operation.ServerAdmin,
-		PeopleOnly: true,
-		ReadOnly:   true,
-		Run:        sc.get,
-	})
-	operation.Register(r, &operation.Op[SendTestMailInput, TestSent]{
-		Name:        "send_test_mail",
-		Title:       "Send a test e-mail from the server",
-		Description: "Send a test message through the relay of this server, and say whether the relay took it. For the administrators of the server.",
-		Level:       operation.ServerAdmin,
-		PeopleOnly:  true,
-		Prepare:     sc.prepareTest,
-		Run:         sc.test,
-	})
-}
-
-// cahut reports whether the scope is a Cahut, whose relay must be at a
-// public address and speak TLS.
-func (sc *scope) cahut() bool {
-	return sc.db != nil
 }
 
 // prepared is what set_mail_relay prepares, before its transaction: the
@@ -171,13 +127,13 @@ func (sc *scope) prepareSet(ctx context.Context, c *operation.Call, in SetMailRe
 	}
 	r := Relay{Host: in.Host, Port: in.Port, Security: in.Security, Username: in.Username, Password: in.Password, From: in.From, Name: in.Name}
 	c.Log("mail relay", strings.TrimSpace(in.Host))
-	if err := check(&r, sc.cahut()); err != nil {
+	if err := check(&r); err != nil {
 		return operation.Invalidf("%v", err)
 	}
-	if sc.cahut() && !sc.s.dialAnywhere {
+	if !sc.s.dialAnywhere {
 		if ip, err := netip.ParseAddr(r.Host); r.Host == "localhost" || err == nil && !address.Public(ip) {
 			return operation.Invalidf("%s is not a public address: the relay of a Cahut is on the internet, "+
-				"and a relay on this server or its network is the relay of the server, which its administrators set", r.Host)
+				"such as the SMTP relay of your provider of e-mail", r.Host)
 		}
 	}
 	var cur *stored
@@ -199,7 +155,7 @@ func (sc *scope) prepareSet(ctx context.Context, c *operation.Call, in SetMailRe
 		}
 		kept = true
 	}
-	if err := sc.s.try(ctx, &r, sc.cahut()); err != nil {
+	if err := sc.s.try(ctx, &r); err != nil {
 		return operation.Invalidf("the relay did not take this setting: %v", err)
 	}
 	st := &stored{Relay: r}
@@ -250,27 +206,19 @@ func (sc *scope) get(ctx context.Context, c *operation.Call, _ GetMailRelayInput
 	return sc.view(ctx, c.Tx)
 }
 
-// view describes the relay of the scope, as tx reads it.
+// view describes the relay of the Cahut, as tx reads it.
 func (sc *scope) view(ctx context.Context, tx *sql.Tx) (Delivery, error) {
 	own, err := load(ctx, tx)
 	if err != nil {
 		return Delivery{}, err
 	}
-	out := Delivery{Status: sc.s.statusOf(sc.domain)}
+	out := Delivery{Status: sc.s.statusOf(sc.domain), Sends: sc.s.cfg.Dev}
 	if own != nil {
 		out.Relay = &RelayInfo{
 			Host: own.Host, Port: own.Port, Security: own.Security, Username: own.Username, Password: own.sealed != nil,
 			From: own.From, Name: own.Name, SetAt: own.SetAt,
 		}
 		out.Sends = true
-		return out, nil
-	}
-	if sc.cahut() {
-		srv, err := load(ctx, sc.s.cfg.Server.Read)
-		if err != nil {
-			return Delivery{}, err
-		}
-		out.Server, out.Sends = srv != nil, srv != nil
 	}
 	return out, nil
 }
@@ -288,39 +236,37 @@ func (sc *scope) prepareTest(ctx context.Context, c *operation.Call, in SendTest
 	if from.Name, err = sc.name(ctx); err != nil {
 		return err
 	}
-	r, own, err := sc.s.relayOf(ctx, from)
+	r, err := sc.s.relayOf(ctx, from)
 	if err != nil {
 		return operation.Invalidf("%v", err)
 	}
 	if r == nil {
 		return operation.Invalidf("%v", ErrNoRelay)
 	}
-	l := Letter{To: to, Subject: "A test from " + from.Name}
-	if sc.cahut() {
-		l.Lines = []string{"This message tests the e-mail of the Cahut at " + sc.domain + "."}
-	} else {
-		l.Subject = "A test from the Cahut server " + sc.s.helo
-		l.Lines = []string{"This message tests the e-mail of the Cahut server " + sc.s.helo + "."}
+	l := Letter{
+		To:      to,
+		Subject: "A test from " + from.Name,
+		Lines:   []string{"This message tests the e-mail of the Cahut at " + sc.domain + "."},
+		After:   []string{"It reached you: there is nothing else to do."},
 	}
-	l.After = []string{"It reached you: there is nothing else to do."}
 	msg, err := build(r, from, l, c.Now)
 	if err != nil {
 		return err
 	}
-	err = sc.s.deliver(ctx, r, own && sc.cahut(), to, msg)
+	err = sc.s.deliver(ctx, r, to, msg)
 	sc.s.record(sc.domain, err)
 	if err != nil {
 		return operation.Invalidf("the relay did not take the test: %v", err)
 	}
-	c.Keep(TestSent{To: to, Server: sc.cahut() && !own})
+	c.Keep(TestSent{To: to})
 	return nil
 }
 
 // recipient returns where the test of the call c goes: to the address of
-// the person or the administrator who calls, or, on the command line, to
-// the address given.
+// the person who calls, or to the address given, on the command line and
+// for an administrator of the server, who has none.
 func (sc *scope) recipient(ctx context.Context, c *operation.Call, given string) (string, error) {
-	if c.Actor.CommandLine() {
+	if c.Actor.CommandLine() || c.Actor.UserID == 0 {
 		to, err := Address(given)
 		if err != nil {
 			return "", operation.Invalidf("to: %v", err)
@@ -331,16 +277,9 @@ func (sc *scope) recipient(ctx context.Context, c *operation.Call, given string)
 		return "", operation.Invalidf("a test goes to your own e-mail address: leave out to")
 	}
 	var email sql.NullString
-	var err error
-	if sc.cahut() && c.Actor.UserID != 0 {
-		err = c.Read(ctx, func(tx *sql.Tx) error {
-			return tx.QueryRowContext(ctx, "SELECT email FROM users WHERE id = ?", c.Actor.UserID).Scan(&email)
-		})
-	} else {
-		// An administrator of the server, at the console of the server or
-		// of a Cahut, has their address in the database of the server.
-		err = sc.s.cfg.Server.Read.QueryRowContext(ctx, "SELECT email FROM admins WHERE handle = ?", c.Actor.Handle).Scan(&email)
-	}
+	err := c.Read(ctx, func(tx *sql.Tx) error {
+		return tx.QueryRowContext(ctx, "SELECT email FROM users WHERE id = ?", c.Actor.UserID).Scan(&email)
+	})
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
@@ -355,18 +294,13 @@ func (sc *scope) test(_ context.Context, c *operation.Call, _ SendTestMailInput)
 	if !ok {
 		return TestSent{}, errors.New("mail: send_test_mail ran without its Prepare")
 	}
-	detail := "to " + sent.To
-	if sent.Server {
-		detail += ", through the relay of the server"
-	}
-	c.Log("mail relay", "test "+detail)
+	c.Log("mail relay", "test to "+sent.To)
 	return sent, nil
 }
 
 // Sends reports, in the transaction tx of a Cahut, whether the Cahut sends
-// e-mail: through a relay of its own, or that of the server; in
-// development, always, since messages without a relay go to disk. A nil s
-// sends none.
+// e-mail: when it has a relay, and in development always, since messages
+// without a relay go to disk. A nil s sends none.
 func (s *Service) Sends(ctx context.Context, tx querier) (bool, error) {
 	if s == nil {
 		return false, nil
@@ -374,11 +308,6 @@ func (s *Service) Sends(ctx context.Context, tx querier) (bool, error) {
 	if s.cfg.Dev {
 		return true, nil
 	}
-	for _, q := range []querier{tx, s.cfg.Server.Read} {
-		r, err := load(ctx, q)
-		if err != nil || r != nil {
-			return r != nil, err
-		}
-	}
-	return false, nil
+	r, err := load(ctx, tx)
+	return r != nil, err
 }

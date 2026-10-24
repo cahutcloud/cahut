@@ -7,7 +7,7 @@ export interface About {
   url?: string;
   /** the address of its MCP endpoint, where AI clients connect */
   mcp?: string;
-  /** whether this Cahut sends e-mail, through a relay of its own or that of its server */
+  /** whether this Cahut sends e-mail, through the relay that its administrators set; without one, nothing that would send e-mail works, such as invitations */
   sends_mail: boolean;
   /** collaborative, where people share team Rooms, or individual, where each person works alone and does not see the others */
   kind: string;
@@ -121,8 +121,6 @@ export interface Admin {
   name: string;
   /** pending until the administrator chooses a password, then active; disabled while they may not sign in */
   status: string;
-  /** the e-mail address of the administrator, where their links and the notices of the server go */
-  email?: string;
   created_at: string;
 }
 
@@ -243,8 +241,6 @@ export interface Connection {
 export interface CreateAdminInput {
   handle: string;
   name: string;
-  /** the e-mail address of the administrator, where their activation link goes */
-  email?: string;
 }
 
 export interface CreateRoomInput {
@@ -299,11 +295,9 @@ export interface DeletedRoom {
 }
 
 export interface Delivery {
-  /** the relay set here; absent when there is none */
+  /** the relay of the Cahut; absent when there is none, and the Cahut then sends no e-mail */
   relay?: RelayInfo;
-  /** for a Cahut without a relay of its own: the server has one, which sends the e-mail of the Cahut */
-  server?: boolean;
-  /** whether e-mail goes out: through the relay set here, or through that of the server */
+  /** whether the Cahut sends e-mail: it has a relay, or the server runs for development and writes its messages to disk */
   sends: boolean;
   /** when a message last went out */
   last_sent?: string;
@@ -320,6 +314,8 @@ export interface DenyInput {
 export interface DescribeInput {
   request: Request;
 }
+
+export type DescribeSignInInput = Record<string, never>;
 
 export interface DisconnectAIInput {
   /** the connection, from list_connected_ais */
@@ -709,8 +705,6 @@ export interface NewAdmin {
   name: string;
   /** pending until the administrator chooses a password, then active; disabled while they may not sign in */
   status: string;
-  /** the e-mail address of the administrator, where their links and the notices of the server go */
-  email?: string;
   created_at: string;
   /** the link where the administrator chooses their password */
   activation: Activation;
@@ -848,7 +842,7 @@ export interface RefInput {
 export interface RelayInfo {
   host: string;
   port: number;
-  /** tls, starttls or none */
+  /** tls or starttls */
   security: string;
   username?: string;
   /** whether a password is kept; it is never given back */
@@ -978,7 +972,7 @@ export interface Run {
 }
 
 export interface SendTestMailInput {
-  /** on the command line, the address to send the test to; a person's test goes to their own address */
+  /** on the command line, or for an administrator of the server, the address to send the test to; a person's test goes to their own address */
   to?: string;
 }
 
@@ -1050,7 +1044,7 @@ export interface SetMailRelayInput {
   host: string;
   /** its port: 465 for TLS from the start, 587 for STARTTLS; 465 with tls and 587 otherwise when left out */
   port?: number;
-  /** tls, from the start; starttls; or none, for a relay of the server on its loopback address only. tls on port 465 and starttls otherwise when left out */
+  /** tls, from the start, or starttls; tls on port 465 and starttls otherwise when left out */
   security?: string;
   /** the user name at the relay; leave it out when the relay takes no authentication */
   username?: string;
@@ -1076,8 +1070,6 @@ export interface SetUpInput {
   name: string;
   /** of 15 characters at least */
   password: string;
-  /** the e-mail address of the first person, and of the administrator of the server, where their links go */
-  email?: string;
 }
 
 export interface SetUserEmailInput {
@@ -1131,6 +1123,11 @@ export interface SignInInput {
   password: string;
 }
 
+export interface SignInPage {
+  /** whether this Cahut sends e-mail, and so a link to a person who forgot their password */
+  sends_mail: boolean;
+}
+
 export type SignInToWindowsInput = Record<string, never>;
 
 export type SignOutInput = Record<string, never>;
@@ -1148,8 +1145,6 @@ export interface Template {
 
 export interface TestSent {
   to: string;
-  /** the test went through the relay of the server, since the Cahut has none of its own */
-  server?: boolean;
 }
 
 export interface TokenInfo {
@@ -1360,6 +1355,8 @@ export interface CahutOperations {
   deny_knock: { input: AnswerInput; output: Knock };
   /** Check the request of an AI client to connect to this Cahut, and describe it to the person who consents: the client, where it will be sent back, the scope it asks for, and the Rooms the person may grant. */
   describe_authorization: { input: DescribeInput; output: Authorization };
+  /** Say what the page of sign-in of this Cahut offers, before anyone signs in: whether it sends e-mail, and so a link to a person who forgot their password. */
+  describe_sign_in: { input: DescribeSignInInput; output: SignInPage };
   /** Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. */
   disable_user: { input: UserInput; output: User };
   /** Disconnect an AI connected over OAuth. Its tokens stop working at once; to use it again, the person connects it again. */
@@ -1376,7 +1373,7 @@ export interface CahutOperations {
   get_invitation: { input: InvitationCodeInput; output: InvitationPage };
   /** Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
   get_knock: { input: KnockGetInput; output: Knock };
-  /** Describe the SMTP relay of this Cahut, without its password, or say that its e-mail goes through the relay of the server; and when a message last went out, or last failed and why. For the administrators of the Cahut. */
+  /** Describe the SMTP relay of this Cahut, without its password, or say that it has none and sends no e-mail; and when a message last went out, or last failed and why. For the administrators of the Cahut. */
   get_mail_relay: { input: GetMailRelayInput; output: Delivery };
   /** Describe a Room: its title, its owners and members, and how many Windows it holds. */
   get_room: { input: RoomGetInput; output: RoomDetail };
@@ -1410,7 +1407,7 @@ export interface CahutOperations {
   purge_window: { input: RefInput; output: Window };
   /** Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. */
   remove_room_member: { input: RemoveMemberInput; output: RoomDetail };
-  /** Send the link where a person chooses a new password to the e-mail address of their account, given its handle or its address. The link works for one hour; the password works until it is used. The answer is the same whether the account exists or not. */
+  /** Send the link where a person chooses a new password to the e-mail address of their account, given its handle or its address. The link works for one hour; the password works until it is used. The answer is the same whether the account exists or not. A Cahut without an e-mail relay sends none: an administrator of the Cahut gives a new link instead. */
   request_password_link: { input: RequestPasswordLinkInput; output: PasswordLinkRequested };
   /** Bring a Window back from the trash, with its versions. */
   restore_window: { input: RefInput; output: Window };
@@ -1422,7 +1419,7 @@ export interface CahutOperations {
   rollback_house_style: { input: RollbackInput; output: HouseStyle };
   /** Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. */
   rollback_window: { input: RefInput; output: Window };
-  /** Send a test message through the relay of this Cahut, or that of the server, and say whether the relay took it. For the administrators of the Cahut. */
+  /** Send a test message through the relay of this Cahut, and say whether the relay took it. For the administrators of the Cahut. */
   send_test_mail: { input: SendTestMailInput; output: TestSent };
   /** Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. */
   set_ai_reach: { input: SetAIReachInput; output: Connection };
@@ -1432,7 +1429,7 @@ export interface CahutOperations {
   set_house_style: { input: SetInput; output: HouseStyle };
   /** Turn off, or on again, the e-mail notices that are neither about your account nor about a Knock, such as being added to a Room or the end of the access of a Window. */
   set_mail_notices: { input: SetMailNoticesInput; output: MailNotices };
-  /** Set the SMTP relay that sends the e-mail of this Cahut, such as activation links, from an address of its own. The relay is at a public address and speaks TLS. Cahut connects to it and signs in before it keeps it. An empty host removes it: the e-mail of the Cahut then goes through the relay of the server, when it has one. For the administrators of the Cahut. */
+  /** Set the SMTP relay that sends the e-mail of this Cahut, such as activation links, from an address of its own. The relay is at a public address and speaks TLS. Cahut connects to it and signs in before it keeps it. An empty host removes it: the Cahut then sends no e-mail, and its console offers nothing that would. For the administrators of the Cahut. */
   set_mail_relay: { input: SetMailRelayInput; output: Delivery };
   /** Show a Window of a Room at the Room's address, <domain>/<room>/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access. */
   set_room_home: { input: SetHomeInput; output: RoomDetail };
@@ -1464,15 +1461,11 @@ export interface ServerOperations {
   activate_account: { input: ActivateInput; output: ServerSession };
   /** Declare a domain on this server, which creates the Cahut at that domain, optionally with its first administrator and the link where they choose their password. */
   add_domain: { input: AddDomainInput; output: NewCahut };
-  /** Change your e-mail address of administrator of the server: a link goes to the new one, which replaces yours once you use the link, within 24 hours, and your old address gets a notice. An empty address removes yours at once. */
-  change_email: { input: ChangeEmailInput; output: EmailChanged };
   /** Change your password, as an administrator of the server. Your other sessions end. */
   change_password: { input: ChangePasswordInput; output: PasswordChanged };
-  /** Confirm a new e-mail address of an administrator of the server, from the link sent to it. */
-  confirm_email: { input: ConfirmEmailInput; output: EmailChanged };
-  /** Give an administrator of the server a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. It goes to their e-mail address too, when they have one and the server sends e-mail. Their password works until they use the link. */
+  /** Give an administrator of the server a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. Their password works until they use the link. */
   create_activation_link: { input: AdminInput; output: Activation };
-  /** Create an administrator of the server, and the link where they choose their password, which goes to their e-mail address when you give one and the server sends e-mail. */
+  /** Create an administrator of the server, and the link where they choose their password. */
   create_admin: { input: CreateAdminInput; output: NewAdmin };
   /** Give the link to the first start of a Cahut that has nobody yet, single-use and valid for 24 hours, where its first person chooses their handle and password. It replaces the previous link. */
   create_setup_link: { input: CreateSetupLinkInput; output: SetupLink };
@@ -1480,8 +1473,6 @@ export interface ServerOperations {
   disable_admin: { input: AdminInput; output: Admin };
   /** Enable a disabled administrator of the server again: they can sign in with their password, or with a new link. */
   enable_admin: { input: AdminInput; output: Admin };
-  /** Describe the SMTP relay of this server, without its password, and when a message of the server last went out, or last failed and why. For the administrators of the server. */
-  get_mail_relay: { input: GetMailRelayInput; output: Delivery };
   /** Say whether a link to the first start still works at this domain. */
   get_setup: { input: SetupInput; output: Setup };
   /** Say which version of Cahut runs, the newest release, and how the last check and the last update went. */
@@ -1494,14 +1485,8 @@ export interface ServerOperations {
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
   /** Move a Cahut to another domain, or from the IP address of the server to a domain. Its people, Rooms, Windows, house style and Logbook stay; the links that name its old address stop working, and AIs connect again at the new one. */
   rename_domain: { input: RenameDomainInput; output: Info };
-  /** Send the link where an administrator of the server chooses a new password to the e-mail address of their account, given its handle or its address. The link works for one hour. The answer is the same whether the account exists or not. */
-  request_password_link: { input: RequestPasswordLinkInput; output: PasswordLinkRequested };
   /** Ask the updater of the server to check for new releases, or to install a release newer than the one running. It runs as root within a minute, checks the signature, and goes back to the version running if the new one fails. */
   request_update: { input: RequestUpdateInput; output: RequestedUpdate };
-  /** Send a test message through the relay of this server, and say whether the relay took it. For the administrators of the server. */
-  send_test_mail: { input: SendTestMailInput; output: TestSent };
-  /** Set the SMTP relay that sends the e-mail of this server, and that of every Cahut without a relay of its own. It may be on this machine or its network; without TLS, only on its loopback address. Cahut connects to it and signs in before it keeps it. An empty host removes it. For the administrators of the server. */
-  set_mail_relay: { input: SetMailRelayInput; output: Delivery };
   /** Use a link to the first start: create the first person of the Cahut, its administrator, and the administrator of the server if it has none, with the same handle and password; then sign the person in. */
   set_up: { input: SetUpInput; output: SetUp };
   /** Sign in as an administrator of the server, with a handle and a password, and open a session at this domain. */

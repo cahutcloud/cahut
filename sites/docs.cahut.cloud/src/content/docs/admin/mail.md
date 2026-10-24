@@ -1,18 +1,17 @@
 ---
 title: E-mail
-description: How a Cahut sends e-mail through an SMTP relay, its own or that of its server, what it sends, and how to set and test a relay.
+description: How a Cahut sends e-mail through the SMTP relay that its administrators set, what it sends, and how to set and test the relay.
 ---
 
-A Cahut sends e-mail through an SMTP relay: the links where people choose their password, invitations to read a Window, and notices. It never delivers messages to the servers of their recipients itself. Without a relay, a Cahut works as before: administrators pass links on by hand, and nothing else goes out.
+A Cahut sends e-mail through the SMTP relay that its administrators set: the links where people choose their password, invitations to read a Window, and notices. It never delivers messages to the servers of their recipients itself.
 
-## Two relays
+## Each Cahut, its own relay
 
-| Relay | Who sets it | What it sends |
-| --- | --- | --- |
-| The relay of the server | Its administrators, in the console under **E-mail of the server**, or with `cahut mail set` | The e-mail of the server, and that of every Cahut without a relay of its own |
-| The relay of a Cahut | Its administrators, in the console under **E-mail**, or with `cahut mail set --domain` | The e-mail of that Cahut, from an address of its own |
+Only a Cahut has a relay. Its administrators set it, in the console under **E-mail**, or with `cahut mail set`. The server has none, and nothing falls back to one: each Cahut sends its e-mail from an address of its own, with the account of its own provider.
 
-The relay of a Cahut speaks TLS, from the start or after STARTTLS, and is on the internet: Cahut refuses a relay of a Cahut at a loopback, private or reserved address. A relay on the server or on its network is the relay of the server, which may also do without TLS on the loopback address of the machine, where the message does not leave it.
+A Cahut without a relay sends no e-mail, and its console offers nothing that would: no **Forgot your password?** on the page of sign-in, no address on the page of an account or under **People**, no invitation on the page of a Window, no notice to turn off. Administrators pass links on by hand, as before. The addresses already given stay, and serve again once a relay is set.
+
+The relay of a Cahut speaks TLS, from the start or after STARTTLS, and is on the internet: Cahut refuses a relay at a loopback, private or reserved address, such as a Postfix on the server itself.
 
 Cahut connects to a relay and signs in before it keeps it. The answer of the relay tells you what is wrong: a host that does not answer, a relay that offers no STARTTLS, a refused password.
 
@@ -24,7 +23,7 @@ In the console, the page **E-mail** asks for what your provider of e-mail gives:
 | --- | --- |
 | Host | The name of the relay, such as `smtp.example.com`, without a scheme or a port |
 | Port | 587 for STARTTLS, 465 for TLS from the start |
-| Security | STARTTLS or TLS; for the relay of the server on this machine, none |
+| Security | STARTTLS or TLS |
 | User name and password | Those of the account at the relay; empty when it takes no authentication |
 | From | An address that the relay accepts, such as `cahut@example.com` |
 | Name | The name messages come from; the name of the Cahut when empty |
@@ -37,7 +36,7 @@ printf '%s' "$SMTP_PASSWORD" | sudo -u cahut /usr/local/bin/cahut mail set --hos
 ```
 
 ```text
-The relay answered, and sends the e-mail of the server.
+The relay answered, and sends the e-mail of cahut.example.com.
 
 host  smtp.example.com:587, starttls
 user  cahut@example.com, with a password
@@ -45,9 +44,9 @@ from  cahut@example.com
 set   2026-10-24 14:05
 ```
 
-`--domain cahut.example.com` sets the relay of that Cahut instead. A Postfix on the server itself, which takes no authentication, is a relay of the server: `--host 127.0.0.1 --port 25 --security none`.
+On a server that holds several Cahuts, `--domain cahut.example.com` names the Cahut.
 
-Setting the relay again without a password keeps the password, as long as the host and the user name do not change. `cahut mail show` prints the relay, `cahut mail remove` removes it: a Cahut without a relay then sends through that of the server.
+Setting the relay again without a password keeps the password, as long as the host and the user name do not change. `cahut mail show` prints the relay, `cahut mail remove` removes it: the Cahut then sends no e-mail.
 
 ## The password of a relay
 
@@ -55,7 +54,7 @@ Cahut keeps the password of a relay sealed with AES-256-GCM, under a key of the 
 
 ## Test
 
-**Send a test to your address**, on the page **E-mail**, sends a message to the address of your account, and says whether the relay took it. On the command line, name the address:
+**Send a test to your address**, on the page **E-mail**, sends a message to the address of your account, and says whether the relay took it. An administrator of the server, who has no address, names one there. On the command line, name the address too:
 
 ```bash
 sudo -u cahut /usr/local/bin/cahut mail test --domain cahut.example.com --to you@example.com
@@ -78,11 +77,12 @@ Whether messages arrive depends on the relay and on the domain of the sender. Se
 | A Knock that waits | The person its AI acts for. See [Knock first](/concepts/knock-first-and-logbook/#knock-first) |
 | A password, an address, a role changed; a personal token created; an AI connected | The person |
 | Added to a team Room; the access of a Window that ends in three days | The person, unless they turned these notices off on the page of their account |
-| A limit of the Cahut at 90% or reached | Its administrators, and those of the server |
-| A failed update, a release that waits, a certificate that cannot be renewed, a disk 90% full | The administrators of the server |
+| A limit of the Cahut at 90% or reached | Its administrators |
+
+The administrators of the server have no address and receive no e-mail: updates, certificates and the disk show in the console of the server and in `cahut doctor`, and a forgotten password goes through another administrator or `cahut admin link`.
 
 Messages are in English, in the brand of Cahut. Each person sets their address on the page of their account: a link sent to the new address confirms it. An administrator sets the address of a person under **People**. No AI reads the address of a person, and no AI sets the relay.
 
 ## In development
 
-`cahut serve --dev` writes each message that no relay sends to the `mail/` directory of its data, as a `.eml` file, and logs its link: the flows of e-mail work on one machine, without a relay.
+`cahut serve --dev` writes each message of a Cahut without a relay to the `mail/` directory of its data, as a `.eml` file, and logs its link; its console shows the features of e-mail. The flows of e-mail work on one machine, without a relay.

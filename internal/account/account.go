@@ -42,6 +42,7 @@ func Register(r *operation.Registry) {
 	operation.Register(r, ChangeEmail)
 	operation.Register(r, ConfirmEmail)
 	operation.Register(r, RequestPasswordLink)
+	operation.Register(r, DescribeSignIn)
 	operation.Register(r, SetMailNotices)
 }
 
