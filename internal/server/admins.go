@@ -27,6 +27,8 @@ const SessionPrefix = "cahut_adm_"
 func registerAdmins(r *operation.Registry) {
 	operation.Register(r, CreateAdmin)
 	operation.Register(r, ListAdmins)
+	operation.Register(r, DisableAdmin)
+	operation.Register(r, EnableAdmin)
 	operation.Register(r, CreateActivationLink)
 	operation.Register(r, ActivateAccount)
 	operation.Register(r, SignIn)
@@ -38,7 +40,7 @@ func registerAdmins(r *operation.Registry) {
 type Admin struct {
 	Handle    string    `json:"handle"`
 	Name      string    `json:"name"`
-	Status    string    `json:"status" jsonschema:"pending until the administrator chooses a password, then active"`
+	Status    string    `json:"status" jsonschema:"pending until the administrator chooses a password, then active; disabled while they may not sign in"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -51,10 +53,10 @@ type adminRecord struct {
 
 func findAdmin(ctx context.Context, tx *sql.Tx, handle string) (adminRecord, error) {
 	var a adminRecord
-	var hash sql.NullString
+	var hash, disabled sql.NullString
 	var created string
-	err := tx.QueryRowContext(ctx, "SELECT id, handle, name, password_hash, created_at FROM admins WHERE handle = ?",
-		handle).Scan(&a.id, &a.Handle, &a.Name, &hash, &created)
+	err := tx.QueryRowContext(ctx, "SELECT id, handle, name, password_hash, disabled_at, created_at FROM admins WHERE handle = ?",
+		handle).Scan(&a.id, &a.Handle, &a.Name, &hash, &disabled, &created)
 	if errors.Is(err, sql.ErrNoRows) {
 		return adminRecord{}, operation.NotFoundf("no administrator %q on this server", handle)
 	}
@@ -62,13 +64,16 @@ func findAdmin(ctx context.Context, tx *sql.Tx, handle string) (adminRecord, err
 		return adminRecord{}, err
 	}
 	a.passwordHash = hash.String
-	a.Status = adminStatus(hash)
+	a.Status = adminStatus(hash, disabled)
 	a.CreatedAt, err = store.ParseTime(created)
 	return a, err
 }
 
-func adminStatus(passwordHash sql.NullString) string {
-	if passwordHash.Valid {
+func adminStatus(passwordHash, disabledAt sql.NullString) string {
+	switch {
+	case disabledAt.Valid:
+		return account.Disabled
+	case passwordHash.Valid:
 		return account.Active
 	}
 	return account.Pending
@@ -134,7 +139,7 @@ var ListAdmins = &operation.Op[ListAdminsInput, AdminList]{
 	Level:       operation.ServerAdmin,
 	ReadOnly:    true,
 	Run: func(ctx context.Context, c *operation.Call, _ ListAdminsInput) (AdminList, error) {
-		rows, err := c.Tx.QueryContext(ctx, "SELECT handle, name, password_hash, created_at FROM admins ORDER BY handle")
+		rows, err := c.Tx.QueryContext(ctx, "SELECT handle, name, password_hash, disabled_at, created_at FROM admins ORDER BY handle")
 		if err != nil {
 			return AdminList{}, err
 		}
@@ -142,12 +147,12 @@ var ListAdmins = &operation.Op[ListAdminsInput, AdminList]{
 		list := AdminList{Admins: []Admin{}}
 		for rows.Next() {
 			var a Admin
-			var hash sql.NullString
+			var hash, disabled sql.NullString
 			var created string
-			if err := rows.Scan(&a.Handle, &a.Name, &hash, &created); err != nil {
+			if err := rows.Scan(&a.Handle, &a.Name, &hash, &disabled, &created); err != nil {
 				return AdminList{}, err
 			}
-			a.Status = adminStatus(hash)
+			a.Status = adminStatus(hash, disabled)
 			if a.CreatedAt, err = store.ParseTime(created); err != nil {
 				return AdminList{}, err
 			}
@@ -174,6 +179,71 @@ type AdminInput struct {
 	Admin string `json:"admin" jsonschema:"handle of the administrator"`
 }
 
+// DisableAdmin disables an administrator of the server: they can no longer
+// sign in, and their sessions and their link end.
+var DisableAdmin = &operation.Op[AdminInput, Admin]{
+	Name:  "disable_admin",
+	Title: "Disable a server administrator",
+	Description: "Disable an administrator of the server: their sessions and their link end, and they cannot sign in " +
+		"until another administrator enables them again. The server keeps at least one administrator who is not disabled.",
+	Level: operation.ServerAdmin,
+	Run: func(ctx context.Context, c *operation.Call, in AdminInput) (Admin, error) {
+		c.Log(in.Admin, "")
+		a, err := findAdmin(ctx, c.Tx, in.Admin)
+		if err != nil {
+			return Admin{}, err
+		}
+		if a.Status == account.Disabled {
+			return Admin{}, operation.Invalidf("%s is already disabled", a.Handle)
+		}
+		if a.Handle == c.Actor.Handle {
+			return Admin{}, operation.Invalidf("you cannot disable yourself: another administrator of the server can")
+		}
+		var others int
+		err = c.Tx.QueryRowContext(ctx, "SELECT count(*) FROM admins WHERE disabled_at IS NULL AND id != ?", a.id).Scan(&others)
+		if err != nil {
+			return Admin{}, err
+		}
+		if others == 0 {
+			return Admin{}, operation.Invalidf("the server needs an administrator: create or enable another one first")
+		}
+		if _, err := c.Tx.ExecContext(ctx, "UPDATE admins SET disabled_at = ? WHERE id = ?", store.FormatTime(c.Now), a.id); err != nil {
+			return Admin{}, err
+		}
+		if _, err := c.Tx.ExecContext(ctx, "DELETE FROM admin_sessions WHERE admin_id = ?", a.id); err != nil {
+			return Admin{}, err
+		}
+		if _, err := c.Tx.ExecContext(ctx, "DELETE FROM admin_activations WHERE admin_id = ?", a.id); err != nil {
+			return Admin{}, err
+		}
+		a.Status = account.Disabled
+		return a.Admin, nil
+	},
+}
+
+// EnableAdmin enables a disabled administrator of the server again.
+var EnableAdmin = &operation.Op[AdminInput, Admin]{
+	Name:        "enable_admin",
+	Title:       "Enable a server administrator",
+	Description: "Enable a disabled administrator of the server again: they can sign in with their password, or with a new link.",
+	Level:       operation.ServerAdmin,
+	Run: func(ctx context.Context, c *operation.Call, in AdminInput) (Admin, error) {
+		c.Log(in.Admin, "")
+		a, err := findAdmin(ctx, c.Tx, in.Admin)
+		if err != nil {
+			return Admin{}, err
+		}
+		if a.Status != account.Disabled {
+			return Admin{}, operation.Invalidf("%s is not disabled", a.Handle)
+		}
+		if _, err := c.Tx.ExecContext(ctx, "UPDATE admins SET disabled_at = NULL WHERE id = ?", a.id); err != nil {
+			return Admin{}, err
+		}
+		a.Status = adminStatus(sql.NullString{String: a.passwordHash, Valid: a.passwordHash != ""}, sql.NullString{})
+		return a.Admin, nil
+	},
+}
+
 // CreateActivationLink gives an administrator of the server a new link
 // where they choose their password.
 var CreateActivationLink = &operation.Op[AdminInput, account.Activation]{
@@ -188,6 +258,9 @@ var CreateActivationLink = &operation.Op[AdminInput, account.Activation]{
 		a, err := findAdmin(ctx, c.Tx, in.Admin)
 		if err != nil {
 			return account.Activation{}, err
+		}
+		if a.Status == account.Disabled {
+			return account.Activation{}, operation.Invalidf("%s is disabled: enable them first", a.Handle)
 		}
 		return newActivation(ctx, c, a.id, a.Handle)
 	},
@@ -252,6 +325,9 @@ var ActivateAccount = &operation.Op[account.ActivateInput, Session]{
 		}
 		c.Identify(operation.Admin, 0, a.Handle)
 		c.Log(a.Handle, "")
+		if a.Status == account.Disabled {
+			return Session{}, operation.Forbiddenf("this account is disabled: another administrator of the server can enable it")
+		}
 		hash, err := credential.HashPassword(ctx, in.Password)
 		if err != nil {
 			return Session{}, err
@@ -330,6 +406,9 @@ var SignIn = &operation.Op[account.SignInInput, Session]{
 		}
 		if checked, _ := c.Kept().(string); checked == "" || checked != a.passwordHash {
 			return Session{}, credential.ErrWrongPassword // its password changed since it was checked
+		}
+		if a.Status == account.Disabled {
+			return Session{}, operation.Forbiddenf("this account is disabled: another administrator of the server can enable it")
 		}
 		return openSession(ctx, c, a)
 	},
@@ -410,7 +489,7 @@ func (s *Server) VerifySession(ctx context.Context, token, domain string, now ti
 	var a AdminSession
 	err := s.DB.Read.QueryRowContext(ctx, `
 		SELECT s.id, a.handle FROM admin_sessions s JOIN admins a ON a.id = s.admin_id
-		WHERE s.hash = ? AND s.domain = ? AND s.expires_at > ? AND s.last_used_at > ?`,
+		WHERE s.hash = ? AND s.domain = ? AND s.expires_at > ? AND s.last_used_at > ? AND a.disabled_at IS NULL`,
 		credential.Hash(token), domain, store.FormatTime(now), store.FormatTime(now.Add(-credential.SessionIdle))).Scan(&a.SessionID, &a.Handle)
 	if errors.Is(err, sql.ErrNoRows) {
 		return AdminSession{}, account.ErrInvalidSession

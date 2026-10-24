@@ -158,8 +158,33 @@ func TestServerAdminCommands(t *testing.T) {
 	if code != exitOK || !regexp.MustCompile(`olivier\s+Olivier Durand\s+pending`).MatchString(out) {
 		t.Errorf("admin list: %d %q", code, out)
 	}
+
+	// The server keeps an administrator who is not disabled.
+	if code, _, errOut := run(t, data, "admin", "disable", "--handle", "olivier"); code != exitError || !strings.Contains(errOut, "needs an administrator") {
+		t.Errorf("admin disable of the only administrator: %d %q", code, errOut)
+	}
+	if code, _, errOut := run(t, data, "admin", "create", "--handle", "camille", "--name", "Camille"); code != exitOK {
+		t.Fatalf("admin create camille: %d %q", code, errOut)
+	}
+	code, out, errOut = run(t, data, "admin", "disable", "--handle", "olivier")
+	if code != exitOK || !strings.Contains(out, "Disabled olivier (Olivier Durand)") {
+		t.Errorf("admin disable: %d %q %q", code, out, errOut)
+	}
+	code, out, _ = run(t, data, "admin", "list")
+	if code != exitOK || !regexp.MustCompile(`olivier\s+Olivier Durand\s+disabled`).MatchString(out) {
+		t.Errorf("admin list after disabling: %d %q", code, out)
+	}
+	if code, _, errOut := run(t, data, "admin", "link", "--handle", "olivier"); code != exitError || !strings.Contains(errOut, "enable them first") {
+		t.Errorf("admin link of a disabled administrator: %d %q", code, errOut)
+	}
+	code, out, errOut = run(t, data, "admin", "enable", "--handle", "olivier")
+	if code != exitOK || !strings.Contains(out, "Enabled olivier (Olivier Durand) again.") {
+		t.Errorf("admin enable: %d %q %q", code, out, errOut)
+	}
+
 	code, out, _ = run(t, data, "logbook", "--server")
-	if code != exitOK || !strings.Contains(out, "create_activation_link") || !strings.Contains(out, "create_admin") {
+	if code != exitOK || !strings.Contains(out, "create_activation_link") || !strings.Contains(out, "create_admin") ||
+		!strings.Contains(out, "disable_admin") || !strings.Contains(out, "enable_admin") {
 		t.Errorf("server logbook: %d\n%s", code, out)
 	}
 }

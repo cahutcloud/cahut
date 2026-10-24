@@ -109,7 +109,7 @@ export interface AddDomainInput {
 export interface Admin {
   handle: string;
   name: string;
-  /** pending until the administrator chooses a password, then active */
+  /** pending until the administrator chooses a password, then active; disabled while they may not sign in */
   status: string;
   created_at: string;
 }
@@ -580,7 +580,7 @@ export interface Membership {
 export interface NewAdmin {
   handle: string;
   name: string;
-  /** pending until the administrator chooses a password, then active */
+  /** pending until the administrator chooses a password, then active; disabled while they may not sign in */
   status: string;
   created_at: string;
   /** the link where the administrator chooses their password */
@@ -1229,6 +1229,10 @@ export interface ServerOperations {
   create_admin: { input: CreateAdminInput; output: NewAdmin };
   /** Give the link to the first start of a Cahut that has nobody yet, single-use and valid for 24 hours, where its first person chooses their handle and password. It replaces the previous link. */
   create_setup_link: { input: CreateSetupLinkInput; output: SetupLink };
+  /** Disable an administrator of the server: their sessions and their link end, and they cannot sign in until another administrator enables them again. The server keeps at least one administrator who is not disabled. */
+  disable_admin: { input: AdminInput; output: Admin };
+  /** Enable a disabled administrator of the server again: they can sign in with their password, or with a new link. */
+  enable_admin: { input: AdminInput; output: Admin };
   /** Say whether a link to the first start still works at this domain. */
   get_setup: { input: SetupInput; output: Setup };
   /** Say which version of Cahut runs, the newest release, and how the last check and the last update went. */

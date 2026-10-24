@@ -77,6 +77,8 @@ They are not offered over MCP.
 | `create_activation_link` | Give an administrator of the server a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. Their password works until they use the link. | Administrators of the server | yes | no, people only |
 | `create_admin` | Create an administrator of the server, and the link where they choose their password. | Administrators of the server | yes | no |
 | `create_setup_link` | Give the link to the first start of a Cahut that has nobody yet, single-use and valid for 24 hours, where its first person chooses their handle and password. It replaces the previous link. | Administrators of the server | yes | no, people only |
+| `disable_admin` | Disable an administrator of the server: their sessions and their link end, and they cannot sign in until another administrator enables them again. The server keeps at least one administrator who is not disabled. | Administrators of the server | yes | no |
+| `enable_admin` | Enable a disabled administrator of the server again: they can sign in with their password, or with a new link. | Administrators of the server | yes | no |
 | `get_setup` | Say whether a link to the first start still works at this domain. | Anyone, to sign in | no | no, people only |
 | `get_updates` | Say which version of Cahut runs, the newest release, and how the last check and the last update went. | Administrators of the server | no | no |
 | `list_admins` | List the administrators of the server. | Administrators of the server | no | no |

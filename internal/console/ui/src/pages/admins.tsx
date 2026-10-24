@@ -1,5 +1,7 @@
 // The administrators of the server, for themselves: who they are, a new
-// one with the link where they choose their password, and a new link.
+// one with the link where they choose their password, a new link, and
+// disabling. They hold every Cahut of the server, unlike the administrators
+// of a Cahut, whom the screen of its people makes.
 import { Plus } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
@@ -7,7 +9,13 @@ import type { Activation } from "../api.gen";
 import { ConfirmButton, CopyField, Failure, initials, PageHead } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
-import { href } from "../router";
+import { href, Link } from "../router";
+
+const statuses: Record<string, { word: string; badge: string }> = {
+	active: { word: "Active", badge: "c-badge--success" },
+	pending: { word: "No password yet", badge: "c-badge--warning" },
+	disabled: { word: "Disabled", badge: "c-badge--neutral" },
+};
 
 export function Admins() {
 	const api = useConsole();
@@ -19,10 +27,11 @@ export function Admins() {
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
 
-	const act = async (run: () => Promise<{ name: string; activation: Activation }>) => {
+	const act = async (run: () => Promise<{ name: string; activation: Activation } | null>) => {
 		setFailure("");
 		try {
-			setLink(await run());
+			const given = await run();
+			if (given) setLink(given);
 			reload();
 		} catch (err) {
 			setFailure(explain(err));
@@ -39,11 +48,16 @@ export function Admins() {
 	};
 	return (
 		<>
-			<PageHead label="This server" title="Administrators">
-				They declare Cahuts, read the Logbook of the server, and manage the people and Rooms of every Cahut, at its console.
+			<PageHead label="This server" title="Administrators of the server">
+				They hold every Cahut of this server: they declare Cahuts, set their kind and limits, read the Logbook of the server, and manage
+				the people and Rooms of every Cahut, at its console.
 			</PageHead>
+			<p class="c-small section">
+				To make someone an administrator of this Cahut only, add them in <Link class="c-link" href="/people">People</Link> as an
+				administrator.
+			</p>
 			<section class="section c-card panel">
-				<h2 class="c-h4">New administrator</h2>
+				<h2 class="c-h4">New administrator of the server</h2>
 				<form class="form" onSubmit={create}>
 					<div class="form__row">
 						<label class="c-field">
@@ -96,12 +110,10 @@ export function Admins() {
 									</span>
 								</td>
 								<td>
-									<span class={`c-badge ${a.status === "active" ? "c-badge--success" : "c-badge--warning"}`}>
-										{a.status === "active" ? "Active" : "No password yet"}
-									</span>
+									<span class={`c-badge ${(statuses[a.status] ?? statuses.active).badge}`}>{(statuses[a.status] ?? statuses.active).word}</span>
 								</td>
 								<td class="table__actions">
-									{a.handle !== api.session.handle && (
+									{a.handle !== api.session.handle && a.status !== "disabled" && (
 										<ConfirmButton
 											label="New link"
 											question={`Give ${a.name} a new link? Their password works until they use it.`}
@@ -111,6 +123,23 @@ export function Admins() {
 											}
 										/>
 									)}
+									{a.handle !== api.session.handle &&
+										(a.status === "disabled" ? (
+											<ConfirmButton
+												label="Enable"
+												question={`Enable ${a.name} again?`}
+												confirm="Enable"
+												onConfirm={() => act(async () => (await api.server("enable_admin", { admin: a.handle }), null))}
+											/>
+										) : (
+											<ConfirmButton
+												label="Disable"
+												question={`Disable ${a.name}? Their sessions end, and they cannot sign in until enabled again.`}
+												confirm="Disable"
+												danger
+												onConfirm={() => act(async () => (await api.server("disable_admin", { admin: a.handle }), null))}
+											/>
+										))}
 								</td>
 							</tr>
 						))}

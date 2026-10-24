@@ -148,6 +148,15 @@ https://cahut.example.com/console/server/activate#...
 
 The link opens at the console of the first Cahut declared, or of the one `--domain` names. `admin link` gives a new link to an administrator who lost theirs or forgot their password. The command line itself needs no account: whoever runs it on the server acts as an administrator of the server, everywhere.
 
+An administrator of the server holds every Cahut of the server. To make someone an administrator of one Cahut only, create them as a person of it with [`user create --admin`](#create-a-person), or make them an administrator in its console, under **People**.
+
+`admin disable` disables an administrator of the server: their sessions and their link end, and they cannot sign in until `admin enable` enables them again. The server keeps at least one administrator who is not disabled, and an administrator cannot disable themselves in the console.
+
+```bash
+sudo -u cahut /usr/local/bin/cahut admin disable --handle camille
+sudo -u cahut /usr/local/bin/cahut admin enable --handle camille
+```
+
 ## Manage tokens
 
 ```bash
