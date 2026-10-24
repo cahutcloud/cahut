@@ -1,6 +1,6 @@
 # 32. The page of a Room shows its Windows in previews, or a Window that its owners choose, in the brand of Cahut until the house style
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 33](0033-the-brand-of-cahut-until-the-house-style-has-a-look.md) (the pages carry the brand of Cahut while the house style keeps the look of the neutral one, whatever it says to AIs)
 - Date: 2026-10-24
 
 ## Context

@@ -18,7 +18,7 @@ The house style is the brand of the organization, applied by every AI: its name,
 
 Body text must contrast at 4.5:1 at least on the background, as WCAG AA asks: a house style below that is refused. A primary or secondary color that reads poorly on the background, or under the text on it, is accepted with a warning. A house style takes 512 KB per image, 1 MB per font file, 16 font files and 8 MB in all.
 
-Until an administrator sets one, a Cahut has the neutral house style: the fonts of the system, dark text on white, a blue primary color, no logo. Windows made in it carry no brand. Meanwhile, the pages that Cahut shows readers carry the brand of Cahut, light or dark as their system is; once the house style is set, they carry it instead, and the brand of Cahut no longer appears on them ([ADR 32](https://github.com/getcahut/cahut/blob/main/docs/adr/0032-the-page-of-a-room.md)).
+Until an administrator sets one, a Cahut has the neutral house style: the fonts of the system, dark text on white, a blue primary color, no logo. Windows made in it carry no brand. Meanwhile, the pages that Cahut shows readers carry the brand of Cahut, light or dark as their system is. Once the house style has a name, colors, fonts or a logo, they carry it instead, and the brand of Cahut no longer appears on them; its guidance, and whether AIs use it, change nothing for readers ([ADR 32](https://github.com/getcahut/cahut/blob/main/docs/adr/0032-the-page-of-a-room.md) and [ADR 33](https://github.com/getcahut/cahut/blob/main/docs/adr/0033-the-brand-of-cahut-until-the-house-style-has-a-look.md)).
 
 ## How Windows link it
 
@@ -76,7 +76,7 @@ The house style of Cahut suits an organization without brand guidelines of its o
 
 - `get_house_style` still answers an AI, but gives nothing of the house style: no colors, no fonts, no logo, no guidance, no template. It says that the house style is inactive, and the AI makes the Window in the style the user asks for, with its own CSS.
 - The administrators still see the whole house style in the console, to change it or to turn it on again.
-- The style sheet, the logos and the fonts are still served: the Windows that link the sheet keep their look, and the pages that readers see, such as the page of a Key, keep the name, the logo and the colors of the house style. An organization can thus give Cahut its name and its logo for these pages, and leave the rest to its own guidelines.
+- The style sheet, the logos and the fonts are still served: the Windows that link the sheet keep their look, and the pages that readers see, such as the page of a Key, keep the name, the logo and the colors of the house style, or the brand of Cahut when it has none of them. An organization can thus give Cahut its name and its logo for these pages, and leave the rest to its own guidelines.
 
 Turning it off or on is a change like any other: the house style before becomes the previous one, and the Logbook records it.
 
