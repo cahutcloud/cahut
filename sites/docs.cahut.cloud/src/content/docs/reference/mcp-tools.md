@@ -37,13 +37,13 @@ The Cahut gives these instructions to the AI when it connects:
 | Tool | What it does |
 | --- | --- |
 | [`add_room_member`](#add_room_member) | Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. Knock first: a person approves the call before it runs. |
-| [`create_room`](#create_room) | Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. |
+| [`create_room`](#create_room) | Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. In an individual Cahut, you stay its only member, and its name starts with your handle and a hyphen. |
 | [`create_user`](#create_user) | Create a person, with their personal Room, and the link where they choose their password. Knock first: a person approves the call before it runs. |
 | [`delete_room`](#delete_room) | Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. Knock first: a person approves the call before it runs. |
 | [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. Knock first: a person approves the call before it runs. |
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
-| [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, and its limits with what it holds: a call that would cross a limit is refused. |
+| [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. |
 | [`get_house_style`](#get_house_style) | Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for. |
 | [`get_knock`](#get_knock) | Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
 | [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
@@ -51,7 +51,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`list_knocks`](#list_knocks) | List Knocks, those that wait first: the calls that cannot be undone, or that change what a person may do, which wait for a person to approve them. An AI lists the Knocks it made; a person, those of their AIs. |
 | [`list_logbook`](#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. |
 | [`list_rooms`](#list_rooms) | List your Rooms, your personal Room first, with your role and how many members and Windows each has. |
-| [`list_users`](#list_users) | List the people of the Cahut, with their handles, names, roles and states. |
+| [`list_users`](#list_users) | List the people of the Cahut, with their handles, names, roles and states. In an individual Cahut, for its administrators only. |
 | [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. |
 | [`publish_window`](#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. |
 | [`purge_window`](#purge_window) | Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs. |
@@ -63,7 +63,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`set_house_style`](#set_house_style) | Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. |
 | [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs. |
-| [`set_window_access`](#set_window_access) | Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
+| [`set_window_access`](#set_window_access) | Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
 | [`trash_window`](#trash_window) | Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. |
 | [`update_room`](#update_room) | Change the title of a Room. Its name, and so its address, stays. |
 | [`update_window`](#update_window) | Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. |
@@ -71,6 +71,8 @@ The Cahut gives these instructions to the AI when it connects:
 ## `add_room_member`
 
 Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. Knock first: a person approves the call before it runs.
+
+Not offered in an individual Cahut, where each Room keeps one member, its owner.
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
@@ -209,7 +211,7 @@ Title: Add a member to a Room. Annotations: `readOnlyHint: false`, `destructiveH
 
 ## `create_room`
 
-Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members.
+Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. In an individual Cahut, you stay its only member, and its name starts with your handle and a hyphen.
 
 Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -812,7 +814,7 @@ This tool takes no arguments.
 
 ## `get_cahut`
 
-Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, and its limits with what it holds: a call that would cross a limit is refused.
+Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused.
 
 Title: Describe the Cahut. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -837,21 +839,29 @@ This tool takes no arguments.
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
 | `domain` | string | yes |  |
-| `limits` | object | yes | the limits that the administrators of the server set; a limit that is absent counts nothing |
+| `kind` | string | yes | collaborative, where people share team Rooms, or individual, where each person works alone and does not see the others |
+| `limits` | object | yes | the limits that the administrators of the server set; a limit that is absent counts nothing. A member of an individual Cahut gets the limits per person only |
 | `limits.admins` | integer or null | no | how many of them may be administrators of the Cahut |
 | `limits.disk` | integer or null | no | how many bytes the Cahut may keep: every version of every Window, those in the trash included, and the files of the house style |
+| `limits.disk_per_person` | integer or null | no | in an individual Cahut, how many bytes the Windows of each person may keep, every version included |
 | `limits.people` | integer or null | no | how many people the Cahut may have, active or waiting for their activation, administrators included; disabled people do not count |
-| `limits.rooms` | integer or null | no | how many team Rooms the Cahut may have; personal Rooms come with their person and do not count |
+| `limits.rooms` | integer or null | no | how many team Rooms the Cahut may have, or in an individual Cahut how many Rooms beside the personal ones; personal Rooms come with their person and do not count |
+| `limits.rooms_per_person` | integer or null | no | in an individual Cahut, how many Rooms each person may have beside their personal Room |
 | `limits.windows` | integer or null | no | how many Windows out of the trash the Cahut may hold |
+| `limits.windows_per_person` | integer or null | no | in an individual Cahut, how many Windows out of the trash each person may hold, over their Rooms |
 | `limits.windows_per_room` | integer or null | no | how many Windows out of the trash each Room may hold, personal Rooms included |
-| `usage` | object | yes | what the Cahut holds, as its limits count it |
+| `mcp` | string | no | the address of its MCP endpoint, where AI clients connect |
+| `url` | string | no | the address of the Cahut, under which its Rooms and Windows open |
+| `usage` | object or null | no | what the Cahut holds, as its limits count it; absent for a member of an individual Cahut |
 | `usage.admins` | integer | yes | administrators who are not disabled |
 | `usage.disk` | integer | yes | bytes of every version of every Window, those in the trash included, and of the files of the house style |
 | `usage.people` | integer | yes | people who are not disabled, administrators included |
-| `usage.rooms` | integer | yes | team Rooms |
+| `usage.rooms` | integer | yes | team Rooms, or in an individual Cahut the Rooms beside the personal ones |
 | `usage.windows` | integer | yes | Windows out of the trash |
-| `mcp` | string | no | the address of its MCP endpoint, where AI clients connect |
-| `url` | string | no | the address of the Cahut, under which its Rooms and Windows open |
+| `yours` | object or null | no | in an individual Cahut, what the person you act for holds, as the limits per person count it |
+| `yours.disk` | integer | yes | bytes of every version of the Windows of their Rooms, those in the trash included |
+| `yours.rooms` | integer | yes | Rooms beside the personal one |
+| `yours.windows` | integer | yes | Windows out of the trash, over their Rooms |
 
 <details>
 <summary>JSON Schema</summary>
@@ -863,9 +873,13 @@ This tool takes no arguments.
     "domain": {
       "type": "string"
     },
+    "kind": {
+      "description": "collaborative, where people share team Rooms, or individual, where each person works alone and does not see the others",
+      "type": "string"
+    },
     "limits": {
       "additionalProperties": false,
-      "description": "the limits that the administrators of the server set; a limit that is absent counts nothing",
+      "description": "the limits that the administrators of the server set; a limit that is absent counts nothing. A member of an individual Cahut gets the limits per person only",
       "properties": {
         "admins": {
           "description": "how many of them may be administrators of the Cahut",
@@ -881,6 +895,13 @@ This tool takes no arguments.
             "integer"
           ]
         },
+        "disk_per_person": {
+          "description": "in an individual Cahut, how many bytes the Windows of each person may keep, every version included",
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
         "people": {
           "description": "how many people the Cahut may have, active or waiting for their activation, administrators included; disabled people do not count",
           "type": [
@@ -889,7 +910,14 @@ This tool takes no arguments.
           ]
         },
         "rooms": {
-          "description": "how many team Rooms the Cahut may have; personal Rooms come with their person and do not count",
+          "description": "how many team Rooms the Cahut may have, or in an individual Cahut how many Rooms beside the personal ones; personal Rooms come with their person and do not count",
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "rooms_per_person": {
+          "description": "in an individual Cahut, how many Rooms each person may have beside their personal Room",
           "type": [
             "null",
             "integer"
@@ -897,6 +925,13 @@ This tool takes no arguments.
         },
         "windows": {
           "description": "how many Windows out of the trash the Cahut may hold",
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "windows_per_person": {
+          "description": "in an individual Cahut, how many Windows out of the trash each person may hold, over their Rooms",
           "type": [
             "null",
             "integer"
@@ -922,7 +957,7 @@ This tool takes no arguments.
     },
     "usage": {
       "additionalProperties": false,
-      "description": "what the Cahut holds, as its limits count it",
+      "description": "what the Cahut holds, as its limits count it; absent for a member of an individual Cahut",
       "properties": {
         "admins": {
           "description": "administrators who are not disabled",
@@ -937,7 +972,7 @@ This tool takes no arguments.
           "type": "integer"
         },
         "rooms": {
-          "description": "team Rooms",
+          "description": "team Rooms, or in an individual Cahut the Rooms beside the personal ones",
           "type": "integer"
         },
         "windows": {
@@ -952,13 +987,43 @@ This tool takes no arguments.
         "windows",
         "disk"
       ],
-      "type": "object"
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "yours": {
+      "additionalProperties": false,
+      "description": "in an individual Cahut, what the person you act for holds, as the limits per person count it",
+      "properties": {
+        "disk": {
+          "description": "bytes of every version of the Windows of their Rooms, those in the trash included",
+          "type": "integer"
+        },
+        "rooms": {
+          "description": "Rooms beside the personal one",
+          "type": "integer"
+        },
+        "windows": {
+          "description": "Windows out of the trash, over their Rooms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "rooms",
+        "windows",
+        "disk"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     }
   },
   "required": [
     "domain",
-    "limits",
-    "usage"
+    "kind",
+    "limits"
   ],
   "type": "object"
 }
@@ -2372,7 +2437,9 @@ Title: List Rooms. Annotations: `readOnlyHint: true`, `destructiveHint: false`, 
 
 ## `list_users`
 
-List the people of the Cahut, with their handles, names, roles and states.
+List the people of the Cahut, with their handles, names, roles and states. In an individual Cahut, for its administrators only.
+
+In an individual Cahut, offered to the AIs of its administrators only.
 
 Title: List people. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -3120,6 +3187,8 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
 ## `remove_room_member`
 
 Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs.
+
+Not offered in an individual Cahut, where each Room keeps one member, its owner.
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
@@ -4925,6 +4994,8 @@ Title: Change the house style. Annotations: `readOnlyHint: false`, `destructiveH
 
 Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs.
 
+Not offered in an individual Cahut, where each Room keeps one member, its owner.
+
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
 Title: Change a role in a Room. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
@@ -5159,7 +5230,7 @@ Title: Change the role of a person. Annotations: `readOnlyHint: false`, `destruc
 
 ## `set_window_access`
 
-Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs.
+Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs.
 
 Knock first when it makes a Window public: that call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 

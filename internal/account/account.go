@@ -227,10 +227,12 @@ type UserList struct {
 
 // ListUsers lists the people of the Cahut, by handle.
 var ListUsers = &operation.Op[ListUsersInput, UserList]{
-	Name:        "list_users",
-	Title:       "List people",
-	Description: "List the people of the Cahut, with their handles, names, roles and states.",
-	ReadOnly:    true,
+	Name:  "list_users",
+	Title: "List people",
+	Description: "List the people of the Cahut, with their handles, names, roles and states. " +
+		"In an individual Cahut, for its administrators only.",
+	ReadOnly:     true,
+	InIndividual: operation.CahutAdmin,
 	Run: func(ctx context.Context, c *operation.Call, _ ListUsersInput) (UserList, error) {
 		rows, err := c.Tx.QueryContext(ctx, "SELECT id, handle, name, role, password_hash, disabled_at FROM users ORDER BY handle")
 		if err != nil {

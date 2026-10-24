@@ -16,7 +16,7 @@ func TestSettingsCommands(t *testing.T) {
 	}
 
 	code, out, errOut := run(t, data, "settings", "show")
-	if code != exitOK || !strings.Contains(out, "Limits of cahut.example.com:") ||
+	if code != exitOK || !strings.Contains(out, "Settings of cahut.example.com:") ||
 		!regexp.MustCompile(`people\s+1\s+none`).MatchString(out) || !regexp.MustCompile(`disk\s+0 bytes\s+none`).MatchString(out) {
 		t.Errorf("settings show: %d %q %q", code, out, errOut)
 	}
@@ -30,6 +30,20 @@ func TestSettingsCommands(t *testing.T) {
 	if code != exitOK || !regexp.MustCompile(`people\s+1\s+20`).MatchString(out) ||
 		!regexp.MustCompile(`team Rooms\s+0\s+3`).MatchString(out) || !regexp.MustCompile(`disk\s+0 bytes\s+none`).MatchString(out) {
 		t.Errorf("settings set again: %d %q", code, out)
+	}
+
+	// The kind, and the limits per person that go with an individual Cahut.
+	code, out, errOut = run(t, data, "settings", "set", "--kind", "individual", "--windows-per-person", "50", "--disk-per-person", "1GB")
+	if code != exitOK || !strings.Contains(out, "Kind: individual") || !regexp.MustCompile(`Windows per person\s+50`).MatchString(out) ||
+		!regexp.MustCompile(`disk per person\s+1 GB`).MatchString(out) || !regexp.MustCompile(`people\s+1\s+20`).MatchString(out) {
+		t.Errorf("settings set --kind individual: %d %q %q", code, out, errOut)
+	}
+	code, out, errOut = run(t, data, "settings", "set", "--kind", "collaborative")
+	if code != exitOK || !strings.Contains(out, "Kind: collaborative") || strings.Contains(out, "per person") {
+		t.Errorf("settings set --kind collaborative: %d %q %q", code, out, errOut)
+	}
+	if code, _, errOut := run(t, data, "settings", "set", "--windows-per-person", "5"); code != exitError || !strings.Contains(errOut, "make the Cahut individual") {
+		t.Errorf("settings set --windows-per-person in a collaborative Cahut: %d %q", code, errOut)
 	}
 
 	if code, _, errOut := run(t, data, "settings", "set", "--people", "0"); code != exitError || !strings.Contains(errOut, "people: give a limit of 1 or more") {

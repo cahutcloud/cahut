@@ -61,9 +61,9 @@ Point the DNS record of the new domain to the server first. Everything in the Ca
 sudo -u cahut /usr/local/bin/cahut domain add docs.example.org --admin-handle ana --admin-name "Ana Lima"
 ```
 
-## Set the limits of a Cahut
+## Set the kind and limits of a Cahut
 
-A Cahut has no limit until you set some. `settings set` changes the limits you name and leaves the others as they are; `none` lifts one:
+A Cahut is collaborative and has no limit until you say otherwise. `settings set` changes the kind or the limits you name and leaves the rest as it is; `none` lifts a limit:
 
 ```bash
 sudo -u cahut /usr/local/bin/cahut settings set --domain docs.example.org --people 20 --disk 10GB
@@ -72,7 +72,9 @@ sudo -u cahut /usr/local/bin/cahut settings show --domain docs.example.org
 ```
 
 ```text
-Limits of docs.example.org:
+Settings of docs.example.org:
+
+Kind: collaborative
 
                   HOLDS   LIMIT
 people            3       20
@@ -84,6 +86,12 @@ disk              2.4 MB  none
 ```
 
 The disk counts in units of 1000 bytes, as hosts sell it: `10GB` is 10 billion bytes. [Limits](/concepts/cahuts/#limits) says what each limit counts.
+
+`--kind individual` makes the Cahut [individual](/concepts/cahuts/#collaborative-or-individual), once no Room has more than one member and no Window opens to the whole Cahut. `--rooms-per-person`, `--windows-per-person` and `--disk-per-person` then bound each person; going back to `--kind collaborative` lifts them:
+
+```bash
+sudo -u cahut /usr/local/bin/cahut settings set --domain docs.example.org --kind individual --windows-per-person 50 --disk-per-person 1GB
+```
 
 ## Create a person
 

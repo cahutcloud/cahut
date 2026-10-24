@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/jsonschema-go/jsonschema"
@@ -18,6 +19,7 @@ import (
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/oauth"
 	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/version"
 )
 
@@ -67,22 +69,33 @@ const (
 // its person may call, as tools.
 func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
 	// One server for each set of tools: those of a member or of an
-	// administrator, who may change things or only read. The tools of a
-	// session follow the role its person had when it began. Should the role
-	// change, the registry still checks every call.
-	var servers [2][2]*mcp.Server
-	for _, admin := range []bool{false, true} {
-		for _, readOnly := range []bool{false, true} {
-			servers[b2i(admin)][b2i(readOnly)] = s.mcpServer(c, admin, readOnly)
+	// administrator, who may change things or only read, in a Cahut that is
+	// individual or not. Each is made when a session first needs it. The
+	// tools of a session follow the role its person had and the kind the
+	// Cahut had when it began. Should either change, the registry still
+	// checks every call.
+	var mu sync.Mutex
+	servers := map[[3]bool]*mcp.Server{}
+	serverFor := func(individual, admin, readOnly bool) *mcp.Server {
+		mu.Lock()
+		defer mu.Unlock()
+		k := [3]bool{individual, admin, readOnly}
+		if servers[k] == nil {
+			servers[k] = s.mcpServer(c, individual, admin, readOnly)
 		}
+		return servers[k]
 	}
 	server := func(r *http.Request) *mcp.Server {
+		individual, err := settings.IsIndividual(r.Context(), c.DB.Read)
+		if err != nil {
+			individual = true // the narrower set of tools
+		}
 		if info := auth.TokenInfoFromContext(r.Context()); info != nil {
 			if owner, ok := info.Extra["owner"].(account.Owner); ok {
-				return servers[b2i(owner.Admin)][b2i(owner.ReadOnly)]
+				return serverFor(individual, owner.Admin, owner.ReadOnly)
 			}
 		}
-		return servers[0][1]
+		return serverFor(individual, false, true)
 	}
 	handler := mcp.NewStreamableHTTPHandler(server,
 		&mcp.StreamableHTTPOptions{
@@ -143,21 +156,14 @@ func sessionKey(c *cahut.Cahut, r *http.Request) string {
 	return c.Domain + " " + clientKey(r)
 }
 
-func b2i(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
-}
-
 // mcpServer returns an MCP server that offers, as tools, the operations of c
 // for the AIs of a person who administers c or not, when they may change
-// things or only read.
-func (s *Server) mcpServer(c *cahut.Cahut, admin, readOnly bool) *mcp.Server {
+// things or only read, in a Cahut that is individual or not.
+func (s *Server) mcpServer(c *cahut.Cahut, individual, admin, readOnly bool) *mcp.Server {
 	srv := mcp.NewServer(&mcp.Implementation{Name: "cahut", Version: version.Get().Version},
 		&mcp.ServerOptions{Instructions: instructions})
 	for _, info := range c.Registry.Ops() {
-		if !info.ForAIs(admin, readOnly) {
+		if !info.ForAIsIn(individual, admin, readOnly) {
 			continue
 		}
 		tool, err := toolFor(info)

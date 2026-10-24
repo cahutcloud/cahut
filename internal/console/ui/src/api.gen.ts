@@ -7,10 +7,14 @@ export interface About {
   url?: string;
   /** the address of its MCP endpoint, where AI clients connect */
   mcp?: string;
-  /** the limits that the administrators of the server set; a limit that is absent counts nothing */
+  /** collaborative, where people share team Rooms, or individual, where each person works alone and does not see the others */
+  kind: string;
+  /** the limits that the administrators of the server set; a limit that is absent counts nothing. A member of an individual Cahut gets the limits per person only */
   limits: Limits;
-  /** what the Cahut holds, as its limits count it */
-  usage: Usage;
+  /** what the Cahut holds, as its limits count it; absent for a member of an individual Cahut */
+  usage?: Usage;
+  /** in an individual Cahut, what the person you act for holds, as the limits per person count it */
+  yours?: PersonUsage;
 }
 
 export interface AccessInput {
@@ -508,7 +512,7 @@ export interface Limits {
   people?: number;
   /** how many of them may be administrators of the Cahut */
   admins?: number;
-  /** how many team Rooms the Cahut may have; personal Rooms come with their person and do not count */
+  /** how many team Rooms the Cahut may have, or in an individual Cahut how many Rooms beside the personal ones; personal Rooms come with their person and do not count */
   rooms?: number;
   /** how many Windows out of the trash the Cahut may hold */
   windows?: number;
@@ -516,6 +520,12 @@ export interface Limits {
   windows_per_room?: number;
   /** how many bytes the Cahut may keep: every version of every Window, those in the trash included, and the files of the house style */
   disk?: number;
+  /** in an individual Cahut, how many Rooms each person may have beside their personal Room */
+  rooms_per_person?: number;
+  /** in an individual Cahut, how many Windows out of the trash each person may hold, over their Rooms */
+  windows_per_person?: number;
+  /** in an individual Cahut, how many bytes the Windows of each person may keep, every version included */
+  disk_per_person?: number;
 }
 
 export type ListAdminsInput = Record<string, never>;
@@ -634,6 +644,15 @@ export interface Person {
   name: string;
   /** owner or member of the Room */
   role: string;
+}
+
+export interface PersonUsage {
+  /** Rooms beside the personal one */
+  rooms: number;
+  /** Windows out of the trash, over their Rooms */
+  windows: number;
+  /** bytes of every version of the Windows of their Rooms, those in the trash included */
+  disk: number;
 }
 
 export interface Preview {
@@ -816,6 +835,8 @@ export interface SetAIReachInput {
 }
 
 export interface SetCahutSettingsInput {
+  /** collaborative or individual; the kind stays when empty. A Cahut becomes individual only when no Room has more than one member and no Window opens to the whole Cahut */
+  kind?: string;
   /** every limit of the Cahut: a limit left out is lifted */
   limits: Limits;
 }
@@ -867,10 +888,14 @@ export interface SetUserRoleInput {
 }
 
 export interface Settings {
-  /** the limits that the administrators of the server set; a limit that is absent counts nothing */
+  /** collaborative, where people share team Rooms, or individual, where each person works alone and does not see the others */
+  kind: string;
+  /** the limits that the administrators of the server set; a limit that is absent counts nothing. A member of an individual Cahut gets the limits per person only */
   limits: Limits;
-  /** what the Cahut holds, as its limits count it */
-  usage: Usage;
+  /** what the Cahut holds, as its limits count it; absent for a member of an individual Cahut */
+  usage?: Usage;
+  /** in an individual Cahut, what the person you act for holds, as the limits per person count it */
+  yours?: PersonUsage;
 }
 
 export interface Setup {
@@ -965,7 +990,7 @@ export interface Usage {
   people: number;
   /** administrators who are not disabled */
   admins: number;
-  /** team Rooms */
+  /** team Rooms, or in an individual Cahut the Rooms beside the personal ones */
   rooms: number;
   /** Windows out of the trash */
   windows: number;
@@ -1102,7 +1127,7 @@ export interface CahutOperations {
   change_password: { input: ChangePasswordInput; output: PasswordChanged };
   /** Give a person a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. Their password works until they use the link. */
   create_activation_link: { input: UserInput; output: Activation };
-  /** Create a team Room, at <domain>/<name>/. You become its owner, and can then add members. Windows published in it are for its members. */
+  /** Create a team Room, at <domain>/<name>/. You become its owner, and can then add members. Windows published in it are for its members. In an individual Cahut, you stay its only member, and its name starts with your handle and a hyphen. */
   create_room: { input: CreateRoomInput; output: Room };
   /** Create a personal token that lets an AI act on behalf of a person. */
   create_token: { input: CreateTokenInput; output: NewToken };
@@ -1124,7 +1149,7 @@ export interface CahutOperations {
   enable_user: { input: UserInput; output: User };
   /** Describe the person you act for: their handle, name, role in the Cahut and Rooms. */
   get_account: { input: GetAccountInput; output: Account };
-  /** Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, and its limits with what it holds: a call that would cross a limit is refused. */
+  /** Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. */
   get_cahut: { input: GetCahutInput; output: About };
   /** Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for. */
   get_house_style: { input: HousestyleGetInput; output: HouseStyle };
@@ -1144,7 +1169,7 @@ export interface CahutOperations {
   list_rooms: { input: ListRoomsInput; output: RoomList };
   /** List personal tokens, newest first. */
   list_tokens: { input: ListTokensInput; output: TokenList };
-  /** List the people of the Cahut, with their handles, names, roles and states. */
+  /** List the people of the Cahut, with their handles, names, roles and states. In an individual Cahut, for its administrators only. */
   list_users: { input: ListUsersInput; output: UserList };
   /** List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. */
   list_windows: { input: WindowListInput; output: WindowList };
@@ -1166,7 +1191,7 @@ export interface CahutOperations {
   rollback_window: { input: RefInput; output: Window };
   /** Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. */
   set_ai_reach: { input: SetAIReachInput; output: Connection };
-  /** Set the limits of this Cahut: how many people, administrators, team Rooms and Windows it may have, how many Windows each Room may hold, and how many bytes it may keep. Give every limit: a limit left out is lifted. Lowering a limit deletes nothing: the Cahut keeps what it holds and refuses what would add to it. For the administrators of the server. */
+  /** Set the kind of this Cahut, collaborative or individual, and its limits: how many people, administrators, Rooms and Windows it may have, how many Windows each Room may hold, how many bytes it may keep, and, in an individual Cahut, how many Rooms, Windows and bytes each person may have. Give every limit: a limit left out is lifted. Lowering a limit deletes nothing: the Cahut keeps what it holds and refuses what would add to it. For the administrators of the server. */
   set_cahut_settings: { input: SetCahutSettingsInput; output: Settings };
   /** Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. */
   set_house_style: { input: SetInput; output: HouseStyle };
@@ -1174,7 +1199,7 @@ export interface CahutOperations {
   set_room_member_role: { input: MemberInput; output: RoomDetail };
   /** Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. */
   set_user_role: { input: SetUserRoleInput; output: User };
-  /** Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. */
+  /** Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. */
   set_window_access: { input: AccessInput; output: AccessSet };
   /** Sign in with a handle and a password, and open a session. */
   sign_in: { input: SignInInput; output: AccountSession };

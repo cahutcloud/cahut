@@ -5,6 +5,7 @@ package cahut
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -77,6 +78,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		return cfg.BaseURL + room + "/" + name + "/"
 	}
 	r := operation.NewRegistry(db)
+	r.Individual = func(ctx context.Context, tx *sql.Tx) (bool, error) { return settings.IsIndividual(ctx, tx) }
 	account.Register(r)
 	room.Register(r)
 	w := window.NewService(filepath.Join(cfg.Dir, "windows"), url, frameKey)
@@ -100,7 +102,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		Name:  "get_cahut",
 		Title: "Describe the Cahut",
 		Description: "Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, " +
-			"and its limits with what it holds: a call that would cross a limit is refused.",
+			"its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused.",
 		ReadOnly: true,
 		Run: func(ctx context.Context, c *operation.Call, _ GetCahutInput) (About, error) {
 			c.Log(cfg.Domain, "")
@@ -109,7 +111,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 				a.MCP = cfg.BaseURL + "mcp"
 			}
 			var err error
-			a.Settings, err = settings.Read(ctx, c.Tx)
+			a.Settings, err = settings.Read(ctx, c.Tx, c.Actor.UserID, c.Admin)
 			return a, err
 		},
 	}

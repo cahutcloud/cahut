@@ -3,6 +3,7 @@ package cahut
 import (
 	"context"
 	"errors"
+	"reflect"
 	"slices"
 	"testing"
 
@@ -80,8 +81,8 @@ func TestGetCahut(t *testing.T) {
 	ai := operation.Actor{Kind: operation.AI, Via: "mcp", UserID: u.ID, Handle: "olivier", TokenID: 1, Client: "Claude"}
 	out, err := c.Registry.Invoke(ctx, "get_cahut", ai, nil)
 	want := About{Domain: "cahut.example.com", URL: "https://cahut.example.com/", MCP: "https://cahut.example.com/mcp",
-		Settings: settings.Settings{Usage: settings.Usage{People: 1}}}
-	if err != nil || out != want {
+		Settings: settings.Settings{Kind: settings.Collaborative, Usage: &settings.Usage{People: 1}}}
+	if err != nil || !reflect.DeepEqual(out, want) {
 		t.Errorf("get_cahut = %+v, %v; want %+v", out, err, want)
 	}
 }

@@ -16,8 +16,8 @@ import (
 )
 
 var settingsCommands = []command{
-	{name: "show", summary: "Print the limits of a Cahut, with what it holds", run: runSettingsShow},
-	{name: "set", summary: "Change limits of a Cahut; those you leave out stay as they are", run: runSettingsSet},
+	{name: "show", summary: "Print the kind and limits of a Cahut, with what it holds", run: runSettingsShow},
+	{name: "set", summary: "Change the kind or limits of a Cahut; what you leave out stays as it is", run: runSettingsSet},
 }
 
 func runSettingsShow(args []string, stdout, stderr io.Writer) int {
@@ -33,7 +33,7 @@ func runSettingsShow(args []string, stdout, stderr io.Writer) int {
 	if !ok {
 		return exitError
 	}
-	fmt.Fprintf(stdout, "Limits of %s:\n\n", at)
+	fmt.Fprintf(stdout, "Settings of %s:\n\n", at)
 	return printSettings(stdout, about.Settings)
 }
 
@@ -41,7 +41,8 @@ func runSettingsSet(args []string, stdout, stderr io.Writer) int {
 	fs := newFlags("settings set", stderr)
 	data := dataFlag(fs)
 	domain := domainFlag(fs)
-	var people, admins, rooms, windows, perRoom, disk limitFlag
+	kind := fs.String("kind", "", "collaborative or individual; the kind stays when left out")
+	var people, admins, rooms, windows, perRoom, disk, roomsPP, windowsPP, diskPP limitFlag
 	fs.Var(&people, "people", "the Cahut may have `N` people, administrators included, and disabled people do not count; none lifts the limit")
 	fs.Var(&admins, "admins", "`N` of them may be administrators of the Cahut; none lifts the limit")
 	fs.Var(&rooms, "rooms", "the Cahut may have `N` team Rooms; none lifts the limit")
@@ -49,9 +50,13 @@ func runSettingsSet(args []string, stdout, stderr io.Writer) int {
 	fs.Var(&perRoom, "windows-per-room", "each Room may hold `N` Windows out of the trash; none lifts the limit")
 	disk.bytes = true
 	fs.Var(&disk, "disk", "the Cahut may keep `SIZE`, such as 10GB or 500MB, in units of 1000 bytes; none lifts the limit")
+	fs.Var(&roomsPP, "rooms-per-person", "in an individual Cahut, each person may have `N` Rooms beside their personal Room; none lifts the limit")
+	fs.Var(&windowsPP, "windows-per-person", "in an individual Cahut, each person may hold `N` Windows out of the trash; none lifts the limit")
+	diskPP.bytes = true
+	fs.Var(&diskPP, "disk-per-person", "in an individual Cahut, the Windows of each person may keep `SIZE`; none lifts the limit")
 	fs.Usage = func() {
-		fmt.Fprintln(stderr, "Usage: cahut settings set [--data DIR] [--domain DOMAIN] [--people N] [--admins N] [--rooms N] "+
-			"[--windows N] [--windows-per-room N] [--disk SIZE]")
+		fmt.Fprintln(stderr, "Usage: cahut settings set [--data DIR] [--domain DOMAIN] [--kind KIND] [--people N] [--admins N] [--rooms N] "+
+			"[--windows N] [--windows-per-room N] [--disk SIZE] [--rooms-per-person N] [--windows-per-person N] [--disk-per-person SIZE]")
 		fs.PrintDefaults()
 	}
 	if code, ok := parse(fs, args); !ok {
@@ -69,12 +74,21 @@ func runSettingsSet(args []string, stdout, stderr io.Writer) int {
 		windows.apply(&l.Windows)
 		perRoom.apply(&l.WindowsPerRoom)
 		disk.apply(&l.Disk)
-		return operation.Do(ctx, c.Registry, settings.Set, admin, settings.SetCahutSettingsInput{Limits: l})
+		if *kind == settings.Collaborative {
+			// A collaborative Cahut has no limit per person: they go with
+			// the kind, unless the flags set them, which the operation
+			// then refuses.
+			l.RoomsPerPerson, l.WindowsPerPerson, l.DiskPerPerson = nil, nil, nil
+		}
+		roomsPP.apply(&l.RoomsPerPerson)
+		windowsPP.apply(&l.WindowsPerPerson)
+		diskPP.apply(&l.DiskPerPerson)
+		return operation.Do(ctx, c.Registry, settings.Set, admin, settings.SetCahutSettingsInput{Kind: *kind, Limits: l})
 	})
 	if !ok {
 		return exitError
 	}
-	fmt.Fprintf(stdout, "Set the limits of %s:\n\n", at)
+	fmt.Fprintf(stdout, "Set the settings of %s:\n\n", at)
 	return printSettings(stdout, out)
 }
 
@@ -144,7 +158,7 @@ func parseSize(s string) (int64, error) {
 	return int64(math.Round(v * mult)), nil
 }
 
-// printSettings prints the limits of a Cahut, with what it holds.
+// printSettings prints the kind and limits of a Cahut, with what it holds.
 func printSettings(w io.Writer, s settings.Settings) int {
 	limit := func(l *int64, bytes bool) string {
 		switch {
@@ -156,14 +170,24 @@ func printSettings(w io.Writer, s settings.Settings) int {
 			return strconv.FormatInt(*l, 10)
 		}
 	}
+	var u settings.Usage
+	if s.Usage != nil {
+		u = *s.Usage
+	}
+	fmt.Fprintf(w, "Kind: %s\n\n", s.Kind)
 	tw := tabwriter.NewWriter(w, 0, 4, 2, ' ', 0)
 	fmt.Fprintln(tw, "\tHOLDS\tLIMIT")
-	fmt.Fprintf(tw, "people\t%d\t%s\n", s.Usage.People, limit(s.Limits.People, false))
-	fmt.Fprintf(tw, "administrators\t%d\t%s\n", s.Usage.Admins, limit(s.Limits.Admins, false))
-	fmt.Fprintf(tw, "team Rooms\t%d\t%s\n", s.Usage.Rooms, limit(s.Limits.Rooms, false))
-	fmt.Fprintf(tw, "Windows\t%d\t%s\n", s.Usage.Windows, limit(s.Limits.Windows, false))
+	fmt.Fprintf(tw, "people\t%d\t%s\n", u.People, limit(s.Limits.People, false))
+	fmt.Fprintf(tw, "administrators\t%d\t%s\n", u.Admins, limit(s.Limits.Admins, false))
+	fmt.Fprintf(tw, "team Rooms\t%d\t%s\n", u.Rooms, limit(s.Limits.Rooms, false))
+	fmt.Fprintf(tw, "Windows\t%d\t%s\n", u.Windows, limit(s.Limits.Windows, false))
 	fmt.Fprintf(tw, "Windows per Room\t\t%s\n", limit(s.Limits.WindowsPerRoom, false))
-	fmt.Fprintf(tw, "disk\t%s\t%s\n", settings.Bytes(s.Usage.Disk), limit(s.Limits.Disk, true))
+	fmt.Fprintf(tw, "disk\t%s\t%s\n", settings.Bytes(u.Disk), limit(s.Limits.Disk, true))
+	if s.Kind == settings.Individual {
+		fmt.Fprintf(tw, "Rooms per person\t\t%s\n", limit(s.Limits.RoomsPerPerson, false))
+		fmt.Fprintf(tw, "Windows per person\t\t%s\n", limit(s.Limits.WindowsPerPerson, false))
+		fmt.Fprintf(tw, "disk per person\t\t%s\n", limit(s.Limits.DiskPerPerson, true))
+	}
 	if err := tw.Flush(); err != nil {
 		return exitError
 	}

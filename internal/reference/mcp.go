@@ -181,6 +181,13 @@ func toolsPage(s sample) (page, error) {
 		if op.ReadOnlyAIs {
 			m.block("Offered also to the AIs that may only read, though it changes things.")
 		}
+		switch op.LevelIn(true) {
+		case op.Level:
+		case operation.CahutAdmin:
+			m.block("In an individual Cahut, offered to the AIs of its administrators only.")
+		case operation.Nobody:
+			m.block("Not offered in an individual Cahut, where each Room keeps one member, its owner.")
+		}
 		switch {
 		case op.KnockFirst:
 			m.block("Knock first: the call of an AI makes a Knock, which the person it acts for approves " +
@@ -403,8 +410,13 @@ func opRows(ops []operation.Info, tools map[string]bool) [][]string {
 	for _, op := range ops {
 		name := code(op.Name)
 		who := capitalize(op.Level.String())
-		if op.Visitors {
+		switch l := op.LevelIn(true); {
+		case op.Visitors:
 			who = "Anyone, to sign in"
+		case l == operation.Nobody:
+			who += "; nobody in an individual Cahut"
+		case l != op.Level:
+			who += "; " + l.String() + " in an individual Cahut"
 		}
 		offered := "no"
 		switch {

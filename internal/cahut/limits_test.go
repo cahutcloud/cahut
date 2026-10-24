@@ -135,7 +135,7 @@ func TestSetCahutSettings(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if e := entries[0]; e.Operation != "set_cahut_settings" || e.Target != "limits" ||
+	if e := entries[0]; e.Operation != "set_cahut_settings" || e.Target != "settings" ||
 		e.Detail != "people none → 10, admins none → 2, disk none → 5 GB" {
 		t.Errorf("logbook = %+v", e)
 	}

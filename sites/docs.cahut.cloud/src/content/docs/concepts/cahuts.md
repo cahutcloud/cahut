@@ -49,9 +49,25 @@ The folders of the Cahuts and of the Windows are named by their ids, not by thei
 
 The Cahuts of a server share its disk, memory and processor, its updates and its administrator. Limits keep one Cahut from taking what the others need.
 
+## Collaborative or individual
+
+The administrators of the server choose the kind of each Cahut, with [`cahut settings set`](/admin/commands/#set-the-kind-and-limits-of-a-cahut). A Cahut is collaborative until they say otherwise.
+
+- **Collaborative**: people create team Rooms, add one another to them, and open Windows to the whole Cahut.
+- **Individual**: people share the Cahut, not their work, and do not see one another, such as the clients of one consultant or the students of one course.
+
+In an individual Cahut:
+
+- every Room has one member, its owner: a person creates Rooms of their own beside their personal Room, and nobody can be added to a Room;
+- the name of a Room starts with the handle of its owner, such as `bob-projects`, so that nobody meets the names of the others;
+- only the administrators of the Cahut list its people;
+- a Window opens to its Room, to anyone with its Key, or to the public, never to everyone signed in to the Cahut.
+
+The administrators of the Cahut see everyone, every Room and the whole Logbook, and open only the Windows of their own Rooms, as in any Cahut. A collaborative Cahut becomes individual once no Room has more than one member and no Window opens to the whole Cahut; an individual Cahut can always become collaborative.
+
 ## Limits
 
-The administrators of the server can bound what each Cahut holds, such as when a host gives each organization its share of a server. A Cahut has no limit until they set some, with [`cahut settings set`](/admin/commands/#set-the-limits-of-a-cahut). Each limit is optional:
+The administrators of the server can bound what each Cahut holds, such as when a host gives each organization its share of a server. A Cahut has no limit until they set some, with [`cahut settings set`](/admin/commands/#set-the-kind-and-limits-of-a-cahut). Each limit is optional:
 
 | Limit | What counts |
 | --- | --- |
@@ -61,6 +77,8 @@ The administrators of the server can bound what each Cahut holds, such as when a
 | Windows | The Windows out of the trash, in the whole Cahut. |
 | Windows per Room | The Windows out of the trash in one Room, personal Rooms included. |
 | Disk | Every version of every Window, those in the trash included, and the files of the house style, in units of 1000 bytes: 10 GB is 10 billion bytes. |
+
+In an individual Cahut, three more limits bound each person, the same for everyone: their Rooms beside the personal one, their Windows out of the trash, and the disk that their Windows keep. No person can then take what the Cahut gives to all, and a refusal speaks of the person's own use. A member of an individual Cahut reads the limits per person and their own use, not what the whole Cahut holds.
 
 A call that would cross a limit is refused, with a message that says what to do: put Windows in the trash, purge some, or ask for a higher limit. Lowering a limit below what the Cahut holds deletes nothing: the Cahut keeps it all, and refuses what would add to it.
 

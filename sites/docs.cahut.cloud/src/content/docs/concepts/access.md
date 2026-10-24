@@ -12,7 +12,7 @@ The access of a Window says who can open it. A new Window opens to its Room only
 | Access | Who opens the Window |
 | --- | --- |
 | Room only | The members of its Room, signed in. The default. |
-| Internal | Everyone signed in to its Cahut. |
+| Internal | Everyone signed in to its Cahut, except in an [individual Cahut](/concepts/cahuts/#collaborative-or-individual). |
 | Key | Anyone who types its Key, and the members of its Room. |
 | Public | Anyone who has its address. |
 
