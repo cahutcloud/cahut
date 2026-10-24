@@ -327,7 +327,7 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 	want := []string{"add_room_member", "create_room", "create_user", "delete_room", "disable_user", "enable_user", "get_account", "get_cahut",
 		"get_house_style", "get_knock", "get_room", "get_window", "list_knocks", "list_logbook", "list_rooms", "list_users", "list_windows",
 		"publish_window", "purge_window", "remove_room_member", "restore_window", "rollback_house_style", "rollback_window", "set_ai_reach",
-		"set_house_style", "set_room_member_role", "set_user_role", "set_window_access", "trash_window", "update_room", "update_window"}
+		"set_house_style", "set_room_member_role", "set_user_email", "set_user_role", "set_window_access", "trash_window", "update_room", "update_window"}
 	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)
 	}

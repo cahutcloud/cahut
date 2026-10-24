@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"cahut.cloud/internal/address"
+	"cahut.cloud/internal/credential"
+	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
@@ -36,6 +38,10 @@ func Register(r *operation.Registry) {
 	operation.Register(r, CreateToken)
 	operation.Register(r, ListTokens)
 	operation.Register(r, RevokeToken)
+	operation.Register(r, SetUserEmail)
+	operation.Register(r, ChangeEmail)
+	operation.Register(r, ConfirmEmail)
+	operation.Register(r, RequestPasswordLink)
 }
 
 // Roles of a person in a Cahut.
@@ -59,28 +65,32 @@ type User struct {
 	Role         string `json:"role" jsonschema:"admin or member of the Cahut"`
 	Status       string `json:"status" jsonschema:"pending until the person chooses a password, then active, or disabled"`
 	PersonalRoom string `json:"personal_room" jsonschema:"name of the person's personal Room, the handle"`
+	// Email goes to the person and to the administrators of the Cahut, and
+	// never to an AI. See docs/adr/0031-e-mail-through-a-relay.md.
+	Email string `json:"email,omitempty" jsonschema:"the e-mail address of the person, which only the person and the administrators of the Cahut read"`
 }
 
 // person is a person as the operations read them.
 type person struct {
 	User
 	passwordHash string
+	email        string // which User shows only to those who may read it
 }
 
 // findUser returns the person with handle, or an error wrapping
 // operation.ErrNotFound.
 func findUser(ctx context.Context, tx *sql.Tx, handle string) (person, error) {
 	var p person
-	var hash, disabled sql.NullString
-	err := tx.QueryRowContext(ctx, "SELECT id, handle, name, role, password_hash, disabled_at FROM users WHERE handle = ?",
-		handle).Scan(&p.ID, &p.Handle, &p.Name, &p.Role, &hash, &disabled)
+	var hash, disabled, email sql.NullString
+	err := tx.QueryRowContext(ctx, "SELECT id, handle, name, role, password_hash, disabled_at, email FROM users WHERE handle = ?",
+		handle).Scan(&p.ID, &p.Handle, &p.Name, &p.Role, &hash, &disabled, &email)
 	if errors.Is(err, sql.ErrNoRows) {
 		return person{}, operation.NotFoundf("no person %q in this Cahut", handle)
 	}
 	if err != nil {
 		return person{}, err
 	}
-	p.passwordHash = hash.String
+	p.passwordHash, p.email = hash.String, email.String
 	p.Status = status(hash, disabled)
 	p.PersonalRoom = p.Handle
 	return p, nil
@@ -128,6 +138,7 @@ type CreateUserInput struct {
 	Handle string `json:"handle"`
 	Name   string `json:"name"`
 	Admin  bool   `json:"admin,omitempty"`
+	Email  string `json:"email,omitempty" jsonschema:"the e-mail address of the person, where their activation link goes"`
 }
 
 // NewUser is the output of create_user.
@@ -150,11 +161,12 @@ func ValidHandle(s string) bool {
 // CreateUser creates a person and their personal Room, named after their
 // handle, with an activation link.
 var CreateUser = &operation.Op[CreateUserInput, NewUser]{
-	Name:        "create_user",
-	Title:       "Add a person",
-	Description: "Create a person, with their personal Room, and the link where they choose their password.",
-	Level:       operation.CahutAdmin,
-	KnockFirst:  true,
+	Name:  "create_user",
+	Title: "Add a person",
+	Description: "Create a person, with their personal Room, and the link where they choose their password, " +
+		"which goes to their e-mail address when you give one and the Cahut sends e-mail.",
+	Level:      operation.CahutAdmin,
+	KnockFirst: true,
 	Run: func(ctx context.Context, c *operation.Call, in CreateUserInput) (NewUser, error) {
 		if !validHandle.MatchString(in.Handle) {
 			return NewUser{}, operation.Invalidf("handle %q: use 2 to 32 lowercase letters, digits and hyphens, "+
@@ -166,6 +178,14 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 		name := strings.TrimSpace(in.Name)
 		if name == "" {
 			return NewUser{}, operation.Invalidf("name is empty")
+		}
+		var email sql.NullString
+		if strings.TrimSpace(in.Email) != "" {
+			e, err := mail.Address(in.Email)
+			if err != nil {
+				return NewUser{}, operation.Invalidf("email: %v", err)
+			}
+			email = sql.NullString{String: e, Valid: true}
 		}
 		u := NewUser{User: User{Handle: in.Handle, Name: name, Role: Member, Status: Pending, PersonalRoom: in.Handle}}
 		if in.Admin {
@@ -183,12 +203,17 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 		if taken {
 			return NewUser{}, operation.Invalidf("handle %q is taken, by a person or a Room", u.Handle)
 		}
+		if email.Valid {
+			if err := addressFree(ctx, c.Tx, email.String, 0); err != nil {
+				return NewUser{}, err
+			}
+		}
 		if err := settings.CheckPerson(ctx, c, in.Admin); err != nil {
 			return NewUser{}, err
 		}
 		now := store.FormatTime(c.Now)
-		err = c.Tx.QueryRowContext(ctx, "INSERT INTO users (handle, name, role, created_at) VALUES (?, ?, ?, ?) RETURNING id",
-			u.Handle, u.Name, u.Role, now).Scan(&u.ID)
+		err = c.Tx.QueryRowContext(ctx, "INSERT INTO users (handle, name, role, created_at, email) VALUES (?, ?, ?, ?, ?) RETURNING id",
+			u.Handle, u.Name, u.Role, now, email).Scan(&u.ID)
 		if err != nil {
 			return NewUser{}, err
 		}
@@ -207,8 +232,13 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 		// An AI never gets the code: it could choose the password itself.
 		// Once a person approves the Knock of an AI, the code goes to them.
 		if c.Actor.Kind != operation.AI || c.Approved() {
-			a, err := newActivation(ctx, c, u.ID, u.Handle)
+			a, err := newActivation(ctx, c, u.ID, u.Handle, credential.ActivationTTL)
 			if err != nil {
+				return NewUser{}, err
+			}
+			u.Email = email.String
+			p := person{User: u.User, email: email.String}
+			if a.Emailed, err = sendLink(ctx, c, p, a, activatePage, activationLetter); err != nil {
 				return NewUser{}, err
 			}
 			u.Activation = &a
@@ -234,19 +264,25 @@ var ListUsers = &operation.Op[ListUsersInput, UserList]{
 	ReadOnly:     true,
 	InIndividual: operation.CahutAdmin,
 	Run: func(ctx context.Context, c *operation.Call, _ ListUsersInput) (UserList, error) {
-		rows, err := c.Tx.QueryContext(ctx, "SELECT id, handle, name, role, password_hash, disabled_at FROM users ORDER BY handle")
+		rows, err := c.Tx.QueryContext(ctx, "SELECT id, handle, name, role, password_hash, disabled_at, email FROM users ORDER BY handle")
 		if err != nil {
 			return UserList{}, err
 		}
 		defer rows.Close()
 		list := UserList{Users: []User{}}
+		// The administrators of the Cahut read the addresses of people,
+		// and their AIs do not: what an AI reads goes to its vendor.
+		addresses := c.Admin && c.Actor.Kind != operation.AI
 		for rows.Next() {
 			var u User
-			var hash, disabled sql.NullString
-			if err := rows.Scan(&u.ID, &u.Handle, &u.Name, &u.Role, &hash, &disabled); err != nil {
+			var hash, disabled, email sql.NullString
+			if err := rows.Scan(&u.ID, &u.Handle, &u.Name, &u.Role, &hash, &disabled, &email); err != nil {
 				return UserList{}, err
 			}
 			u.Status, u.PersonalRoom = status(hash, disabled), u.Handle
+			if addresses {
+				u.Email = email.String
+			}
 			list.Users = append(list.Users, u)
 		}
 		c.Log("", fmt.Sprintf("%d people", len(list.Users)))
@@ -260,7 +296,10 @@ type GetAccountInput struct{}
 // Account is the output of get_account.
 type Account struct {
 	User
-	Rooms []Membership `json:"rooms" jsonschema:"the Rooms of the person, their personal Room first"`
+	// EmailChange is the address that waits for the person to confirm it,
+	// which an AI does not read either.
+	EmailChange *EmailChange `json:"email_change,omitempty" jsonschema:"the e-mail address that waits for the person to confirm it, from the link sent to it"`
+	Rooms       []Membership `json:"rooms" jsonschema:"the Rooms of the person, their personal Room first"`
 }
 
 // Membership is a Room of a person.
@@ -294,6 +333,12 @@ var GetAccount = &operation.Op[GetAccountInput, Account]{
 		}
 		defer rows.Close()
 		a := Account{User: p.User, Rooms: []Membership{}}
+		if c.Actor.Kind != operation.AI {
+			a.Email = p.email
+			if a.EmailChange, err = pendingChange(ctx, c, p.ID); err != nil {
+				return Account{}, err
+			}
+		}
 		for rows.Next() {
 			var m Membership
 			var id int64

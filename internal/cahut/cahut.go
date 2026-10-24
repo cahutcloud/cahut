@@ -102,10 +102,14 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	housestyle.Register(r, cfg.Domain)
 	operation.Register(r, settings.Set)
 	operation.Register(r, ListLogbook)
-	cfg.Mail.RegisterCahut(r, db, cfg.Domain, func(ctx context.Context) (string, error) {
+	name := func(ctx context.Context) (string, error) {
 		b, err := housestyle.LoadBrand(ctx, db, cfg.Domain)
 		return b.Name, err
-	})
+	}
+	cfg.Mail.RegisterCahut(r, db, cfg.Domain, name)
+	if cfg.Mail != nil && cfg.ConsoleURL != "" {
+		mail.Provide(r, &mail.Outbox{Service: cfg.Mail, DB: db, Domain: cfg.Domain, Name: name, Console: cfg.ConsoleURL})
+	}
 	about := &operation.Op[GetCahutInput, About]{
 		Name:  "get_cahut",
 		Title: "Describe the Cahut",

@@ -30,7 +30,7 @@ type GetMailRelayInput struct{}
 
 // SendTestMailInput is the input of send_test_mail.
 type SendTestMailInput struct {
-	To string `json:"to" jsonschema:"the address to send the test to"`
+	To string `json:"to,omitempty" jsonschema:"on the command line, the address to send the test to; a person's test goes to their own address"`
 }
 
 // Delivery is the output of set_mail_relay and get_mail_relay: the relay set
@@ -279,9 +279,9 @@ func (sc *scope) prepareTest(ctx context.Context, c *operation.Call, in SendTest
 	if sc.s == nil {
 		return errNoService
 	}
-	to, err := Address(in.To)
+	to, err := sc.recipient(ctx, c, in.To)
 	if err != nil {
-		return operation.Invalidf("to: %v", err)
+		return err
 	}
 	c.Log("mail relay", "test to "+to)
 	from := From{DB: sc.db, Domain: sc.domain}
@@ -314,6 +314,36 @@ func (sc *scope) prepareTest(ctx context.Context, c *operation.Call, in SendTest
 	}
 	c.Keep(TestSent{To: to, Server: sc.cahut() && !own})
 	return nil
+}
+
+// recipient returns where the test of the call c goes: to the address of
+// the person or the administrator who calls, or, on the command line, to
+// the address given.
+func (sc *scope) recipient(ctx context.Context, c *operation.Call, given string) (string, error) {
+	if c.Actor.CommandLine() {
+		to, err := Address(given)
+		if err != nil {
+			return "", operation.Invalidf("to: %v", err)
+		}
+		return to, nil
+	}
+	if strings.TrimSpace(given) != "" {
+		return "", operation.Invalidf("a test goes to your own e-mail address: leave out to")
+	}
+	var email sql.NullString
+	err := c.Read(ctx, func(tx *sql.Tx) error {
+		if sc.cahut() {
+			return tx.QueryRowContext(ctx, "SELECT email FROM users WHERE id = ?", c.Actor.UserID).Scan(&email)
+		}
+		return tx.QueryRowContext(ctx, "SELECT email FROM admins WHERE handle = ?", c.Actor.Handle).Scan(&email)
+	})
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return "", err
+	}
+	if email.String == "" {
+		return "", operation.Invalidf("your account has no e-mail address for the test to go to: add one on the page of your account")
+	}
+	return email.String, nil
 }
 
 func (sc *scope) test(_ context.Context, c *operation.Call, _ SendTestMailInput) (TestSent, error) {

@@ -90,6 +90,13 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 	s.registerUpdates(s.Registry)
 	s.registerSetup(s.Registry)
 	s.Mail.RegisterServer(s.Registry)
+	if cfg.ConsoleURL != nil {
+		mail.Provide(s.Registry, &mail.Outbox{
+			Service:  s.Mail,
+			Name:     func(context.Context) (string, error) { return "Cahut", nil },
+			Consoles: cfg.ConsoleURL,
+		})
+	}
 	return s, nil
 }
 

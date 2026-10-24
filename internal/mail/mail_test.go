@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/logbook"
 	cmail "cahut.cloud/internal/mail"
@@ -507,5 +508,41 @@ func TestAddress(t *testing.T) {
 		if got, err := cmail.Address(in); err == nil {
 			t.Errorf("Address(%q) = %q, want an error", in, got)
 		}
+	}
+}
+
+func TestTestGoesToThePersonWhoAsks(t *testing.T) {
+	f := setup(t, server.Config{})
+	ctx := context.Background()
+	relay := mailtest.Start(t, mailtest.Options{NoStartTLS: true})
+	in := relayInput(relay, cmail.Plain)
+	in.Username, in.Password = "", ""
+	if _, err := call[cmail.Delivery](t, f.srv.Registry, "set_mail_relay", in); err != nil {
+		t.Fatal(err)
+	}
+	u, err := operation.Do(ctx, f.cahut.Registry, account.CreateUser, cli, account.CreateUserInput{Handle: "olivier", Name: "Olivier", Admin: true, Email: "olivier@example.org"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	other, err := operation.Do(ctx, f.cahut.Registry, account.CreateUser, cli, account.CreateUserInput{Handle: "ana", Name: "Ana", Admin: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	as := func(id int64, handle string, to string) error {
+		args, _ := json.Marshal(cmail.SendTestMailInput{To: to})
+		_, err := f.cahut.Registry.Invoke(ctx, "send_test_mail", operation.Actor{Kind: operation.Person, Via: "api", UserID: id, Handle: handle}, args)
+		return err
+	}
+	if err := as(u.ID, "olivier", "someone@example.net"); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("send_test_mail to another address: %v", err)
+	}
+	if err := as(other.ID, "ana", ""); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "no e-mail address") {
+		t.Errorf("send_test_mail without an address: %v", err)
+	}
+	if err := as(u.ID, "olivier", ""); err != nil {
+		t.Fatalf("send_test_mail: %v", err)
+	}
+	if m := relay.Wait(t, 1); m[0].To[0] != "olivier@example.org" {
+		t.Errorf("the test went to %v", m[0].To)
 	}
 }
