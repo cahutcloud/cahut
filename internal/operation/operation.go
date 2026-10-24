@@ -351,6 +351,12 @@ func (r *Registry) Provide(key, v any) {
 	r.values[key] = v
 }
 
+// Value returns what r provides under key, or nil, for the services of a
+// Cahut that run outside a call, such as the record of its Knocks.
+func (r *Registry) Value(key any) any {
+	return r.values[key]
+}
+
 type registered interface {
 	info() Info
 	invoke(ctx context.Context, r *Registry, actor Actor, args json.RawMessage) (any, error)

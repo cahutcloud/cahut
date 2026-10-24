@@ -35,6 +35,9 @@ type Knocked struct {
 	Person    string // the name of the person who answers
 	URL       string // where they answer, in the console
 	ExpiresAt time.Time
+	// Then, when set, runs once the Knock is recorded, such as to tell its
+	// person by e-mail of a new Knock.
+	Then func()
 }
 
 func (k *Knocked) Error() string {
@@ -112,6 +115,9 @@ func (r *Registry) knock(ctx context.Context, info Info, c *Call) error {
 	if err != nil {
 		_ = tx.Rollback() // the error that matters is err
 		return r.fail(ctx, info, c, true, err)
+	}
+	if k.Then != nil {
+		k.Then()
 	}
 	return k
 }

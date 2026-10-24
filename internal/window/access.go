@@ -116,7 +116,9 @@ func (s *Service) setAccess(ctx context.Context, c *operation.Call, in AccessInp
 	case in.NewKey || !w.hasKey:
 		key = credential.Key()
 	}
-	set, args := "access = ?, access_ends_at = ?", []any{in.Access, ends}
+	// Who sets the access hears when it ends. See
+	// docs/adr/0031-e-mail-through-a-relay.md.
+	set, args := "access = ?, access_ends_at = ?, access_set_by = ?", []any{in.Access, ends, sql.NullInt64{Int64: c.Actor.UserID, Valid: c.Actor.UserID != 0}}
 	switch {
 	case key != "":
 		hash, err := credential.HashPassword(ctx, key)

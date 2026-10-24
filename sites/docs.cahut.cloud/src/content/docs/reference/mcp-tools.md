@@ -777,6 +777,7 @@ This tool takes no arguments.
 | `email_change` | object or null | no | the e-mail address that waits for the person to confirm it, from the link sent to it |
 | `email_change.email` | string | yes |  |
 | `email_change.expires_at` | string | yes | when the link sent to it stops working |
+| `notices_off` | boolean | no | whether the e-mail notices that are neither about the account nor about a Knock are off |
 
 <details>
 <summary>JSON Schema</summary>
@@ -818,6 +819,10 @@ This tool takes no arguments.
     },
     "name": {
       "type": "string"
+    },
+    "notices_off": {
+      "description": "whether the e-mail notices that are neither about the account nor about a Knock are off",
+      "type": "boolean"
     },
     "personal_room": {
       "description": "name of the person's personal Room, the handle",

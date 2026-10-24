@@ -76,6 +76,8 @@ export interface Account {
   personal_room: string;
   /** the e-mail address of the person, which only the person and the administrators of the Cahut read */
   email?: string;
+  /** whether the e-mail notices that are neither about the account nor about a Knock are off */
+  notices_off?: boolean;
   /** the e-mail address that waits for the person to confirm it, from the link sent to it */
   email_change?: EmailChange;
   /** the Rooms of the person, their personal Room first */
@@ -678,6 +680,11 @@ export interface LogbookPage {
   entries: Entry[];
 }
 
+export interface MailNotices {
+  /** whether the notices that are neither about your account nor about a Knock are off */
+  off: boolean;
+}
+
 export interface MemberInput {
   /** the Room's name */
   room: string;
@@ -1031,6 +1038,11 @@ export interface SetInput {
   logo_inverse?: ImageInput;
   /** what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Readers never see it */
   guidance?: string;
+}
+
+export interface SetMailNoticesInput {
+  /** true turns off the notices that are neither about your account nor about a Knock, such as being added to a Room; false turns them on again */
+  off: boolean;
 }
 
 export interface SetMailRelayInput {
@@ -1418,6 +1430,8 @@ export interface CahutOperations {
   set_cahut_settings: { input: SetCahutSettingsInput; output: Settings };
   /** Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. */
   set_house_style: { input: SetInput; output: HouseStyle };
+  /** Turn off, or on again, the e-mail notices that are neither about your account nor about a Knock, such as being added to a Room or the end of the access of a Window. */
+  set_mail_notices: { input: SetMailNoticesInput; output: MailNotices };
   /** Set the SMTP relay that sends the e-mail of this Cahut, such as activation links, from an address of its own. The relay is at a public address and speaks TLS. Cahut connects to it and signs in before it keeps it. An empty host removes it: the e-mail of the Cahut then goes through the relay of the server, when it has one. For the administrators of the Cahut. */
   set_mail_relay: { input: SetMailRelayInput; output: Delivery };
   /** Show a Window of a Room at the Room's address, <domain>/<room>/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access. */

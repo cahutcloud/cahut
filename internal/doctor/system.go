@@ -61,6 +61,10 @@ func (Machine) Label(name string) (string, error) { return label(name) }
 // system of path.
 func (Machine) FreeBytes(path string) (uint64, error) { return freeBytes(path) }
 
+// DiskUsage returns the size of the file system of path, and the space left
+// on it to unprivileged users.
+func DiskUsage(path string) (total, free uint64, err error) { return diskUsage(path) }
+
 // LocalAddrs returns the addresses of the interfaces of the machine.
 func (Machine) LocalAddrs() ([]net.IP, error) {
 	addrs, err := net.InterfaceAddrs()

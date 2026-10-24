@@ -14,7 +14,10 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
+	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
 )
@@ -113,7 +116,8 @@ func (s *Service) record(ctx context.Context, tx *sql.Tx, req operation.KnockReq
 			AND state = 'waiting' AND expires_at > ?
 		ORDER BY id DESC LIMIT 1`,
 		a.UserID, nullInt(a.TokenID), nullInt(a.Conn), req.Operation, string(req.Input), at).Scan(&id, &expires)
-	if errors.Is(err, sql.ErrNoRows) {
+	fresh := errors.Is(err, sql.ErrNoRows)
+	if fresh {
 		var waiting int
 		err = tx.QueryRowContext(ctx, `
 			SELECT count(*) FROM knocks
@@ -145,7 +149,45 @@ func (s *Service) record(ctx context.Context, tx *sql.Tx, req operation.KnockReq
 	if k.ExpiresAt, err = store.ParseTime(expires); err != nil {
 		return nil, err
 	}
+	if fresh && k.URL != "" {
+		// The person hears of a new Knock by e-mail, once it is recorded.
+		o := mail.OutboxIn(s.reg)
+		info, _ := s.reg.Lookup(req.Operation)
+		l, err := o.Prepare(ctx, tx, a.UserID, mail.Always, knockLetter(a.Client, info.Title, req.Target, k.URL, k.ExpiresAt))
+		if err != nil {
+			return nil, err
+		}
+		if l != nil {
+			k.Then = func() { o.Send(*l) }
+		}
+	}
 	return k, nil
+}
+
+// knockLetter writes the message that tells a person of a new Knock of
+// their AI client: what it asks, as the operation names it, and where to
+// answer. It holds no text that the AI wrote.
+func knockLetter(client, title, target, url string, expires time.Time) func(p mail.Person, name, where string) mail.Letter {
+	client = strings.Join(strings.Fields(client), " ")
+	if utf8.RuneCountInString(client) > 60 {
+		client = string([]rune(client)[:60]) + "…"
+	}
+	what := title
+	if r, n := utf8.DecodeRuneInString(title); n > 0 {
+		what = string(unicode.ToLower(r)) + title[n:]
+	}
+	if target != "" {
+		what += ": " + target
+	}
+	return func(p mail.Person, _, where string) mail.Letter {
+		return mail.Letter{
+			Subject: client + " is waiting for your answer",
+			Lines: []string{"Hello " + p.Name + ",", client + " asks for your approval before it acts for you on " + where + ".",
+				"It asks to " + what + "."},
+			Action: &mail.Action{Label: "Open the Knock", URL: url},
+			After:  []string{"It waits until " + mail.Day(expires) + ". If no one answers, it expires, and nothing happens."},
+		}
+	}
 }
 
 // AnswerInput is the input of approve_knock and deny_knock.

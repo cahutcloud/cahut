@@ -123,6 +123,9 @@ func (s *Server) WatchUpdates(ctx context.Context, log *slog.Logger) {
 		if err := s.LogUpdates(ctx); err != nil {
 			log.Warn("record the last update in the Logbook", "error", err)
 		}
+		if err := s.noticeRelease(ctx); err != nil {
+			log.Warn("tell the administrators of a new release", "error", err)
+		}
 		select {
 		case <-ctx.Done():
 			return
@@ -185,5 +188,11 @@ func (s *Server) logUpdate(ctx context.Context, run update.Run) error {
 	if _, err := tx.ExecContext(ctx, "INSERT INTO updates_logged (id) VALUES (?)", run.ID); err != nil {
 		return err
 	}
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	if run.Result != update.Updated {
+		return s.noticeFailedUpdate(ctx, run)
+	}
+	return nil
 }

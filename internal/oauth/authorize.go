@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"cahut.cloud/internal/credential"
+	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
 )
@@ -296,8 +297,32 @@ func (s *Server) approveOp() *operation.Op[ApproveInput, Redirect] {
 				reach = strings.Join(in.Rooms, ", ")
 			}
 			c.Log(fmt.Sprintf("connection %d of %s", id, c.Actor.Handle), fmt.Sprintf("%s, %s, %s", ch.client.Name, in.Scope, reach))
+			if err := mail.OutboxOf(c).Notify(ctx, c, userID, mail.Always, connectedLetter(ch.client.Name, in.Scope, in.AllRooms, in.Rooms)); err != nil {
+				return Redirect{}, err
+			}
 			return Redirect{Redirect: s.back(ch, in.Request, url.Values{"code": {code}})}, nil
 		},
+	}
+}
+
+// connectedLetter tells a person that an AI client is connected to their
+// account, with the reach they granted.
+func connectedLetter(client, scope string, all bool, rooms []string) func(p mail.Person, name, where string) mail.Letter {
+	client = strings.Join(strings.Fields(client), " ")
+	does := "read and make changes"
+	if scope == Read {
+		does = "read"
+	}
+	in := "in every Room of yours"
+	if !all {
+		in = "in the Rooms " + strings.Join(rooms, ", ")
+	}
+	return func(p mail.Person, _, where string) mail.Letter {
+		return mail.Letter{
+			Subject: client + " is connected to your account",
+			Lines:   []string{"Hello " + p.Name + ",", client + " can now act for you on " + where + ": it can " + does + ", " + in + "."},
+			After:   []string{"If you did not connect it, disconnect it in the console, under AIs and access."},
+		}
 	}
 }
 

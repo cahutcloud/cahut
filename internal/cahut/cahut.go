@@ -54,6 +54,8 @@ type Cahut struct {
 	OAuth    *oauth.Server
 	// About describes the Cahut: get_cahut.
 	About *operation.Op[GetCahutInput, About]
+	// Outbox sends the e-mail of the Cahut; nil where it sends none.
+	Outbox *mail.Outbox
 	// FrameKey signs the capabilities of the frames of Windows: those of
 	// protected Windows and those of previews in the console. See
 	// docs/adr/0019-window-versions-access-and-declaration.md and
@@ -107,8 +109,10 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		return b.Name, err
 	}
 	cfg.Mail.RegisterCahut(r, db, cfg.Domain, name)
+	var outbox *mail.Outbox
 	if cfg.Mail != nil && cfg.ConsoleURL != "" {
-		mail.Provide(r, &mail.Outbox{Service: cfg.Mail, DB: db, Domain: cfg.Domain, Name: name, Console: cfg.ConsoleURL})
+		outbox = &mail.Outbox{Service: cfg.Mail, DB: db, Domain: cfg.Domain, Name: name, Base: cfg.BaseURL, Console: cfg.ConsoleURL}
+		mail.Provide(r, outbox)
 	}
 	about := &operation.Op[GetCahutInput, About]{
 		Name:  "get_cahut",
@@ -132,7 +136,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		},
 	}
 	operation.Register(r, about)
-	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w, OAuth: auth, About: about, FrameKey: frameKey}, nil
+	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w, OAuth: auth, About: about, Outbox: outbox, FrameKey: frameKey}, nil
 }
 
 // secret returns the random secret of the Cahut called name, drawn on first

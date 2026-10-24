@@ -103,6 +103,11 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 // mailDrain bounds the time Close gives the e-mail in the queue to go out.
 const mailDrain = 30 * time.Second
 
+// DataDir returns the directory of the server's data.
+func (s *Server) DataDir() string {
+	return s.cfg.DataDir
+}
+
 // Close sends the e-mail that waits in the queue, for a while, then closes
 // the server's database.
 func (s *Server) Close() error {

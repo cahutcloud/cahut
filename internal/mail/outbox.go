@@ -19,6 +19,9 @@ type Outbox struct {
 	Domain  string    // of the Cahut; empty for the server
 	// Name returns the name of the Cahut, which its messages come from.
 	Name func(ctx context.Context) (string, error)
+	// Base is the address of the Cahut, such as https://example.com/, under
+	// which its Rooms and Windows open.
+	Base string
 	// Console is the address of the console of the Cahut, such as
 	// https://example.com/console/, under which links open.
 	Console string
@@ -42,6 +45,13 @@ func OutboxOf(c *operation.Call) *Outbox {
 	return o
 }
 
+// OutboxIn returns the outbox that the registry r provides, or nil, for
+// what runs outside a call.
+func OutboxIn(r *operation.Registry) *Outbox {
+	o, _ := r.Value(outboxKey{}).(*Outbox)
+	return o
+}
+
 // Sends reports, in the transaction of a call, whether the Cahut sends
 // e-mail. A nil o sends none.
 func (o *Outbox) Sends(ctx context.Context, tx *sql.Tx) (bool, error) {
@@ -58,17 +68,25 @@ func (o *Outbox) Post(c *operation.Call, l Letter) {
 	if o == nil {
 		return
 	}
-	c.AfterCommit(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		name, err := o.Name(ctx)
-		if err == nil {
-			err = o.Service.Post(ctx, From{DB: o.DB, Domain: o.Domain, Name: name}, l)
-		}
-		if err != nil && !errors.Is(err, ErrNoRelay) {
-			o.Service.log.Warn("post e-mail", "for", o.Domain, "error", err)
-		}
-	})
+	c.AfterCommit(func() { o.Send(l) })
+}
+
+// Send sends l now, for what runs outside a call or once it is committed.
+// A message that cannot go out is logged by the service. A nil o sends
+// nothing.
+func (o *Outbox) Send(l Letter) {
+	if o == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	name, err := o.Name(ctx)
+	if err == nil {
+		err = o.Service.Post(ctx, From{DB: o.DB, Domain: o.Domain, Name: name}, l)
+	}
+	if err != nil && !errors.Is(err, ErrNoRelay) {
+		o.Service.log.Warn("post e-mail", "for", o.Domain, "error", err)
+	}
 }
 
 // Where returns how a message names the Cahut of the outbox: its name, and

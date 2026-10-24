@@ -22,7 +22,9 @@ import (
 
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/console"
+	"cahut.cloud/internal/doctor"
 	"cahut.cloud/internal/housestyle"
+	"cahut.cloud/internal/notice"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
 	"cahut.cloud/internal/update"
@@ -119,6 +121,9 @@ type Server struct {
 	streams    context.Context
 	endStreams context.CancelFunc
 
+	// disk measures the disk of the data, for its notice. Tests replace it.
+	disk notice.Disk
+
 	mu    sync.Mutex
 	sites map[string]*site // by domain
 }
@@ -132,7 +137,7 @@ type site struct {
 
 // New returns a web server for the Cahuts of srv.
 func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
-	s := &Server{srv: srv, cfg: cfg, log: log, sites: map[string]*site{}}
+	s := &Server{srv: srv, cfg: cfg, log: log, sites: map[string]*site{}, disk: doctor.DiskUsage}
 	s.streams, s.endStreams = context.WithCancel(context.Background())
 	s.mux = http.NewServeMux()
 	s.mux.HandleFunc("GET /{$}", s.serveRoot)
@@ -457,6 +462,7 @@ func (s *Server) Run(ctx context.Context) error {
 	if len(domains) == 0 {
 		s.log.Warn("this server holds no Cahut yet: declare one with cahut domain add <domain>")
 	}
+	go s.watchNotices(ctx)
 	if s.cfg.Dev {
 		srv := s.httpServer(s.cfg.DevAddr, s.localHealth(s))
 		s.log.Info("serving over HTTP for development", "address", "http://"+s.cfg.DevAddr+"/",
@@ -478,6 +484,46 @@ func (s *Server) Run(ctx context.Context) error {
 		func(ctx context.Context) error {
 			return serve(ctx, https, func() error { return https.ListenAndServeTLS("", "") })
 		})
+}
+
+// watchNotices sends, every hour until ctx is done, the notices that time
+// brings: the end of an access, the limits of each Cahut, the disk of the
+// server. See docs/adr/0031-e-mail-through-a-relay.md.
+func (s *Server) watchNotices(ctx context.Context) {
+	tick := time.NewTicker(notice.Every)
+	defer tick.Stop()
+	first := time.After(time.Minute)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-first:
+		case <-tick.C:
+		}
+		s.SendNotices(ctx, time.Now())
+	}
+}
+
+// SendNotices sends the notices that are due at now, for every Cahut and
+// for the server.
+func (s *Server) SendNotices(ctx context.Context, now time.Time) {
+	domains, err := s.srv.Domains(ctx)
+	if err != nil {
+		s.log.Warn("send notices", "error", err)
+		return
+	}
+	for _, d := range domains {
+		st, err := s.site(ctx, d)
+		if err == nil {
+			err = notice.Cahut(ctx, s.srv, st.cahut, now)
+		}
+		if err != nil {
+			s.log.Warn("send notices", "cahut", d, "error", err)
+		}
+	}
+	if err := notice.Server(ctx, s.srv, s.disk); err != nil {
+		s.log.Warn("send notices", "error", err)
+	}
 }
 
 // serveAll runs every server until ctx is done or one of them fails, as
