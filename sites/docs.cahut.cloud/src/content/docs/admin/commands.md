@@ -61,6 +61,30 @@ Point the DNS record of the new domain to the server first. Everything in the Ca
 sudo -u cahut /usr/local/bin/cahut domain add docs.example.org --admin-handle ana --admin-name "Ana Lima"
 ```
 
+## Set the limits of a Cahut
+
+A Cahut has no limit until you set some. `settings set` changes the limits you name and leaves the others as they are; `none` lifts one:
+
+```bash
+sudo -u cahut /usr/local/bin/cahut settings set --domain docs.example.org --people 20 --disk 10GB
+sudo -u cahut /usr/local/bin/cahut settings set --domain docs.example.org --disk none
+sudo -u cahut /usr/local/bin/cahut settings show --domain docs.example.org
+```
+
+```text
+Limits of docs.example.org:
+
+                  HOLDS   LIMIT
+people            3       20
+administrators    1       none
+team Rooms        2       none
+Windows           14      none
+Windows per Room          none
+disk              2.4 MB  none
+```
+
+The disk counts in units of 1000 bytes, as hosts sell it: `10GB` is 10 billion bytes. [Limits](/concepts/cahuts/#limits) says what each limit counts.
+
 ## Create a person
 
 ```bash

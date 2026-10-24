@@ -47,7 +47,24 @@ The folders of the Cahuts and of the Windows are named by their ids, not by thei
 
 ## What Cahuts share
 
-The Cahuts of a server share its disk, memory and processor, its updates and its administrator. One Cahut can fill the disk for all the others: quotas per Cahut come later.
+The Cahuts of a server share its disk, memory and processor, its updates and its administrator. Limits keep one Cahut from taking what the others need.
+
+## Limits
+
+The administrators of the server can bound what each Cahut holds, such as when a host gives each organization its share of a server. A Cahut has no limit until they set some, with [`cahut settings set`](/admin/commands/#set-the-limits-of-a-cahut). Each limit is optional:
+
+| Limit | What counts |
+| --- | --- |
+| People | The people who are active or wait for their activation, administrators included. Disabled people do not count. |
+| Administrators | The administrators of the Cahut, counted the same way. |
+| Team Rooms | Team Rooms. A personal Room comes with its person, and the limit of people already bounds them. |
+| Windows | The Windows out of the trash, in the whole Cahut. |
+| Windows per Room | The Windows out of the trash in one Room, personal Rooms included. |
+| Disk | Every version of every Window, those in the trash included, and the files of the house style, in units of 1000 bytes: 10 GB is 10 billion bytes. |
+
+A call that would cross a limit is refused, with a message that says what to do: put Windows in the trash, purge some, or ask for a higher limit. Lowering a limit below what the Cahut holds deletes nothing: the Cahut keeps it all, and refuses what would add to it.
+
+Every change of the limits goes to the Logbook of the Cahut, and `get_cahut` gives the limits with what the Cahut holds, to people and to AIs.
 
 ## Who administers
 

@@ -59,6 +59,15 @@ func onServer[In, Out any](dir string, op *operation.Op[In, Out], in In, stderr 
 // Cahut as the administrator and closes both. The domain may be empty when
 // the server holds a single Cahut. It reports errors on stderr.
 func inCahut[In, Out any](dir, domain string, op *operation.Op[In, Out], in In, stderr io.Writer) (Out, string, bool) {
+	return withCahut(dir, domain, stderr, func(ctx context.Context, c *cahut.Cahut) (Out, error) {
+		return operation.Do(ctx, c.Registry, op, admin, in)
+	})
+}
+
+// withCahut opens the server in dir and its Cahut at domain, runs fn with
+// that Cahut and closes both, as inCahut does. It returns the domain of the
+// Cahut.
+func withCahut[Out any](dir, domain string, stderr io.Writer, fn func(context.Context, *cahut.Cahut) (Out, error)) (Out, string, bool) {
 	var at string
 	out, ok := withServer(dir, stderr, func(ctx context.Context, srv *server.Server) (Out, error) {
 		var zero Out
@@ -82,7 +91,7 @@ func inCahut[In, Out any](dir, domain string, op *operation.Op[In, Out], in In, 
 		}
 		defer c.Close()
 		at = c.Domain
-		return operation.Do(ctx, c.Registry, op, admin, in)
+		return fn(ctx, c)
 	})
 	return out, at, ok
 }

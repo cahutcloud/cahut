@@ -7,6 +7,10 @@ export interface About {
   url?: string;
   /** the address of its MCP endpoint, where AI clients connect */
   mcp?: string;
+  /** the limits that the administrators of the server set; a limit that is absent counts nothing */
+  limits: Limits;
+  /** what the Cahut holds, as its limits count it */
+  usage: Usage;
 }
 
 export interface AccessInput {
@@ -441,6 +445,29 @@ export interface HousestyleGetInput {
   kind?: string;
 }
 
+export interface HousestyleSetInput {
+  /** start again from the neutral house style, then apply the other fields */
+  neutral?: boolean;
+  /** whether AIs use the house style: false makes it inactive, and get_house_style then gives them nothing of it; the pages of Cahut and the Windows that link its sheet keep it */
+  active?: boolean;
+  /** the name of the organization; empty for the domain of the Cahut */
+  name?: string;
+  /** the colors to change; those left out stay */
+  colors?: ColorsInput;
+  /** up to 8 colors for the series of charts, in order, each as #rrggbb; an empty list goes back to those that Cahut derives from the primary and secondary colors */
+  chart_colors?: string[];
+  /** the font of headings, which replaces the current one with its files; with no family, headings take the body font */
+  heading_font?: FontInput;
+  /** the font of body text, which replaces the current one with its files; with no family, the font of the system */
+  body_font?: FontInput;
+  /** the logo of the organization, for light backgrounds */
+  logo?: ImageInput;
+  /** the version of the logo for dark backgrounds, such as slides in the primary color */
+  logo_inverse?: ImageInput;
+  /** what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Readers never see it */
+  guidance?: string;
+}
+
 export interface ImageInput {
   /** the image: SVG as text, or PNG or WebP in base64; empty to remove the logo */
   content: string;
@@ -497,6 +524,21 @@ export interface KnockListInput {
   waiting?: boolean;
   /** how many Knocks, 50 by default, at most 500 */
   limit?: number;
+}
+
+export interface Limits {
+  /** how many people the Cahut may have, active or waiting for their activation, administrators included; disabled people do not count */
+  people?: number;
+  /** how many of them may be administrators of the Cahut */
+  admins?: number;
+  /** how many team Rooms the Cahut may have; personal Rooms come with their person and do not count */
+  rooms?: number;
+  /** how many Windows out of the trash the Cahut may hold */
+  windows?: number;
+  /** how many Windows out of the trash each Room may hold, personal Rooms included */
+  windows_per_room?: number;
+  /** how many bytes the Cahut may keep: every version of every Window, those in the trash included, and the files of the house style */
+  disk?: number;
 }
 
 export type ListAdminsInput = Record<string, never>;
@@ -796,29 +838,6 @@ export interface SetAIReachInput {
   rooms?: string[];
 }
 
-export interface SetInput {
-  /** start again from the neutral house style, then apply the other fields */
-  neutral?: boolean;
-  /** whether AIs use the house style: false makes it inactive, and get_house_style then gives them nothing of it; the pages of Cahut and the Windows that link its sheet keep it */
-  active?: boolean;
-  /** the name of the organization; empty for the domain of the Cahut */
-  name?: string;
-  /** the colors to change; those left out stay */
-  colors?: ColorsInput;
-  /** up to 8 colors for the series of charts, in order, each as #rrggbb; an empty list goes back to those that Cahut derives from the primary and secondary colors */
-  chart_colors?: string[];
-  /** the font of headings, which replaces the current one with its files; with no family, headings take the body font */
-  heading_font?: FontInput;
-  /** the font of body text, which replaces the current one with its files; with no family, the font of the system */
-  body_font?: FontInput;
-  /** the logo of the organization, for light backgrounds */
-  logo?: ImageInput;
-  /** the version of the logo for dark backgrounds, such as slides in the primary color */
-  logo_inverse?: ImageInput;
-  /** what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Readers never see it */
-  guidance?: string;
-}
-
 export interface SetUp {
   /** the session of the first person, at the console of the Cahut */
   session: AccountSession;
@@ -840,6 +859,18 @@ export interface SetUserRoleInput {
   user: string;
   /** admin or member */
   role: string;
+}
+
+export interface Settings {
+  /** the limits that the administrators of the server set; a limit that is absent counts nothing */
+  limits: Limits;
+  /** what the Cahut holds, as its limits count it */
+  usage: Usage;
+}
+
+export interface SettingsSetInput {
+  /** every limit of the Cahut: a limit left out is lifted */
+  limits: Limits;
 }
 
 export interface Setup {
@@ -928,6 +959,19 @@ export interface Updates {
 }
 
 export type UpdatesInput = Record<string, never>;
+
+export interface Usage {
+  /** people who are not disabled, administrators included */
+  people: number;
+  /** administrators who are not disabled */
+  admins: number;
+  /** team Rooms */
+  rooms: number;
+  /** Windows out of the trash */
+  windows: number;
+  /** bytes of every version of every Window, those in the trash included, and of the files of the house style */
+  disk: number;
+}
 
 export interface User {
   id: number;
@@ -1080,7 +1124,7 @@ export interface CahutOperations {
   enable_user: { input: UserInput; output: User };
   /** Describe the person you act for: their handle, name, role in the Cahut and Rooms. */
   get_account: { input: GetAccountInput; output: Account };
-  /** Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. */
+  /** Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, and its limits with what it holds: a call that would cross a limit is refused. */
   get_cahut: { input: GetCahutInput; output: About };
   /** Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for. */
   get_house_style: { input: HousestyleGetInput; output: HouseStyle };
@@ -1122,8 +1166,10 @@ export interface CahutOperations {
   rollback_window: { input: RefInput; output: Window };
   /** Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. */
   set_ai_reach: { input: SetAIReachInput; output: Connection };
+  /** Set the limits of this Cahut: how many people, administrators, team Rooms and Windows it may have, how many Windows each Room may hold, and how many bytes it may keep. Give every limit: a limit left out is lifted. Lowering a limit deletes nothing: the Cahut keeps what it holds and refuses what would add to it. For the administrators of the server. */
+  set_cahut_settings: { input: SettingsSetInput; output: Settings };
   /** Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. */
-  set_house_style: { input: SetInput; output: HouseStyle };
+  set_house_style: { input: HousestyleSetInput; output: HouseStyle };
   /** Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. */
   set_room_member_role: { input: MemberInput; output: RoomDetail };
   /** Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. */

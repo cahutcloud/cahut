@@ -14,6 +14,7 @@ import (
 
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
 )
 
@@ -172,6 +173,9 @@ var CreateRoom = &operation.Op[CreateRoomInput, Room]{
 		}
 		if taken {
 			return Room{}, operation.Invalidf("name %q is taken, by a Room or a person: choose another", name)
+		}
+		if err := settings.CheckRoom(ctx, c); err != nil {
+			return Room{}, err
 		}
 		r := Room{Name: name, Title: title, Kind: Team, Members: 1, CreatedAt: c.Now}
 		var id int64

@@ -43,7 +43,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. Knock first: a person approves the call before it runs. |
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
-| [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint. |
+| [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, and its limits with what it holds: a call that would cross a limit is refused. |
 | [`get_house_style`](#get_house_style) | Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for. |
 | [`get_knock`](#get_knock) | Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
 | [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
@@ -812,7 +812,7 @@ This tool takes no arguments.
 
 ## `get_cahut`
 
-Describe this Cahut: its domain, the address where its Rooms and Windows open, and that of its MCP endpoint.
+Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, and its limits with what it holds: a call that would cross a limit is refused.
 
 Title: Describe the Cahut. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -837,6 +837,19 @@ This tool takes no arguments.
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
 | `domain` | string | yes |  |
+| `limits` | object | yes | the limits that the administrators of the server set; a limit that is absent counts nothing |
+| `limits.admins` | integer or null | no | how many of them may be administrators of the Cahut |
+| `limits.disk` | integer or null | no | how many bytes the Cahut may keep: every version of every Window, those in the trash included, and the files of the house style |
+| `limits.people` | integer or null | no | how many people the Cahut may have, active or waiting for their activation, administrators included; disabled people do not count |
+| `limits.rooms` | integer or null | no | how many team Rooms the Cahut may have; personal Rooms come with their person and do not count |
+| `limits.windows` | integer or null | no | how many Windows out of the trash the Cahut may hold |
+| `limits.windows_per_room` | integer or null | no | how many Windows out of the trash each Room may hold, personal Rooms included |
+| `usage` | object | yes | what the Cahut holds, as its limits count it |
+| `usage.admins` | integer | yes | administrators who are not disabled |
+| `usage.disk` | integer | yes | bytes of every version of every Window, those in the trash included, and of the files of the house style |
+| `usage.people` | integer | yes | people who are not disabled, administrators included |
+| `usage.rooms` | integer | yes | team Rooms |
+| `usage.windows` | integer | yes | Windows out of the trash |
 | `mcp` | string | no | the address of its MCP endpoint, where AI clients connect |
 | `url` | string | no | the address of the Cahut, under which its Rooms and Windows open |
 
@@ -850,6 +863,55 @@ This tool takes no arguments.
     "domain": {
       "type": "string"
     },
+    "limits": {
+      "additionalProperties": false,
+      "description": "the limits that the administrators of the server set; a limit that is absent counts nothing",
+      "properties": {
+        "admins": {
+          "description": "how many of them may be administrators of the Cahut",
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "disk": {
+          "description": "how many bytes the Cahut may keep: every version of every Window, those in the trash included, and the files of the house style",
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "people": {
+          "description": "how many people the Cahut may have, active or waiting for their activation, administrators included; disabled people do not count",
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "rooms": {
+          "description": "how many team Rooms the Cahut may have; personal Rooms come with their person and do not count",
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "windows": {
+          "description": "how many Windows out of the trash the Cahut may hold",
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "windows_per_room": {
+          "description": "how many Windows out of the trash each Room may hold, personal Rooms included",
+          "type": [
+            "null",
+            "integer"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "mcp": {
       "description": "the address of its MCP endpoint, where AI clients connect",
       "type": "string"
@@ -857,10 +919,46 @@ This tool takes no arguments.
     "url": {
       "description": "the address of the Cahut, under which its Rooms and Windows open",
       "type": "string"
+    },
+    "usage": {
+      "additionalProperties": false,
+      "description": "what the Cahut holds, as its limits count it",
+      "properties": {
+        "admins": {
+          "description": "administrators who are not disabled",
+          "type": "integer"
+        },
+        "disk": {
+          "description": "bytes of every version of every Window, those in the trash included, and of the files of the house style",
+          "type": "integer"
+        },
+        "people": {
+          "description": "people who are not disabled, administrators included",
+          "type": "integer"
+        },
+        "rooms": {
+          "description": "team Rooms",
+          "type": "integer"
+        },
+        "windows": {
+          "description": "Windows out of the trash",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "people",
+        "admins",
+        "rooms",
+        "windows",
+        "disk"
+      ],
+      "type": "object"
     }
   },
   "required": [
-    "domain"
+    "domain",
+    "limits",
+    "usage"
   ],
   "type": "object"
 }
