@@ -78,7 +78,7 @@ export default {
 				'An AI client that speaks MCP, such as Claude Code',
 			],
 		},
-		note: 'The repository opens at the public launch: until then, these commands work for those who have access to it.',
+		note: 'Cahut is in early development and keeps no backups yet: keep snapshots of your server.',
 		status: 'Where Cahut stands',
 	},
 
@@ -178,19 +178,19 @@ export default {
 				title: 'Publish',
 				heading: 'Ask for a deck. The AI publishes a Window.',
 				text: 'The AI calls one typed operation, never a shell. Cahut applies your house style, files the Window in its Room, and hands back its address.',
-				call: 'publish_window(room: "marketing", window: "q3-review")',
+				call: 'publish_window(room: "marketing", title: "Q3 review")',
 			},
 			{
 				title: 'Share',
 				heading: 'Share a link, not a file.',
 				text: 'Each Window opens to its Room only, to everyone in your Cahut, to anyone with its Key, or to the public. Readers open it in a browser and comment on it.',
-				call: 'share_window(window: "q3-review", access: "key")',
+				call: 'set_window_access(window: "marketing/q3-review", access: "key")',
 			},
 			{
 				title: 'Knock first',
 				heading: 'What cannot be undone waits for you.',
 				text: 'Making a Window public cannot be undone. So the AI knocks: the request waits in the console, with a notification and an expiry, until a person approves it.',
-				call: 'share_window(access: "public") → waiting for Olivier',
+				call: 'set_window_access(access: "public") → waiting for Olivier',
 			},
 			{
 				title: 'Logbook',
@@ -321,7 +321,7 @@ export default {
 	features: {
 		label: 'Features',
 		title: 'What ships at launch',
-		lead: 'The full scope ships at launch, with no reduced trial version. Today, the first slice works: an AI publishes a Window over MCP, and Cahut serves it over HTTPS. The rest is the target.',
+		lead: 'The full scope ships at launch, with no reduced trial version. Today, the first version works: it installs on a server, connects Claude and ChatGPT, and publishes and shares documents, decks, dashboards and sites. Apps, comments, search, export, single sign-on and backups are the target.',
 		groups: [
 			{
 				title: 'Publish',
@@ -362,6 +362,10 @@ export default {
 						area: 'Sharing',
 						text: 'By link, Window by Window: its Room only, internal (everyone in the Cahut), a Key (a password) or public, with an optional end date.',
 					},
+					{
+						area: 'Invitations',
+						text: 'A Window sent by e-mail, to people of the Cahut or outside it, with a personal link in place of its Key.',
+					},
 					{ area: 'Comments', text: 'Reader feedback directly on the pages.' },
 					{
 						area: 'Users and Rooms',
@@ -383,11 +387,15 @@ export default {
 					},
 					{
 						area: 'Web console',
-						text: 'See what is published, share, comment, approve irreversible actions, administer the server and its Cahuts, on its own HTTPS port.',
+						text: 'See what is published, share, comment, approve irreversible actions, administer the server and its Cahuts, under /console/ of each Cahut.',
 					},
 					{
 						area: 'Domains and TLS',
 						text: 'Several Cahuts per server, each at its own domain or subdomain. No wildcard needed, automatic certificates.',
+					},
+					{
+						area: 'Limits',
+						text: 'People, Rooms, Windows and disk for each Cahut, set by the administrators of the server, and Cahuts where each person works alone.',
 					},
 					{ area: 'Logbook', text: 'The history of every action: who, which AI, on whose behalf, with what result.' },
 					{ area: 'Backups', text: 'Optional, to external S3 or SFTP storage. Restore from the console.' },
@@ -476,7 +484,7 @@ export default {
 		},
 		descriptions: {
 			governance: 'Who decides in the Cahut project, its principles, its roles, how it grows, and what the money does.',
-			roadmap: 'The batches of the first version of Cahut, what works today, and what makes it ready for launch.',
+			roadmap: 'The batches of Cahut, what works today, and what makes it ready for launch.',
 			contribute:
 				'What helps Cahut right away, what to discuss first, how a pull request gets in, and the rules for contributions made with an AI.',
 			support: 'Where to ask for help with Cahut, how to ask well, and what to expect.',
@@ -494,7 +502,7 @@ export default {
 		roadmap: {
 			title: 'Roadmap',
 			lead: 'Cahut is built in batches, each one a working slice from the AI to the reader. Their order is set, their dates are not: the milestones of the repository say where each batch stands.',
-			batchesTitle: 'The batches of the first version',
+			batchesTitle: 'The batches',
 			batch: 'Batch',
 			states: { done: 'Done', next: 'Next' },
 			batches: [
@@ -534,19 +542,25 @@ export default {
 					title: 'A second AI client and acceptance',
 					text: 'A second AI client tested from end to end, a security review, and the success criteria checked on fresh servers.',
 				},
+				{
+					title: 'E-mail from each Cahut',
+					text: 'Each Cahut sends e-mail through its own SMTP relay: links to choose a password, invitations to read a Window, and notices of Knocks.',
+				},
 			],
 			milestones: 'The milestones on GitHub',
 			todayTitle: 'What works today',
-			todayLead: 'Batches 0 to 8 are done. In a Cahut, today:',
+			todayLead: 'Batches 0 to 9 are done. In a Cahut, today:',
 			today: [
 				'One command that installs a Linux server, a first start in the browser, and daily updates from signed releases, with a rollback.',
 				'One service on a Linux server, holding one or more Cahuts, each at its own domain with its certificate, or at the IPv4 address of the server until it has one.',
-				'People who sign in, administrators of the Cahut and of the server, and team Rooms with owners and members.',
-				'A web console: Knocks, Rooms, Windows, the Logbook, people, connected AIs and personal tokens.',
+				'Collaborative Cahuts, or individual ones where each person works alone, and limits on people, Rooms, Windows and disk, set by the administrators of the server.',
+				'People who sign in, administrators of the Cahut and of the server, and team Rooms with owners and members. The page of each Room lists its Windows, or shows the one its owners choose.',
+				'A web console: Knocks, Rooms, Windows, the Logbook, people, connected AIs, personal tokens, e-mail and the server.',
 				'AI clients that connect over OAuth, such as claude.ai, Claude Code, ChatGPT and Le Chat, to the Rooms and the scope a person grants, or with a personal token.',
 				'Windows published over MCP: documents, decks, dashboards and static sites, served in a sandbox that holds them to what their AI declares they load and call.',
 				'Two versions of each Window with a rollback, a trash, and an access: Room only, internal, with a Key or public, until a date.',
 				'Knock first: what an AI cannot undo, or what changes what a person may do, waits for its person, who approves or declines it in the console.',
+				'E-mail through the SMTP relay of each Cahut: links to choose a password, invitations to read a Window, and notices of Knocks, of the account and of limits.',
 				'A house style for each Cahut: its colors, fonts, logo and guidance, templates for documents, decks and dashboards, and a deck engine, which AIs read before they publish.',
 				'A plugin for Claude Code, and a skill for the Claude apps, that teach Claude to make Windows in the house style.',
 				'The Logbook of every call, every change and every sign-in.',
@@ -557,7 +571,7 @@ export default {
 			afterTitle: 'After the first version',
 			afterLead: 'Then, towards the full scope of the launch, in about this order:',
 			after: [
-				'Comments, search, single sign-on, backups and restore, and quotas per Cahut.',
+				'Comments, search, single sign-on, and backups and restore.',
 				'Apps in unprivileged containers: runtimes, a Dockerfile mode, databases, secrets, logs and resource limits.',
 				'Export to PDF and PowerPoint, SSH access limited to the same operations, and other AI clients.',
 			],

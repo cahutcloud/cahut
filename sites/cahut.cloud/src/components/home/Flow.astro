@@ -26,7 +26,7 @@ const ais = [
 	{ mark: 'Co', name: 'Copilot' },
 ];
 
-const operations = ['publish_window', 'share_window', 'get_window', 'list_windows'];
+const operations = ['publish_window', 'set_window_access', 'get_window', 'list_windows'];
 
 const log = ['09:12', '09:14', '09:20', '09:31'].map((time, index) => ({
 	time,
@@ -315,14 +315,14 @@ const done = [
 			<Icon name="link" size={14} />marketing/q3-review
 		</span>
 		<span class="flow__packet flow__packet--call" data-packet="share">
-			<Icon name="key-round" size={14} />share_window · Key
+			<Icon name="key-round" size={14} />set_window_access · Key
 		</span>
 		<span class="flow__packet flow__packet--back" data-packet="link-client">
 			<Icon name="link" size={14} />
 			{t.packets.linkKey}
 		</span>
 		<span class="flow__packet flow__packet--call" data-packet="public">
-			<Icon name="globe" size={14} />share_window · Public
+			<Icon name="globe" size={14} />set_window_access · Public
 		</span>
 		<span class="flow__packet flow__packet--back" data-packet="link-public">
 			<Icon name="link" size={14} />
@@ -468,9 +468,9 @@ const done = [
 				on('live-mcp');
 				await p.fly('share', 'mcp');
 				off('live-mcp');
-				on('op-share_window', 'is-key');
+				on('op-set_window_access', 'is-key');
 				await p.wait(700);
-				off('op-share_window');
+				off('op-set_window_access');
 				on('log-3', 'w-client');
 				await p.wait(700);
 				on('live-client');
@@ -484,9 +484,9 @@ const done = [
 				on('live-mcp');
 				await p.fly('public', 'mcp');
 				off('live-mcp');
-				on('op-share_window', 'has-knock', 's-knocking');
+				on('op-set_window_access', 'has-knock', 's-knocking');
 				await p.wait(500);
-				off('op-share_window');
+				off('op-set_window_access');
 				on('log-4');
 				await p.wait(1600);
 				on('s-cursor');
@@ -1110,7 +1110,7 @@ const done = [
 			scale var(--duration-base) var(--ease-out);
 	}
 	.op-publish_window .flow__op[data-op='publish_window'],
-	.op-share_window .flow__op[data-op='share_window'] {
+	.op-set_window_access .flow__op[data-op='set_window_access'] {
 		background: var(--color-primary);
 		color: var(--color-on-primary);
 		scale: 1.06;

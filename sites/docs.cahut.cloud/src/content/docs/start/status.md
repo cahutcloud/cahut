@@ -14,9 +14,10 @@ Cahut is built in slices, each one working from the AI to the reader. Nine slice
 | Updates | Every day from the signed releases, with a health check and an automatic rollback, from the command line or the console. See [Updates](/admin/updates/) |
 | Diagnosis | `cahut doctor` checks the server, the firewall, SELinux, and the address and certificate of each Cahut. See [cahut doctor](/admin/doctor/) |
 | HTTPS | A certificate from Let's Encrypt for the domain of each Cahut, or for its IP address, obtained and renewed by the service |
+| Kind and limits | Each Cahut collaborative, or individual, where people work alone and do not see one another; limits on its people, administrators, Rooms, Windows and disk; both set by the administrators of the server. See [Cahuts](/concepts/cahuts/#collaborative-or-individual) |
 | People | Created by an administrator, each with a personal Room named after their handle and a link to choose a password; administrators of the Cahut and of the server, with rights checked on every call |
-| Console | Under `/console/` of each Cahut's domain: sign-in, Knocks, Rooms and their people, Windows with their access, versions and declaration, the Logbook, personal tokens, people and the server. See [The console](/admin/console/) |
-| Rooms | Team Rooms with owners and members, created by any person or AI, and deleted for good by their owners; their members publish in them |
+| Console | Under `/console/` of each Cahut's domain: sign-in, Knocks, Rooms and their people, Windows with their access, versions and declaration, the Logbook, personal tokens, people, e-mail, the kind and limits of the Cahut, and the server. See [The console](/admin/console/) |
+| Rooms | Team Rooms with owners and members, created by any person or AI, and deleted for good by their owners; their members publish in them. The page of each Room lists the Windows its reader may open, or shows the Window its owners choose. See [The page of a Room](/concepts/rooms-and-windows/#the-page-of-a-room) |
 | AI access | OAuth for AI clients such as claude.ai, Claude Code, ChatGPT and Le Chat, with a consent screen where a person grants read or write access to all their Rooms or some of them, and a list of connected AIs to change or disconnect; an AI asks for more by Knock first; personal tokens too, sent in a header. See [Connect an AI client](/connect/ai-clients/) |
 | MCP | The [tools](/reference/mcp-tools/) of Windows, Rooms, people and the Logbook, over Streamable HTTP |
 | Windows | Documents, decks, dashboards and static sites, served at `<domain>/<room>/<window>/` in a sandbox, with a policy made from what their AI declares they load and call; two versions, a rollback, a trash and deletion for good. See [Rooms and Windows](/concepts/rooms-and-windows/) |
@@ -29,4 +30,4 @@ Cahut is built in slices, each one working from the AI to the reader. Nine slice
 
 ## What comes later
 
-The first version is checked on fresh servers, with Claude and ChatGPT, against the success criteria of the project. Then, in about this order and without dates: comments, search, single sign-on, backups to S3 or SFTP storage and quotas per Cahut; apps in containers; export to PDF and PowerPoint, and SSH access for terminal AIs.
+The first version is checked on fresh servers, with Claude and ChatGPT, against the success criteria of the project. Then, in about this order and without dates: comments, search, single sign-on, and backups to S3 or SFTP storage; apps in containers; export to PDF and PowerPoint, and SSH access for terminal AIs.
