@@ -557,6 +557,10 @@ func who(e logbook.Entry) string {
 		return e.Client + " for " + e.UserHandle
 	case e.UserHandle != "":
 		return e.UserHandle
+	case e.Actor == string(operation.Person):
+		// A call that came without signing in, and names no account, such
+		// as a reader who opens an invitation.
+		return "visitor"
 	}
 	return e.Actor
 }

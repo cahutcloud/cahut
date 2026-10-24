@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"cahut.cloud/internal/logbook"
 )
 
 // run runs the command line with a data directory and returns its exit
@@ -200,5 +202,24 @@ func TestGroupUsage(t *testing.T) {
 	}
 	if code := Run([]string{"user", "help"}, &stdout, &stderr); code != exitOK || !strings.Contains(stdout.String(), "create") {
 		t.Errorf("user help: %d %q", code, stdout.String())
+	}
+}
+
+func TestWho(t *testing.T) {
+	for _, tt := range []struct {
+		entry logbook.Entry
+		want  string
+	}{
+		{logbook.Entry{Actor: "person", UserHandle: "olivier"}, "olivier"},
+		{logbook.Entry{Actor: "ai", UserHandle: "olivier", Client: "Claude Code"}, "Claude Code for olivier"},
+		{logbook.Entry{Actor: "admin", UserHandle: "root"}, "root"},
+		{logbook.Entry{Actor: "admin"}, "admin"},
+		// A reader who opens an invitation, or a sign-in with an unknown
+		// handle, names no account.
+		{logbook.Entry{Actor: "person", Operation: "open_invitation"}, "visitor"},
+	} {
+		if got := who(tt.entry); got != tt.want {
+			t.Errorf("who(%+v) = %q, want %q", tt.entry, got, tt.want)
+		}
 	}
 }
