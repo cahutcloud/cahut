@@ -1012,6 +1012,9 @@ page of an invitation. */
 	gap: var(--space-4);
 	padding: var(--space-5) var(--space-6) var(--space-6);
 }
+.dialog__intro {
+	margin: 0;
+}
 .dialog__note {
 	margin: 0;
 	padding-top: var(--space-4);
@@ -1145,8 +1148,9 @@ page of an invitation. */
 	color: var(--color-text-muted);
 }
 
-/* People: the role and the state move under the name on a narrow screen,
-   and the e-mail address stays in the dialog of each person. */
+/* People, and the administrators of the server: the role and the state
+   move under the name on a narrow screen, and the e-mail address stays in
+   the dialog of each person. */
 .people-summary {
 	margin: 0;
 }

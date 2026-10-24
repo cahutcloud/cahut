@@ -2,10 +2,11 @@
 import { AppWindow, ChartColumn, Check, Copy, FileText, Globe, KeyRound, Lock, Presentation, Users, X } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
-import type { Window } from "./api.gen";
+import { explain } from "./api";
+import type { Activation, Window } from "./api.gen";
 import { useConsole } from "./context";
 import { useLoad } from "./load";
-import { Link } from "./router";
+import { href, Link } from "./router";
 
 /** The head of a screen: a label, a title and a line under it. */
 export function PageHead(props: { label: string; title: string; children?: ComponentChildren; actions?: ComponentChildren }) {
@@ -123,6 +124,131 @@ export function Dialog(props: { title: string; meta?: ComponentChildren; onClose
 			</div>
 			<div class="dialog__body">{props.children}</div>
 		</dialog>
+	);
+}
+
+const statuses: Record<string, { word: string; badge: string }> = {
+	active: { word: "Active", badge: "c-badge--success" },
+	pending: { word: "No password yet", badge: "c-badge--warning" },
+	disabled: { word: "Disabled", badge: "c-badge--neutral" },
+};
+
+/** The state of a person or of an administrator of the server, as a badge. */
+export function StatusBadge({ status }: { status: string }) {
+	const s = statuses[status] ?? statuses.active;
+	return <span class={`c-badge ${s.badge}`}>{s.word}</span>;
+}
+
+/** A handle drawn from a name, as in "ana" from "Ana Lima": the one who adds them may change it. */
+export function handleFrom(name: string): string {
+	const first = name.trim().split(/\s+/)[0] ?? "";
+	return first
+		.normalize("NFD")
+		.toLowerCase()
+		.replace(/[^a-z0-9-]/g, "")
+		.replace(/^[^a-z]+/, "")
+		.slice(0, 32)
+		.replace(/-+$/, "");
+}
+
+/**
+ * The link where someone chooses their password, shown once, at page: /activate
+ * for the people of a Cahut, /server/activate for the administrators of the server.
+ */
+export function ActivationResult(props: { name: string; email?: string; activation: Activation; page: string }) {
+	const { name, email, activation } = props;
+	const until = new Date(activation.expires_at).toLocaleDateString("en-GB", { dateStyle: "long" });
+	return (
+		<div class="result">
+			<p class="c-small">
+				{activation.emailed
+					? `The link where ${name} chooses their password went to ${email ?? "their address"}. It works once, until ${until}. Here it is too, shown only now.`
+					: `Send ${name} this link, where they choose their password. It works once, until ${until}, and is shown only now.`}
+			</p>
+			<CopyField label="the activation link" value={`${location.origin}${href(props.page)}#${activation.code}`} />
+		</div>
+	);
+}
+
+/** What came of a change: a line, or more, such as a link. */
+export function Outcome({ children }: { children: ComponentChildren }) {
+	if (typeof children !== "string") return <div class="setting__more">{children}</div>;
+	return (
+		<p class="setting__more setting__done" role="status">
+			<Check class="i" size={16} aria-hidden="true" />
+			{children}
+		</p>
+	);
+}
+
+/**
+ * One change, in a dialog that manages someone: what it does, its button,
+ * which may ask first, and what came of it.
+ */
+export function Setting(props: {
+	title: string;
+	help: string;
+	action: string;
+	danger?: boolean;
+	/** The question to answer before the change, if it asks first. */
+	ask?: string;
+	onAct: () => Promise<ComponentChildren>;
+}) {
+	const [asking, setAsking] = useState(false);
+	const [busy, setBusy] = useState(false);
+	const [outcome, setOutcome] = useState<ComponentChildren>(null);
+	const [error, setError] = useState("");
+	const ask = () => {
+		setError("");
+		setOutcome(null);
+		setAsking(true);
+	};
+	const act = async () => {
+		setBusy(true);
+		setError("");
+		setOutcome(null);
+		try {
+			setOutcome(await props.onAct());
+			setAsking(false);
+		} catch (err) {
+			setError(explain(err));
+		} finally {
+			setBusy(false);
+		}
+	};
+	return (
+		<div class="setting">
+			<div class="setting__text">
+				<span class="setting__title">{props.title}</span>
+				<p class={asking ? "c-small" : "c-small c-muted"}>{asking ? props.ask : props.help}</p>
+			</div>
+			<div class="setting__action">
+				{asking && (
+					<button class="c-btn c-btn--ghost" type="button" onClick={() => setAsking(false)}>
+						Cancel
+					</button>
+				)}
+				{/* The answer takes the place of the button that asks: the second click of a double-click acts on nothing. */}
+				<button
+					class={`c-btn ${props.danger ? "c-btn--danger" : asking ? "c-btn--primary" : "c-btn--secondary"}`}
+					type="button"
+					disabled={busy}
+					onClick={(e) => {
+						if (e.detail > 1) return;
+						if (props.ask && !asking) ask();
+						else act();
+					}}
+				>
+					{props.action}
+				</button>
+			</div>
+			{outcome && <Outcome>{outcome}</Outcome>}
+			{error && (
+				<div class="setting__more">
+					<Failure message={error} />
+				</div>
+			)}
+		</div>
 	);
 }
 

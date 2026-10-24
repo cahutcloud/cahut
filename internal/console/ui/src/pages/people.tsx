@@ -3,20 +3,13 @@
 // password; the other manages a person: their e-mail address, their role, a
 // new link, disabling.
 import { Check, Plus } from "lucide-preact";
-import type { ComponentChildren } from "preact";
 import { useId, useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Activation, User } from "../api.gen";
-import { CopyField, Dialog, Failure, initials, Notice, PageHead, plural } from "../components";
+import { ActivationResult, Dialog, Failure, handleFrom, initials, Notice, Outcome, PageHead, plural, Setting, StatusBadge } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
-import { href, Link } from "../router";
-
-const statuses: Record<string, { word: string; badge: string }> = {
-	active: { word: "Active", badge: "c-badge--success" },
-	pending: { word: "No password yet", badge: "c-badge--warning" },
-	disabled: { word: "Disabled", badge: "c-badge--neutral" },
-};
+import { Link } from "../router";
 
 const roles: Record<string, { word: string; help: string }> = {
 	member: { word: "Member", help: "Works in their Rooms and connects their AIs." },
@@ -25,16 +18,6 @@ const roles: Record<string, { word: string; help: string }> = {
 
 function role(u: User) {
 	return roles[u.role] ?? roles.member;
-}
-
-function StatusBadge({ user }: { user: User }) {
-	const s = statuses[user.status] ?? statuses.active;
-	return <span class={`c-badge ${s.badge}`}>{s.word}</span>;
-}
-
-/** The address where a person uses an activation code, at this console. */
-function activationLink(a: Activation): string {
-	return `${location.origin}${href("/activate")}#${a.code}`;
 }
 
 export function People() {
@@ -100,7 +83,7 @@ export function People() {
 												<span class="c-mono c-muted people__handle">{u.handle}</span>
 												<span class="people-table__narrow">
 													<span class="c-small c-muted">{role(u).word}</span>
-													<StatusBadge user={u} />
+													<StatusBadge status={u.status} />
 												</span>
 											</span>
 										</span>
@@ -112,7 +95,7 @@ export function People() {
 									)}
 									<td class="people-table__wide">{role(u).word}</td>
 									<td class="people-table__wide">
-										<StatusBadge user={u} />
+										<StatusBadge status={u.status} />
 									</td>
 									<td class="table__actions">
 										<button class="c-btn c-btn--secondary c-btn--sm" type="button" aria-label={`Manage ${u.name}`} onClick={() => setManaging(u.handle)}>
@@ -129,18 +112,6 @@ export function People() {
 			{managed && <ManagePerson user={managed} self={isSelf(managed)} onChanged={reload} onClose={() => setManaging("")} />}
 		</>
 	);
-}
-
-/** A handle drawn from a name, as in "ana" from "Ana Lima": the person who adds them may change it. */
-function handleFrom(name: string): string {
-	const first = name.trim().split(/\s+/)[0] ?? "";
-	return first
-		.normalize("NFD")
-		.toLowerCase()
-		.replace(/[^a-z0-9-]/g, "")
-		.replace(/^[^a-z]+/, "")
-		.slice(0, 32)
-		.replace(/-+$/, "");
 }
 
 /** The dialog that adds a person, then gives the link where they choose their password. */
@@ -189,7 +160,7 @@ function NewPerson({ onCreated, onClose }: { onCreated: () => void; onClose: () 
 						Their personal Room is at <span class="c-mono">{`${location.hostname}/${created.user.handle}`}</span>.
 					</div>
 				</div>
-				<LinkResult name={created.user.name} email={created.user.email} activation={created.activation} />
+				<ActivationResult name={created.user.name} email={created.user.email} activation={created.activation} page="/activate" />
 				<div class="dialog__foot">
 					<button class="c-btn c-btn--secondary" type="button" onClick={again}>
 						Add another person
@@ -276,21 +247,6 @@ function RoleChoice({ admin, onChange }: { admin: boolean; onChange: (admin: boo
 	);
 }
 
-/** The link where a person chooses their password, shown once. */
-function LinkResult({ name, email, activation }: { name: string; email?: string; activation: Activation }) {
-	const until = new Date(activation.expires_at).toLocaleDateString("en-GB", { dateStyle: "long" });
-	return (
-		<div class="result">
-			<p class="c-small">
-				{activation.emailed
-					? `The link where ${name} chooses their password went to ${email ?? "their address"}. It works once, until ${until}. Here it is too, shown only now.`
-					: `Send ${name} this link, where they choose their password. It works once, until ${until}, and is shown only now.`}
-			</p>
-			<CopyField label="the activation link" value={activationLink(activation)} />
-		</div>
-	);
-}
-
 /** The dialog that manages a person: each change with what it does. */
 function ManagePerson(props: { user: User; self: boolean; onChanged: () => void; onClose: () => void }) {
 	const api = useConsole();
@@ -309,7 +265,7 @@ function ManagePerson(props: { user: User; self: boolean; onChanged: () => void;
 					<span class="c-mono">{u.handle}</span>
 					<span aria-hidden="true">·</span>
 					<span>{role(u).word}</span>
-					<StatusBadge user={u} />
+					<StatusBadge status={u.status} />
 				</>
 			}
 			onClose={props.onClose}
@@ -347,7 +303,7 @@ function ManagePerson(props: { user: User; self: boolean; onChanged: () => void;
 						action="Give a new link"
 						onAct={async () => {
 							const a = await run(() => api.cahut("create_activation_link", { user: u.handle }));
-							return <LinkResult name={u.name} email={u.email} activation={a} />;
+							return <ActivationResult name={u.name} email={u.email} activation={a} page="/activate" />;
 						}}
 					/>
 				)}
@@ -359,8 +315,8 @@ function ManagePerson(props: { user: User; self: boolean; onChanged: () => void;
 							help={`${u.name} cannot sign in, and their AIs cannot act, until an administrator enables them.`}
 							action="Enable"
 							onAct={async () => {
-								await run(() => api.cahut("enable_user", { user: u.handle }));
-								return `${u.name} can sign in again.`;
+								const v = await run(() => api.cahut("enable_user", { user: u.handle }));
+								return v.status === "pending" ? `${u.name} is enabled, and has no password yet: give them a new link.` : `${u.name} can sign in again.`;
 							}}
 						/>
 					) : (
@@ -388,85 +344,6 @@ function ManagePerson(props: { user: User; self: boolean; onChanged: () => void;
 				</p>
 			)}
 		</Dialog>
-	);
-}
-
-/** What came of a change: a line, or more, such as a link. */
-function Outcome({ children }: { children: ComponentChildren }) {
-	if (typeof children !== "string") return <div class="setting__more">{children}</div>;
-	return (
-		<p class="setting__more setting__done" role="status">
-			<Check class="i" size={16} aria-hidden="true" />
-			{children}
-		</p>
-	);
-}
-
-/** One change to a person: what it does, its button, which may ask first, and what came of it. */
-function Setting(props: {
-	title: string;
-	help: string;
-	action: string;
-	danger?: boolean;
-	/** The question to answer before the change, if it asks first. */
-	ask?: string;
-	onAct: () => Promise<ComponentChildren>;
-}) {
-	const [asking, setAsking] = useState(false);
-	const [busy, setBusy] = useState(false);
-	const [outcome, setOutcome] = useState<ComponentChildren>(null);
-	const [error, setError] = useState("");
-	const ask = () => {
-		setError("");
-		setOutcome(null);
-		setAsking(true);
-	};
-	const act = async () => {
-		setBusy(true);
-		setError("");
-		setOutcome(null);
-		try {
-			setOutcome(await props.onAct());
-			setAsking(false);
-		} catch (err) {
-			setError(explain(err));
-		} finally {
-			setBusy(false);
-		}
-	};
-	return (
-		<div class="setting">
-			<div class="setting__text">
-				<span class="setting__title">{props.title}</span>
-				<p class={asking ? "c-small" : "c-small c-muted"}>{asking ? props.ask : props.help}</p>
-			</div>
-			<div class="setting__action">
-				{asking && (
-					<button class="c-btn c-btn--ghost" type="button" onClick={() => setAsking(false)}>
-						Cancel
-					</button>
-				)}
-				{/* The answer takes the place of the button that asks: the second click of a double-click acts on nothing. */}
-				<button
-					class={`c-btn ${props.danger ? "c-btn--danger" : asking ? "c-btn--primary" : "c-btn--secondary"}`}
-					type="button"
-					disabled={busy}
-					onClick={(e) => {
-						if (e.detail > 1) return;
-						if (props.ask && !asking) ask();
-						else act();
-					}}
-				>
-					{props.action}
-				</button>
-			</div>
-			{outcome && <Outcome>{outcome}</Outcome>}
-			{error && (
-				<div class="setting__more">
-					<Failure message={error} />
-				</div>
-			)}
-		</div>
 	);
 }
 
