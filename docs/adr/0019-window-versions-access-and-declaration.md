@@ -1,6 +1,6 @@
 # 19. Windows keep two versions, open to an access, and declare what they call
 
-- Status: Accepted, extended by [ADR 21](0021-ais-knock-first.md) (an AI that makes a Window public knocks first, and a Window in the trash can be purged), by [ADR 22](0022-house-style-of-each-cahut.md) (the pages of Cahut carry the house style of the Cahut), by [ADR 27](0027-previews-of-windows-in-the-console.md) (a frame can also be opened by a session of the console, for a preview) and by [ADR 30](0030-kind-and-limits-of-each-cahut.md) (in an individual Cahut, no Window opens to the whole Cahut)
+- Status: Accepted, extended by [ADR 21](0021-ais-knock-first.md) (an AI that makes a Window public knocks first, and a Window in the trash can be purged), by [ADR 22](0022-house-style-of-each-cahut.md) (the pages of Cahut carry the house style of the Cahut), by [ADR 27](0027-previews-of-windows-in-the-console.md) (a frame can also be opened by a session of the console, for a preview), by [ADR 30](0030-kind-and-limits-of-each-cahut.md) (in an individual Cahut, no Window opens to the whole Cahut) and by [ADR 31](0031-e-mail-through-a-relay.md) (a Window with a Key opens to people invited one by one, by e-mail)
 - Date: 2026-10-22
 
 ## Context
