@@ -88,6 +88,14 @@ func (v *version) neutral() bool {
 	return string(b) == "{}" && len(v.files) == 0
 }
 
+// neutralLook reports whether v keeps the look of the neutral house style:
+// no name, colors, fonts or logos, whatever it says to AIs and whether
+// they use it.
+func (v *version) neutralLook() bool {
+	s := v.settings
+	return s.Name == "" && s.Colors == (colors{}) && len(s.ChartColors) == 0 && s.Heading == nil && s.Body == nil && len(v.files) == 0
+}
+
 // querier runs queries, in a transaction or not.
 type querier interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row

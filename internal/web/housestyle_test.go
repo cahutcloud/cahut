@@ -143,6 +143,27 @@ func TestPagesInTheHouseStyle(t *testing.T) {
 	if _, home := f.get(t, "localhost", http.MethodGet, "/"); !strings.Contains(home, "cahut-logo-horizontal.svg") {
 		t.Errorf("home of the neutral house style again = %q", home)
 	}
+
+	// What the house style says to AIs, and whether they use it, leave the
+	// brand of Cahut; a name, colors, fonts or a logo take it off. See
+	// docs/adr/0033-the-brand-of-cahut-until-the-house-style-has-a-look.md.
+	for _, tt := range []struct {
+		change string
+		cahut  bool
+	}{
+		{`"guidance": "Write short sentences.", "active": false`, true},
+		{`"name": "Example"`, false},
+		{`"colors": {"primary": "#c2410c"}`, false},
+		{`"chart_colors": ["#c2410c", "#0f766e"]`, false},
+		{`"body_font": {"family": "Georgia", "fallback": "serif"}`, false},
+		{`"logo": {"content": "<svg xmlns=\"http://www.w3.org/2000/svg\"/>"}`, false},
+	} {
+		f.call(t, "localhost", admin, "set_house_style", `{"neutral": true, `+tt.change+`}`)
+		_, home := f.get(t, "localhost", http.MethodGet, "/")
+		if cahut := strings.Contains(home, "cahut-logo-horizontal.svg") && !strings.Contains(home, "data-house-style"); cahut != tt.cahut {
+			t.Errorf("with %s, the pages carry the brand of Cahut: %v, want %v", tt.change, cahut, tt.cahut)
+		}
+	}
 }
 
 // The files of the brand of Cahut that its pages use are served as they

@@ -1,9 +1,11 @@
 /* The pages that a Cahut serves to readers. They take the tokens and the
    components of the brand of Cahut, linked before this sheet: in the brand
-   of Cahut, light or dark as the reader's system is, while the Cahut has
-   the neutral house style; in its house style once it has one, whose
-   variables, from /-/house-style.css, take the roles of the tokens under
-   [data-house-style]. See docs/adr/0032-the-page-of-a-room.md. */
+   of Cahut, light or dark as the reader's system is, while the house style
+   keeps the look of the neutral one; in the house style once it has a
+   name, colors, fonts or a logo, its variables, from /-/house-style.css,
+   taking the roles of the tokens under [data-house-style]. See
+   docs/adr/0032-the-page-of-a-room.md and
+   docs/adr/0033-the-brand-of-cahut-until-the-house-style-has-a-look.md. */
 :root {
 	color-scheme: light dark;
 	--font-heading: var(--font-sans);

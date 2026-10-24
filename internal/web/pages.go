@@ -25,10 +25,11 @@ import (
 // The pages that a Cahut serves to readers on the port of its Windows: its
 // home, the page of a Room, the frame of a protected Window, the page of a
 // Key and the page of what is not found. They take the components of the
-// brand of Cahut: in its brand while the Cahut has the neutral house
-// style, in its house style once it has one. See
-// docs/adr/0019-window-versions-access-and-declaration.md and
-// docs/adr/0032-the-page-of-a-room.md.
+// brand of Cahut: in its brand while the house style keeps the look of the
+// neutral one, in the house style once it has a look of its own. See
+// docs/adr/0019-window-versions-access-and-declaration.md,
+// docs/adr/0032-the-page-of-a-room.md and
+// docs/adr/0033-the-brand-of-cahut-until-the-house-style-has-a-look.md.
 
 //go:embed pages
 var pageFiles embed.FS
@@ -47,7 +48,8 @@ func pagePolicy(base string) string {
 
 // page is what every page shows at its top, and where to sign in. The
 // pages carry the house style of their Cahut, or the brand of Cahut while
-// its house style is neutral. See docs/adr/0022-house-style-of-each-cahut.md.
+// its house style keeps the look of the neutral one. See
+// docs/adr/0022-house-style-of-each-cahut.md.
 type page struct {
 	Title  string // of the page, as its tab shows it
 	Domain string
@@ -61,7 +63,7 @@ func (s *Server) page(r *http.Request, reader, title string) page {
 	brand, err := housestyle.LoadBrand(r.Context(), c.DB, c.Domain)
 	if err != nil {
 		s.log.Error("read the house style", "cahut", c.Domain, "error", err)
-		brand = housestyle.Brand{Name: c.Domain, Neutral: true}
+		brand = housestyle.Brand{Name: c.Domain, NeutralLook: true}
 	}
 	return page{Title: title, Domain: c.Domain, Brand: brand, Reader: reader, SignIn: "/-/sign-in?to=" + url.QueryEscape(r.URL.RequestURI())}
 }
