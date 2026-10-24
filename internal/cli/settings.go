@@ -69,7 +69,7 @@ func runSettingsSet(args []string, stdout, stderr io.Writer) int {
 		windows.apply(&l.Windows)
 		perRoom.apply(&l.WindowsPerRoom)
 		disk.apply(&l.Disk)
-		return operation.Do(ctx, c.Registry, settings.Set, admin, settings.SetInput{Limits: l})
+		return operation.Do(ctx, c.Registry, settings.Set, admin, settings.SetCahutSettingsInput{Limits: l})
 	})
 	if !ok {
 		return exitError

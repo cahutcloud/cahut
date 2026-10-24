@@ -101,13 +101,13 @@ func disk(ctx context.Context, tx *sql.Tx) (int64, error) {
 	return n, err
 }
 
-// SetInput is the input of set_cahut_settings.
-type SetInput struct {
+// SetCahutSettingsInput is the input of set_cahut_settings.
+type SetCahutSettingsInput struct {
 	Limits Limits `json:"limits" jsonschema:"every limit of the Cahut: a limit left out is lifted"`
 }
 
 // Set sets the limits of the Cahut, for the administrators of the server.
-var Set = &operation.Op[SetInput, Settings]{
+var Set = &operation.Op[SetCahutSettingsInput, Settings]{
 	Name:  "set_cahut_settings",
 	Title: "Set the limits of the Cahut",
 	Description: "Set the limits of this Cahut: how many people, administrators, team Rooms and Windows it may have, " +
@@ -115,7 +115,7 @@ var Set = &operation.Op[SetInput, Settings]{
 		"Lowering a limit deletes nothing: the Cahut keeps what it holds and refuses what would add to it. " +
 		"For the administrators of the server.",
 	Level: operation.ServerAdmin,
-	Run: func(ctx context.Context, c *operation.Call, in SetInput) (Settings, error) {
+	Run: func(ctx context.Context, c *operation.Call, in SetCahutSettingsInput) (Settings, error) {
 		c.Log("limits", "")
 		l := in.Limits
 		for _, f := range fields(&l) {

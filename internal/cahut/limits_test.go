@@ -39,7 +39,7 @@ func n(v int64) *int64 { return &v }
 
 func (l *limits) set(lim settings.Limits) settings.Settings {
 	l.t.Helper()
-	s, err := operation.Do(l.ctx, l.c.Registry, settings.Set, l.admin, settings.SetInput{Limits: lim})
+	s, err := operation.Do(l.ctx, l.c.Registry, settings.Set, l.admin, settings.SetCahutSettingsInput{Limits: lim})
 	if err != nil {
 		l.t.Fatalf("set_cahut_settings: %v", err)
 	}
@@ -148,7 +148,7 @@ func TestSetCahutSettings(t *testing.T) {
 
 	// Only the administrators of the server set them: not those of the
 	// Cahut, and no AI, which is never offered the operation.
-	_, err = operation.Do(l.ctx, l.c.Registry, settings.Set, olivier, settings.SetInput{})
+	_, err = operation.Do(l.ctx, l.c.Registry, settings.Set, olivier, settings.SetCahutSettingsInput{})
 	l.refused(err, "administrators of the server")
 	info, _ := l.c.Registry.Lookup("set_cahut_settings")
 	if info.ForAIs(true, false) {
@@ -156,7 +156,7 @@ func TestSetCahutSettings(t *testing.T) {
 	}
 
 	for _, bad := range []settings.Limits{{People: n(0)}, {Admins: n(0)}, {Windows: n(-1)}, {Disk: n(-5)}} {
-		if _, err := operation.Do(l.ctx, l.c.Registry, settings.Set, l.admin, settings.SetInput{Limits: bad}); !errors.Is(err, operation.ErrInvalid) {
+		if _, err := operation.Do(l.ctx, l.c.Registry, settings.Set, l.admin, settings.SetCahutSettingsInput{Limits: bad}); !errors.Is(err, operation.ErrInvalid) {
 			t.Errorf("set_cahut_settings %+v: err = %v, want invalid", bad, err)
 		}
 	}
