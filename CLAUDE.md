@@ -156,6 +156,8 @@ internal/
   room/                Rooms: personal and team Rooms, their owners and members, rights in a Room
   oauth/               The OAuth authorization server of each Cahut: clients, consent, tokens, connected AIs (ADR 16)
   knock/               Knocks: the calls of AIs that wait for their person, who approves or denies them (ADR 21)
+  mail/                E-mail: the relays of the server and of each Cahut, their sealed passwords, the queue (ADR 31)
+    mailtest/          An SMTP relay in memory, for tests
   housestyle/          The house style of each Cahut, its sheet and logos under /-/, and its operations (ADR 22)
     kit/               The classes, the deck engine, the templates and the guide for AIs, under Apache-2.0
   window/              Windows: publish, describe, list, files on disk

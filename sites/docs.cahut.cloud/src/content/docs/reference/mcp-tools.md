@@ -43,7 +43,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. Knock first: a person approves the call before it runs. |
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
-| [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. |
+| [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. |
 | [`get_house_style`](#get_house_style) | Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for. |
 | [`get_knock`](#get_knock) | Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
 | [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
@@ -814,7 +814,7 @@ This tool takes no arguments.
 
 ## `get_cahut`
 
-Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused.
+Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused.
 
 Title: Describe the Cahut. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -850,6 +850,7 @@ This tool takes no arguments.
 | `limits.windows` | integer or null | no | how many Windows out of the trash the Cahut may hold |
 | `limits.windows_per_person` | integer or null | no | in an individual Cahut, how many Windows out of the trash each person may hold, over their Rooms |
 | `limits.windows_per_room` | integer or null | no | how many Windows out of the trash each Room may hold, personal Rooms included |
+| `sends_mail` | boolean | yes | whether this Cahut sends e-mail, through a relay of its own or that of its server |
 | `mcp` | string | no | the address of its MCP endpoint, where AI clients connect |
 | `url` | string | no | the address of the Cahut, under which its Rooms and Windows open |
 | `usage` | object or null | no | what the Cahut holds, as its limits count it; absent for a member of an individual Cahut |
@@ -951,6 +952,10 @@ This tool takes no arguments.
       "description": "the address of its MCP endpoint, where AI clients connect",
       "type": "string"
     },
+    "sends_mail": {
+      "description": "whether this Cahut sends e-mail, through a relay of its own or that of its server",
+      "type": "boolean"
+    },
     "url": {
       "description": "the address of the Cahut, under which its Rooms and Windows open",
       "type": "string"
@@ -1022,6 +1027,7 @@ This tool takes no arguments.
   },
   "required": [
     "domain",
+    "sends_mail",
     "kind",
     "limits"
   ],

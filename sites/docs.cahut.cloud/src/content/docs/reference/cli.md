@@ -24,6 +24,10 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut domain rename`](#cahut-domain-rename) | Move a Cahut to another domain, or from the IP address of the server to a domain |
 | [`cahut settings show`](#cahut-settings-show) | Print the kind and limits of a Cahut, with what it holds |
 | [`cahut settings set`](#cahut-settings-set) | Change the kind or limits of a Cahut; what you leave out stays as it is |
+| [`cahut mail show`](#cahut-mail-show) | Print the e-mail relay of the server, or of a Cahut with `--domain` |
+| [`cahut mail set`](#cahut-mail-set) | Set the e-mail relay of the server, or of a Cahut with `--domain`, once it answers |
+| [`cahut mail remove`](#cahut-mail-remove) | Remove the e-mail relay of the server, or of a Cahut with `--domain` |
+| [`cahut mail test`](#cahut-mail-test) | Send a test message through the relay of the server, or of a Cahut with `--domain` |
 | [`cahut admin create`](#cahut-admin-create) | Create an administrator of the server, with an activation link |
 | [`cahut admin list`](#cahut-admin-list) | List the administrators of the server |
 | [`cahut admin link`](#cahut-admin-link) | Give an administrator of the server a new link where they choose their password |
@@ -153,6 +157,70 @@ cahut settings set [--data DIR] [--domain DOMAIN] [--kind KIND] [--people N] [--
 | `--windows N` |  | the Cahut may hold N Windows out of the trash; none lifts the limit |
 | `--windows-per-person N` |  | in an individual Cahut, each person may hold N Windows out of the trash; none lifts the limit |
 | `--windows-per-room N` |  | each Room may hold N Windows out of the trash; none lifts the limit |
+
+## `cahut mail`
+
+Set the e-mail relay of the server or of a Cahut, and test it.
+
+### `cahut mail show`
+
+Print the e-mail relay of the server, or of a Cahut with `--domain`.
+
+```text
+cahut mail show [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut whose relay to act on, by its domain; without it, the relay of the server |
+
+### `cahut mail set`
+
+Set the e-mail relay of the server, or of a Cahut with `--domain`, once it answers.
+
+```text
+cahut mail set [--data DIR] [--domain DOMAIN] --host HOST [--port PORT] [--security tls|starttls|none] [--user USER --password-stdin] --from ADDRESS [--name NAME]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut whose relay to act on, by its domain; without it, the relay of the server |
+| `--from string` |  | the address that messages come from, one that the relay accepts |
+| `--host string` |  | the name or the address of the SMTP relay, such as smtp.example.com |
+| `--name string` |  | the name that messages come from; the name of the Cahut when left out |
+| `--password-stdin` |  | read the password at the relay on the standard input; without it, the password kept stays when the host and the user name do not change |
+| `--port int` |  | its port: 465 for TLS from the start, 587 for STARTTLS; 465 with tls and 587 otherwise when left out |
+| `--security string` |  | tls, starttls, or none for a relay of the server on this machine; tls on port 465 and starttls otherwise when left out |
+| `--user string` |  | the user name at the relay; leave it out when the relay takes no authentication |
+
+### `cahut mail remove`
+
+Remove the e-mail relay of the server, or of a Cahut with `--domain`.
+
+```text
+cahut mail remove [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut whose relay to act on, by its domain; without it, the relay of the server |
+
+### `cahut mail test`
+
+Send a test message through the relay of the server, or of a Cahut with `--domain`.
+
+```text
+cahut mail test [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut whose relay to act on, by its domain; without it, the relay of the server |
+| `--to string` |  | the address to send the test to |
 
 ## `cahut admin`
 

@@ -75,6 +75,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/get_cahut` | Any person | yes |
 | `POST /api/get_house_style` | Any person | yes |
 | `POST /api/get_knock` | Any person | yes |
+| `POST /api/get_mail_relay` | Administrators of the Cahut | yes |
 | `POST /api/get_room` | Any person | yes |
 | `POST /api/get_window` | Any person | yes |
 | `POST /api/list_connected_ais` | Any person | yes |
@@ -92,9 +93,11 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/revoke_token` | Any person | yes |
 | `POST /api/rollback_house_style` | Administrators of the Cahut | yes |
 | `POST /api/rollback_window` | Any person | yes |
+| `POST /api/send_test_mail` | Administrators of the Cahut | yes |
 | `POST /api/set_ai_reach` | Any person | yes |
 | `POST /api/set_cahut_settings` | Administrators of the server | yes |
 | `POST /api/set_house_style` | Administrators of the Cahut | yes |
+| `POST /api/set_mail_relay` | Administrators of the Cahut | yes |
 | `POST /api/set_room_member_role` | Any person | yes |
 | `POST /api/set_user_role` | Administrators of the Cahut | yes |
 | `POST /api/set_window_access` | Any person | yes |
@@ -117,6 +120,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/server/create_setup_link` | Administrators of the server | yes |
 | `POST /api/server/disable_admin` | Administrators of the server | yes |
 | `POST /api/server/enable_admin` | Administrators of the server | yes |
+| `POST /api/server/get_mail_relay` | Administrators of the server | yes |
 | `POST /api/server/get_setup` | Anyone, to sign in | no |
 | `POST /api/server/get_updates` | Administrators of the server | yes |
 | `POST /api/server/list_admins` | Administrators of the server | yes |
@@ -124,6 +128,8 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/server/list_logbook` | Administrators of the server | yes |
 | `POST /api/server/rename_domain` | Administrators of the server | yes |
 | `POST /api/server/request_update` | Administrators of the server | yes |
+| `POST /api/server/send_test_mail` | Administrators of the server | yes |
+| `POST /api/server/set_mail_relay` | Administrators of the server | yes |
 | `POST /api/server/set_up` | Anyone, to sign in | no |
 | `POST /api/server/sign_in` | Anyone, to sign in | no |
 | `POST /api/server/sign_out` | Administrators of the server | yes |
