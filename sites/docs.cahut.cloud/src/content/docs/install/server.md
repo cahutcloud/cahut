@@ -56,11 +56,7 @@ connects your first AI. For a new link: sudo -u cahut /usr/local/bin/cahut setup
 
 Open the link in your browser: [The first start](/install/first-start/) walks through it.
 
-While the repository of Cahut is private, reading its releases takes a token. Give it to the script on the command line of `sudo`, and it keeps it for the updates, readable by root only:
-
-```bash
-curl -fsSL https://cahut.cloud/install.sh | sudo GITHUB_TOKEN=github_pat_… sh -s -- --domain cahut.example.com
-```
+The script reads the releases of Cahut on GitHub, without an account. To install from a private fork, name it in `CAHUT_REPO` and give the script a token in `GITHUB_TOKEN`, on the command line of `sudo`: it keeps the token for the updates, readable by root only.
 
 ## Without a domain
 

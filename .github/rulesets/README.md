@@ -9,7 +9,8 @@ gh api -X POST repos/getcahut/cahut/rulesets --input .github/rulesets/main.json
 ```
 
 - `main.json` protects `main`: no deletion and no force push, a pull request
-  merged by squash, the Lint, Test and Build checks of CI green, and every
+  merged by squash, the Lint, Test, Build and Install checks of CI and the
+  DCO check of the sign-offs green, and every
   review thread resolved. Administrators may merge a pull request without
   its checks in an emergency, never push to `main` directly. No approval is
   required while one person maintains the project.

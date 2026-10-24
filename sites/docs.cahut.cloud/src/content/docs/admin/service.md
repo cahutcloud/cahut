@@ -11,7 +11,7 @@ description: Where Cahut keeps its files, how the systemd service runs, its sett
 | --- | --- |
 | `/usr/local/bin/cahut` | The binary |
 | `/etc/cahut/cahut.env` | The settings of the service |
-| `/etc/cahut/update.env` | The token that reads the releases while the repository is private, for root only |
+| `/etc/cahut/update.env` | The token that reads the releases of a private fork, when the installer got one, for root only |
 | `/etc/systemd/system/cahut.service` | The systemd unit |
 | `/etc/systemd/system/cahut-update.*` | The updater: its service, its daily timer, and the path unit that starts it when the console asks |
 | `/var/lib/cahut/` | The data: the records of the server, every Cahut with its Windows, and the certificates |

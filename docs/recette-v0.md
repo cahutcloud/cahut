@@ -50,8 +50,6 @@ Se connecter en SSH au VPS, démarrer le chronomètre, puis :
 curl -fsSL https://cahut.cloud/install.sh | sudo sh -s -- --domain <domaine>
 ```
 
-Tant que le dépôt est privé, passer le jeton de lecture des releases dans `GITHUB_TOKEN`, par l'entrée standard.
-
 **On doit voir** la signature de la release vérifiée, le service actif, le pare-feu ouvert (firewalld sous AlmaLinux, ufw sous Ubuntu), `cahut doctor` sans ligne `fail`, puis le lien du premier démarrage. Arrêter le chronomètre à l'affichage du lien : **moins de 10 minutes**.
 
 ### 2. Premier démarrage et première publication
