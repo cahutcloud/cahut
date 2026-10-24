@@ -28,7 +28,7 @@ Out of scope: the content that people publish in their Windows, the AI clients, 
 
 ## Supported versions
 
-Only the latest release receives fixes. Cahut is 0.x: update as soon as a release is out. Automatic updates come with the V0.
+Only the latest release receives fixes. Cahut is 0.x: update as soon as a release is out. A server updates itself every day to the patch releases of its minor version, and `sudo /usr/local/bin/cahut update` installs any newer release.
 
 ## Reports written by an AI
 

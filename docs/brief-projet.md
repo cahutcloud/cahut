@@ -232,7 +232,7 @@ La suite : protéger le nom, puis trancher l'architecture par des prototypes.
 - [ ] Quelle liste exacte d'actions irréversibles soumettre à validation ?
 - [ ] Licence : Apache-2.0 ou AGPL-3.0 ?
 - [ ] Compte GitHub : personnel ou organisation dédiée ?
-- [ ] Quel lien avec la vision EKLOS ?
+- [x] Quel lien avec la vision EKLOS ? EKLOS était un ancien nom de Cahut : la vision est celle de ce brief.
 
 ## Sources
 

@@ -28,7 +28,7 @@ Hors périmètre : le contenu que les gens publient dans leurs Windows, les clie
 
 ## Versions prises en charge
 
-Seule la dernière release reçoit des corrections. Cahut est en 0.x : mettez à jour dès qu'une release sort. Les mises à jour automatiques viennent avec la V0.
+Seule la dernière release reçoit des corrections. Cahut est en 0.x : mettez à jour dès qu'une release sort. Un serveur se met à jour chaque jour vers les versions correctives de sa version mineure, et `sudo /usr/local/bin/cahut update` installe toute release plus récente.
 
 ## Les rapports écrits par une IA
 

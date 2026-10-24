@@ -49,8 +49,9 @@ The Go version is set by the `toolchain` line of `go.mod`; the `go` command down
 | `make console-dev` | Serves the console with live reload on http://localhost:5173/console/, against the API of `make dev` |
 | `make test` | Runs the tests with the race detector |
 | `make lint` | Checks that `go.mod` is tidy, then runs golangci-lint |
+| `make vuln` | Runs govulncheck: known vulnerabilities that the code reaches, in Go and the modules |
 | `make fmt` | Formats the code (gofmt, goimports) |
-| `make check` | Lint and tests, as CI runs them: run it before pushing |
+| `make check` | Lint, govulncheck and tests, as CI runs them: run it before pushing |
 | `make snapshot` | Builds the release archives into `dist/`, without publishing |
 | `make release-check` | Validates `.goreleaser.yaml` |
 | `make install-test` | Runs `install.sh`, an update and a rollback in a blank virtual machine with Lima (`SYSTEM=almalinux-10` or `ubuntu-24.04`) |
@@ -60,7 +61,7 @@ The Go version is set by the `toolchain` line of `go.mod`; the `go` command down
 | `make console-types` | Writes the TypeScript types of the console's API from the code: run it after changing an operation |
 | `make sites` | Builds both sites, as CI does: run it after changing `sites/` or the brand |
 
-golangci-lint and GoReleaser run through `go run`, at the versions pinned in the Makefile: nothing needs installing. The sites and the console need Node.js at the version of [.nvmrc](.nvmrc) (`nvm use`); their tasks install the npm packages on first run. `make build`, `make dev` and `make snapshot` build the console, so they need Node.js; `make test`, `make lint` and `make check` do not. The binary embeds the console only with the `console` build tag: a plain `go build` serves a notice in its place ([internal/console](internal/console/console.go)).
+golangci-lint, GoReleaser and govulncheck run through `go run`, at the versions pinned in the Makefile: nothing needs installing. The sites and the console need Node.js at the version of [.nvmrc](.nvmrc) (`nvm use`); their tasks install the npm packages on first run. `make build`, `make dev` and `make snapshot` build the console, so they need Node.js; `make test`, `make lint` and `make check` do not. The binary embeds the console only with the `console` build tag: a plain `go build` serves a notice in its place ([internal/console](internal/console/console.go)).
 
 To try a Cahut on this machine, run `make dev`, then, in another terminal:
 
