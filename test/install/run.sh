@@ -27,6 +27,14 @@ answers() {
 	echo "$h" | grep -q "\"version\":\"$1\"" && echo "$h" | grep -q '"ok":true'
 }
 
+step "install.sh refuses an account named cahut that a person signs in with"
+useradd --create-home --shell /bin/sh cahut
+out=$(sh "$script" --binary "$a" --domain cahut.test --staging 2>&1) && fail "install.sh took the account cahut for the service"
+echo "$out"
+echo "$out" | grep -q "is not a system account" || fail "install.sh did not say why it refused the account cahut"
+userdel --remove cahut 2>/dev/null || true
+! id cahut >/dev/null 2>&1 || fail "cannot delete the account cahut"
+
 started=$(date +%s)
 
 step "install.sh --binary $(version "$a")"

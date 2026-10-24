@@ -113,6 +113,14 @@ if [ -n "$domain" ] && [ -z "$ip" ]; then
 	printf '%s' "$domain" | grep -Eq '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$' ||
 		die "$domain is not a domain name"
 fi
+# The service runs as a system user of its own, with no shell. An account
+# named cahut that a person signs in with would give the service its rights.
+if uid=$(id -u cahut 2>/dev/null); then
+	uid_min=$(awk '$1 == "UID_MIN" { print $2 }' /etc/login.defs 2>/dev/null)
+	if [ "$uid" -eq 0 ] || [ "$uid" -ge "${uid_min:-1000}" ]; then
+		die "the user cahut exists and is not a system account (uid $uid): the service needs a cahut system user of its own. Sign in with another account, rename or delete this one, then run the script again"
+	fi
+fi
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT

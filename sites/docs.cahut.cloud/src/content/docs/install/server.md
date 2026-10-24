@@ -86,7 +86,7 @@ Everything in the Cahut stays. The links that name the address stop working, and
 
 1. It downloads the release for the server's architecture from GitHub, the latest one unless you name another, with its checksum file and the signature of that file. It checks the signature against the keys of Cahut written in the script, then the checksum of the archive: a release that the project did not sign does not install. With `--binary`, it takes the binary you give instead.
 2. It checks that the binary runs on the server.
-3. It creates the `cahut` system user, with no shell, and the data folder `/var/lib/cahut`, which only that user and its group can read.
+3. It creates the `cahut` system user, with no shell, and the data folder `/var/lib/cahut`, which only that user and its group can read. When the server already has an account named `cahut` that a person signs in with, the script stops before anything else: the service would run with that person's rights. Sign in with another account, rename or delete that one, then run the script again.
 4. It writes the settings file `/etc/cahut/cahut.env` when its content changes, keeping the values you do not give again.
 5. It writes the systemd units of the service and of the updater, and installs the binary as `/usr/local/bin/cahut`. On a server with SELinux, it restores the labels of the files.
 6. It declares the Cahut of `--domain` or `--ip`, unless the server holds it already.
