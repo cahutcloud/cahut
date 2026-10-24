@@ -6,7 +6,7 @@ import { Plus } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Activation } from "../api.gen";
-import { ConfirmButton, CopyField, Failure, initials, PageHead } from "../components";
+import { ConfirmButton, CopyField, Failure, initials, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
 import { href, Link } from "../router";
@@ -48,16 +48,18 @@ export function Admins() {
 	};
 	return (
 		<>
-			<PageHead label="This server" title="Administrators of the server">
+			<PageHead label="This server" title="Server administrators">
 				They hold every Cahut of this server: they declare Cahuts, set their kind and limits, read the Logbook of the server, and manage
 				the people and Rooms of every Cahut, at its console.
 			</PageHead>
-			<p class="c-small section">
-				To make someone an administrator of this Cahut only, add them in <Link class="c-link" href="/people">People</Link> as an
-				administrator.
-			</p>
+			<div class="section">
+				<Notice>
+					To make someone an administrator of this Cahut only, add them in <Link class="c-link" href="/people">People</Link> as an
+					administrator.
+				</Notice>
+			</div>
 			<section class="section c-card panel">
-				<h2 class="c-h4">New administrator of the server</h2>
+				<h2 class="c-h4">New server administrator</h2>
 				<form class="form" onSubmit={create}>
 					<div class="form__row">
 						<label class="c-field">
