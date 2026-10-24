@@ -105,6 +105,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/set_ai_reach` | Any person | yes |
 | `POST /api/set_cahut_settings` | Administrators of the server | yes |
 | `POST /api/set_house_style` | Administrators of the Cahut | yes |
+| `POST /api/set_mail_notices` | Any person | yes |
 | `POST /api/set_mail_relay` | Administrators of the Cahut | yes |
 | `POST /api/set_room_home` | Any person | yes |
 | `POST /api/set_room_member_role` | Any person | yes |

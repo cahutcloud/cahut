@@ -330,3 +330,8 @@ func cut(s string, n int) string {
 	}
 	return s[:n] + "…"
 }
+
+// Host returns the name of the machine, as messages of the server name it.
+func (s *Service) Host() string {
+	return s.helo
+}

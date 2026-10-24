@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cahut.cloud/internal/credential"
+	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
 )
@@ -70,7 +71,7 @@ var CreateToken = &operation.Op[CreateTokenInput, NewToken]{
 			return NewToken{}, err
 		}
 		c.Log(fmt.Sprintf("token %d of %s", t.ID, p.Handle), name)
-		return t, nil
+		return t, mail.OutboxOf(c).Notify(ctx, c, p.ID, mail.Always, tokenLetter(name))
 	},
 }
 

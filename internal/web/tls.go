@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 
 	"github.com/caddyserver/certmagic"
@@ -10,6 +11,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"cahut.cloud/internal/address"
+	"cahut.cloud/internal/notice"
 )
 
 // certs are the certificates of the Cahuts: those of domains, and those of
@@ -65,6 +67,7 @@ func (s *Server) certificates(ctx context.Context, domains []string) (*certs, er
 			// Without a decision function, CertMagic would obtain a
 			// certificate for any name a client sends.
 			OnDemand: &certmagic.OnDemandConfig{DecisionFunc: s.declared},
+			OnEvent:  s.certificateEvent,
 		})
 		issuer := certmagic.NewACMEIssuer(cfg, certmagic.ACMEIssuer{
 			CA: ca, Email: s.cfg.Email, Agreed: true, Logger: log,
@@ -105,6 +108,27 @@ func (c *certs) tlsConfig() *tls.Config {
 	}
 	cfg.NextProtos = append([]string{"h2", "http/1.1"}, cfg.NextProtos...)
 	return cfg
+}
+
+// certificateEvent tells the administrators of the server, by e-mail, that
+// a certificate could not be renewed. CertMagic calls it synchronously: the
+// notice goes in the background.
+func (s *Server) certificateEvent(ctx context.Context, event string, data map[string]any) error {
+	if event != "cert_failed" || data["renewal"] != true {
+		return nil
+	}
+	name, _ := data["identifier"].(string)
+	reason, _ := data["error"].(error)
+	if reason == nil {
+		reason = errors.New("the certificate authority refused it")
+	}
+	ctx = context.WithoutCancel(ctx)
+	go func() {
+		if err := notice.Certificate(ctx, s.srv, name, reason); err != nil {
+			s.log.Warn("tell the administrators of a certificate", "domain", name, "error", err)
+		}
+	}()
+	return nil
 }
 
 // declared accepts the domains of the Cahuts only.

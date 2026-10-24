@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"cahut.cloud/internal/credential"
+	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
 )
@@ -143,6 +144,12 @@ var ActivateAccount = &operation.Op[ActivateInput, Session]{
 		}
 		if err := endSessions(ctx, c.Tx, p.ID, 0); err != nil {
 			return Session{}, err
+		}
+		if p.passwordHash != "" {
+			// A link replaced the password the person had.
+			if err := mail.OutboxOf(c).Notify(ctx, c, p.ID, mail.Always, passwordChangedLetter); err != nil {
+				return Session{}, err
+			}
 		}
 		p.Status = Active
 		return openSession(ctx, c, p)
@@ -297,7 +304,10 @@ var ChangePassword = &operation.Op[ChangePasswordInput, PasswordChanged]{
 		if _, err := c.Tx.ExecContext(ctx, "UPDATE users SET password_hash = ? WHERE id = ?", hash, p.ID); err != nil {
 			return PasswordChanged{}, err
 		}
-		return PasswordChanged{}, endSessions(ctx, c.Tx, p.ID, c.Actor.Session)
+		if err := endSessions(ctx, c.Tx, p.ID, c.Actor.Session); err != nil {
+			return PasswordChanged{}, err
+		}
+		return PasswordChanged{}, mail.OutboxOf(c).Notify(ctx, c, p.ID, mail.Always, passwordChangedLetter)
 	},
 }
 

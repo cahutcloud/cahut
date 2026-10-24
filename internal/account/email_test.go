@@ -286,9 +286,13 @@ func TestRequestPasswordLink(t *testing.T) {
 	if _, err := operation.Do(ctx, f.r, SignIn, visitor, SignInInput{Handle: "olivier", Password: password}); !errors.Is(err, operation.ErrForbidden) {
 		t.Errorf("sign_in with the old password after: %v", err)
 	}
+	// The person hears that their password changed.
+	if m := read(t, relay, 3); m.to != "olivier@example.org" || m.subject != "Your password changed" {
+		t.Errorf("the notice of a new password: %+v", m)
+	}
 	f.now = f.now.Add(10 * time.Minute)
 	ask("olivier")
-	code = strings.TrimPrefix(read(t, relay, 3).link(t), console+"activate?reset#")
+	code = strings.TrimPrefix(read(t, relay, 4).link(t), console+"activate?reset#")
 	f.now = f.now.Add(61 * time.Minute)
 	if _, err := operation.Do(ctx, f.r, ActivateAccount, visitor, ActivateInput{Code: code, Password: "yet another new password"}); !errors.Is(err, operation.ErrForbidden) {
 		t.Errorf("activate_account with a link older than an hour: %v", err)
@@ -321,4 +325,54 @@ func mustSignIn(t *testing.T, f *fixture, handle string) string {
 		t.Fatal(err)
 	}
 	return s.Token
+}
+
+func TestSecurityNotices(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	relay := f.mailer(t)
+	ana := f.active(t, "ana", false)
+	chloe := f.active(t, "chloe", true)
+	if _, err := operation.Do(ctx, f.r, SetUserEmail, admin, SetUserEmailInput{User: "ana", Email: "ana@example.org"}); err != nil {
+		t.Fatal(err)
+	}
+
+	// A new password, a personal token and a new role are about the
+	// account: they reach the person even with notices off.
+	if _, err := operation.Do(ctx, f.r, SetMailNotices, ana, SetMailNoticesInput{Off: true}); err != nil {
+		t.Fatal(err)
+	}
+	if acc, err := operation.Do(ctx, f.r, GetAccount, ana, GetAccountInput{}); err != nil || !acc.NoticesOff {
+		t.Errorf("get_account with notices off: %+v %v", acc, err)
+	}
+	if _, err := operation.Do(ctx, f.r, ChangePassword, ana, ChangePasswordInput{Password: password, NewPassword: "another long password"}); err != nil {
+		t.Fatal(err)
+	}
+	if m := read(t, relay, 1); m.to != "ana@example.org" || m.subject != "Your password changed" {
+		t.Errorf("the notice of a new password: %+v", m)
+	}
+	if _, err := operation.Do(ctx, f.r, CreateToken, ana, CreateTokenInput{Name: "Claude Code"}); err != nil {
+		t.Fatal(err)
+	}
+	if m := read(t, relay, 2); m.subject != "A personal token was created" || !strings.Contains(m.body, "named Claude Code") {
+		t.Errorf("the notice of a token: %+v", m)
+	}
+	if _, err := operation.Do(ctx, f.r, SetUserRole, chloe, SetUserRoleInput{User: "ana", Role: Admin}); err != nil {
+		t.Fatal(err)
+	}
+	if m := read(t, relay, 3); m.subject != "You are now an administrator of Example" {
+		t.Errorf("the notice of a role: %+v", m)
+	}
+	if _, err := operation.Do(ctx, f.r, SetUserRole, chloe, SetUserRoleInput{User: "ana", Role: Member}); err != nil {
+		t.Fatal(err)
+	}
+	if m := read(t, relay, 4); m.subject != "You are no longer an administrator of Example" {
+		t.Errorf("the notice of a role taken back: %+v", m)
+	}
+	// An AI does not turn notices off.
+	ai := ana
+	ai.Kind, ai.Session, ai.TokenID, ai.Client = operation.AI, 0, 1, "Claude"
+	if _, err := operation.Do(ctx, f.r, SetMailNotices, ai, SetMailNoticesInput{Off: true}); !errors.Is(err, operation.ErrForbidden) {
+		t.Errorf("set_mail_notices by an AI: %v", err)
+	}
 }

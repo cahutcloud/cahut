@@ -42,6 +42,7 @@ func Register(r *operation.Registry) {
 	operation.Register(r, ChangeEmail)
 	operation.Register(r, ConfirmEmail)
 	operation.Register(r, RequestPasswordLink)
+	operation.Register(r, SetMailNotices)
 }
 
 // Roles of a person in a Cahut.
@@ -296,6 +297,9 @@ type GetAccountInput struct{}
 // Account is the output of get_account.
 type Account struct {
 	User
+	// NoticesOff says whether the person turned off the notices that are
+	// neither about their account nor about a Knock.
+	NoticesOff bool `json:"notices_off,omitempty" jsonschema:"whether the e-mail notices that are neither about the account nor about a Knock are off"`
 	// EmailChange is the address that waits for the person to confirm it,
 	// which an AI does not read either.
 	EmailChange *EmailChange `json:"email_change,omitempty" jsonschema:"the e-mail address that waits for the person to confirm it, from the link sent to it"`
@@ -333,6 +337,9 @@ var GetAccount = &operation.Op[GetAccountInput, Account]{
 		}
 		defer rows.Close()
 		a := Account{User: p.User, Rooms: []Membership{}}
+		if err := c.Tx.QueryRowContext(ctx, "SELECT notices_off FROM users WHERE id = ?", p.ID).Scan(&a.NoticesOff); err != nil {
+			return Account{}, err
+		}
 		if c.Actor.Kind != operation.AI {
 			a.Email = p.email
 			if a.EmailChange, err = pendingChange(ctx, c, p.ID); err != nil {
@@ -393,7 +400,7 @@ var SetUserRole = &operation.Op[SetUserRoleInput, User]{
 			return User{}, err
 		}
 		p.Role = in.Role
-		return p.User, nil
+		return p.User, mail.OutboxOf(c).Notify(ctx, c, p.ID, mail.Always, roleLetter(in.Role))
 	},
 }
 

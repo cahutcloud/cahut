@@ -394,3 +394,72 @@ var RequestPasswordLink = &operation.Op[RequestPasswordLinkInput, PasswordLinkRe
 		return answer, nil
 	},
 }
+
+// The notices about the account of a person, which always go.
+
+func passwordChangedLetter(p mail.Person, name, where string) mail.Letter {
+	return mail.Letter{
+		Subject: "Your password changed",
+		Lines: []string{"Hello " + p.Name + ",", "The password of your account " + p.Handle + " on " + where +
+			" changed, and your other sessions ended."},
+		After: []string{"If you did not change it, ask an administrator of " + name + " for a new link now."},
+	}
+}
+
+func tokenLetter(token string) func(p mail.Person, name, where string) mail.Letter {
+	return func(p mail.Person, _, where string) mail.Letter {
+		return mail.Letter{
+			Subject: "A personal token was created",
+			Lines: []string{"Hello " + p.Name + ",", "A personal token named " + token + " was created for your account " + p.Handle +
+				" on " + where + ": an AI that holds it acts for you."},
+			After: []string{"If you did not create it, revoke it in the console, under AIs and access."},
+		}
+	}
+}
+
+func roleLetter(role string) func(p mail.Person, name, where string) mail.Letter {
+	return func(p mail.Person, name, where string) mail.Letter {
+		l := mail.Letter{
+			Subject: "You are now an administrator of " + name,
+			Lines:   []string{"Hello " + p.Name + ",", "You are now an administrator of " + where + ": you manage its people and its Rooms."},
+			After:   []string{"If this surprises you, ask another administrator of " + name + "."},
+		}
+		if role == Member {
+			l.Subject = "You are no longer an administrator of " + name
+			l.Lines[1] = "You are now a member of " + where + ", and no longer one of its administrators."
+		}
+		return l
+	}
+}
+
+// SetMailNoticesInput is the input of set_mail_notices.
+type SetMailNoticesInput struct {
+	Off bool `json:"off" jsonschema:"true turns off the notices that are neither about your account nor about a Knock, such as being added to a Room; false turns them on again"`
+}
+
+// MailNotices is the output of set_mail_notices.
+type MailNotices struct {
+	Off bool `json:"off" jsonschema:"whether the notices that are neither about your account nor about a Knock are off"`
+}
+
+// SetMailNotices turns off, or on again, the notices of the person who
+// calls that are neither about their account nor about a Knock.
+var SetMailNotices = &operation.Op[SetMailNoticesInput, MailNotices]{
+	Name:  "set_mail_notices",
+	Title: "Turn e-mail notices off or on",
+	Description: "Turn off, or on again, the e-mail notices that are neither about your account nor about a Knock, " +
+		"such as being added to a Room or the end of the access of a Window.",
+	PeopleOnly: true,
+	Run: func(ctx context.Context, c *operation.Call, in SetMailNoticesInput) (MailNotices, error) {
+		if _, err := self(c, "set_mail_notices"); err != nil {
+			return MailNotices{}, err
+		}
+		detail := "on"
+		if in.Off {
+			detail = "off"
+		}
+		c.Log(c.Actor.Handle, "notices "+detail)
+		_, err := c.Tx.ExecContext(ctx, "UPDATE users SET notices_off = ? WHERE id = ?", in.Off, c.Actor.UserID)
+		return MailNotices(in), err
+	},
+}

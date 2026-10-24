@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"cahut.cloud/internal/address"
+	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
@@ -500,6 +501,9 @@ var AddMember = &operation.Op[MemberInput, Detail]{
 		if _, err := c.Tx.ExecContext(ctx, "INSERT INTO room_members (room_id, user_id, role) VALUES (?, ?, ?)", a.ID, id, role); err != nil {
 			return Detail{}, err
 		}
+		if err := notifyAdded(ctx, c, a, id, role); err != nil {
+			return Detail{}, err
+		}
 		return detail(ctx, c, a)
 	},
 }
@@ -625,4 +629,27 @@ func keepAnOwner(ctx context.Context, tx *sql.Tx, a Access) error {
 		return operation.Invalidf("the Room %s needs an owner: make another person one first", a.Name)
 	}
 	return nil
+}
+
+// notifyAdded tells the person userID, unless they turned such notices
+// off, that they are now in the Room a, with role, and who added them.
+func notifyAdded(ctx context.Context, c *operation.Call, a Access, userID int64, role string) error {
+	o := mail.OutboxOf(c)
+	if o == nil {
+		return nil
+	}
+	by := "An administrator of the server"
+	if c.Actor.UserID != 0 {
+		if err := c.Tx.QueryRowContext(ctx, "SELECT name FROM users WHERE id = ?", c.Actor.UserID).Scan(&by); err != nil {
+			return err
+		}
+	}
+	return o.Notify(ctx, c, userID, mail.Optional, func(p mail.Person, _, where string) mail.Letter {
+		return mail.Letter{
+			Subject: "You were added to " + a.Title,
+			Lines:   []string{"Hello " + p.Name + ",", by + " added you to the Room " + a.Title + " on " + where + ", as " + role + "."},
+			Action:  &mail.Action{Label: "Open " + a.Title, URL: o.Base + a.Name + "/"},
+			After:   []string{"You can turn off these notices on the page of your account, in the console."},
+		}
+	})
 }
