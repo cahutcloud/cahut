@@ -1,6 +1,6 @@
 # 13. People sign in to their Cahut, and the registry checks their rights
 
-- Status: Accepted, superseded in part by [ADR 21](0021-ais-knock-first.md) (an AI that calls an operation that knocks first gets a Knock, not a refusal)
+- Status: Accepted, superseded in part by [ADR 21](0021-ais-knock-first.md) (an AI that calls an operation that knocks first gets a Knock, not a refusal), extended by [ADR 30](0030-kind-and-limits-of-each-cahut.md) (in an individual Cahut, only administrators list people, and a Room has one member)
 - Date: 2026-10-22
 
 ## Context

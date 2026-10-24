@@ -1,6 +1,6 @@
 # 8. A server holds several Cahuts, each at its own domain
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 26](0026-cahut-at-an-ip-address.md) (a Cahut can live at the IP address of its server) and by [ADR 30](0030-kind-and-limits-of-each-cahut.md) (each Cahut has a kind and limits, set by the administrators of the server)
 - Date: 2026-10-21
 
 ## Context
