@@ -15,7 +15,11 @@ const most = 1000;
 function who(e: Entry): string {
 	if (e.actor === "ai") return `${e.client ?? "An AI"} for ${e.user ?? "someone"}`;
 	if (e.actor === "admin") return e.user ? `${e.user}, administrator of the server` : "The command line";
-	return e.user ?? "Someone who signed in";
+	if (e.user) return e.user;
+	// A call that came without signing in, and names no account: a reader
+	// who opens an invitation, a sign-in with an unknown handle, or a
+	// forgotten password of an unknown account.
+	return e.operation === "open_invitation" ? "Someone with an invitation" : "Someone not signed in";
 }
 
 const outcomes: Record<string, { word: string; badge: string }> = {
