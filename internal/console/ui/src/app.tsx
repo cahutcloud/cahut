@@ -97,14 +97,16 @@ export function App() {
 		);
 	}
 	// A reader of the Windows of this Cahut signs in here, then goes back to
-	// the address of the Windows.
+	// the address of the Windows. The administrators of the server read no
+	// Windows: they sign in on the spot as a person, like on the consent
+	// screen.
 	if (path === "/read") {
 		const stay = (s: Session | null) => {
 			if (s) save(s);
 			else clear();
 			setSession(s);
 		};
-		return session ? (
+		return session?.kind === "person" ? (
 			<Read key={session.token} session={session} onExpired={() => stay(null)} />
 		) : (
 			<SignIn kind="person" purpose="to open its Windows" onSignIn={stay} />

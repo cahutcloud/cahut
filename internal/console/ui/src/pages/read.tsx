@@ -17,10 +17,6 @@ function destination(): string {
 export function Read({ session, onExpired }: { session: Session; onExpired: () => void }) {
 	const [error, setError] = useState("");
 	useEffect(() => {
-		if (session.kind !== "person") {
-			setError("The administrators of the server read no Windows. Sign out, then sign in as a person of this Cahut.");
-			return;
-		}
 		Promise.all([cahut("get_cahut", {}, session.token), cahut("sign_in_to_windows", {}, session.token)]).then(
 			([about, code]) => {
 				const to = destination();
