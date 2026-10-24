@@ -62,6 +62,7 @@ export function People() {
 								key={u.handle}
 								user={u}
 								self={api.session.kind === "person" && u.handle === api.session.handle}
+								mail={api.sendsMail}
 								onRole={(role) => act(() => api.cahut("set_user_role", { user: u.handle, role }))}
 								onDisable={() => act(() => api.cahut("disable_user", { user: u.handle }))}
 								onEnable={() => act(() => api.cahut("enable_user", { user: u.handle }))}
@@ -83,6 +84,8 @@ export function People() {
 function Row(props: {
 	user: User;
 	self: boolean;
+	/** Whether this Cahut sends e-mail, and so shows the address of each person. */
+	mail: boolean;
 	onRole: (role: string) => Promise<void>;
 	onDisable: () => Promise<void>;
 	onEnable: () => Promise<void>;
@@ -103,7 +106,7 @@ function Row(props: {
 						<span class="c-mono c-muted people__handle">{u.handle}</span>
 					</span>
 				</span>
-				<EmailCell email={u.email} onSave={props.onEmail} />
+				{props.mail && <EmailCell email={u.email} onSave={props.onEmail} />}
 			</td>
 			<td>{u.role === "admin" ? "Administrator" : "Member"}</td>
 			<td>
@@ -152,7 +155,7 @@ function NewPerson({ onCreated }: { onCreated: (u: User, a: Activation) => void 
 		e.preventDefault();
 		setError("");
 		try {
-			const u = await api.cahut("create_user", { handle, name, admin, email });
+			const u = await api.cahut("create_user", { handle, name, admin, email: api.sendsMail ? email : "" });
 			if (u.activation) onCreated(u, u.activation);
 			setHandle("");
 			setName("");
@@ -177,11 +180,13 @@ function NewPerson({ onCreated }: { onCreated: (u: User, a: Activation) => void 
 						<span class="c-field__help">It names their personal Room, at {location.hostname}/handle. It cannot change.</span>
 					</label>
 				</div>
-				<label class="c-field">
-					<span class="c-field__label">E-mail address</span>
-					<input class="c-input" type="email" placeholder="ana@example.com" value={email} onInput={(e) => setEmail(e.currentTarget.value)} />
-					<span class="c-field__help">Optional. Their link goes there, when this Cahut sends e-mail, and so do their notices.</span>
-				</label>
+				{api.sendsMail && (
+					<label class="c-field">
+						<span class="c-field__label">E-mail address</span>
+						<input class="c-input" type="email" placeholder="ana@example.com" value={email} onInput={(e) => setEmail(e.currentTarget.value)} />
+						<span class="c-field__help">Optional. Their link goes there, and so do their notices.</span>
+					</label>
+				)}
 				<label class="c-check">
 					<input type="checkbox" checked={admin} onChange={(e) => setAdmin(e.currentTarget.checked)} />
 					Administrator of this Cahut

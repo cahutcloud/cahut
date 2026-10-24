@@ -9,13 +9,13 @@ import (
 	"cahut.cloud/internal/store"
 )
 
-// Outbox is what the operations of a Cahut, or of the server, need to send
-// e-mail: the service of the server, whose e-mail it is, and where the links
-// of its messages lead.
+// Outbox is what the operations of a Cahut need to send its e-mail: the
+// service of the server, the Cahut, and where the links of its messages
+// lead.
 type Outbox struct {
 	Service *Service
-	DB      *store.DB // of the Cahut; nil for the server
-	Domain  string    // of the Cahut; empty for the server
+	DB      *store.DB // of the Cahut
+	Domain  string
 	// Name returns the name of the Cahut, which its messages come from.
 	Name func(ctx context.Context) (string, error)
 	// Base is the address of the Cahut, such as https://example.com/, under
@@ -24,9 +24,6 @@ type Outbox struct {
 	// Console is the address of the console of the Cahut, such as
 	// https://example.com/console/, under which links open.
 	Console string
-	// Consoles returns, for the server, the address of the console of the
-	// Cahut at a domain, where its administrators sign in.
-	Consoles func(domain string) string
 }
 
 type outboxKey struct{}

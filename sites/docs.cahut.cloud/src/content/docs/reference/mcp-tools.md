@@ -926,7 +926,7 @@ This tool takes no arguments.
 | `limits.windows` | integer or null | no | how many Windows out of the trash the Cahut may hold |
 | `limits.windows_per_person` | integer or null | no | in an individual Cahut, how many Windows out of the trash each person may hold, over their Rooms |
 | `limits.windows_per_room` | integer or null | no | how many Windows out of the trash each Room may hold, personal Rooms included |
-| `sends_mail` | boolean | yes | whether this Cahut sends e-mail, through a relay of its own or that of its server |
+| `sends_mail` | boolean | yes | whether this Cahut sends e-mail, through the relay that its administrators set; without one, nothing that would send e-mail works, such as invitations |
 | `mcp` | string | no | the address of its MCP endpoint, where AI clients connect |
 | `url` | string | no | the address of the Cahut, under which its Rooms and Windows open |
 | `usage` | object or null | no | what the Cahut holds, as its limits count it; absent for a member of an individual Cahut |
@@ -1029,7 +1029,7 @@ This tool takes no arguments.
       "type": "string"
     },
     "sends_mail": {
-      "description": "whether this Cahut sends e-mail, through a relay of its own or that of its server",
+      "description": "whether this Cahut sends e-mail, through the relay that its administrators set; without one, nothing that would send e-mail works, such as invitations",
       "type": "boolean"
     },
     "url": {

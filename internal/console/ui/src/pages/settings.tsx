@@ -69,7 +69,7 @@ export function Settings() {
 				<h2 class="c-h4">Limits</h2>
 				<LimitsTable settings={data} />
 			</section>
-			{server && <SettingsForm settings={data} onSaved={() => (reload(), api.reloadKind(), api.reloadRooms())} />}
+			{server && <SettingsForm settings={data} onSaved={() => (reload(), api.reloadCahut(), api.reloadRooms())} />}
 		</>
 	);
 }

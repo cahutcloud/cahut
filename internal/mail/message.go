@@ -162,11 +162,7 @@ func build(r *Relay, from From, l Letter, now time.Time) ([]byte, error) {
 	}
 	p := page{Letter: l}
 	p.Subject = oneLine(l.Subject)
-	if from.Domain != "" {
-		p.Footer = "Sent by the Cahut at " + from.Domain + "."
-	} else {
-		p.Footer = "Sent by the Cahut server " + heloName() + "."
-	}
+	p.Footer = "Sent by the Cahut at " + from.Domain + "."
 	var text, html bytes.Buffer
 	if err := textLayout.Execute(&text, p); err != nil {
 		return nil, err

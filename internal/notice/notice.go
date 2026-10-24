@@ -1,7 +1,8 @@
 // Package notice sends the notices that time brings, rather than a call:
 // the access of a Window that ends within three days, a limit of a Cahut at
-// 90% or reached, the disk of the server almost full. The server runs it
-// every hour. See docs/adr/0031-e-mail-through-a-relay.md.
+// 90% or reached. The server runs it every hour, for each Cahut that sends
+// e-mail. See docs/adr/0031-e-mail-through-a-relay.md and
+// docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
 package notice
 
 import (
@@ -14,7 +15,6 @@ import (
 
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/mail"
-	"cahut.cloud/internal/server"
 	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
 )
@@ -27,14 +27,14 @@ const Lead = 3 * 24 * time.Hour
 
 // Cahut sends the notices of the Cahut c that are due at now: to the person
 // who set the access of a Window that ends within three days, once for that
-// end; to the administrators of the Cahut, and of the server, when a limit
-// is at 90% or reached, once a day; and in an individual Cahut, to a person
-// whose own limit is.
-func Cahut(ctx context.Context, srv *server.Server, c *cahut.Cahut, now time.Time) error {
+// end; to the administrators of the Cahut when a limit is at 90% or
+// reached, once a day; and in an individual Cahut, to a person whose own
+// limit is.
+func Cahut(ctx context.Context, c *cahut.Cahut, now time.Time) error {
 	if c.Outbox == nil {
 		return nil
 	}
-	return errors.Join(accessEnds(ctx, c, now), limits(ctx, srv, c, now))
+	return errors.Join(accessEnds(ctx, c, now), limits(ctx, c, now))
 }
 
 // once sends l, made for the person userID as Prepare decides, when the
@@ -159,10 +159,9 @@ func limitLetter(l limit, lvl, hello, name, where string, own bool) mail.Letter 
 	}
 }
 
-// limits tells the administrators of the Cahut, and of the server, of a
-// limit of the Cahut at 90% or reached; in an individual Cahut, each person
-// of their own limits.
-func limits(ctx context.Context, srv *server.Server, c *cahut.Cahut, now time.Time) error {
+// limits tells the administrators of the Cahut of a limit of the Cahut at
+// 90% or reached; in an individual Cahut, each person of their own limits.
+func limits(ctx context.Context, c *cahut.Cahut, now time.Time) error {
 	tx, err := c.DB.Read.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
 	if err != nil {
 		return err
@@ -204,14 +203,6 @@ func limits(ctx context.Context, srv *server.Server, c *cahut.Cahut, now time.Ti
 					return limitLetter(lim, lvl, p.Name, name, where, false)
 				}))
 		}
-		name, where, err := c.Outbox.Where(ctx)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-		errs = append(errs, srv.NotifyAdmins(ctx, "limit", c.Domain+" "+key, 24*time.Hour, func(a server.Admin) mail.Letter {
-			return limitLetter(lim, lvl, a.Name, name, where, false)
-		}))
 	}
 	return errors.Join(errs...)
 }
@@ -290,49 +281,4 @@ func deref(l *int64) int64 {
 		return -1
 	}
 	return *l
-}
-
-// Full is how full the disk of the data of the server may be before its
-// administrators hear of it.
-const Full = 0.9
-
-// Disk measures the file system of a directory: its size, and the space
-// left on it, as doctor.DiskUsage does.
-type Disk func(dir string) (total, free uint64, err error)
-
-// Server sends the notices of the server that are due: its disk almost
-// full, as disk measures it, once a day.
-func Server(ctx context.Context, srv *server.Server, disk Disk) error {
-	total, free, err := disk(srv.DataDir())
-	if err != nil {
-		return err
-	}
-	if total == 0 || float64(total-free) < Full*float64(total) {
-		return nil
-	}
-	host := srv.Mail.Host()
-	pct := int(100 * float64(total-free) / float64(total))
-	return srv.NotifyAdmins(ctx, "disk", "data", 24*time.Hour, func(a server.Admin) mail.Letter {
-		return mail.Letter{
-			Subject: "The disk of " + host + " is almost full",
-			Lines: []string{"Hello " + a.Name + ",", fmt.Sprintf("The disk that holds the data of the Cahut server %s is %d%% full, with %s free.",
-				host, pct, settings.Bytes(int64(free)))}, //nolint:gosec // free space fits in an int64
-			After: []string{"Below 1 GB free, no Window can be published. Make room, or give the server more disk: cahut doctor says more."},
-		}
-	})
-}
-
-// Certificate tells the administrators of the server, once a day, that the
-// certificate of domain could not be renewed, and why.
-func Certificate(ctx context.Context, srv *server.Server, domain string, reason error) error {
-	host := srv.Mail.Host()
-	return srv.NotifyAdmins(ctx, "certificate", domain, 24*time.Hour, func(a server.Admin) mail.Letter {
-		return mail.Letter{
-			Subject: "The certificate of " + domain + " cannot be renewed",
-			Lines: []string{"Hello " + a.Name + ",", "The Cahut server " + host + " could not renew the certificate of " + domain +
-				": " + reason.Error() + "."},
-			After: []string{"It tries again on its own. If the domain no longer points to the server, or its ports 80 and 443 are closed, " +
-				"readers will soon see an error: cahut doctor says more."},
-		}
-	})
 }

@@ -22,13 +22,12 @@ export function Admins() {
 	const { data, error, reload } = useLoad(() => api.server("list_admins", {}));
 	const [handle, setHandle] = useState("");
 	const [name, setName] = useState("");
-	const [email, setEmail] = useState("");
 	const [failure, setFailure] = useState("");
-	const [link, setLink] = useState<{ name: string; email?: string; activation: Activation } | null>(null);
+	const [link, setLink] = useState<{ name: string; activation: Activation } | null>(null);
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
 
-	const act = async (run: () => Promise<{ name: string; email?: string; activation: Activation } | null>) => {
+	const act = async (run: () => Promise<{ name: string; activation: Activation } | null>) => {
 		setFailure("");
 		try {
 			const given = await run();
@@ -41,11 +40,10 @@ export function Admins() {
 	const create = (e: Event) => {
 		e.preventDefault();
 		act(async () => {
-			const a = await api.server("create_admin", { handle, name, email });
+			const a = await api.server("create_admin", { handle, name });
 			setHandle("");
 			setName("");
-			setEmail("");
-			return { name: a.name, email: a.email, activation: a.activation };
+			return { name: a.name, activation: a.activation };
 		});
 	};
 	return (
@@ -73,11 +71,6 @@ export function Admins() {
 							<input class="c-input c-mono" required autocapitalize="none" value={handle} onInput={(e) => setHandle(e.currentTarget.value)} />
 						</label>
 					</div>
-					<label class="c-field">
-						<span class="c-field__label">E-mail address</span>
-						<input class="c-input" type="email" value={email} onInput={(e) => setEmail(e.currentTarget.value)} />
-						<span class="c-field__help">Optional. Their link goes there, when the server sends e-mail, and so do the notices of the server.</span>
-					</label>
 					<div>
 						<button class="c-btn c-btn--primary" type="submit">
 							<Plus class="i" size={16} aria-hidden="true" />
@@ -90,9 +83,7 @@ export function Admins() {
 			{link && (
 				<div class="result section" role="status">
 					<p class="c-small">
-						{link.activation.emailed
-							? `The link where ${link.name} chooses their password went to ${link.email ?? "their address"}. It works once, for 7 days; here it is too, shown only now.`
-							: `Send ${link.name} this link, where they choose their password. It works once, for 7 days, and is shown only now.`}
+						Send {link.name} this link, where they choose their password. It works once, for 7 days, and is shown only now.
 					</p>
 					<CopyField label="the activation link" value={`${location.origin}${href("/server/activate")}#${link.activation.code}`} />
 				</div>
@@ -117,7 +108,6 @@ export function Admins() {
 										<span class="people__who">
 											<span>{a.name}</span>
 											<span class="c-mono c-muted people__handle">{a.handle}</span>
-											{a.email && <span class="c-mono c-muted people__handle">{a.email}</span>}
 										</span>
 									</span>
 								</td>
@@ -131,7 +121,7 @@ export function Admins() {
 											question={`Give ${a.name} a new link? Their password works until they use it.`}
 											confirm="Give a link"
 											onConfirm={() =>
-												act(async () => ({ name: a.name, email: a.email, activation: await api.server("create_activation_link", { admin: a.handle }) }))
+												act(async () => ({ name: a.name, activation: await api.server("create_activation_link", { admin: a.handle }) }))
 											}
 										/>
 									)}

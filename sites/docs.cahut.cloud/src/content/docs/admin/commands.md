@@ -136,7 +136,7 @@ printf '%s' "$SMTP_PASSWORD" | sudo -u cahut /usr/local/bin/cahut mail set --hos
 sudo -u cahut /usr/local/bin/cahut mail test --to you@example.com
 ```
 
-Without `--domain`, `cahut mail` acts on the relay of the server, which sends the e-mail of every Cahut without a relay of its own; with it, on the relay of that Cahut. `mail show` prints a relay, `mail remove` removes it. See [E-mail](/admin/mail/).
+Only a Cahut has a relay: without one, it sends no e-mail. On a server that holds several Cahuts, `--domain` names the Cahut. `mail show` prints the relay, `mail remove` removes it. See [E-mail](/admin/mail/).
 
 ## Administrators of the server
 

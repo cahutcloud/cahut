@@ -17,14 +17,6 @@ func label(name string) (string, error) {
 
 // freeBytes returns the space left to unprivileged users on the file
 // system of path.
-func diskUsage(path string) (total, free uint64, err error) {
-	var st syscall.Statfs_t
-	if err := syscall.Statfs(path, &st); err != nil {
-		return 0, 0, err
-	}
-	return st.Blocks * uint64(st.Bsize), st.Bavail * uint64(st.Bsize), nil //nolint:gosec // a block size is positive
-}
-
 func freeBytes(path string) (uint64, error) {
 	var st syscall.Statfs_t
 	if err := syscall.Statfs(path, &st); err != nil {

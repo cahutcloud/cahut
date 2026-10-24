@@ -70,6 +70,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/deny_authorization` | Any person | yes |
 | `POST /api/deny_knock` | Any person | yes |
 | `POST /api/describe_authorization` | Any person | yes |
+| `POST /api/describe_sign_in` | Anyone, to sign in | no |
 | `POST /api/disable_user` | Administrators of the Cahut | yes |
 | `POST /api/disconnect_ai` | Any person | yes |
 | `POST /api/enable_user` | Administrators of the Cahut | yes |
@@ -125,25 +126,19 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | --- | --- | --- |
 | `POST /api/server/activate_account` | Anyone, to sign in | no |
 | `POST /api/server/add_domain` | Administrators of the server | yes |
-| `POST /api/server/change_email` | Administrators of the server | yes |
 | `POST /api/server/change_password` | Administrators of the server | yes |
-| `POST /api/server/confirm_email` | Anyone, to sign in | no |
 | `POST /api/server/create_activation_link` | Administrators of the server | yes |
 | `POST /api/server/create_admin` | Administrators of the server | yes |
 | `POST /api/server/create_setup_link` | Administrators of the server | yes |
 | `POST /api/server/disable_admin` | Administrators of the server | yes |
 | `POST /api/server/enable_admin` | Administrators of the server | yes |
-| `POST /api/server/get_mail_relay` | Administrators of the server | yes |
 | `POST /api/server/get_setup` | Anyone, to sign in | no |
 | `POST /api/server/get_updates` | Administrators of the server | yes |
 | `POST /api/server/list_admins` | Administrators of the server | yes |
 | `POST /api/server/list_domains` | Administrators of the server | yes |
 | `POST /api/server/list_logbook` | Administrators of the server | yes |
 | `POST /api/server/rename_domain` | Administrators of the server | yes |
-| `POST /api/server/request_password_link` | Anyone, to sign in | no |
 | `POST /api/server/request_update` | Administrators of the server | yes |
-| `POST /api/server/send_test_mail` | Administrators of the server | yes |
-| `POST /api/server/set_mail_relay` | Administrators of the server | yes |
 | `POST /api/server/set_up` | Anyone, to sign in | no |
 | `POST /api/server/sign_in` | Anyone, to sign in | no |
 | `POST /api/server/sign_out` | Administrators of the server | yes |

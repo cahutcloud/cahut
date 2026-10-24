@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/mail"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -18,24 +17,19 @@ import (
 
 const console = "https://example.com/console/"
 
-// mailer gives the Cahut of f the e-mail of a server whose relay is a
-// relay in memory, on this machine and without TLS, and returns the relay.
+// mailer gives the Cahut of f the e-mail of its server, and a relay in
+// memory as its relay, which the server reaches on this machine as tests
+// may. It returns the relay. Before it, the Cahut sends no e-mail.
 func (f *fixture) mailer(t *testing.T) *mailtest.Relay {
 	t.Helper()
 	ctx := context.Background()
-	dir := t.TempDir()
-	srv, err := store.Open(ctx, filepath.Join(dir, "server.db"), store.ServerSchema)
-	if err != nil {
-		t.Fatal(err)
-	}
-	svc := cmail.New(cmail.Config{DataDir: dir, Server: srv})
-	t.Cleanup(func() {
-		svc.Close(ctx)
-		srv.Close()
-	})
-	relay := mailtest.Start(t, mailtest.Options{NoStartTLS: true})
-	_, err = srv.Write.ExecContext(ctx, `INSERT INTO mail_relay (id, host, port, security, sender, set_at)
-		VALUES (1, '127.0.0.1', ?, 'none', 'cahut@example.com', ?)`, relay.Port, store.FormatTime(f.now))
+	svc := cmail.New(cmail.Config{DataDir: t.TempDir()})
+	t.Cleanup(func() { svc.Close(ctx) })
+	relay := mailtest.Start(t, mailtest.Options{})
+	svc.UseRoots(relay.Roots)
+	svc.DialAnywhere()
+	_, err := f.db.Write.ExecContext(ctx, `INSERT INTO mail_relay (id, host, port, security, sender, set_at)
+		VALUES (1, '127.0.0.1', ?, 'starttls', 'cahut@example.com', ?)`, relay.Port, store.FormatTime(f.now))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -150,8 +144,13 @@ func TestCreateUserWithEmail(t *testing.T) {
 func TestChangeEmail(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
-	relay := f.mailer(t)
 	ana := f.active(t, "ana", false)
+	// Without a relay, a person has no address to change.
+	if _, err := operation.Do(ctx, f.r, ChangeEmail, ana, ChangeEmailInput{Email: "ana@new.example"}); !errors.Is(err, operation.ErrInvalid) ||
+		!strings.Contains(err.Error(), "sends no e-mail") {
+		t.Errorf("change_email without a relay: %v", err)
+	}
+	relay := f.mailer(t)
 	if _, err := operation.Do(ctx, f.r, SetUserEmail, admin, SetUserEmailInput{User: "ana", Email: "ana@example.org"}); err != nil {
 		t.Fatal(err)
 	}
@@ -238,15 +237,34 @@ func TestRequestPasswordLink(t *testing.T) {
 			t.Fatalf("request_password_link %q: %+v %v", who, out, err)
 		}
 	}
+	describe := func() bool {
+		t.Helper()
+		p, err := operation.Do(ctx, f.r, DescribeSignIn, visitor, DescribeSignInInput{})
+		if err != nil {
+			t.Fatalf("describe_sign_in: %v", err)
+		}
+		return p.SendsMail
+	}
 	f.active(t, "olivier", false)
 	f.active(t, "bob", false) // without an address
 	f.active(t, "chloe", true)
 	if _, err := operation.Do(ctx, f.r, SetUserEmail, admin, SetUserEmailInput{User: "olivier", Email: "olivier@example.org"}); err != nil {
 		t.Fatal(err)
 	}
-	ask("olivier") // no relay yet: the same answer, and nothing goes out
+	// Without a relay, the page of sign-in offers no link, and a visitor who
+	// asks all the same hears that the Cahut sends no e-mail.
+	if describe() {
+		t.Error("describe_sign_in says a Cahut without a relay sends e-mail")
+	}
+	if _, err := operation.Do(ctx, f.r, RequestPasswordLink, visitor, RequestPasswordLinkInput{Who: "olivier"}); !errors.Is(err, operation.ErrInvalid) ||
+		!strings.Contains(err.Error(), "sends no e-mail") {
+		t.Errorf("request_password_link without a relay: %v", err)
+	}
 
 	relay := f.mailer(t)
+	if !describe() {
+		t.Error("describe_sign_in says a Cahut with a relay sends no e-mail")
+	}
 	ask("OLIVIER@example.org")
 	m := read(t, relay, 1)
 	if m.to != "olivier@example.org" || m.subject != "Choose a new password for Example" || !strings.HasPrefix(m.link(t), console+"activate?reset#") {
@@ -303,6 +321,10 @@ func TestRequestPasswordLink(t *testing.T) {
 	var details []string
 	for _, e := range f.entries(t) {
 		if e.Operation == "request_password_link" {
+			if e.Error != "" {
+				details = append(details, "refused: "+e.Error)
+				continue
+			}
 			details = append(details, e.UserHandle+": "+e.Detail)
 			if strings.Contains(e.Target+e.Detail, "@") {
 				t.Errorf("an address in the Logbook: %+v", e)
@@ -311,7 +333,7 @@ func TestRequestPasswordLink(t *testing.T) {
 	}
 	want := []string{"olivier: link sent", "olivier: link sent", "olivier: not sent: disabled", "bob: not sent: no address",
 		": unknown account", ": unknown account", "olivier: not sent: a link went out less than 5 minutes ago",
-		"olivier: link sent", "olivier: not sent: the Cahut sends no e-mail"}
+		"olivier: link sent", "refused: invalid input: this Cahut sends no e-mail: an administrator of the Cahut can give you a new link"}
 	if strings.Join(details, "; ") != strings.Join(want, "; ") {
 		t.Errorf("the Logbook, newest first:\n%q\nwant\n%q", details, want)
 	}

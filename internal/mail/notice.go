@@ -77,8 +77,8 @@ func (o *Outbox) Notify(ctx context.Context, c *operation.Call, userID int64, ki
 
 // Once reports whether the notice of kind about key may go now, at most
 // once every every, or once for good when every is zero, and records that
-// it goes. tx is in the database that remembers the notices sent: that of
-// a Cahut, or of the server.
+// it goes. tx is in the database of the Cahut, which remembers the notices
+// sent.
 func Once(ctx context.Context, tx *sql.Tx, kind, key string, every time.Duration, now time.Time) (bool, error) {
 	var sent string
 	err := tx.QueryRowContext(ctx, "SELECT sent_at FROM notices_sent WHERE kind = ? AND key = ?", kind, key).Scan(&sent)

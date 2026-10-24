@@ -164,9 +164,10 @@ type About struct {
 	Domain string `json:"domain"`
 	URL    string `json:"url,omitempty" jsonschema:"the address of the Cahut, under which its Rooms and Windows open"`
 	MCP    string `json:"mcp,omitempty" jsonschema:"the address of its MCP endpoint, where AI clients connect"`
-	// SendsMail says whether the Cahut has a relay, or its server one. See
-	// docs/adr/0031-e-mail-through-a-relay.md.
-	SendsMail bool `json:"sends_mail" jsonschema:"whether this Cahut sends e-mail, through a relay of its own or that of its server"`
+	// SendsMail says whether the Cahut has a relay. Without one, it sends no
+	// e-mail and its console offers nothing that would. See
+	// docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
+	SendsMail bool `json:"sends_mail" jsonschema:"whether this Cahut sends e-mail, through the relay that its administrators set; without one, nothing that would send e-mail works, such as invitations"`
 	settings.Settings
 }
 

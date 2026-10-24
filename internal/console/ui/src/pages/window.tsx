@@ -334,8 +334,10 @@ export function Trash({ room }: { room: string }) {
 /**
  * The invitations to read a Window, sent by e-mail, and the form that sends
  * them: people of the Cahut by handle, anyone else by address, with a
- * personal link for a Window with a Key. See
- * docs/adr/0031-e-mail-through-a-relay.md.
+ * personal link for a Window with a Key. A Cahut without a relay offers no
+ * form, and shows only the invitations it sent before, to take them back.
+ * See docs/adr/0031-e-mail-through-a-relay.md and
+ * docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
  */
 function Invitations({ window: w }: { window: WindowDetail }) {
 	const api = useConsole();
@@ -372,41 +374,48 @@ function Invitations({ window: w }: { window: WindowDetail }) {
 		internal: "People of the Cahut, by handle: they sign in to read it. To invite someone else by address, set its access to key first.",
 		room: "The members of its Room, by handle. To invite someone else, set its access to internal or key first.",
 	};
+	if (!api.sendsMail && !data?.invitations.length) return null;
 	return (
 		<div class="c-card panel section">
-			<h2 class="c-h4">Invite people</h2>
-			<p class="c-small c-muted">{how[w.access] ?? how.room}</p>
-			<form class="form" onSubmit={send}>
-				<label class="c-field">
-					<span class="c-field__label">To</span>
-					<input
-						class="c-input"
-						required
-						autocapitalize="none"
-						placeholder="ana, joe@example.com"
-						value={to}
-						onInput={(e) => setTo(e.currentTarget.value)}
-					/>
-					<span class="c-field__help">Handles or e-mail addresses, 20 at most, separated by commas.</span>
-				</label>
-				<label class="c-field">
-					<span class="c-field__label">Note</span>
-					<textarea class="c-input" rows={3} maxLength={500} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
-					<span class="c-field__help">Optional, in plain text. The message shows it as yours.</span>
-				</label>
-				{error && <Failure message={error} />}
-				{said && (
-					<div class="c-alert c-alert--success" role="status">
-						{said}
+			<h2 class="c-h4">{api.sendsMail ? "Invite people" : "Invitations"}</h2>
+			<p class="c-small c-muted">
+				{api.sendsMail
+					? (how[w.access] ?? how.room)
+					: "This Cahut no longer sends e-mail. The personal links that went out still open this Window, until you take them back."}
+			</p>
+			{api.sendsMail && (
+				<form class="form" onSubmit={send}>
+					<label class="c-field">
+						<span class="c-field__label">To</span>
+						<input
+							class="c-input"
+							required
+							autocapitalize="none"
+							placeholder="ana, joe@example.com"
+							value={to}
+							onInput={(e) => setTo(e.currentTarget.value)}
+						/>
+						<span class="c-field__help">Handles or e-mail addresses, 20 at most, separated by commas.</span>
+					</label>
+					<label class="c-field">
+						<span class="c-field__label">Note</span>
+						<textarea class="c-input" rows={3} maxLength={500} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
+						<span class="c-field__help">Optional, in plain text. The message shows it as yours.</span>
+					</label>
+					{error && <Failure message={error} />}
+					{said && (
+						<div class="c-alert c-alert--success" role="status">
+							{said}
+						</div>
+					)}
+					<div>
+						<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
+							<Send class="i" size={16} aria-hidden="true" />
+							Send the invitation
+						</button>
 					</div>
-				)}
-				<div>
-					<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
-						<Send class="i" size={16} aria-hidden="true" />
-						Send the invitation
-					</button>
-				</div>
-			</form>
+				</form>
+			)}
 			{data && data.invitations.length > 0 && (
 				<div class="table-wrap">
 					<table class="table">

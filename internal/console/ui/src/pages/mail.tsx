@@ -1,27 +1,25 @@
-// The e-mail relay of this Cahut, for its administrators, or of the server,
-// for its administrators: the SMTP relay that sends activation links,
-// invitations and notices, a test, and how the last message went. See
-// docs/adr/0031-e-mail-through-a-relay.md.
+// The e-mail relay of this Cahut, for its administrators: the SMTP relay
+// that sends activation links, invitations and notices, a test, and how the
+// last message went. Without a relay, the Cahut sends no e-mail. See
+// docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
 import { Send } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
-import type { Delivery, SetMailRelayInput, TestSent } from "../api.gen";
+import type { Delivery, SetMailRelayInput } from "../api.gen";
 import { ago, ConfirmButton, Failure, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
 
-export function MailPage({ of }: { of: "cahut" | "server" }) {
+export function MailPage() {
 	const api = useConsole();
-	const relay = {
-		get: (): Promise<Delivery> => (of === "server" ? api.server("get_mail_relay", {}) : api.cahut("get_mail_relay", {})),
-		set: (input: SetMailRelayInput): Promise<Delivery> =>
-			of === "server" ? api.server("set_mail_relay", input) : api.cahut("set_mail_relay", input),
-		test: (): Promise<TestSent> => (of === "server" ? api.server("send_test_mail", {}) : api.cahut("send_test_mail", {})),
-	};
-	const { data, error, reload } = useLoad(relay.get, [of]);
+	const { data, error, reload } = useLoad(() => api.cahut("get_mail_relay", {}));
 	const [failure, setFailure] = useState("");
 	const [said, setSaid] = useState("");
-	if (of === "cahut" && !api.isAdmin) return <Notice>Only the administrators of this Cahut set its e-mail.</Notice>;
+	// An administrator of the server has no address: their test goes where
+	// they say.
+	const [to, setTo] = useState("");
+	const own = api.session.kind === "person";
+	if (!api.isAdmin) return <Notice>Only the administrators of this Cahut set its e-mail.</Notice>;
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
 
@@ -35,33 +33,41 @@ export function MailPage({ of }: { of: "cahut" | "server" }) {
 			setFailure(explain(err));
 		}
 	};
+	const test = (e: Event) => {
+		e.preventDefault();
+		act(async () => `A test went to ${(await api.cahut("send_test_mail", own ? {} : { to })).to}. Look in that mailbox.`);
+	};
+	const changed = () => (reload(), api.reloadCahut());
 	return (
 		<>
-			<PageHead label={of === "server" ? "This server" : "This Cahut"} title="E-mail">
-				{of === "server"
-					? "The SMTP relay of this server sends its e-mail, and that of every Cahut without a relay of its own."
-					: "The SMTP relay that sends the e-mail of this Cahut, from an address of its own: activation links, invitations and notices. Without one, its e-mail goes through the relay of the server."}
+			<PageHead label="This Cahut" title="E-mail">
+				The SMTP relay that sends the e-mail of this Cahut, from an address of its own: activation links, invitations and notices. Without
+				one, this Cahut sends no e-mail, and the console offers nothing that would.
 			</PageHead>
 			<section class="section c-card panel">
 				<h2 class="c-h4">How e-mail goes out</h2>
-				<p class="c-small">{describe(data, of)}</p>
+				<p class="c-small">{describe(data)}</p>
 				{data.last_sent && <p class="c-small c-muted">A message last went out {ago(data.last_sent).toLowerCase()}.</p>}
 				{data.last_error && (
 					<div class="c-alert c-alert--warning" role="status">
 						The last message that failed, {data.last_error_at ? ago(data.last_error_at).toLowerCase() : "lately"}: {data.last_error}
 					</div>
 				)}
-				{data.sends && (
-					<div>
-						<button
-							class="c-btn c-btn--secondary"
-							type="button"
-							onClick={() => act(async () => `A test went to ${(await relay.test()).to}. Look in that mailbox.`)}
-						>
-							<Send class="i" size={16} aria-hidden="true" />
-							Send a test to your address
-						</button>
-					</div>
+				{data.relay && (
+					<form class="form" onSubmit={test}>
+						{!own && (
+							<label class="c-field">
+								<span class="c-field__label">Send a test to</span>
+								<input class="c-input" type="email" required autocomplete="email" value={to} onInput={(e) => setTo(e.currentTarget.value)} />
+							</label>
+						)}
+						<div>
+							<button class="c-btn c-btn--secondary" type="submit">
+								<Send class="i" size={16} aria-hidden="true" />
+								{own ? "Send a test to your address" : "Send a test"}
+							</button>
+						</div>
+					</form>
 				)}
 				{said && (
 					<div class="c-alert c-alert--success" role="status">
@@ -73,14 +79,13 @@ export function MailPage({ of }: { of: "cahut" | "server" }) {
 			<RelayForm
 				key={data.relay?.set_at ?? "none"}
 				delivery={data}
-				of={of}
 				onSave={async (input) => {
-					await relay.set(input);
-					reload();
+					await api.cahut("set_mail_relay", input);
+					changed();
 				}}
 				onRemove={async () => {
-					await relay.set({ host: "" });
-					reload();
+					await api.cahut("set_mail_relay", { host: "" });
+					changed();
 				}}
 			/>
 		</>
@@ -88,18 +93,16 @@ export function MailPage({ of }: { of: "cahut" | "server" }) {
 }
 
 /** Says through which relay e-mail goes out, if any. */
-function describe(d: Delivery, of: "cahut" | "server"): string {
+function describe(d: Delivery): string {
 	if (d.relay) {
 		const from = d.relay.name ? `${d.relay.name} <${d.relay.from}>` : d.relay.from;
-		return `Through ${d.relay.host}:${d.relay.port}, with ${d.relay.security === "tls" ? "TLS" : d.relay.security === "starttls" ? "STARTTLS" : "no TLS"}, from ${from}.`;
+		return `Through ${d.relay.host}:${d.relay.port}, with ${d.relay.security === "tls" ? "TLS" : "STARTTLS"}, from ${from}.`;
 	}
-	if (d.server) return "This Cahut has no relay of its own: its e-mail goes through the relay of the server.";
-	return of === "server"
-		? "This server has no relay: the Cahuts without one of their own send no e-mail."
-		: "Neither this Cahut nor the server has a relay: links go by hand, and invitations and notices do not go out.";
+	if (d.sends) return "This Cahut has no relay. The server runs for development: it writes the messages of this Cahut to disk, in the mail folder of its data.";
+	return "This Cahut has no relay: it sends no e-mail. People get their links from an administrator, and nobody can invite by e-mail or ask for a new password.";
 }
 
-function RelayForm(props: { delivery: Delivery; of: "cahut" | "server"; onSave: (input: SetMailRelayInput) => Promise<void>; onRemove: () => Promise<void> }) {
+function RelayForm(props: { delivery: Delivery; onSave: (input: SetMailRelayInput) => Promise<void>; onRemove: () => Promise<void> }) {
 	const r = props.delivery.relay;
 	const [host, setHost] = useState(r?.host ?? "");
 	const [port, setPort] = useState(r ? String(r.port) : "");
@@ -133,11 +136,10 @@ function RelayForm(props: { delivery: Delivery; of: "cahut" | "server"; onSave: 
 	};
 	return (
 		<section class="section c-card panel">
-			<h2 class="c-h4">{r ? "Change the relay" : props.of === "server" ? "Set the relay of the server" : "Set a relay for this Cahut"}</h2>
+			<h2 class="c-h4">{r ? "Change the relay" : "Set a relay for this Cahut"}</h2>
 			<p class="c-small c-muted">
-				{props.of === "server"
-					? "Your provider of e-mail gives these settings. The relay may be on this machine: without TLS, only on its loopback address."
-					: "Your provider of e-mail gives these settings. The relay is on the internet, and speaks TLS. Cahut connects and signs in before it keeps it."}
+				Your provider of e-mail gives these settings. The relay is on the internet, and speaks TLS. Cahut connects and signs in before it
+				keeps it.
 			</p>
 			<form class="form" onSubmit={submit}>
 				<div class="form__row">
@@ -154,7 +156,6 @@ function RelayForm(props: { delivery: Delivery; of: "cahut" | "server"; onSave: 
 						<select class="c-input" value={security} onChange={(e) => setSecurity(e.currentTarget.value)}>
 							<option value="starttls">STARTTLS, usually on port 587</option>
 							<option value="tls">TLS from the start, usually on port 465</option>
-							{props.of === "server" && <option value="none">None, on this machine only</option>}
 						</select>
 					</label>
 				</div>
@@ -187,7 +188,7 @@ function RelayForm(props: { delivery: Delivery; of: "cahut" | "server"; onSave: 
 					</label>
 					<label class="c-field">
 						<span class="c-field__label">Name</span>
-						<input class="c-input" placeholder={props.of === "server" ? "Cahut" : "The name of the Cahut"} value={name} onInput={(e) => setName(e.currentTarget.value)} />
+						<input class="c-input" placeholder="The name of the Cahut" value={name} onInput={(e) => setName(e.currentTarget.value)} />
 					</label>
 				</div>
 				{error && <Failure message={error} />}
@@ -198,7 +199,7 @@ function RelayForm(props: { delivery: Delivery; of: "cahut" | "server"; onSave: 
 					{r && (
 						<ConfirmButton
 							label="Remove the relay"
-							question={props.of === "server" ? "Remove it? The Cahuts without a relay of their own stop sending e-mail." : "Remove it? E-mail goes through the relay of the server, if it has one."}
+							question="Remove it? This Cahut stops sending e-mail, and the console no longer offers what would."
 							confirm="Remove"
 							danger
 							onConfirm={remove}

@@ -20,13 +20,15 @@ import (
 	"cahut.cloud/internal/window"
 )
 
-// relay gives the server of f a relay in memory, on this machine and
-// without TLS, and returns it.
+// relay gives the Cahut at localhost a relay in memory, which the server
+// reaches on this machine as tests may, and returns it.
 func (f *fixture) relay(t *testing.T) *mailtest.Relay {
 	t.Helper()
-	relay := mailtest.Start(t, mailtest.Options{NoStartTLS: true})
-	in := fmt.Sprintf(`{"host": "127.0.0.1", "port": %d, "security": "none", "from": "cahut@example.com"}`, relay.Port)
-	if _, err := f.srv.Registry.Invoke(context.Background(), "set_mail_relay", admin, []byte(in)); err != nil {
+	relay := mailtest.Start(t, mailtest.Options{})
+	f.srv.Mail.UseRoots(relay.Roots)
+	f.srv.Mail.DialAnywhere()
+	in := fmt.Sprintf(`{"host": "127.0.0.1", "port": %d, "security": "starttls", "from": "cahut@example.com"}`, relay.Port)
+	if _, err := f.open(t, "localhost").Registry.Invoke(context.Background(), "set_mail_relay", admin, []byte(in)); err != nil {
 		t.Fatal(err)
 	}
 	return relay

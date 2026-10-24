@@ -14,8 +14,9 @@ func TestEmailCommands(t *testing.T) {
 	if code, _, errOut := run(t, data, "domain", "add", "cahut.example.com"); code != exitOK {
 		t.Fatalf("domain add: %d %q", code, errOut)
 	}
-	relay := mailtest.Start(t, mailtest.Options{NoStartTLS: true})
-	if code, _, errOut := run(t, data, "mail", "set", "--host", "127.0.0.1", "--port", strconv.Itoa(relay.Port), "--security", "none",
+	relay := mailtest.Start(t, mailtest.Options{})
+	reach(t, relay)
+	if code, _, errOut := run(t, data, "mail", "set", "--host", "127.0.0.1", "--port", strconv.Itoa(relay.Port),
 		"--from", "cahut@example.com"); code != exitOK {
 		t.Fatalf("mail set: %d %q", code, errOut)
 	}
@@ -47,13 +48,5 @@ func TestEmailCommands(t *testing.T) {
 	// sent nothing.
 	if m := relay.Wait(t, 2); m[1].To[0] != "Olivier@example.org" {
 		t.Errorf("the notice went to %v", m[1].To)
-	}
-
-	code, out, errOut = run(t, data, "admin", "create", "--handle", "ana", "--name", "Ana", "--email", "ana@example.org")
-	if code != exitOK || !strings.Contains(out, "went to their e-mail address") || !strings.Contains(out, "https://cahut.example.com/console/server/activate#") {
-		t.Errorf("admin create --email: %d %q %q", code, out, errOut)
-	}
-	if m := relay.Wait(t, 3); m[2].To[0] != "ana@example.org" {
-		t.Errorf("the link of the administrator went to %v", m[2].To)
 	}
 }

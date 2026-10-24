@@ -290,6 +290,8 @@ Soit environ 11,5 jours. Les pull requests s'enchaînent dans l'ordre. Chacune r
 
 Le code du lot 9 est fusionné le 24 octobre 2026, en huit pull requests. Il reste le relais du staging et la démonstration.
 
+**Après le lot : l'ADR 34.** Le relais du serveur, le repli sur lui et l'e-mail des administrateurs du serveur sont retirés une fois le lot fusionné, sur décision d'Olivier. Seul un Cahut a un relais, réglé par ses administrateurs ; sans relais, il n'envoie rien et sa console ne montre aucune fonction d'e-mail : ni « Forgot your password? », ni adresse, ni invitation. Les administrateurs du serveur n'ont pas d'adresse, et le disque, les certificats et les mises à jour se lisent dans la console du serveur et dans `cahut doctor`. La migration `server/0013_no_mail` retire de `server.db` le relais, les adresses et les avis du serveur. Ce plan décrit le lot tel qu'il a été fait ; ce qui touche au relais du serveur ne vaut plus.
+
 | # | Pull request | Contenu |
 | --- | --- | --- |
 | — | #104 | L'ADR 31 |

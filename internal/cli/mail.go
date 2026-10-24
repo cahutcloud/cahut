@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -12,32 +11,28 @@ import (
 
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/mail"
-	"cahut.cloud/internal/operation"
-	"cahut.cloud/internal/server"
 )
 
-// The relay of the server, or of a Cahut with --domain. See
-// docs/adr/0031-e-mail-through-a-relay.md.
+// The relay of a Cahut, the only one that sends its e-mail. See
+// docs/adr/0031-e-mail-through-a-relay.md and
+// docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
 var mailCommands = []command{
-	{name: "show", summary: "Print the e-mail relay of the server, or of a Cahut with --domain", run: runMailShow},
-	{name: "set", summary: "Set the e-mail relay of the server, or of a Cahut with --domain, once it answers", run: runMailSet},
-	{name: "remove", summary: "Remove the e-mail relay of the server, or of a Cahut with --domain", run: runMailRemove},
-	{name: "test", summary: "Send a test message through the relay of the server, or of a Cahut with --domain", run: runMailTest},
+	{name: "show", summary: "Print the e-mail relay of a Cahut", run: runMailShow},
+	{name: "set", summary: "Set the e-mail relay of a Cahut, once it answers", run: runMailSet},
+	{name: "remove", summary: "Remove the e-mail relay of a Cahut, which then sends no e-mail", run: runMailRemove},
+	{name: "test", summary: "Send a test message through the relay of a Cahut", run: runMailTest},
 }
 
 // stdin is where commands read what they take on their standard input,
 // such as the password of a relay. Tests replace it.
 var stdin io.Reader = os.Stdin
 
-// mailDomainFlag adds the --domain flag of the mail commands, which act on
-// the relay of the server without it.
-func mailDomainFlag(fs *flag.FlagSet) *string {
-	return fs.String("domain", "", "the Cahut whose relay to act on, by its domain; without it, the relay of the server")
-}
+// mailForTests, when set, adjusts the e-mail of the server that a command
+// opens, so that it reaches a relay in memory on this machine. Tests set it.
+var mailForTests func(*mail.Service)
 
 // onRelay runs the operation called name, with the input in, on the relay
-// of the server, or of the Cahut at domain. It returns its output and what
-// the relay belongs to: "the server", or the domain of the Cahut.
+// of the Cahut at domain. It returns its output and the domain of the Cahut.
 func onRelay[Out any](data, domain, name string, in any, stderr io.Writer) (Out, string, bool) {
 	var zero Out
 	args, err := json.Marshal(in)
@@ -45,28 +40,19 @@ func onRelay[Out any](data, domain, name string, in any, stderr io.Writer) (Out,
 		fmt.Fprintf(stderr, "cahut: %v\n", err)
 		return zero, "", false
 	}
-	invoke := func(ctx context.Context, r *operation.Registry) (Out, error) {
-		out, err := r.Invoke(ctx, name, admin, args)
+	return withCahut(data, domain, stderr, func(ctx context.Context, c *cahut.Cahut) (Out, error) {
+		out, err := c.Registry.Invoke(ctx, name, admin, args)
 		if err != nil {
 			return zero, err
 		}
 		return out.(Out), nil
-	}
-	if domain == "" {
-		out, ok := withServer(data, stderr, func(ctx context.Context, srv *server.Server) (Out, error) {
-			return invoke(ctx, srv.Registry)
-		})
-		return out, "the server", ok
-	}
-	return withCahut(data, domain, stderr, func(ctx context.Context, c *cahut.Cahut) (Out, error) {
-		return invoke(ctx, c.Registry)
 	})
 }
 
 func runMailShow(args []string, stdout, stderr io.Writer) int {
 	fs := newFlags("mail show", stderr)
 	data := dataFlag(fs)
-	domain := mailDomainFlag(fs)
+	domain := domainFlag(fs)
 	if code, ok := parse(fs, args); !ok {
 		return code
 	}
@@ -81,18 +67,18 @@ func runMailShow(args []string, stdout, stderr io.Writer) int {
 func runMailSet(args []string, stdout, stderr io.Writer) int {
 	fs := newFlags("mail set", stderr)
 	data := dataFlag(fs)
-	domain := mailDomainFlag(fs)
+	domain := domainFlag(fs)
 	var in mail.SetMailRelayInput
 	fs.StringVar(&in.Host, "host", "", "the name or the address of the SMTP relay, such as smtp.example.com")
 	fs.IntVar(&in.Port, "port", 0, "its port: 465 for TLS from the start, 587 for STARTTLS; 465 with tls and 587 otherwise when left out")
-	fs.StringVar(&in.Security, "security", "", "tls, starttls, or none for a relay of the server on this machine; tls on port 465 and starttls otherwise when left out")
+	fs.StringVar(&in.Security, "security", "", "tls or starttls; tls on port 465 and starttls otherwise when left out")
 	fs.StringVar(&in.Username, "user", "", "the user name at the relay; leave it out when the relay takes no authentication")
 	password := fs.Bool("password-stdin", false, "read the password at the relay on the standard input; without it, "+
 		"the password kept stays when the host and the user name do not change")
 	fs.StringVar(&in.From, "from", "", "the address that messages come from, one that the relay accepts")
 	fs.StringVar(&in.Name, "name", "", "the name that messages come from; the name of the Cahut when left out")
 	fs.Usage = func() {
-		fmt.Fprintln(stderr, "Usage: cahut mail set [--data DIR] [--domain DOMAIN] --host HOST [--port PORT] [--security tls|starttls|none] "+
+		fmt.Fprintln(stderr, "Usage: cahut mail set [--data DIR] [--domain DOMAIN] --host HOST [--port PORT] [--security tls|starttls] "+
 			"[--user USER --password-stdin] --from ADDRESS [--name NAME]")
 		fs.PrintDefaults()
 	}
@@ -127,7 +113,7 @@ func runMailSet(args []string, stdout, stderr io.Writer) int {
 func runMailRemove(args []string, stdout, stderr io.Writer) int {
 	fs := newFlags("mail remove", stderr)
 	data := dataFlag(fs)
-	domain := mailDomainFlag(fs)
+	domain := domainFlag(fs)
 	if code, ok := parse(fs, args); !ok {
 		return code
 	}
@@ -143,7 +129,7 @@ func runMailRemove(args []string, stdout, stderr io.Writer) int {
 func runMailTest(args []string, stdout, stderr io.Writer) int {
 	fs := newFlags("mail test", stderr)
 	data := dataFlag(fs)
-	domain := mailDomainFlag(fs)
+	domain := domainFlag(fs)
 	var in mail.SendTestMailInput
 	fs.StringVar(&in.To, "to", "", "the address to send the test to")
 	if code, ok := parse(fs, args); !ok {
@@ -157,15 +143,11 @@ func runMailTest(args []string, stdout, stderr io.Writer) int {
 	if !ok {
 		return exitError
 	}
-	through := "its relay"
-	if out.Server {
-		through = "the relay of the server"
-	}
-	fmt.Fprintf(stdout, "Sent a test from %s to %s, through %s, which took it.\n", of, out.To, through)
+	fmt.Fprintf(stdout, "Sent a test from %s to %s, through its relay, which took it.\n", of, out.To)
 	return exitOK
 }
 
-// printRelay prints the relay of the server, or of a Cahut, called of.
+// printRelay prints the relay of the Cahut at of.
 func printRelay(w io.Writer, of string, m mail.Delivery) {
 	switch {
 	case m.Relay != nil:
@@ -184,11 +166,7 @@ func printRelay(w io.Writer, of string, m mail.Delivery) {
 		fmt.Fprintf(tw, "from\t%s\n", from)
 		fmt.Fprintf(tw, "set\t%s\n", minute(r.SetAt))
 		_ = tw.Flush()
-	case m.Server:
-		fmt.Fprintf(w, "%s has no relay of its own: its e-mail goes through the relay of the server.\n", of)
-	case of == "the server":
-		fmt.Fprintln(w, "The server has no relay: the Cahuts without one of their own send no e-mail.")
 	default:
-		fmt.Fprintf(w, "%s has no relay, and the server has none: it sends no e-mail.\n", of)
+		fmt.Fprintf(w, "%s has no relay: it sends no e-mail, and its console offers nothing that would.\n", of)
 	}
 }

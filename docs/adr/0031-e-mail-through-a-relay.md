@@ -1,6 +1,6 @@
 # 31. Each Cahut sends e-mail through its own relay or that of its server
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 34](0034-e-mail-through-the-relay-of-each-cahut-only.md) (only a Cahut has a relay, without fallback, and the administrators of the server have no e-mail)
 - Date: 2026-10-24
 
 ## Context

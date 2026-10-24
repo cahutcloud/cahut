@@ -1,6 +1,6 @@
 // Sign-in, for the people of this Cahut and for the administrators of the
 // server, who sign in at the console of any Cahut.
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
 import { Logo } from "../logo";
 import { Link } from "../router";
@@ -8,6 +8,18 @@ import type { Session } from "../session";
 
 export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; purpose?: string; onSignIn: (s: Session) => void }) {
 	const [forgot, setForgot] = useState(false);
+	// A person who forgot their password gets a link by e-mail only where
+	// this Cahut sends e-mail. See
+	// docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
+	const [sendsMail, setSendsMail] = useState(false);
+	useEffect(() => {
+		if (kind === "person") {
+			cahut("describe_sign_in", {}).then(
+				(p) => setSendsMail(p.sends_mail),
+				() => undefined,
+			);
+		}
+	}, [kind]);
 	const [handle, setHandle] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
@@ -31,7 +43,7 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 		}
 	};
 
-	if (forgot) return <Forgot kind={kind} who={handle} onBack={() => setForgot(false)} />;
+	if (forgot) return <Forgot who={handle} onBack={() => setForgot(false)} />;
 	return (
 		<main class="auth">
 			<div class="c-card auth__card">
@@ -79,19 +91,29 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 						Sign in
 					</button>
 				</form>
-				<p class="c-small">
-					<button class="c-link link-button" type="button" onClick={() => setForgot(true)}>
-						Forgot your password?
-					</button>
-				</p>
 				{kind === "admin" ? (
-					<p class="c-small">
-						<Link class="c-link" href="/sign-in">
-							Sign in as a person of this Cahut
-						</Link>
-					</p>
+					<div class="auth__foot">
+						<p class="c-small c-muted">
+							Forgot your password? Another administrator of the server, or <span class="c-mono">cahut admin link</span> on the server,
+							gives you a new link.
+						</p>
+						<p class="c-small">
+							<Link class="c-link" href="/sign-in">
+								Sign in as a person of this Cahut
+							</Link>
+						</p>
+					</div>
 				) : (
 					<div class="auth__foot">
+						{sendsMail ? (
+							<p class="c-small">
+								<button class="c-link link-button" type="button" onClick={() => setForgot(true)}>
+									Forgot your password?
+								</button>
+							</p>
+						) : (
+							<p class="c-small c-muted">Forgot your password? An administrator of the Cahut can give you a new link.</p>
+						)}
 						<p class="c-small">
 							<Link class="c-link" href="/server/sign-in">
 								Administer the server
@@ -105,12 +127,11 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 }
 
 /**
- * Asks for a link where a person, or an administrator of the server, chooses
- * a new password. It goes to the address of their account; the answer is the
- * same whether the account exists or not. See
- * docs/adr/0031-e-mail-through-a-relay.md.
+ * Asks for a link where a person chooses a new password. It goes to the
+ * address of their account; the answer is the same whether the account
+ * exists or not. See docs/adr/0031-e-mail-through-a-relay.md.
  */
-function Forgot({ kind, who: given, onBack }: { kind: Session["kind"]; who: string; onBack: () => void }) {
+function Forgot({ who: given, onBack }: { who: string; onBack: () => void }) {
 	const [who, setWho] = useState(given);
 	const [sent, setSent] = useState("");
 	const [error, setError] = useState("");
@@ -120,7 +141,7 @@ function Forgot({ kind, who: given, onBack }: { kind: Session["kind"]; who: stri
 		setBusy(true);
 		setError("");
 		try {
-			const r = kind === "admin" ? await server("request_password_link", { who }) : await cahut("request_password_link", { who });
+			const r = await cahut("request_password_link", { who });
 			setSent(r.message);
 		} catch (err) {
 			setError(explain(err));
@@ -135,7 +156,7 @@ function Forgot({ kind, who: given, onBack }: { kind: Session["kind"]; who: stri
 					<h1 class="c-h3">Choose a new password</h1>
 					<p class="c-small c-muted">
 						Give your handle, or the e-mail address of your account. A link to choose a new password goes to that address. If your
-						account has none, {kind === "admin" ? "another administrator of the server" : "an administrator of the Cahut"} can give you a link.
+						account has none, an administrator of the Cahut can give you a link.
 					</p>
 				</div>
 				{sent ? (

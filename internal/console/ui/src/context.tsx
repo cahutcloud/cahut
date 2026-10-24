@@ -20,8 +20,15 @@ export interface Console {
 	 * docs/adr/0030-kind-and-limits-of-each-cahut.md.
 	 */
 	individual: boolean;
-	/** Reads the kind of this Cahut again, after its administrator of the server changes it. */
-	reloadKind(): void;
+	/**
+	 * Whether this Cahut sends e-mail, through the relay that its
+	 * administrators set. Without one, the console offers nothing that would
+	 * send e-mail. See
+	 * docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
+	 */
+	sendsMail: boolean;
+	/** Reads this Cahut again, after a change of its kind or of its relay. */
+	reloadCahut(): void;
 	/** Loads the Rooms of the sidebar again, after a change. */
 	reloadRooms(): void;
 	/** Bumps when the Rooms change, for the screens that show them. */
