@@ -61,7 +61,7 @@ The administrators of the server have accounts of their own, apart from the peop
 They find:
 
 - **Overview**: the Cahuts of the server, a form that declares one with its first administrator, whose link the console shows, and on each Cahut **Move to a domain** or **Change its domain**. When the Cahut of the console moves, the console sends you to sign in again at its new address.
-- **Server administrators**: the list, a new server administrator with their link, a new link, and **Disable** and **Enable**. A disabled administrator loses their sessions and cannot sign in; the server keeps at least one who is not disabled. The screen reminds that an administrator of one Cahut only is made under **People**.
+- **Server administrators**: the list, with the day each was added and their state. **New administrator** adds one and gives their link. **Manage** gives another administrator a new link, or disables and enables them; disabling asks to confirm first. A disabled administrator loses their sessions and cannot sign in; the server keeps at least one who is not disabled. The screen reminds that an administrator of one Cahut only is made under **People**.
 - **Logbook of the server**: the Cahuts declared and moved, the administrators and their sign-ins, and the updates.
 - **Updates**: the version running, the newest release, the last update and how it ended, with **Check now** and **Update**. See [Updates](/admin/updates/).
 - In the Cahut of the domain where they signed in, **People**, **Rooms** and its **Logbook**, as its administrators have them, without its Windows.
