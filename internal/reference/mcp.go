@@ -137,6 +137,10 @@ func toolsPage(s sample) (page, error) {
 	m.block("Each Cahut serves MCP at `https://<domain>/mcp`, over Streamable HTTP. " +
 		"An AI connects with a personal token of that Cahut, which it sends in the header `Authorization: Bearer <token>`: " +
 		"see [Connect an AI](/connect/claude-code/).")
+	m.block("A Cahut speaks the versions of the protocol from 2024-11-05 to 2026-07-28. " +
+		"A client of 2025-11-25 or earlier opens a session with `initialize`. " +
+		"A client of 2026-07-28, such as ChatGPT, calls `server/discover` and opens no session: " +
+		"each request names the version in the header `Mcp-Protocol-Version`.")
 	m.block("The tools are the operations of the Cahut that are open to AIs ([Operations](/reference/operations/)). " +
 		"An AI sees the tools that the person it acts for may use: some are for the AIs of administrators of the Cahut only. " +
 		"The operations that prove who someone is, such as signing in, and those that serve the console are for people only. " +

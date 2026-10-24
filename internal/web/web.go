@@ -326,11 +326,12 @@ func misdirected(w http.ResponseWriter) {
 }
 
 // serveMCP passes the request to the MCP endpoint of its Cahut. A GET opens
-// the standalone stream of an MCP session, which stays open as long as the
-// client does: it ends when the server shuts down, or the shutdown would wait
-// for it until its deadline.
+// the standalone stream of an MCP session, and subscriptions/listen the
+// stream of notifications of the protocol of 2026-07-28. Each stays open as
+// long as the client does: it ends when the server shuts down, or the
+// shutdown would wait for it until its deadline.
 func (s *Server) serveMCP(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
+	if r.Method == http.MethodGet || r.Header.Get("Mcp-Method") == "subscriptions/listen" {
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
 		stop := context.AfterFunc(s.streams, cancel)
@@ -361,6 +362,9 @@ func (s *Server) logMCP(r *http.Request, rec *recorder, peek *peeker) {
 	}
 	if m := rpcMethod.FindSubmatch(peek.head.Bytes()); m != nil {
 		attrs = append(attrs, "rpc", string(m[1]))
+	}
+	if v := r.Header.Get("Mcp-Protocol-Version"); v != "" {
+		attrs = append(attrs, "protocol", v)
 	}
 	attrs = append(attrs, "status", rec.status, "client", clientIP(r), "user_agent", r.UserAgent())
 	if rec.status >= 400 {

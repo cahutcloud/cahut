@@ -234,6 +234,32 @@ func TestMCPSessionsPerToken(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("tools/list in an open session = %d, want 200", resp.StatusCode)
 	}
+
+	// The protocol of 2026-07-28 has no sessions: a request that keeps
+	// nothing goes through, a stream of notifications waits like a session.
+	meta := `"_meta": {"io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientInfo": {"name": "test", "version": "1"}, "io.modelcontextprotocol/clientCapabilities": {}}`
+	for method, want := range map[string]int{
+		"tools/list":           http.StatusOK,
+		"subscriptions/listen": http.StatusTooManyRequests,
+	} {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, f.ts.URL+"/mcp", strings.NewReader(
+			`{"jsonrpc": "2.0", "id": 3, "method": "`+method+`", "params": {`+meta+`}}`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json, text/event-stream")
+		req.Header.Set("Mcp-Protocol-Version", "2026-07-28")
+		req.Header.Set("Mcp-Method", method)
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != want {
+			t.Errorf("%s without a session past the burst = %d, want %d", method, resp.StatusCode, want)
+		}
+	}
 }
 
 // TestTokenEndpointLimit checks that one address calls the token endpoint
