@@ -299,7 +299,7 @@ Le code du lot 9 est fusionné le 24 octobre 2026, en huit pull requests. Il res
 | 4 | #117 | Les invitations à lire une Window, le lien personnel et `/-/invitation` |
 | 5 | #118 | Les notifications : Knocks, comptes, Rooms, la tâche horaire, les certificats, les mises à jour |
 | 6 | #119 | Les écrans de la console |
-| 7 | celle-ci | La documentation, CLAUDE.md, la relecture de sécurité, ce bilan |
+| 7 | #120 | La documentation, CLAUDE.md, la relecture de sécurité, ce bilan |
 
 **Écarts par rapport au plan.**
 
