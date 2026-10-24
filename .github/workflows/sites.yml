@@ -55,6 +55,9 @@ jobs:
           path: |
             sites/cahut.cloud/dist
             sites/docs.cahut.cloud/dist
+          # The action leaves hidden files out by default, and the site
+          # serves /.well-known/security.txt.
+          include-hidden-files: true
           retention-days: 7
 
   # The upload stays off until the repository variable SITES_SSH_HOST names
