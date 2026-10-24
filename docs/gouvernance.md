@@ -391,11 +391,12 @@ Environ quatre heures par semaine en dehors du développement, et pas plus penda
 ## À faire avant l'ouverture du dépôt
 
 - [x] Choisir la licence et écrire LICENSE, avec la mention sur le nom et le logo : fait le 22 octobre 2026 ([ADR 15](adr/0015-license.md)).
-- [ ] Déposer la marque « Cahut » à l'INPI ; réserver `getcahut` sur Mastodon, Bluesky, LinkedIn et X.
+- [ ] Déposer la marque « Cahut » à l'INPI.
+- [x] Réserver `getcahut` sur Mastodon, Bluesky, LinkedIn et X : fait le 24 octobre 2026.
 - [x] Écrire GOVERNANCE.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, SUPPORT.md, TRADEMARK.md, les gabarits et FUNDING.yml ; compléter le README : fait le 22 octobre 2026.
 - [x] Régler le dépôt autant que GitHub le permet à un dépôt privé du plan gratuit : Discussions et leurs catégories, étiquettes, jalons par lot, signature des commits faits sur le web : fait le 22 octobre 2026 ; fusion par squash seule, branches supprimées après fusion, alertes et correctifs de sécurité de Dependabot, actions épinglées par empreinte obligatoires, environnement `sites` réservé à `main`, CODEOWNERS et réglages de l'application DCO : fait le 23 octobre 2026.
 - [x] Dans l'interface, par Olivier : la double authentification obligatoire sur l'organisation et l'application DCO (<https://github.com/apps/dco>) installée sur le dépôt : fait, constaté le 24 octobre 2026.
-- [ ] Le profil GitHub Sponsors, par Olivier.
+- [x] Le profil GitHub Sponsors, par Olivier : créé le 24 octobre 2026, en attente de la validation de GitHub ; sa page publique n'existe pas encore.
 - [ ] Le jour de l'ouverture, ce que GitHub refuse à un dépôt privé : appliquer les règles de `.github/rulesets/` (protection de `main` et des étiquettes de release), activer le signalement privé des failles, l'analyse des secrets avec la protection des envois, l'analyse CodeQL par défaut, et demander l'approbation des workflows pour toute contribution extérieure ; ajouter `DCO` aux vérifications requises de `main` une fois l'application installée. Le même jour, remplacer le badge de version du README, écrit à la main à chaque release tant que shields.io ne peut pas lire les releases d'un dépôt privé, par le badge dynamique `https://img.shields.io/github/v/release/getcahut/cahut?label=release&color=B9E1FB&labelColor=1F2A33`.
 - [x] Créer `security@`, `conduct@` et `contact@cahut.cloud`, par Olivier : fait le 24 octobre 2026.
 - [x] Publier `security.txt` sur cahut.cloud : fait le 24 octobre 2026. Il nomme les deux canaux de SECURITY.md : `security@cahut.cloud`, et le signalement privé de GitHub, actif le jour de l'ouverture. Il répond à <https://cahut.cloud/.well-known/security.txt> depuis le 24 octobre 2026. Il expire 180 jours après chaque construction du site.
