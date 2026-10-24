@@ -1,7 +1,7 @@
 // Small pieces that the screens share.
-import { AppWindow, ChartColumn, Check, Copy, FileText, Globe, KeyRound, Lock, Presentation, Users } from "lucide-preact";
+import { AppWindow, ChartColumn, Check, Copy, FileText, Globe, KeyRound, Lock, Presentation, Users, X } from "lucide-preact";
 import type { ComponentChildren } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useId, useRef, useState } from "preact/hooks";
 import type { Window } from "./api.gen";
 import { useConsole } from "./context";
 import { useLoad } from "./load";
@@ -93,6 +93,36 @@ export function CopyField({ value, label }: { value: string; label: string }) {
 				{copied ? "Copied" : "Copy"}
 			</button>
 		</div>
+	);
+}
+
+/**
+ * A dialog over the page, open as long as it renders: it keeps the focus
+ * until its close button or the Escape key closes it, and then calls onClose.
+ */
+export function Dialog(props: { title: string; meta?: ComponentChildren; onClose: () => void; children: ComponentChildren }) {
+	const ref = useRef<HTMLDialogElement>(null);
+	const id = useId();
+	useEffect(() => {
+		const dialog = ref.current;
+		dialog?.showModal();
+		return () => dialog?.close();
+	}, []);
+	return (
+		<dialog ref={ref} class="dialog" aria-labelledby={id} onClose={props.onClose}>
+			<div class="dialog__head">
+				<div class="dialog__title">
+					<h2 class="c-h4" id={id}>
+						{props.title}
+					</h2>
+					{props.meta && <div class="dialog__meta">{props.meta}</div>}
+				</div>
+				<button class="c-btn c-btn--ghost c-btn--sm" type="button" aria-label="Close" onClick={() => ref.current?.close()}>
+					<X class="i" size={16} aria-hidden="true" />
+				</button>
+			</div>
+			<div class="dialog__body">{props.children}</div>
+		</dialog>
 	);
 }
 

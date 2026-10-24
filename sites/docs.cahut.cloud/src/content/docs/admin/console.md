@@ -17,7 +17,7 @@ https://cahut.example.com/console/activate#...
 
 The person opens it, chooses a password of 15 characters at least, and is signed in. The code of the link stays in the browser: it never reaches the server's logs, and the console takes it out of the address once read.
 
-An administrator creates accounts in the console, under **People**, or on the command line with [`cahut user create`](/admin/commands/#create-a-person). When the Cahut [sends e-mail](/admin/mail/) and the person has an address, the link goes there too. In a Cahut that sends e-mail, a person who forgot their password asks for a link from **Forgot your password?**, on the page of sign-in: it goes to the address of their account and works for one hour. Without an address, or without e-mail, an administrator gives a new link: **New link** in People, or `cahut user link`. The password works until the new link is used, and using it ends the other sessions.
+An administrator creates accounts in the console, under **People**, or on the command line with [`cahut user create`](/admin/commands/#create-a-person). When the Cahut [sends e-mail](/admin/mail/) and the person has an address, the link goes there too. In a Cahut that sends e-mail, a person who forgot their password asks for a link from **Forgot your password?**, on the page of sign-in: it goes to the address of their account and works for one hour. Without an address, or without e-mail, an administrator gives a new link: **Manage**, then **Give a new link**, in People, or `cahut user link`. The password works until the new link is used, and using it ends the other sessions.
 
 ## What a person finds
 
@@ -39,7 +39,7 @@ A change to what someone may do, such as adding a person to a Room, making a Win
 
 The same screens, and:
 
-- **People**: a new person with their link, a new link, making someone an administrator or a member, disabling and enabling. A disabled person cannot sign in, and their AIs stop at once.
+- **People**: everyone in the Cahut, with their role and state, and their e-mail address when the Cahut sends e-mail. **New person** adds someone and gives their link. **Manage** opens what can change for a person, each with what it does: their e-mail address, making them an administrator or a member, a new link, disabling and enabling. A change of role and disabling ask to confirm first. A disabled person cannot sign in, and their AIs stop at once.
 - **Rooms**: every Room of the Cahut, whose people they manage. They open the Windows of the Rooms they are in only.
 - **Logbook**: every entry of the Cahut, from people and from AIs.
 - **AIs and access**: the connected AIs and the tokens of others too, which they can disconnect and revoke.
