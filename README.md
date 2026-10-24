@@ -11,7 +11,7 @@ Documents, slide decks, dashboards and small apps live online as living pages,<b
 in your house style, on your own server, whichever AI made them.
 
 <p>
-  <a href="https://github.com/getcahut/cahut/releases/latest"><img alt="Release v0.5.0" src="https://img.shields.io/badge/release-v0.5.0-B9E1FB?labelColor=1F2A33"></a>
+  <a href="https://github.com/getcahut/cahut/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/getcahut/cahut?label=release&color=B9E1FB&labelColor=1F2A33"></a>
   <a href="https://github.com/getcahut/cahut/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/getcahut/cahut/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="LICENSE"><img alt="License AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-D9DCDF?labelColor=1F2A33"></a>
   <a href="go.mod"><img alt="Go 1.27" src="https://img.shields.io/badge/Go-1.27-D9DCDF?logo=go&logoColor=F7F5F0&labelColor=1F2A33"></a>
@@ -245,7 +245,7 @@ Success criteria for the launch:
 ## Documentation
 
 - [Project brief](docs/brief-projet.md) (French): vision, positioning, scope, governance, technical choices and open questions.
-- [V0 plan](docs/plan-v0.md) (French): scope, batches and milestones of the first private version.
+- [V0 plan](docs/plan-v0.md) (French): scope, batches and milestones of the first version.
 - [Governance and project life](docs/gouvernance.md) (French): how the project is run and how it lives: roles, contributions, support, channels, releases, security, name, license and money, with the decisions still open.
 - [Architecture decision records](docs/adr/README.md): each technical choice, its reasons and the options set aside.
 - [Brand guidelines](docs/charte-graphique/README.md) (French): logo, colors, typography, icons, illustrations, photography, interface kit and templates, with all source files. A visual version opens from [docs/charte-graphique/index.html](docs/charte-graphique/index.html).

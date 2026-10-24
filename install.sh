@@ -235,8 +235,8 @@ if [ "$(cat "$tmp/cahut.env")" != "$(cat "$env_file" 2>/dev/null)" ]; then
 	say "writing $env_file"
 	install -m 0640 -o root -g cahut "$tmp/cahut.env" "$env_file"
 fi
-# The updater runs as root, reads the releases with this token while the
-# repository is private, and is the only one to read it.
+# The updater runs as root, reads the releases of a private fork with this
+# token, when the installer got one, and is the only one to read it.
 if [ -n "${GITHUB_TOKEN:-}" ]; then
 	(umask 077 && printf 'GITHUB_TOKEN=%s\n' "$GITHUB_TOKEN" >"$tmp/update.env")
 	install -m 0600 -o root -g root "$tmp/update.env" "$update_env"
