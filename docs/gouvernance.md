@@ -402,7 +402,7 @@ Environ quatre heures par semaine en dehors du développement, et pas plus penda
 - [x] Publier `security.txt` sur cahut.cloud : fait le 24 octobre 2026. Il nomme les deux canaux de SECURITY.md : `security@cahut.cloud`, et le signalement privé de GitHub, actif le jour de l'ouverture. Il répond à <https://cahut.cloud/.well-known/security.txt> depuis le 24 octobre 2026. Il expire 180 jours après chaque construction du site.
 - [ ] Désigner la personne de confiance, lui donner les accès de secours et la note scellée.
 - [x] Ajouter `govulncheck` à la CI : fait le 24 octobre 2026 (`make vuln`).
-- [ ] Remplir le questionnaire du badge OpenSSF, une fois le dépôt ouvert : il lit le dépôt public.
+- [x] Remplir le questionnaire du badge OpenSSF, une fois le dépôt ouvert : il lit le dépôt public. Fait le 24 octobre 2026 : niveau *passing*, projet 15845 (https://www.bestpractices.dev/projects/15845), badge en tête du README.
 - [x] Écrire l'ADR des pages du projet et construire les pages `/project/` du site, en anglais et en français : fait ([ADR 18](adr/0018-project-pages-from-community-files.md)).
 - [ ] Relire tout le dépôt et son historique avant l'ouverture, comme le brief le demande : l'historique s'ouvre tel quel et ne se réécrit pas. Un premier passage, le 24 octobre 2026, sur les 143 commits : aucun secret (clés privées, jetons de GitHub, d'OpenAI, d'AWS ou de Slack, jetons de Cahut), `tmp/` jamais commité, aucun nom d'autre projet ni de client. EKLOS, cité dans le brief, était un ancien nom de Cahut. Reste la relecture d'Olivier.
 

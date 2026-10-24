@@ -15,6 +15,7 @@ in your house style, on your own server, whichever AI made them.
   <a href="https://github.com/getcahut/cahut/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/getcahut/cahut/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="LICENSE"><img alt="License AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-D9DCDF?labelColor=1F2A33"></a>
   <a href="go.mod"><img alt="Go 1.27" src="https://img.shields.io/badge/Go-1.27-D9DCDF?logo=go&logoColor=F7F5F0&labelColor=1F2A33"></a>
+  <a href="https://www.bestpractices.dev/projects/15845"><img alt="OpenSSF Best Practices" src="https://www.bestpractices.dev/projects/15845/badge"></a>
 </p>
 
 **[Website](https://cahut.cloud)** · **[Documentation](https://docs.cahut.cloud)** · **[Brand](https://cahut.cloud/brand)** · **[Contributing](CONTRIBUTING.md)** · **[Security](SECURITY.md)**
