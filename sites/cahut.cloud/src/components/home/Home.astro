@@ -37,8 +37,8 @@ const layers = t.statement.layers.map((layer, index) => ({ ...layer, home: index
 const featureIcons: IconName[][] = [
 	['file-text', 'box', 'history', 'search', 'file-down'],
 	['plug', 'palette'],
-	['link', 'message-square', 'users', 'log-in'],
-	['terminal', 'monitor-cog', 'globe', 'scroll-text', 'hard-drive-upload', 'refresh-cw'],
+	['link', 'mail', 'message-square', 'users', 'log-in'],
+	['terminal', 'monitor-cog', 'globe', 'gauge', 'scroll-text', 'hard-drive-upload', 'refresh-cw'],
 ];
 const featureGroups = t.features.groups.map((group, index) => ({
 	...group,
@@ -60,8 +60,9 @@ const accessBadges = [
 ] as const;
 const access = accessBadges.map((item, index) => ({ ...item, text: t.vocabulary.access[index] }));
 
-// The slice under way, in the order of the roadmap.
-const currentStep = 2;
+// The step under way, in the order of the roadmap: the proof of concept, the
+// first version checked on fresh servers.
+const currentStep = 3;
 const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index === currentStep }));
 ---
 

@@ -65,4 +65,4 @@ The updater goes back on its own when a new version fails at once. To return to 
 
 ## Rights
 
-The service runs as the unprivileged `cahut` user: it can neither replace its binary nor restart itself, and it never calls GitHub. The updater runs as root, in `cahut-update.service`. The console asks it through a file of the data folder, `update-request`, which a `.path` unit of systemd watches; the updater reads it without following links and accepts only a check or a version newer than the one running. While the repository is private, the token that reads the releases is in `/etc/cahut/update.env`, readable by root only.
+The service runs as the unprivileged `cahut` user: it can neither replace its binary nor restart itself, and it never calls GitHub. The updater runs as root, in `cahut-update.service`. The console asks it through a file of the data folder, `update-request`, which a `.path` unit of systemd watches; the updater reads it without following links and accepts only a check or a version newer than the one running. When the releases come from a private fork, the token that reads them is in `/etc/cahut/update.env`, readable by root only.

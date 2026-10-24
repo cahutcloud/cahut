@@ -97,6 +97,7 @@ The full scope ships at launch, with no reduced trial version.
 | Pages | Documents, decks, dashboards and static sites, each at its own address in its Room |
 | Apps | Predefined runtimes (Node, Python...) and an advanced Dockerfile mode, variables and secrets, PostgreSQL or SQLite databases, runtime logs, resource limits |
 | Sharing | By link, Window by Window: its Room only, internal (everyone in the Cahut), a Key (a password) or public, with an optional end date |
+| Invitations | A Window sent by e-mail, to people of the Cahut or outside it, with a personal link in place of its Key |
 | Versions | Two versions kept per publication, roll back in one gesture |
 | Comments | Reader feedback directly on the pages |
 | Search | Find any page, deck or dashboard across everything published |
@@ -106,6 +107,7 @@ The full scope ships at launch, with no reduced trial version.
 | Sign-in | Accounts of each Cahut, and single sign-on with OpenID Connect (Google, Microsoft Entra, Okta...) |
 | Web console | See what is published, share, comment, approve irreversible actions, administer the server and its Cahuts, under `/console/` of each Cahut |
 | Domains and TLS | Several Cahuts per server, each at its own domain or subdomain, no wildcard needed, automatic certificates |
+| Limits | People, Rooms, Windows and disk for each Cahut, set by the administrators of the server, and Cahuts where each person works alone |
 | Logbook | History of every action: who, which AI, on whose behalf, with what result |
 | Backups | Optional, to external S3 or SFTP storage, restore from the console |
 | Updates | Automatic, checked against the releases published on GitHub, with rollback |

@@ -80,7 +80,7 @@ const fr: Dictionary = {
 				"Un client d'IA qui parle MCP, comme Claude Code",
 			],
 		},
-		note: "Le dépôt s'ouvre au lancement public : d'ici là, ces commandes fonctionnent pour qui y a accès.",
+		note: 'Cahut est en début de développement et ne fait pas encore de sauvegardes : gardez des instantanés de votre serveur.',
 		status: 'Où en est Cahut',
 	},
 
@@ -181,19 +181,19 @@ const fr: Dictionary = {
 				title: 'Publier',
 				heading: "Demandez une présentation. L'IA publie une Window.",
 				text: "L'IA appelle une opération typée, jamais un shell. Cahut applique votre house style, range la Window dans sa Room et renvoie son adresse.",
-				call: 'publish_window(room: "marketing", window: "q3-review")',
+				call: 'publish_window(room: "marketing", title: "Q3 review")',
 			},
 			{
 				title: 'Partager',
 				heading: 'Partagez un lien, pas un fichier.',
 				text: "Chaque Window s'ouvre à sa Room seulement, à tout votre Cahut, à qui a sa Key, ou au public. Les lecteurs l'ouvrent dans un navigateur et la commentent.",
-				call: 'share_window(window: "q3-review", access: "key")',
+				call: 'set_window_access(window: "marketing/q3-review", access: "key")',
 			},
 			{
 				title: 'Knock first',
 				heading: "Ce qui ne s'annule pas vous attend.",
 				text: "Rendre une Window publique ne s'annule pas. Alors l'IA frappe : la demande attend dans la console, avec une notification et une échéance, jusqu'à ce qu'une personne l'approuve.",
-				call: 'share_window(access: "public") → en attente d\'Olivier',
+				call: 'set_window_access(access: "public") → en attente d\'Olivier',
 			},
 			{
 				title: 'Logbook',
@@ -328,7 +328,7 @@ const fr: Dictionary = {
 	features: {
 		label: 'Fonctionnalités',
 		title: 'Ce qui sort au lancement',
-		lead: "Le périmètre complet sort au lancement, sans version d'essai réduite. Aujourd'hui, la première tranche fonctionne : une IA publie une Window par MCP, et Cahut la sert en HTTPS. Le reste est la cible.",
+		lead: "Le périmètre complet sort au lancement, sans version d'essai réduite. Aujourd'hui, la première version fonctionne : elle s'installe sur un serveur, connecte Claude et ChatGPT, et publie et partage documents, présentations, tableaux de bord et sites. Les applis, les commentaires, la recherche, l'export, l'authentification unique et les sauvegardes sont la cible.",
 		groups: [
 			{
 				title: 'Publier',
@@ -372,6 +372,10 @@ const fr: Dictionary = {
 						area: 'Partage',
 						text: 'Par lien, Window par Window : sa Room seulement, interne (tout le Cahut), une Key (un mot de passe) ou public, avec une date de fin facultative.',
 					},
+					{
+						area: 'Invitations',
+						text: 'Une Window envoyée par e-mail, aux personnes du Cahut ou au-dehors, avec un lien personnel qui tient lieu de Key.',
+					},
 					{ area: 'Commentaires', text: 'Les retours des lecteurs, directement sur les pages.' },
 					{
 						area: 'Personnes et Rooms',
@@ -393,11 +397,15 @@ const fr: Dictionary = {
 					},
 					{
 						area: 'Console web',
-						text: 'Voir ce qui est publié, partager, commenter, approuver les actions irréversibles, administrer le serveur et ses Cahuts, sur son propre port HTTPS.',
+						text: 'Voir ce qui est publié, partager, commenter, approuver les actions irréversibles, administrer le serveur et ses Cahuts, sous /console/ de chaque Cahut.',
 					},
 					{
 						area: 'Domaines et TLS',
 						text: 'Plusieurs Cahuts par serveur, chacun à son domaine ou sous-domaine. Pas de wildcard, des certificats automatiques.',
+					},
+					{
+						area: 'Limites',
+						text: 'Des personnes, des Rooms, des Windows et du disque pour chaque Cahut, fixés par les administrateurs du serveur, et des Cahuts où chacun travaille seul.',
 					},
 					{
 						area: 'Logbook',
@@ -505,7 +513,7 @@ const fr: Dictionary = {
 		},
 		descriptions: {
 			governance: "Qui décide dans le projet Cahut, ses principes, ses rôles, comment il grandit, et ce que fait l'argent.",
-			roadmap: "Les lots de la première version de Cahut, ce qui marche aujourd'hui, et ce qui la rend prête pour le lancement.",
+			roadmap: "Les lots de Cahut, ce qui marche aujourd'hui, et ce qui le rend prêt pour le lancement.",
 			contribute:
 				"Ce qui aide Cahut tout de suite, ce qui se discute d'abord, comment une pull request entre, et les règles des contributions faites avec une IA.",
 			support: "Où demander de l'aide sur Cahut, comment bien demander, et à quoi s'attendre.",
@@ -522,7 +530,7 @@ const fr: Dictionary = {
 		roadmap: {
 			title: 'Feuille de route',
 			lead: "Cahut se construit par lots, chacun une tranche qui fonctionne de l'IA au lecteur. Leur ordre est fixé, leurs dates ne le sont pas : les jalons du dépôt disent où en est chaque lot.",
-			batchesTitle: 'Les lots de la première version',
+			batchesTitle: 'Les lots',
 			batch: 'Lot',
 			states: { done: 'Fait', next: 'Prochain' },
 			batches: [
@@ -562,19 +570,25 @@ const fr: Dictionary = {
 					title: 'Deuxième client IA et recette',
 					text: "Un deuxième client d'IA testé de bout en bout, une revue de sécurité, et les critères de réussite vérifiés sur des serveurs vierges.",
 				},
+				{
+					title: "L'envoi d'e-mails",
+					text: 'Chaque Cahut envoie ses e-mails par son propre relais SMTP : des liens pour choisir un mot de passe, des invitations à lire une Window, et les notifications des Knocks.',
+				},
 			],
 			milestones: 'Les jalons sur GitHub',
 			todayTitle: "Ce qui marche aujourd'hui",
-			todayLead: "Les lots 0 à 8 sont faits. Aujourd'hui, dans un Cahut :",
+			todayLead: "Les lots 0 à 9 sont faits. Aujourd'hui, dans un Cahut :",
 			today: [
 				"Une commande qui installe un serveur Linux, un premier démarrage dans le navigateur, et des mises à jour quotidiennes depuis les releases signées, avec retour arrière.",
 				"Un service sur un serveur Linux, qui porte un ou plusieurs Cahuts, chacun à son domaine avec son certificat, ou à l'adresse IPv4 du serveur tant qu'il n'en a pas.",
-				"Des personnes qui se connectent, des administrateurs du Cahut et du serveur, et des Rooms d'équipe avec propriétaires et membres.",
-				'Une console web : Knocks, Rooms, Windows, Logbook, personnes, IA connectées et jetons personnels.',
+				'Des Cahuts collaboratifs, ou individuels où chacun travaille seul, et des limites sur les personnes, les Rooms, les Windows et le disque, que fixent les administrateurs du serveur.',
+				"Des personnes qui se connectent, des administrateurs du Cahut et du serveur, et des Rooms d'équipe avec propriétaires et membres. La page de chaque Room liste ses Windows, ou montre celle que ses propriétaires choisissent.",
+				'Une console web : Knocks, Rooms, Windows, Logbook, personnes, IA connectées, jetons personnels, e-mail et serveur.',
 				"Des clients d'IA qui se connectent par OAuth, comme claude.ai, Claude Code, ChatGPT et Le Chat, aux Rooms et dans la portée qu'une personne accorde, ou avec un jeton personnel.",
 				"Des Windows publiées par MCP : documents, présentations, tableaux de bord et sites statiques, servis dans un bac à sable qui les tient à ce que leur IA déclare charger et appeler.",
 				"Deux versions de chaque Window avec retour en arrière, une corbeille, et un accès : Room seulement, interne, avec une Key ou public, jusqu'à une date.",
 				"Knock first : ce qu'une IA ne peut pas défaire, ou ce qui change ce qu'une personne peut faire, attend sa personne, qui l'approuve ou le refuse dans la console.",
+				'Les e-mails, par le relais SMTP de chaque Cahut : des liens pour choisir un mot de passe, des invitations à lire une Window, et les notifications des Knocks, du compte et des limites.',
 				"Une house style pour chaque Cahut : ses couleurs, ses polices, son logo et ses consignes, des gabarits de documents, de présentations et de tableaux de bord, et un moteur de présentation, que les IA lisent avant de publier.",
 				"Un plugin pour Claude Code, et une skill pour les applications Claude, qui apprennent à Claude à faire des Windows dans la house style.",
 				'Le Logbook de chaque appel, de chaque changement et de chaque connexion.',
@@ -586,7 +600,7 @@ const fr: Dictionary = {
 			afterTitle: 'Après la première version',
 			afterLead: 'Puis, vers le périmètre complet du lancement, à peu près dans cet ordre :',
 			after: [
-				"Les commentaires, la recherche, l'authentification unique, les sauvegardes et leur restauration, et des quotas par Cahut.",
+				"Les commentaires, la recherche, l'authentification unique, et les sauvegardes et leur restauration.",
 				'Les applis dans des conteneurs sans privilèges : environnements, mode Dockerfile, bases de données, secrets, journaux et limites de ressources.',
 				"L'export en PDF et en PowerPoint, l'accès SSH limité aux mêmes opérations, et d'autres clients d'IA.",
 			],
