@@ -316,7 +316,18 @@ func PassLasts(ctx context.Context, db *store.DB, windowID, id int64, now time.T
 type RoomView struct {
 	Name, Title string
 	Member      bool
-	Windows     []Served
+	Windows     []Opened
+	// Home is the Window that the Room shows at its address, when it has
+	// one and the reader opens it; nil otherwise, and the address lists
+	// Windows. See docs/adr/0032-the-page-of-a-room.md.
+	Home *Opened
+}
+
+// Opened is a Window that a reader opens, and how.
+type Opened struct {
+	Served
+	How  Opening
+	Pass int64 // the id of the reader's pass, when they open it by its Key
 }
 
 // ViewRoom returns the Room called name, with the Windows that a reader
@@ -325,9 +336,10 @@ type RoomView struct {
 func ViewRoom(ctx context.Context, db *store.DB, name string, userID int64, passes map[int64]string, now time.Time) (RoomView, error) {
 	v := RoomView{Name: name}
 	var roomID int64
+	var home sql.NullInt64
 	err := db.Read.QueryRowContext(ctx, `
-		SELECT r.id, r.title, EXISTS (SELECT 1 FROM room_members WHERE room_id = r.id AND user_id = ?)
-		FROM rooms r WHERE r.name = ?`, userID, name).Scan(&roomID, &v.Title, &v.Member)
+		SELECT r.id, r.title, r.home_window_id, EXISTS (SELECT 1 FROM room_members WHERE room_id = r.id AND user_id = ?)
+		FROM rooms r WHERE r.name = ?`, userID, name).Scan(&roomID, &v.Title, &home, &v.Member)
 	if errors.Is(err, sql.ErrNoRows) {
 		return RoomView{}, operation.NotFoundf("no Room %s", name)
 	}
@@ -351,17 +363,28 @@ func ViewRoom(ctx context.Context, db *store.DB, name string, userID int64, pass
 	if err := rows.Err(); err != nil {
 		return RoomView{}, err
 	}
+	// The Windows open as Opens has it, from what the query read.
 	for _, w := range all {
-		open := v.Member || w.Access == AccessPublic || w.Access == AccessInternal && userID != 0
-		if !open && w.Access == AccessKey && passes[w.ID] != "" {
-			pass, err := Pass(ctx, db, w.ID, passes[w.ID], now)
-			if err != nil {
+		o := Opened{Served: w}
+		switch {
+		case w.Access == AccessPublic:
+			o.How = ByAddress
+		case userID != 0 && (v.Member || w.Access == AccessInternal):
+			o.How = BySession
+		case w.Access == AccessKey && passes[w.ID] != "":
+			if o.Pass, err = Pass(ctx, db, w.ID, passes[w.ID], now); err != nil {
 				return RoomView{}, err
 			}
-			open = pass != 0
+			if o.Pass != 0 {
+				o.How = ByPass
+			}
 		}
-		if open {
-			v.Windows = append(v.Windows, w)
+		if o.How == Closed {
+			continue
+		}
+		v.Windows = append(v.Windows, o)
+		if home.Valid && w.ID == home.Int64 {
+			v.Home = &o
 		}
 	}
 	return v, nil

@@ -167,7 +167,7 @@ func TestPublishOverMCP(t *testing.T) {
 	}
 	if want := []string{"add_room_member", "create_room", "delete_room", "get_account", "get_cahut", "get_house_style", "get_knock", "get_room", "get_window",
 		"list_knocks", "list_logbook", "list_rooms", "list_users", "list_windows", "publish_window", "purge_window", "remove_room_member",
-		"restore_window", "rollback_window", "set_ai_reach", "set_room_member_role", "set_window_access", "trash_window", "update_room",
+		"restore_window", "rollback_window", "set_ai_reach", "set_room_home", "set_room_member_role", "set_window_access", "trash_window", "update_room",
 		"update_window"}; !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v: those of a member", names, want)
 	}
@@ -327,7 +327,7 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 	want := []string{"add_room_member", "create_room", "create_user", "delete_room", "disable_user", "enable_user", "get_account", "get_cahut",
 		"get_house_style", "get_knock", "get_room", "get_window", "list_knocks", "list_logbook", "list_rooms", "list_users", "list_windows",
 		"publish_window", "purge_window", "remove_room_member", "restore_window", "rollback_house_style", "rollback_window", "set_ai_reach",
-		"set_house_style", "set_room_member_role", "set_user_email", "set_user_role", "set_window_access", "trash_window", "update_room", "update_window"}
+		"set_house_style", "set_room_home", "set_room_member_role", "set_user_email", "set_user_role", "set_window_access", "trash_window", "update_room", "update_window"}
 	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)
 	}
@@ -430,7 +430,7 @@ func TestRouting(t *testing.T) {
 			t.Errorf("GET %s%s = %d, want %d", tt.host, tt.path, resp.StatusCode, tt.want)
 		}
 	}
-	if _, body := f.get(t, "beta.localhost", http.MethodGet, "/"); !strings.Contains(body, "<h1>beta.localhost</h1>") {
+	if _, body := f.get(t, "beta.localhost", http.MethodGet, "/"); !strings.Contains(body, `<h1 class="hero__title">beta.localhost</h1>`) {
 		t.Errorf("GET beta.localhost/ = %q", body)
 	}
 }
@@ -635,7 +635,7 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, host := range []string{"203.0.113.7", "203.0.113.7:443"} {
-		if resp, body := f.get(t, host, http.MethodGet, "/"); resp.StatusCode != http.StatusOK || !strings.Contains(body, "<h1>203.0.113.7</h1>") {
+		if resp, body := f.get(t, host, http.MethodGet, "/"); resp.StatusCode != http.StatusOK || !strings.Contains(body, `<h1 class="hero__title">203.0.113.7</h1>`) {
 			t.Errorf("GET %s/ = %d %q", host, resp.StatusCode, body)
 		}
 	}
@@ -646,7 +646,7 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 	if resp, _ := f.get(t, "203.0.113.7", http.MethodGet, "/"); resp.StatusCode != http.StatusMisdirectedRequest {
 		t.Errorf("GET at the old address = %d, want 421", resp.StatusCode)
 	}
-	if resp, body := f.get(t, "gamma.localhost", http.MethodGet, "/"); resp.StatusCode != http.StatusOK || !strings.Contains(body, "<h1>gamma.localhost</h1>") {
+	if resp, body := f.get(t, "gamma.localhost", http.MethodGet, "/"); resp.StatusCode != http.StatusOK || !strings.Contains(body, `<h1 class="hero__title">gamma.localhost</h1>`) {
 		t.Errorf("GET at the new domain = %d %q", resp.StatusCode, body)
 	}
 	// Moved back, the Cahut is opened once, at its address.

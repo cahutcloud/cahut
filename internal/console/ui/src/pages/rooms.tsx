@@ -1,9 +1,10 @@
 // The Rooms: those of the person, every Room for an administrator, a new
-// team Room, and the page of one Room with its Windows and its people.
+// team Room, and the page of one Room with its Windows, its people and
+// what its address shows.
 import { Folder, Plus, User, Users } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { ApiError, explain } from "../api";
-import type { Room, RoomDetail } from "../api.gen";
+import type { Room, RoomDetail, Window } from "../api.gen";
 import { ConfirmButton, Failure, initials, Notice, PageHead, plural, WindowCards } from "../components";
 import { useConsole } from "../context";
 import { useLoad } from "../load";
@@ -181,7 +182,12 @@ export function RoomPage({ name }: { name: string }) {
 					)}
 					{windows.data && <Trash room={r.name} />}
 				</section>
-				<People room={r} manage={manage} members={members} onChange={room.reload} />
+				<div class="aside-stack">
+					<People room={r} manage={manage} members={members} onChange={room.reload} />
+					{(r.role === "owner" || api.isAdmin) && windows.data && (
+						<HomePage room={r} windows={windows.data.windows} onChange={room.reload} />
+					)}
+				</div>
 			</div>
 		</>
 	);
@@ -357,6 +363,65 @@ function Retitle({ room, onRetitle }: { room: RoomDetail; onRetitle: (title: str
 	);
 }
 
+/**
+ * What the address of a Room shows: the list of its Windows, or one of
+ * them, for its readers who open it. See docs/adr/0032-the-page-of-a-room.md.
+ */
+function HomePage({ room, windows, onChange }: { room: RoomDetail; windows: Window[]; onChange: () => void }) {
+	const api = useConsole();
+	const current = room.home ?? "";
+	const [home, setHome] = useState(current);
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	const save = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		try {
+			await api.cahut("set_room_home", { room: room.name, window: home || undefined });
+			onChange();
+		} catch (err) {
+			setError(explain(err));
+		}
+		setBusy(false);
+	};
+	return (
+		<section class="c-card panel aside">
+			<h2 class="c-h4">Page of the Room</h2>
+			<p class="c-small c-muted">
+				What{" "}
+				<a class="c-link c-mono" href={`/${room.name}/`} target="_blank" rel="noopener">
+					{location.host}/{room.name}/
+				</a>{" "}
+				shows to its readers.
+			</p>
+			<form class="form" onSubmit={save}>
+				<label class="c-field">
+					<span class="c-field__label">Show</span>
+					<select class="c-input" value={home} onChange={(e) => setHome(e.currentTarget.value)}>
+						<option value="">The Windows of the Room</option>
+						{windows.map((w) => (
+							<option key={w.name} value={w.name}>
+								{w.title}
+							</option>
+						))}
+					</select>
+					<span class="c-field__help">
+						{home
+							? "Readers who may not open this Window see the list of the Windows they open."
+							: "Each reader sees the Windows they may open, with a preview of each."}
+					</span>
+				</label>
+				{error && <Failure message={error} />}
+				<div>
+					<button class="c-btn c-btn--secondary c-btn--sm" type="submit" disabled={busy || home === current}>
+						Save
+					</button>
+				</div>
+			</form>
+		</section>
+	);
+}
 
 /** Deletes a team Room for good, once its name is typed. */
 function DeleteRoom({ room }: { room: RoomDetail }) {

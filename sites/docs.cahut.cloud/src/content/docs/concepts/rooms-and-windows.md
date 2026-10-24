@@ -10,7 +10,7 @@ A Room is a space for a person or a team. A Window is a living page in a Room: a
 | What | Address |
 | --- | --- |
 | A Cahut, with the Rooms of its reader | `https://cahut.example.com/` |
-| A Room, with the Windows its reader may open | `https://cahut.example.com/<room>/` |
+| A Room, with the Windows its reader may open, or the Window it shows | `https://cahut.example.com/<room>/` |
 | A Window | `https://cahut.example.com/<room>/<window>/` |
 | A file of a Window | `https://cahut.example.com/<room>/<window>/img/logo.svg` |
 | The MCP endpoint | `https://cahut.example.com/mcp` |
@@ -39,7 +39,7 @@ A team Room gathers its owners and members. Any person, or their AI, creates one
 | Who | What they do in a team Room |
 | --- | --- |
 | Its members | Publish in it, open its Windows, and read in the Logbook what happens in it |
-| Its owners | The same, and change its title, add and remove people, and make them owners or members |
+| Its owners | The same, and change its title and what its address shows, add and remove people, and make them owners or members |
 | The administrators of the Cahut | Change its title and its people, but open its Windows only if they are in it |
 
 A Room keeps at least one owner, and anyone can leave a team Room. Adding or removing a person, and changing their role, [knock first](/concepts/knock-first-and-logbook/#knock-first): when an AI asks, its person approves in the console. A Room's name, and so its address, does not change.
@@ -47,6 +47,12 @@ A Room keeps at least one owner, and anyone can leave a team Room. Adding or rem
 In an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), each person still creates Rooms of their own, but stays their only member, and the name of each starts with their handle, such as `bob-projects`.
 
 Its owners, and the administrators of the Cahut, delete a team Room for good with `delete_room`, or on its page in the console once its name is typed: its people, its Windows, those in its trash included, and their files go with it, and its name becomes free. The Logbook keeps what happened in it. A personal Room is never deleted. Deleting a Room knocks first when an AI asks.
+
+## The page of a Room
+
+The address of a Room, such as `https://cahut.example.com/marketing/`, shows each reader the Windows they may open, as cards, most recently updated first. Each card shows the Window itself, shrunk to the card, with its kind, when it last changed, and its access. A reader outside the Room sees only the Windows open to them, and a reader who may open none finds nothing, as at an address that does not exist. The page names nobody: neither who published nor who is in the Room.
+
+The owners of a Room, personal Rooms included, can show one of its Windows at its address instead, such as a page that presents the team or the person: `set_room_home`, or **Page of the Room** on its page in the console. Readers who may open that Window see it at the address of the Room; the others still see the Windows they may open. The Window keeps its own address and its access, and `set_room_home` without a Window goes back to the list. The decision is [ADR 32](https://github.com/getcahut/cahut/blob/main/docs/adr/0032-the-page-of-a-room.md).
 
 ## Windows
 

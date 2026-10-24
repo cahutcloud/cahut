@@ -34,6 +34,7 @@ func Register(r *operation.Registry) {
 	operation.Register(r, ListRooms)
 	operation.Register(r, GetRoom)
 	operation.Register(r, UpdateRoom)
+	operation.Register(r, SetHome)
 	operation.Register(r, AddMember)
 	operation.Register(r, SetMemberRole)
 	operation.Register(r, RemoveMember)
@@ -120,8 +121,13 @@ type Room struct {
 	Role      string    `json:"role,omitempty" jsonschema:"your role in the Room, owner or member; empty when you are not in it"`
 	Members   int       `json:"members" jsonschema:"how many people are in the Room"`
 	Windows   int       `json:"windows" jsonschema:"how many Windows the Room holds, out of the trash"`
+	Home      string    `json:"home,omitempty" jsonschema:"the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them"`
 	CreatedAt time.Time `json:"created_at"`
 }
+
+// homeName is the name of the home Window of the Room r, out of the trash,
+// for the queries that describe Rooms.
+const homeName = "(SELECT name FROM windows WHERE id = r.home_window_id AND trashed_at IS NULL)"
 
 // CreateRoomInput is the input of create_room.
 type CreateRoomInput struct {
@@ -287,7 +293,7 @@ var ListRooms = &operation.Op[ListRoomsInput, List]{
 		rows, err := c.Tx.QueryContext(ctx, `
 			SELECT r.id, r.name, r.title, r.kind, m.role, r.created_at,
 				(SELECT count(*) FROM room_members WHERE room_id = r.id),
-				(SELECT count(*) FROM windows WHERE room_id = r.id AND trashed_at IS NULL)
+				(SELECT count(*) FROM windows WHERE room_id = r.id AND trashed_at IS NULL), `+homeName+`
 			FROM rooms r LEFT JOIN room_members m ON m.room_id = r.id AND m.user_id = ?
 			WHERE `+where+`
 			ORDER BY r.kind = 'team', m.role IS NULL, r.name`, c.Actor.UserID)
@@ -299,15 +305,15 @@ var ListRooms = &operation.Op[ListRoomsInput, List]{
 		for rows.Next() {
 			var r Room
 			var id int64
-			var role sql.NullString
+			var role, home sql.NullString
 			var created string
-			if err := rows.Scan(&id, &r.Name, &r.Title, &r.Kind, &role, &created, &r.Members, &r.Windows); err != nil {
+			if err := rows.Scan(&id, &r.Name, &r.Title, &r.Kind, &role, &created, &r.Members, &r.Windows, &home); err != nil {
 				return List{}, err
 			}
 			if !c.Actor.Reaches(id) {
 				continue
 			}
-			r.Role = role.String
+			r.Role, r.Home = role.String, home.String
 			if r.CreatedAt, err = store.ParseTime(created); err != nil {
 				return List{}, err
 			}
@@ -357,12 +363,14 @@ var GetRoom = &operation.Op[GetInput, Detail]{
 func detail(ctx context.Context, c *operation.Call, a Access) (Detail, error) {
 	d := Detail{Room: Room{Name: a.Name, Title: a.Title, Kind: a.Kind, Role: a.Role}, People: []Person{}}
 	var created string
+	var home sql.NullString
 	err := c.Tx.QueryRowContext(ctx, `
-		SELECT created_at, (SELECT count(*) FROM windows WHERE room_id = ? AND trashed_at IS NULL) FROM rooms WHERE id = ?`,
-		a.ID, a.ID).Scan(&created, &d.Windows)
+		SELECT r.created_at, (SELECT count(*) FROM windows WHERE room_id = r.id AND trashed_at IS NULL), `+homeName+`
+		FROM rooms r WHERE r.id = ?`, a.ID).Scan(&created, &d.Windows, &home)
 	if err != nil {
 		return Detail{}, err
 	}
+	d.Home = home.String
 	if d.CreatedAt, err = store.ParseTime(created); err != nil {
 		return Detail{}, err
 	}
@@ -413,6 +421,47 @@ var UpdateRoom = &operation.Op[UpdateRoomInput, Detail]{
 			return Detail{}, err
 		}
 		a.Title = title
+		return detail(ctx, c, a)
+	},
+}
+
+// SetHomeInput is the input of set_room_home.
+type SetHomeInput struct {
+	Room   string `json:"room" jsonschema:"the Room's name"`
+	Window string `json:"window,omitempty" jsonschema:"name of a Window of the Room, shown at the Room's address; empty to go back to the page that lists the Room's Windows"`
+}
+
+// SetHome chooses the Window that a Room shows at its address, in place of
+// the page that lists its Windows, or goes back to that page. Readers who
+// may not open the Window still get the list of those they may open. See
+// docs/adr/0032-the-page-of-a-room.md.
+var SetHome = &operation.Op[SetHomeInput, Detail]{
+	Name:  "set_room_home",
+	Title: "Choose the home page of a Room",
+	Description: "Show a Window of a Room at the Room's address, <domain>/<room>/, in place of the page that lists its Windows, " +
+		"such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. " +
+		"An empty window goes back to the list. The Window keeps its own address and its access.",
+	Run: func(ctx context.Context, c *operation.Call, in SetHomeInput) (Detail, error) {
+		c.Log(in.Room, cmp.Or(in.Window, "the list of its Windows"))
+		a, err := Require(ctx, c, in.Room, Owner)
+		if err != nil {
+			return Detail{}, err
+		}
+		c.InRoom(a.ID)
+		var home sql.NullInt64
+		if in.Window != "" {
+			err := c.Tx.QueryRowContext(ctx, "SELECT id FROM windows WHERE room_id = ? AND name = ? AND trashed_at IS NULL",
+				a.ID, in.Window).Scan(&home)
+			if errors.Is(err, sql.ErrNoRows) {
+				return Detail{}, operation.NotFoundf("no Window %q in the Room %s, out of the trash: list_windows gives the names of its Windows", in.Window, a.Name)
+			}
+			if err != nil {
+				return Detail{}, err
+			}
+		}
+		if _, err := c.Tx.ExecContext(ctx, "UPDATE rooms SET home_window_id = ? WHERE id = ?", home, a.ID); err != nil {
+			return Detail{}, err
+		}
 		return detail(ctx, c, a)
 	},
 }

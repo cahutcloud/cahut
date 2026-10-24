@@ -3,7 +3,7 @@ title: House style
 description: The brand of the organization in each Cahut, the style sheet that Windows link at a stable address, the templates and the deck engine, and how administrators change it and go back.
 ---
 
-The house style is the brand of the organization, applied by every AI: its name, its colors, its fonts, its logo, and what it asks of AIs. Each Cahut has its own. An AI reads it before it makes a Window, starts from a template in it, and links its style sheet, so that a document, a deck or a dashboard comes out in the colors of the organization. The pages that Cahut shows readers, such as the page of a Key, carry it too. The decisions are [ADR 22](https://github.com/getcahut/cahut/blob/main/docs/adr/0022-house-style-of-each-cahut.md) and [ADR 23](https://github.com/getcahut/cahut/blob/main/docs/adr/0023-house-style-inactive-for-ais.md).
+The house style is the brand of the organization, applied by every AI: its name, its colors, its fonts, its logo, and what it asks of AIs. Each Cahut has its own. An AI reads it before it makes a Window, starts from a template in it, and links its style sheet, so that a document, a deck or a dashboard comes out in the colors of the organization. The pages that Cahut shows readers, such as the page of a Room or of a Key, carry it too. The decisions are [ADR 22](https://github.com/getcahut/cahut/blob/main/docs/adr/0022-house-style-of-each-cahut.md) and [ADR 23](https://github.com/getcahut/cahut/blob/main/docs/adr/0023-house-style-inactive-for-ais.md).
 
 ## What it holds
 
@@ -18,7 +18,7 @@ The house style is the brand of the organization, applied by every AI: its name,
 
 Body text must contrast at 4.5:1 at least on the background, as WCAG AA asks: a house style below that is refused. A primary or secondary color that reads poorly on the background, or under the text on it, is accepted with a warning. A house style takes 512 KB per image, 1 MB per font file, 16 font files and 8 MB in all.
 
-Until an administrator sets one, a Cahut has the neutral house style: the fonts of the system, dark text on white, a blue primary color, no logo. It is not the brand of Cahut, which never appears on the pages of an organization.
+Until an administrator sets one, a Cahut has the neutral house style: the fonts of the system, dark text on white, a blue primary color, no logo. Windows made in it carry no brand. Meanwhile, the pages that Cahut shows readers carry the brand of Cahut, light or dark as their system is; once the house style is set, they carry it instead, and the brand of Cahut no longer appears on them ([ADR 32](https://github.com/getcahut/cahut/blob/main/docs/adr/0032-the-page-of-a-room.md)).
 
 ## How Windows link it
 

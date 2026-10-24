@@ -29,6 +29,10 @@ func asset(typ string, content []byte) Asset {
 type Brand struct {
 	Name string // the name of the organization, or the domain of the Cahut
 	Logo bool   // whether the house style has a logo
+	// Neutral reports whether the Cahut has the neutral house style: its
+	// pages then carry the brand of Cahut. See
+	// docs/adr/0032-the-page-of-a-room.md.
+	Neutral bool
 }
 
 // LoadBrand returns the brand of the Cahut at domain, whose database is db.
@@ -37,7 +41,7 @@ func LoadBrand(ctx context.Context, db *store.DB, domain string) (Brand, error) 
 	if err != nil {
 		return Brand{}, err
 	}
-	b := Brand{Name: domain}
+	b := Brand{Name: domain, Neutral: cur == nil || cur.neutral()}
 	if cur != nil {
 		if cur.settings.Name != "" {
 			b.Name = cur.settings.Name

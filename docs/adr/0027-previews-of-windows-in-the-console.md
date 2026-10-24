@@ -1,6 +1,6 @@
 # 27. The console shows each Window in a live preview
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 32](0032-the-page-of-a-room.md) (the page of a Room shows its readers the previews of the Windows they open)
 - Date: 2026-10-23
 
 ## Context

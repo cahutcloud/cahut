@@ -99,11 +99,16 @@ func TestHouseStyleServed(t *testing.T) {
 	}
 }
 
+// The pages of a Cahut carry the brand of Cahut while its house style is
+// neutral, and its house style once it has one. See
+// docs/adr/0032-the-page-of-a-room.md.
 func TestPagesInTheHouseStyle(t *testing.T) {
 	f := setup(t)
 	resp, home := f.get(t, "localhost", http.MethodGet, "/")
-	if !strings.Contains(home, `<a class="top__home" href="/">localhost</a>`) ||
-		!strings.Contains(home, `<link rel="stylesheet" href="/-/house-style.css">`+"\n"+`<link rel="stylesheet" href="/-/pages.css">`) {
+	if !strings.Contains(home, `<img class="top__cahut" src="/-/brand/logos/cahut-logo-horizontal.svg" alt="Cahut"`) ||
+		!strings.Contains(home, `<span class="top__domain">localhost</span>`) ||
+		!strings.Contains(home, `<link rel="stylesheet" href="/-/brand/tokens/cahut-fonts.css">`) ||
+		strings.Contains(home, "/-/house-style.css") || strings.Contains(home, "data-house-style") {
 		t.Errorf("home of the neutral house style = %q", home)
 	}
 	if csp := resp.Header.Get("Content-Security-Policy"); csp != pagePolicy("https://localhost/") || !strings.Contains(csp, "font-src 'self'") {
@@ -115,7 +120,11 @@ func TestPagesInTheHouseStyle(t *testing.T) {
 
 	f.call(t, "localhost", admin, "set_house_style", `{"name": "Example & Co", "logo": {"content": "<svg xmlns=\"http://www.w3.org/2000/svg\"/>"}}`)
 	_, home = f.get(t, "localhost", http.MethodGet, "/")
-	if !strings.Contains(home, `<img class="top__logo" src="/-/house-style/logo" alt="Example &amp; Co">`) || !strings.Contains(home, "<h1>Example &amp; Co</h1>") {
+	if !strings.Contains(home, `<img class="top__logo" src="/-/house-style/logo" alt="Example &amp; Co">`) ||
+		!strings.Contains(home, `<h1 class="hero__title">Example &amp; Co</h1>`) ||
+		!strings.Contains(home, `<html lang="en" data-theme="light" data-house-style>`) ||
+		!strings.Contains(home, `<link rel="stylesheet" href="/-/house-style.css">`) ||
+		strings.Contains(home, "cahut-logo") || strings.Contains(home, "cahut-fonts.css") {
 		t.Errorf("home with a logo = %q", home)
 	}
 	olivier := f.person(t, "localhost", "olivier")
@@ -125,8 +134,52 @@ func TestPagesInTheHouseStyle(t *testing.T) {
 	if resp.StatusCode != http.StatusUnauthorized || !strings.Contains(page, `alt="Example &amp; Co"`) {
 		t.Errorf("the page of a Key = %d %q", resp.StatusCode, page)
 	}
-	if _, home := f.get(t, "beta.localhost", http.MethodGet, "/"); !strings.Contains(home, `href="/">beta.localhost</a>`) {
+	if _, home := f.get(t, "beta.localhost", http.MethodGet, "/"); !strings.Contains(home, `<span class="top__domain">beta.localhost</span>`) {
 		t.Errorf("home of beta.localhost = %q", home)
+	}
+
+	// Back to the neutral house style, the pages carry the brand of Cahut again.
+	f.call(t, "localhost", admin, "set_house_style", `{"neutral": true}`)
+	if _, home := f.get(t, "localhost", http.MethodGet, "/"); !strings.Contains(home, "cahut-logo-horizontal.svg") {
+		t.Errorf("home of the neutral house style again = %q", home)
+	}
+}
+
+// The files of the brand of Cahut that its pages use are served as they
+// are, and nothing else.
+func TestBrandFiles(t *testing.T) {
+	f := setup(t)
+	tests := []struct {
+		path, typ string
+		status    int
+	}{
+		{"/-/brand/tokens/cahut-tokens.css", "text/css; charset=utf-8", http.StatusOK},
+		{"/-/brand/tokens/cahut-fonts.css", "text/css; charset=utf-8", http.StatusOK},
+		{"/-/brand/typographie/polices/web/plus-jakarta-sans-latin-variable.woff2", "font/woff2", http.StatusOK},
+		{"/-/brand/typographie/polices/OFL-PlusJakartaSans.txt", "text/plain; charset=utf-8", http.StatusOK},
+		{"/-/brand/logos/cahut-logo-horizontal.svg", "image/svg+xml", http.StatusOK},
+		{"/-/brand/tokens/", "", http.StatusNotFound},
+		{"/-/brand/", "", http.StatusNotFound},
+		{"/-/brand/README.md", "", http.StatusNotFound},
+		{"/-/brand/charte.go", "", http.StatusNotFound},
+	}
+	for _, tt := range tests {
+		resp, body := f.get(t, "localhost", http.MethodGet, tt.path)
+		if resp.StatusCode != tt.status {
+			t.Errorf("GET %s = %d, want %d", tt.path, resp.StatusCode, tt.status)
+			continue
+		}
+		if tt.status != http.StatusOK {
+			continue
+		}
+		if got := resp.Header.Get("Content-Type"); got != tt.typ || body == "" || resp.Header.Get("ETag") == "" {
+			t.Errorf("GET %s = %q, %d bytes, ETag %q", tt.path, got, len(body), resp.Header.Get("ETag"))
+		}
+	}
+	// The fonts sheet finds the fonts beside it.
+	_, css := f.get(t, "localhost", http.MethodGet, "/-/brand/tokens/cahut-fonts.css")
+	if !strings.Contains(css, `url("../typographie/polices/web/plus-jakarta-sans-latin-variable.woff2")`) {
+		t.Errorf("the fonts sheet = %q", css)
 	}
 }
 

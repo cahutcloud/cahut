@@ -35,6 +35,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [29](0029-chatgpt-second-ai-client.md) | ChatGPT is the second AI client of the V0, through the same tools as Claude | Accepted |
 | [30](0030-kind-and-limits-of-each-cahut.md) | Each Cahut has a kind and limits, set by the administrators of its server | Accepted |
 | [31](0031-e-mail-through-a-relay.md) | Each Cahut sends e-mail through its own relay or that of its server | Accepted |
+| [32](0032-the-page-of-a-room.md) | The page of a Room shows its Windows in previews, or a Window that its owners choose, in the brand of Cahut until the house style | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

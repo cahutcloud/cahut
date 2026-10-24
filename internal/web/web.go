@@ -156,6 +156,8 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	// See docs/adr/0019-window-versions-access-and-declaration.md.
 	s.mux.HandleFunc("GET /-/pages.css", serveAsset("pages.css"))
 	s.mux.HandleFunc("GET /-/frame.js", serveAsset("frame.js"))
+	s.mux.HandleFunc("GET /-/pages.js", serveAsset("pages.js"))
+	s.mux.HandleFunc("GET "+BrandPath+"{file...}", serveBrand)
 	// The house style of the Cahut, for its Windows and its pages. See
 	// docs/adr/0022-house-style-of-each-cahut.md.
 	s.mux.HandleFunc("GET "+housestyle.SheetPath, s.serveHouseStyle)

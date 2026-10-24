@@ -1,26 +1,41 @@
 {{/* The pages that a Cahut serves to readers on the port of its Windows.
-They carry the house style of the Cahut, neutral until it has one, never
-the brand of Cahut. They run no inline script. See
-docs/adr/0022-house-style-of-each-cahut.md. */}}
+They take the components of the brand of Cahut, in its brand while the
+Cahut has the neutral house style, in its house style once it has one, and
+never show the logo of Cahut beside that of an organization. They run no
+inline script. See docs/adr/0022-house-style-of-each-cahut.md and
+docs/adr/0032-the-page-of-a-room.md. */}}
 
 {{define "head"}}<!doctype html>
+<html lang="en"{{if not .Brand.Neutral}} data-theme="light" data-house-style{{end}}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{.Title}}</title>
+{{if .Brand.Neutral}}<link rel="icon" href="/-/brand/logos/cahut-favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/-/brand/tokens/cahut-fonts.css">
+{{else}}<link rel="stylesheet" href="/-/house-style.css">
+{{end}}<link rel="stylesheet" href="/-/brand/tokens/cahut-tokens.css">
+<link rel="stylesheet" href="/-/brand/ui/cahut-ui.css">
+<link rel="stylesheet" href="/-/pages.css">
+{{end}}
+
+{{define "top"}}<header class="top">
+<a class="top__home" href="/">{{if .Brand.Neutral}}<picture><source srcset="/-/brand/logos/cahut-logo-horizontal-inverse.svg" media="(prefers-color-scheme: dark)"><img class="top__cahut" src="/-/brand/logos/cahut-logo-horizontal.svg" alt="Cahut" width="100" height="26"></picture><span class="top__domain">{{.Domain}}</span>{{else if .Brand.Logo}}<img class="top__logo" src="/-/house-style/logo" alt="{{.Brand.Name}}">{{else}}<span class="top__name">{{.Brand.Name}}</span>{{end}}</a>
+{{if .Reader}}<form class="top__reader" method="post" action="/-/sign-out"><span class="top__handle">{{.Reader}}</span><button class="c-btn c-btn--ghost c-btn--sm" type="submit">{{icon "log-out" 16}}Sign out</button></form>
+{{else}}<a class="c-btn c-btn--secondary c-btn--sm" href="{{.SignIn}}">{{icon "log-in" 16}}Sign in</a>
+{{end}}</header>
+{{end}}
+
+{{define "frame"}}<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>{{.}}</title>
-<link rel="stylesheet" href="/-/house-style.css">
+<title>{{.Title}}</title>
 <link rel="stylesheet" href="/-/pages.css">
-{{end}}
-
-{{define "top"}}<header class="top">
-<a class="top__home" href="/">{{if .Brand.Logo}}<img class="top__logo" src="/-/house-style/logo" alt="{{.Brand.Name}}">{{else}}{{.Brand.Name}}{{end}}</a>
-{{if .Reader}}<form class="top__out" method="post" action="/-/sign-out"><span>{{.Reader}}</span> <button type="submit">Sign out</button></form>{{end}}
-</header>
-{{end}}
-
-{{define "frame"}}{{template "head" .Title}}<script src="/-/frame.js" defer></script>
+<script src="/-/frame.js" defer></script>
 </head>
 <body class="frame">
 <iframe src="{{.Src}}" title="{{.Title}}" sandbox="{{.Sandbox}}" allow="fullscreen" allowfullscreen></iframe>
@@ -28,81 +43,111 @@ docs/adr/0022-house-style-of-each-cahut.md. */}}
 </html>
 {{end}}
 
-{{define "key"}}{{template "head" .Title}}</head>
+{{define "room"}}{{template "head" .}}<script src="/-/pages.js" defer></script>
+</head>
+<body>
+{{template "top" .}}
+<main class="page">
+<header class="hero{{if .Brand.Neutral}} hero--cahut{{end}}">
+{{if .Brand.Neutral}}<span class="hero__picto" aria-hidden="true">{{brand "icones/room.svg"}}</span>
+{{end}}<p class="c-label">Room</p>
+<h1 class="hero__title">{{.Title}}</h1>
+<p class="hero__meta"><span class="c-mono">{{.Domain}}/{{.Name}}/</span><span aria-hidden="true">·</span><span>{{.Count}}</span></p>
+</header>
+{{if .Windows}}<ul class="cards" aria-label="Windows">
+{{range .Windows}}<li class="c-card c-window card">
+<div class="c-window__thumb card__thumb" aria-hidden="true">{{icon .KindIcon 40}}{{if .Preview}}<iframe class="card__preview" data-src="{{.Preview}}" title="Preview of {{.Title}}" sandbox="allow-scripts" loading="lazy" referrerpolicy="no-referrer" tabindex="-1" aria-hidden="true"></iframe>{{end}}</div>
+<div class="c-window__body">
+<a class="c-window__title card__title" href="{{.URL}}">{{icon .KindIcon 16}}<span>{{.Title}}</span></a>
+<div class="c-window__meta"><span>{{.Kind}} · {{.Updated}}</span><span class="c-badge c-badge--{{.AccessClass}}">{{icon .AccessIcon 14}}{{.Access}}</span></div>
+</div>
+</li>
+{{end}}</ul>
+{{else}}<section class="empty">
+{{if .Brand.Neutral}}<img class="empty__picture" src="/-/brand/illustrations/etat-vide.svg" alt="" width="240" height="160">
+{{end}}<h2 class="c-h4">No Window here yet</h2>
+<p class="c-muted">Ask your AI to publish one in the Room <span class="c-mono">{{.Name}}</span>. It connects to this Cahut at <span class="c-mono">{{.MCP}}</span>.</p>
+</section>{{end}}
+{{if not .Reader}}<p class="c-small c-muted foot">Members of this Room <a class="c-link" href="{{.SignIn}}">sign in</a> to open all its Windows.</p>{{end}}
+</main>
+</body>
+</html>
+{{end}}
+
+{{define "home"}}{{template "head" .}}</head>
+<body>
+{{template "top" .}}
+<main class="page">
+<header class="hero{{if .Brand.Neutral}} hero--cahut{{end}}">
+<p class="c-label">Cahut</p>
+<h1 class="hero__title">{{.Brand.Name}}</h1>
+{{if .Reader}}<p class="hero__meta">Signed in as <span class="c-mono">{{.Reader}}</span></p>{{end}}
+</header>
+{{if .Reader}}{{if .Rooms}}<h2 class="c-h4 section-title">Your Rooms</h2>
+<ul class="rooms">
+{{range .Rooms}}<li><a class="c-card room" href="/{{.Name}}/"><span class="room__title">{{.Title}}</span><span class="c-mono room__address">/{{.Name}}/</span></a></li>
+{{end}}</ul>
+{{else}}<p class="c-muted">You are in no Room yet.</p>{{end}}
+{{else}}<section class="c-card panel">
+<h2 class="c-h4">Sign in</h2>
+<p class="c-muted">Sign in to open the Windows of your Rooms.</p>
+<p><a class="c-btn c-btn--primary" href="{{.SignIn}}">{{icon "log-in" 16}}Sign in</a></p>
+</section>{{end}}
+<p class="c-small c-muted foot">AIs connect to this Cahut over MCP, at <span class="c-mono">{{.MCP}}</span>.</p>
+</main>
+</body>
+</html>
+{{end}}
+
+{{define "key"}}{{template "head" .}}</head>
 <body>
 {{template "top" .}}
 <main class="page page--narrow">
-<p class="label">Opens with a Key</p>
-<h1>{{.Title}}</h1>
+<section class="c-card panel">
+<p class="c-label">{{icon "key-round" 14}} Opens with a Key</p>
+<h1 class="c-h3">{{.Title}}</h1>
 <form class="form" method="post" action="/-/key">
 <input type="hidden" name="window" value="{{.Window}}">
-<label for="key">Key</label>
-<input id="key" name="key" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required autofocus>
-{{if .Error}}<p class="error" role="alert">{{.Error}}</p>{{end}}
-<button type="submit">Open</button>
+<div class="c-field">
+<label class="c-field__label" for="key">Key</label>
+<input class="c-input" id="key" name="key" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required autofocus>
+</div>
+{{if .Error}}<p class="c-alert c-alert--danger" role="alert">{{.Error}}</p>{{end}}
+<p><button class="c-btn c-btn--primary" type="submit">Open</button></p>
 </form>
-<p class="muted">Ask whoever gave you this address for its Key.{{if not .Reader}} Members of its Room can <a href="{{.SignIn}}">sign in</a> instead.{{end}}</p>
+<p class="c-small c-muted">Ask whoever gave you this address for its Key.{{if not .Reader}} Members of its Room can <a class="c-link" href="{{.SignIn}}">sign in</a> instead.{{end}}</p>
+</section>
 </main>
 </body>
 </html>
 {{end}}
 
-{{define "room"}}{{template "head" .Title}}</head>
-<body>
-{{template "top" .}}
-<main class="page">
-<p class="label">Room</p>
-<h1>{{.Title}}</h1>
-{{if .Windows}}<ul class="list">
-{{range .Windows}}<li><a href="{{.URL}}">{{.Title}}</a> <span class="muted">{{.Kind}} · {{.Access}}</span></li>
-{{end}}</ul>
-{{else}}<p class="muted">No Window here yet.</p>{{end}}
-{{if not .Reader}}<p class="muted"><a href="{{.SignIn}}">Sign in</a> to open the Windows of your Rooms.</p>{{end}}
-</main>
-</body>
-</html>
-{{end}}
-
-{{define "home"}}{{template "head" .Brand.Name}}</head>
-<body>
-{{template "top" .}}
-<main class="page">
-<p class="label">Cahut</p>
-<h1>{{.Brand.Name}}</h1>
-{{if .Reader}}{{if .Rooms}}<h2>Your Rooms</h2>
-<ul class="list">
-{{range .Rooms}}<li><a href="/{{.Name}}/">{{.Title}}</a> <span class="muted">/{{.Name}}/</span></li>
-{{end}}</ul>{{end}}
-{{else}}<p><a class="button" href="{{.SignIn}}">Sign in</a></p>
-<p class="muted">Sign in to open the Windows of your Rooms.</p>{{end}}
-<p class="muted small">AIs connect to this Cahut over MCP, at {{.MCP}}.</p>
-</main>
-</body>
-</html>
-{{end}}
-
-{{define "notfound"}}{{template "head" "Not found"}}</head>
+{{define "notfound"}}{{template "head" .}}</head>
 <body>
 {{template "top" .}}
 <main class="page page--narrow">
-<p class="label">Not found</p>
-<h1>Nothing here</h1>
+<section class="c-card panel">
+<p class="c-label">Not found</p>
+<h1 class="c-h3">Nothing here</h1>
 <p>There is nothing at this address, or it is not open to you.</p>
-{{if not .Reader}}<p><a class="button" href="{{.SignIn}}">Sign in</a></p>
-<p class="muted">If it is in one of your Rooms, sign in to open it.</p>{{end}}
+{{if not .Reader}}<p><a class="c-btn c-btn--primary" href="{{.SignIn}}">{{icon "log-in" 16}}Sign in</a></p>
+<p class="c-small c-muted">If it is in one of your Rooms, sign in to open it.</p>{{end}}
+</section>
 </main>
 </body>
 </html>
 {{end}}
 
-{{define "expired"}}{{template "head" "Sign in again"}}</head>
+{{define "expired"}}{{template "head" .}}</head>
 <body>
 {{template "top" .}}
 <main class="page page--narrow">
-<p class="label">Sign in</p>
-<h1>This link has expired</h1>
+<section class="c-card panel">
+<p class="c-label">Sign in</p>
+<h1 class="c-h3">This link has expired</h1>
 <p>The link that signs you in works once, for a minute.</p>
-<p><a class="button" href="{{.SignIn}}">Sign in again</a></p>
+<p><a class="c-btn c-btn--primary" href="{{.SignIn}}">{{icon "log-in" 16}}Sign in again</a></p>
+</section>
 </main>
 </body>
 </html>

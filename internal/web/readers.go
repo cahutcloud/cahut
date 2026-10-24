@@ -145,7 +145,7 @@ func (s *Server) serveSession(w http.ResponseWriter, r *http.Request) {
 	to := localPath(r.URL.Query().Get("to"))
 	rs, err := account.OpenReaderSession(r.Context(), c.DB, r.URL.Query().Get("code"), time.Now())
 	if errors.Is(err, account.ErrInvalidSession) {
-		p := s.page(r, "")
+		p := s.page(r, "", "Sign in again")
 		p.SignIn = "/-/sign-in?to=" + url.QueryEscape(to)
 		s.render(w, r, http.StatusForbidden, "expired", p)
 		return
@@ -173,13 +173,13 @@ func (s *Server) serveSignOut(w http.ResponseWriter, r *http.Request) {
 // keyPage is the page that asks for the Key of a Window.
 type keyPage struct {
 	page
-	Title, Window, Error string
+	Window, Error string
 }
 
 func (s *Server) askKey(w http.ResponseWriter, r *http.Request, win window.Served, reader, msg string, status int) {
-	p := s.page(r, reader)
+	p := s.page(r, reader, win.Title)
 	p.SignIn = "/-/sign-in?to=" + url.QueryEscape("/"+win.Room+"/"+win.Name+"/")
-	s.render(w, r, status, "key", keyPage{page: p, Title: win.Title, Window: win.Room + "/" + win.Name, Error: msg})
+	s.render(w, r, status, "key", keyPage{page: p, Window: win.Room + "/" + win.Name, Error: msg})
 }
 
 // serveKey checks the Key that a reader typed, and gives them a pass for

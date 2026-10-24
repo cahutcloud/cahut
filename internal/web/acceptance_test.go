@@ -43,6 +43,7 @@ var undo = map[string]string{
 	"restore_window":       "trash_window",
 	"set_window_access":    "set_window_access", // making a Window public knocks first
 	"update_room":          "update_room",
+	"set_room_home":        "set_room_home",
 	"set_house_style":      "rollback_house_style",
 	"rollback_house_style": "rollback_house_style",
 	"set_ai_reach":         "set_ai_reach", // widening the reach knocks first
