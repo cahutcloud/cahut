@@ -39,7 +39,9 @@ func runServe(args []string, _, stderr io.Writer) int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	srv, err := server.Open(ctx, server.Config{DataDir: *data, BaseURL: cfg.BaseURL, ConsoleURL: cfg.ConsoleURL, UpdateDir: *updates})
+	srv, err := server.Open(ctx, server.Config{
+		DataDir: *data, BaseURL: cfg.BaseURL, ConsoleURL: cfg.ConsoleURL, UpdateDir: *updates, MailDev: cfg.Dev, Log: log,
+	})
 	if err != nil {
 		log.Error("open the server", "error", err)
 		return exitError

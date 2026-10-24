@@ -3,7 +3,6 @@ package oauth
 import (
 	"context"
 	"net/http"
-	"net/netip"
 )
 
 // UseDocumentTransport makes s fetch client metadata documents through rt,
@@ -27,9 +26,4 @@ func ForgetDocuments(s *Server) {
 	s.docs.mu.Lock()
 	defer s.docs.mu.Unlock()
 	clear(s.docs.docs)
-}
-
-// Public reports whether ip is an address on the internet.
-func Public(ip string) bool {
-	return public(netip.MustParseAddr(ip))
 }

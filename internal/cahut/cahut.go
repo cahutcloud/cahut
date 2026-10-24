@@ -17,6 +17,7 @@ import (
 	"cahut.cloud/internal/housestyle"
 	"cahut.cloud/internal/knock"
 	"cahut.cloud/internal/logbook"
+	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/oauth"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
@@ -39,6 +40,9 @@ type Config struct {
 	// https://cahut.example.com/console/, where people consent to AI clients.
 	// It may be empty, as BaseURL may.
 	ConsoleURL string
+	// Mail sends the e-mail of the server and of its Cahuts. It may be nil
+	// where nothing sends e-mail.
+	Mail *mail.Service
 }
 
 // Cahut is an open Cahut.
@@ -98,11 +102,16 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	housestyle.Register(r, cfg.Domain)
 	operation.Register(r, settings.Set)
 	operation.Register(r, ListLogbook)
+	cfg.Mail.RegisterCahut(r, db, cfg.Domain, func(ctx context.Context) (string, error) {
+		b, err := housestyle.LoadBrand(ctx, db, cfg.Domain)
+		return b.Name, err
+	})
 	about := &operation.Op[GetCahutInput, About]{
 		Name:  "get_cahut",
 		Title: "Describe the Cahut",
 		Description: "Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, " +
-			"its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused.",
+			"whether it sends e-mail, its kind, collaborative or individual, and its limits with what it holds: " +
+			"a call that would cross a limit is refused.",
 		ReadOnly: true,
 		Run: func(ctx context.Context, c *operation.Call, _ GetCahutInput) (About, error) {
 			c.Log(cfg.Domain, "")
@@ -111,6 +120,9 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 				a.MCP = cfg.BaseURL + "mcp"
 			}
 			var err error
+			if a.SendsMail, err = cfg.Mail.Sends(ctx, c.Tx); err != nil {
+				return About{}, err
+			}
 			a.Settings, err = settings.Read(ctx, c.Tx, c.Actor.UserID, c.Admin)
 			return a, err
 		},
@@ -144,6 +156,9 @@ type About struct {
 	Domain string `json:"domain"`
 	URL    string `json:"url,omitempty" jsonschema:"the address of the Cahut, under which its Rooms and Windows open"`
 	MCP    string `json:"mcp,omitempty" jsonschema:"the address of its MCP endpoint, where AI clients connect"`
+	// SendsMail says whether the Cahut has a relay, or its server one. See
+	// docs/adr/0031-e-mail-through-a-relay.md.
+	SendsMail bool `json:"sends_mail" jsonschema:"whether this Cahut sends e-mail, through a relay of its own or that of its server"`
 	settings.Settings
 }
 

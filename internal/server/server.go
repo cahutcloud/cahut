@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -19,6 +20,7 @@ import (
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/cahut"
+	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
 )
@@ -40,6 +42,11 @@ type Config struct {
 	// updates (update.DefaultStateDir). Empty, the server does not update
 	// itself.
 	UpdateDir string
+	// MailDev writes the e-mail that no relay sends to DataDir/mail/, for
+	// development on one machine.
+	MailDev bool
+	// Log reports the e-mail that could not be sent. Nil discards.
+	Log *slog.Logger
 }
 
 // Server is the open server.
@@ -50,7 +57,10 @@ type Server struct {
 	AddDomain *operation.Op[AddDomainInput, NewCahut]
 	// CreateSetupLink gives the link to the first start of a Cahut.
 	CreateSetupLink *operation.Op[CreateSetupLinkInput, SetupLink]
-	cfg             Config
+	// Mail sends the e-mail of the server and of its Cahuts. See
+	// docs/adr/0031-e-mail-through-a-relay.md.
+	Mail *mail.Service
+	cfg  Config
 }
 
 // Open opens the server's records in cfg.DataDir, creating them if needed.
@@ -63,6 +73,7 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 		return nil, fmt.Errorf("open the server's database: %w", err)
 	}
 	s := &Server{DB: db, Registry: operation.NewRegistry(db), cfg: cfg}
+	s.Mail = mail.New(mail.Config{DataDir: cfg.DataDir, Server: db, Dev: cfg.MailDev, Log: cfg.Log})
 	s.AddDomain = &operation.Op[AddDomainInput, NewCahut]{
 		Name:  "add_domain",
 		Title: "Declare a Cahut",
@@ -78,12 +89,19 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 	registerAdmins(s.Registry)
 	s.registerUpdates(s.Registry)
 	s.registerSetup(s.Registry)
+	s.Mail.RegisterServer(s.Registry)
 	return s, nil
 }
 
-// Close closes the server's database.
+// mailDrain bounds the time Close gives the e-mail in the queue to go out.
+const mailDrain = 30 * time.Second
+
+// Close sends the e-mail that waits in the queue, for a while, then closes
+// the server's database.
 func (s *Server) Close() error {
-	return s.DB.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), mailDrain)
+	defer cancel()
+	return errors.Join(s.Mail.Close(ctx), s.DB.Close())
 }
 
 // Info describes a Cahut of the server.
@@ -314,7 +332,7 @@ func (s *Server) OpenCahut(ctx context.Context, domain string) (*cahut.Cahut, er
 	if err != nil {
 		return nil, err
 	}
-	cfg := cahut.Config{Dir: s.dir(id), Domain: domain}
+	cfg := cahut.Config{Dir: s.dir(id), Domain: domain, Mail: s.Mail}
 	if s.cfg.BaseURL != nil {
 		cfg.BaseURL = s.cfg.BaseURL(domain)
 	}
