@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cahut, bannière YouTube</title>
+<link rel="stylesheet" href="../../tokens/cahut-fonts.css">
+<link rel="stylesheet" href="../../tokens/cahut-tokens.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+body{width:2560px;height:1440px;overflow:hidden;font-family:var(--font-sans);color:var(--cahut-ink);background:var(--cahut-paper);-webkit-font-smoothing:antialiased;position:relative}
+.mono{font-family:var(--font-mono)}
+.label{font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase}
+h1,h2,p{margin:0}
+
+</style>
+</head>
+<body>
+
+<!-- YouTube montre l'image entière sur une télévision, une bande de 2560 × 423 au milieu sur un ordinateur,
+     et seulement la zone sûre de 1546 × 423 au centre sur un téléphone (x de 507 à 2053, y de 508 à 931) :
+     le texte et le logo restent dedans, les collines du bas ne se voient que sur une télévision. -->
+<img src="../../illustrations/paysage.svg" alt="" style="position:absolute;left:0;top:384px;width:2560px;clip-path:inset(680px 0 0 0)">
+<!-- Le masque efface les bords des collines de l'illustration, sans toucher aux Windows. -->
+<img src="../../illustrations/maison-ouverte.svg" alt="" style="position:absolute;left:1400px;top:500px;width:660px;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 95%,transparent),linear-gradient(#000 86%,transparent);mask-composite:intersect">
+<div style="position:absolute;left:547px;top:562px;width:880px">
+  <img src="../../logos/cahut-logo-horizontal.svg" alt="Cahut" style="display:block;height:60px">
+  <h1 style="font-size:68px;line-height:76px;font-weight:800;letter-spacing:-0.02em;margin-top:40px">Your own cloud for<br>everything your AI makes.</h1>
+  <p class="mono" style="font-size:32px;margin-top:28px;color:var(--cahut-sky-700)">cahut.cloud</p>
+</div>
+
+</body>
+</html>

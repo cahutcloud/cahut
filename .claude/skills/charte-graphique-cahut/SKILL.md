@@ -5,7 +5,7 @@ description: Charte graphique et ton de Cahut, la maison auto-hébergée de ce q
 
 # Charte graphique Cahut
 
-Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.2 du 23 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
+Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.3 du 25 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
 
 Dans ce document, les chemins partent de la racine du dépôt et **`charte/`** désigne `docs/charte-graphique/`.
 
@@ -155,7 +155,7 @@ Les textes du produit, du site et des visuels sont **en anglais**, langue du lan
 | `charte/logos/` | SVG maîtres, PNG, favicons, badge *hosted by Cahut* | Tout support |
 | `charte/icones/`, `charte/illustrations/` | Pictogrammes du vocabulaire, illustrations et motif de nuages | Site, documentation, écrans vides, visuels |
 | `charte/photos/` | Planche, aperçus, `selection.json` (crédits), `telecharger-photos.sh` (HD) | Tout support avec photo |
-| `charte/applications/gabarits/` | Gabarits HTML : diapositives titre, section et contenu, image de partage, aperçu GitHub, couverture de page et bannière de profil LinkedIn, bannière X, signature e-mail | Présentation, réseaux, e-mail |
+| `charte/applications/gabarits/` | Gabarits HTML : diapositives titre, section et contenu, image de partage, aperçu GitHub, couverture de page et bannière de profil LinkedIn, bannière X, bannière YouTube, signature e-mail | Présentation, réseaux, e-mail |
 | [`references/recettes.md`](references/recettes.md) | Recettes : page dans le dépôt, page autonome, e-mail, icônes, gabarits et rendu PNG, photos, présentation, modification de la charte | Avant de produire |
 | `scripts/rendre-gabarit.sh` | Rend une page HTML de taille fixe en PNG avec Chrome sans interface | Après chaque gabarit modifié ou créé |
 | `scripts/imprimer-charte.mjs` | Réimprime `charte-graphique-cahut.pdf` depuis `index.html` avec Chrome sans interface (Node 22 ou plus) | Après chaque changement de la charte |
