@@ -1,9 +1,10 @@
 // The frame of every page once signed in: the top bar, with the account, and
-// the navigation, which a button opens on a narrow screen, with the
-// languages of the console at its foot. The screens of the console fill its
-// main area.
+// the navigation, which a button opens on a narrow screen, with the account
+// and the languages of the console at its foot. The screens of the console
+// fill its main area.
 import {
 	Bot,
+	CircleUserRound,
 	DoorClosed,
 	Gauge,
 	House,
@@ -53,6 +54,8 @@ const t = words({
 		kindAndLimits: "Kind and limits",
 		email: "E-mail",
 		access: "AIs and access",
+		account: "Account",
+		yourAccount: "Your account",
 	},
 	fr: {
 		waiting: " en attente",
@@ -76,6 +79,8 @@ const t = words({
 		kindAndLimits: "Type et limites",
 		email: "E-mail",
 		access: "IA et accès",
+		account: "Compte",
+		yourAccount: "Votre compte",
 	},
 });
 
@@ -118,7 +123,7 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 					<Logo height={26} />
 				</Link>
 				<div class="console-account">
-					<Link class="console-account__link" href="/account">
+					<Link class="console-account__link" href="/account" title={t.yourAccount}>
 						<span class="c-avatar" aria-hidden="true">
 							{initials(session.name)}
 						</span>
@@ -163,9 +168,12 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 				{!person && nav("/rooms", <Server class="i" size={18} aria-hidden="true" />, t.rooms, false)}
 				{!person && nav("/logbook", <NotebookText class="i" size={18} aria-hidden="true" />, t.logbook)}
 				{person && nav("/access", <Bot class="i" size={18} aria-hidden="true" />, t.access)}
-				<div class="sidebar-languages">
-					<LanguagesIcon class="i" size={16} aria-hidden="true" />
-					<Languages />
+				<div class="sidebar-foot">
+					{nav("/account", <CircleUserRound class="i" size={18} aria-hidden="true" />, t.account)}
+					<div class="sidebar-languages">
+						<LanguagesIcon class="i" size={16} aria-hidden="true" />
+						<Languages />
+					</div>
 				</div>
 			</nav>
 			<main class="c-main">{props.children}</main>

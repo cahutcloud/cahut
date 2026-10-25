@@ -1,6 +1,7 @@
 // The account: who is signed in, their name and handle, their e-mail
 // address and notices, the language of the console, a new password, and
 // signing out.
+import { LogOut } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { EmailChange } from "../api.gen";
@@ -31,6 +32,8 @@ const t = words({
 		changed: "Password changed. Your other sessions have ended.",
 		change: "Change the password",
 		signOut: "Sign out",
+		signOutTitle: "Sign out",
+		sessionEnds: (when: string) => `Your session in this browser lasts until ${when} at the latest. Sign out to end it now.`,
 		linkWent: (email: string) => `A link went to ${email}. Your address changes once you use it.`,
 		removed: "Your address is removed.",
 		email: "E-mail",
@@ -104,6 +107,8 @@ const t = words({
 		changed: "Mot de passe changé. Vos autres sessions ont pris fin.",
 		change: "Changer le mot de passe",
 		signOut: "Se déconnecter",
+		signOutTitle: "Déconnexion",
+		sessionEnds: (when) => `Votre session dans ce navigateur dure jusqu'au ${when} au plus tard. Déconnectez-vous pour la terminer maintenant.`,
 		linkWent: (email) => `Un lien est parti à ${email}. Votre adresse change dès que vous l'utilisez.`,
 		removed: "Votre adresse est retirée.",
 		email: "E-mail",
@@ -226,9 +231,18 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 					</div>
 				</form>
 			</section>
-			<button class="c-btn c-btn--secondary" type="button" onClick={onSignOut}>
-				{t.signOut}
-			</button>
+			<section class="section c-card panel narrow">
+				<h2 class="c-h4">{t.signOutTitle}</h2>
+				<p class="c-small c-muted">
+					{t.sessionEnds(new Date(api.session.expiresAt).toLocaleString(locale, { dateStyle: "long", timeStyle: "short" }))}
+				</p>
+				<div>
+					<button class="c-btn c-btn--secondary" type="button" onClick={onSignOut}>
+						<LogOut class="i" size={16} aria-hidden="true" />
+						{t.signOut}
+					</button>
+				</div>
+			</section>
 		</>
 	);
 }

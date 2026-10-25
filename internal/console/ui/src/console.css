@@ -307,6 +307,10 @@
 	color: var(--color-text);
 	text-decoration: none;
 }
+.console-account__link:hover .console-account__name {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
 /* A label longer than the sidebar, a French word or the title of a Room,
    goes on a second line inside its item rather than out of it. */
 .c-sidebar .c-nav {
@@ -317,15 +321,20 @@
 	line-height: var(--leading-sm);
 	overflow-wrap: anywhere;
 }
-/* The languages of the console, at the foot of the navigation: on every
-   page, and in the menu on a narrow screen. */
+/* The foot of the navigation, on every page and in the menu on a narrow
+   screen: the account, then the languages of the console. */
+.sidebar-foot {
+	display: grid;
+	gap: 2px;
+	margin-top: var(--space-4);
+	padding-top: var(--space-4);
+	border-top: 1px solid var(--color-border);
+}
 .sidebar-languages {
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	margin-top: var(--space-4);
-	padding: var(--space-4) var(--space-3) 0;
-	border-top: 1px solid var(--color-border);
+	padding: var(--space-2) var(--space-3) 0;
 	color: var(--color-text-muted);
 }
 .sidebar-languages .languages {
