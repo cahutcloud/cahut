@@ -1,6 +1,6 @@
 # Cahut · Charte graphique
 
-Version 1.1 · 21 octobre 2026 · Olivier Durand
+Version 1.5 · 25 octobre 2026 · Olivier Durand
 
 ![Cahut, la maison ouverte](illustrations/maison-ouverte.png)
 
@@ -304,6 +304,7 @@ Chaque visuel a son gabarit HTML modifiable dans [`applications/gabarits/`](appl
 | Couverture de la page LinkedIn | 1512 × 256 | [`banniere-linkedin-page.png`](applications/banniere-linkedin-page.png) |
 | Bannière du profil LinkedIn | 1584 × 396 | [`banniere-linkedin-profil.png`](applications/banniere-linkedin-profil.png) |
 | Bannière X | 1500 × 500 | [`banniere-x.png`](applications/banniere-x.png) |
+| Bannière YouTube | 2560 × 1440 | [`banniere-youtube.png`](applications/banniere-youtube.png) |
 | Avatar des réseaux | 400 × 400 | [`avatar-reseaux.png`](applications/avatar-reseaux.png) |
 | Diapositive de titre | 1920 × 1080 | [`diapo-titre.png`](applications/diapo-titre.png) |
 | Diapositive de section | 1920 × 1080 | [`diapo-section.png`](applications/diapo-section.png) |
@@ -321,6 +322,8 @@ Chaque visuel a son gabarit HTML modifiable dans [`applications/gabarits/`](appl
 **Réseaux.** L'avatar est le même sur GitHub, LinkedIn, X et ailleurs : [`avatar-reseaux.png`](applications/avatar-reseaux.png), un carré Paper plein avec le symbole Ink et sa porte éclairée (section 2). Il n'a pas de coins arrondis, car chaque réseau pose son propre masque : un cercle sur X et les profils GitHub, un carré arrondi sur les organisations GitHub et les pages LinkedIn. Le symbole tient dans le cercle. L'icône d'application ne convient pas, ses coins arrondis laisseraient des angles vides, ni le symbole seul, transparent.
 
 Les bannières sont sur Paper, avec la maison ouverte à droite. Le logo de la page ou la photo du profil s'y pose en bas à gauche. Sur LinkedIn, ne mettez rien dans le quart gauche de la couverture d'une page, ni dans le tiers gauche de la bannière d'un profil ; sur X, gardez libre le coin inférieur gauche, sous y = 300 et avant x = 400. LinkedIn recadre une image qui n'a pas le format attendu, et ce format n'est pas le même pour une page et pour un profil.
+
+Sur YouTube, la photo de la chaîne se pose sous la bannière, mais l'image change de cadre selon l'écran : une télévision la montre entière, un ordinateur n'en garde que la bande de 2560 × 423 du milieu, et un téléphone la seule zone sûre de 1546 × 423 au centre. Le texte et le logo tiennent dans cette zone sûre ; le reste n'est que du fond.
 
 Pour la signature e-mail, remplacez l'image par une adresse publique avant usage.
 
@@ -405,5 +408,6 @@ charte-graphique/
 | 1.2 | 23 octobre 2026 | Couverture de la page LinkedIn au format des pages, 1512 × 256 ; bannière du profil renommée `banniere-linkedin-profil` et recomposée hors de la photo. Règle de l'avatar des réseaux et des zones que couvrent le logo ou la photo |
 | 1.3 | 25 octobre 2026 | La porte éclairée : l'icône d'application, ses icônes web et l'avatar des réseaux passent sur Paper, avec le symbole Ink et la porte en Soft Yellow, à la place du symbole blanc sur Sky. Le blanc sur Sky ne sert plus. La bannière X passe sur Paper, avec la maison ouverte, comme celles de LinkedIn |
 | 1.4 | 25 octobre 2026 | En français, Cahut est féminin : *une Cahut*, *votre Cahut est prête*. La personnalité et les valeurs s'accordent |
+| 1.5 | 25 octobre 2026 | Bannière YouTube, 2560 × 1440, avec son texte et son logo dans la zone sûre de 1546 × 423 que montrent tous les écrans |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.
