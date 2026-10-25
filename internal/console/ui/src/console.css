@@ -388,6 +388,12 @@
 	gap: var(--space-2);
 	min-width: 0;
 }
+/* A title longer than the screen, the domain of a Cahut or a long name,
+   goes on several lines rather than widen the page. */
+.page-head__text .c-h1,
+.page-head__text p {
+	overflow-wrap: anywhere;
+}
 .section {
 	margin-top: var(--space-8);
 	display: grid;
