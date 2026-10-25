@@ -105,6 +105,15 @@ func endSessions(ctx context.Context, tx *sql.Tx, userID, keep int64) error {
 	return err
 }
 
+// The refusals that people meet when they sign in or activate their
+// account, which the console says in their language.
+var (
+	errDisabled = operation.NewRefusal("account_disabled", operation.ErrForbidden,
+		"this account is disabled: an administrator of the Cahut can enable it")
+	errActivationGone = operation.NewRefusal("activation_link_gone", operation.ErrForbidden,
+		"this activation link is unknown, used or expired: ask an administrator of the Cahut for a new one")
+)
+
 // ActivateInput is the input of activate_account.
 type ActivateInput struct {
 	Code     string `json:"code" jsonschema:"the code of the activation link"`
@@ -128,8 +137,7 @@ var ActivateAccount = &operation.Op[ActivateInput, Session]{
 			SELECT u.handle FROM activations a JOIN users u ON u.id = a.user_id
 			WHERE a.hash = ? AND a.expires_at > ?`, credential.Hash(strings.TrimSpace(in.Code)), store.FormatTime(c.Now)).Scan(&handle)
 		if errors.Is(err, sql.ErrNoRows) {
-			return Session{}, operation.Forbiddenf("this activation link is unknown, used or expired: " +
-				"ask an administrator of the Cahut for a new one")
+			return Session{}, errActivationGone
 		}
 		if err != nil {
 			return Session{}, err
@@ -141,7 +149,7 @@ var ActivateAccount = &operation.Op[ActivateInput, Session]{
 		c.Identify(operation.Person, p.ID, p.Handle)
 		c.Log(p.Handle, "")
 		if p.Status == Disabled {
-			return Session{}, operation.Forbiddenf("this account is disabled: an administrator of the Cahut can enable it")
+			return Session{}, errDisabled
 		}
 		hash, err := credential.HashPassword(ctx, in.Password)
 		if err != nil {
@@ -239,7 +247,7 @@ var SignIn = &operation.Op[SignInInput, Session]{
 			return Session{}, credential.ErrWrongPassword // its password changed since it was checked
 		}
 		if p.Status == Disabled {
-			return Session{}, operation.Forbiddenf("this account is disabled: an administrator of the Cahut can enable it")
+			return Session{}, errDisabled
 		}
 		return openSession(ctx, c, p)
 	},
@@ -306,7 +314,7 @@ var ChangePassword = &operation.Op[ChangePasswordInput, PasswordChanged]{
 			return PasswordChanged{}, err
 		}
 		if !ok {
-			return PasswordChanged{}, operation.Forbiddenf("the current password is wrong")
+			return PasswordChanged{}, credential.ErrWrongCurrentPassword
 		}
 		hash, err := credential.HashPassword(ctx, in.NewPassword)
 		if err != nil {
@@ -329,8 +337,9 @@ type SessionOwner struct {
 	Handle    string
 }
 
-// ErrInvalidSession means the session is unknown or has ended.
-var ErrInvalidSession = errors.New("invalid or ended session")
+// ErrInvalidSession means the session is unknown or has ended. The console
+// says it in the language of its person; no operation returns it.
+var ErrInvalidSession = operation.NewRefusal("session_ended", nil, "invalid or ended session")
 
 // VerifySession checks a session token and returns who it belongs to. It
 // records when the session was last used, at most once a minute.

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/credential"
@@ -65,6 +66,12 @@ func apiPage(s sample) page {
 			web.SignInBurst, int(web.SignInEvery.Seconds()), credential.MaxRefusals, credential.MaxHandleRefusals, int(credential.RefusalWindow.Minutes()))},
 		{status(http.StatusInternalServerError), "Anything else"},
 	})
+	m.block("A refusal that people meet in the console gives its code too, which never changes, and the values of its message, as in " +
+		code(fmt.Sprintf(`{"error": "invalid input: the password has 9 characters: use at least %d", "code": "password_too_short", "values": {"length": 9, "limit": %d}}`,
+			credential.MinPassword, credential.MinPassword)) +
+		". The console says it in the language of its person. A program tells these refusals apart by their code: " +
+		"the wording of a message may change.")
+	m.table([]string{"Code", "Values", "Message"}, refusalRows(operation.Refusals()))
 
 	m.block("## Operations of a Cahut")
 	m.table([]string{"Route", "Who calls it", "Session"}, apiRows("/api/", s.cahutOps))
@@ -95,6 +102,22 @@ func apiPage(s sample) page {
 	}
 	m.table([]string{"Route", "What it does"}, serviceRows(services))
 	return p
+}
+
+func refusalRows(refusals []operation.RefusalInfo) [][]string {
+	var rows [][]string
+	for _, r := range refusals {
+		var values []string
+		if r.Values != nil {
+			for f := range r.Values.Fields() {
+				if name, _, _ := strings.Cut(f.Tag.Get("json"), ","); f.IsExported() && name != "" && name != "-" {
+					values = append(values, code(name))
+				}
+			}
+		}
+		rows = append(rows, []string{code(r.Code), strings.Join(values, ", "), text(capitalize(r.Message))})
+	}
+	return rows
 }
 
 func serviceRows(ops []operation.Info) [][]string {

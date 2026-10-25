@@ -646,6 +646,13 @@ export interface KnockListInput {
   limit?: number;
 }
 
+export interface Length {
+  /** how many characters it has */
+  length: number;
+  /** the fewest, or the most, it may have */
+  limit: number;
+}
+
 export interface Limits {
   /** how many people the Cahut may have, active or waiting for their activation, administrators included; disabled people do not count */
   people?: number;
@@ -1184,6 +1191,10 @@ export type SignOutInput = Record<string, never>;
 
 export type SignedOut = Record<string, never>;
 
+export interface TakenEmail {
+  email: string;
+}
+
 export interface Template {
   /** the kind of Window it makes */
   kind: string;
@@ -1289,6 +1300,11 @@ export interface Version {
   /** handle of the person it was published for */
   published_by: string;
   published_at: string;
+}
+
+export interface Wait {
+  /** how long to wait, in minutes */
+  minutes: number;
 }
 
 export interface Window {
@@ -1553,4 +1569,40 @@ export interface ServerOperations {
   sign_in: { input: SignInInput; output: ServerSession };
   /** End the session you signed in with, as an administrator of the server. */
   sign_out: { input: SignOutInput; output: SignedOut };
+}
+
+/** The refusals that the console says in the language of its person, by code, each with its values. */
+export interface Refusals {
+  /** this account is disabled: an administrator of the Cahut can enable it */
+  account_disabled: null;
+  /** this activation link is unknown, used or expired: ask an administrator of the Cahut for a new one */
+  activation_link_gone: null;
+  /** this link is unknown, used or expired: change your address again from your account */
+  email_link_gone: null;
+  /** {email} is already the e-mail address of another person of this Cahut */
+  email_taken: TakenEmail;
+  /** this invitation does not open the Window any more: it was taken back, it expired, or the Window changed its Key or its access. Ask the person who invited you for a new one */
+  invitation_gone: null;
+  /** this Cahut sends no e-mail: an administrator of the Cahut can give you a new link */
+  no_password_link: null;
+  /** the password has {length} characters: use at most {limit} */
+  password_too_long: Length;
+  /** the password has {length} characters: use at least {limit} */
+  password_too_short: Length;
+  /** this account is disabled: another administrator of the server can enable it */
+  server_account_disabled: null;
+  /** this activation link is unknown, used or expired: ask another administrator of the server for a new one, or run cahut admin link on the server */
+  server_activation_link_gone: null;
+  /** invalid or ended session */
+  session_ended: null;
+  /** too many attempts from this address: wait a minute */
+  too_many_attempts_from_address: null;
+  /** too many refused sign-ins for this handle: try again in {minutes} minutes */
+  too_many_refused_sign_ins: Wait;
+  /** too many sign-ins at once: try again in a few seconds */
+  too_many_sign_ins_at_once: null;
+  /** the current password is wrong */
+  wrong_current_password: null;
+  /** wrong handle or password */
+  wrong_handle_or_password: null;
 }

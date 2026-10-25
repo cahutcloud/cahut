@@ -61,7 +61,24 @@ const (
 
 // ErrWrongPassword answers every failed sign-in alike, so that it does not
 // tell whether a handle exists.
-var ErrWrongPassword = operation.Forbiddenf("wrong handle or password")
+var ErrWrongPassword = operation.NewRefusal("wrong_handle_or_password", operation.ErrForbidden, "wrong handle or password")
+
+// ErrWrongCurrentPassword refuses a change of password whose current
+// password is wrong.
+var ErrWrongCurrentPassword = operation.NewRefusal("wrong_current_password", operation.ErrForbidden, "the current password is wrong")
+
+// The refusals of a sign-in that must wait.
+var (
+	tooManyRefused = operation.NewRefusalOf[Wait]("too_many_refused_sign_ins", operation.ErrTooMany,
+		"too many refused sign-ins for this handle: try again in {minutes} minutes")
+	errTooManyAtOnce = operation.NewRefusal("too_many_sign_ins_at_once", operation.ErrTooMany,
+		"too many sign-ins at once: try again in a few seconds")
+)
+
+// Wait fills the refusal of a sign-in that must wait.
+type Wait struct {
+	Minutes int `json:"minutes" jsonschema:"how long to wait, in minutes"`
+}
 
 // SignIn is an attempt to sign in, as CheckSignIn checks it.
 type SignIn struct {
@@ -83,8 +100,7 @@ type SignIn struct {
 func CheckSignIn(ctx context.Context, in SignIn) error {
 	switch {
 	case in.RefusedHere >= MaxRefusals || in.RefusedAll >= MaxHandleRefusals:
-		return fmt.Errorf("%w: too many refused sign-ins for this handle: try again in %d minutes",
-			operation.ErrTooMany, int(RefusalWindow.Minutes()))
+		return tooManyRefused(Wait{Minutes: int(RefusalWindow.Minutes())})
 	case utf8.RuneCountInString(in.Password) > MaxPassword:
 		return ErrWrongPassword // no password is this long: nothing to hash
 	}
@@ -123,7 +139,7 @@ func signInTurn(ctx context.Context) (release func(), err error) {
 	case signIns <- struct{}{}:
 		return func() { <-signIns }, nil
 	case <-timer.C:
-		return nil, fmt.Errorf("%w: too many sign-ins at once: try again in a few seconds", operation.ErrTooMany)
+		return nil, errTooManyAtOnce
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
@@ -133,14 +149,28 @@ func signInTurn(ctx context.Context) (release func(), err error) {
 // cannot exhaust the memory of a small server: each takes 19 MiB.
 var slots = make(chan struct{}, 4)
 
+// The refusals of a password too short or too long.
+var (
+	passwordTooShort = operation.NewRefusalOf[Length]("password_too_short", operation.ErrInvalid,
+		"the password has {length} characters: use at least {limit}")
+	passwordTooLong = operation.NewRefusalOf[Length]("password_too_long", operation.ErrInvalid,
+		"the password has {length} characters: use at most {limit}")
+)
+
+// Length fills the refusal of a password too short or too long.
+type Length struct {
+	Length int `json:"length" jsonschema:"how many characters it has"`
+	Limit  int `json:"limit" jsonschema:"the fewest, or the most, it may have"`
+}
+
 // CheckPolicy returns an error wrapping operation.ErrInvalid when password
 // is too short or too long. There is no rule on what it is made of.
 func CheckPolicy(password string) error {
 	switch n := utf8.RuneCountInString(password); {
 	case n < MinPassword:
-		return operation.Invalidf("the password has %d characters: use at least %d", n, MinPassword)
+		return passwordTooShort(Length{Length: n, Limit: MinPassword})
 	case n > MaxPassword:
-		return operation.Invalidf("the password has %d characters: use at most %d", n, MaxPassword)
+		return passwordTooLong(Length{Length: n, Limit: MaxPassword})
 	}
 	return nil
 }

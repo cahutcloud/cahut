@@ -4,6 +4,7 @@
 // with the wrong input, fails the build. See docs/adr/0014-console-http-api.md.
 import type { CahutOperations, ServerOperations } from "./api.gen";
 import { words } from "./i18n";
+import { say } from "./refusals";
 import { base } from "./router";
 
 const t = words({
@@ -11,12 +12,19 @@ const t = words({
 	fr: { noAnswer: "Cahut ne répond pas. Vérifiez votre connexion, puis réessayez." },
 });
 
-/** A call that the API refused, with its status and its message. */
+/**
+ * A call that the API refused, with its status and its message, and the
+ * code and values of a refusal that the console says in its language.
+ */
 export class ApiError extends Error {
 	status: number;
-	constructor(status: number, message: string) {
+	code?: string;
+	values?: unknown;
+	constructor(status: number, message: string, code?: string, values?: unknown) {
 		super(message);
 		this.status = status;
+		this.code = code;
+		this.values = values;
 	}
 }
 
@@ -26,9 +34,9 @@ async function post(path: string, input: unknown, token?: string): Promise<unkno
 		headers.Authorization = `Bearer ${token}`;
 	}
 	const res = await fetch(path, { method: "POST", headers, body: JSON.stringify(input) });
-	const body = (await res.json().catch(() => ({}))) as { error?: string };
+	const body = (await res.json().catch(() => ({}))) as { error?: string; code?: string; values?: unknown };
 	if (!res.ok) {
-		throw new ApiError(res.status, body.error ?? res.statusText);
+		throw new ApiError(res.status, body.error ?? res.statusText, body.code, body.values);
 	}
 	return body;
 }
@@ -56,12 +64,18 @@ export function server<K extends keyof ServerOperations>(
 const prefixes = ["invalid input: ", "not allowed: ", "not found: ", "too many attempts: ", "needs the approval of a person: "];
 
 /**
- * Says what went wrong, in a sentence for the person who reads it. The API
- * writes its messages in English, for AIs and people alike.
+ * Says what went wrong, in a sentence for the person who reads it: that of
+ * the refusal's code, in the language of the console, or else the message
+ * of the API, which the server writes in English, for AIs and people alike.
+ * See docs/adr/0037-refusals-with-a-code-for-the-console.md.
  */
 export function explain(err: unknown): string {
 	if (!(err instanceof ApiError)) {
 		return t.noAnswer;
+	}
+	const said = err.code === undefined ? undefined : say(err.code, err.values);
+	if (said !== undefined) {
+		return said;
 	}
 	let msg = err.message;
 	for (const p of prefixes) {

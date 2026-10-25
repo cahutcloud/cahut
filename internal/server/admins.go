@@ -295,6 +295,16 @@ func openSession(ctx context.Context, c *operation.Call, a adminRecord) (Session
 	return s, err
 }
 
+// The refusals that administrators of the server meet when they sign in or
+// activate their account, which the console says in their language.
+var (
+	errDisabled = operation.NewRefusal("server_account_disabled", operation.ErrForbidden,
+		"this account is disabled: another administrator of the server can enable it")
+	errActivationGone = operation.NewRefusal("server_activation_link_gone", operation.ErrForbidden,
+		"this activation link is unknown, used or expired: "+
+			"ask another administrator of the server for a new one, or run cahut admin link on the server")
+)
+
 // ActivateAccount sets an administrator's password from an activation link,
 // and signs them in at the domain of the call. It ends their other sessions.
 var ActivateAccount = &operation.Op[account.ActivateInput, Session]{
@@ -313,8 +323,7 @@ var ActivateAccount = &operation.Op[account.ActivateInput, Session]{
 			SELECT a.handle FROM admin_activations v JOIN admins a ON a.id = v.admin_id
 			WHERE v.hash = ? AND v.expires_at > ?`, credential.Hash(strings.TrimSpace(in.Code)), store.FormatTime(c.Now)).Scan(&handle)
 		if errors.Is(err, sql.ErrNoRows) {
-			return Session{}, operation.Forbiddenf("this activation link is unknown, used or expired: " +
-				"ask another administrator of the server for a new one, or run cahut admin link on the server")
+			return Session{}, errActivationGone
 		}
 		if err != nil {
 			return Session{}, err
@@ -326,7 +335,7 @@ var ActivateAccount = &operation.Op[account.ActivateInput, Session]{
 		c.Identify(operation.Admin, 0, a.Handle)
 		c.Log(a.Handle, "")
 		if a.Status == account.Disabled {
-			return Session{}, operation.Forbiddenf("this account is disabled: another administrator of the server can enable it")
+			return Session{}, errDisabled
 		}
 		hash, err := credential.HashPassword(ctx, in.Password)
 		if err != nil {
@@ -408,7 +417,7 @@ var SignIn = &operation.Op[account.SignInInput, Session]{
 			return Session{}, credential.ErrWrongPassword // its password changed since it was checked
 		}
 		if a.Status == account.Disabled {
-			return Session{}, operation.Forbiddenf("this account is disabled: another administrator of the server can enable it")
+			return Session{}, errDisabled
 		}
 		return openSession(ctx, c, a)
 	},
@@ -459,7 +468,7 @@ var ChangePassword = &operation.Op[account.ChangePasswordInput, account.Password
 			return account.PasswordChanged{}, err
 		}
 		if !ok {
-			return account.PasswordChanged{}, operation.Forbiddenf("the current password is wrong")
+			return account.PasswordChanged{}, credential.ErrWrongCurrentPassword
 		}
 		hash, err := credential.HashPassword(ctx, in.NewPassword)
 		if err != nil {

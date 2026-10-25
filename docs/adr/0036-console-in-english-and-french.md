@@ -1,6 +1,6 @@
 # 36. The console speaks English and French, in the language of each browser
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 37](0037-refusals-with-a-code-for-the-console.md) (the console says in its language the refusals of the server that carry a code)
 - Date: 2026-10-25
 
 ## Context

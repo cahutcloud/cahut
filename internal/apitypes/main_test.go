@@ -29,6 +29,10 @@ func TestRun(t *testing.T) {
 		"  list_domains: { input: ListDomainsInput; output: DomainList };\n",
 		"export interface ServerOperations {",
 		"  room?: string;\n",
+		"  wrong_handle_or_password: null;\n",
+		"  password_too_short: Length;\n",
+		"  session_ended: null;\n",
+		"  too_many_attempts_from_address: null;\n",
 	} {
 		if !strings.Contains(string(got), want) {
 			t.Errorf("the types lack %q", want)
@@ -52,9 +56,18 @@ type sample struct {
 	Nested   map[string][]byte `json:"nested"`
 }
 
+// roomName fills a refusal of the sample.
+type roomName struct {
+	Name string `json:"name"`
+}
+
 func TestGenerate(t *testing.T) {
 	ops := []operation.Info{{Name: "try", Description: "Try a sample */ out.", Input: reflect.TypeFor[sample](), Output: reflect.TypeFor[struct{}]()}}
-	got := generate(ops, nil)
+	refusals := []operation.RefusalInfo{
+		{Code: "plain", Message: "a plain */ refusal"},
+		{Code: "filled", Message: "the room {name} is full", Values: reflect.TypeFor[roomName]()},
+	}
+	got := generate(ops, nil, refusals)
 	for _, want := range []string{
 		"export interface sample {\n  /** a name */\n  name: string;\n  count: number;\n  tags?: string[];\n  at: string;\n  seen?: string;\n" +
 			"  labels: Record<string, boolean>;\n  window: Window;\n  lists: RoomList[];\n  inline: { N: number; };\n  pointers: WindowList;\n" +
@@ -62,6 +75,8 @@ func TestGenerate(t *testing.T) {
 		"export interface RoomList {",
 		"export interface WindowList {",
 		"  /** Try a sample * / out. */\n  try: { input: sample; output: Record<string, never> };\n",
+		"export interface roomName {\n  name: string;\n}\n",
+		"export interface Refusals {\n  /** a plain * / refusal */\n  plain: null;\n  /** the room {name} is full */\n  filled: roomName;\n}\n",
 	} {
 		if !strings.Contains(got, want) {
 			t.Errorf("the types lack %q:\n%s", want, got)
