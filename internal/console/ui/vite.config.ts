@@ -24,8 +24,12 @@ export default defineConfig({
 		port: 5173,
 		strictPort: true,
 		fs: { allow: [".", charte] },
-		// make dev serves the API of the console on port 8080. The proxy keeps
-		// the host, so that the API answers as the Cahut at localhost.
-		proxy: { "/console/api": { target: "http://localhost:8080" } },
+		// make dev serves the API of the console on port 8080, and the icons
+		// that its page names under /-/brand/. The proxy keeps the host, so
+		// that the API answers as the Cahut at localhost.
+		proxy: {
+			"/console/api": { target: "http://localhost:8080" },
+			"/-/brand": { target: "http://localhost:8080" },
+		},
 	},
 });

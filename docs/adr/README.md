@@ -43,6 +43,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [37](0037-refusals-with-a-code-for-the-console.md) | The refusals that people meet carry a code, which the console says in its language | Accepted |
 | [38](0038-the-root-of-a-cahut-opens-its-console.md) | The root of a Cahut opens its console | Accepted |
 | [39](0039-people-change-their-name-and-handle.md) | People change their name and their handle, and their personal Room follows | Accepted |
+| [40](0040-the-icon-of-a-cahut.md) | Each Cahut gives its icon to browsers, favicon services and AI clients | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

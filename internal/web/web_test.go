@@ -768,6 +768,28 @@ func TestInstructionsStartWithWhatToPublish(t *testing.T) {
 	}
 }
 
+// The MCP server of a Cahut gives AI clients the app icon of Cahut, at the
+// origin of the Cahut, to show beside its connector. See
+// docs/adr/0040-the-icon-of-a-cahut.md.
+func TestMCPServerIcons(t *testing.T) {
+	f := setup(t)
+	info := f.connect(t, "localhost", f.token).InitializeResult().ServerInfo
+	if info.Title != "Cahut" || info.WebsiteURL != "https://localhost/" || len(info.Icons) != 2 {
+		t.Fatalf("the server info = %+v", info)
+	}
+	for _, icon := range info.Icons {
+		p, ok := strings.CutPrefix(icon.Source, "https://localhost/")
+		if !ok {
+			t.Errorf("an icon at %q, not at the origin of the Cahut", icon.Source)
+			continue
+		}
+		resp, _ := f.get(t, "localhost", http.MethodGet, "/"+p)
+		if resp.StatusCode != http.StatusOK || resp.Header.Get("Content-Type") != icon.MIMEType {
+			t.Errorf("GET %s = %d %q, want 200 %q", icon.Source, resp.StatusCode, resp.Header.Get("Content-Type"), icon.MIMEType)
+		}
+	}
+}
+
 // TestEveryOperationHasATitle checks the operations of a Cahut and of the
 // server, which the console and MCP clients name by their titles.
 func TestEveryOperationHasATitle(t *testing.T) {

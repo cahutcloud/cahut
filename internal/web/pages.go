@@ -108,6 +108,8 @@ const BrandPath = "/-/brand/"
 var brandTypes = map[string]string{
 	".css":   "text/css; charset=utf-8",
 	".svg":   "image/svg+xml",
+	".png":   "image/png",
+	".ico":   "image/x-icon",
 	".woff2": "font/woff2",
 	".txt":   "text/plain; charset=utf-8",
 }
@@ -142,6 +144,34 @@ func serveBrand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	serveHouseAsset(w, r, a)
+}
+
+// rootIcons are the icons that browsers, and the services that draw the
+// icon of a site for AI clients, ask for at the root of a domain, by the
+// path of the file of the brand that each one serves.
+var rootIcons = map[string]string{
+	"/favicon.ico":          "logos/favicon/favicon.ico",
+	"/apple-touch-icon.png": "logos/favicon/apple-touch-icon.png",
+}
+
+// serveRootIcon serves the icon of Cahut at the root of the Cahut while its
+// house style keeps the look of the neutral one, as its pages do: the tab
+// of every page of the domain shows it, Windows included, and the logo of
+// Cahut never appears beside an organization. The console names its icons
+// under BrandPath, where they stay whatever the house style. See
+// docs/adr/0040-the-icon-of-a-cahut.md.
+func (s *Server) serveRootIcon(w http.ResponseWriter, r *http.Request) {
+	c := siteOf(r).cahut
+	brand, err := housestyle.LoadBrand(r.Context(), c.DB, c.Domain)
+	if err != nil {
+		s.log.Error("read the house style", "cahut", c.Domain, "error", err)
+		brand.NeutralLook = true
+	}
+	if !brand.NeutralLook {
+		http.NotFound(w, r)
+		return
+	}
+	serveHouseAsset(w, r, brandAssets()[rootIcons[r.URL.Path]])
 }
 
 // brandSVG writes inline the picture of the brand at p, so that its

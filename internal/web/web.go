@@ -164,6 +164,11 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.mux.HandleFunc("GET /-/frame.js", serveAsset("frame.js"))
 	s.mux.HandleFunc("GET /-/pages.js", serveAsset("pages.js"))
 	s.mux.HandleFunc("GET "+BrandPath+"{file...}", serveBrand)
+	// The icon of Cahut, where browsers look for that of a site. See
+	// docs/adr/0040-the-icon-of-a-cahut.md.
+	for p := range rootIcons {
+		s.mux.HandleFunc("GET "+p, s.serveRootIcon)
+	}
 	// The house style of the Cahut, for its Windows and its pages. See
 	// docs/adr/0022-house-style-of-each-cahut.md.
 	s.mux.HandleFunc("GET "+housestyle.SheetPath, s.serveHouseStyle)

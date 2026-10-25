@@ -1,6 +1,6 @@
 # 32. The page of a Room shows its Windows in previews, or a Window that its owners choose, in the brand of Cahut until the house style
 
-- Status: Accepted, extended by [ADR 33](0033-the-brand-of-cahut-until-the-house-style-has-a-look.md) (the pages carry the brand of Cahut while the house style keeps the look of the neutral one, whatever it says to AIs), and superseded in part by [ADR 38](0038-the-root-of-a-cahut-opens-its-console.md) (the root of a Cahut opens its console, and is no home for readers)
+- Status: Accepted, extended by [ADR 33](0033-the-brand-of-cahut-until-the-house-style-has-a-look.md) (the pages carry the brand of Cahut while the house style keeps the look of the neutral one, whatever it says to AIs), extended by [ADR 40](0040-the-icon-of-a-cahut.md) (the root of a Cahut serves the icon of Cahut while the house style keeps the look of the neutral one), and superseded in part by [ADR 38](0038-the-root-of-a-cahut-opens-its-console.md) (the root of a Cahut opens its console, and is no home for readers)
 - Date: 2026-10-24
 
 ## Context
