@@ -66,3 +66,42 @@ func TestParseSize(t *testing.T) {
 		}
 	}
 }
+
+func TestSettingsLinks(t *testing.T) {
+	data := t.TempDir()
+	if code, _, errOut := run(t, data, "domain", "add", "cahut.example.com"); code != exitOK {
+		t.Fatalf("domain add: %d %q", code, errOut)
+	}
+
+	code, out, errOut := run(t, data, "settings", "links")
+	if code != exitOK || !strings.Contains(out, "Legal pages of cahut.example.com:") || !regexp.MustCompile(`terms\s+none\n`).MatchString(out) {
+		t.Errorf("settings links: %d %q %q", code, out, errOut)
+	}
+
+	code, out, errOut = run(t, data, "settings", "links", "--terms", "https://host.example/terms", "--terms-fr", "https://host.example/fr/conditions",
+		"--privacy", "https://host.example/privacy")
+	if code != exitOK || !strings.Contains(out, "Set the legal pages of cahut.example.com:") ||
+		!regexp.MustCompile(`terms\s+https://host.example/terms\s+https://host.example/fr/conditions\n`).MatchString(out) ||
+		!regexp.MustCompile(`privacy\s+https://host.example/privacy\s*\n`).MatchString(out) {
+		t.Errorf("settings links --terms: %d %q %q", code, out, errOut)
+	}
+	// The links left out stay; none removes one, with its address in French.
+	code, out, _ = run(t, data, "settings", "links", "--support", "https://help.host.example/", "--terms", "none")
+	if code != exitOK || !regexp.MustCompile(`terms\s+none\s*\n`).MatchString(out) || strings.Contains(out, "conditions") ||
+		!regexp.MustCompile(`privacy\s+https://host.example/privacy`).MatchString(out) || !regexp.MustCompile(`support\s+https://help.host.example/`).MatchString(out) {
+		t.Errorf("settings links again: %d %q", code, out)
+	}
+	if code, out, _ := run(t, data, "settings", "show"); code != exitOK || !strings.Contains(out, "Legal pages:") ||
+		!regexp.MustCompile(`privacy\s+https://host.example/privacy`).MatchString(out) {
+		t.Errorf("settings show: %d %q", code, out)
+	}
+
+	if code, _, errOut := run(t, data, "settings", "links", "--privacy", "http://host.example/privacy"); code != exitError ||
+		!strings.Contains(errOut, "privacy: give the address of a page, which starts with https://") {
+		t.Errorf("settings links --privacy http://: %d %q", code, errOut)
+	}
+	if code, _, errOut := run(t, data, "settings", "links", "--legal-notice-fr", "https://host.example/fr/mentions-legales"); code != exitError ||
+		!strings.Contains(errOut, "fr.legal_notice: give legal_notice too") {
+		t.Errorf("settings links --legal-notice-fr alone: %d %q", code, errOut)
+	}
+}

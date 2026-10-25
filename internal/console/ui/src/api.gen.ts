@@ -17,6 +17,8 @@ export interface About {
   usage?: Usage;
   /** in an individual Cahut, what the person you act for holds, as the limits per person count it */
   yours?: PersonUsage;
+  /** the links to the legal pages of the Cahut, which its host publishes elsewhere, and which the console and the pages for readers show at their foot; empty when it links none */
+  legal: LegalLinks;
 }
 
 export interface AccessInput {
@@ -678,6 +680,34 @@ export interface KnockListInput {
   limit?: number;
 }
 
+export interface LegalLink {
+  link: string;
+}
+
+export interface LegalLinks {
+  /** the address of the legal notice: who publishes the service and who hosts it */
+  legal_notice?: string;
+  /** the address of the terms of use */
+  terms?: string;
+  /** the address of the privacy policy */
+  privacy?: string;
+  /** the address of the page where people get help */
+  support?: string;
+  /** the addresses of the same pages in French, where they differ: the console links them when it speaks French. Each needs the address of its page for every other language */
+  fr?: LegalPages;
+}
+
+export interface LegalPages {
+  /** the address of the legal notice: who publishes the service and who hosts it */
+  legal_notice?: string;
+  /** the address of the terms of use */
+  terms?: string;
+  /** the address of the privacy policy */
+  privacy?: string;
+  /** the address of the page where people get help */
+  support?: string;
+}
+
 export interface Length {
   /** how many characters it has */
   length: number;
@@ -709,6 +739,11 @@ export interface Limits {
   windows_per_person?: number;
   /** in an individual Cahut, how many bytes the Windows of each person may keep, every version included */
   disk_per_person?: number;
+}
+
+export interface LinkInFrenchOnly {
+  link: string;
+  page: string;
 }
 
 export type ListAdminsInput = Record<string, never>;
@@ -1163,6 +1198,19 @@ export interface SetInput {
   guidance?: string;
 }
 
+export interface SetLegalLinksInput {
+  /** the address of the legal notice: who publishes the service and who hosts it */
+  legal_notice?: string;
+  /** the address of the terms of use */
+  terms?: string;
+  /** the address of the privacy policy */
+  privacy?: string;
+  /** the address of the page where people get help */
+  support?: string;
+  /** the addresses of the same pages in French, where they differ: the console links them when it speaks French. Each needs the address of its page for every other language */
+  fr?: LegalPages;
+}
+
 export interface SetMailNoticesInput {
   /** true turns off the notices that are neither about your account nor about a Knock, such as being added to a Room; false turns them on again */
   off: boolean;
@@ -1224,6 +1272,8 @@ export interface Settings {
   usage?: Usage;
   /** in an individual Cahut, what the person you act for holds, as the limits per person count it */
   yours?: PersonUsage;
+  /** the links to the legal pages of the Cahut, which its host publishes elsewhere, and which the console and the pages for readers show at their foot; empty when it links none */
+  legal: LegalLinks;
 }
 
 export interface Setup {
@@ -1255,6 +1305,8 @@ export interface SignInInput {
 export interface SignInPage {
   /** whether this Cahut sends e-mail, and so a link to a person who forgot their password */
   sends_mail: boolean;
+  /** the links to the legal pages of the Cahut, which the pages before sign-in show at their foot */
+  legal: LegalLinks;
 }
 
 export type SignInToWindowsInput = Record<string, never>;
@@ -1506,7 +1558,7 @@ export interface CahutOperations {
   deny_knock: { input: AnswerInput; output: Knock };
   /** Check the request of an AI client to connect to this Cahut, and describe it to the person who consents: the client, where it will be sent back, the scope it asks for, and the Rooms the person may grant. */
   describe_authorization: { input: DescribeInput; output: Authorization };
-  /** Say what the page of sign-in of this Cahut offers, before anyone signs in: whether it sends e-mail, and so a link to a person who forgot their password. */
+  /** Say what the page of sign-in of this Cahut offers, before anyone signs in: whether it sends e-mail, and so a link to a person who forgot their password, and the links to the legal pages of the Cahut. */
   describe_sign_in: { input: DescribeSignInInput; output: SignInPage };
   /** Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. */
   disable_user: { input: UserInput; output: User };
@@ -1516,7 +1568,7 @@ export interface CahutOperations {
   enable_user: { input: UserInput; output: User };
   /** Describe the person you act for: their handle, name, role in the Cahut and Rooms. */
   get_account: { input: GetAccountInput; output: Account };
-  /** Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. */
+  /** Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. */
   get_cahut: { input: GetCahutInput; output: About };
   /** Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for. */
   get_house_style: { input: HousestyleGetInput; output: HouseStyle };
@@ -1584,6 +1636,8 @@ export interface CahutOperations {
   set_cahut_settings: { input: SetCahutSettingsInput; output: Settings };
   /** Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. */
   set_house_style: { input: SetInput; output: HouseStyle };
+  /** Set the links to the legal pages of this Cahut, which its host publishes elsewhere: its legal notice, terms, privacy policy and support. Each is the address of a page, which starts with https://; fr gives another address for a page in French, where it differs, which the console links when it speaks French. The console and the pages for readers link them at their foot. Give every link: a link left out is removed. For the administrators of the server. */
+  set_legal_links: { input: SetLegalLinksInput; output: LegalLinks };
   /** Turn off, or on again, the e-mail notices that are neither about your account nor about a Knock, such as being added to a Room or the end of the access of a Window. */
   set_mail_notices: { input: SetMailNoticesInput; output: MailNotices };
   /** Set the SMTP relay that sends the e-mail of this Cahut, such as activation links, from an address of its own. The relay is at a public address and speaks TLS. Cahut connects to it and signs in before it keeps it. An empty host removes it: the Cahut then sends no e-mail, and its console offers nothing that would. For the administrators of the Cahut. */
@@ -1698,6 +1752,10 @@ export interface Refusals {
   key_too_long: Limit;
   /** the Key has {length} characters: give it {limit} at least, or let Cahut draw one */
   key_too_short: Length;
+  /** {link}: give {page} too, the address of the page for every other language; the address in French takes its place in French only */
+  legal_link_in_french_only: LinkInFrenchOnly;
+  /** {link}: give the address of a page, which starts with https://, such as https://example.org/terms, or leave it out to remove the link */
+  legal_link_invalid: LegalLink;
   /** name is empty */
   name_empty: null;
   /** name is longer than 200 bytes */

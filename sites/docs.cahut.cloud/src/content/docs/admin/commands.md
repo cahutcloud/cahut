@@ -83,6 +83,14 @@ team Rooms        2       none
 Windows           14      none
 Windows per Room          none
 disk              2.4 MB  none
+
+Legal pages:
+
+              ADDRESS  IN FRENCH
+legal notice  none
+terms         none
+privacy       none
+support       none
 ```
 
 The disk counts in units of 1000 bytes, as hosts sell it: `10GB` is 10 billion bytes. [Limits](/concepts/cahuts/#limits) says what each limit counts.
@@ -92,6 +100,29 @@ The disk counts in units of 1000 bytes, as hosts sell it: `10GB` is 10 billion b
 ```bash
 sudo -u cahut /usr/local/bin/cahut settings set --domain docs.example.org --kind individual --windows-per-person 50 --disk-per-person 1GB
 ```
+
+## Link the legal pages of a Cahut
+
+The [legal pages](/concepts/cahuts/#legal-pages) of a Cahut are the addresses of its legal notice, terms, privacy policy and support, which the console and the pages for readers link at their foot. `settings links` sets those you name and leaves the rest as it is; `none` removes a link, with its address in French:
+
+```bash
+sudo -u cahut /usr/local/bin/cahut settings links --domain docs.example.org \
+  --legal-notice https://example.org/legal --terms https://example.org/terms --privacy https://example.org/privacy
+sudo -u cahut /usr/local/bin/cahut settings links --domain docs.example.org --legal-notice-fr https://example.org/fr/mentions-legales
+sudo -u cahut /usr/local/bin/cahut settings links --domain docs.example.org --privacy none
+```
+
+```text
+Set the legal pages of docs.example.org:
+
+              ADDRESS                    IN FRENCH
+legal notice  https://example.org/legal  https://example.org/fr/mentions-legales
+terms         https://example.org/terms
+privacy       none
+support       none
+```
+
+Each address starts with `https://`. An address in French is for a page whose French version differs: the console links it when it speaks French, and needs the address of the same page for the other languages. Without a flag, `settings links` prints the links; `settings show` prints them too.
 
 ## Create a person
 

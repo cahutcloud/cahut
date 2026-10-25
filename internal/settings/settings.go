@@ -1,8 +1,9 @@
 // Package settings keeps the settings of a Cahut, which the administrators
-// of its server set: its kind, collaborative or individual, and the limits
-// on what it holds. Every operation that could cross a limit checks it
-// here, in its own transaction. See
-// docs/adr/0030-kind-and-limits-of-each-cahut.md.
+// of its server set: its kind, collaborative or individual, the limits on
+// what it holds, and the links to its legal pages. Every operation that
+// could cross a limit checks it here, in its own transaction. See
+// docs/adr/0030-kind-and-limits-of-each-cahut.md and
+// docs/adr/0042-the-legal-pages-of-a-cahut.md.
 package settings
 
 import (
@@ -67,6 +68,7 @@ type Settings struct {
 	Limits Limits       `json:"limits" jsonschema:"the limits that the administrators of the server set; a limit that is absent counts nothing. A member of an individual Cahut gets the limits per person only"`
 	Usage  *Usage       `json:"usage,omitempty" jsonschema:"what the Cahut holds, as its limits count it; absent for a member of an individual Cahut"`
 	Yours  *PersonUsage `json:"yours,omitempty" jsonschema:"in an individual Cahut, what the person you act for holds, as the limits per person count it"`
+	Legal  LegalLinks   `json:"legal" jsonschema:"the links to the legal pages of the Cahut, which its host publishes elsewhere, and which the console and the pages for readers show at their foot; empty when it links none"`
 }
 
 // querier runs a query, in a transaction or not.
@@ -146,7 +148,11 @@ func Read(ctx context.Context, tx *sql.Tx, userID int64, admin bool) (Settings, 
 	if err != nil {
 		return Settings{}, err
 	}
-	s := Settings{Kind: kind, Limits: l}
+	legal, err := Legal(ctx, tx)
+	if err != nil {
+		return Settings{}, err
+	}
+	s := Settings{Kind: kind, Limits: l, Legal: legal}
 	if kind == Individual && userID != 0 {
 		u, err := UseOf(ctx, tx, userID)
 		if err != nil {

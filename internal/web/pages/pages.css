@@ -197,6 +197,19 @@ h1, h2, h3 { font-family: var(--font-heading); }
 .foot { margin: var(--space-12) 0 0; }
 .foot .c-mono { overflow-wrap: anywhere; }
 
+/* The legal pages of the Cahut, at the foot of the page: discreet, in the
+   color of what is secondary. */
+.legal { padding: 0 var(--space-8) var(--space-10); }
+.legal__links {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--space-2) var(--space-6);
+	font-size: var(--text-sm);
+}
+.legal__links a { color: var(--color-text-muted); text-underline-offset: 3px; }
+.legal__links a:hover { color: var(--color-text); }
+
 /* The frame of a Window: the whole page. */
 .frame { margin: 0; overflow: hidden; }
 .frame iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
@@ -204,6 +217,7 @@ h1, h2, h3 { font-family: var(--font-heading); }
 @media (max-width: 760px) {
 	.top { padding: var(--space-3) var(--space-4); }
 	.page { padding: var(--space-8) var(--space-4) var(--space-12); }
+	.legal { padding: 0 var(--space-4) var(--space-8); }
 	.hero__title { font-size: var(--text-3xl); line-height: var(--leading-3xl); }
 	.hero--cahut::after { width: 120px; height: 120px; background-size: 120px; }
 	.panel { padding: var(--space-6); }

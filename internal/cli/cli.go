@@ -28,7 +28,7 @@ var commands = []command{
 	{name: "serve", summary: "Serve the Cahuts of this server: MCP for AIs, and the Windows", run: runServe},
 	{name: "setup", summary: "Give the link to the first start of a Cahut, in the browser", run: runSetup},
 	{name: "domain", summary: "Manage the Cahuts of this server, one per domain", run: group("domain", domainCommands)},
-	{name: "settings", summary: "Set the kind and limits of a Cahut", run: group("settings", settingsCommands)},
+	{name: "settings", summary: "Set the kind, limits and legal pages of a Cahut", run: group("settings", settingsCommands)},
 	{name: "mail", summary: "Set the e-mail relay of a Cahut, and test it", run: group("mail", mailCommands)},
 	{name: "admin", summary: "Manage the administrators of the server", run: group("admin", adminCommands)},
 	{name: "user", summary: "Manage the people of a Cahut", run: group("user", userCommands)},

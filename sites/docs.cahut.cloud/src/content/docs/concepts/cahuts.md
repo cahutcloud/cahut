@@ -84,6 +84,19 @@ A call that would cross a limit is refused, with a message that says what to do:
 
 Every change of the limits goes to the Logbook of the Cahut, and `get_cahut` gives the limits with what the Cahut holds, to people and to AIs.
 
+## Legal pages
+
+A host who runs Cahuts for the public publishes a legal notice, terms of use and a privacy policy on a site of its own. The administrators of the server link them from each Cahut, in its console under **Kind and limits**, or with [`cahut settings links`](/admin/commands/#link-the-legal-pages-of-a-cahut). A Cahut links nothing until they do, and its pages then show nothing more.
+
+Each of four pages is optional: the legal notice, the terms, the privacy policy, and where people get help. Each is the address of a page that starts with `https://`; Cahut links these pages and serves none of them. A page may have another address in French, which the console links when it speaks French; it takes the place of the other address in French only, and needs it.
+
+The pages that the Cahut serves itself link them in a discreet line at their foot, in the language of the page:
+
+- in the console, under the sign-in, the activation links, the confirmation of an address, invitations and the consent screen of AI clients, and at the foot of every screen once signed in;
+- on the pages that readers see: the page of a Room, the page that asks for a Key, what is not found, and the links that have expired.
+
+Windows show none of them: a Window is the content of its Room, and a Room that shows a Window at its address leaves the page to it. Every change of the links goes to the Logbook of the Cahut, and `get_cahut` gives them to people and to AIs.
+
 ## Who administers
 
 The server's command line acts as the administrator of the server and of every Cahut: whoever runs `cahut` as the service user can read its data folder anyway. A person created with `--admin` is recorded as an administrator of their Cahut. That role takes effect with the console, where the administrators of a Cahut will manage its people.

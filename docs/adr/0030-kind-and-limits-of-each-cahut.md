@@ -1,6 +1,6 @@
 # 30. Each Cahut has a kind and limits, set by the administrators of its server
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 42](0042-the-legal-pages-of-a-cahut.md) (the links to the legal pages of each Cahut)
 - Date: 2026-10-24
 
 ## Context
