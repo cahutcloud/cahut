@@ -146,18 +146,31 @@ type setupLink struct {
 	noAdmin   bool // the server has no administrator yet
 }
 
+// The refusals of the first start, which the console says in the language
+// of its person.
+var (
+	errSetupLinkGone = operation.NewRefusal("setup_link_gone", operation.ErrNotFound,
+		"this link to the first start does not work any more: it was used, it expired, or it is for another address; "+
+			"cahut setup, on the server, gives a new one")
+	setupDone = operation.NewRefusalOf[Started]("setup_done", operation.ErrInvalid,
+		"the Cahut of {domain} has people already: sign in at its console")
+)
+
+// Started fills the refusal of a first start that was done already.
+type Started struct {
+	Domain string `json:"domain" jsonschema:"the domain of the Cahut"`
+}
+
 // findSetupLink returns the link of code, if it works at the domain of the
 // call, which is that of its Cahut.
 func (s *Server) findSetupLink(ctx context.Context, c *operation.Call, code string) (setupLink, error) {
-	gone := operation.NotFoundf("this link to the first start does not work any more: it was used, it expired, or it is for another address; " +
-		"cahut setup, on the server, gives a new one")
 	var link setupLink
 	var expires string
 	err := c.Tx.QueryRowContext(ctx, `
 		SELECT l.cahut_id, c.domain, l.expires_at FROM setup_links l JOIN cahuts c ON c.id = l.cahut_id
 		WHERE l.hash = ?`, credential.Hash(strings.TrimSpace(code))).Scan(&link.cahutID, &link.domain, &expires)
 	if errors.Is(err, sql.ErrNoRows) {
-		return setupLink{}, gone
+		return setupLink{}, errSetupLinkGone
 	}
 	if err != nil {
 		return setupLink{}, err
@@ -166,7 +179,7 @@ func (s *Server) findSetupLink(ctx context.Context, c *operation.Call, code stri
 		return setupLink{}, err
 	}
 	if !c.Now.Before(link.expiresAt) || link.domain != c.Actor.Domain {
-		return setupLink{}, gone
+		return setupLink{}, errSetupLinkGone
 	}
 	var admins int
 	if err := c.Tx.QueryRowContext(ctx, "SELECT count(*) FROM admins").Scan(&admins); err != nil {
@@ -197,8 +210,7 @@ func (s *Server) setUp(ctx context.Context, c *operation.Call, in SetUpInput) (S
 		// The administrator of the server is checked first: it is the part
 		// that this transaction can undo.
 		if !account.ValidHandle(handle) {
-			return SetUp{}, operation.Invalidf("handle %q: use 2 to 32 lowercase letters, digits and hyphens, "+
-				"starting with a letter and ending with a letter or a digit", in.Handle)
+			return SetUp{}, account.InvalidHandle(in.Handle)
 		}
 		hash, err := credential.HashPassword(ctx, in.Password)
 		if err != nil {
@@ -224,7 +236,7 @@ func (s *Server) setUp(ctx context.Context, c *operation.Call, in SetUpInput) (S
 		return SetUp{}, err
 	}
 	if len(list.Users) > 0 {
-		return SetUp{}, operation.Invalidf("the Cahut of %s has people already: sign in at its console", link.domain)
+		return SetUp{}, setupDone(Started{Domain: link.domain})
 	}
 	person, err := operation.Do(ctx, ch.Registry, account.CreateUser, setup,
 		account.CreateUserInput{Handle: handle, Name: in.Name, Admin: true})

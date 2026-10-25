@@ -205,12 +205,7 @@ func TestAPIRefusalCodes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, tt := range []struct {
-		name, path, body string
-		status           int
-		error, code      string
-		values           map[string]any
-	}{
+	checkRefusals(t, f, console, "", []refusalCase{
 		{
 			name: "a wrong password", path: "/console/api/sign_in", body: `{"handle": "camille", "password": "not the password at all"}`,
 			status: 403, error: "not allowed: wrong handle or password", code: "wrong_handle_or_password",
@@ -237,8 +232,24 @@ func TestAPIRefusalCodes(t *testing.T) {
 			name: "a refusal without a code", path: "/console/api/get_invitation", body: `{"x": 1}`,
 			status: 400, error: `invalid input: arguments: json: unknown field "x"`,
 		},
-	} {
-		r := call(t, f, console, http.MethodPost, "localhost", tt.path, "", tt.body)
+	})
+}
+
+// A refusalCase is a call of the console to the Cahut at localhost, and
+// the refusal it gets: its status, its message, its code and its values.
+type refusalCase struct {
+	name, path, body string
+	status           int
+	error, code      string
+	values           map[string]any
+}
+
+// checkRefusals makes the calls of cases with the session token, and checks
+// the refusal of each.
+func checkRefusals(t *testing.T, f *fixture, console *httptest.Server, token string, cases []refusalCase) {
+	t.Helper()
+	for _, tt := range cases {
+		r := call(t, f, console, http.MethodPost, "localhost", tt.path, token, tt.body)
 		code, _ := r.body["code"].(string)
 		values, _ := r.body["values"].(map[string]any)
 		if r.status != tt.status || tt.error != "" && r.body["error"] != tt.error || code != tt.code || len(values) != len(tt.values) {
@@ -250,6 +261,107 @@ func TestAPIRefusalCodes(t *testing.T) {
 			}
 		}
 	}
+}
+
+// TestAPIRefusalCodesOfScreens checks the codes of the refusals that people
+// meet on the screens of the console: People, Rooms, Account, the page of a
+// Window and the first start.
+func TestAPIRefusalCodesOfScreens(t *testing.T) {
+	f := setup(t)
+	console := f.ts
+	camille := activate(t, f, console, "camille", true)
+	publishDeck(t, f, f.person(t, "localhost", "camille"))
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/create_room", camille, `{"title": "Marketing"}`); r.status != http.StatusOK {
+		t.Fatalf("create_room: %d %s", r.status, r.raw)
+	}
+
+	checkRefusals(t, f, console, camille, []refusalCase{
+		{
+			name: "a handle taken", path: "/console/api/create_user", body: `{"handle": "olivier", "name": "Olivier"}`,
+			status: 400, error: `invalid input: handle "olivier" is taken, by a person or a Room`, code: "handle_taken",
+			values: map[string]any{"handle": "olivier"},
+		},
+		{
+			name: "a handle with capitals", path: "/console/api/create_user", body: `{"handle": "Ana", "name": "Ana"}`,
+			status: 400, code: "handle_invalid", values: map[string]any{"handle": "Ana"},
+			error: `invalid input: handle "Ana": use 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit`,
+		},
+		{
+			name: "the last administrator", path: "/console/api/set_user_role", body: `{"user": "camille", "role": "member"}`,
+			status: 400, error: "invalid input: the Cahut needs an administrator: make another person one first", code: "cahut_needs_an_admin",
+		},
+		{
+			name: "the name of a Room taken", path: "/console/api/create_room", body: `{"title": "Olivier", "name": "olivier"}`,
+			status: 400, error: `invalid input: name "olivier" is taken, by a Room or a person: choose another`, code: "room_name_taken",
+			values: map[string]any{"name": "olivier"},
+		},
+		{
+			name: "a reserved name", path: "/console/api/create_room", body: `{"title": "Console"}`,
+			status: 400, code: "room_name_reserved", values: map[string]any{"name": "console"},
+		},
+		{
+			name: "the last owner", path: "/console/api/remove_room_member", body: `{"room": "marketing", "user": "camille"}`,
+			status: 400, error: "invalid input: the Room marketing needs an owner: make another person one first", code: "room_needs_an_owner",
+			values: map[string]any{"room": "marketing"},
+		},
+		{
+			name: "a short Key", path: "/console/api/set_window_access", body: `{"window": "camille/q3-review", "access": "key", "key": "short"}`,
+			status: 400, error: "invalid input: the Key has 5 characters: give it 10 at least, or let Cahut draw one", code: "key_too_short",
+			values: map[string]any{"length": 5.0, "limit": 10.0},
+		},
+		{
+			name: "a Key with spaces", path: "/console/api/set_window_access", body: `{"window": "camille/q3-review", "access": "key", "key": " a long enough Key"}`,
+			status: 400, error: "invalid input: the Key starts or ends with a space", code: "key_has_spaces",
+		},
+		{
+			name: "an invitation without a relay", path: "/console/api/invite_to_window", body: `{"window": "camille/q3-review", "to": ["olivier"]}`,
+			status: 400, code: "no_mail_to_invite",
+			error: "invalid input: this Cahut sends no e-mail: give them the address of the Window yourself, with its Key if it has one",
+		},
+		{
+			name: "a new address without a relay", path: "/console/api/change_email", body: `{"email": "camille@example.org"}`,
+			status: 400, code: "no_mail",
+			error: "invalid input: this Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console",
+		},
+		{
+			name: "a used link to the first start", path: "/console/api/server/get_setup", body: `{"code": "used"}`,
+			status: 404, code: "setup_link_gone",
+		},
+	})
+
+	f.relay(t)
+	if _, err := f.open(t, "localhost").DB.Write.Exec("UPDATE users SET email = 'camille@example.org' WHERE handle = 'camille'"); err != nil {
+		t.Fatal(err)
+	}
+	checkRefusals(t, f, console, camille, []refusalCase{
+		{
+			name: "an address to a Window of its Room", path: "/console/api/invite_to_window", body: `{"window": "camille/q3-review", "to": ["ana@example.org"]}`,
+			status: 400, code: "invite_address_room_only", values: map[string]any{"room": "camille", "window": "q3-review"},
+			error: "invalid input: camille/q3-review opens to its Room only: invite people of the Cahut by handle, " +
+				"or set its access to key first, so that each address gets a personal link",
+		},
+		{
+			name: "someone outside the Room", path: "/console/api/invite_to_window", body: `{"window": "camille/q3-review", "to": ["olivier"]}`,
+			status: 400, code: "invite_not_in_room", values: map[string]any{"handle": "olivier", "room": "camille", "window": "q3-review"},
+			error: "invalid input: olivier is not in the Room camille, and camille/q3-review opens to its Room only: " +
+				"add them to the Room, or set its access to internal or key first",
+		},
+		{
+			name: "nobody of this handle", path: "/console/api/invite_to_window", body: `{"window": "camille/q3-review", "to": ["nobody"]}`,
+			status: 404, error: `not found: no person "nobody" in this Cahut: invite someone else by e-mail address`, code: "invite_no_person",
+			values: map[string]any{"to": "nobody"},
+		},
+		{
+			name: "half an address", path: "/console/api/invite_to_window", body: `{"window": "camille/q3-review", "to": ["joe@"]}`,
+			status: 400, error: `invalid input: to: "joe@" is not an e-mail address: give one address alone, such as jane@example.com`,
+			code: "invite_bad_address", values: map[string]any{"to": "joe@"},
+		},
+		{
+			name: "the same address", path: "/console/api/change_email", body: `{"email": "camille@example.org"}`,
+			status: 400, error: "invalid input: camille@example.org is already your e-mail address", code: "email_already_yours",
+			values: map[string]any{"email": "camille@example.org"},
+		},
+	})
 }
 
 // TestKnockAnsweredInTheConsole has an AI knock over MCP, and its person

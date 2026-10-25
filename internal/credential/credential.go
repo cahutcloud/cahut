@@ -157,7 +157,7 @@ var (
 		"the password has {length} characters: use at most {limit}")
 )
 
-// Length fills the refusal of a password too short or too long.
+// Length fills the refusal of a password, or a Key, too short or too long.
 type Length struct {
 	Length int `json:"length" jsonschema:"how many characters it has"`
 	Limit  int `json:"limit" jsonschema:"the fewest, or the most, it may have"`
@@ -305,16 +305,30 @@ func Key() string {
 	return b.String()
 }
 
+// The refusals of a Key that a person chooses, which the console says in
+// their language.
+var (
+	errKeySpaces = operation.NewRefusal("key_has_spaces", operation.ErrInvalid, "the Key starts or ends with a space")
+	keyTooShort  = operation.NewRefusalOf[Length]("key_too_short", operation.ErrInvalid,
+		"the Key has {length} characters: give it {limit} at least, or let Cahut draw one")
+	keyTooLong = operation.NewRefusalOf[Limit]("key_too_long", operation.ErrInvalid, "the Key has more than {limit} characters")
+)
+
+// Limit fills the refusal of a Key too long.
+type Limit struct {
+	Limit int `json:"limit" jsonschema:"the most characters it may have"`
+}
+
 // CheckKey checks a Key that a person chooses.
 func CheckKey(key string) error {
 	n := utf8.RuneCountInString(key)
 	switch {
 	case strings.TrimSpace(key) != key:
-		return operation.Invalidf("the Key starts or ends with a space")
+		return errKeySpaces
 	case n < MinKey:
-		return operation.Invalidf("the Key has %d characters: give it %d at least, or let Cahut draw one", n, MinKey)
+		return keyTooShort(Length{Length: n, Limit: MinKey})
 	case n > MaxKey:
-		return operation.Invalidf("the Key has more than %d characters", MaxKey)
+		return keyTooLong(Limit{Limit: MaxKey})
 	}
 	return nil
 }

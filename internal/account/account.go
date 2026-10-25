@@ -175,6 +175,28 @@ func ValidHandle(s string) bool {
 	return validHandle.MatchString(s)
 }
 
+// The refusals of a handle for a new person, which the console says in the
+// language of its person.
+var (
+	badHandle = operation.NewRefusalOf[Handle]("handle_invalid", operation.ErrInvalid,
+		"handle {handle}: use 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit")
+	handleReserved = operation.NewRefusalOf[Handle]("handle_reserved", operation.ErrInvalid,
+		"handle {handle} is reserved: it names a page of every Cahut")
+	handleIsTaken = operation.NewRefusalOf[Handle]("handle_taken", operation.ErrInvalid,
+		"handle {handle} is taken, by a person or a Room")
+)
+
+// Handle fills the refusal of a handle.
+type Handle struct {
+	Handle operation.Quoted `json:"handle" jsonschema:"the handle, as it was given"`
+}
+
+// InvalidHandle refuses handle, which is not of the form of a handle: for
+// a person, or an administrator of the server.
+func InvalidHandle(handle string) error {
+	return badHandle(Handle{Handle: operation.Quoted(handle)})
+}
+
 // CreateUser creates a person and their personal Room, named after their
 // handle, with an activation link.
 var CreateUser = &operation.Op[CreateUserInput, NewUser]{
@@ -187,11 +209,10 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 	Services:   true,
 	Run: func(ctx context.Context, c *operation.Call, in CreateUserInput) (NewUser, error) {
 		if !validHandle.MatchString(in.Handle) {
-			return NewUser{}, operation.Invalidf("handle %q: use 2 to 32 lowercase letters, digits and hyphens, "+
-				"starting with a letter and ending with a letter or a digit", in.Handle)
+			return NewUser{}, InvalidHandle(in.Handle)
 		}
 		if address.Reserved(in.Handle) {
-			return NewUser{}, operation.Invalidf("handle %q is reserved: it names a page of every Cahut", in.Handle)
+			return NewUser{}, handleReserved(Handle{Handle: operation.Quoted(in.Handle)})
 		}
 		name := strings.TrimSpace(in.Name)
 		if name == "" {
@@ -219,7 +240,7 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 			return NewUser{}, err
 		}
 		if taken {
-			return NewUser{}, operation.Invalidf("handle %q is taken, by a person or a Room", u.Handle)
+			return NewUser{}, handleIsTaken(Handle{Handle: operation.Quoted(u.Handle)})
 		}
 		if email.Valid {
 			if err := addressFree(ctx, c.Tx, email.String, 0); err != nil {
@@ -508,6 +529,10 @@ var SetUserRole = &operation.Op[SetUserRoleInput, User]{
 	},
 }
 
+// errLastAdmin refuses to leave the Cahut without an administrator.
+var errLastAdmin = operation.NewRefusal("cahut_needs_an_admin", operation.ErrInvalid,
+	"the Cahut needs an administrator: make another person one first")
+
 // keepAnAdmin returns an error wrapping operation.ErrInvalid when the person
 // userID is the last administrator of the Cahut who is not disabled.
 func keepAnAdmin(ctx context.Context, tx *sql.Tx, userID int64) error {
@@ -518,7 +543,7 @@ func keepAnAdmin(ctx context.Context, tx *sql.Tx, userID int64) error {
 		return err
 	}
 	if others == 0 {
-		return operation.Invalidf("the Cahut needs an administrator: make another person one first")
+		return errLastAdmin
 	}
 	return nil
 }

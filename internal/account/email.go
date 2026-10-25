@@ -22,11 +22,14 @@ import (
 var (
 	emailTaken = operation.NewRefusalOf[TakenEmail]("email_taken", operation.ErrInvalid,
 		"{email} is already the e-mail address of another person of this Cahut")
+	emailYours = operation.NewRefusalOf[TakenEmail]("email_already_yours", operation.ErrInvalid,
+		"{email} is already your e-mail address")
 	errEmailLinkGone = operation.NewRefusal("email_link_gone", operation.ErrForbidden,
 		"this link is unknown, used or expired: change your address again from your account")
 )
 
-// TakenEmail fills the refusal of an address that another person has.
+// TakenEmail fills the refusal of an address that a person has already:
+// another person, or the one who asks for it.
 type TakenEmail struct {
 	Email string `json:"email"`
 }
@@ -238,7 +241,7 @@ var ChangeEmail = &operation.Op[ChangeEmailInput, EmailChanged]{
 		c.Log(c.Actor.Handle, "")
 		o := mail.OutboxOf(c)
 		if ok, err := o.Sends(ctx, c.Tx); err != nil || !ok {
-			return EmailChanged{}, errors.Join(err, operation.Invalidf("%s", noMail))
+			return EmailChanged{}, errors.Join(err, errNoMail)
 		}
 		p, err := findUser(ctx, c.Tx, c.Actor.Handle)
 		if err != nil {
@@ -259,7 +262,7 @@ var ChangeEmail = &operation.Op[ChangeEmailInput, EmailChanged]{
 			return EmailChanged{}, operation.Invalidf("email: %v", err)
 		}
 		if strings.EqualFold(email, p.email) {
-			return EmailChanged{}, operation.Invalidf("%s is already your e-mail address", email)
+			return EmailChanged{}, emailYours(TakenEmail{Email: email})
 		}
 		// Whether another person has this address is not said here, but
 		// once the link is used: only the owner of the address learns it.
@@ -328,10 +331,11 @@ var ConfirmEmail = &operation.Op[ConfirmEmailInput, EmailChanged]{
 	},
 }
 
-// noMail is what the operations that would send e-mail answer in a Cahut
+// errNoMail is what the operations that would send e-mail answer in a Cahut
 // without a relay. See
 // docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
-const noMail = "this Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console"
+var errNoMail = operation.NewRefusal("no_mail", operation.ErrInvalid,
+	"this Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console")
 
 // errNoPasswordLink is what request_password_link answers in a Cahut
 // without a relay.

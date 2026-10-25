@@ -11,7 +11,12 @@ var (
 	errRoomClosed  = NewRefusal("test_room_closed", ErrForbidden, "this room is closed")
 	errSessionGone = NewRefusal("test_session_gone", nil, "the session ended")
 	roomFull       = NewRefusalOf[fullRoom]("test_room_full", ErrInvalid, "the room {room} holds {count} people: {count} at most")
+	noRoom         = NewRefusalOf[namedRoom]("test_no_room", ErrNotFound, "no room {room} here")
 )
+
+type namedRoom struct {
+	Room Quoted `json:"room"`
+}
 
 type fullRoom struct {
 	Room   string `json:"room"`
@@ -46,6 +51,16 @@ func TestNewRefusal(t *testing.T) {
 	}
 	if !errors.Is(err, ErrInvalid) {
 		t.Error("the refusal is not an ErrInvalid")
+	}
+
+	// A quoted value is quoted in the message, as %q does, and given as it
+	// is with the refusal.
+	err = noRoom(namedRoom{Room: `the "big" one`})
+	if got := err.Error(); got != `not found: no room "the \"big\" one" here` {
+		t.Errorf("message = %q", got)
+	}
+	if !errors.As(err, &r) || r.Values.(namedRoom).Room != `the "big" one` {
+		t.Errorf("refusal = %#v", err)
 	}
 }
 

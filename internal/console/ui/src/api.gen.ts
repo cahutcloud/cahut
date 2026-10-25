@@ -123,6 +123,11 @@ export interface AddDomainInput {
   admin?: FirstAdmin;
 }
 
+export interface Addressee {
+  /** the recipient, as the invitation names them */
+  to: string;
+}
+
 export interface Admin {
   handle: string;
   name: string;
@@ -159,6 +164,13 @@ export interface ApproveInput {
   all_rooms?: boolean;
   /** the Rooms granted, by name, when all_rooms is false */
   rooms?: string[];
+}
+
+export interface At {
+  /** the Room of the Window */
+  room: string;
+  /** the name of the Window */
+  window: string;
 }
 
 export interface Authorization {
@@ -471,6 +483,11 @@ export type GetCahutInput = Record<string, never>;
 
 export type GetMailRelayInput = Record<string, never>;
 
+export interface Handle {
+  /** the handle, as it was given */
+  handle: string;
+}
+
 export interface HandleCheck {
   handle: string;
   /** the handle can go to a new person */
@@ -601,6 +618,11 @@ export interface Invited {
   unreachable?: string[];
 }
 
+export interface Invitee {
+  /** the handle of the person */
+  handle: string;
+}
+
 export interface Knock {
   id: number;
   /** the operation that the AI called */
@@ -650,6 +672,11 @@ export interface Length {
   /** how many characters it has */
   length: number;
   /** the fewest, or the most, it may have */
+  limit: number;
+}
+
+export interface Limit {
+  /** the most characters it may have */
   limit: number;
 }
 
@@ -753,6 +780,11 @@ export interface NewCahut {
   admin?: NewUser;
 }
 
+export interface NewName {
+  /** the name of the Room */
+  name: string;
+}
+
 export interface NewServiceToken {
   id: number;
   name: string;
@@ -780,6 +812,20 @@ export interface NewUser {
   email?: string;
   /** the link where the person chooses their password; an AI never gets it */
   activation?: Activation;
+}
+
+export interface NoOwner {
+  /** the name of the Room */
+  room: string;
+}
+
+export interface Outsider {
+  /** the handle of the person */
+  handle: string;
+  /** the Room of the Window */
+  room: string;
+  /** the name of the Window */
+  window: string;
 }
 
 export interface Palette {
@@ -1021,6 +1067,15 @@ export interface SendTestMailInput {
   to?: string;
 }
 
+export interface Sent {
+  /** how many invitations went out in the last 24 hours */
+  sent: number;
+  /** the person who invites, or whom the AI acts for */
+  handle: string;
+  /** the most invitations of one person in 24 hours */
+  limit: number;
+}
+
 export interface ServerSession {
   /** send it in the Authorization header: Bearer <token> */
   token: string;
@@ -1190,6 +1245,11 @@ export type SignInToWindowsInput = Record<string, never>;
 export type SignOutInput = Record<string, never>;
 
 export type SignedOut = Record<string, never>;
+
+export interface Started {
+  /** the domain of the Cahut */
+  domain: string;
+}
 
 export interface TakenEmail {
   email: string;
@@ -1577,26 +1637,78 @@ export interface Refusals {
   account_disabled: null;
   /** this activation link is unknown, used or expired: ask an administrator of the Cahut for a new one */
   activation_link_gone: null;
+  /** the Cahut needs an administrator: make another person one first */
+  cahut_needs_an_admin: null;
+  /** {email} is already your e-mail address */
+  email_already_yours: TakenEmail;
   /** this link is unknown, used or expired: change your address again from your account */
   email_link_gone: null;
   /** {email} is already the e-mail address of another person of this Cahut */
   email_taken: TakenEmail;
+  /** handle {handle}: use 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit */
+  handle_invalid: Handle;
+  /** handle {handle} is reserved: it names a page of every Cahut */
+  handle_reserved: Handle;
+  /** handle {handle} is taken, by a person or a Room */
+  handle_taken: Handle;
   /** this invitation does not open the Window any more: it was taken back, it expired, or the Window changed its Key or its access. Ask the person who invited you for a new one */
   invitation_gone: null;
+  /** {room}/{window} opens to the people of the Cahut only: invite people of the Cahut by handle, or set its access to key first, so that each address gets a personal link */
+  invite_address_internal: At;
+  /** {room}/{window} opens to its Room only: invite people of the Cahut by handle, or set its access to key first, so that each address gets a personal link */
+  invite_address_room_only: At;
+  /** to: {to} is not an e-mail address: give one address alone, such as jane@example.com */
+  invite_bad_address: Addressee;
+  /** {to}: in this Cahut, which is individual, invite by e-mail address, to a Window with a Key or public */
+  invite_by_address: Addressee;
+  /** {handle} is disabled, and cannot read the Window */
+  invite_disabled: Invitee;
+  /** no person {to} in this Cahut: invite someone else by e-mail address */
+  invite_no_person: Addressee;
+  /** {handle} is not in the Room {room}, and {room}/{window} opens to its Room only: add them to the Room, or set its access to internal or key first */
+  invite_not_in_room: Outsider;
+  /** the Key starts or ends with a space */
+  key_has_spaces: null;
+  /** the Key has more than {limit} characters */
+  key_too_long: Limit;
+  /** the Key has {length} characters: give it {limit} at least, or let Cahut draw one */
+  key_too_short: Length;
+  /** this Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console */
+  no_mail: null;
+  /** this Cahut sends no e-mail: give them the address of the Window yourself, with its Key if it has one */
+  no_mail_to_invite: null;
   /** this Cahut sends no e-mail: an administrator of the Cahut can give you a new link */
   no_password_link: null;
   /** the password has {length} characters: use at most {limit} */
   password_too_long: Length;
   /** the password has {length} characters: use at least {limit} */
   password_too_short: Length;
+  /** name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit */
+  room_name_invalid: NewName;
+  /** name {name} is reserved: it names a page of every Cahut */
+  room_name_reserved: NewName;
+  /** name {name} is taken, by a Room or a person: choose another */
+  room_name_taken: NewName;
+  /** name {name} is not available: choose another */
+  room_name_unavailable: NewName;
+  /** you already have a Room {name}: choose another name */
+  room_name_yours: NewName;
+  /** the Room {room} needs an owner: make another person one first */
+  room_needs_an_owner: NoOwner;
   /** this account is disabled: another administrator of the server can enable it */
   server_account_disabled: null;
   /** this activation link is unknown, used or expired: ask another administrator of the server for a new one, or run cahut admin link on the server */
   server_activation_link_gone: null;
   /** invalid or ended session */
   session_ended: null;
+  /** the Cahut of {domain} has people already: sign in at its console */
+  setup_done: Started;
+  /** this link to the first start does not work any more: it was used, it expired, or it is for another address; cahut setup, on the server, gives a new one */
+  setup_link_gone: null;
   /** too many attempts from this address: wait a minute */
   too_many_attempts_from_address: null;
+  /** {sent} invitations went out for {handle} in the last 24 hours, and {limit} is the most: send the rest later */
+  too_many_invitations: Sent;
   /** too many refused sign-ins for this handle: try again in {minutes} minutes */
   too_many_refused_sign_ins: Wait;
   /** too many sign-ins at once: try again in a few seconds */

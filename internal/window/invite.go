@@ -34,6 +34,65 @@ const (
 	openingTTL       = time.Minute         // of the code that the console hands to /-/invitation
 )
 
+// The refusals of an invitation that people meet on the page of a Window,
+// which the console says in their language.
+var (
+	errNoMail = operation.NewRefusal("no_mail_to_invite", operation.ErrInvalid,
+		"this Cahut sends no e-mail: give them the address of the Window yourself, with its Key if it has one")
+	tooManyInvited = operation.NewRefusalOf[Sent]("too_many_invitations", operation.ErrTooMany,
+		"{sent} invitations went out for {handle} in the last 24 hours, and {limit} is the most: send the rest later")
+	badAddress = operation.NewRefusalOf[Addressee]("invite_bad_address", operation.ErrInvalid,
+		"to: {to} is not an e-mail address: give one address alone, such as jane@example.com")
+	addressToRoom = operation.NewRefusalOf[At]("invite_address_room_only", operation.ErrInvalid,
+		"{room}/{window} opens to its Room only: invite people of the Cahut by handle, "+
+			"or set its access to key first, so that each address gets a personal link")
+	addressToInternal = operation.NewRefusalOf[At]("invite_address_internal", operation.ErrInvalid,
+		"{room}/{window} opens to the people of the Cahut only: invite people of the Cahut by handle, "+
+			"or set its access to key first, so that each address gets a personal link")
+	handleInIndividual = operation.NewRefusalOf[Addressee]("invite_by_address", operation.ErrInvalid,
+		"{to}: in this Cahut, which is individual, invite by e-mail address, to a Window with a Key or public")
+	noInvitee = operation.NewRefusalOf[Addressee]("invite_no_person", operation.ErrNotFound,
+		"no person {to} in this Cahut: invite someone else by e-mail address")
+	inviteeDisabled = operation.NewRefusalOf[Invitee]("invite_disabled", operation.ErrInvalid,
+		"{handle} is disabled, and cannot read the Window")
+	outsider = operation.NewRefusalOf[Outsider]("invite_not_in_room", operation.ErrInvalid,
+		"{handle} is not in the Room {room}, and {room}/{window} opens to its Room only: "+
+			"add them to the Room, or set its access to internal or key first")
+)
+
+// Sent fills the refusal of invitations past the limit of a day.
+type Sent struct {
+	Sent   int    `json:"sent" jsonschema:"how many invitations went out in the last 24 hours"`
+	Handle string `json:"handle" jsonschema:"the person who invites, or whom the AI acts for"`
+	Limit  int    `json:"limit" jsonschema:"the most invitations of one person in 24 hours"`
+}
+
+// Addressee fills the refusal of a recipient of an invitation.
+type Addressee struct {
+	To operation.Quoted `json:"to" jsonschema:"the recipient, as the invitation names them"`
+}
+
+// At fills the refusal of an invitation by address to a Window that opens
+// to people of the Cahut only.
+type At struct {
+	Room   string `json:"room" jsonschema:"the Room of the Window"`
+	Window string `json:"window" jsonschema:"the name of the Window"`
+}
+
+// Invitee fills the refusal of a person of the Cahut whom an invitation
+// cannot reach.
+type Invitee struct {
+	Handle string `json:"handle" jsonschema:"the handle of the person"`
+}
+
+// Outsider fills the refusal of a person outside the Room of a Window that
+// opens to its Room only.
+type Outsider struct {
+	Handle string `json:"handle" jsonschema:"the handle of the person"`
+	Room   string `json:"room" jsonschema:"the Room of the Window"`
+	Window string `json:"window" jsonschema:"the name of the Window"`
+}
+
 // InviteInput is the input of invite_to_window.
 type InviteInput struct {
 	Window string   `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
@@ -91,8 +150,7 @@ func (s *Service) invite(ctx context.Context, c *operation.Call, in InviteInput)
 	}
 	o := mail.OutboxOf(c)
 	if ok, err := o.Sends(ctx, c.Tx); err != nil || !ok {
-		return Invited{}, errors.Join(err, operation.Invalidf("this Cahut sends no e-mail: give them the address of the Window yourself, "+
-			"with its Key if it has one"))
+		return Invited{}, errors.Join(err, errNoMail)
 	}
 	if c.Actor.UserID != 0 {
 		var sent int
@@ -102,8 +160,7 @@ func (s *Service) invite(ctx context.Context, c *operation.Call, in InviteInput)
 			return Invited{}, err
 		}
 		if sent+len(to) > MaxInvitedPerDay {
-			return Invited{}, fmt.Errorf("%w: %d invitations went out for %s in the last 24 hours, and %d is the most: send the rest later",
-				operation.ErrTooMany, sent, c.Actor.Handle, MaxInvitedPerDay)
+			return Invited{}, tooManyInvited(Sent{Sent: sent, Handle: c.Actor.Handle, Limit: MaxInvitedPerDay})
 		}
 	}
 	individual, err := settings.IsIndividual(ctx, c.Tx)
@@ -172,20 +229,20 @@ func (s *Service) recipient(ctx context.Context, c *operation.Call, w found, t s
 	if strings.Contains(t, "@") {
 		email, err := mail.Address(t)
 		if err != nil {
-			return recipient{}, operation.Invalidf("to: %v", err)
+			return recipient{}, badAddress(Addressee{To: operation.Quoted(t)}) // t is trimmed, as mail.Address trims it
 		}
 		switch w.Access {
 		case AccessKey:
 			return recipient{to: email, email: email, link: true}, nil
 		case AccessPublic:
 			return recipient{to: email, email: email}, nil
+		case AccessInternal:
+			return recipient{}, addressToInternal(At{Room: w.Room, Window: w.Name})
 		}
-		return recipient{}, operation.Invalidf("%s/%s opens to %s: invite people of the Cahut by handle, "+
-			"or set its access to key first, so that each address gets a personal link", w.Room, w.Name, openingTo(w.Access))
+		return recipient{}, addressToRoom(At{Room: w.Room, Window: w.Name})
 	}
 	if individual {
-		return recipient{}, operation.Invalidf("%q: in this Cahut, which is individual, invite by e-mail address, "+
-			"to a Window with a Key or public", t)
+		return recipient{}, handleInIndividual(Addressee{To: operation.Quoted(t)})
 	}
 	handle := strings.ToLower(t)
 	var r recipient
@@ -195,13 +252,13 @@ func (s *Service) recipient(ctx context.Context, c *operation.Call, w found, t s
 		SELECT id, name, email, disabled_at, EXISTS (SELECT 1 FROM room_members m WHERE m.room_id = ? AND m.user_id = u.id)
 		FROM users u WHERE handle = ?`, w.roomID, handle).Scan(&r.userID, &r.name, &email, &disabled, &member)
 	if errors.Is(err, sql.ErrNoRows) {
-		return recipient{}, operation.NotFoundf("no person %q in this Cahut: invite someone else by e-mail address", handle)
+		return recipient{}, noInvitee(Addressee{To: operation.Quoted(handle)})
 	}
 	if err != nil {
 		return recipient{}, err
 	}
 	if disabled.Valid {
-		return recipient{}, operation.Invalidf("%s is disabled, and cannot read the Window", handle)
+		return recipient{}, inviteeDisabled(Invitee{Handle: handle})
 	}
 	r.to, r.email = handle, email.String
 	switch {
@@ -209,18 +266,9 @@ func (s *Service) recipient(ctx context.Context, c *operation.Call, w found, t s
 	case w.Access == AccessKey:
 		r.link = true
 	default:
-		return recipient{}, operation.Invalidf("%s is not in the Room %s, and %s/%s opens to its Room only: "+
-			"add them to the Room, or set its access to internal or key first", handle, w.Room, w.Room, w.Name)
+		return recipient{}, outsider(Outsider{Handle: handle, Room: w.Room, Window: w.Name})
 	}
 	return r, nil
-}
-
-// openingTo says who a Window with access opens to, for a message.
-func openingTo(access string) string {
-	if access == AccessInternal {
-		return "the people of the Cahut only"
-	}
-	return "its Room only"
 }
 
 // unique trims the recipients of an invitation and drops the repeated
