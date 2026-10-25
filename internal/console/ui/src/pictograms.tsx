@@ -1,7 +1,8 @@
-// The pictograms of the navigation, from the brand as they are: the console
-// reads their files when it builds and draws them inline, so that their
-// stroke follows the text, light or dark, and their accent stays. See § 5 of
-// docs/charte-graphique/README.md.
+// The pictograms of the brand that the console draws, as they are: those of
+// the navigation, and the Window of the vocabulary for a Room without one.
+// The console reads their files when it builds and draws them inline, so
+// that their stroke follows the text, light or dark, and their accent stays.
+// See § 5 of docs/charte-graphique/README.md.
 import account from "@charte/icones/navigation/account.svg?raw";
 import aiAccess from "@charte/icones/navigation/ai-access.svg?raw";
 import cahut from "@charte/icones/navigation/cahut.svg?raw";
@@ -17,6 +18,7 @@ import roomPersonal from "@charte/icones/navigation/room-personal.svg?raw";
 import roomTeam from "@charte/icones/navigation/room-team.svg?raw";
 import serverAdmins from "@charte/icones/navigation/server-admins.svg?raw";
 import updates from "@charte/icones/navigation/updates.svg?raw";
+import windowOfVocabulary from "@charte/icones/window.svg?raw";
 
 const files = {
 	account,
@@ -34,6 +36,7 @@ const files = {
 	roomTeam,
 	serverAdmins,
 	updates,
+	window: windowOfVocabulary,
 };
 
 export type PictogramName = keyof typeof files;
@@ -44,7 +47,7 @@ const drawn = Object.fromEntries(
 	Object.entries(files).map(([name, svg]) => [name, svg.replace(/<title>[^<]*<\/title>/, "").replace(/ role="img" aria-label="[^"]*"/, "")]),
 ) as Record<PictogramName, string>;
 
-/** A pictogram of the navigation, 20 px wide, beside the words it goes with. */
-export function Pictogram({ name }: { name: PictogramName }) {
-	return <span class="pictogram" aria-hidden="true" dangerouslySetInnerHTML={{ __html: drawn[name] }} />;
+/** A pictogram, 20 px wide beside the words it goes with, or 64 px on an empty screen. */
+export function Pictogram({ name, large }: { name: PictogramName; large?: boolean }) {
+	return <span class={large ? "pictogram pictogram--large" : "pictogram"} aria-hidden="true" dangerouslySetInnerHTML={{ __html: drawn[name] }} />;
 }

@@ -1,5 +1,5 @@
 // Small pieces that the screens share.
-import { AppWindow, ChartColumn, Check, Copy, FileText, Globe, KeyRound, Lock, Presentation, Users, X } from "lucide-preact";
+import { AppWindow, ChartColumn, Check, Copy, FileText, Globe, House, KeyRound, Lock, Presentation, Users, X } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { explain } from "./api";
@@ -38,6 +38,7 @@ const t = words({
 		keyWho: "anyone with its Key",
 		public: "Public",
 		publicWho: "anyone with its address",
+		roomPage: "Page of the Room",
 		preview: (title: string) => `Preview of ${title}`,
 		justNow: "Just now",
 		minutesAgo: (n: number) => `${n} min ago`,
@@ -75,6 +76,7 @@ const t = words({
 		keyWho: "quiconque a sa Key",
 		public: "Public",
 		publicWho: "quiconque a son adresse",
+		roomPage: "Page de la Room",
 		preview: (title) => `Aperçu ${de(title)}`,
 		justNow: "À l'instant",
 		minutesAgo: (n) => `il y a ${n} min`,
@@ -438,7 +440,7 @@ const maxPreviews = 100;
  * Windows, as cards, each with a preview of the Window itself when the API
  * gives one. See docs/adr/0027-previews-of-windows-in-the-console.md.
  */
-export function WindowCards({ windows, showRoom }: { windows: Window[]; showRoom?: boolean }) {
+export function WindowCards({ windows, showRoom, home }: { windows: Window[]; showRoom?: boolean; home?: string }) {
 	const api = useConsole();
 	const names = windows.slice(0, maxPreviews).map((w) => `${w.room}/${w.name}`);
 	// Without previews, the cards keep the icon of their kind.
@@ -447,21 +449,28 @@ export function WindowCards({ windows, showRoom }: { windows: Window[]; showRoom
 	return (
 		<div class="cards cards--windows">
 			{windows.map((w) => (
-				<WindowCard key={w.url} window={w} showRoom={showRoom} preview={frames.get(`${w.room}/${w.name}`)} />
+				<WindowCard key={w.url} window={w} showRoom={showRoom} home={w.name === home} preview={frames.get(`${w.room}/${w.name}`)} />
 			))}
 		</div>
 	);
 }
 
-/** A Window, as a card that leads to its page. */
-export function WindowCard({ window: w, showRoom, preview }: { window: Window; showRoom?: boolean; preview?: string }) {
+/** A Window, as a card that leads to its page; the Window that the address of its Room shows says so. */
+export function WindowCard(props: { window: Window; showRoom?: boolean; home?: boolean; preview?: string }) {
+	const { window: w, showRoom, home, preview } = props;
 	const kind = kinds[w.kind] ?? kinds.site;
 	const Icon = kind.icon;
 	return (
 		<article class="c-card c-window">
-			<Link class="c-window__thumb window-thumb" href={windowPage(w)} aria-label={w.title}>
+			<Link class="c-window__thumb window-thumb" href={windowPage(w)} aria-label={home ? `${w.title}, ${t.roomPage}` : w.title}>
 				<Icon size={40} aria-hidden="true" />
 				{preview && <WindowPreview src={preview} title={w.title} />}
+				{home && (
+					<span class="c-badge window-flag" aria-hidden="true">
+						<House class="i" size={14} aria-hidden="true" />
+						{t.roomPage}
+					</span>
+				)}
 			</Link>
 			<div class="c-window__body">
 				<Link class="c-window__title window-title" href={windowPage(w)}>

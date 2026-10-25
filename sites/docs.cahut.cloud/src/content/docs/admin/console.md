@@ -26,7 +26,7 @@ An administrator creates accounts in the console, under **People**, or on the co
 | Overview | The latest Windows of your Rooms, each with a preview, your Rooms, and the limits of the Cahut, or yours in an individual Cahut, when there are some |
 | Knocks | What your AIs asked that waits for you, with Approve and Decline, then what you answered and what expired; the navigation counts those that wait |
 | A Knock | Where the link of an AI leads: what it asks, the details of the call, when it expires, Approve and Decline, then what the call gave back |
-| A Room | Its Windows, each with a preview and its access, its trash, and its people; owners choose what the address of the Room shows, its Windows or one of them, add and remove people, rename the Room, and delete a team Room for good once its name is typed |
+| A Room | Its address, ready to copy, and what it shows; its Windows, each with a preview and its access, the one its address shows marked, and its trash folded under them, where a Window comes back with **Restore**; the people of a team Room. Owners add a person with **Add a person** and change their role or remove them with **Manage**; **Manage the Room** chooses what its address shows, its Windows or one of them, renames a team Room, leaves it, and deletes it for good once its name is typed |
 | A Window | Where it opens; its access, its end date and its Key, which shows once, next to the address, ready to copy; its two versions, with a button that goes back; what its AI declared it does; the trash, and deleting it for good from there |
 | Rooms | A new team Room, of which you become the owner |
 | Logbook | What you did, what your AIs did, and what happened in your Rooms, by day, with filters |
