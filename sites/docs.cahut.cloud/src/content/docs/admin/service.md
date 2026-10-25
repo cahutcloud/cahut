@@ -150,7 +150,7 @@ curl http://127.0.0.1/-/healthz
 ```
 
 ```json
-{"version":"0.8.4","ok":true,"cahuts":[{"domain":"cahut.example.com","ok":true}]}
+{"version":"0.9.0","ok":true,"cahuts":[{"domain":"cahut.example.com","ok":true}]}
 ```
 
 ## Back up
