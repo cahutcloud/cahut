@@ -1,6 +1,6 @@
 // Small pieces that the screens share.
 import { AppWindow, ChartColumn, Check, Copy, FileText, Globe, House, KeyRound, Lock, Presentation, Users, X } from "lucide-preact";
-import type { ComponentChildren } from "preact";
+import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { explain } from "./api";
 import type { Activation, Window } from "./api.gen";
@@ -91,7 +91,7 @@ const t = words({
 });
 
 /** The head of a screen: a label, a title and a line under it. */
-export function PageHead(props: { label: string; title: string; children?: ComponentChildren; actions?: ComponentChildren }) {
+export function PageHead(props: { label: string; title: ComponentChildren; children?: ComponentChildren; actions?: ComponentChildren }) {
 	return (
 		<div class="page-head">
 			<div class="page-head__text">
@@ -101,6 +101,21 @@ export function PageHead(props: { label: string; title: string; children?: Compo
 			</div>
 			{props.actions && <div class="page-head__actions">{props.actions}</div>}
 		</div>
+	);
+}
+
+/** A domain that goes on a second line before one of its dots, my.example / .com, when it is longer than its line. */
+export function Domain(props: { name: string }) {
+	return (
+		<>
+			{props.name.split(".").map((part, i) => (
+				<Fragment key={i}>
+					{i > 0 && <wbr />}
+					{i > 0 && "."}
+					{part}
+				</Fragment>
+			))}
+		</>
 	);
 }
 

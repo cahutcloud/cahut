@@ -4,7 +4,7 @@ import { ArrowUpRight, Plus } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { NewCahut } from "../api.gen";
-import { CopyField, Failure, Notice, PageHead, plural, WindowCards } from "../components";
+import { CopyField, Domain, Failure, Notice, PageHead, plural, WindowCards } from "../components";
 import { ConnectSteps, ipAddress } from "../connect";
 import { useConsole } from "../context";
 import { de, locale, que, words } from "../i18n";
@@ -133,7 +133,7 @@ function PersonOverview() {
 	const noAI = !connections.some((c) => c.status !== "ended") && !tokens.some((t) => !t.revoked_at);
 	return (
 		<>
-			<PageHead label={t.overview} title={location.hostname}>
+			<PageHead label={t.overview} title={<Domain name={location.hostname} />}>
 				{t.signedInAs(account.name, account.role === "admin")}
 			</PageHead>
 			{noAI && (
