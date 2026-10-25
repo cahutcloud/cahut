@@ -1,7 +1,7 @@
 // The page of a Window: where it opens, who opens it and until when, its
 // two versions, what its AI declared it does, and the trash. See
 // docs/adr/0019-window-versions-access-and-declaration.md.
-import { ArrowUpRight, RotateCcw, Send, Trash2, Undo2 } from "lucide-preact";
+import { ArrowUpRight, RotateCcw, Send, Undo2 } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
@@ -69,7 +69,6 @@ const t = words({
 		nothingOutside: "Nothing outside this Cahut",
 		forms: "Forms send to",
 		nowhere: "Nowhere",
-		trashedSince: (ago: string) => `In the trash since ${ago}`,
 		sentTo: (to: string) => `Sent to ${to}.`,
 		unreachable: (who: string[]) => `${who.join(", ")} ${who.length === 1 ? "has" : "have"} no e-mail address: nothing went to them.`,
 		how: {
@@ -155,7 +154,6 @@ const t = words({
 		nothingOutside: "Rien hors de cette Cahut",
 		forms: "Les formulaires envoient à",
 		nowhere: "Nulle part",
-		trashedSince: (ago) => `Mise à la corbeille ${ago}`,
 		sentTo: (to) => `Message envoyé à ${to}.`,
 		unreachable: (who) =>
 			who.length === 1
@@ -485,30 +483,6 @@ function DeclarationPanel({ declaration: d }: { declaration?: Declaration }) {
 				</>
 			)}
 		</div>
-	);
-}
-
-/** The Windows of a Room in the trash, when it has some. */
-export function Trash({ room }: { room: string }) {
-	const api = useConsole();
-	const { data } = useLoad(() => api.cahut("list_windows", { room, trashed: true }).catch(() => null), [room]);
-	if (!data || data.windows.length === 0) return null;
-	return (
-		<section class="section">
-			<h2 class="c-h4">
-				<Trash2 class="i" size={16} aria-hidden="true" /> {t.trash}
-			</h2>
-			<ul class="versions">
-				{data.windows.map((w) => (
-					<li key={w.name} class="versions__row">
-						<Link class="c-link" href={`/rooms/${w.room}/${w.name}`}>
-							{w.title}
-						</Link>
-						<span class="c-small c-muted">{w.trashed_at ? t.trashedSince(agoInText(w.trashed_at)) : ""}</span>
-					</li>
-				))}
-			</ul>
-		</section>
 	);
 }
 

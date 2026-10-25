@@ -1,18 +1,18 @@
 // The Rooms: those of the person, every Room for an administrator, a new
-// team Room, and the page of one Room with its Windows, its people and
-// what its address shows.
-import { Plus } from "lucide-preact";
+// team Room, and the page of one Room: its head, with its address and what
+// that address shows, its Windows and its trash, the people of a team Room,
+// and a dialog for each change.
+import { ArrowUpRight, Check, ChevronRight, Copy, House, Link2, Plus, Settings, Trash2, Undo2 } from "lucide-preact";
 import type { ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
+import { useId, useState } from "preact/hooks";
 import { ApiError, explain } from "../api";
-import type { Room, RoomDetail, Window } from "../api.gen";
-import { ConfirmButton, Failure, initials, Notice, PageHead, plural, WindowCards } from "../components";
+import type { Person, Room, RoomDetail, Window } from "../api.gen";
+import { agoInText, ConfirmButton, Dialog, Failure, initials, Notice, Outcome, PageHead, plural, Setting, WindowCards, windowPage } from "../components";
 import { useConsole } from "../context";
 import { de, words } from "../i18n";
 import { useLoad } from "../load";
 import { Pictogram, type PictogramName } from "../pictograms";
 import { Link, navigate } from "../router";
-import { Trash } from "./window";
 
 const t = words({
 	en: {
@@ -37,38 +37,82 @@ const t = words({
 		choosePerson: "Choose a person",
 		createRoom: "Create the Room",
 		personalRoom: "Personal Room",
+		teamRoom: "Team Room",
 		room: "Room",
+		youOwn: "you are an owner",
+		youMember: "you are a member",
+		youOutside: "you are not in it",
+		copyAddress: "Copy the address of the Room",
+		copied: "Copied",
+		shows: (what: ComponentChildren) => <>Shows {what}</>,
+		theList: "the list of its Windows",
+		open: "Open",
+		manage: "Manage the Room",
+		person: "person",
+		persons: "people",
+		peopleIn: (n: string) => `${n} in this Room`,
 		notInRoom: "You are not in this Room. As an administrator, you manage its people, not its Windows.",
-		noWindow: "No Window in this Room yet.",
-		publishedByOwner: "An AI of its owner publishes them.",
-		publishedByMember: "An AI of one of its members publishes them.",
+		emptyTitle: "No Window in this Room yet",
+		emptyText: (name: string) => (
+			<>
+				An AI you connect publishes them. Ask it, for example, to publish a report in the Room <span class="c-mono">{name}</span>.
+			</>
+		),
+		connectAI: "Connect an AI",
+		trash: "Trash",
+		trashedSince: (ago: string) => `In the trash since ${ago}`,
+		restore: "Restore",
 		people: "People",
-		makeMember: "Make member",
-		makeOwner: "Make owner",
-		makeQuestion: (name: string, owner: boolean) => `Make ${name} ${owner ? "an owner" : "a member"}?`,
-		yes: "Yes",
-		remove: "Remove",
-		removeQuestion: (name: string) => `Remove ${name} from this Room?`,
+		personColumn: "Person",
+		roleColumn: "Role",
+		actions: "Actions",
+		you: "You",
+		manageShort: "Manage",
+		manageLabel: (name: string) => `Manage ${name}`,
+		addPerson: "Add a person",
 		leave: "Leave this Room",
 		leaveQuestion: "Leave this Room? You will no longer open its Windows.",
 		leaveConfirm: "Leave",
-		addPerson: "Add a person",
-		as: "As",
+		leaveHelp: "You will no longer open its Windows. Its other owners keep it.",
+		roleOf: (role: string, title: string) => `${role} of ${title}`,
+		role: "Role",
+		memberHelp: "Opens and publishes the Windows of the Room.",
+		ownerHelp: "Also manages its people, its title and its page.",
+		makeMember: "Make member",
+		makeOwner: "Make owner",
+		makeQuestion: (name: string, owner: boolean) => `Make ${name} ${owner ? "an owner" : "a member"}?`,
+		roleDone: (name: string, owner: boolean) => `${name} is now ${owner ? "an owner" : "a member"} of this Room.`,
+		removeTitle: "Remove from the Room",
+		removeHelp: (name: string) => `${name} will no longer open the Windows of this Room.`,
+		remove: "Remove",
+		removeQuestion: (name: string) => `Remove ${name} from this Room?`,
+		lastOwner: "The only owner of this Room stays: make another person owner first.",
+		inRoom: (title: string) => `In ${title}`,
+		candidatesHelp: "The people of this Cahut who are not in this Room yet.",
+		everyoneIn: "Everyone in this Cahut is already in this Room.",
 		willOpen: (name: string) => `${name} will open and publish the Windows of this Room.`,
 		add: "Add",
 		cancel: "Cancel",
 		addressStays: "The address of the Room stays.",
 		rename: "Rename",
+		renamed: "Renamed.",
 		pageOfRoom: "Page of the Room",
-		homeText: (link: ComponentChildren) => <>What {link} shows to its readers.</>,
-		show: "Show",
-		roomWindows: "The Windows of the Room",
-		homeHelp: "Readers who may not open this Window see the list of the Windows they open.",
-		listHelp: "Each reader sees the Windows they may open, with a preview of each.",
+		homeHelp: (address: string) => (
+			<>
+				What <span class="c-mono">{address}</span> shows to its readers.
+			</>
+		),
+		homeShows: "What the Room shows",
+		homeList: "The list of its Windows",
+		homeListHelp: "Each reader sees the Windows they may open, with a preview of each.",
+		homeOne: "One Window",
+		homeOneHelp: "It opens at the address of the Room. Readers who may not open it see the list.",
+		shownWindow: "Window shown",
 		save: "Save",
+		saved: "Saved.",
 		deleteRoom: "Delete this Room",
-		deleteText: (title: string, windows: string) =>
-			`This deletes the Room ${title} for good: its people, ${windows}, those in its trash, and their files. It cannot be undone.`,
+		deleteHelp: (windows: string) => `Its people, ${windows}, those in its trash and their files. It cannot be undone.`,
+		deleteAsk: "Delete…",
 		typeToConfirm: (name: string) => (
 			<>
 				Type <span class="c-mono">{name}</span> to confirm
@@ -99,38 +143,82 @@ const t = words({
 		choosePerson: "Choisir une personne",
 		createRoom: "Créer la Room",
 		personalRoom: "Room personnelle",
+		teamRoom: "Room d'équipe",
 		room: "Room",
+		youOwn: "vous êtes propriétaire",
+		youMember: "vous êtes membre",
+		youOutside: "vous n'y êtes pas",
+		copyAddress: "Copier l'adresse de la Room",
+		copied: "Copiée",
+		shows: (what) => <>Montre {what}</>,
+		theList: "la liste de ses Windows",
+		open: "Ouvrir",
+		manage: "Gérer la Room",
+		person: "personne",
+		persons: "personnes",
+		peopleIn: (n) => `${n} dans cette Room`,
 		notInRoom: "Vous n'êtes pas dans cette Room. En tant qu'administrateur, vous gérez ses personnes, pas ses Windows.",
-		noWindow: "Pas encore de Window dans cette Room.",
-		publishedByOwner: "Une IA de son propriétaire les publie.",
-		publishedByMember: "Une IA de l'un de ses membres les publie.",
+		emptyTitle: "Pas encore de Window dans cette Room",
+		emptyText: (name) => (
+			<>
+				Une IA que vous connectez les publie. Demandez-lui, par exemple, de publier un rapport dans la Room <span class="c-mono">{name}</span>.
+			</>
+		),
+		connectAI: "Connecter une IA",
+		trash: "Corbeille",
+		trashedSince: (ago) => `Mise à la corbeille ${ago}`,
+		restore: "Restaurer",
 		people: "Personnes",
-		makeMember: "Rendre membre",
-		makeOwner: "Rendre propriétaire",
-		makeQuestion: (name, owner) => `Faire ${de(name)} ${owner ? "un propriétaire" : "un membre"} ?`,
-		yes: "Oui",
-		remove: "Retirer",
-		removeQuestion: (name) => `Retirer ${name} de cette Room ?`,
+		personColumn: "Personne",
+		roleColumn: "Rôle",
+		actions: "Actions",
+		you: "Vous",
+		manageShort: "Gérer",
+		manageLabel: (name) => `Gérer ${name}`,
+		addPerson: "Ajouter une personne",
 		leave: "Quitter cette Room",
 		leaveQuestion: "Quitter cette Room ? Vous n'ouvrirez plus ses Windows.",
 		leaveConfirm: "Quitter",
-		addPerson: "Ajouter une personne",
-		as: "En tant que",
+		leaveHelp: "Vous n'ouvrirez plus ses Windows. Ses autres propriétaires la gardent.",
+		roleOf: (role, title) => `${role} ${de(title)}`,
+		role: "Rôle",
+		memberHelp: "Ouvre et publie les Windows de la Room.",
+		ownerHelp: "Gère aussi ses personnes, son titre et sa page.",
+		makeMember: "Rendre membre",
+		makeOwner: "Rendre propriétaire",
+		makeQuestion: (name, owner) => `Faire ${de(name)} ${owner ? "un propriétaire" : "un membre"} ?`,
+		roleDone: (name, owner) => `${name} est maintenant ${owner ? "propriétaire" : "membre"} de cette Room.`,
+		removeTitle: "Retirer de la Room",
+		removeHelp: (name) => `${name} n'ouvrira plus les Windows de cette Room.`,
+		remove: "Retirer",
+		removeQuestion: (name) => `Retirer ${name} de cette Room ?`,
+		lastOwner: "Le seul propriétaire de cette Room reste : rendez d'abord une autre personne propriétaire.",
+		inRoom: (title) => `Dans ${title}`,
+		candidatesHelp: "Les personnes de cette Cahut qui ne sont pas encore dans cette Room.",
+		everyoneIn: "Toutes les personnes de cette Cahut sont déjà dans cette Room.",
 		willOpen: (name) => `${name} pourra ouvrir et publier les Windows de cette Room.`,
 		add: "Ajouter",
 		cancel: "Annuler",
 		addressStays: "L'adresse de la Room ne change pas.",
 		rename: "Renommer",
+		renamed: "Renommée.",
 		pageOfRoom: "Page de la Room",
-		homeText: (link) => <>Ce que {link} montre à ses lecteurs.</>,
-		show: "Afficher",
-		roomWindows: "Les Windows de la Room",
-		homeHelp: "Les lecteurs qui ne peuvent pas ouvrir cette Window voient la liste des Windows qu'ils ouvrent.",
-		listHelp: "Chaque lecteur voit les Windows qu'il peut ouvrir, avec un aperçu de chacune.",
+		homeHelp: (address) => (
+			<>
+				Ce que <span class="c-mono">{address}</span> montre à ses lecteurs.
+			</>
+		),
+		homeShows: "Ce que montre la Room",
+		homeList: "La liste de ses Windows",
+		homeListHelp: "Chaque lecteur voit les Windows qu'il peut ouvrir, avec un aperçu de chacune.",
+		homeOne: "Une Window",
+		homeOneHelp: "Elle s'ouvre à l'adresse de la Room. Les lecteurs qui ne peuvent pas l'ouvrir voient la liste.",
+		shownWindow: "Window montrée",
 		save: "Enregistrer",
+		saved: "Enregistré.",
 		deleteRoom: "Supprimer cette Room",
-		deleteText: (title, windows) =>
-			`Cela supprime définitivement la Room ${title} : ses personnes, ${windows}, celles de sa corbeille, et leurs fichiers. Cela ne s'annule pas.`,
+		deleteHelp: (windows) => `Ses personnes, ${windows}, celles de sa corbeille et leurs fichiers. Cela ne s'annule pas.`,
+		deleteAsk: "Supprimer…",
 		typeToConfirm: (name) => (
 			<>
 				Tapez <span class="c-mono">{name}</span> pour confirmer
@@ -268,6 +356,11 @@ function NewRoom() {
 	);
 }
 
+/**
+ * The page of a Room: its head, its Windows as wide as the page with its
+ * trash folded under them, then the people of a team Room. The changes open
+ * dialogs, as on the People screen.
+ */
 export function RoomPage({ name }: { name: string }) {
 	const api = useConsole();
 	const room = useLoad(() => api.cahut("get_room", { room: name }), [name, api.roomsVersion]);
@@ -280,210 +373,412 @@ export function RoomPage({ name }: { name: string }) {
 			}),
 		[name],
 	);
+	const [dialog, setDialog] = useState<"manage" | "add" | null>(null);
+	const [managing, setManaging] = useState<string | null>(null);
+	const [leaveError, setLeaveError] = useState("");
 	if (room.error) return <Failure message={room.error} />;
 	if (!room.data) return null;
 	const r = room.data;
-	const manage = r.kind === "team" && (r.role === "owner" || api.isAdmin);
+	const team = r.kind === "team";
+	// The owners of a team Room, and the administrators, manage its people, its title and its end.
+	const manage = team && (r.role === "owner" || api.isAdmin);
 	// In an individual Cahut, a Room keeps one member: nobody joins or leaves it.
 	const members = !api.individual;
+	const owners = r.people.filter((p) => p.role === "owner").length;
+	const list = windows.data?.windows;
+	// What the address shows is set by those who own the Room, from its Windows.
+	const home = (r.role === "owner" || api.isAdmin) && list !== undefined;
+	const leave = team && members && r.role === "owner" && owners > 1;
+	const reload = () => {
+		api.reloadRooms();
+		room.reload();
+	};
+	const person = r.people.find((p) => p.handle === managing);
 	return (
 		<>
-			<PageHead label={r.kind === "personal" ? t.personalRoom : t.room} title={r.title}>
-				{plural(r.windows, "Window", "Windows")}, {plural(r.members, t.member, t.members)} ·{" "}
-				<span class="c-mono">
-					{location.hostname}/{r.name}/
-				</span>
-			</PageHead>
-			<div class="layout">
-				<section>
-					<h2 class="c-h4">Windows</h2>
-					{windows.error && <Failure message={windows.error} />}
-					{windows.data === null && <Notice>{t.notInRoom}</Notice>}
-					{windows.data && windows.data.windows.length === 0 && (
-						<Notice>
-							{t.noWindow} {api.individual ? t.publishedByOwner : t.publishedByMember}
-						</Notice>
-					)}
-					{windows.data && windows.data.windows.length > 0 && (
-						<WindowCards windows={windows.data.windows} />
-					)}
-					{windows.data && <Trash room={r.name} />}
-				</section>
-				<div class="aside-stack">
-					<People room={r} manage={manage} members={members} onChange={room.reload} />
-					{(r.role === "owner" || api.isAdmin) && windows.data && (
-						<HomePage room={r} windows={windows.data.windows} onChange={room.reload} />
-					)}
+			<RoomHead
+				room={r}
+				windows={list}
+				onPeople={team && members ? () => document.getElementById("people")?.scrollIntoView({ behavior: "smooth" }) : undefined}
+				onManage={manage || home || leave ? () => setDialog("manage") : undefined}
+			/>
+			<section class="room-section">
+				<div class="room-section__head">
+					<h2 class="c-h4">
+						Windows <span class="room-section__count">{r.windows.toLocaleString()}</span>
+					</h2>
 				</div>
-			</div>
+				{windows.error && <Failure message={windows.error} />}
+				{windows.data === null && <Notice>{t.notInRoom}</Notice>}
+				{list && list.length === 0 && <EmptyRoom name={r.name} />}
+				{list && list.length > 0 && <WindowCards windows={list} home={r.home} />}
+				{list && (
+					<RoomTrash
+						room={r.name}
+						onRestore={() => {
+							windows.reload();
+							reload();
+						}}
+					/>
+				)}
+			</section>
+			{team && members && (
+				<section class="room-section" id="people">
+					<div class="room-section__head">
+						<h2 class="c-h4">
+							{t.people} <span class="room-section__count">{r.people.length.toLocaleString()}</span>
+						</h2>
+						{manage ? (
+							<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={() => setDialog("add")}>
+								<Plus class="i" size={14} aria-hidden="true" />
+								{t.addPerson}
+							</button>
+						) : (
+							r.role === "member" && (
+								<ConfirmButton
+									label={t.leave}
+									question={t.leaveQuestion}
+									confirm={t.leaveConfirm}
+									danger
+									onConfirm={async () => {
+										setLeaveError("");
+										try {
+											await api.cahut("remove_room_member", { room: r.name, user: api.session.handle });
+											api.reloadRooms();
+											navigate("/rooms");
+										} catch (err) {
+											setLeaveError(explain(err));
+										}
+									}}
+								/>
+							)
+						)}
+					</div>
+					{leaveError && <Failure message={leaveError} />}
+					<PeopleTable room={r} manage={manage} onManage={setManaging} />
+				</section>
+			)}
+			{dialog === "manage" && (
+				<ManageRoom
+					room={r}
+					windows={home ? list : undefined}
+					manage={manage}
+					leave={leave}
+					onChanged={reload}
+					onClose={() => setDialog(null)}
+				/>
+			)}
+			{dialog === "add" && <AddPerson room={r} onAdded={reload} onClose={() => setDialog(null)} />}
+			{person && (
+				<ManageMember key={person.handle} room={r} person={person} owners={owners} onChanged={reload} onClose={() => setManaging(null)} />
+			)}
 		</>
 	);
 }
 
-/** The people of a Room, and their management for its owners, when its Cahut lets people share Rooms. */
-function People({ room, manage, members, onChange }: { room: RoomDetail; manage: boolean; members: boolean; onChange: () => void }) {
+/** The head of a Room: what it is, its address and what that shows, who is in it, and its two actions. */
+function RoomHead(props: { room: RoomDetail; windows?: Window[]; onPeople?: () => void; onManage?: () => void }) {
+	const { individual } = useConsole();
+	const r = props.room;
+	const label = r.kind === "personal" ? t.personalRoom : individual ? t.room : t.teamRoom;
+	const role = r.role === "owner" ? t.youOwn : r.role === "member" ? t.youMember : t.youOutside;
+	const shown = r.home ? (props.windows?.find((w) => w.name === r.home)?.title ?? r.home) : null;
+	const people = plural(r.people.length, t.person, t.persons);
+	return (
+		<div class="room-head">
+			<div class="room-head__text">
+				<span class="c-label">{label}</span>
+				<h1 class="c-h1">{r.title}</h1>
+				<p class="c-muted">
+					{plural(r.windows, "Window", "Windows")}
+					{r.kind === "team" && !individual && ` · ${role}`}
+				</p>
+				<div class="room-address">
+					<span class="room-address__copy">
+						<span class="room-address__url">
+							<Link2 class="i" size={16} aria-hidden="true" />
+							<span>
+								{location.host}/<wbr />
+								{r.name}/
+							</span>
+						</span>
+						<CopyAddress value={`${location.origin}/${r.name}/`} />
+					</span>
+					<span class="room-address__shows">
+						<House class="i" size={16} aria-hidden="true" />
+						<span>{t.shows(<strong>{shown ?? t.theList}</strong>)}</span>
+					</span>
+				</div>
+			</div>
+			<div class="room-head__actions">
+				{props.onPeople && (
+					<button class="room-people" type="button" aria-label={t.peopleIn(people)} onClick={props.onPeople}>
+						<span class="c-avatars" aria-hidden="true">
+							{r.people.slice(0, 3).map((p) => (
+								<span key={p.handle} class="c-avatar">
+									{initials(p.name)}
+								</span>
+							))}
+							{r.people.length > 3 && <span class="c-avatar">+{r.people.length - 3}</span>}
+						</span>
+						{people}
+					</button>
+				)}
+				<a class="c-btn c-btn--secondary" href={`/${r.name}/`} target="_blank" rel="noopener">
+					<ArrowUpRight class="i" size={16} aria-hidden="true" />
+					{t.open}
+				</a>
+				{props.onManage && (
+					<button class="c-btn c-btn--secondary" type="button" onClick={props.onManage}>
+						<Settings class="i" size={16} aria-hidden="true" />
+						{t.manage}
+					</button>
+				)}
+			</div>
+		</div>
+	);
+}
+
+/** Copies the address of a Room, from a button that says so. */
+function CopyAddress({ value }: { value: string }) {
+	const [copied, setCopied] = useState(false);
+	const copy = async () => {
+		await navigator.clipboard.writeText(value);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	};
+	return (
+		<button class="c-btn c-btn--ghost c-btn--sm icon-button" type="button" aria-label={copied ? t.copied : t.copyAddress} title={copied ? t.copied : t.copyAddress} onClick={copy}>
+			{copied ? <Check class="i" size={14} aria-hidden="true" /> : <Copy class="i" size={14} aria-hidden="true" />}
+		</button>
+	);
+}
+
+/** A Room without a Window yet: who publishes them, and where to connect an AI. */
+function EmptyRoom({ name }: { name: string }) {
+	return (
+		<div class="room-empty">
+			<Pictogram name="window" large />
+			<h3 class="c-h4">{t.emptyTitle}</h3>
+			<p class="c-muted">{t.emptyText(name)}</p>
+			<Link class="c-btn c-btn--secondary c-btn--sm" href="/access">
+				<Pictogram name="aiAccess" />
+				{t.connectAI}
+			</Link>
+		</div>
+	);
+}
+
+/** The Windows of a Room in its trash, folded under the others, each with its button to restore it. */
+function RoomTrash({ room, onRestore }: { room: string; onRestore: () => void }) {
 	const api = useConsole();
+	const { data, reload } = useLoad(() => api.cahut("list_windows", { room, trashed: true }).catch(() => null), [room]);
 	const [error, setError] = useState("");
-	const act = async (run: () => Promise<unknown>) => {
+	if (!data || data.windows.length === 0) return null;
+	const restore = async (w: Window) => {
 		setError("");
 		try {
-			await run();
-			api.reloadRooms();
-			onChange();
+			await api.cahut("restore_window", { window: `${w.room}/${w.name}` });
+			reload();
+			onRestore();
 		} catch (err) {
 			setError(explain(err));
 		}
 	};
-	const owners = room.people.filter((p) => p.role === "owner").length;
-	const me = api.session.handle;
 	return (
-		<aside class="c-card panel aside">
-			<h2 class="c-h4">{t.people}</h2>
-			<ul class="people">
-				{room.people.map((p) => (
-					<li key={p.handle} class="people__row">
-						<span class="c-avatar" aria-hidden="true">
-							{initials(p.name)}
-						</span>
-						<span class="people__who">
-							<span class="c-small">{p.name}</span>
-							<span class="c-mono c-muted people__handle">{p.handle}</span>
-						</span>
-						<span class="c-badge c-badge--neutral">{p.role === "owner" ? t.owner : t.memberRole}</span>
-						{manage && members && p.handle !== me && (
-							<span class="people__actions">
-								{(p.role === "member" || owners > 1) && (
-									<ConfirmButton
-										label={p.role === "owner" ? t.makeMember : t.makeOwner}
-										question={t.makeQuestion(p.name, p.role !== "owner")}
-										confirm={t.yes}
-										onConfirm={() =>
-											act(() =>
-												api.cahut("set_room_member_role", { room: room.name, user: p.handle, role: p.role === "owner" ? "member" : "owner" }),
-											)
-										}
-									/>
-								)}
-								{(p.role === "member" || owners > 1) && (
-									<ConfirmButton
-										label={t.remove}
-										question={t.removeQuestion(p.name)}
-										confirm={t.remove}
-										danger
-										onConfirm={() => act(() => api.cahut("remove_room_member", { room: room.name, user: p.handle }))}
-									/>
-								)}
-							</span>
-						)}
+		<details class="trash">
+			<summary>
+				<ChevronRight class="i trash__chevron" size={14} aria-hidden="true" />
+				<Trash2 class="i" size={14} aria-hidden="true" />
+				{t.trash} · {plural(data.windows.length, "Window", "Windows")}
+			</summary>
+			<ul class="trash__list">
+				{data.windows.map((w) => (
+					<li key={w.name} class="trash__row">
+						<Link class="c-link" href={windowPage(w)}>
+							{w.title}
+						</Link>
+						<span class="c-small c-muted">{w.trashed_at ? t.trashedSince(agoInText(w.trashed_at)) : ""}</span>
+						<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={() => restore(w)}>
+							<Undo2 class="i" size={14} aria-hidden="true" />
+							{t.restore}
+						</button>
 					</li>
 				))}
 			</ul>
 			{error && <Failure message={error} />}
-			{manage && members && <AddPerson room={room} onAdd={(handle, role) => act(() => api.cahut("add_room_member", { room: room.name, user: handle, role }))} />}
-			{manage && <Retitle room={room} onRetitle={(title) => act(() => api.cahut("update_room", { room: room.name, title }))} />}
-			{manage && <DeleteRoom room={room} />}
-			{members && room.kind === "team" && room.role && (room.role === "member" || owners > 1) && (
-				<ConfirmButton
-					label={t.leave}
-					question={t.leaveQuestion}
-					confirm={t.leaveConfirm}
-					danger
-					onConfirm={async () => {
-						await act(() => api.cahut("remove_room_member", { room: room.name, user: me }));
-						navigate("/rooms");
-					}}
-				/>
-			)}
-		</aside>
+		</details>
 	);
 }
 
-function AddPerson({ room, onAdd }: { room: RoomDetail; onAdd: (handle: string, role: string) => Promise<void> }) {
-	const api = useConsole();
-	const people = useLoad(() => api.cahut("list_users", {}));
-	const [handle, setHandle] = useState("");
-	const [role, setRole] = useState("member");
-	const [asking, setAsking] = useState(false);
-	const inRoom = new Set(room.people.map((p) => p.handle));
-	const candidates = (people.data?.users ?? []).filter((u) => !inRoom.has(u.handle) && u.status !== "disabled");
-	if (candidates.length === 0) return null;
-	const chosen = candidates.find((u) => u.handle === handle);
+/** The people of a team Room, owners first, with a Manage button each for those who manage it. */
+function PeopleTable({ room, manage, onManage }: { room: RoomDetail; manage: boolean; onManage: (handle: string) => void }) {
+	const { session } = useConsole();
 	return (
-		<form
-			class="form"
-			onSubmit={(e) => {
-				e.preventDefault();
-				setAsking(true);
-			}}
-		>
-			<label class="c-field">
-				<span class="c-field__label">{t.addPerson}</span>
-				<select class="c-input" required value={handle} onChange={(e) => setHandle(e.currentTarget.value)}>
-					<option value="">{t.choosePerson}</option>
-					{candidates.map((u) => (
-						<option key={u.handle} value={u.handle}>
-							{u.name} ({u.handle})
-						</option>
+		<div class="table-wrap">
+			<table class="table people-table">
+				<thead>
+					<tr>
+						<th>{t.personColumn}</th>
+						<th class="people-table__wide">{t.roleColumn}</th>
+						{manage && (
+							<th>
+								<span class="visually-hidden">{t.actions}</span>
+							</th>
+						)}
+					</tr>
+				</thead>
+				<tbody>
+					{room.people.map((p) => (
+						<tr key={p.handle}>
+							<td>
+								<span class="person">
+									<span class="c-avatar" aria-hidden="true">
+										{initials(p.name)}
+									</span>
+									<span class="people__who">
+										<span class="people__name">
+											{p.name}
+											{p.handle === session.handle && <span class="c-badge c-badge--neutral">{t.you}</span>}
+										</span>
+										<span class="c-mono c-muted people__handle">{p.handle}</span>
+										<span class="people-table__narrow">
+											<span class="c-small c-muted">{roleWord(p)}</span>
+										</span>
+									</span>
+								</span>
+							</td>
+							<td class="people-table__wide people-table__role">{roleWord(p)}</td>
+							{manage && (
+								<td class="table__actions">
+									{p.handle !== session.handle && (
+										<button class="c-btn c-btn--secondary c-btn--sm" type="button" aria-label={t.manageLabel(p.name)} onClick={() => onManage(p.handle)}>
+											{t.manageShort}
+										</button>
+									)}
+								</td>
+							)}
+						</tr>
 					))}
-				</select>
-			</label>
-			<label class="c-field">
-				<span class="c-field__label">{t.as}</span>
-				<select class="c-input" value={role} onChange={(e) => setRole(e.currentTarget.value)}>
-					<option value="member">{t.memberRole}</option>
-					<option value="owner">{t.owner}</option>
-				</select>
-			</label>
-			{asking && chosen ? (
-				<span class="confirm" role="group">
-					<span class="c-small">{t.willOpen(chosen.name)}</span>
-					<button
-						class="c-btn c-btn--primary c-btn--sm"
-						type="button"
-						onClick={async () => {
-							await onAdd(handle, role);
-							setAsking(false);
-							setHandle("");
-						}}
-					>
-						{t.add}
-					</button>
-					<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => setAsking(false)}>
-						{t.cancel}
-					</button>
-				</span>
-			) : (
-				<div>
-					<button class="c-btn c-btn--secondary c-btn--sm" type="submit">
-						<Plus class="i" size={14} aria-hidden="true" />
-						{t.add}
-					</button>
-				</div>
-			)}
-		</form>
+				</tbody>
+			</table>
+		</div>
 	);
 }
 
-function Retitle({ room, onRetitle }: { room: RoomDetail; onRetitle: (title: string) => Promise<void> }) {
-	const [title, setTitle] = useState(room.title);
+function roleWord(p: Pick<Person, "role">): string {
+	return p.role === "owner" ? t.owner : t.memberRole;
+}
+
+/** The dialog that manages the Room itself: its title, what its address shows, leaving it, deleting it. */
+function ManageRoom(props: {
+	room: RoomDetail;
+	/** The Windows to choose from for the page of the Room; none when the person may not set it. */
+	windows?: Window[];
+	manage: boolean;
+	leave: boolean;
+	onChanged: () => void;
+	onClose: () => void;
+}) {
+	const api = useConsole();
+	const { individual } = api;
+	const r = props.room;
+	const label = r.kind === "personal" ? t.personalRoom : individual ? t.room : t.teamRoom;
 	return (
-		<form
-			class="form"
-			onSubmit={(e) => {
-				e.preventDefault();
-				onRetitle(title);
-			}}
+		<Dialog
+			title={r.title}
+			meta={
+				<>
+					<span>{label}</span>
+					<span aria-hidden="true">·</span>
+					<span class="c-mono">
+						{location.host}/{r.name}/
+					</span>
+				</>
+			}
+			onClose={props.onClose}
 		>
-			<label class="c-field">
-				<span class="c-field__label">{t.title}</span>
-				<input class="c-input" required value={title} onInput={(e) => setTitle(e.currentTarget.value)} />
-				<span class="c-field__help">{t.addressStays}</span>
-			</label>
-			<div>
-				<button class="c-btn c-btn--secondary c-btn--sm" type="submit" disabled={title.trim() === room.title}>
+			<div class="settings">
+				{props.manage && (
+					<TitleSetting
+						room={r}
+						onSave={async (title) => {
+							await api.cahut("update_room", { room: r.name, title });
+							props.onChanged();
+						}}
+					/>
+				)}
+				{props.windows && (
+					<HomeSetting
+						room={r}
+						windows={props.windows}
+						onSave={async (window) => {
+							await api.cahut("set_room_home", { room: r.name, window });
+							props.onChanged();
+						}}
+					/>
+				)}
+				{props.leave && (
+					<Setting
+						title={t.leave}
+						help={t.leaveHelp}
+						action={t.leaveConfirm}
+						ask={t.leaveQuestion}
+						onAct={async () => {
+							await api.cahut("remove_room_member", { room: r.name, user: api.session.handle });
+							api.reloadRooms();
+							navigate("/rooms");
+							return null;
+						}}
+					/>
+				)}
+				{props.manage && <DeleteSetting room={r} />}
+			</div>
+		</Dialog>
+	);
+}
+
+/** The title of a team Room: its address stays. */
+function TitleSetting({ room, onSave }: { room: RoomDetail; onSave: (title: string) => Promise<void> }) {
+	const id = useId();
+	const [title, setTitle] = useState(room.title);
+	const [busy, setBusy] = useState(false);
+	const [said, setSaid] = useState("");
+	const [error, setError] = useState("");
+	const save = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		setSaid("");
+		try {
+			await onSave(title.trim());
+			setSaid(t.renamed);
+		} catch (err) {
+			setError(explain(err));
+		} finally {
+			setBusy(false);
+		}
+	};
+	return (
+		<form class="setting" onSubmit={save}>
+			<div class="setting__text">
+				<label class="setting__title" for={id}>
+					{t.title}
+				</label>
+				<p class="c-small c-muted">{t.addressStays}</p>
+			</div>
+			<div class="setting__more setting__inline">
+				<input id={id} class="c-input" required value={title} onInput={(e) => (setTitle(e.currentTarget.value), setSaid(""))} />
+				<button class="c-btn c-btn--secondary" type="submit" disabled={busy || title.trim() === room.title}>
 					{t.rename}
 				</button>
 			</div>
+			{said && <Outcome>{said}</Outcome>}
+			{error && (
+				<div class="setting__more">
+					<Failure message={error} />
+				</div>
+			)}
 		</form>
 	);
 }
@@ -492,76 +787,90 @@ function Retitle({ room, onRetitle }: { room: RoomDetail; onRetitle: (title: str
  * What the address of a Room shows: the list of its Windows, or one of
  * them, for its readers who open it. See docs/adr/0032-the-page-of-a-room.md.
  */
-function HomePage({ room, windows, onChange }: { room: RoomDetail; windows: Window[]; onChange: () => void }) {
-	const api = useConsole();
+function HomeSetting({ room, windows, onSave }: { room: RoomDetail; windows: Window[]; onSave: (window?: string) => Promise<void> }) {
+	const name = useId();
 	const current = room.home ?? "";
-	const [home, setHome] = useState(current);
+	const [one, setOne] = useState(current !== "");
+	const [home, setHome] = useState(current || (windows[0]?.name ?? ""));
 	const [busy, setBusy] = useState(false);
+	const [said, setSaid] = useState("");
 	const [error, setError] = useState("");
+	const chosen = one ? home : "";
 	const save = async (e: Event) => {
 		e.preventDefault();
 		setBusy(true);
 		setError("");
+		setSaid("");
 		try {
-			await api.cahut("set_room_home", { room: room.name, window: home || undefined });
-			onChange();
+			await onSave(chosen || undefined);
+			setSaid(t.saved);
 		} catch (err) {
 			setError(explain(err));
+		} finally {
+			setBusy(false);
 		}
-		setBusy(false);
+	};
+	const pick = (value: boolean) => {
+		setOne(value);
+		setSaid("");
 	};
 	return (
-		<section class="c-card panel aside">
-			<h2 class="c-h4">{t.pageOfRoom}</h2>
-			<p class="c-small c-muted">
-				{t.homeText(
-					<a class="c-link c-mono" href={`/${room.name}/`} target="_blank" rel="noopener">
-						{location.host}/{room.name}/
-					</a>,
-				)}
-			</p>
-			<form class="form" onSubmit={save}>
-				<label class="c-field">
-					<span class="c-field__label">{t.show}</span>
-					<select class="c-input" value={home} onChange={(e) => setHome(e.currentTarget.value)}>
-						<option value="">{t.roomWindows}</option>
-						{windows.map((w) => (
-							<option key={w.name} value={w.name}>
-								{w.title}
-							</option>
-						))}
-					</select>
-					<span class="c-field__help">
-						{home ? t.homeHelp : t.listHelp}
-					</span>
-				</label>
-				{error && <Failure message={error} />}
+		<form class="setting" onSubmit={save}>
+			<div class="setting__text">
+				<span class="setting__title">{t.pageOfRoom}</span>
+				<p class="c-small c-muted">{t.homeHelp(`${location.host}/${room.name}/`)}</p>
+			</div>
+			<div class="setting__more home-form">
+				<fieldset class="choices choices--stacked">
+					<legend class="visually-hidden">{t.homeShows}</legend>
+					<label class="choice">
+						<input type="radio" name={name} checked={!one} onChange={() => pick(false)} />
+						<span class="choice__name">{t.homeList}</span>
+						<span class="choice__help">{t.homeListHelp}</span>
+					</label>
+					<label class="choice">
+						<input type="radio" name={name} checked={one} disabled={windows.length === 0} onChange={() => pick(true)} />
+						<span class="choice__name">{t.homeOne}</span>
+						<span class="choice__help">{t.homeOneHelp}</span>
+						{windows.length > 0 && (
+							<select
+								class="c-input choice__more"
+								aria-label={t.shownWindow}
+								value={home}
+								onChange={(e) => (setHome(e.currentTarget.value), pick(true))}
+							>
+								{windows.map((w) => (
+									<option key={w.name} value={w.name}>
+										{w.title}
+									</option>
+								))}
+							</select>
+						)}
+					</label>
+				</fieldset>
 				<div>
-					<button class="c-btn c-btn--secondary c-btn--sm" type="submit" disabled={busy || home === current}>
+					<button class="c-btn c-btn--secondary" type="submit" disabled={busy || chosen === current}>
 						{t.save}
 					</button>
 				</div>
-			</form>
-		</section>
+			</div>
+			{said && <Outcome>{said}</Outcome>}
+			{error && (
+				<div class="setting__more">
+					<Failure message={error} />
+				</div>
+			)}
+		</form>
 	);
 }
 
 /** Deletes a team Room for good, once its name is typed. */
-function DeleteRoom({ room }: { room: RoomDetail }) {
+function DeleteSetting({ room }: { room: RoomDetail }) {
 	const api = useConsole();
-	const [open, setOpen] = useState(false);
+	const [asking, setAsking] = useState(false);
 	const [typed, setTyped] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
-	if (!open) {
-		return (
-			<div>
-				<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={() => setOpen(true)}>
-					{t.deleteRoom}
-				</button>
-			</div>
-		);
-	}
 	const remove = async (e: Event) => {
 		e.preventDefault();
 		setBusy(true);
@@ -576,21 +885,165 @@ function DeleteRoom({ room }: { room: RoomDetail }) {
 		}
 	};
 	return (
-		<form class="delete-room" onSubmit={remove}>
-			<p class="c-small">{t.deleteText(room.title, plural(room.windows, "Window", "Windows"))}</p>
-			<label class="c-field">
-				<span class="c-field__label">{t.typeToConfirm(room.name)}</span>
-				<input class="c-input c-mono" autoComplete="off" spellcheck={false} value={typed} onInput={(e) => setTyped(e.currentTarget.value)} />
-			</label>
-			{error && <Failure message={error} />}
-			<div class="actions">
-				<button class="c-btn c-btn--danger c-btn--sm" type="submit" disabled={busy || typed.trim() !== room.name}>
-					{t.deleteForGood}
-				</button>
-				<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => setOpen(false)}>
-					{t.cancel}
-				</button>
+		<div class="setting">
+			<div class="setting__text">
+				<span class="setting__title">{t.deleteRoom}</span>
+				<p class="c-small c-muted">{t.deleteHelp(plural(room.windows, "Window", "Windows"))}</p>
 			</div>
-		</form>
+			{!asking && (
+				<div class="setting__action">
+					<button class="c-btn c-btn--danger" type="button" onClick={() => setAsking(true)}>
+						{t.deleteAsk}
+					</button>
+				</div>
+			)}
+			{asking && (
+				<form class="setting__more setting__confirm" onSubmit={remove}>
+					<label class="c-field">
+						<span class="c-field__label">{t.typeToConfirm(room.name)}</span>
+						<input
+							class="c-input c-mono"
+							autoComplete="off"
+							autocapitalize="none"
+							spellcheck={false}
+							value={typed}
+							onInput={(e) => setTyped(e.currentTarget.value)}
+						/>
+					</label>
+					{error && <Failure message={error} />}
+					<div class="actions">
+						<button class="c-btn c-btn--danger c-btn--sm" type="submit" disabled={busy || typed.trim() !== room.name}>
+							{t.deleteForGood}
+						</button>
+						<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => (setAsking(false), setTyped(""))}>
+							{t.cancel}
+						</button>
+					</div>
+				</form>
+			)}
+		</div>
+	);
+}
+
+/** The dialog that manages a person of a team Room: their role in it, and removing them. */
+function ManageMember(props: { room: RoomDetail; person: Person; owners: number; onChanged: () => void; onClose: () => void }) {
+	const api = useConsole();
+	const { room: r, person: p } = props;
+	const toOwner = p.role !== "owner";
+	// A Room keeps an owner: the last one can neither become a member nor leave it.
+	const last = p.role === "owner" && props.owners === 1;
+	return (
+		<Dialog
+			title={p.name}
+			meta={
+				<>
+					<span class="c-mono">{p.handle}</span>
+					<span aria-hidden="true">·</span>
+					<span>{t.roleOf(roleWord(p), r.title)}</span>
+				</>
+			}
+			onClose={props.onClose}
+		>
+			{last ? (
+				<Notice>{t.lastOwner}</Notice>
+			) : (
+				<div class="settings">
+					<Setting
+						title={t.role}
+						help={`${roleWord(p)}. ${p.role === "owner" ? t.ownerHelp : t.memberHelp}`}
+						action={toOwner ? t.makeOwner : t.makeMember}
+						ask={t.makeQuestion(p.name, toOwner)}
+						onAct={async () => {
+							await api.cahut("set_room_member_role", { room: r.name, user: p.handle, role: toOwner ? "owner" : "member" });
+							props.onChanged();
+							return t.roleDone(p.name, toOwner);
+						}}
+					/>
+					<Setting
+						title={t.removeTitle}
+						help={t.removeHelp(p.name)}
+						action={t.remove}
+						danger
+						ask={t.removeQuestion(p.name)}
+						onAct={async () => {
+							await api.cahut("remove_room_member", { room: r.name, user: p.handle });
+							props.onChanged();
+							props.onClose();
+							return null;
+						}}
+					/>
+				</div>
+			)}
+		</Dialog>
+	);
+}
+
+/** The dialog that adds a person of the Cahut to a team Room, as a member or an owner. */
+function AddPerson(props: { room: RoomDetail; onAdded: () => void; onClose: () => void }) {
+	const api = useConsole();
+	const r = props.room;
+	const people = useLoad(() => api.cahut("list_users", {}));
+	const name = useId();
+	const [handle, setHandle] = useState("");
+	const [role, setRole] = useState<"member" | "owner">("member");
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	const inRoom = new Set(r.people.map((p) => p.handle));
+	const candidates = (people.data?.users ?? []).filter((u) => !inRoom.has(u.handle) && u.status !== "disabled");
+	const chosen = candidates.find((u) => u.handle === handle);
+	const submit = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		try {
+			await api.cahut("add_room_member", { room: r.name, user: handle, role });
+			props.onAdded();
+			props.onClose();
+		} catch (err) {
+			setError(explain(err));
+			setBusy(false);
+		}
+	};
+	return (
+		<Dialog title={t.addPerson} meta={<span>{t.inRoom(r.title)}</span>} onClose={props.onClose}>
+			{people.error && <Failure message={people.error} />}
+			{people.data && candidates.length === 0 && <Notice>{t.everyoneIn}</Notice>}
+			{candidates.length > 0 && (
+				<form class="form" onSubmit={submit}>
+					<label class="c-field">
+						<span class="c-field__label">{t.personColumn}</span>
+						<select class="c-input" required value={handle} onChange={(e) => setHandle(e.currentTarget.value)}>
+							<option value="">{t.choosePerson}</option>
+							{candidates.map((u) => (
+								<option key={u.handle} value={u.handle}>
+									{u.name} ({u.handle})
+								</option>
+							))}
+						</select>
+						<span class="c-field__help">{t.candidatesHelp}</span>
+					</label>
+					<fieldset class="choices">
+						<legend class="c-field__label">{t.role}</legend>
+						{(["member", "owner"] as const).map((v) => (
+							<label key={v} class="choice">
+								<input type="radio" name={name} checked={role === v} onChange={() => setRole(v)} />
+								<span class="choice__name">{v === "owner" ? t.owner : t.memberRole}</span>
+								<span class="choice__help">{v === "owner" ? t.ownerHelp : t.memberHelp}</span>
+							</label>
+						))}
+					</fieldset>
+					{chosen && <p class="c-small dialog__intro">{t.willOpen(chosen.name)}</p>}
+					{error && <Failure message={error} />}
+					<div class="dialog__foot">
+						<button class="c-btn c-btn--secondary" type="button" onClick={props.onClose}>
+							{t.cancel}
+						</button>
+						<button class="c-btn c-btn--primary" type="submit" disabled={busy || !chosen}>
+							{t.add}
+						</button>
+					</div>
+				</form>
+			)}
+		</Dialog>
 	);
 }

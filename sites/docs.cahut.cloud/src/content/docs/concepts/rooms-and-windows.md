@@ -52,7 +52,7 @@ Its owners, and the administrators of the Cahut, delete a team Room for good wit
 
 The address of a Room, such as `https://cahut.example.com/marketing/`, shows each reader the Windows they may open, as cards, most recently updated first. Each card shows the Window itself, shrunk to the card, with its kind, when it last changed, and its access. A reader outside the Room sees only the Windows open to them, and a reader who may open none finds nothing, as at an address that does not exist. The page names nobody: neither who published nor who is in the Room.
 
-The owners of a Room, personal Rooms included, can show one of its Windows at its address instead, such as a page that presents the team or the person: `set_room_home`, or **Page of the Room** on its page in the console. Readers who may open that Window see it at the address of the Room; the others still see the Windows they may open. The Window keeps its own address and its access, and `set_room_home` without a Window goes back to the list. The decision is [ADR 32](https://github.com/getcahut/cahut/blob/main/docs/adr/0032-the-page-of-a-room.md).
+The owners of a Room, personal Rooms included, can show one of its Windows at its address instead, such as a page that presents the team or the person: `set_room_home`, or **Page of the Room** under **Manage the Room**, on its page in the console. Readers who may open that Window see it at the address of the Room; the others still see the Windows they may open. The Window keeps its own address and its access, and `set_room_home` without a Window goes back to the list. The decision is [ADR 32](https://github.com/getcahut/cahut/blob/main/docs/adr/0032-the-page-of-a-room.md).
 
 ## Windows
 

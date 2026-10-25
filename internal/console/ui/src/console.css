@@ -334,6 +334,10 @@
 	height: 100%;
 	color: inherit;
 }
+.pictogram--large {
+	width: 64px;
+	height: 64px;
+}
 /* The foot of the navigation, on every page and in the menu on a narrow
    screen: the account, then the languages of the console. */
 .sidebar-foot {
@@ -473,7 +477,9 @@
 	gap: var(--space-2);
 }
 
-/* A Room: its Windows, and its people beside them */
+/* A page with a column beside its main one, as the page of a Window: the
+   column shrinks with its cards, and a long word wraps rather than
+   pushing it out of the page. */
 .layout {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) 340px;
@@ -496,25 +502,8 @@
 }
 .aside {
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
 	gap: var(--space-4);
-}
-.aside-stack {
-	display: grid;
-	gap: var(--space-6);
-	align-content: start;
-}
-.people {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	display: grid;
-	gap: var(--space-3);
-}
-.people__row {
-	display: grid;
-	grid-template-columns: auto 1fr auto;
-	align-items: center;
-	gap: var(--space-2) var(--space-3);
 }
 .people__who {
 	display: grid;
@@ -523,16 +512,247 @@
 .people__handle {
 	font-size: var(--text-xs);
 }
-.people__actions {
-	grid-column: 2 / -1;
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--space-2);
-}
 .person {
 	display: flex;
 	align-items: center;
 	gap: var(--space-3);
+}
+
+/* A Room: its head, then its Windows and the people of a team Room, one
+   section under the other, each as wide as the page. */
+.room-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: var(--space-5) var(--space-8);
+}
+.room-head__text {
+	display: grid;
+	gap: var(--space-2);
+	min-width: 0;
+	flex: 1 1 360px;
+}
+.room-head__text .c-h1,
+.room-head__text p {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+.room-head__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-3);
+}
+/* The address of a Room, to copy, and what it shows to its readers. */
+.room-address {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-1) var(--space-3);
+	font-size: var(--text-sm);
+}
+.room-address__copy {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-1);
+	min-width: 0;
+}
+.room-address__url {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	min-width: 0;
+	font-family: var(--font-mono);
+	overflow-wrap: anywhere;
+}
+.room-address .i {
+	flex: none;
+	color: var(--color-text-muted);
+}
+.room-address__shows {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	color: var(--color-text-muted);
+}
+.room-address__shows strong {
+	color: var(--color-text);
+	font-weight: 600;
+}
+.icon-button {
+	width: 32px;
+	padding: 0;
+	justify-content: center;
+}
+/* Who is in a team Room, at a glance: it leads to its people. */
+.room-people {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1);
+	border: 0;
+	border-radius: var(--radius-pill);
+	background: none;
+	color: var(--color-text-muted);
+	font: inherit;
+	font-size: var(--text-sm);
+	cursor: pointer;
+}
+.room-people:hover {
+	background: var(--color-surface-muted);
+	color: var(--color-text);
+}
+@media (max-width: 560px) {
+	.room-people {
+		flex-basis: 100%;
+		justify-content: flex-start;
+	}
+}
+.room-section {
+	margin-top: var(--space-10);
+	display: grid;
+	gap: var(--space-4);
+	scroll-margin-top: var(--space-6);
+}
+.room-section__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+	min-height: 32px;
+}
+.room-section__head .c-h4 {
+	margin: 0;
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-2);
+}
+.room-section__count {
+	font-family: var(--font-mono);
+	font-size: var(--text-sm);
+	font-weight: 500;
+	color: var(--color-text-muted);
+}
+.room-section > .cards {
+	margin-top: 0;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+}
+/* The Window that the address of its Room shows, over its preview. */
+.window-flag {
+	position: absolute;
+	top: var(--space-3);
+	left: var(--space-3);
+	z-index: 1;
+	background: var(--color-surface);
+	color: var(--color-text);
+	border-color: var(--color-border);
+	box-shadow: var(--shadow-sm);
+}
+.c-window__thumb.window-thumb .window-flag svg {
+	width: 14px;
+	height: 14px;
+}
+/* The trash, folded under the Windows of a Room. */
+.trash {
+	padding-top: var(--space-4);
+	border-top: 1px solid var(--color-border);
+}
+.trash > summary {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	margin-left: calc(-1 * var(--space-2));
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--radius-sm);
+	font-size: var(--text-sm);
+	color: var(--color-text-muted);
+	cursor: pointer;
+	list-style: none;
+}
+.trash > summary::-webkit-details-marker {
+	display: none;
+}
+.trash > summary:hover {
+	background: var(--color-surface-muted);
+	color: var(--color-text);
+}
+.trash__chevron {
+	transition: transform var(--duration-base) var(--ease-out);
+}
+.trash[open] .trash__chevron {
+	transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+	.trash__chevron {
+		transition: none;
+	}
+}
+.trash__list {
+	list-style: none;
+	margin: var(--space-3) 0 0;
+	padding: 0;
+	display: grid;
+}
+.trash__row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	align-items: center;
+	gap: var(--space-2) var(--space-4);
+	padding: var(--space-3) 0;
+	border-top: 1px solid var(--color-border);
+	font-size: var(--text-sm);
+}
+@media (max-width: 560px) {
+	.trash__row {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+	.trash__row .c-muted {
+		grid-row: 2;
+	}
+}
+/* A Room without a Window yet. */
+.room-empty {
+	display: grid;
+	justify-items: center;
+	gap: var(--space-3);
+	padding: var(--space-12) var(--space-6);
+	border: 1px dashed var(--color-border-strong);
+	border-radius: var(--radius-lg);
+	text-align: center;
+}
+.room-empty p {
+	margin: 0;
+	max-width: 52ch;
+}
+.room-empty .c-h4 {
+	margin: var(--space-2) 0 0;
+}
+.people-table__role {
+	color: var(--color-text-muted);
+}
+/* What the address of a Room shows, in its dialog: the Window to show sits
+   in its choice. */
+.home-form {
+	display: grid;
+	gap: var(--space-3);
+}
+.choices.choices--stacked {
+	grid-template-columns: minmax(0, 1fr);
+}
+.choice__more {
+	grid-column: 2;
+	margin-top: var(--space-2);
+}
+/* Deleting a Room asks for its name, in its row. */
+.setting__confirm {
+	display: grid;
+	gap: var(--space-3);
+	padding: var(--space-4);
+	border: 1px solid var(--color-danger-border);
+	border-radius: var(--radius-md);
+	background: var(--color-danger-bg);
 }
 
 /* Tables: the frame is the wrapper's, since a table whose borders collapse
@@ -697,14 +917,6 @@
 	white-space: nowrap;
 }
 
-/* Deleting a Room asks for its name. */
-.delete-room {
-	display: grid;
-	gap: var(--space-3);
-	margin-top: var(--space-4);
-	padding-top: var(--space-4);
-	border-top: 1px solid var(--color-border);
-}
 .actions {
 	display: flex;
 	flex-wrap: wrap;
