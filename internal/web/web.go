@@ -44,6 +44,11 @@ type Config struct {
 	Email     string // contact of the ACME account, optional
 	CA        string // ACME directory: Let's Encrypt when empty, its staging for "staging"
 	CertDir   string // where certificates and ACME keys are kept
+
+	// AdminAPIAddr, when set, serves the admin API there, to the programs
+	// of the machine itself. See
+	// docs/adr/0035-a-program-on-the-server-manages-people-with-a-service-token.md.
+	AdminAPIAddr string
 }
 
 // DevPort is the port of a server for development, unless it is told
@@ -455,6 +460,15 @@ func (s *Server) serveLocalHealth(w http.ResponseWriter, r *http.Request) {
 
 // Run serves until ctx is done, then shuts down gracefully.
 func (s *Server) Run(ctx context.Context) error {
+	var admin []func(context.Context) error
+	if addr := s.cfg.AdminAPIAddr; addr != "" {
+		if err := CheckAdminAPIAddr(addr); err != nil {
+			return err
+		}
+		srv := s.httpServer(addr, s.AdminHandler())
+		admin = append(admin, func(ctx context.Context) error { return serve(ctx, srv, srv.ListenAndServe) })
+		s.log.Info("serving the admin API to the machine itself", "address", "http://"+addr+"/api/")
+	}
 	domains, err := s.srv.Domains(ctx)
 	if err != nil {
 		return err
@@ -467,7 +481,7 @@ func (s *Server) Run(ctx context.Context) error {
 		srv := s.httpServer(s.cfg.DevAddr, s.localHealth(s))
 		s.log.Info("serving over HTTP for development", "address", "http://"+s.cfg.DevAddr+"/",
 			"console", "http://"+s.cfg.DevAddr+ConsolePath, "cahuts", domains)
-		return serve(ctx, srv, srv.ListenAndServe)
+		return serveAll(ctx, append(admin, func(ctx context.Context) error { return serve(ctx, srv, srv.ListenAndServe) })...)
 	}
 
 	c, err := s.certificates(ctx, domains)
@@ -479,11 +493,11 @@ func (s *Server) Run(ctx context.Context) error {
 	plain := s.httpServer(s.cfg.HTTPAddr, s.localHealth(c.issuer.HTTPChallengeHandler(redirectToHTTPS{srv: s.srv})))
 
 	s.log.Info("serving over HTTPS", "cahuts", domains, "console", ConsolePath)
-	return serveAll(ctx,
+	return serveAll(ctx, append(admin,
 		func(ctx context.Context) error { return serve(ctx, plain, plain.ListenAndServe) },
 		func(ctx context.Context) error {
 			return serve(ctx, https, func() error { return https.ListenAndServeTLS("", "") })
-		})
+		})...)
 }
 
 // watchNotices sends, every hour until ctx is done, the notices that time

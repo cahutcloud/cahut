@@ -4,6 +4,7 @@
 package account
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"errors"
@@ -25,6 +26,8 @@ func Register(r *operation.Registry) {
 	r.CheckPerson = Check
 	operation.Register(r, CreateUser)
 	operation.Register(r, ListUsers)
+	operation.Register(r, CheckHandle)
+	operation.Register(r, GetUser)
 	operation.Register(r, GetAccount)
 	operation.Register(r, SetUserRole)
 	operation.Register(r, DisableUser)
@@ -38,6 +41,9 @@ func Register(r *operation.Registry) {
 	operation.Register(r, CreateToken)
 	operation.Register(r, ListTokens)
 	operation.Register(r, RevokeToken)
+	operation.Register(r, CreateServiceToken)
+	operation.Register(r, ListServiceTokens)
+	operation.Register(r, RevokeServiceToken)
 	operation.Register(r, SetUserEmail)
 	operation.Register(r, ChangeEmail)
 	operation.Register(r, ConfirmEmail)
@@ -141,6 +147,15 @@ type CreateUserInput struct {
 	Name   string `json:"name"`
 	Admin  bool   `json:"admin,omitempty"`
 	Email  string `json:"email,omitempty" jsonschema:"the e-mail address of the person, where their activation link goes"`
+	// SendActivationEmail false keeps the link from the address: the caller
+	// gives it to the person itself, so that they receive one e-mail.
+	SendActivationEmail *bool `json:"send_activation_email,omitempty" jsonschema:"false keeps the activation link from the e-mail address of the person, when you give it to them yourself; true when absent"`
+}
+
+// sendsLink reports whether an activation link goes to the address of its
+// person: unless the caller says false.
+func sendsLink(send *bool) bool {
+	return send == nil || *send
 }
 
 // NewUser is the output of create_user.
@@ -169,6 +184,7 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 		"which goes to their e-mail address when you give one and the Cahut sends e-mail.",
 	Level:      operation.CahutAdmin,
 	KnockFirst: true,
+	Services:   true,
 	Run: func(ctx context.Context, c *operation.Call, in CreateUserInput) (NewUser, error) {
 		if !validHandle.MatchString(in.Handle) {
 			return NewUser{}, operation.Invalidf("handle %q: use 2 to 32 lowercase letters, digits and hyphens, "+
@@ -194,11 +210,11 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 			u.Role = Admin
 		}
 		c.Log(u.Handle, u.Role)
+		if in.Admin && c.Actor.Kind == operation.Service {
+			return NewUser{}, operation.Forbiddenf("create_user: a service token makes no administrator")
+		}
 
-		var taken bool
-		err := c.Tx.QueryRowContext(ctx, `
-			SELECT EXISTS (SELECT 1 FROM users WHERE handle = ?) OR EXISTS (SELECT 1 FROM rooms WHERE name = ?)`,
-			u.Handle, u.Handle).Scan(&taken)
+		taken, err := handleTaken(ctx, c.Tx, u.Handle)
 		if err != nil {
 			return NewUser{}, err
 		}
@@ -240,8 +256,10 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 			}
 			u.Email = email.String
 			p := person{User: u.User, email: email.String}
-			if a.Emailed, err = sendLink(ctx, c, p, a, activatePage, activationLetter); err != nil {
-				return NewUser{}, err
+			if sendsLink(in.SendActivationEmail) {
+				if a.Emailed, err = sendLink(ctx, c, p, a, activatePage, activationLetter); err != nil {
+					return NewUser{}, err
+				}
 			}
 			u.Activation = &a
 		}
@@ -289,6 +307,91 @@ var ListUsers = &operation.Op[ListUsersInput, UserList]{
 		}
 		c.Log("", fmt.Sprintf("%d people", len(list.Users)))
 		return list, rows.Err()
+	},
+}
+
+// handleTaken reports whether a person or a Room holds handle.
+func handleTaken(ctx context.Context, tx *sql.Tx, handle string) (bool, error) {
+	var taken bool
+	err := tx.QueryRowContext(ctx, `
+		SELECT EXISTS (SELECT 1 FROM users WHERE handle = ?) OR EXISTS (SELECT 1 FROM rooms WHERE name = ?)`,
+		handle, handle).Scan(&taken)
+	return taken, err
+}
+
+// Why a handle cannot go to a new person, as check_handle says.
+const (
+	HandleInvalid  = "invalid"  // not of the form of a handle
+	HandleReserved = "reserved" // it names a page of every Cahut
+	HandleTaken    = "taken"    // a person or a Room holds it
+)
+
+// CheckHandleInput is the input of check_handle.
+type CheckHandleInput struct {
+	Handle string `json:"handle"`
+}
+
+// HandleCheck is the output of check_handle.
+type HandleCheck struct {
+	Handle    string `json:"handle"`
+	Available bool   `json:"available" jsonschema:"the handle can go to a new person"`
+	Reason    string `json:"reason,omitempty" jsonschema:"why it cannot: invalid, reserved or taken"`
+}
+
+// CheckHandle says whether a handle can go to a new person. A program that
+// signs people up asks before it creates them.
+var CheckHandle = &operation.Op[CheckHandleInput, HandleCheck]{
+	Name:  "check_handle",
+	Title: "Check a handle",
+	Description: "Say whether a handle can go to a new person: of the form of a handle, not reserved, " +
+		"and held by no person and by no Room. For the administrators of the Cahut.",
+	Level:      operation.CahutAdmin,
+	ReadOnly:   true,
+	PeopleOnly: true,
+	Services:   true,
+	Run: func(ctx context.Context, c *operation.Call, in CheckHandleInput) (HandleCheck, error) {
+		c.Log(in.Handle, "")
+		check := HandleCheck{Handle: in.Handle}
+		switch {
+		case !validHandle.MatchString(in.Handle):
+			check.Reason = HandleInvalid
+		case address.Reserved(in.Handle):
+			check.Reason = HandleReserved
+		default:
+			taken, err := handleTaken(ctx, c.Tx, in.Handle)
+			if err != nil {
+				return HandleCheck{}, err
+			}
+			if taken {
+				check.Reason = HandleTaken
+			}
+		}
+		check.Available = check.Reason == ""
+		c.Log(in.Handle, cmp.Or(check.Reason, "available"))
+		return check, nil
+	},
+}
+
+// GetUser describes one person, with their address: it serves the
+// administrators of the Cahut, and never an AI.
+var GetUser = &operation.Op[UserInput, User]{
+	Name:  "get_user",
+	Title: "Describe a person",
+	Description: "Describe one person of the Cahut, as list_users does, with their e-mail address. " +
+		"For the administrators of the Cahut.",
+	Level:      operation.CahutAdmin,
+	ReadOnly:   true,
+	PeopleOnly: true,
+	Services:   true,
+	Run: func(ctx context.Context, c *operation.Call, in UserInput) (User, error) {
+		c.Log(in.User, "")
+		p, err := findUser(ctx, c.Tx, in.User)
+		if err != nil {
+			return User{}, err
+		}
+		u := p.User
+		u.Email = p.email
+		return u, nil
 	},
 }
 
@@ -434,6 +537,7 @@ var DisableUser = &operation.Op[UserInput, User]{
 		"Their Rooms and Windows stay.",
 	Level:      operation.CahutAdmin,
 	KnockFirst: true,
+	Services:   true,
 	Run: func(ctx context.Context, c *operation.Call, in UserInput) (User, error) {
 		c.Log(in.User, "")
 		p, err := findUser(ctx, c.Tx, in.User)
@@ -472,6 +576,7 @@ var EnableUser = &operation.Op[UserInput, User]{
 	Description: "Enable a disabled person again: they can sign in, and their AIs can act with their tokens.",
 	Level:       operation.CahutAdmin,
 	KnockFirst:  true,
+	Services:    true,
 	Run: func(ctx context.Context, c *operation.Call, in UserInput) (User, error) {
 		c.Log(in.User, "")
 		p, err := findUser(ctx, c.Tx, in.User)

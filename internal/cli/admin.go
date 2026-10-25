@@ -50,6 +50,12 @@ var tokenCommands = []command{
 	{name: "revoke", summary: "Revoke a personal token", run: runTokenRevoke},
 }
 
+var serviceTokenCommands = []command{
+	{name: "create", summary: "Create a service token for a program on this server", run: runServiceTokenCreate},
+	{name: "list", summary: "List service tokens", run: runServiceTokenList},
+	{name: "revoke", summary: "Revoke a service token", run: runServiceTokenRevoke},
+}
+
 // onServer opens the server in dir, runs op there as the administrator and
 // closes the server. It reports errors on stderr.
 func onServer[In, Out any](dir string, op *operation.Op[In, Out], in In, stderr io.Writer) (Out, bool) {
@@ -379,7 +385,7 @@ func runUserLink(args []string, stdout, stderr io.Writer) int {
 	fs := newFlags("user link", stderr)
 	data := dataFlag(fs)
 	domain := domainFlag(fs)
-	var in account.UserInput
+	var in account.ActivationLinkInput
 	fs.StringVar(&in.User, "handle", "", "the person who chooses a new password")
 	if code, ok := parse(fs, args); !ok {
 		return code
@@ -506,6 +512,72 @@ func runTokenRevoke(args []string, stdout, stderr io.Writer) int {
 		return exitError
 	}
 	fmt.Fprintf(stdout, "Revoked token %d of %s (%s).\n", t.ID, t.User, t.Name)
+	return exitOK
+}
+
+func runServiceTokenCreate(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("service-token create", stderr)
+	data := dataFlag(fs)
+	domain := domainFlag(fs)
+	var in account.CreateServiceTokenInput
+	fs.StringVar(&in.Name, "name", "", "what uses the token, such as \"account\" for the site where people sign up")
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	t, at, ok := inCahut(*data, *domain, account.CreateServiceToken, in, stderr)
+	if !ok {
+		return exitError
+	}
+	fmt.Fprintf(stdout, "Service token %d (%s) in %s. It is shown once: copy it now.\n\n%s\n\n", t.ID, t.Name, at, t.Token)
+	fmt.Fprintf(stdout, "The program calls the admin API of cahut serve --admin-api, with Host: %s, "+
+		"and sends the token in the Authorization header: Bearer <token>.\n", at)
+	return exitOK
+}
+
+func runServiceTokenList(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("service-token list", stderr)
+	data := dataFlag(fs)
+	domain := domainFlag(fs)
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	list, _, ok := inCahut(*data, *domain, account.ListServiceTokens, account.ListServiceTokensInput{}, stderr)
+	if !ok {
+		return exitError
+	}
+	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
+	fmt.Fprintln(tw, "ID\tNAME\tCREATED\tLAST USED\tSTATE")
+	for _, t := range list.Tokens {
+		state := "active"
+		if t.RevokedAt != nil {
+			state = "revoked " + day(*t.RevokedAt)
+		}
+		lastUsed := "never"
+		if t.LastUsedAt != nil {
+			lastUsed = minute(*t.LastUsedAt)
+		}
+		fmt.Fprintf(tw, "%d\t%s\t%s\t%s\t%s\n", t.ID, t.Name, day(t.CreatedAt), lastUsed, state)
+	}
+	if err := tw.Flush(); err != nil {
+		return exitError
+	}
+	return exitOK
+}
+
+func runServiceTokenRevoke(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("service-token revoke", stderr)
+	data := dataFlag(fs)
+	domain := domainFlag(fs)
+	var in account.RevokeServiceTokenInput
+	fs.Int64Var(&in.ID, "id", 0, "the token to revoke, as service-token list shows it")
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	t, _, ok := inCahut(*data, *domain, account.RevokeServiceToken, in, stderr)
+	if !ok {
+		return exitError
+	}
+	fmt.Fprintf(stdout, "Revoked service token %d (%s).\n", t.ID, t.Name)
 	return exitOK
 }
 

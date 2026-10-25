@@ -40,6 +40,9 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut token create`](#cahut-token-create) | Create a personal token for an AI |
 | [`cahut token list`](#cahut-token-list) | List personal tokens |
 | [`cahut token revoke`](#cahut-token-revoke) | Revoke a personal token |
+| [`cahut service-token create`](#cahut-service-token-create) | Create a service token for a program on this server |
+| [`cahut service-token list`](#cahut-service-token-list) | List service tokens |
+| [`cahut service-token revoke`](#cahut-service-token-revoke) | Revoke a service token |
 | [`cahut logbook`](#cahut-logbook) | Print the latest entries of the Logbook |
 | [`cahut update`](#cahut-update) | Install a new release, as root, and go back if it fails |
 | [`cahut doctor`](#cahut-doctor) | Diagnose this server, and say what to fix |
@@ -56,6 +59,7 @@ cahut serve [flags]
 | Flag | Default | Description |
 | --- | --- | --- |
 | `--acme-ca string` |  | ACME directory, or "staging" for Let's Encrypt's staging environment (env CAHUT_ACME_CA) |
+| `--admin-api string` |  | address of the machine itself, such as 127.0.0.1:8090, where programs with a service token call the admin API; off when empty (env CAHUT_ADMIN_API) |
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
 | `--dev` |  | serve plain HTTP on `--dev-addr`, for Cahuts at localhost and \*.localhost |
 | `--dev-addr string` | `localhost:8080` | address for `--dev` |
@@ -403,6 +407,51 @@ cahut token revoke [flags]
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
 | `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
 | `--id int` |  | the token to revoke, as token list shows it |
+
+## `cahut service-token`
+
+Manage the service tokens of the admin API.
+
+### `cahut service-token create`
+
+Create a service token for a program on this server.
+
+```text
+cahut service-token create [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+| `--name string` |  | what uses the token, such as "account" for the site where people sign up |
+
+### `cahut service-token list`
+
+List service tokens.
+
+```text
+cahut service-token list [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+
+### `cahut service-token revoke`
+
+Revoke a service token.
+
+```text
+cahut service-token revoke [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+| `--id int` |  | the token to revoke, as service-token list shows it |
 
 ## `cahut logbook`
 

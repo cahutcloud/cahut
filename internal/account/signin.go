@@ -38,9 +38,17 @@ func newActivation(ctx context.Context, c *operation.Call, userID int64, handle 
 	return a, err
 }
 
+// ActivationLinkInput is the input of create_activation_link.
+type ActivationLinkInput struct {
+	User string `json:"user" jsonschema:"handle of the person"`
+	// SendActivationEmail false keeps the link from the address: the caller
+	// gives it to the person itself.
+	SendActivationEmail *bool `json:"send_activation_email,omitempty" jsonschema:"false keeps the link from the e-mail address of the person, when you give it to them yourself; true when absent"`
+}
+
 // CreateActivationLink gives a person a new activation link, for instance
 // after they forgot their password.
-var CreateActivationLink = &operation.Op[UserInput, Activation]{
+var CreateActivationLink = &operation.Op[ActivationLinkInput, Activation]{
 	Name:  "create_activation_link",
 	Title: "Give a person a new link",
 	Description: "Give a person a new single-use link, valid 7 days, where they choose their password, " +
@@ -48,7 +56,8 @@ var CreateActivationLink = &operation.Op[UserInput, Activation]{
 		"Their password works until they use the link.",
 	Level:      operation.CahutAdmin,
 	PeopleOnly: true,
-	Run: func(ctx context.Context, c *operation.Call, in UserInput) (Activation, error) {
+	Services:   true,
+	Run: func(ctx context.Context, c *operation.Call, in ActivationLinkInput) (Activation, error) {
 		c.Log(in.User, "")
 		p, err := findUser(ctx, c.Tx, in.User)
 		if err != nil {
@@ -61,7 +70,9 @@ var CreateActivationLink = &operation.Op[UserInput, Activation]{
 		if err != nil {
 			return Activation{}, err
 		}
-		a.Emailed, err = sendLink(ctx, c, p, a, activatePage, activationLetter)
+		if sendsLink(in.SendActivationEmail) {
+			a.Emailed, err = sendLink(ctx, c, p, a, activatePage, activationLetter)
+		}
 		return a, err
 	},
 }

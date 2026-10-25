@@ -28,10 +28,19 @@ func runServe(args []string, _, stderr io.Writer) int {
 	fs.StringVar(&cfg.HTTPSAddr, "https", ":443", "address for HTTPS")
 	fs.BoolVar(&cfg.Dev, "dev", false, "serve plain HTTP on --dev-addr, for Cahuts at localhost and *.localhost")
 	fs.StringVar(&cfg.DevAddr, "dev-addr", fmt.Sprintf("localhost:%d", web.DevPort), "address for --dev")
+	fs.StringVar(&cfg.AdminAPIAddr, "admin-api", os.Getenv("CAHUT_ADMIN_API"),
+		"address of the machine itself, such as 127.0.0.1:8090, where programs with a service token call the admin API; "+
+			"off when empty (env CAHUT_ADMIN_API)")
 	updates := fs.String("update-state", envOr("CAHUT_UPDATE_STATE", update.DefaultStateDir),
 		"directory where the updater leaves the state of updates (env CAHUT_UPDATE_STATE)")
 	if code, ok := parse(fs, args); !ok {
 		return code
+	}
+	if cfg.AdminAPIAddr != "" {
+		if err := web.CheckAdminAPIAddr(cfg.AdminAPIAddr); err != nil {
+			fmt.Fprintln(stderr, "cahut serve:", err)
+			return exitUsage
+		}
 	}
 	cfg.CertDir = filepath.Join(*data, "certificates")
 

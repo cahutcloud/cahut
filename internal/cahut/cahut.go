@@ -121,6 +121,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 			"whether it sends e-mail, its kind, collaborative or individual, and its limits with what it holds: " +
 			"a call that would cross a limit is refused.",
 		ReadOnly: true,
+		Services: true,
 		Run: func(ctx context.Context, c *operation.Call, _ GetCahutInput) (About, error) {
 			c.Log(cfg.Domain, "")
 			a := About{Domain: cfg.Domain, URL: cfg.BaseURL}

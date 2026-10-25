@@ -158,6 +158,7 @@ var SetUserEmail = &operation.Op[SetUserEmailInput, User]{
 		"Their old address gets a notice. For the administrators of the Cahut.",
 	Level:      operation.CahutAdmin,
 	KnockFirst: true,
+	Services:   true,
 	Run: func(ctx context.Context, c *operation.Call, in SetUserEmailInput) (User, error) {
 		c.Log(in.User, "")
 		p, err := findUser(ctx, c.Tx, in.User)

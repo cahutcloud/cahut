@@ -38,6 +38,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [32](0032-the-page-of-a-room.md) | The page of a Room shows its Windows in previews, or a Window that its owners choose, in the brand of Cahut until the house style | Accepted, extended by 33 |
 | [33](0033-the-brand-of-cahut-until-the-house-style-has-a-look.md) | The pages of Cahut carry its brand until the house style has a look of its own | Accepted |
 | [34](0034-e-mail-through-the-relay-of-each-cahut-only.md) | E-mail goes through the relay of each Cahut only | Accepted |
+| [35](0035-a-program-on-the-server-manages-people-with-a-service-token.md) | A program on the server manages the people of a Cahut with a service token | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

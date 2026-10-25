@@ -406,6 +406,19 @@ func operationsPage(s sample) page {
 	if len(when) > 0 {
 		m.block("These knock first for some calls only: " + strings.Join(when, "; ") + ".")
 	}
+
+	m.block("## Open to services")
+	var services []string
+	for _, op := range s.cahutOps {
+		if op.Services {
+			services = append(services, code(op.Name))
+		}
+	}
+	m.block("A program on the server, such as a site where people sign up, calls some operations of a Cahut with a service token, " +
+		"through the [admin API](/reference/http-api/#admin-api). It acts with the rights of the administrators of the Cahut, " +
+		"and never knocks: the administrator of the server who created its token approved, once, what it does. " +
+		"The Logbook records its calls as those of an administrator, through `admin-api`, under the name of its token. " +
+		"Open to services: " + strings.Join(services, ", ") + ".")
 	return p
 }
 

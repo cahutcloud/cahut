@@ -71,11 +71,25 @@ func TestAdminCommands(t *testing.T) {
 		t.Errorf("token revoke: %d %q", code, out)
 	}
 
+	code, out, errOut = run(t, data, "service-token", "create", "--name", "account")
+	if code != exitOK || !regexp.MustCompile(`(?m)^cahut_svc_[a-z2-7]{52}$`).MatchString(out) || !strings.Contains(out, "Host: cahut.example.com") {
+		t.Fatalf("service-token create: %d %q %q", code, out, errOut)
+	}
+	code, out, _ = run(t, data, "service-token", "list")
+	if code != exitOK || !regexp.MustCompile(`1\s+account\s+\S+\s+never\s+active`).MatchString(out) {
+		t.Errorf("service-token list: %d %q", code, out)
+	}
+	code, out, _ = run(t, data, "service-token", "revoke", "--id", "1")
+	if code != exitOK || !strings.Contains(out, "Revoked service token 1 (account)") {
+		t.Errorf("service-token revoke: %d %q", code, out)
+	}
+
 	code, out, _ = run(t, data, "logbook")
 	if code != exitOK {
 		t.Fatalf("logbook: %d", code)
 	}
 	for _, want := range []string{
+		"revoke_service_token", "create_service_token",
 		"revoke_token", "create_token", "create_activation_link", "create_user",
 		"failed: invalid input: handle \"olivier\" is taken",
 	} {
@@ -83,7 +97,7 @@ func TestAdminCommands(t *testing.T) {
 			t.Errorf("logbook lacks %q:\n%s", want, out)
 		}
 	}
-	if strings.Contains(out, "cahut_pat_") {
+	if strings.Contains(out, "cahut_pat_") || strings.Contains(out, "cahut_svc_") {
 		t.Errorf("logbook shows a token:\n%s", out)
 	}
 }

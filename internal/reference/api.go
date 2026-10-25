@@ -70,7 +70,39 @@ func apiPage(s sample) page {
 	m.table([]string{"Route", "Who calls it", "Session"}, apiRows("/api/", s.cahutOps))
 	m.block("## Operations of the server")
 	m.table([]string{"Route", "Who calls it", "Session"}, apiRows("/api/server/", s.serverOps))
+
+	m.block("## Admin API")
+	m.block("A program on the server, such as a site where people sign up, manages the people of a Cahut through the admin API, " +
+		"with a service token, and without a Knock. The API is off unless " + code("cahut serve --admin-api <address>") +
+		", or " + code("CAHUT_ADMIN_API") + ", gives it an address of the machine itself, such as " + code("127.0.0.1:8090") +
+		": Cahut refuses to start with another one, and the API refuses every client that is not on the machine.")
+	m.table([]string{"Route", "What it runs"}, [][]string{
+		{code("POST /api/<operation>"), "An operation of the Cahut that the host of the request names, among those open to services"},
+	})
+	m.block("Calls, inputs, outputs and errors are those of the API of the console, with a service token in the header " +
+		code("Authorization: Bearer <token>") + " in place of a session. A service token starts with " +
+		code(account.ServiceTokenPrefix) + ". It belongs to one Cahut, and opens nothing else: neither the console, nor MCP, " +
+		"nor the Windows. The administrators of the server create one with " + code("cahut service-token create") +
+		", see them with " + code("cahut service-token list") + " and revoke one with " + code("cahut service-token revoke") +
+		", which ends its access at once.")
+	m.code("bash", `curl -X POST http://127.0.0.1:8090/api/check_handle \
+  -H "Host: cahut.example.com" -H "Authorization: Bearer <service token>" -d '{"handle": "ada"}'`)
+	var services []operation.Info
+	for _, op := range s.cahutOps {
+		if op.Services {
+			services = append(services, op)
+		}
+	}
+	m.table([]string{"Route", "What it does"}, serviceRows(services))
 	return p
+}
+
+func serviceRows(ops []operation.Info) [][]string {
+	var rows [][]string
+	for _, op := range ops {
+		rows = append(rows, []string{code("POST /api/" + op.Name), text(op.Description)})
+	}
+	return rows
 }
 
 func apiRows(prefix string, ops []operation.Info) [][]string {

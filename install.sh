@@ -31,6 +31,9 @@
 #                     installs the patch releases of the minor version
 #                     running, all installs any newer release, check only
 #                     reports them, off asks GitHub nothing
+#   --admin-api ADDR  serve the admin API at this address of the machine,
+#                     such as 127.0.0.1:8090, to the programs that hold a
+#                     service token; off turns it off (the default)
 #
 # Environment:
 #   CAHUT_REPO        GitHub repository of the releases (default: getcahut/cahut)
@@ -50,6 +53,7 @@ ca=""
 tag="latest"
 binary=""
 updates=""
+admin_api=""
 
 bin_path=/usr/local/bin/cahut
 data_dir=/var/lib/cahut
@@ -72,6 +76,7 @@ while [ $# -gt 0 ]; do
 	--version) tag="${2:?--version needs a value}"; shift 2 ;;
 	--binary) binary="${2:?--binary needs a value}"; shift 2 ;;
 	--updates) updates="${2:?--updates needs a value}"; shift 2 ;;
+	--admin-api) admin_api="${2:?--admin-api needs a value}"; shift 2 ;;
 	-h | --help) sed -n '2,/^$/s/^# \{0,1\}//p' "$0"; exit 0 ;;
 	*) die "unknown option $1 (see --help)" ;;
 	esac
@@ -235,6 +240,8 @@ setting() { sed -n "s/^$1=//p" "$env_file" 2>/dev/null | tail -n 1; }
 [ -n "$ca" ] || ca=$(setting CAHUT_ACME_CA)
 [ -n "$updates" ] || updates=$(setting CAHUT_UPDATES)
 [ -n "$updates" ] || updates=patch
+[ -n "$admin_api" ] || admin_api=$(setting CAHUT_ADMIN_API)
+[ "$admin_api" != off ] || admin_api=""
 cat >"$tmp/cahut.env" <<EOF
 # Settings of the cahut service. Run install.sh again to change them.
 CAHUT_DATA=$data_dir
@@ -242,6 +249,8 @@ CAHUT_ACME_EMAIL=$email
 CAHUT_ACME_CA=$ca
 # What the daily update does: patch, all, check or off.
 CAHUT_UPDATES=$updates
+# The admin API, for the programs of this machine with a service token: off when empty.
+CAHUT_ADMIN_API=$admin_api
 EOF
 if [ "$(cat "$tmp/cahut.env")" != "$(cat "$env_file" 2>/dev/null)" ]; then
 	say "writing $env_file"

@@ -89,19 +89,14 @@ func (s *Server) callAPI(w http.ResponseWriter, r *http.Request, reg *operation.
 	if info.Visitors {
 		limit = MaxVisitorRequestSize
 	}
-	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, limit))
-	var tooLarge *http.MaxBytesError
-	if errors.As(err, &tooLarge) {
-		apiError(w, http.StatusRequestEntityTooLarge, fmt.Sprintf("the body holds more than %d KiB", limit>>10))
-		return
-	}
-	if err != nil {
-		apiError(w, http.StatusBadRequest, "the body could not be read")
+	body, ok := readCall(w, r, limit)
+	if !ok {
 		return
 	}
 
 	st := siteOf(r)
 	actor := operation.Actor{Kind: operation.Visitor, Via: "api", Domain: st.cahut.Domain, Address: clientKey(r)}
+	var err error
 	if info.Visitors {
 		// Signing in takes no session; it is limited by address, on top of
 		// the limits by handle that the operation applies.
@@ -123,11 +118,33 @@ func (s *Server) callAPI(w http.ResponseWriter, r *http.Request, reg *operation.
 		}
 	}
 
+	s.invoke(w, r, reg, name, actor, body)
+}
+
+// readCall reads the body of a call, of limit bytes at most. When it
+// cannot, it answers the request itself and returns false.
+func readCall(w http.ResponseWriter, r *http.Request, limit int64) ([]byte, bool) {
+	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, limit))
+	var tooLarge *http.MaxBytesError
+	if errors.As(err, &tooLarge) {
+		apiError(w, http.StatusRequestEntityTooLarge, fmt.Sprintf("the body holds more than %d KiB", limit>>10))
+		return nil, false
+	}
+	if err != nil {
+		apiError(w, http.StatusBadRequest, "the body could not be read")
+		return nil, false
+	}
+	return body, true
+}
+
+// invoke runs the operation name of reg for actor, and encodes its result.
+func (s *Server) invoke(w http.ResponseWriter, r *http.Request, reg *operation.Registry, name string, actor operation.Actor, body []byte) {
 	out, err := reg.Invoke(r.Context(), name, actor, body)
 	if err != nil {
 		status, msg := apiStatus(err)
 		if status == http.StatusInternalServerError {
-			s.log.Error("API call failed", "cahut", st.cahut.Domain, "operation", name, "user", actor.Handle, "error", err)
+			s.log.Error("API call failed", "cahut", actor.Domain, "operation", name, "user", actor.Handle,
+				"client", actor.Client, "error", err)
 			msg = "Internal error. An administrator can find it in the Logbook."
 		}
 		apiError(w, status, msg)

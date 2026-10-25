@@ -29,6 +29,8 @@ CAHUT_ACME_EMAIL=you@example.com
 CAHUT_ACME_CA=
 # What the daily update does: patch, all, check or off.
 CAHUT_UPDATES=patch
+# The admin API, for the programs of this machine with a service token: off when empty.
+CAHUT_ADMIN_API=
 ```
 
 | Variable | What it sets |
@@ -37,8 +39,9 @@ CAHUT_UPDATES=patch
 | `CAHUT_ACME_EMAIL` | The contact of the Let's Encrypt account, optional |
 | `CAHUT_ACME_CA` | Empty for Let's Encrypt, `staging` for its staging environment, or the address of another ACME directory |
 | `CAHUT_UPDATES` | What the daily update does. See [Updates](/admin/updates/) |
+| `CAHUT_ADMIN_API` | The address of the machine, such as `127.0.0.1:8090`, where programs with a service token call the [admin API](/reference/http-api/#admin-api); off when empty |
 
-After a change to the file, restart the service: `sudo systemctl restart cahut`. `install.sh` writes the file again when you pass it `--email`, `--staging` or `--updates`, and keeps the values you do not give again.
+After a change to the file, restart the service: `sudo systemctl restart cahut`. `install.sh` writes the file again when you pass it `--email`, `--staging`, `--updates` or `--admin-api`, and keeps the values you do not give again.
 
 ## The service
 
