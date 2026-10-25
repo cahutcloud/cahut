@@ -5,7 +5,7 @@ description: Charte graphique et ton de Cahut, la maison auto-hébergée de ce q
 
 # Charte graphique Cahut
 
-Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.2 du 23 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
+Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.3 du 25 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
 
 Dans ce document, les chemins partent de la racine du dépôt et **`charte/`** désigne `docs/charte-graphique/`.
 
@@ -45,7 +45,7 @@ Un abri simple et à soi, posé dans le nuage : **papier chaud, encre bleu-gris,
 |---|---|---|---|
 | Paper | `#F7F5F0` | Fond principal | 60 % |
 | Ink | `#1F2A33` | Texte, logo, traits, fonds sombres | 22 % |
-| Sky | `#5FA8D3` | Accent, icône d'application, états actifs | 10 % |
+| Sky | `#5FA8D3` | Accent, états actifs | 10 % |
 | Light Grey | `#D9DCDF` | Bordures, séparateurs, reliefs (= Ink 200) | 5 % |
 | Soft Yellow | `#F4D27A` | Lumière, présence, ce qui attend une décision (*knock first*) | 3 % |
 
@@ -76,12 +76,12 @@ Un abri simple et à soi, posé dans le nuage : **papier chaud, encre bleu-gris,
 | Ink ou sombre | les mêmes en `-inverse` |
 | Impression une couleur | `-noir`, `-blanc` |
 | Symbole sous 64 px | `cahut-symbole-petites-tailles.svg` (trait renforcé) |
-| Icône d'application | `cahut-icone-app.svg` (Sky), `cahut-icone-app-ink.svg` |
-| Avatar sur GitHub, LinkedIn, X | `charte/applications/avatar-reseaux.png` : carré Sky plein, sans coins arrondis, le réseau pose son masque |
+| Icône d'application | `cahut-icone-app.svg` (Paper, symbole Ink, porte éclairée), `cahut-icone-app-ink.svg` |
+| Avatar sur GitHub, LinkedIn, X | `charte/applications/avatar-reseaux.png` : carré Paper plein, symbole Ink et porte éclairée, sans coins arrondis, le réseau pose son masque |
 
 - Tous dans `charte/logos/` (exports PNG dans `logos/png/`, favicons dans `logos/favicon/`). Logo horizontal pour les en-têtes et barres de navigation.
 - Zone de protection : la largeur de la porte (environ un quart de la largeur du symbole). Tailles minimales : logo 96 px, horizontal 100 px, symbole 24 px, favicon 16 px.
-- Ne pas déformer, recolorer, incliner, ombrer, recomposer ni remplir le logo ; ne pas redessiner le logotype dans une police ; pas de fond à moins de 4,5:1 ni de photo chargée derrière.
+- Ne pas déformer, recolorer, incliner, ombrer, recomposer ni remplir le logo (seule exception : la porte éclairée en Soft Yellow de l'icône d'application et de l'avatar) ; ne pas redessiner le logotype dans une police ; pas de fond à moins de 4,5:1 ni de photo chargée derrière.
 
 **Pictogrammes et icônes.**
 

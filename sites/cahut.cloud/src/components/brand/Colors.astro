@@ -9,7 +9,7 @@ import { cmyk, colorName, contrast, hex, rgb, scaleName, scales, stepOf, steps, 
 const brand = [
 	{ key: 'paper', role: 'The main background.', share: 60 },
 	{ key: 'ink', role: 'Text, the logo, lines and dark backgrounds.', share: 22 },
-	{ key: 'sky', role: 'The accent: the app icon and active states.', share: 10 },
+	{ key: 'sky', role: 'The accent: active states.', share: 10 },
 	{ key: 'light-grey', role: 'Borders, dividers and relief.', share: 5 },
 	{ key: 'soft-yellow', role: 'Light, presence, and what waits for a decision.', share: 3 },
 ].map((color) => {
@@ -28,7 +28,7 @@ const pairs = [
 	{ text: 'color.brand.paper', on: 'color.ink.950', use: 'Text in the dark theme' },
 	{ text: 'color.brand.sky', on: 'color.ink.950', use: 'The accent in the dark theme' },
 	{ text: 'color.brand.sky', on: 'color.brand.paper', use: 'Never text: decoration and large shapes only' },
-	{ text: 'color.neutral.white', on: 'color.brand.sky', use: 'Never text: the app icon only' },
+	{ text: 'color.neutral.white', on: 'color.brand.sky', use: 'Never: no text, no logo' },
 ].map((pair) => ({
 	...pair,
 	ratio: contrast(hex(pair.text), hex(pair.on)),
