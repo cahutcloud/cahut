@@ -79,7 +79,7 @@ On a Knock, **Approve** and, on the consent screen of an AI, **Connect** become 
 
 ## Language
 
-The console speaks English and French. It follows the languages of the browser, and anyone can choose one under **Account**, or under the card of the page of sign-in: the choice stays in that browser, for that Cahut. The words of the house, such as Room, Window and Knock, stay in English, and so do the Logbook, e-mail and most messages of the server. The refusals that people meet most, such as a wrong password, a link that expired, a session that ended, a handle or a name of a Room already taken, a Key too short or an invitation that cannot go, come in the language of the console.
+The console speaks English and French. It follows the languages of the browser, and anyone can choose one at the foot of the navigation, on every page, under **Account**, or under the card of the page of sign-in: the choice stays in that browser, for that Cahut. The words of the house, such as Room, Window and Knock, stay in English, and so do the Logbook, e-mail and most messages of the server. The refusals that people meet most, such as a wrong password, a link that expired, a session that ended, a handle or a name of a Room already taken, a Key too short or an invitation that cannot go, come in the language of the console.
 
 ## Readers
 
