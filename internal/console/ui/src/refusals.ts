@@ -66,13 +66,13 @@ const said = words<Sentences>({
 		wrong_handle_or_password: "Wrong handle or password.",
 	},
 	fr: {
-		account_disabled: "Ce compte est désactivé : un administrateur du Cahut peut le réactiver.",
+		account_disabled: "Ce compte est désactivé : un administrateur de la Cahut peut le réactiver.",
 		activation_link_gone:
-			"Ce lien d'activation est inconnu, déjà utilisé ou expiré : demandez-en un nouveau à un administrateur du Cahut.",
-		cahut_needs_an_admin: "Le Cahut a besoin d'un administrateur : faites d'abord d'une autre personne un administrateur.",
+			"Ce lien d'activation est inconnu, déjà utilisé ou expiré : demandez-en un nouveau à un administrateur de la Cahut.",
+		cahut_needs_an_admin: "La Cahut a besoin d'un administrateur : faites d'abord d'une autre personne un administrateur.",
 		email_already_yours: (v) => `${v.email} est déjà votre adresse e-mail.`,
 		email_link_gone: "Ce lien est inconnu, déjà utilisé ou expiré : changez à nouveau votre adresse depuis votre compte.",
-		email_taken: (v) => `${v.email} est déjà l'adresse e-mail d'une autre personne de ce Cahut.`,
+		email_taken: (v) => `${v.email} est déjà l'adresse e-mail d'une autre personne de cette Cahut.`,
 		handle_invalid: (v) =>
 			`« ${v.handle} » ne peut pas être un identifiant : utilisez de 2 à 32 lettres minuscules, chiffres et tirets, en commençant par une lettre et en finissant par une lettre ou un chiffre.`,
 		handle_reserved: (v) => `L'identifiant « ${v.handle} » est réservé : il nomme une page de chaque Cahut.`,
@@ -80,23 +80,23 @@ const said = words<Sentences>({
 		invitation_gone:
 			"Cette invitation n'ouvre plus la Window : elle a été retirée, elle a expiré, ou la Window a changé de Key ou d'accès. Demandez-en une nouvelle à la personne qui vous l'a envoyée.",
 		invite_address_internal: () =>
-			"Cette Window s'ouvre aux personnes du Cahut seulement : invitez-les par identifiant, ou passez d'abord son accès à Key, pour que chaque adresse reçoive un lien personnel.",
+			"Cette Window s'ouvre aux personnes de la Cahut seulement : invitez-les par identifiant, ou passez d'abord son accès à Key, pour que chaque adresse reçoive un lien personnel.",
 		invite_address_room_only: () =>
 			"Cette Window s'ouvre à sa Room seulement : invitez ses membres par identifiant, ou passez d'abord son accès à Key, pour que chaque adresse reçoive un lien personnel.",
 		invite_bad_address: (v) => `« ${v.to} » n'est pas une adresse e-mail : donnez une seule adresse, comme jeanne@example.com.`,
 		invite_by_address: (v) =>
-			`« ${v.to} » n'est pas une adresse e-mail : dans ce Cahut, qui est individuel, invitez par adresse, à une Window avec une Key ou publique.`,
+			`« ${v.to} » n'est pas une adresse e-mail : dans cette Cahut, qui est individuelle, invitez par adresse, à une Window avec une Key ou publique.`,
 		invite_disabled: (v) => `Le compte de ${v.handle} est désactivé : cette personne ne peut pas lire la Window.`,
-		invite_no_person: (v) => `Aucune personne de ce Cahut n'a l'identifiant « ${v.to} » : invitez quelqu'un d'autre par adresse e-mail.`,
+		invite_no_person: (v) => `Aucune personne de cette Cahut n'a l'identifiant « ${v.to} » : invitez quelqu'un d'autre par adresse e-mail.`,
 		invite_not_in_room: (v) =>
 			`${v.handle} n'est pas dans la Room ${v.room}, et cette Window s'ouvre à sa Room seulement : ajoutez cette personne à la Room, ou passez d'abord son accès à Interne ou à Key.`,
 		key_has_spaces: "La Key commence ou finit par un espace.",
 		key_too_long: (v) => `La Key a plus de ${plural(v.limit, "caractère", "caractères")}.`,
 		key_too_short: (v) =>
 			`La Key a ${plural(v.length, "caractère", "caractères")} : il lui en faut ${v.limit} au moins, ou laissez Cahut en tirer une au sort.`,
-		no_mail: "Ce Cahut n'envoie pas d'e-mail : un administrateur du Cahut doit d'abord régler son relais, sur la page E-mail de la console.",
-		no_mail_to_invite: "Ce Cahut n'envoie pas d'e-mail : donnez vous-même l'adresse de la Window, avec sa Key si elle en a une.",
-		no_password_link: "Ce Cahut n'envoie pas d'e-mail : un administrateur du Cahut peut vous donner un nouveau lien.",
+		no_mail: "Cette Cahut n'envoie pas d'e-mail : un administrateur de la Cahut doit d'abord régler son relais, sur la page E-mail de la console.",
+		no_mail_to_invite: "Cette Cahut n'envoie pas d'e-mail : donnez vous-même l'adresse de la Window, avec sa Key si elle en a une.",
+		no_password_link: "Cette Cahut n'envoie pas d'e-mail : un administrateur de la Cahut peut vous donner un nouveau lien.",
 		password_too_long: (v) => `Le mot de passe a ${plural(v.length, "caractère", "caractères")} : utilisez-en ${v.limit} au plus.`,
 		password_too_short: (v) => `Le mot de passe a ${plural(v.length, "caractère", "caractères")} : utilisez-en au moins ${v.limit}.`,
 		room_name_invalid: (v) =>
@@ -110,7 +110,7 @@ const said = words<Sentences>({
 		server_activation_link_gone:
 			"Ce lien d'activation est inconnu, déjà utilisé ou expiré : demandez-en un nouveau à un autre administrateur du serveur, ou lancez cahut admin link sur le serveur.",
 		session_ended: "Votre session a pris fin : reconnectez-vous.",
-		setup_done: (v) => `Le Cahut ${de(v.domain)} a déjà des personnes : connectez-vous à sa console.`,
+		setup_done: (v) => `La Cahut ${de(v.domain)} a déjà des personnes : connectez-vous à sa console.`,
 		setup_link_gone: "Ce lien de premier démarrage ne fonctionne plus : il a servi, il a expiré, ou il est pour une autre adresse.",
 		too_many_attempts_from_address: "Trop de tentatives depuis cette adresse : patientez une minute.",
 		too_many_invitations: (v) =>
