@@ -242,6 +242,8 @@ setting() { sed -n "s/^$1=//p" "$env_file" 2>/dev/null | tail -n 1; }
 [ -n "$updates" ] || updates=patch
 [ -n "$admin_api" ] || admin_api=$(setting CAHUT_ADMIN_API)
 [ "$admin_api" != off ] || admin_api=""
+https_proxies=$(setting CAHUT_HTTPS_PROXY_PROTOCOL)
+http_proxies=$(setting CAHUT_HTTP_PROXY_PROTOCOL)
 cat >"$tmp/cahut.env" <<EOF
 # Settings of the cahut service. Run install.sh again to change them.
 CAHUT_DATA=$data_dir
@@ -251,6 +253,10 @@ CAHUT_ACME_CA=$ca
 CAHUT_UPDATES=$updates
 # The admin API, for the programs of this machine with a service token: off when empty.
 CAHUT_ADMIN_API=$admin_api
+# The proxies in front of Cahut, such as 127.0.0.1, whose PROXY protocol it
+# reads on HTTPS and on HTTP: off when empty. Set them in this file.
+CAHUT_HTTPS_PROXY_PROTOCOL=$https_proxies
+CAHUT_HTTP_PROXY_PROTOCOL=$http_proxies
 EOF
 if [ "$(cat "$tmp/cahut.env")" != "$(cat "$env_file" 2>/dev/null)" ]; then
 	say "writing $env_file"

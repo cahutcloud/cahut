@@ -262,6 +262,22 @@ type Health struct {
 	Version string        `json:"version"`
 	OK      bool          `json:"ok" jsonschema:"whether every Cahut opened"`
 	Cahuts  []CahutHealth `json:"cahuts"`
+	// ProxyProtocol holds the listeners that read the PROXY protocol. See
+	// docs/adr/0041-the-proxy-protocol-from-trusted-proxies.md.
+	ProxyProtocol []ProxyHealth `json:"proxy_protocol,omitempty"`
+}
+
+// ProxyHealth says what a listener that reads the PROXY protocol trusts,
+// and how the last connections of its proxies went.
+type ProxyHealth struct {
+	Listener string   `json:"listener"` // https or http
+	Address  string   `json:"address"`
+	Trusted  []string `json:"trusted"`
+	// The last connection of a trusted proxy that came with a valid
+	// header, and the last one refused, with why.
+	LastTaken   *time.Time `json:"last_taken,omitempty"`
+	LastRefused *time.Time `json:"last_refused,omitempty"`
+	Refusal     string     `json:"refusal,omitempty"`
 }
 
 // CahutHealth says whether a Cahut opened, with its migrations.

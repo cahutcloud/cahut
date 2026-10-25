@@ -65,7 +65,9 @@ cahut serve [flags]
 | `--dev-addr string` | `localhost:8080` | address for `--dev` |
 | `--email string` |  | contact of the Let's Encrypt account, optional (env CAHUT_ACME_EMAIL) |
 | `--http string` | `:80` | address for HTTP, which answers ACME challenges and redirects |
+| `--http-proxy-protocol string` |  | IP addresses or prefixes of the proxies whose PROXY protocol header the HTTP listener reads, and requires; off when empty (env CAHUT_HTTP_PROXY_PROTOCOL) |
 | `--https string` | `:443` | address for HTTPS |
+| `--https-proxy-protocol string` |  | IP addresses or prefixes of the proxies, such as 127.0.0.1, whose PROXY protocol header the HTTPS listener reads, and requires; off when empty (env CAHUT_HTTPS_PROXY_PROTOCOL) |
 | `--update-state string` | `/var/lib/cahut-update` | directory where the updater leaves the state of updates (env CAHUT_UPDATE_STATE) |
 
 ## `cahut setup`

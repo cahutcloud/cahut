@@ -15,6 +15,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/netip"
 	"regexp"
 	"strings"
 	"sync"
@@ -44,6 +45,11 @@ type Config struct {
 	Email     string // contact of the ACME account, optional
 	CA        string // ACME directory: Let's Encrypt when empty, its staging for "staging"
 	CertDir   string // where certificates and ACME keys are kept
+
+	// The proxies whose PROXY protocol Cahut reads on HTTPS and on HTTP:
+	// none when empty. See
+	// docs/adr/0041-the-proxy-protocol-from-trusted-proxies.md.
+	HTTPSProxies, HTTPProxies []netip.Prefix
 
 	// AdminAPIAddr, when set, serves the admin API there, to the programs
 	// of the machine itself. See
@@ -125,8 +131,9 @@ type Server struct {
 	streams    context.Context
 	endStreams context.CancelFunc
 
-	mu    sync.Mutex
-	sites map[string]*site // by domain
+	mu      sync.Mutex
+	sites   map[string]*site // by domain
+	proxied []*proxyListener // the listeners that read the PROXY protocol
 }
 
 // site is an open Cahut and its MCP endpoint.
@@ -454,6 +461,11 @@ func (s *Server) serveLocalHealth(w http.ResponseWriter, r *http.Request) {
 		}
 		h.Cahuts = append(h.Cahuts, c)
 	}
+	s.mu.Lock()
+	for _, l := range s.proxied {
+		h.ProxyProtocol = append(h.ProxyProtocol, l.health())
+	}
+	s.mu.Unlock()
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -496,13 +508,42 @@ func (s *Server) Run(ctx context.Context) error {
 	https := s.httpServer(s.cfg.HTTPSAddr, s)
 	https.TLSConfig = c.tlsConfig()
 	plain := s.httpServer(s.cfg.HTTPAddr, s.localHealth(c.issuer.HTTPChallengeHandler(redirectToHTTPS{srv: s.srv})))
+	secure, err := s.listen(ctx, "https", s.cfg.HTTPSAddr, s.cfg.HTTPSProxies)
+	if err != nil {
+		return err
+	}
+	insecure, err := s.listen(ctx, "http", s.cfg.HTTPAddr, s.cfg.HTTPProxies)
+	if err != nil {
+		_ = secure.Close()
+		return err
+	}
 
 	s.log.Info("serving over HTTPS", "cahuts", domains, "console", ConsolePath)
 	return serveAll(ctx, append(admin,
-		func(ctx context.Context) error { return serve(ctx, plain, plain.ListenAndServe) },
 		func(ctx context.Context) error {
-			return serve(ctx, https, func() error { return https.ListenAndServeTLS("", "") })
+			return serve(ctx, plain, func() error { return plain.Serve(insecure) })
+		},
+		func(ctx context.Context) error {
+			return serve(ctx, https, func() error { return https.ServeTLS(secure, "", "") })
 		})...)
+}
+
+// listen listens on addr for the listener called name, and reads the PROXY
+// protocol of the proxies it trusts, when there are some.
+func (s *Server) listen(ctx context.Context, name, addr string, proxies []netip.Prefix) (net.Listener, error) {
+	if addr == "" {
+		addr = ":" + name
+	}
+	ln, err := (&net.ListenConfig{}).Listen(ctx, "tcp", addr)
+	if err != nil || len(proxies) == 0 {
+		return ln, err
+	}
+	l := newProxyListener(ln, name, proxies, proxyHeaderTimeout, s.log)
+	s.mu.Lock()
+	s.proxied = append(s.proxied, l)
+	s.mu.Unlock()
+	s.log.Info("reading the PROXY protocol of trusted proxies", "listener", name, "address", ln.Addr().String(), "proxies", proxyNames(proxies))
+	return l, nil
 }
 
 // watchNotices sends, every hour until ctx is done, the notices that time

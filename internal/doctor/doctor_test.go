@@ -228,6 +228,16 @@ func TestProblems(t *testing.T) {
 		{"GitHub", func(f *fake) { delete(f.gets, "https://api.github.com/") }, Warn, "GitHub", "cannot read new releases"},
 		{"timer off", func(f *fake) { f.commands["systemctl is-active cahut-update.timer"] = "inactive" }, Warn, "Updates", "enable --now cahut-update.timer"},
 		{"development", func(f *fake) { f.health.Cahuts[0].Domain = "beta.localhost" }, Info, "beta.localhost", "development"},
+		{"proxy", func(f *fake) { f.health.ProxyProtocol = []update.ProxyHealth{proxy(&now, nil)} }, OK, "Proxy",
+			"HTTPS on 127.0.0.1:8443 reads the address of each client from 127.0.0.1, by the PROXY protocol"},
+		{"proxy without a header", func(f *fake) { f.health.ProxyProtocol = []update.ProxyHealth{proxy(nil, &now)} }, Fail, "Proxy",
+			"refused every connection of 127.0.0.1 since the service started, the last on 23 October 2026 at 12:00 UTC: the connection starts with a TLS handshake"},
+		{"proxy without a header lately", func(f *fake) {
+			f.health.ProxyProtocol = []update.ProxyHealth{proxy(new(now.Add(-time.Hour)), &now)}
+		}, Warn, "Proxy", "refused the last connection of 127.0.0.1"},
+		{"proxy with a header since", func(f *fake) {
+			f.health.ProxyProtocol = []update.ProxyHealth{proxy(&now, new(now.Add(-time.Hour)))}
+		}, OK, "Proxy", "reads the address of each client"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			f := healthy()
@@ -270,4 +280,14 @@ func TestUpdates(t *testing.T) {
 			}
 		})
 	}
+}
+
+// proxy is the HTTPS listener behind nginx on the same machine, with its
+// last connection taken and refused.
+func proxy(taken, refused *time.Time) update.ProxyHealth {
+	p := update.ProxyHealth{Listener: "https", Address: "127.0.0.1:8443", Trusted: []string{"127.0.0.1"}, LastTaken: taken, LastRefused: refused}
+	if refused != nil {
+		p.Refusal = "the connection starts with a TLS handshake, without a header"
+	}
+	return p
 }
