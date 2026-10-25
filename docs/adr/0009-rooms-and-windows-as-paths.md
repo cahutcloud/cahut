@@ -1,6 +1,6 @@
 # 9. Rooms and Windows are paths of their Cahut's domain
 
-- Status: Accepted, extended by [ADR 22](0022-house-style-of-each-cahut.md) (Windows link the house style of their Cahut under `/-/`, by root-relative paths), by [ADR 30](0030-kind-and-limits-of-each-cahut.md) (in an individual Cahut, the name of a Room starts with the handle of its owner) and by [ADR 32](0032-the-page-of-a-room.md) (the address of a Room can show a Window that its owners choose)
+- Status: Accepted, extended by [ADR 22](0022-house-style-of-each-cahut.md) (Windows link the house style of their Cahut under `/-/`, by root-relative paths), by [ADR 30](0030-kind-and-limits-of-each-cahut.md) (in an individual Cahut, the name of a Room starts with the handle of its owner) by [ADR 32](0032-the-page-of-a-room.md) (the address of a Room can show a Window that its owners choose), and superseded in part by [ADR 38](0038-the-root-of-a-cahut-opens-its-console.md) (the root of a Cahut opens its console)
 - Date: 2026-10-21
 
 ## Context

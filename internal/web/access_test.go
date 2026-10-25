@@ -322,12 +322,10 @@ func TestReaders(t *testing.T) {
 		t.Errorf("the API with a reader session = %d, want 401", rec.Code)
 	}
 
-	// The home lists the reader's Rooms, and signing out ends the session.
-	if _, body := f.do(t, "localhost", http.MethodGet, "/", []*http.Cookie{reader}, nil); !strings.Contains(body, `href="/olivier/"`) || !strings.Contains(body, "Sign out") {
-		t.Errorf("GET / signed in = %q", body)
-	}
-	if resp, _ := f.do(t, "localhost", http.MethodGet, "/olivier/", []*http.Cookie{reader}, nil); resp.StatusCode != http.StatusOK {
-		t.Errorf("GET /olivier/ by its member = %d", resp.StatusCode)
+	// The pages of the Cahut know the reader, and signing out ends the
+	// session.
+	if resp, body := f.do(t, "localhost", http.MethodGet, "/olivier/", []*http.Cookie{reader}, nil); resp.StatusCode != http.StatusOK || !strings.Contains(body, "Sign out") {
+		t.Errorf("GET /olivier/ by its member = %d %q", resp.StatusCode, body)
 	}
 	resp, _ = f.do(t, "localhost", http.MethodPost, "/-/sign-out", []*http.Cookie{reader}, url.Values{})
 	if resp.StatusCode != http.StatusSeeOther || len(resp.Cookies()) != 1 || resp.Cookies()[0].MaxAge >= 0 {

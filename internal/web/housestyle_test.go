@@ -106,31 +106,30 @@ func TestPagesInTheHouseStyle(t *testing.T) {
 	f := setup(t)
 	olivier := f.person(t, "localhost", "olivier")
 	reader := f.signIn(t, "localhost", "olivier")
-	homePage := func() (response, string) {
-		return f.do(t, "localhost", http.MethodGet, "/", []*http.Cookie{reader}, nil)
+	roomPage := func() (response, string) {
+		return f.do(t, "localhost", http.MethodGet, "/olivier/", []*http.Cookie{reader}, nil)
 	}
-	resp, home := homePage()
-	if !strings.Contains(home, `<img class="top__cahut" src="/-/brand/logos/cahut-logo-horizontal.svg" alt="Cahut"`) ||
-		!strings.Contains(home, `<span class="top__domain">localhost</span>`) ||
-		!strings.Contains(home, `<link rel="stylesheet" href="/-/brand/tokens/cahut-fonts.css">`) ||
-		strings.Contains(home, "/-/house-style.css") || strings.Contains(home, "data-house-style") {
-		t.Errorf("home of the neutral house style = %q", home)
+	resp, body := roomPage()
+	if !strings.Contains(body, `<img class="top__cahut" src="/-/brand/logos/cahut-logo-horizontal.svg" alt="Cahut"`) ||
+		!strings.Contains(body, `<span class="top__domain">localhost</span>`) ||
+		!strings.Contains(body, `<link rel="stylesheet" href="/-/brand/tokens/cahut-fonts.css">`) ||
+		strings.Contains(body, "/-/house-style.css") || strings.Contains(body, "data-house-style") {
+		t.Errorf("the page of a Room in the neutral house style = %q", body)
 	}
 	if csp := resp.Header.Get("Content-Security-Policy"); csp != pagePolicy("https://localhost/") || !strings.Contains(csp, "font-src 'self'") {
-		t.Errorf("the policy of the home = %q", csp)
+		t.Errorf("the policy of the page of a Room = %q", csp)
 	}
 	if resp, css := f.get(t, "localhost", http.MethodGet, "/-/pages.css"); resp.StatusCode != http.StatusOK || !strings.Contains(css, "var(--hs-primary)") {
 		t.Errorf("GET /-/pages.css = %d %q", resp.StatusCode, css)
 	}
 
 	f.call(t, "localhost", admin, "set_house_style", `{"name": "Example & Co", "logo": {"content": "<svg xmlns=\"http://www.w3.org/2000/svg\"/>"}}`)
-	_, home = homePage()
-	if !strings.Contains(home, `<img class="top__logo" src="/-/house-style/logo" alt="Example &amp; Co">`) ||
-		!strings.Contains(home, `<h1 class="hero__title">Example &amp; Co</h1>`) ||
-		!strings.Contains(home, `<html lang="en" data-theme="light" data-house-style>`) ||
-		!strings.Contains(home, `<link rel="stylesheet" href="/-/house-style.css">`) ||
-		strings.Contains(home, "cahut-logo") || strings.Contains(home, "cahut-fonts.css") {
-		t.Errorf("home with a logo = %q", home)
+	_, body = roomPage()
+	if !strings.Contains(body, `<img class="top__logo" src="/-/house-style/logo" alt="Example &amp; Co">`) ||
+		!strings.Contains(body, `<html lang="en" data-theme="light" data-house-style>`) ||
+		!strings.Contains(body, `<link rel="stylesheet" href="/-/house-style.css">`) ||
+		strings.Contains(body, "cahut-logo") || strings.Contains(body, "cahut-fonts.css") {
+		t.Errorf("the page of a Room with a logo = %q", body)
 	}
 	publishDeck(t, f, olivier)
 	f.call(t, "localhost", olivier, "set_window_access", `{"window": "olivier/q3-review", "access": "key", "key": "correct horse"}`)
@@ -144,8 +143,8 @@ func TestPagesInTheHouseStyle(t *testing.T) {
 
 	// Back to the neutral house style, the pages carry the brand of Cahut again.
 	f.call(t, "localhost", admin, "set_house_style", `{"neutral": true}`)
-	if _, home := homePage(); !strings.Contains(home, "cahut-logo-horizontal.svg") {
-		t.Errorf("home of the neutral house style again = %q", home)
+	if _, body := roomPage(); !strings.Contains(body, "cahut-logo-horizontal.svg") {
+		t.Errorf("the page of a Room in the neutral house style again = %q", body)
 	}
 
 	// What the house style says to AIs, and whether they use it, leave the
@@ -163,8 +162,8 @@ func TestPagesInTheHouseStyle(t *testing.T) {
 		{`"logo": {"content": "<svg xmlns=\"http://www.w3.org/2000/svg\"/>"}`, false},
 	} {
 		f.call(t, "localhost", admin, "set_house_style", `{"neutral": true, `+tt.change+`}`)
-		_, home := homePage()
-		if cahut := strings.Contains(home, "cahut-logo-horizontal.svg") && !strings.Contains(home, "data-house-style"); cahut != tt.cahut {
+		_, body := roomPage()
+		if cahut := strings.Contains(body, "cahut-logo-horizontal.svg") && !strings.Contains(body, "data-house-style"); cahut != tt.cahut {
 			t.Errorf("with %s, the pages carry the brand of Cahut: %v, want %v", tt.change, cahut, tt.cahut)
 		}
 	}

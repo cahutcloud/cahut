@@ -219,10 +219,10 @@ func TestReaderSignOutEndsConsoleSession(t *testing.T) {
 	if _, err := account.VerifyReader(ctx, c.DB, readerThere.Value, time.Now()); err != nil {
 		t.Errorf("the reader session of another device: %v", err)
 	}
-	// Back home, the reader signs in again, with a password.
-	resp, _ = f.do(t, "localhost", http.MethodGet, "/", []*http.Cookie{reader}, nil)
-	if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != "https://localhost/console/read?to=%2F" {
-		t.Errorf("the home after signing out = %d %q", resp.StatusCode, resp.Header.Get("Location"))
+	// Back on the Window, the reader signs in again, with a password.
+	resp, _ = f.do(t, "localhost", http.MethodGet, "/olivier/q3-review/", []*http.Cookie{reader}, nil)
+	if resp.StatusCode != http.StatusNotFound {
+		t.Errorf("the Window after signing out = %d, want 404", resp.StatusCode)
 	}
 }
 

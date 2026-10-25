@@ -182,8 +182,8 @@ func (s *Server) serveInvitation(w http.ResponseWriter, r *http.Request) {
 }
 
 // serveSignOut ends the reader session of the request, with the console
-// session that opened it, then sends the reader to the home, which asks
-// them to sign in.
+// session that opened it, then sends the reader to the root, which opens
+// the console on its page of sign-in.
 func (s *Server) serveSignOut(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie(s.cookieName(readerCookie)); err == nil {
 		if err := account.EndReaderSession(r.Context(), siteOf(r).cahut.DB, cookie.Value); err != nil {

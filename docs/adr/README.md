@@ -12,7 +12,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [6](0006-in-house-oauth-server.md) | Cahut runs its own minimal OAuth authorization server | Accepted, extended by 16 |
 | [7](0007-module-path-repository-and-releases.md) | Module path, repository and releases | Accepted, extended by 24 |
 | [8](0008-several-cahuts-per-server.md) | A server holds several Cahuts, each at its own domain | Accepted, extended by 26 and 30 |
-| [9](0009-rooms-and-windows-as-paths.md) | Rooms and Windows are paths of their Cahut's domain | Accepted, extended by 22 and 30 |
+| [9](0009-rooms-and-windows-as-paths.md) | Rooms and Windows are paths of their Cahut's domain | Accepted, extended by 22, 30 and 32, superseded in part by 38 |
 | [10](0010-windows-in-a-csp-sandbox.md) | Windows run in a CSP sandbox | Accepted, extended by 27 |
 | [11](0011-console-on-its-own-port.md) | The console has its own port | Accepted, superseded in part by 13, 17 and 20 |
 | [12](0012-website-and-docs-as-astro-sites.md) | The website and the docs are Astro sites in this repository | Accepted, extended by 18 |
@@ -35,12 +35,13 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [29](0029-chatgpt-second-ai-client.md) | ChatGPT is the second AI client of the V0, through the same tools as Claude | Accepted |
 | [30](0030-kind-and-limits-of-each-cahut.md) | Each Cahut has a kind and limits, set by the administrators of its server | Accepted |
 | [31](0031-e-mail-through-a-relay.md) | Each Cahut sends e-mail through its own relay or that of its server | Accepted, superseded in part by 34 |
-| [32](0032-the-page-of-a-room.md) | The page of a Room shows its Windows in previews, or a Window that its owners choose, in the brand of Cahut until the house style | Accepted, extended by 33 |
+| [32](0032-the-page-of-a-room.md) | The page of a Room shows its Windows in previews, or a Window that its owners choose, in the brand of Cahut until the house style | Accepted, extended by 33, superseded in part by 38 |
 | [33](0033-the-brand-of-cahut-until-the-house-style-has-a-look.md) | The pages of Cahut carry its brand until the house style has a look of its own | Accepted |
 | [34](0034-e-mail-through-the-relay-of-each-cahut-only.md) | E-mail goes through the relay of each Cahut only | Accepted |
 | [35](0035-a-program-on-the-server-manages-people-with-a-service-token.md) | A program on the server manages the people of a Cahut with a service token | Accepted |
 | [36](0036-console-in-english-and-french.md) | The console speaks English and French, in the language of each browser | Accepted, superseded in part by 37 |
 | [37](0037-refusals-with-a-code-for-the-console.md) | The refusals that people meet carry a code, which the console says in its language | Accepted |
+| [38](0038-the-root-of-a-cahut-opens-its-console.md) | The root of a Cahut opens its console | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

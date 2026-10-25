@@ -48,11 +48,6 @@ func TestSandboxByDefault(t *testing.T) {
 			t.Errorf("GET %s = %d with the policy %q, want the policy of a page", p, resp.StatusCode, csp)
 		}
 	}
-	// The home is a page for a reader signed in, and a redirect for others.
-	resp, _ := f.do(t, "localhost", http.MethodGet, "/", []*http.Cookie{f.signIn(t, "localhost", "olivier")}, nil)
-	if csp := resp.Header.Get("Content-Security-Policy"); resp.StatusCode != http.StatusOK || csp != pagePolicy("https://localhost/") {
-		t.Errorf("GET / signed in = %d with the policy %q, want the policy of a page", resp.StatusCode, csp)
-	}
 	for _, tt := range sandboxed {
 		resp, _ := f.do(t, tt.host, tt.method, tt.path, nil, nil)
 		if csp := resp.Header.Get("Content-Security-Policy"); !strings.HasPrefix(csp, "sandbox") || strings.Contains(csp, "allow-same-origin") {
