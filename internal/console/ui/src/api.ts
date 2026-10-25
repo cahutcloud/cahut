@@ -3,7 +3,13 @@
 // writes from the Go code: a call to an operation that does not exist, or
 // with the wrong input, fails the build. See docs/adr/0014-console-http-api.md.
 import type { CahutOperations, ServerOperations } from "./api.gen";
+import { words } from "./i18n";
 import { base } from "./router";
+
+const t = words({
+	en: { noAnswer: "Cahut does not answer. Check your connection, then try again." },
+	fr: { noAnswer: "Cahut ne répond pas. Vérifiez votre connexion, puis réessayez." },
+});
 
 /** A call that the API refused, with its status and its message. */
 export class ApiError extends Error {
@@ -49,10 +55,13 @@ export function server<K extends keyof ServerOperations>(
 // the console does not show.
 const prefixes = ["invalid input: ", "not allowed: ", "not found: ", "too many attempts: ", "needs the approval of a person: "];
 
-/** Says what went wrong, in a sentence for the person who reads it. */
+/**
+ * Says what went wrong, in a sentence for the person who reads it. The API
+ * writes its messages in English, for AIs and people alike.
+ */
 export function explain(err: unknown): string {
 	if (!(err instanceof ApiError)) {
-		return "Cahut does not answer. Check your connection, then try again.";
+		return t.noAnswer;
 	}
 	let msg = err.message;
 	for (const p of prefixes) {

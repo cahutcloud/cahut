@@ -583,7 +583,7 @@ const fr: Dictionary = {
 				"Un service sur un serveur Linux, qui porte un ou plusieurs Cahuts, chacun à son domaine avec son certificat, ou à l'adresse IPv4 du serveur tant qu'il n'en a pas.",
 				'Des Cahuts collaboratifs, ou individuels où chacun travaille seul, et des limites sur les personnes, les Rooms, les Windows et le disque, que fixent les administrateurs du serveur.',
 				"Des personnes qui se connectent, des administrateurs du Cahut et du serveur, et des Rooms d'équipe avec propriétaires et membres. La page de chaque Room liste ses Windows, ou montre celle que ses propriétaires choisissent.",
-				'Une console web : Knocks, Rooms, Windows, Logbook, personnes, IA connectées, jetons personnels, e-mail et serveur.',
+				'Une console web, en anglais et en français : Knocks, Rooms, Windows, Logbook, personnes, IA connectées, jetons personnels, e-mail et serveur.',
 				"Des clients d'IA qui se connectent par OAuth, comme claude.ai, Claude Code, ChatGPT et Le Chat, aux Rooms et dans la portée qu'une personne accorde, ou avec un jeton personnel.",
 				"Des Windows publiées par MCP : documents, présentations, tableaux de bord et sites statiques, servis dans un bac à sable qui les tient à ce que leur IA déclare charger et appeler.",
 				"Deux versions de chaque Window avec retour en arrière, une corbeille, et un accès : Room seulement, interne, avec une Key ou public, jusqu'à une date.",

@@ -5,8 +5,88 @@ import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { explain } from "./api";
 import type { Activation, Window } from "./api.gen";
 import { useConsole } from "./context";
+import { de, lang, langs, locale, setLang, words } from "./i18n";
 import { useLoad } from "./load";
 import { href, Link } from "./router";
+
+export { plural } from "./i18n";
+
+const t = words({
+	en: {
+		copy: "Copy",
+		copied: "Copied",
+		copyLabel: (label: string) => `Copy ${label}`,
+		close: "Close",
+		cancel: "Cancel",
+		active: "Active",
+		pending: "No password yet",
+		disabled: "Disabled",
+		emailed: (name: string, email: string | undefined, until: string) =>
+			`The link where ${name} chooses their password went to ${email ?? "their address"}. It works once, until ${until}. Here it is too, shown only now.`,
+		send: (name: string, until: string) =>
+			`Send ${name} this link, where they choose their password. It works once, until ${until}, and is shown only now.`,
+		activationLink: "the activation link",
+		document: "Document",
+		deck: "Deck",
+		dashboard: "Dashboard",
+		site: "Site",
+		roomOnly: "Room only",
+		roomWho: "the members of its Room",
+		internal: "Internal",
+		internalWho: "everyone signed in to this Cahut",
+		key: "Key",
+		keyWho: "anyone with its Key",
+		public: "Public",
+		publicWho: "anyone with its address",
+		preview: (title: string) => `Preview of ${title}`,
+		justNow: "Just now",
+		minutesAgo: (n: number) => `${n} min ago`,
+		hoursAgo: (n: number) => `${n} h ago`,
+		yesterday: "Yesterday",
+		bytes: "bytes",
+		kb: "KB",
+		mb: "MB",
+		gb: "GB",
+		language: "Language",
+	},
+	fr: {
+		copy: "Copier",
+		copied: "Copié",
+		copyLabel: (label) => `Copier ${label}`,
+		close: "Fermer",
+		cancel: "Annuler",
+		active: "Actif",
+		pending: "Pas encore de mot de passe",
+		disabled: "Désactivé",
+		emailed: (name, email, until) =>
+			`Le lien où ${name} choisira son mot de passe est parti à ${email ?? "son adresse"}. Il ne sert qu'une fois, jusqu'au ${until}. Le voici aussi, affiché cette fois seulement.`,
+		send: (name, until) =>
+			`Envoyez ce lien à ${name}, qui y choisira son mot de passe. Il ne sert qu'une fois, jusqu'au ${until}, et ne s'affiche que maintenant.`,
+		activationLink: "le lien d'activation",
+		document: "Document",
+		deck: "Présentation",
+		dashboard: "Tableau de bord",
+		site: "Site",
+		roomOnly: "Room seulement",
+		roomWho: "les membres de sa Room",
+		internal: "Interne",
+		internalWho: "toute personne connectée à ce Cahut",
+		key: "Key",
+		keyWho: "quiconque a sa Key",
+		public: "Public",
+		publicWho: "quiconque a son adresse",
+		preview: (title) => `Aperçu ${de(title)}`,
+		justNow: "À l'instant",
+		minutesAgo: (n) => `il y a ${n} min`,
+		hoursAgo: (n) => `il y a ${n} h`,
+		yesterday: "Hier",
+		bytes: "octets",
+		kb: "ko",
+		mb: "Mo",
+		gb: "Go",
+		language: "Langue",
+	},
+});
 
 /** The head of a screen: a label, a title and a line under it. */
 export function PageHead(props: { label: string; title: string; children?: ComponentChildren; actions?: ComponentChildren }) {
@@ -38,7 +118,28 @@ export function Notice({ children }: { children: ComponentChildren }) {
 	);
 }
 
-/** A value to copy, such as a link or a command, with its button. */
+/**
+ * The languages of the console, under the card of a page that opens before
+ * sign-in: each in its own words, the current one without a button.
+ */
+export function Languages() {
+	return (
+		<nav class="languages c-small" aria-label={t.language}>
+			{langs.map((l) =>
+				l.lang === lang ? (
+					<span key={l.lang} lang={l.lang} aria-current="true">
+						{l.name}
+					</span>
+				) : (
+					<button key={l.lang} class="c-link link-button" type="button" lang={l.lang} onClick={() => setLang(l.lang)}>
+						{l.name}
+					</button>
+				),
+			)}
+		</nav>
+	);
+}
+
 /** How long a page stays in front before its buttons that grant something arm. */
 const armDelay = 800;
 
@@ -79,6 +180,7 @@ export function useArmed(): boolean {
 	return armed;
 }
 
+/** A value to copy, such as a link or a command, with its button. */
 export function CopyField({ value, label }: { value: string; label: string }) {
 	const [copied, setCopied] = useState(false);
 	const copy = async () => {
@@ -89,9 +191,9 @@ export function CopyField({ value, label }: { value: string; label: string }) {
 	return (
 		<div class="copy">
 			<code class="copy__value c-mono">{value}</code>
-			<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={copy} aria-label={`Copy ${label}`}>
+			<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={copy} aria-label={t.copyLabel(label)}>
 				{copied ? <Check class="i" size={14} aria-hidden="true" /> : <Copy class="i" size={14} aria-hidden="true" />}
-				{copied ? "Copied" : "Copy"}
+				{copied ? t.copied : t.copy}
 			</button>
 		</div>
 	);
@@ -118,7 +220,7 @@ export function Dialog(props: { title: string; meta?: ComponentChildren; onClose
 					</h2>
 					{props.meta && <div class="dialog__meta">{props.meta}</div>}
 				</div>
-				<button class="c-btn c-btn--ghost c-btn--sm" type="button" aria-label="Close" onClick={() => ref.current?.close()}>
+				<button class="c-btn c-btn--ghost c-btn--sm" type="button" aria-label={t.close} onClick={() => ref.current?.close()}>
 					<X class="i" size={16} aria-hidden="true" />
 				</button>
 			</div>
@@ -128,9 +230,9 @@ export function Dialog(props: { title: string; meta?: ComponentChildren; onClose
 }
 
 const statuses: Record<string, { word: string; badge: string }> = {
-	active: { word: "Active", badge: "c-badge--success" },
-	pending: { word: "No password yet", badge: "c-badge--warning" },
-	disabled: { word: "Disabled", badge: "c-badge--neutral" },
+	active: { word: t.active, badge: "c-badge--success" },
+	pending: { word: t.pending, badge: "c-badge--warning" },
+	disabled: { word: t.disabled, badge: "c-badge--neutral" },
 };
 
 /** The state of a person or of an administrator of the server, as a badge. */
@@ -157,15 +259,13 @@ export function handleFrom(name: string): string {
  */
 export function ActivationResult(props: { name: string; email?: string; activation: Activation; page: string }) {
 	const { name, email, activation } = props;
-	const until = new Date(activation.expires_at).toLocaleDateString("en-GB", { dateStyle: "long" });
+	const until = new Date(activation.expires_at).toLocaleDateString(locale, { dateStyle: "long" });
 	return (
 		<div class="result">
 			<p class="c-small">
-				{activation.emailed
-					? `The link where ${name} chooses their password went to ${email ?? "their address"}. It works once, until ${until}. Here it is too, shown only now.`
-					: `Send ${name} this link, where they choose their password. It works once, until ${until}, and is shown only now.`}
+				{activation.emailed ? t.emailed(name, email, until) : t.send(name, until)}
 			</p>
-			<CopyField label="the activation link" value={`${location.origin}${href(props.page)}#${activation.code}`} />
+			<CopyField label={t.activationLink} value={`${location.origin}${href(props.page)}#${activation.code}`} />
 		</div>
 	);
 }
@@ -225,7 +325,7 @@ export function Setting(props: {
 			<div class="setting__action">
 				{asking && (
 					<button class="c-btn c-btn--ghost" type="button" onClick={() => setAsking(false)}>
-						Cancel
+						{t.cancel}
 					</button>
 				)}
 				{/* The answer takes the place of the button that asks: the second click of a double-click acts on nothing. */}
@@ -288,25 +388,25 @@ export function ConfirmButton(props: {
 				{props.confirm}
 			</button>
 			<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => setAsking(false)}>
-				Cancel
+				{t.cancel}
 			</button>
 		</span>
 	);
 }
 
 const kinds: Record<string, { icon: typeof FileText; name: string }> = {
-	document: { icon: FileText, name: "Document" },
-	deck: { icon: Presentation, name: "Deck" },
-	dashboard: { icon: ChartColumn, name: "Dashboard" },
-	site: { icon: AppWindow, name: "Site" },
+	document: { icon: FileText, name: t.document },
+	deck: { icon: Presentation, name: t.deck },
+	dashboard: { icon: ChartColumn, name: t.dashboard },
+	site: { icon: AppWindow, name: t.site },
 };
 
 /** The access levels of a Window, with their badge. */
 export const accesses: Record<string, { icon: typeof Lock; name: string; who: string }> = {
-	room: { icon: Lock, name: "Room only", who: "the members of its Room" },
-	internal: { icon: Users, name: "Internal", who: "everyone signed in to this Cahut" },
-	key: { icon: KeyRound, name: "Key", who: "anyone with its Key" },
-	public: { icon: Globe, name: "Public", who: "anyone with its address" },
+	room: { icon: Lock, name: t.roomOnly, who: t.roomWho },
+	internal: { icon: Users, name: t.internal, who: t.internalWho },
+	key: { icon: KeyRound, name: t.key, who: t.keyWho },
+	public: { icon: Globe, name: t.public, who: t.publicWho },
 };
 
 /** The access of a Window, as a badge: an icon and a word, never a color alone. */
@@ -404,7 +504,7 @@ function WindowPreview({ src, title }: { src: string; title: string }) {
 			class={`window-preview${loaded ? " window-preview--shown" : ""}`}
 			style={{ "--preview-scale": scale }}
 			src={src}
-			title={`Preview of ${title}`}
+			title={t.preview(title)}
 			sandbox="allow-scripts"
 			loading="lazy"
 			referrerpolicy="no-referrer"
@@ -419,24 +519,30 @@ function WindowPreview({ src, title }: { src: string; title: string }) {
 export function ago(at: string): string {
 	const then = new Date(at);
 	const minutes = Math.round((Date.now() - then.getTime()) / 60000);
-	if (minutes < 1) return "Just now";
-	if (minutes < 60) return `${minutes} min ago`;
-	if (minutes < 24 * 60) return `${Math.round(minutes / 60)} h ago`;
-	if (minutes < 48 * 60) return "Yesterday";
-	return then.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+	if (minutes < 1) return t.justNow;
+	if (minutes < 60) return t.minutesAgo(minutes);
+	if (minutes < 24 * 60) return t.hoursAgo(Math.round(minutes / 60));
+	if (minutes < 48 * 60) return t.yesterday;
+	return then.toLocaleDateString(lang === "en" ? "en-US" : locale, { month: "short", day: "numeric" });
+}
+
+/**
+ * Says how long ago a time was, within a sentence: "2 min ago", "yesterday",
+ * "oct 12"; in French "il y a 2 min", "hier", "le 12 oct.".
+ */
+export function agoInText(at: string): string {
+	const said = ago(at);
+	return lang === "fr" && /^\d/.test(said) ? `le ${said}` : said.toLowerCase();
 }
 
 /** Says a size in bytes, as in "12 KB", "3.4 MB" or "10 GB", in units of 1000 bytes. */
 export function bytes(n: number): string {
-	if (n < 1000) return `${n} bytes`;
-	if (n < 1000 * 1000) return `${Math.round(n / 1000)} KB`;
-	if (n < 1000 * 1000 * 1000) return `${(n / 1000 / 1000).toFixed(1)} MB`;
-	return `${(n / 1000 / 1000 / 1000).toFixed(1).replace(/\.0$/, "")} GB`;
-}
-
-/** Says a count with its noun, as in "1 Window" or "3 Windows". */
-export function plural(n: number, one: string, many: string): string {
-	return `${n} ${n === 1 ? one : many}`;
+	const size = (v: number, unit: string, digits = 0, fixed = false) =>
+		`${v.toLocaleString(locale, { minimumFractionDigits: fixed ? digits : 0, maximumFractionDigits: digits })}${lang === "fr" ? "\u00a0" : " "}${unit}`;
+	if (n < 1000) return size(n, t.bytes);
+	if (n < 1000 * 1000) return size(Math.round(n / 1000), t.kb);
+	if (n < 1000 * 1000 * 1000) return size(n / 1000 / 1000, t.mb, 1, true);
+	return size(n / 1000 / 1000 / 1000, t.gb, 1);
 }
 
 /** The initials of a name, for its avatar. */
