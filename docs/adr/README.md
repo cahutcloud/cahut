@@ -5,7 +5,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | Record | Decision | Status |
 | --- | --- | --- |
 | [1](0001-operation-registry.md) | One registry of typed operations is the only way in | Accepted, superseded in part by 13 |
-| [2](0002-built-in-https-with-certmagic.md) | The binary serves HTTPS itself, with CertMagic | Accepted, superseded in part by 8, 11 and 20 |
+| [2](0002-built-in-https-with-certmagic.md) | The binary serves HTTPS itself, with CertMagic | Accepted, superseded in part by 8, 11 and 20, extended by 41 |
 | [3](0003-one-origin-per-window.md) | Each Window gets its own web origin | Superseded by 8, 9 and 10 |
 | [4](0004-sqlite-in-pure-go.md) | SQLite in pure Go | Accepted, extended by 8 |
 | [5](0005-preact-console-embedded.md) | The console is a Preact app embedded in the binary | Accepted, superseded in part by 11 |
@@ -44,6 +44,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [38](0038-the-root-of-a-cahut-opens-its-console.md) | The root of a Cahut opens its console | Accepted |
 | [39](0039-people-change-their-name-and-handle.md) | People change their name and their handle, and their personal Room follows | Accepted |
 | [40](0040-the-icon-of-a-cahut.md) | Each Cahut gives its icon to browsers, favicon services and AI clients | Accepted |
+| [41](0041-the-proxy-protocol-from-trusted-proxies.md) | Cahut reads the PROXY protocol from the proxies it trusts | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

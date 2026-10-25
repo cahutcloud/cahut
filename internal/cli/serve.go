@@ -31,6 +31,12 @@ func runServe(args []string, _, stderr io.Writer) int {
 	fs.StringVar(&cfg.AdminAPIAddr, "admin-api", os.Getenv("CAHUT_ADMIN_API"),
 		"address of the machine itself, such as 127.0.0.1:8090, where programs with a service token call the admin API; "+
 			"off when empty (env CAHUT_ADMIN_API)")
+	httpsProxies := fs.String("https-proxy-protocol", os.Getenv("CAHUT_HTTPS_PROXY_PROTOCOL"),
+		"IP addresses or prefixes of the proxies, such as 127.0.0.1, whose PROXY protocol header the HTTPS listener reads, "+
+			"and requires; off when empty (env CAHUT_HTTPS_PROXY_PROTOCOL)")
+	httpProxies := fs.String("http-proxy-protocol", os.Getenv("CAHUT_HTTP_PROXY_PROTOCOL"),
+		"IP addresses or prefixes of the proxies whose PROXY protocol header the HTTP listener reads, "+
+			"and requires; off when empty (env CAHUT_HTTP_PROXY_PROTOCOL)")
 	updates := fs.String("update-state", envOr("CAHUT_UPDATE_STATE", update.DefaultStateDir),
 		"directory where the updater leaves the state of updates (env CAHUT_UPDATE_STATE)")
 	if code, ok := parse(fs, args); !ok {
@@ -41,6 +47,14 @@ func runServe(args []string, _, stderr io.Writer) int {
 			fmt.Fprintln(stderr, "cahut serve:", err)
 			return exitUsage
 		}
+	}
+	var err error
+	if cfg.HTTPSProxies, err = web.ParseProxies(*httpsProxies); err == nil {
+		cfg.HTTPProxies, err = web.ParseProxies(*httpProxies)
+	}
+	if err != nil {
+		fmt.Fprintln(stderr, "cahut serve:", err)
+		return exitUsage
 	}
 	cfg.CertDir = filepath.Join(*data, "certificates")
 

@@ -22,6 +22,7 @@ Each line starts with `ok`, `warn` (it works, but look at it), `fail` (it does n
 | Ports | Whether the service listens on ports 80 and 443 |
 | Firewall | Whether firewalld or ufw, when one is active, lets in ports 80 and 443 |
 | SELinux | Its mode, and the label of the binary, which systemd needs |
+| Proxy | When the service reads the [PROXY protocol](/admin/service/#behind-a-proxy): the proxies it trusts, and whether the last connection of one came without a valid header |
 | Each Cahut | Whether it opens with its migrations, what its domain resolves to, the certificate it serves and its expiry, and whether `https://<domain>/` answers from the server |
 | Let's Encrypt, GitHub | Whether the server reaches them |
 | Updates | The daily update, the last update and a newer release. See [Updates](/admin/updates/) |
@@ -38,6 +39,8 @@ Each line starts with `ok`, `warn` (it works, but look at it), `fail` (it does n
 | `fail Ports Nothing listens on port 443` | Another program may hold the port: `sudo ss -ltnp` |
 | `fail Firewall firewalld does not let in https` | `sudo firewall-cmd --permanent --add-service=http --add-service=https && sudo firewall-cmd --reload` |
 | `fail SELinux … not bin_t` | `sudo restorecon /usr/local/bin/cahut` |
+| `fail Proxy HTTPS on 127.0.0.1:8443 has refused every connection of 127.0.0.1` | The proxy sends no header of the PROXY protocol, or not a valid one: turn it on in the proxy, with `proxy_protocol on` in nginx, or empty `CAHUT_HTTPS_PROXY_PROTOCOL` and restart the service. The line says why the last connection was refused |
+| `warn Proxy HTTPS on 127.0.0.1:8443 refused the last connection of 127.0.0.1` | A connection from the address of the proxy came without a header: another program of that address connects to Cahut directly, or the proxy sends the header on some connections only |
 | `fail cahut.example.com does not resolve` | Add an A record, or AAAA, that points to the server |
 | `warn cahut.example.com Points to 198.51.100.1` | Fine behind NAT; otherwise, the DNS record points elsewhere |
 | `fail cahut.example.com No certificate yet` | Let's Encrypt must reach port 80 of the domain: check the DNS record and the firewall of the hosting provider |

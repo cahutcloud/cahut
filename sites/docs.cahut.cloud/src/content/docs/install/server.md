@@ -11,7 +11,7 @@ You need:
 
 - **A Linux server with systemd**, on amd64 or arm64, where you can run commands as root. Cahut is tested on AlmaLinux 9 and 10 and Ubuntu 22.04 and 24.04, from the provider's standard image. Plan 2 vCPU, 4 GB of RAM and 40 GB of disk, the size the project aims at for its launch: today's Cahut needs less, and the disk fills with the Windows you publish.
 - **A domain or a subdomain**, such as `cahut.example.com`, with an A or AAAA record that points to the server. No wildcard record is needed. Without a domain, Cahut takes the public IPv4 address of the server, and moves to a domain later: see [Without a domain](#without-a-domain).
-- **Ports 80 and 443 open** to the internet, in the provider's firewall too. Port 80 answers the challenges of Let's Encrypt and redirects to HTTPS. Port 443 serves everything else: the Windows, MCP, OAuth, and the console under `/console/`.
+- **Ports 80 and 443 open** to the internet, in the provider's firewall too. Port 80 answers the challenges of Let's Encrypt and redirects to HTTPS. Port 443 serves everything else: the Windows, MCP, OAuth, and the console under `/console/`. Cahut holds both ports: to share them with another site of the server, put a proxy in front of it, as [Behind a proxy](/admin/service/#behind-a-proxy) explains.
 - **curl** and **OpenSSL 3**, which the standard images of AlmaLinux 9 and Ubuntu 22.04 and later have. `install.sh` checks the Ed25519 signature of the release with it: OpenSSL 1.1, on Ubuntu 20.04 and AlmaLinux 8, cannot.
 
 Create the DNS record first: the service asks Let's Encrypt for the certificate as soon as it starts.

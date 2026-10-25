@@ -25,6 +25,10 @@ func TestRun(t *testing.T) {
 		{name: "version help", args: []string{"version", "-h"}, wantCode: exitOK, wantStderr: "Usage of cahut version"},
 		{name: "version bad flag", args: []string{"version", "-x"}, wantCode: exitUsage, wantStderr: "flag provided but not defined"},
 		{name: "version extra argument", args: []string{"version", "now"}, wantCode: exitUsage, wantStderr: `unexpected argument "now"`},
+		{name: "serve with a proxy by name", args: []string{"serve", "--https-proxy-protocol", "localhost"}, wantCode: exitUsage,
+			wantStderr: `proxy "localhost": give IP addresses or prefixes`},
+		{name: "serve with a bad prefix", args: []string{"serve", "--http-proxy-protocol", "127.0.0.1, 10.0.0.0/33"}, wantCode: exitUsage,
+			wantStderr: `proxy "10.0.0.0/33"`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

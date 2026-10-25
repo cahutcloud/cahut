@@ -100,6 +100,7 @@ func Run(ctx context.Context, sys System, cfg Config) []Result {
 	d.ports()
 	d.firewall()
 	d.selinux()
+	d.proxies()
 	d.cahuts()
 	d.outside()
 	d.updates()
@@ -290,6 +291,29 @@ func (d *doctor) selinux() {
 	d.add(OK, "SELinux", "Enforcing, and the binary has its label.")
 }
 
+// proxies says which proxies the service trusts to pass the address of each
+// client, and whether the last connection of one came without a valid
+// header. See docs/adr/0041-the-proxy-protocol-from-trusted-proxies.md.
+func (d *doctor) proxies() {
+	if d.health == nil {
+		return
+	}
+	for _, p := range d.health.ProxyProtocol {
+		listener, trusted := strings.ToUpper(p.Listener), strings.Join(p.Trusted, ", ")
+		switch {
+		case p.LastRefused != nil && p.LastTaken == nil:
+			d.add(Fail, "Proxy", "%s on %s has refused every connection of %s since the service started, the last on %s: %s. "+
+				"The proxy must send the PROXY protocol, as proxy_protocol on does in nginx, or CAHUT_%s_PROXY_PROTOCOL must be empty.",
+				listener, p.Address, trusted, at(*p.LastRefused), p.Refusal, listener)
+		case p.LastRefused != nil && p.LastRefused.After(*p.LastTaken):
+			d.add(Warn, "Proxy", "%s on %s refused the last connection of %s, on %s: %s. Does every connection of the proxy send the PROXY protocol?",
+				listener, p.Address, trusted, at(*p.LastRefused), p.Refusal)
+		default:
+			d.add(OK, "Proxy", "%s on %s reads the address of each client from %s, by the PROXY protocol.", listener, p.Address, trusted)
+		}
+	}
+}
+
 func (d *doctor) cahuts() {
 	if d.health == nil {
 		d.add(Warn, "Cahuts", "The service does not answer, so the Cahuts cannot be checked.")
@@ -453,4 +477,8 @@ func size(b uint64) string {
 
 func day(t time.Time) string {
 	return t.UTC().Format("2 January 2006")
+}
+
+func at(t time.Time) string {
+	return t.UTC().Format("2 January 2006 at 15:04 UTC")
 }
