@@ -2,7 +2,9 @@
 // Go types of the registries: the input and output of every operation of a
 // Cahut and of the server. The console calls only what they declare, so a
 // renamed operation or field fails its build. See
-// docs/adr/0014-console-http-api.md.
+// docs/adr/0014-console-http-api.md. It writes the codes of the refusals
+// too, with the values of each, which the console says in the language of
+// its person: see docs/adr/0037-refusals-with-a-code-for-the-console.md.
 //
 //	go run ./internal/apitypes internal/console/ui/src/api.gen.ts
 //
@@ -22,6 +24,7 @@ import (
 
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
+	_ "cahut.cloud/internal/web" // it declares refusals of the API itself
 )
 
 // header opens the file.
@@ -48,7 +51,7 @@ func run(ctx context.Context, file string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(file, []byte(generate(cahutOps, serverOps)), 0o644) //nolint:gosec // a source file, readable by all
+	return os.WriteFile(file, []byte(generate(cahutOps, serverOps, operation.Refusals())), 0o644) //nolint:gosec // a source file, readable by all
 }
 
 // registries returns the operations of a Cahut and of the server, read from
@@ -76,13 +79,19 @@ func registries(ctx context.Context) (cahutOps, serverOps []operation.Info, err 
 }
 
 // generate returns the TypeScript file: an interface for each Go struct
-// that the operations take or return, then the operations of a Cahut and
-// of the server, each with its input and output.
-func generate(cahutOps, serverOps []operation.Info) string {
+// that the operations take or return, or that fills a refusal, then the
+// operations of a Cahut and of the server, each with its input and output,
+// and the refusals, each with its values.
+func generate(cahutOps, serverOps []operation.Info, refusals []operation.RefusalInfo) string {
 	g := &generator{names: map[reflect.Type]string{}}
 	for _, op := range slices.Concat(cahutOps, serverOps) {
 		g.collect(op.Input)
 		g.collect(op.Output)
+	}
+	for _, r := range refusals {
+		if r.Values != nil {
+			g.collect(r.Values)
+		}
 	}
 	g.name()
 
@@ -99,6 +108,7 @@ func generate(cahutOps, serverOps []operation.Info) string {
 	}
 	g.operations(&b, "CahutOperations", "The operations of a Cahut, at POST /console/api/<operation> of its domain.", cahutOps)
 	g.operations(&b, "ServerOperations", "The operations of the server, at POST /console/api/server/<operation>, for its administrators.", serverOps)
+	g.refusals(&b, refusals)
 	return b.String()
 }
 
@@ -246,6 +256,22 @@ func (g *generator) typeOf(t reflect.Type) string {
 		return b.String()
 	}
 	return "unknown"
+}
+
+// refusals writes the interface Refusals, which maps the code of each
+// refusal to the type of its values, or null when its message holds none.
+func (g *generator) refusals(b *strings.Builder, refusals []operation.RefusalInfo) {
+	b.WriteString("\n/** The refusals that the console says in the language of its person, by code, each with its values. */\n")
+	b.WriteString("export interface Refusals {\n")
+	for _, r := range refusals {
+		values := "null"
+		if r.Values != nil {
+			values = g.typeOf(r.Values)
+		}
+		fmt.Fprintf(b, "  /** %s */\n", strings.ReplaceAll(r.Message, "*/", "* /"))
+		fmt.Fprintf(b, "  %s: %s;\n", r.Code, values)
+	}
+	b.WriteString("}\n")
 }
 
 // operations writes the interface called name, which maps each operation

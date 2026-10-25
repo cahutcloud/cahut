@@ -17,7 +17,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [11](0011-console-on-its-own-port.md) | The console has its own port | Accepted, superseded in part by 13, 17 and 20 |
 | [12](0012-website-and-docs-as-astro-sites.md) | The website and the docs are Astro sites in this repository | Accepted, extended by 18 |
 | [13](0013-people-sessions-and-rights.md) | People sign in to their Cahut, and the registry checks their rights | Accepted, superseded in part by 21, extended by 30 and 31 |
-| [14](0014-console-http-api.md) | The console calls each operation at its own HTTP route | Accepted, superseded in part by 20 |
+| [14](0014-console-http-api.md) | The console calls each operation at its own HTTP route | Accepted, superseded in part by 20, extended by 37 |
 | [15](0015-license.md) | AGPL-3.0 for the repository, the name and the logo apart | Accepted |
 | [16](0016-oauth-for-ai-clients.md) | AI clients connect over OAuth, to the Rooms and the scope a person grants | Accepted, superseded in part by 17, 20 and 21 |
 | [17](0017-oauth-endpoints-on-port-443.md) | The OAuth endpoints that clients' servers call are on port 443 | Accepted, superseded in part by 20 |
@@ -39,7 +39,8 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [33](0033-the-brand-of-cahut-until-the-house-style-has-a-look.md) | The pages of Cahut carry its brand until the house style has a look of its own | Accepted |
 | [34](0034-e-mail-through-the-relay-of-each-cahut-only.md) | E-mail goes through the relay of each Cahut only | Accepted |
 | [35](0035-a-program-on-the-server-manages-people-with-a-service-token.md) | A program on the server manages the people of a Cahut with a service token | Accepted |
-| [36](0036-console-in-english-and-french.md) | The console speaks English and French, in the language of each browser | Accepted |
+| [36](0036-console-in-english-and-french.md) | The console speaks English and French, in the language of each browser | Accepted, superseded in part by 37 |
+| [37](0037-refusals-with-a-code-for-the-console.md) | The refusals that people meet carry a code, which the console says in its language | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

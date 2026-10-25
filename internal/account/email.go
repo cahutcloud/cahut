@@ -17,6 +17,20 @@ import (
 // administrators of the Cahut read it; no operation gives it to an AI. See
 // docs/adr/0031-e-mail-through-a-relay.md.
 
+// The refusals of an address, which the console says in the language of
+// its person.
+var (
+	emailTaken = operation.NewRefusalOf[TakenEmail]("email_taken", operation.ErrInvalid,
+		"{email} is already the e-mail address of another person of this Cahut")
+	errEmailLinkGone = operation.NewRefusal("email_link_gone", operation.ErrForbidden,
+		"this link is unknown, used or expired: change your address again from your account")
+)
+
+// TakenEmail fills the refusal of an address that another person has.
+type TakenEmail struct {
+	Email string `json:"email"`
+}
+
 // addressFree returns an error wrapping operation.ErrInvalid when email is
 // the address of a person other than userID.
 func addressFree(ctx context.Context, tx *sql.Tx, email string, userID int64) error {
@@ -26,7 +40,7 @@ func addressFree(ctx context.Context, tx *sql.Tx, email string, userID int64) er
 		return err
 	}
 	if taken {
-		return operation.Invalidf("%s is already the e-mail address of another person of this Cahut", email)
+		return emailTaken(TakenEmail{Email: email})
 	}
 	return nil
 }
@@ -287,7 +301,7 @@ var ConfirmEmail = &operation.Op[ConfirmEmailInput, EmailChanged]{
 			SELECT u.handle, e.email FROM email_changes e JOIN users u ON u.id = e.user_id
 			WHERE e.hash = ? AND e.expires_at > ?`, credential.Hash(strings.TrimSpace(in.Code)), store.FormatTime(c.Now)).Scan(&handle, &email)
 		if errors.Is(err, sql.ErrNoRows) {
-			return EmailChanged{}, operation.Forbiddenf("this link is unknown, used or expired: change your address again from your account")
+			return EmailChanged{}, errEmailLinkGone
 		}
 		if err != nil {
 			return EmailChanged{}, err
@@ -299,7 +313,7 @@ var ConfirmEmail = &operation.Op[ConfirmEmailInput, EmailChanged]{
 		c.Identify(operation.Person, p.ID, p.Handle)
 		c.Log(p.Handle, "address confirmed")
 		if p.Status == Disabled {
-			return EmailChanged{}, operation.Forbiddenf("this account is disabled: an administrator of the Cahut can enable it")
+			return EmailChanged{}, errDisabled
 		}
 		if err := addressFree(ctx, c.Tx, email, p.ID); err != nil {
 			return EmailChanged{}, err
@@ -318,6 +332,11 @@ var ConfirmEmail = &operation.Op[ConfirmEmailInput, EmailChanged]{
 // without a relay. See
 // docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
 const noMail = "this Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console"
+
+// errNoPasswordLink is what request_password_link answers in a Cahut
+// without a relay.
+var errNoPasswordLink = operation.NewRefusal("no_password_link", operation.ErrInvalid,
+	"this Cahut sends no e-mail: an administrator of the Cahut can give you a new link")
 
 // RequestPasswordLinkInput is the input of request_password_link.
 type RequestPasswordLinkInput struct {
@@ -348,8 +367,7 @@ var RequestPasswordLink = &operation.Op[RequestPasswordLinkInput, PasswordLinkRe
 	Visitors:   true,
 	Run: func(ctx context.Context, c *operation.Call, in RequestPasswordLinkInput) (PasswordLinkRequested, error) {
 		if ok, err := mail.OutboxOf(c).Sends(ctx, c.Tx); err != nil || !ok {
-			return PasswordLinkRequested{}, errors.Join(err, operation.Invalidf("this Cahut sends no e-mail: "+
-				"an administrator of the Cahut can give you a new link"))
+			return PasswordLinkRequested{}, errors.Join(err, errNoPasswordLink)
 		}
 		answer := PasswordLinkRequested{Message: passwordLinkAnswer}
 		who := strings.TrimSpace(in.Who)

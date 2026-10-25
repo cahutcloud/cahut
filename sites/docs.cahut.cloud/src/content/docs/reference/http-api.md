@@ -51,6 +51,27 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | 429 Too Many Requests | Too many sign-ins: from one address, 10 at once, then one every 6 seconds; for one handle, 10 refused from one address or 100 from everywhere in 15 minutes. An IPv6 address counts with its /64 |
 | 500 Internal Server Error | Anything else |
 
+A refusal that people meet in the console gives its code too, which never changes, and the values of its message, as in `{"error": "invalid input: the password has 9 characters: use at least 15", "code": "password_too_short", "values": {"length": 9, "limit": 15}}`. The console says it in the language of its person. A program tells these refusals apart by their code: the wording of a message may change.
+
+| Code | Values | Message |
+| --- | --- | --- |
+| `account_disabled` |  | This account is disabled: an administrator of the Cahut can enable it |
+| `activation_link_gone` |  | This activation link is unknown, used or expired: ask an administrator of the Cahut for a new one |
+| `email_link_gone` |  | This link is unknown, used or expired: change your address again from your account |
+| `email_taken` | `email` | {email} is already the e-mail address of another person of this Cahut |
+| `invitation_gone` |  | This invitation does not open the Window any more: it was taken back, it expired, or the Window changed its Key or its access. Ask the person who invited you for a new one |
+| `no_password_link` |  | This Cahut sends no e-mail: an administrator of the Cahut can give you a new link |
+| `password_too_long` | `length`, `limit` | The password has {length} characters: use at most {limit} |
+| `password_too_short` | `length`, `limit` | The password has {length} characters: use at least {limit} |
+| `server_account_disabled` |  | This account is disabled: another administrator of the server can enable it |
+| `server_activation_link_gone` |  | This activation link is unknown, used or expired: ask another administrator of the server for a new one, or run cahut admin link on the server |
+| `session_ended` |  | Invalid or ended session |
+| `too_many_attempts_from_address` |  | Too many attempts from this address: wait a minute |
+| `too_many_refused_sign_ins` | `minutes` | Too many refused sign-ins for this handle: try again in {minutes} minutes |
+| `too_many_sign_ins_at_once` |  | Too many sign-ins at once: try again in a few seconds |
+| `wrong_current_password` |  | The current password is wrong |
+| `wrong_handle_or_password` |  | Wrong handle or password |
+
 ## Operations of a Cahut
 
 | Route | Who calls it | Session |

@@ -5,9 +5,11 @@
 // must have every English one, with the same arguments.
 //
 // The words of the house (Cahut, Room, Window, Key, House style, Knock first,
-// Logbook) stay in English, as on the website. What the API answers, such as
-// the message of an error, comes from the server in English. See
-// docs/adr/0036-console-in-english-and-french.md.
+// Logbook) stay in English, as on the website. What the API answers comes
+// from the server in English, but for the refusals that carry a code, which
+// refusals.ts says in both languages. See
+// docs/adr/0036-console-in-english-and-french.md and
+// docs/adr/0037-refusals-with-a-code-for-the-console.md.
 import { cloneElement, isValidElement } from "preact";
 import { fragment } from "./fragment";
 

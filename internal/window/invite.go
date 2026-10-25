@@ -447,8 +447,9 @@ type open struct {
 }
 
 // errInvitationGone tells a visitor that a personal link no longer works.
-var errInvitationGone = operation.NotFoundf("this invitation does not open the Window any more: it was taken back, it expired, " +
-	"or the Window changed its Key or its access. Ask the person who invited you for a new one")
+var errInvitationGone = operation.NewRefusal("invitation_gone", operation.ErrNotFound,
+	"this invitation does not open the Window any more: it was taken back, it expired, "+
+		"or the Window changed its Key or its access. Ask the person who invited you for a new one")
 
 // findOpen returns the invitation of code, while its personal link opens
 // its Window.
