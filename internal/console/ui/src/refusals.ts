@@ -20,7 +20,11 @@ const said = words<Sentences>({
 		email_taken: (v) => `${v.email} is already the e-mail address of another person of this Cahut.`,
 		handle_invalid: (v) =>
 			`"${v.handle}" cannot be a handle: use 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit.`,
+		handle_knocks_waiting:
+			"Knocks wait for you: answer them before you change your handle, since they name the addresses of your personal Room.",
 		handle_reserved: (v) => `The handle "${v.handle}" is reserved: it names a page of every Cahut.`,
+		handle_room_cannot_move: (v) =>
+			`Your Room ${v.room} would be named ${v.name}, which another Room holds or which is too long: choose another handle.`,
 		handle_taken: (v) => `The handle "${v.handle}" is taken, by a person or a Room.`,
 		invitation_gone:
 			"This invitation does not open the Window any more: it was taken back, it expired, or the Window changed its Key or its access. Ask the person who invited you for a new one.",
@@ -38,6 +42,8 @@ const said = words<Sentences>({
 		key_has_spaces: "The Key starts or ends with a space.",
 		key_too_long: (v) => `The Key has more than ${plural(v.limit, "character", "characters")}.`,
 		key_too_short: (v) => `The Key has ${plural(v.length, "character", "characters")}: give it ${v.limit} at least, or let Cahut draw one.`,
+		name_empty: "Give a name.",
+		name_too_long: "This name is too long.",
 		no_mail: "This Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console.",
 		no_mail_to_invite: "This Cahut sends no e-mail: give them the address of the Window yourself, with its Key if it has one.",
 		no_password_link: "This Cahut sends no e-mail: an administrator of the Cahut can give you a new link.",
@@ -75,7 +81,11 @@ const said = words<Sentences>({
 		email_taken: (v) => `${v.email} est déjà l'adresse e-mail d'une autre personne de cette Cahut.`,
 		handle_invalid: (v) =>
 			`« ${v.handle} » ne peut pas être un identifiant : utilisez de 2 à 32 lettres minuscules, chiffres et tirets, en commençant par une lettre et en finissant par une lettre ou un chiffre.`,
+		handle_knocks_waiting:
+			"Des Knocks vous attendent : répondez-y avant de changer d'identifiant, car ils nomment les adresses de votre Room personnelle.",
 		handle_reserved: (v) => `L'identifiant « ${v.handle} » est réservé : il nomme une page de chaque Cahut.`,
+		handle_room_cannot_move: (v) =>
+			`Votre Room ${v.room} s'appellerait ${v.name}, nom qu'une autre Room porte déjà ou qui est trop long : choisissez un autre identifiant.`,
 		handle_taken: (v) => `L'identifiant « ${v.handle} » est déjà pris, par une personne ou une Room.`,
 		invitation_gone:
 			"Cette invitation n'ouvre plus la Window : elle a été retirée, elle a expiré, ou la Window a changé de Key ou d'accès. Demandez-en une nouvelle à la personne qui vous l'a envoyée.",
@@ -94,6 +104,8 @@ const said = words<Sentences>({
 		key_too_long: (v) => `La Key a plus de ${plural(v.limit, "caractère", "caractères")}.`,
 		key_too_short: (v) =>
 			`La Key a ${plural(v.length, "caractère", "caractères")} : il lui en faut ${v.limit} au moins, ou laissez Cahut en tirer une au sort.`,
+		name_empty: "Donnez un nom.",
+		name_too_long: "Ce nom est trop long.",
 		no_mail: "Cette Cahut n'envoie pas d'e-mail : un administrateur de la Cahut doit d'abord régler son relais, sur la page E-mail de la console.",
 		no_mail_to_invite: "Cette Cahut n'envoie pas d'e-mail : donnez vous-même l'adresse de la Window, avec sa Key si elle en a une.",
 		no_password_link: "Cette Cahut n'envoie pas d'e-mail : un administrateur de la Cahut peut vous donner un nouveau lien.",

@@ -62,7 +62,9 @@ A refusal that people meet in the console gives its code too, which never change
 | `email_link_gone` |  | This link is unknown, used or expired: change your address again from your account |
 | `email_taken` | `email` | {email} is already the e-mail address of another person of this Cahut |
 | `handle_invalid` | `handle` | Handle {handle}: use 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit |
+| `handle_knocks_waiting` |  | Knocks wait for you: answer them before you change your handle, since they name the addresses of your personal Room |
 | `handle_reserved` | `handle` | Handle {handle} is reserved: it names a page of every Cahut |
+| `handle_room_cannot_move` | `room`, `name` | Your Room {room} would be named {name}, which another Room holds or which is too long: choose another handle |
 | `handle_taken` | `handle` | Handle {handle} is taken, by a person or a Room |
 | `invitation_gone` |  | This invitation does not open the Window any more: it was taken back, it expired, or the Window changed its Key or its access. Ask the person who invited you for a new one |
 | `invite_address_internal` | `room`, `window` | {room}/{window} opens to the people of the Cahut only: invite people of the Cahut by handle, or set its access to key first, so that each address gets a personal link |
@@ -75,6 +77,8 @@ A refusal that people meet in the console gives its code too, which never change
 | `key_has_spaces` |  | The Key starts or ends with a space |
 | `key_too_long` | `limit` | The Key has more than {limit} characters |
 | `key_too_short` | `length`, `limit` | The Key has {length} characters: give it {limit} at least, or let Cahut draw one |
+| `name_empty` |  | Name is empty |
+| `name_too_long` |  | Name is longer than 200 bytes |
 | `no_mail` |  | This Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console |
 | `no_mail_to_invite` |  | This Cahut sends no e-mail: give them the address of the Window yourself, with its Key if it has one |
 | `no_password_link` |  | This Cahut sends no e-mail: an administrator of the Cahut can give you a new link |
@@ -107,6 +111,8 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/approve_authorization` | Any person | yes |
 | `POST /api/approve_knock` | Any person | yes |
 | `POST /api/change_email` | Any person | yes |
+| `POST /api/change_handle` | Any person | yes |
+| `POST /api/change_name` | Any person | yes |
 | `POST /api/change_password` | Any person | yes |
 | `POST /api/check_handle` | Administrators of the Cahut | yes |
 | `POST /api/confirm_email` | Anyone, to sign in | no |

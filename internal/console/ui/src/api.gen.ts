@@ -197,6 +197,16 @@ export interface ChangeEmailInput {
   email: string;
 }
 
+export interface ChangeHandleInput {
+  /** your new handle, which names your personal Room too */
+  handle: string;
+}
+
+export interface ChangeNameInput {
+  /** your name, as the people of the Cahut see it */
+  name: string;
+}
+
 export interface ChangePasswordInput {
   /** the current password */
   password: string;
@@ -760,6 +770,13 @@ export interface Membership {
   kind: string;
   /** owner or member of the Room */
   role: string;
+}
+
+export interface MovedRoom {
+  /** the name of the Room now */
+  room: string;
+  /** the name it would take */
+  name: string;
 }
 
 export interface NewAdmin {
@@ -1461,6 +1478,10 @@ export interface CahutOperations {
   approve_knock: { input: AnswerInput; output: Answer };
   /** Change your e-mail address: a link goes to the new one, which replaces yours once you use the link, within 24 hours, and your old address gets a notice. An empty address removes yours at once. */
   change_email: { input: ChangeEmailInput; output: EmailChanged };
+  /** Change your handle, with which you sign in. Your personal Room takes it as its name: the addresses of its Windows change, the old ones stop working, and your old handle is free for another person or Room. In an individual Cahut, your other Rooms, whose names start with your handle, take the new one too. Answer the Knocks that wait for you first. */
+  change_handle: { input: ChangeHandleInput; output: User };
+  /** Change your name, as the people of the Cahut see it. Your personal Room takes it too, unless you gave it a title of its own. */
+  change_name: { input: ChangeNameInput; output: User };
   /** Change your password. Your other sessions end. */
   change_password: { input: ChangePasswordInput; output: PasswordChanged };
   /** Say whether a handle can go to a new person: of the form of a handle, not reserved, and held by no person and by no Room. For the administrators of the Cahut. */
@@ -1647,8 +1668,12 @@ export interface Refusals {
   email_taken: TakenEmail;
   /** handle {handle}: use 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit */
   handle_invalid: Handle;
+  /** Knocks wait for you: answer them before you change your handle, since they name the addresses of your personal Room */
+  handle_knocks_waiting: null;
   /** handle {handle} is reserved: it names a page of every Cahut */
   handle_reserved: Handle;
+  /** your Room {room} would be named {name}, which another Room holds or which is too long: choose another handle */
+  handle_room_cannot_move: MovedRoom;
   /** handle {handle} is taken, by a person or a Room */
   handle_taken: Handle;
   /** this invitation does not open the Window any more: it was taken back, it expired, or the Window changed its Key or its access. Ask the person who invited you for a new one */
@@ -1673,6 +1698,10 @@ export interface Refusals {
   key_too_long: Limit;
   /** the Key has {length} characters: give it {limit} at least, or let Cahut draw one */
   key_too_short: Length;
+  /** name is empty */
+  name_empty: null;
+  /** name is longer than 200 bytes */
+  name_too_long: null;
   /** this Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console */
   no_mail: null;
   /** this Cahut sends no e-mail: give them the address of the Window yourself, with its Key if it has one */

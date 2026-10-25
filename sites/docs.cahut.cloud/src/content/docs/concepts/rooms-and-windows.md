@@ -42,7 +42,7 @@ A team Room gathers its owners and members. Any person, or their AI, creates one
 | Its owners | The same, and change its title and what its address shows, add and remove people, and make them owners or members |
 | The administrators of the Cahut | Change its title and its people, but open its Windows only if they are in it |
 
-A Room keeps at least one owner, and anyone can leave a team Room. Adding or removing a person, and changing their role, [knock first](/concepts/knock-first-and-logbook/#knock-first): when an AI asks, its person approves in the console. A Room's name, and so its address, does not change.
+A Room keeps at least one owner, and anyone can leave a team Room. Adding or removing a person, and changing their role, [knock first](/concepts/knock-first-and-logbook/#knock-first): when an AI asks, its person approves in the console. A Room's name, and so its address, does not change, but when a person [changes their handle](/admin/console/#name-and-handle): their personal Room, and in an individual Cahut each of their Rooms, takes the new one, and the old addresses stop working.
 
 In an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), each person still creates Rooms of their own, but stays their only member, and the name of each starts with their handle, such as `bob-projects`.
 
