@@ -5,7 +5,7 @@ description: Charte graphique et ton de Cahut, la maison auto-hébergée de ce q
 
 # Charte graphique Cahut
 
-Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.5 du 25 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
+Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.6 du 25 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
 
 Dans ce document, les chemins partent de la racine du dépôt et **`charte/`** désigne `docs/charte-graphique/`.
 
@@ -86,6 +86,7 @@ Un abri simple et à soi, posé dans le nuage : **papier chaud, encre bleu-gris,
 **Pictogrammes et icônes.**
 
 - Les **pictogrammes** (`charte/icones/`, grille de 64 px, trait de 3 px) illustrent le vocabulaire de la maison sur le site, la documentation, les écrans vides et l'accueil. Trait en `currentColor`, un seul accent. Taille minimale 32 px.
+- Les **pictogrammes de navigation** (`charte/icones/navigation/`, grille de 24 px, trait de 2 px, même accent) marquent chaque entrée de la barre latérale de la console, en 20 px, toujours en couleur et avec leur étiquette : Room personnelle et Room d'équipe y ont chacune le leur. Un nouvel écran de la console prend le sien dans cette série, ou un nouveau dessiné de la même façon.
 - Les **icônes d'interface** sont des [Lucide](https://lucide.dev) (grille de 24 px, trait de 2 px, couleur du texte), en 16, 20 ou 24 px. Une action importante a toujours une étiquette texte à côté de son icône.
 
 **Illustrations et photos.**
@@ -154,7 +155,7 @@ Les textes du produit, du site et des visuels sont **en anglais**, langue du lan
 | `charte/tokens/cahut-fonts.css`, `charte/typographie/polices/` | Polices web WOFF2 et TTF (OFL) | Toute page, tout document |
 | `charte/ui/cahut-ui.css`, `composants.html`, `console.html` | Kit d'interface et maquettes de la console (`#dark` pour le mode sombre) | Écran, composant, page servie par Cahut |
 | `charte/logos/` | SVG maîtres, PNG, favicons, badge *hosted by Cahut* | Tout support |
-| `charte/icones/`, `charte/illustrations/` | Pictogrammes du vocabulaire, illustrations et motif de nuages | Site, documentation, écrans vides, visuels |
+| `charte/icones/`, `charte/illustrations/` | Pictogrammes du vocabulaire, pictogrammes de navigation (`icones/navigation/`), illustrations et motif de nuages | Site, documentation, écrans vides, visuels |
 | `charte/photos/` | Planche, aperçus, `selection.json` (crédits), `telecharger-photos.sh` (HD) | Tout support avec photo |
 | `charte/applications/gabarits/` | Gabarits HTML : diapositives titre, section et contenu, image de partage, aperçu GitHub, couverture de page et bannière de profil LinkedIn, bannière X, bannière YouTube, signature e-mail | Présentation, réseaux, e-mail |
 | [`references/recettes.md`](references/recettes.md) | Recettes : page dans le dépôt, page autonome, e-mail, icônes, gabarits et rendu PNG, photos, présentation, modification de la charte | Avant de produire |

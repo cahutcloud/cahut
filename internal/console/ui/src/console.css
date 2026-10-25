@@ -321,6 +321,19 @@
 	line-height: var(--leading-sm);
 	overflow-wrap: anywhere;
 }
+/* The pictograms of the navigation: their stroke follows the text, over the
+   color that their files set for themselves. */
+.pictogram {
+	display: inline-flex;
+	flex: none;
+	width: 20px;
+	height: 20px;
+}
+.pictogram svg {
+	width: 100%;
+	height: 100%;
+	color: inherit;
+}
 /* The foot of the navigation, on every page and in the menu on a narrow
    screen: the account, then the languages of the console. */
 .sidebar-foot {

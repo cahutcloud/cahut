@@ -1,7 +1,7 @@
 // The Rooms: those of the person, every Room for an administrator, a new
 // team Room, and the page of one Room with its Windows, its people and
 // what its address shows.
-import { Folder, Plus, User, Users } from "lucide-preact";
+import { Plus } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import { ApiError, explain } from "../api";
@@ -10,6 +10,7 @@ import { ConfirmButton, Failure, initials, Notice, PageHead, plural, WindowCards
 import { useConsole } from "../context";
 import { de, words } from "../i18n";
 import { useLoad } from "../load";
+import { Pictogram, type PictogramName } from "../pictograms";
 import { Link, navigate } from "../router";
 import { Trash } from "./window";
 
@@ -139,10 +140,13 @@ const t = words({
 	},
 });
 
-/** The icon of a Room: a person for a personal Room, a group for a team Room, a folder for a Room of one's own in an individual Cahut. */
-export function roomIcon(r: Pick<Room, "kind">, individual: boolean): typeof User {
-	if (r.kind === "personal") return User;
-	return individual ? Folder : Users;
+/**
+ * The pictogram of a Room: one person on its floor for a personal Room, two
+ * for a team Room, the Room alone for a Room of one's own in an individual Cahut.
+ */
+export function roomPictogram(r: Pick<Room, "kind">, individual: boolean): PictogramName {
+	if (r.kind === "personal") return "roomPersonal";
+	return individual ? "room" : "roomTeam";
 }
 
 /** Rooms as cards, each a link to its page. */
@@ -150,24 +154,21 @@ export function RoomCards({ rooms }: { rooms: Room[] }) {
 	const { individual } = useConsole();
 	return (
 		<div class="cards">
-			{rooms.map((r) => {
-				const Icon = roomIcon(r, individual);
-				return (
-					<Link key={r.name} class="c-card card card--link" href={`/rooms/${r.name}`}>
-						<span class="c-window__title">
-							<Icon class="i" size={16} aria-hidden="true" />
-							{r.title}
+			{rooms.map((r) => (
+				<Link key={r.name} class="c-card card card--link" href={`/rooms/${r.name}`}>
+					<span class="c-window__title">
+						<Pictogram name={roomPictogram(r, individual)} />
+						{r.title}
+					</span>
+					<span class="c-mono c-small c-muted">/{r.name}/</span>
+					<span class="c-window__meta">
+						<span>
+							{plural(r.windows, "Window", "Windows")} · {plural(r.members, t.member, t.members)}
 						</span>
-						<span class="c-mono c-small c-muted">/{r.name}/</span>
-						<span class="c-window__meta">
-							<span>
-								{plural(r.windows, "Window", "Windows")} · {plural(r.members, t.member, t.members)}
-							</span>
-							{r.role && <span class="c-badge c-badge--neutral">{r.role === "owner" ? t.owner : t.memberRole}</span>}
-						</span>
-					</Link>
-				);
-			})}
+						{r.role && <span class="c-badge c-badge--neutral">{r.role === "owner" ? t.owner : t.memberRole}</span>}
+					</span>
+				</Link>
+			))}
 		</div>
 	);
 }

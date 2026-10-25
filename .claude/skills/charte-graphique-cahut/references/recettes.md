@@ -74,6 +74,8 @@ Les clients de messagerie ignorent les variables CSS, les SVG et souvent les pol
 
 **Pictogrammes du vocabulaire** (`charte/icones/`). Les intégrer en ligne pour que le trait suive `currentColor` ; leur accent (Sky 300, Sky 400 ou Soft Yellow) est fixé dans le fichier. Taille minimale 32 px. Ils illustrent un mot de la maison, ils ne remplacent pas une icône d'interface.
 
+**Pictogrammes de navigation** (`charte/icones/navigation/`). Un par entrée de la barre latérale de la console, en 20 px avec leur étiquette. La console les lit tels quels par l'alias `@charte` (`?raw`) et les dessine en ligne, sans leur `<title>`, pour que le trait suive le texte en clair comme en sombre. Pour en dessiner un nouveau : grille de 24 px, trait de 2 px en `currentColor`, extrémités arrondies, un seul aplat d'accent (Sky 300, Sky 400 ou Soft Yellow), et le contrôler à 20 px sur fond blanc et sur Ink 900 avant de l'ajouter à la planche (`charte/icones/gabarits/planche-pictogrammes.html`).
+
 ## Gabarits et rendu en PNG
 
 Les gabarits de `charte/applications/gabarits/` sont des pages HTML à taille fixe (`body{width:…px;height:…px}`) qui lient les jetons par `../../tokens/`.
