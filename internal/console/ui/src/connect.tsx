@@ -60,14 +60,14 @@ const t = words({
 		clients: "Clients d'IA",
 		plugin: (host) => (
 			<>
-				Le plugin Cahut connecte ce Cahut et apprend sa house style à Claude. Il demande le domaine de ce Cahut,{" "}
+				Le plugin Cahut connecte cette Cahut et apprend sa house style à Claude. Il demande le domaine de cette Cahut,{" "}
 				<code class="c-mono">{host}</code>.
 			</>
 		),
 		addMarketplace: "la commande qui ajoute la marketplace",
 		installPlugin: "la commande qui installe le plugin",
-		orTerminal: "Ou connectez seulement le Cahut, depuis un terminal, puis connectez-vous ici quand Claude Code vous y envoie :",
-		addCahut: "la commande qui ajoute le Cahut",
+		orTerminal: "Ou connectez seulement la Cahut, depuis un terminal, puis connectez-vous ici quand Claude Code vous y envoie :",
+		addCahut: "la commande qui ajoute la Cahut",
 		login: "la commande qui connecte Claude Code",
 		claudeConnector:
 			"Dans claude.ai ou l'appli Claude, ouvrez les paramètres, puis les connecteurs, et ajoutez un connecteur personnalisé avec cette adresse. Connectez-le : Claude vous envoie ici pour vous connecter, et vous choisissez les Rooms qu'il atteint.",
@@ -76,7 +76,7 @@ const t = words({
 		downloadSkill: "Télécharger la skill",
 		chatgptIP: (
 			<>
-				ChatGPT ne se connecte pas à un Cahut à une adresse IP. Faites pointer un domaine vers ce serveur et déplacez-y le Cahut, dans
+				ChatGPT ne se connecte pas à une Cahut à une adresse IP. Faites pointer un domaine vers ce serveur et déplacez-y la Cahut, dans
 				la console de l'administrateur du serveur ou avec <code class="c-mono">cahut domain rename</code>, puis ajoutez-le à
 				ChatGPT à sa nouvelle adresse.
 			</>
@@ -85,7 +85,7 @@ const t = words({
 			"Dans ChatGPT sur le web, ouvrez les plugins, choisissez le bouton plus, puis l'ajout d'un serveur MCP personnalisé. Donnez-lui un nom, cette adresse, et OAuth comme authentification, puis créez-le. ChatGPT vous envoie ici pour vous connecter, et vous choisissez les Rooms qu'il atteint. Il vous demande de confirmer les appels qui changent quelque chose.",
 		chatgptPlans: "Les serveurs MCP personnalisés demandent un abonnement Business, Enterprise ou Edu à ChatGPT.",
 		leChat:
-			"Dans Le Chat, ouvrez les connecteurs et ajoutez un connecteur MCP personnalisé avec cette adresse. Le Chat voit que le Cahut se connecte par OAuth et vous envoie ici pour vous connecter.",
+			"Dans Le Chat, ouvrez les connecteurs et ajoutez un connecteur MCP personnalisé avec cette adresse. Le Chat voit que la Cahut se connecte par OAuth et vous envoie ici pour vous connecter.",
 		other: (
 			<>
 				Donnez cette adresse à tout client MCP, en HTTP. Un client qui se connecte par OAuth vous envoie ici ; un autre prend un

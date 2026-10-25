@@ -44,6 +44,6 @@ Le RGPD vous permet de consulter les données qui vous concernent, de les faire 
 
 Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL, sur [cnil.fr](https://www.cnil.fr).
 
-## Un Cahut sur un serveur
+## Une Cahut sur un serveur
 
-Cette page couvre seulement le site et la documentation du projet. Un Cahut installé sur un serveur appartient à qui l'administre, qui décide de ce qu'il garde et en répond.
+Cette page couvre seulement le site et la documentation du projet. Une Cahut installée sur un serveur appartient à qui l'administre, qui décide de ce qu'elle garde et en répond.

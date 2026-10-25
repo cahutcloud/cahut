@@ -82,10 +82,10 @@ const t = words({
 		title: "Administrateurs du serveur",
 		newAdmin: "Nouvel administrateur",
 		intro:
-			"Ils ont la main sur tous les Cahuts de ce serveur : ils déclarent des Cahuts, fixent leur type et leurs limites, lisent le Logbook du serveur, et gèrent les personnes et les Rooms de chaque Cahut, depuis sa console.",
+			"Ils ont la main sur toutes les Cahuts de ce serveur : ils déclarent des Cahuts, fixent leur type et leurs limites, lisent le Logbook du serveur, et gèrent les personnes et les Rooms de chaque Cahut, depuis sa console.",
 		cahutOnly: () => (
 			<>
-				Pour faire de quelqu'un un administrateur de ce Cahut seulement, ajoutez cette personne dans{" "}
+				Pour faire de quelqu'un un administrateur de cette Cahut seulement, ajoutez cette personne dans{" "}
 				<Link class="c-link" href="/people">
 					Personnes
 				</Link>
@@ -103,13 +103,13 @@ const t = words({
 		created: (name) => (
 			<>
 				<strong>{name} est administrateur de ce serveur.</strong>
-				Cette personne a la main sur tous ses Cahuts dès qu'elle a choisi son mot de passe.
+				Cette personne a la main sur toutes ses Cahuts dès qu'elle a choisi son mot de passe.
 			</>
 		),
 		addAnother: "Ajouter un autre administrateur",
 		done: "Terminé",
 		dialogIntro:
-			"Cette personne aura la main sur tous les Cahuts de ce serveur. Un administrateur d'un seul Cahut s'ajoute dans ses Personnes, comme administrateur.",
+			"Cette personne aura la main sur toutes les Cahuts de ce serveur. Un administrateur d'une seule Cahut s'ajoute dans ses Personnes, comme administrateur.",
 		name: "Nom",
 		handle: "Identifiant",
 		handleHelp: "Son nom pour se connecter comme administrateur du serveur. Il ne pourra plus changer.",

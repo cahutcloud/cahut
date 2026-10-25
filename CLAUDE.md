@@ -133,6 +133,8 @@ Each Window opens to its Room only (the default), to everyone signed in to its C
 
 Cahut, Room, Window and Key take a capital in running text ("3 Rooms in your Cahut", "This Key no longer opens Q3 review."). An instance is a Cahut, with a capital, like the product. Never write "CAHUT"; lowercase "cahut" exists only in the logo and in commands.
 
+In French, the words of the house keep their English form and take a gender. A Cahut is feminine, as a « cahute » is: « une Cahut », « ma Cahut », « cette Cahut », « la Cahut de example.com », and its adjectives, participles and pronouns agree (« une Cahut individuelle », « elle »). A Room, a Window, a Key and the house style are feminine too; a Knock and the Logbook are masculine.
+
 ## Brand
 
 For anything visual (site, console, mockup, slide, social image, e-mail, illustration) or any product copy, use the project skill **`charte-graphique-cahut`** in [.claude/skills/charte-graphique-cahut/](.claude/skills/charte-graphique-cahut/SKILL.md). The short version:

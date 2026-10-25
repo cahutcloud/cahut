@@ -47,16 +47,16 @@ const t = words({
 				vous donne un nouveau lien.
 			</>
 		),
-		asPerson: "Se connecter en tant que personne de ce Cahut",
+		asPerson: "Se connecter en tant que personne de cette Cahut",
 		forgot: "Mot de passe oublié ?",
-		askAdmin: "Mot de passe oublié ? Un administrateur du Cahut peut vous donner un nouveau lien.",
+		askAdmin: "Mot de passe oublié ? Un administrateur de la Cahut peut vous donner un nouveau lien.",
 		administerServer: "Administrer le serveur",
 		newPassword: "Choisissez un nouveau mot de passe",
 		giveHandle:
-			"Donnez votre identifiant, ou l'adresse e-mail de votre compte. Un lien pour choisir un nouveau mot de passe part à cette adresse. Si votre compte n'en a pas, un administrateur du Cahut peut vous donner un lien.",
+			"Donnez votre identifiant, ou l'adresse e-mail de votre compte. Un lien pour choisir un nouveau mot de passe part à cette adresse. Si votre compte n'en a pas, un administrateur de la Cahut peut vous donner un lien.",
 		// The answer is the same for every account: the console says it in French.
 		sent: () =>
-			"Si un compte de ce Cahut a cet identifiant ou cette adresse, un lien pour choisir un nouveau mot de passe est parti à son adresse. Il est valable une heure.",
+			"Si un compte de cette Cahut a cet identifiant ou cette adresse, un lien pour choisir un nouveau mot de passe est parti à son adresse. Il est valable une heure.",
 		handleOrEmail: "Identifiant ou adresse e-mail",
 		sendLink: "M'envoyer un lien",
 		back: "Retour à la connexion",

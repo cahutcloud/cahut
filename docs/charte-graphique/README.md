@@ -41,18 +41,18 @@ Cette charte fixe l'identité visuelle de Cahut : logo, couleurs, typographie, p
 | Chez soi | Les données restent sur votre serveur | Le nuage est une maison, avec sa porte |
 | Neutre | Toutes les IA, aucun fournisseur favori | Aucune couleur ni forme empruntée à une IA |
 | Simple | Une commande pour installer, un lien pour partager | Peu d'éléments, beaucoup d'air |
-| Prudent | L'IA frappe avant toute action irréversible (*knock first*) | La porte, le jaune réservé à ce qui attend une décision |
-| Accueillant | Clair, chaleureux, sans jargon | Arrondis, papier chaud, touche de soleil |
+| Prudente | L'IA frappe avant toute action irréversible (*knock first*) | La porte, le jaune réservé à ce qui attend une décision |
+| Accueillante | Claire, chaleureuse, sans jargon | Arrondis, papier chaud, touche de soleil |
 
 **La personnalité.**
 
 | Cahut est | Cahut n'est pas |
 | --- | --- |
-| calme | froid |
-| précis | technique |
-| chaleureux | mignon |
-| sûr de lui | autoritaire |
-| ouvert | bavard |
+| calme | froide |
+| précise | technique |
+| chaleureuse | mignonne |
+| sûre d'elle | autoritaire |
+| ouverte | bavarde |
 
 ## 2. Le logo
 
@@ -228,7 +228,7 @@ En secours : `ui-sans-serif, system-ui, "Segoe UI", sans-serif` et `ui-monospace
 
 **Style.** Aplats sans dégradé ni ombre. Traits Ink arrondis, d'épaisseur régulière. Collines en Ink 100 et Ink 200, soleil en Soft Yellow, accents en Sky. Beaucoup d'air. La porte éclairée en jaune signifie « quelqu'un est là ».
 
-**À éviter.** Robots, cerveaux, circuits lumineux, étincelles « magiques », personnages en 3D : Cahut ne fait pas l'IA, il l'accueille.
+**À éviter.** Robots, cerveaux, circuits lumineux, étincelles « magiques », personnages en 3D : Cahut ne fait pas l'IA, elle l'accueille.
 
 ## 7. Photographie
 
@@ -352,10 +352,11 @@ Cahut parle la langue de la maison, en anglais simple. Chaque notion technique a
 - Phrases courtes, verbes concrets : *publish*, *share*, *approve*, *roll back*.
 - Dire qui agit : quelle IA, au nom de qui, avec quel résultat.
 - Rassurer sans alarmer : jamais de capitales, de points d'exclamation ou d'emoji d'alerte.
-- Pas de promesse magique sur l'IA : Cahut accueille le travail, il ne le crée pas.
+- Pas de promesse magique sur l'IA : Cahut accueille le travail, elle ne le crée pas.
 - Casse de phrase pour les titres, boutons et menus. Chiffres en chiffres.
-- Le nom s'écrit **Cahut** dans le texte, avec une capitale, et « cahut » en minuscules seulement dans le logo. Jamais « CAHUT ». Une instance est un Cahut, avec la même capitale : *your Cahut*, *3 Rooms in this Cahut*.
-- Une Window s'ouvre à sa Room seulement, à tout le Cahut (*internal*), à qui a sa Key, ou au public : on parle de son accès.
+- Le nom s'écrit **Cahut** dans le texte, avec une capitale, et « cahut » en minuscules seulement dans le logo. Jamais « CAHUT ». Une instance est une Cahut, avec la même capitale : *your Cahut*, *3 Rooms in this Cahut*.
+- En français, Cahut est féminin, comme la cahute dont elle tire son nom : *une Cahut*, *votre Cahut est prête*, *la Cahut de example.com*. Le produit aussi : *Cahut accueille le travail, elle ne le crée pas*.
+- Une Window s'ouvre à sa Room seulement, à toute la Cahut (*internal*), à qui a sa Key, ou au public : on parle de son accès.
 
 | Écrire | Éviter |
 | --- | --- |
@@ -366,11 +367,11 @@ Cahut parle la langue de la maison, en anglais simple. Chaque notion technique a
 
 ## 12. Cahut chez les autres
 
-Cahut porte la charte de chaque organisation (*house style*). Sur les pages publiées, la marque de l'organisation passe toujours en premier ; Cahut reste discret.
+Cahut porte la charte de chaque organisation (*house style*). Sur les pages publiées, la marque de l'organisation passe toujours en premier ; Cahut reste discrète.
 
 - Mention facultative en pied de page avec le badge [`cahut-badge-hosted.svg`](logos/cahut-badge-hosted.svg) (variante [inversée](logos/cahut-badge-hosted-inverse.svg)), 32 px de haut au plus.
 - Jamais le logo Cahut au-dessus ou à côté du logo d'un client.
-- Dans les écrans de Cahut lui-même (console, connexion, e-mails), la charte Cahut s'applique entièrement.
+- Dans les écrans de Cahut elle-même (console, connexion, e-mails), la charte Cahut s'applique entièrement.
 
 ## 13. Fichiers
 
@@ -403,5 +404,6 @@ charte-graphique/
 | 1.1 | 21 octobre 2026 | Vocabulaire : Cahut remplace Home, Door disparaît, chaque Window a son accès. Pictogramme `cahut.svg`, plus de `door.svg`, gabarit de la planche. Badges d'accès `c-badge--key` et `c-badge--room` à la place de `--password` et `--invited`. Maquettes, hiérarchie typographique et diapositive de contenu mises à jour |
 | 1.2 | 23 octobre 2026 | Couverture de la page LinkedIn au format des pages, 1512 × 256 ; bannière du profil renommée `banniere-linkedin-profil` et recomposée hors de la photo. Règle de l'avatar des réseaux et des zones que couvrent le logo ou la photo |
 | 1.3 | 25 octobre 2026 | La porte éclairée : l'icône d'application, ses icônes web et l'avatar des réseaux passent sur Paper, avec le symbole Ink et la porte en Soft Yellow, à la place du symbole blanc sur Sky. Le blanc sur Sky ne sert plus. La bannière X passe sur Paper, avec la maison ouverte, comme celles de LinkedIn |
+| 1.4 | 25 octobre 2026 | En français, Cahut est féminin : *une Cahut*, *votre Cahut est prête*. La personnalité et les valeurs s'accordent |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.

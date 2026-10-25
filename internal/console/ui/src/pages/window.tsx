@@ -152,7 +152,7 @@ const t = words({
 		yes: "Oui",
 		no: "Non",
 		loads: "Charge et appelle",
-		nothingOutside: "Rien hors de ce Cahut",
+		nothingOutside: "Rien hors de cette Cahut",
 		forms: "Les formulaires envoient à",
 		nowhere: "Nulle part",
 		trashedSince: (ago) => `Mise à la corbeille ${ago}`,
@@ -162,15 +162,15 @@ const t = words({
 				? `${who[0]} n'a pas d'adresse e-mail : rien ne lui a été envoyé.`
 				: `${who.join(", ")} n'ont pas d'adresse e-mail : rien ne leur a été envoyé.`,
 		how: {
-			key: "Les personnes du Cahut, par identifiant, et toute autre personne, par adresse. Chaque adresse reçoit un lien personnel qui ouvre la Window pour elle seule, jusqu'à ce que vous le retiriez ; la Key ne part jamais.",
+			key: "Les personnes de la Cahut, par identifiant, et toute autre personne, par adresse. Chaque adresse reçoit un lien personnel qui ouvre la Window pour elle seule, jusqu'à ce que vous le retiriez ; la Key ne part jamais.",
 			public: "N'importe qui, par identifiant ou par adresse : le message donne son adresse.",
 			internal:
-				"Les personnes du Cahut, par identifiant : elles se connectent pour la lire. Pour inviter quelqu'un d'autre par adresse, passez d'abord son accès à Key.",
+				"Les personnes de la Cahut, par identifiant : elles se connectent pour la lire. Pour inviter quelqu'un d'autre par adresse, passez d'abord son accès à Key.",
 			room: "Les membres de sa Room, par identifiant. Pour inviter quelqu'un d'autre, passez d'abord son accès à Interne ou à Key.",
 		},
 		invitePeople: "Inviter des personnes",
 		invitations: "Invitations",
-		noMail: "Ce Cahut n'envoie plus d'e-mail. Les liens personnels déjà partis ouvrent toujours cette Window, jusqu'à ce que vous les retiriez.",
+		noMail: "Cette Cahut n'envoie plus d'e-mail. Les liens personnels déjà partis ouvrent toujours cette Window, jusqu'à ce que vous les retiriez.",
 		to: "À",
 		toHelp: "Des identifiants ou des adresses e-mail, 20 au plus, séparés par des virgules.",
 		note: "Note",

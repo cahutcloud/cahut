@@ -81,11 +81,11 @@ const t = words({
 		owner: "Propriétaire",
 		memberRole: "Membre",
 		individualText:
-			"Une Room garde les Windows de son propriétaire, à sa propre adresse. Dans ce Cahut, chacun travaille seul : une Room n'a qu'un membre.",
+			"Une Room garde les Windows de son propriétaire, à sa propre adresse. Dans cette Cahut, chacun travaille seul : une Room n'a qu'un membre.",
 		teamText:
 			"Une Room réunit ses membres et leurs Windows, à sa propre adresse. Les Windows publiées dans une Room d'équipe sont pour ses membres.",
 		yourRooms: "Vos Rooms",
-		everyRoom: "Toutes les Rooms de ce Cahut",
+		everyRoom: "Toutes les Rooms de cette Cahut",
 		asAdmin: "En tant qu'administrateur, vous gérez les personnes de chaque Room, et n'ouvrez que les Windows des vôtres.",
 		newRoom: "Nouvelle Room",
 		newTeamRoom: "Nouvelle Room d'équipe",

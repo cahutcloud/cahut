@@ -75,13 +75,13 @@ const t = words({
 		revokeQuestion: (name: string) => `Revoke ${name}? The AI that uses it loses access at once.`,
 	},
 	fr: {
-		thisCahut: "Ce Cahut",
+		thisCahut: "Cette Cahut",
 		title: "IA et accès",
 		intro:
 			"Une IA agit pour vous par MCP, dans les limites de ce que vous lui accordez. Chacun de ses appels va au Logbook, et vous la déconnectez en un clic.",
 		connect: "Connecter une IA",
 		connectHelp:
-			"Donnez à votre client d'IA l'adresse de ce Cahut. Il vous envoie ici pour vous connecter, et vous choisissez les Rooms qu'il atteint et s'il peut publier. Pour Claude, la skill lui apprend les formats, le bac à sable des Windows, leur partage, et Knock first.",
+			"Donnez à votre client d'IA l'adresse de cette Cahut. Il vous envoie ici pour vous connecter, et vous choisissez les Rooms qu'il atteint et s'il peut publier. Pour Claude, la skill lui apprend les formats, le bac à sable des Windows, leur partage, et Knock first.",
 		yourAIs: "Vos IA connectées",
 		theirAIs: "Les IA connectées des autres",
 		theirAIsHelp: "En tant qu'administrateur, vous pouvez les déconnecter.",
