@@ -77,6 +77,8 @@ A refusal that people meet in the console gives its code too, which never change
 | `key_has_spaces` |  | The Key starts or ends with a space |
 | `key_too_long` | `limit` | The Key has more than {limit} characters |
 | `key_too_short` | `length`, `limit` | The Key has {length} characters: give it {limit} at least, or let Cahut draw one |
+| `legal_link_in_french_only` | `link`, `page` | {link}: give {page} too, the address of the page for every other language; the address in French takes its place in French only |
+| `legal_link_invalid` | `link` | {link}: give the address of a page, which starts with https://, such as https://example.org/terms, or leave it out to remove the link |
 | `name_empty` |  | Name is empty |
 | `name_too_long` |  | Name is longer than 200 bytes |
 | `no_mail` |  | This Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console |
@@ -164,6 +166,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/set_ai_reach` | Any person | yes |
 | `POST /api/set_cahut_settings` | Administrators of the server | yes |
 | `POST /api/set_house_style` | Administrators of the Cahut | yes |
+| `POST /api/set_legal_links` | Administrators of the server | yes |
 | `POST /api/set_mail_notices` | Any person | yes |
 | `POST /api/set_mail_relay` | Administrators of the Cahut | yes |
 | `POST /api/set_room_home` | Any person | yes |
@@ -223,6 +226,6 @@ curl -X POST http://127.0.0.1:8090/api/check_handle \
 | `POST /api/create_user` | Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. |
 | `POST /api/disable_user` | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. |
 | `POST /api/enable_user` | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. |
-| `POST /api/get_cahut` | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. |
+| `POST /api/get_cahut` | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. |
 | `POST /api/get_user` | Describe one person of the Cahut, as list_users does, with their e-mail address. For the administrators of the Cahut. |
 | `POST /api/set_user_email` | Give a person an e-mail address, where their activation links and notices go, or remove it with an empty address. Their old address gets a notice. For the administrators of the Cahut. |

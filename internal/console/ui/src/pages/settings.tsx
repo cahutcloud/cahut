@@ -1,10 +1,13 @@
-// The kind and the limits of the Cahut: the administrators of the server set
-// them, its administrators read them, and its people read what concerns
-// them. See docs/adr/0030-kind-and-limits-of-each-cahut.md.
+// The kind and the limits of the Cahut, and the links to its legal pages:
+// the administrators of the server set them, its administrators read them,
+// and its people read what concerns them. See
+// docs/adr/0030-kind-and-limits-of-each-cahut.md and
+// docs/adr/0042-the-legal-pages-of-a-cahut.md.
+import { Fragment } from "preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
-import type { Limits, Settings as CahutSettings } from "../api.gen";
-import { bytes, Failure, Notice, PageHead } from "../components";
+import type { LegalLinks, LegalPages, Limits, SetLegalLinksInput, Settings as CahutSettings } from "../api.gen";
+import { bytes, Failure, legalPages, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
 import { words } from "../i18n";
 import { useLoad } from "../load";
@@ -35,8 +38,8 @@ const t = words({
 		individualAbout: "People share the Cahut, not their work: each Room keeps one member, and nobody sees the others.",
 		label: "This Cahut",
 		title: "Kind and limits",
-		leadServer: "As an administrator of the server, you choose how people work in this Cahut, and bound what it holds.",
-		leadCahut: "The administrators of the server choose how people work in this Cahut, and bound what it holds.",
+		leadServer: "As an administrator of the server, you choose how people work in this Cahut, bound what it holds, and link its legal pages.",
+		leadCahut: "The administrators of the server choose how people work in this Cahut, bound what it holds, and link its legal pages.",
 		kindTitle: (kind: string) => `${kind} Cahut`,
 		limits: "Limits",
 		noLimit: "This Cahut has no limit.",
@@ -56,6 +59,19 @@ const t = words({
 		lift: "Leave a limit empty to lift it. Lowering one deletes nothing: the Cahut keeps what it holds and refuses what would add to it. The disk counts in gigabytes of a billion bytes.",
 		saved: "Saved. The change is in the Logbook of this Cahut.",
 		save: "Save",
+		legal: "Legal pages",
+		legalAbout:
+			"The legal notice, terms, privacy policy and support that the host of this Cahut publishes elsewhere. The console and the pages that readers see link them at their foot, in the language of each page.",
+		noLegal: "This Cahut links no legal page.",
+		page: "Page",
+		address: "Address",
+		inFrench: "In French",
+		sameAddress: "Same address",
+		changeLegal: "Change the links",
+		inFrenchOf: (name: string) => `${name}, in French`,
+		https: "An address that starts with https://",
+		legalHelp:
+			"Give an address in French only where the page in French differs: the console links it when it speaks French. Leave a field empty to remove its link.",
 	},
 	fr: {
 		people: "Personnes",
@@ -85,8 +101,9 @@ const t = words({
 		label: "Cette Cahut",
 		title: "Type et limites",
 		leadServer:
-			"En tant qu'administrateur du serveur, vous choisissez comment les personnes travaillent dans cette Cahut, et bornez ce qu'elle contient.",
-		leadCahut: "Les administrateurs du serveur choisissent comment les personnes travaillent dans cette Cahut, et bornent ce qu'elle contient.",
+			"En tant qu'administrateur du serveur, vous choisissez comment les personnes travaillent dans cette Cahut, bornez ce qu'elle contient, et liez ses pages légales.",
+		leadCahut:
+			"Les administrateurs du serveur choisissent comment les personnes travaillent dans cette Cahut, bornent ce qu'elle contient, et lient ses pages légales.",
 		kindTitle: (kind) => `Cahut ${kind.toLowerCase()}`,
 		limits: "Limites",
 		noLimit: "Cette Cahut n'a aucune limite.",
@@ -106,6 +123,19 @@ const t = words({
 		lift: "Laissez une limite vide pour la lever. En baisser une ne supprime rien : la Cahut garde ce qu'elle contient et refuse ce qui s'y ajouterait. Le disque se compte en gigaoctets d'un milliard d'octets.",
 		saved: "Enregistré. La modification figure au Logbook de cette Cahut.",
 		save: "Enregistrer",
+		legal: "Pages légales",
+		legalAbout:
+			"Les mentions légales, les conditions d'utilisation, la politique de confidentialité et l'assistance que l'hébergeur de cette Cahut publie ailleurs. La console et les pages que voient les lecteurs les lient en bas de page, dans la langue de chaque page.",
+		noLegal: "Cette Cahut ne lie aucune page légale.",
+		page: "Page",
+		address: "Adresse",
+		inFrench: "En français",
+		sameAddress: "Même adresse",
+		changeLegal: "Modifier les liens",
+		inFrenchOf: (name) => `${name}, en français`,
+		https: "Une adresse qui commence par https://",
+		legalHelp:
+			"Ne donnez une adresse en français que si la page en français diffère : la console la lie quand elle parle français. Laissez un champ vide pour retirer son lien.",
 	},
 });
 
@@ -166,7 +196,137 @@ export function Settings() {
 				<LimitsTable settings={data} />
 			</section>
 			{server && <SettingsForm settings={data} onSaved={() => (reload(), api.reloadCahut(), api.reloadRooms())} />}
+			<section class="section">
+				<h2 class="c-h4">{t.legal}</h2>
+				<p class="c-small c-muted">{t.legalAbout}</p>
+				{!server && <LegalTable legal={data.legal} />}
+			</section>
+			{server && <LegalForm legal={data.legal} onSaved={() => (reload(), api.reloadCahut())} />}
 		</>
+	);
+}
+
+/** The links to the legal pages of a Cahut, as its administrators read them. */
+function LegalTable({ legal }: { legal: LegalLinks }) {
+	const rows = legalPages.filter(({ page }) => legal[page]);
+	if (rows.length === 0) return <Notice>{t.noLegal}</Notice>;
+	// A long address goes on to the next line after one of its slashes.
+	const link = (url: string) => (
+		<a class="c-link legal-address" href={url} target="_blank" rel="noopener">
+			{url.split("/").map((part, i) => (
+				<Fragment key={i}>
+					{i > 0 && "/"}
+					{i > 0 && <wbr />}
+					{part}
+				</Fragment>
+			))}
+		</a>
+	);
+	return (
+		<div class="table-wrap">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>{t.page}</th>
+						<th>{t.address}</th>
+						<th>{t.inFrench}</th>
+					</tr>
+				</thead>
+				<tbody>
+					{rows.map(({ page, name }) => {
+						const fr = legal.fr?.[page];
+						return (
+							<tr key={page}>
+								<td class="c-small">{name}</td>
+								<td class="c-small">{link(legal[page] ?? "")}</td>
+								<td class="c-small">{fr ? link(fr) : <span class="c-muted">{t.sameAddress}</span>}</td>
+							</tr>
+						);
+					})}
+				</tbody>
+			</table>
+		</div>
+	);
+}
+
+/** The form where an administrator of the server sets the links to the legal pages. */
+function LegalForm({ legal, onSaved }: { legal: LegalLinks; onSaved: () => void }) {
+	const api = useConsole();
+	const [values, setValues] = useState<Record<string, string>>(() =>
+		Object.fromEntries(
+			legalPages.flatMap(({ page }) => [
+				[page, legal[page] ?? ""],
+				[`fr.${page}`, legal.fr?.[page] ?? ""],
+			]),
+		),
+	);
+	const [error, setError] = useState("");
+	const [saved, setSaved] = useState(false);
+	const [busy, setBusy] = useState(false);
+	const submit = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		setSaved(false);
+		const set: SetLegalLinksInput = {};
+		const fr: LegalPages = {};
+		for (const { page } of legalPages) {
+			const v = values[page].trim();
+			const f = values[`fr.${page}`].trim();
+			if (v !== "") set[page] = v;
+			if (f !== "") fr[page] = f;
+		}
+		if (Object.keys(fr).length > 0) set.fr = fr;
+		try {
+			await api.cahut("set_legal_links", set);
+			setSaved(true);
+			onSaved();
+		} catch (err) {
+			setError(explain(err));
+		}
+		setBusy(false);
+	};
+	const field = (key: string, label: string, placeholder: string) => (
+		<label class="c-field">
+			<span class="c-field__label">{label}</span>
+			<input
+				class="c-input"
+				type="url"
+				inputMode="url"
+				pattern="https://.+"
+				title={t.https}
+				autocomplete="off"
+				spellcheck={false}
+				placeholder={placeholder}
+				value={values[key]}
+				onInput={(e) => setValues({ ...values, [key]: e.currentTarget.value })}
+			/>
+		</label>
+	);
+	return (
+		<section class="section c-card panel">
+			<h2 class="c-h4">{t.changeLegal}</h2>
+			<form class="form" onSubmit={submit}>
+				{legalPages.map(({ page, name }) => (
+					<div class="form__row" key={page}>
+						{field(page, name, "https://")}
+						{field(`fr.${page}`, t.inFrenchOf(name), t.sameAddress)}
+					</div>
+				))}
+				<p class="c-small c-muted">{t.legalHelp}</p>
+				{error && <Failure message={error} />}
+				{saved && (
+					<p class="c-small" role="status">
+						{t.saved}
+					</p>
+				)}
+				<div>
+					<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
+						{t.save}
+					</button>
+				</div>
+			</form>
+		</section>
 	);
 }
 

@@ -7,7 +7,7 @@
 import { ArrowUpRight } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { cahut, explain } from "../api";
-import { Languages } from "../components";
+import { Languages, LegalBeforeSignIn } from "../components";
 import { fragment as code } from "../fragment";
 import { locale, words } from "../i18n";
 import { useLoad } from "../load";
@@ -90,6 +90,7 @@ export function Invitation() {
 				)}
 			</div>
 			<Languages />
+			<LegalBeforeSignIn />
 		</main>
 	);
 }

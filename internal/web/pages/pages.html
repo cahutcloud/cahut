@@ -3,8 +3,10 @@ They take the components of the brand of Cahut, in its brand while the
 house style keeps the look of the neutral one, in the house style once it
 has a name, colors, fonts or a logo, and
 never show the logo of Cahut beside that of an organization. They run no
-inline script. See docs/adr/0022-house-style-of-each-cahut.md and
-docs/adr/0032-the-page-of-a-room.md. */}}
+inline script. Their foot links the legal pages of the Cahut, when it has
+some. See docs/adr/0022-house-style-of-each-cahut.md,
+docs/adr/0032-the-page-of-a-room.md and
+docs/adr/0042-the-legal-pages-of-a-cahut.md. */}}
 
 {{define "head"}}<!doctype html>
 <html lang="en"{{if not .Brand.NeutralLook}} data-theme="light" data-house-style{{end}}>
@@ -27,6 +29,12 @@ docs/adr/0032-the-page-of-a-room.md. */}}
 {{else}}<a class="c-btn c-btn--secondary c-btn--sm" href="{{.SignIn}}">{{icon "log-in" 16}}Sign in</a>
 {{end}}</header>
 {{end}}
+
+{{define "legal"}}{{with .Legal}}<footer class="legal">
+<nav class="legal__links" aria-label="Legal pages">{{range .}}<a href="{{.URL}}" target="_blank" rel="noopener">{{.Name}}</a>
+{{end}}</nav>
+</footer>
+{{end}}{{end}}
 
 {{define "frame"}}<!doctype html>
 <html lang="en">
@@ -71,7 +79,7 @@ docs/adr/0032-the-page-of-a-room.md. */}}
 </section>{{end}}
 {{if not .Reader}}<p class="c-small c-muted foot">Members of this Room <a class="c-link" href="{{.SignIn}}">sign in</a> to open all its Windows.</p>{{end}}
 </main>
-</body>
+{{template "legal" .}}</body>
 </html>
 {{end}}
 
@@ -94,7 +102,7 @@ docs/adr/0032-the-page-of-a-room.md. */}}
 <p class="c-small c-muted">Ask whoever gave you this address for its Key.{{if not .Reader}} Members of its Room can <a class="c-link" href="{{.SignIn}}">sign in</a> instead.{{end}}</p>
 </section>
 </main>
-</body>
+{{template "legal" .}}</body>
 </html>
 {{end}}
 
@@ -110,7 +118,7 @@ docs/adr/0032-the-page-of-a-room.md. */}}
 <p class="c-small c-muted">If it is in one of your Rooms, sign in to open it.</p>{{end}}
 </section>
 </main>
-</body>
+{{template "legal" .}}</body>
 </html>
 {{end}}
 
@@ -124,7 +132,7 @@ docs/adr/0032-the-page-of-a-room.md. */}}
 <p>The step that opens a Window from an invitation works once, for a minute. Open the invitation again from its e-mail.</p>
 </section>
 </main>
-</body>
+{{template "legal" .}}</body>
 </html>
 {{end}}
 
@@ -139,6 +147,6 @@ docs/adr/0032-the-page-of-a-room.md. */}}
 <p><a class="c-btn c-btn--primary" href="{{.SignIn}}">{{icon "log-in" 16}}Sign in again</a></p>
 </section>
 </main>
-</body>
+{{template "legal" .}}</body>
 </html>
 {{end}}

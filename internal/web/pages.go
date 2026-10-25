@@ -18,6 +18,7 @@ import (
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/housestyle"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/window"
 )
 
@@ -25,10 +26,13 @@ import (
 // home, the page of a Room, the frame of a protected Window, the page of a
 // Key and the page of what is not found. They take the components of the
 // brand of Cahut: in its brand while the house style keeps the look of the
-// neutral one, in the house style once it has a look of its own. See
+// neutral one, in the house style once it has a look of its own. Their foot
+// links the legal pages of the Cahut, when it has some; the frame of a
+// Window does not. See
 // docs/adr/0019-window-versions-access-and-declaration.md,
-// docs/adr/0032-the-page-of-a-room.md and
-// docs/adr/0033-the-brand-of-cahut-until-the-house-style-has-a-look.md.
+// docs/adr/0032-the-page-of-a-room.md,
+// docs/adr/0033-the-brand-of-cahut-until-the-house-style-has-a-look.md and
+// docs/adr/0042-the-legal-pages-of-a-cahut.md.
 
 //go:embed pages
 var pageFiles embed.FS
@@ -53,8 +57,23 @@ type page struct {
 	Title  string // of the page, as its tab shows it
 	Domain string
 	Brand  housestyle.Brand
-	Reader string // the handle of the reader signed in; empty when there is none
-	SignIn string // where to sign in, to come back to this page
+	Reader string      // the handle of the reader signed in; empty when there is none
+	SignIn string      // where to sign in, to come back to this page
+	Legal  []legalLink // the legal pages of the Cahut, which its foot links
+}
+
+// legalLink is a legal page of the Cahut, as the foot of a page links it.
+type legalLink struct {
+	Name, URL string
+}
+
+// legalNames name the legal pages at the foot of the pages, which speak
+// English. See docs/adr/0042-the-legal-pages-of-a-cahut.md.
+var legalNames = map[string]string{
+	"legal_notice": "Legal notice",
+	"terms":        "Terms",
+	"privacy":      "Privacy",
+	"support":      "Support",
 }
 
 func (s *Server) page(r *http.Request, reader, title string) page {
@@ -64,7 +83,15 @@ func (s *Server) page(r *http.Request, reader, title string) page {
 		s.log.Error("read the house style", "cahut", c.Domain, "error", err)
 		brand = housestyle.Brand{Name: c.Domain, NeutralLook: true}
 	}
-	return page{Title: title, Domain: c.Domain, Brand: brand, Reader: reader, SignIn: "/-/sign-in?to=" + url.QueryEscape(r.URL.RequestURI())}
+	p := page{Title: title, Domain: c.Domain, Brand: brand, Reader: reader, SignIn: "/-/sign-in?to=" + url.QueryEscape(r.URL.RequestURI())}
+	legal, err := settings.Legal(r.Context(), c.DB.Read)
+	if err != nil {
+		s.log.Error("read the legal pages", "cahut", c.Domain, "error", err)
+	}
+	for _, l := range legal.In("") {
+		p.Legal = append(p.Legal, legalLink{Name: legalNames[l.Page], URL: l.URL})
+	}
+	return p
 }
 
 // render writes the page called name with data, and the headers of every

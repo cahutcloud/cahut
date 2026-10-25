@@ -3,6 +3,7 @@
 // the fragment of the address. See docs/adr/0031-e-mail-through-a-relay.md.
 import { useEffect, useState } from "preact/hooks";
 import { cahut, explain } from "../api";
+import { LegalBeforeSignIn } from "../components";
 import { fragment as code } from "../fragment";
 import { words } from "../i18n";
 import { Logo } from "../logo";
@@ -68,6 +69,7 @@ export function ConfirmEmail() {
 					</Link>
 				</p>
 			</div>
+			<LegalBeforeSignIn />
 		</main>
 	);
 }

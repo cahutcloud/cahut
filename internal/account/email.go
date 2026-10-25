@@ -10,6 +10,7 @@ import (
 	"cahut.cloud/internal/credential"
 	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
 )
 
@@ -426,21 +427,29 @@ type DescribeSignInInput struct{}
 
 // SignInPage is the output of describe_sign_in.
 type SignInPage struct {
-	SendsMail bool `json:"sends_mail" jsonschema:"whether this Cahut sends e-mail, and so a link to a person who forgot their password"`
+	SendsMail bool                `json:"sends_mail" jsonschema:"whether this Cahut sends e-mail, and so a link to a person who forgot their password"`
+	Legal     settings.LegalLinks `json:"legal" jsonschema:"the links to the legal pages of the Cahut, which the pages before sign-in show at their foot"`
 }
 
 // DescribeSignIn says what the page of sign-in offers, before anyone signs
-// in: a Cahut without a relay offers no link for a forgotten password.
+// in: a Cahut without a relay offers no link for a forgotten password. It
+// gives the links to the legal pages of the Cahut too, which every page
+// before sign-in shows. See docs/adr/0042-the-legal-pages-of-a-cahut.md.
 var DescribeSignIn = &operation.Op[DescribeSignInInput, SignInPage]{
-	Name:        "describe_sign_in",
-	Title:       "Describe the sign-in page",
-	Description: "Say what the page of sign-in of this Cahut offers, before anyone signs in: whether it sends e-mail, and so a link to a person who forgot their password.",
-	PeopleOnly:  true,
-	Visitors:    true,
-	ReadOnly:    true,
+	Name:  "describe_sign_in",
+	Title: "Describe the sign-in page",
+	Description: "Say what the page of sign-in of this Cahut offers, before anyone signs in: whether it sends e-mail, and so a link to a person who forgot their password, " +
+		"and the links to the legal pages of the Cahut.",
+	PeopleOnly: true,
+	Visitors:   true,
+	ReadOnly:   true,
 	Run: func(ctx context.Context, c *operation.Call, _ DescribeSignInInput) (SignInPage, error) {
 		sends, err := mail.OutboxOf(c).Sends(ctx, c.Tx)
-		return SignInPage{SendsMail: sends}, err
+		if err != nil {
+			return SignInPage{}, err
+		}
+		legal, err := settings.Legal(ctx, c.Tx)
+		return SignInPage{SendsMail: sends, Legal: legal}, err
 	},
 }
 

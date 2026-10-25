@@ -1,7 +1,7 @@
 // Routes the pages of the console, and keeps the session.
 import { useEffect, useState } from "preact/hooks";
 import { cahut, server } from "./api";
-import type { Room } from "./api.gen";
+import type { LegalLinks, Room } from "./api.gen";
 import { PageHead } from "./components";
 import { bind, ConsoleProvider } from "./context";
 import { words } from "./i18n";
@@ -165,10 +165,11 @@ function SignedIn(props: {
 	const [isAdmin, setAdmin] = useState(session.kind === "admin");
 	const [individual, setIndividual] = useState(false);
 	const [sendsMail, setSendsMail] = useState(false);
+	const [legal, setLegal] = useState<LegalLinks>();
 	const [cahutVersion, setCahutVersion] = useState(0);
 	useEffect(() => {
 		api.cahut("get_cahut", {}).then(
-			(a) => (setIndividual(a.kind === "individual"), setSendsMail(a.sends_mail)),
+			(a) => (setIndividual(a.kind === "individual"), setSendsMail(a.sends_mail), setLegal(a.legal)),
 			() => undefined,
 		);
 	}, [cahutVersion]);
@@ -195,6 +196,7 @@ function SignedIn(props: {
 		isAdmin,
 		individual,
 		sendsMail,
+		legal,
 		reloadCahut: () => setCahutVersion((n) => n + 1),
 		roomsVersion,
 		reloadRooms: () => setRoomsVersion((n) => n + 1),

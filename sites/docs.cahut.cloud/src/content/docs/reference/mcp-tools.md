@@ -45,7 +45,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. Knock first: a person approves the call before it runs. |
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
-| [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. |
+| [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. |
 | [`get_house_style`](#get_house_style) | Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for. |
 | [`get_knock`](#get_knock) | Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
 | [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
@@ -898,7 +898,7 @@ This tool takes no arguments.
 
 ## `get_cahut`
 
-Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused.
+Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused.
 
 Title: Describe the Cahut. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -924,6 +924,16 @@ This tool takes no arguments.
 | --- | --- | --- | --- |
 | `domain` | string | yes |  |
 | `kind` | string | yes | collaborative, where people share team Rooms, or individual, where each person works alone and does not see the others |
+| `legal` | object | yes | the links to the legal pages of the Cahut, which its host publishes elsewhere, and which the console and the pages for readers show at their foot; empty when it links none |
+| `legal.fr` | object or null | no | the addresses of the same pages in French, where they differ: the console links them when it speaks French. Each needs the address of its page for every other language |
+| `legal.fr.legal_notice` | string | no | the address of the legal notice: who publishes the service and who hosts it |
+| `legal.fr.privacy` | string | no | the address of the privacy policy |
+| `legal.fr.support` | string | no | the address of the page where people get help |
+| `legal.fr.terms` | string | no | the address of the terms of use |
+| `legal.legal_notice` | string | no | the address of the legal notice: who publishes the service and who hosts it |
+| `legal.privacy` | string | no | the address of the privacy policy |
+| `legal.support` | string | no | the address of the page where people get help |
+| `legal.terms` | string | no | the address of the terms of use |
 | `limits` | object | yes | the limits that the administrators of the server set; a limit that is absent counts nothing. A member of an individual Cahut gets the limits per person only |
 | `limits.admins` | integer or null | no | how many of them may be administrators of the Cahut |
 | `limits.disk` | integer or null | no | how many bytes the Cahut may keep: every version of every Window, those in the trash included, and the files of the house style |
@@ -961,6 +971,55 @@ This tool takes no arguments.
     "kind": {
       "description": "collaborative, where people share team Rooms, or individual, where each person works alone and does not see the others",
       "type": "string"
+    },
+    "legal": {
+      "additionalProperties": false,
+      "description": "the links to the legal pages of the Cahut, which its host publishes elsewhere, and which the console and the pages for readers show at their foot; empty when it links none",
+      "properties": {
+        "fr": {
+          "additionalProperties": false,
+          "description": "the addresses of the same pages in French, where they differ: the console links them when it speaks French. Each needs the address of its page for every other language",
+          "properties": {
+            "legal_notice": {
+              "description": "the address of the legal notice: who publishes the service and who hosts it",
+              "type": "string"
+            },
+            "privacy": {
+              "description": "the address of the privacy policy",
+              "type": "string"
+            },
+            "support": {
+              "description": "the address of the page where people get help",
+              "type": "string"
+            },
+            "terms": {
+              "description": "the address of the terms of use",
+              "type": "string"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "legal_notice": {
+          "description": "the address of the legal notice: who publishes the service and who hosts it",
+          "type": "string"
+        },
+        "privacy": {
+          "description": "the address of the privacy policy",
+          "type": "string"
+        },
+        "support": {
+          "description": "the address of the page where people get help",
+          "type": "string"
+        },
+        "terms": {
+          "description": "the address of the terms of use",
+          "type": "string"
+        }
+      },
+      "type": "object"
     },
     "limits": {
       "additionalProperties": false,
@@ -1113,7 +1172,8 @@ This tool takes no arguments.
     "domain",
     "sends_mail",
     "kind",
-    "limits"
+    "limits",
+    "legal"
   ],
   "type": "object"
 }

@@ -3,7 +3,7 @@
 // address, which the server never sees.
 import { useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
-import { Languages } from "../components";
+import { Languages, LegalBeforeSignIn } from "../components";
 import { fragment as code } from "../fragment";
 import { words } from "../i18n";
 import { Logo } from "../logo";
@@ -127,6 +127,7 @@ export function Activate({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: 
 				)}
 			</div>
 			<Languages />
+			<LegalBeforeSignIn />
 		</main>
 	);
 }

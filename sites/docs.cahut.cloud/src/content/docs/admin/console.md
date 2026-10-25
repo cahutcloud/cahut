@@ -44,7 +44,7 @@ The same screens, and:
 - **Logbook**: every entry of the Cahut, from people and from AIs.
 - **AIs and access**: the connected AIs and the tokens of others too, which they can disconnect and revoke.
 - **House style**: see below.
-- **Kind and limits**: whether the Cahut is collaborative or individual, and its [limits](/concepts/cahuts/#limits) with what it holds. The administrators of the server set them.
+- **Kind and limits**: whether the Cahut is collaborative or individual, its [limits](/concepts/cahuts/#limits) with what it holds, and the links to its [legal pages](/concepts/cahuts/#legal-pages). The administrators of the server set them.
 
 In an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), the page of a Room no longer adds or removes people, and the access of a Window no longer offers Internal.
 
@@ -65,7 +65,7 @@ They find:
 - **Logbook of the server**: the Cahuts declared and moved, the administrators and their sign-ins, and the updates.
 - **Updates**: the version running, the newest release, the last update and how it ended, with **Check now** and **Update**. See [Updates](/admin/updates/).
 - In the Cahut of the domain where they signed in, **People**, **Rooms** and its **Logbook**, as its administrators have them, without its Windows.
-- **Kind and limits**, where they make the Cahut collaborative or individual and set its limits: a field left empty lifts a limit, and the disk counts in gigabytes of a billion bytes. The change goes to the Logbook of the Cahut.
+- **Kind and limits**, where they make the Cahut collaborative or individual and set its limits: a field left empty lifts a limit, and the disk counts in gigabytes of a billion bytes. Under **Legal pages**, they give the addresses of its legal notice, terms, privacy policy and support, each with another address in French where the page in French differs; a field left empty removes its link. Each change goes to the Logbook of the Cahut.
 
 A session holds at the domain where it opened: to look after another Cahut, sign in at its own console.
 

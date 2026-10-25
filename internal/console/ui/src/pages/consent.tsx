@@ -3,8 +3,8 @@
 // See docs/adr/0016-oauth-for-ai-clients.md.
 import { useEffect, useState } from "preact/hooks";
 import { ApiError, cahut, explain } from "../api";
-import type { Authorization, Request as AuthRequest } from "../api.gen";
-import { Failure, Languages, useArmed } from "../components";
+import type { Authorization, Request as AuthRequest, LegalLinks } from "../api.gen";
+import { Failure, Languages, Legal, useArmed } from "../components";
 import { de, words } from "../i18n";
 import { Logo } from "../logo";
 import type { Session } from "../session";
@@ -125,6 +125,17 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 		setLeaving(true);
 		location.assign(to);
 	};
+
+	// The foot of the page links the legal pages of the Cahut, which the
+	// directories of AI clients look for here. See
+	// docs/adr/0042-the-legal-pages-of-a-cahut.md.
+	const [legal, setLegal] = useState<LegalLinks>();
+	useEffect(() => {
+		cahut("get_cahut", {}, session.token).then(
+			(a) => setLegal(a.legal),
+			() => undefined,
+		);
+	}, []);
 
 	useEffect(() => {
 		cahut("describe_authorization", { request: req }, session.token).then((a) => {
@@ -247,6 +258,7 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 				)}
 			</div>
 			<Languages />
+			<Legal links={legal} />
 		</main>
 	);
 }

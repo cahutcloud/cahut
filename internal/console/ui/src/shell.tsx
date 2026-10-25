@@ -1,12 +1,12 @@
 // The frame of every page once signed in: the top bar, with the account, and
 // the navigation, which a button opens on a narrow screen, with the account
 // and the languages of the console at its foot. The screens of the console
-// fill its main area.
+// fill its main area, at whose foot the legal pages of the Cahut are linked.
 import { Languages as LanguagesIcon, LogOut, Menu, X } from "lucide-preact";
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import type { Room } from "./api.gen";
-import { initials, Languages } from "./components";
+import { initials, Languages, Legal } from "./components";
 import { useConsole } from "./context";
 import { words } from "./i18n";
 import { Logo } from "./logo";
@@ -68,7 +68,7 @@ const t = words({
 });
 
 export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => void; children: ComponentChildren }) {
-	const { session, isAdmin, individual, knocks } = useConsole();
+	const { session, isAdmin, individual, knocks, legal } = useConsole();
 	const [open, setOpen] = useState(false);
 	useEffect(() => setOpen(false), [props.path]);
 
@@ -158,7 +158,10 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 					</div>
 				</div>
 			</nav>
-			<main class="c-main">{props.children}</main>
+			<main class="c-main">
+				{props.children}
+				<Legal links={legal} />
+			</main>
 		</div>
 	);
 }

@@ -10,6 +10,35 @@ import { de, plural, words } from "./i18n";
 /** A sentence for each code: a string, or a function of its values. */
 type Sentences = { [C in keyof Refusals]: Refusals[C] extends null ? string : (v: Refusals[C]) => string };
 
+// The fields of the legal pages, as set_legal_links names them: terms, or
+// fr.terms for its address in French. See
+// docs/adr/0042-the-legal-pages-of-a-cahut.md.
+const fields = words({
+	en: {
+		legal_notice: "Legal notice",
+		terms: "Terms",
+		privacy: "Privacy",
+		support: "Support",
+		inFrench: (field: string) => `${field}, in French`,
+	},
+	fr: {
+		legal_notice: "Mentions légales",
+		terms: "Conditions d'utilisation",
+		privacy: "Confidentialité",
+		support: "Assistance",
+		inFrench: (field) => `${field}, en français`,
+	},
+});
+
+/** The field of the form that a link of set_legal_links names, such as "Terms, in French" for fr.terms. */
+function field(link: string): string {
+	const french = link.startsWith("fr.");
+	const page = french ? link.slice(3) : link;
+	const names: Record<string, string> = { legal_notice: fields.legal_notice, terms: fields.terms, privacy: fields.privacy, support: fields.support };
+	const name = names[page] ?? page;
+	return french ? fields.inFrench(name) : name;
+}
+
 const said = words<Sentences>({
 	en: {
 		account_disabled: "This account is disabled: an administrator of the Cahut can enable it.",
@@ -40,6 +69,8 @@ const said = words<Sentences>({
 		invite_not_in_room: (v) =>
 			`${v.handle} is not in the Room ${v.room}, and this Window opens to its Room only: add them to the Room, or set its access to internal or key first.`,
 		key_has_spaces: "The Key starts or ends with a space.",
+		legal_link_in_french_only: (v) => `${field(v.link)}: give the address of the page for the other languages too.`,
+		legal_link_invalid: (v) => `${field(v.link)}: give the address of a page, which starts with https://, or leave the field empty.`,
 		key_too_long: (v) => `The Key has more than ${plural(v.limit, "character", "characters")}.`,
 		key_too_short: (v) => `The Key has ${plural(v.length, "character", "characters")}: give it ${v.limit} at least, or let Cahut draw one.`,
 		name_empty: "Give a name.",
@@ -101,6 +132,8 @@ const said = words<Sentences>({
 		invite_not_in_room: (v) =>
 			`${v.handle} n'est pas dans la Room ${v.room}, et cette Window s'ouvre à sa Room seulement : ajoutez cette personne à la Room, ou passez d'abord son accès à Interne ou à Key.`,
 		key_has_spaces: "La Key commence ou finit par un espace.",
+		legal_link_in_french_only: (v) => `${field(v.link)} : donnez aussi l'adresse de la page pour les autres langues.`,
+		legal_link_invalid: (v) => `${field(v.link)} : donnez l'adresse d'une page, qui commence par https://, ou laissez le champ vide.`,
 		key_too_long: (v) => `La Key a plus de ${plural(v.limit, "caractère", "caractères")}.`,
 		key_too_short: (v) =>
 			`La Key a ${plural(v.length, "caractère", "caractères")} : il lui en faut ${v.limit} au moins, ou laissez Cahut en tirer une au sort.`,

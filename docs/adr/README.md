@@ -33,7 +33,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [27](0027-previews-of-windows-in-the-console.md) | The console shows each Window in a live preview | Accepted |
 | [28](0028-ip-address-of-a-cahut-is-ipv4.md) | The IP address of a Cahut is an IPv4 address, for now | Accepted |
 | [29](0029-chatgpt-second-ai-client.md) | ChatGPT is the second AI client of the V0, through the same tools as Claude | Accepted |
-| [30](0030-kind-and-limits-of-each-cahut.md) | Each Cahut has a kind and limits, set by the administrators of its server | Accepted |
+| [30](0030-kind-and-limits-of-each-cahut.md) | Each Cahut has a kind and limits, set by the administrators of its server | Accepted, extended by 42 |
 | [31](0031-e-mail-through-a-relay.md) | Each Cahut sends e-mail through its own relay or that of its server | Accepted, superseded in part by 34 |
 | [32](0032-the-page-of-a-room.md) | The page of a Room shows its Windows in previews, or a Window that its owners choose, in the brand of Cahut until the house style | Accepted, extended by 33, superseded in part by 38 |
 | [33](0033-the-brand-of-cahut-until-the-house-style-has-a-look.md) | The pages of Cahut carry its brand until the house style has a look of its own | Accepted |
@@ -45,6 +45,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [39](0039-people-change-their-name-and-handle.md) | People change their name and their handle, and their personal Room follows | Accepted |
 | [40](0040-the-icon-of-a-cahut.md) | Each Cahut gives its icon to browsers, favicon services and AI clients | Accepted |
 | [41](0041-the-proxy-protocol-from-trusted-proxies.md) | Cahut reads the PROXY protocol from the proxies it trusts | Accepted |
+| [42](0042-the-legal-pages-of-a-cahut.md) | The pages of a Cahut link its legal pages, which the administrators of its server give | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

@@ -3,7 +3,7 @@
 import { createContext, type ComponentChildren } from "preact";
 import { useContext } from "preact/hooks";
 import { ApiError, cahut as callCahut, server as callServer } from "./api";
-import type { CahutOperations, ServerOperations } from "./api.gen";
+import type { CahutOperations, LegalLinks, ServerOperations } from "./api.gen";
 import type { Session } from "./session";
 
 export interface Console {
@@ -27,7 +27,12 @@ export interface Console {
 	 * docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
 	 */
 	sendsMail: boolean;
-	/** Reads this Cahut again, after a change of its kind or of its relay. */
+	/**
+	 * The links to the legal pages of this Cahut, which the foot of every
+	 * screen shows. See docs/adr/0042-the-legal-pages-of-a-cahut.md.
+	 */
+	legal?: LegalLinks;
+	/** Reads this Cahut again, after a change of its kind, of its relay or of its legal pages. */
 	reloadCahut(): void;
 	/** Loads the Rooms of the sidebar again, after a change. */
 	reloadRooms(): void;

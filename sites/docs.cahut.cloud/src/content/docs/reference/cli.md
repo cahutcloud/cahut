@@ -24,6 +24,7 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut domain rename`](#cahut-domain-rename) | Move a Cahut to another domain, or from the IP address of the server to a domain |
 | [`cahut settings show`](#cahut-settings-show) | Print the kind and limits of a Cahut, with what it holds |
 | [`cahut settings set`](#cahut-settings-set) | Change the kind or limits of a Cahut; what you leave out stays as it is |
+| [`cahut settings links`](#cahut-settings-links) | Link the legal pages of a Cahut, or print its links; what you leave out stays as it is |
 | [`cahut mail show`](#cahut-mail-show) | Print the e-mail relay of a Cahut |
 | [`cahut mail set`](#cahut-mail-set) | Set the e-mail relay of a Cahut, once it answers |
 | [`cahut mail remove`](#cahut-mail-remove) | Remove the e-mail relay of a Cahut, which then sends no e-mail |
@@ -127,7 +128,7 @@ cahut domain rename [--data DIR] <domain> <new domain>
 
 ## `cahut settings`
 
-Set the kind and limits of a Cahut.
+Set the kind, limits and legal pages of a Cahut.
 
 ### `cahut settings show`
 
@@ -164,6 +165,27 @@ cahut settings set [--data DIR] [--domain DOMAIN] [--kind KIND] [--people N] [--
 | `--windows N` |  | the Cahut may hold N Windows out of the trash; none lifts the limit |
 | `--windows-per-person N` |  | in an individual Cahut, each person may hold N Windows out of the trash; none lifts the limit |
 | `--windows-per-room N` |  | each Room may hold N Windows out of the trash; none lifts the limit |
+
+### `cahut settings links`
+
+Link the legal pages of a Cahut, or print its links; what you leave out stays as it is.
+
+```text
+cahut settings links [--data DIR] [--domain DOMAIN] [--legal-notice URL] [--terms URL] [--privacy URL] [--support URL] [--legal-notice-fr URL] [--terms-fr URL] [--privacy-fr URL] [--support-fr URL]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+| `--legal-notice URL` |  | the URL of the legal notice, which starts with https://; none removes the link, and its address in French |
+| `--legal-notice-fr URL` |  | the URL of the legal notice in French, where it differs, which the console links when it speaks French; none removes it |
+| `--privacy URL` |  | the URL of the privacy policy, which starts with https://; none removes the link, and its address in French |
+| `--privacy-fr URL` |  | the URL of the privacy policy in French, where it differs, which the console links when it speaks French; none removes it |
+| `--support URL` |  | the URL of the page where people get help, which starts with https://; none removes the link, and its address in French |
+| `--support-fr URL` |  | the URL of the page where people get help in French, where it differs, which the console links when it speaks French; none removes it |
+| `--terms URL` |  | the URL of the terms of use, which starts with https://; none removes the link, and its address in French |
+| `--terms-fr URL` |  | the URL of the terms of use in French, where it differs, which the console links when it speaks French; none removes it |
 
 ## `cahut mail`
 

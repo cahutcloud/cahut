@@ -52,6 +52,34 @@
 	font-weight: 600;
 }
 
+/* The legal pages of the Cahut, under the card of a page before sign-in
+   and at the foot of every screen once signed in: discreet, in the color of
+   what is secondary. See docs/adr/0042-the-legal-pages-of-a-cahut.md. */
+.legal__links {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--space-2) var(--space-6);
+}
+.legal__links a {
+	color: var(--color-text-muted);
+	text-underline-offset: 3px;
+}
+.legal__links a:hover {
+	color: var(--color-text);
+}
+.c-main > .legal {
+	margin-top: var(--space-16);
+	padding-top: var(--space-6);
+	border-top: 1px solid var(--color-border);
+}
+.c-main > .legal .legal__links {
+	justify-content: flex-start;
+}
+.legal-address {
+	overflow-wrap: break-word;
+}
+
 /* The first start of a Cahut, on a full screen. See
    docs/adr/0025-first-start-in-the-browser.md. */
 .setup {

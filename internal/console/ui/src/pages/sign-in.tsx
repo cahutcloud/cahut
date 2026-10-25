@@ -2,7 +2,8 @@
 // server, who sign in at the console of any Cahut.
 import { useEffect, useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
-import { Languages } from "../components";
+import type { LegalLinks } from "../api.gen";
+import { describeSignIn, Languages, Legal, LegalBeforeSignIn } from "../components";
 import { words } from "../i18n";
 import { Logo } from "../logo";
 import { Link } from "../router";
@@ -67,16 +68,16 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 	const [forgot, setForgot] = useState(false);
 	// A person who forgot their password gets a link by e-mail only where
 	// this Cahut sends e-mail. See
-	// docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
+	// docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md. The
+	// foot of the page links the legal pages of the Cahut.
 	const [sendsMail, setSendsMail] = useState(false);
+	const [legal, setLegal] = useState<LegalLinks>();
 	useEffect(() => {
-		if (kind === "person") {
-			cahut("describe_sign_in", {}).then(
-				(p) => setSendsMail(p.sends_mail),
-				() => undefined,
-			);
-		}
-	}, [kind]);
+		describeSignIn().then(
+			(p) => (setSendsMail(p.sends_mail), setLegal(p.legal)),
+			() => undefined,
+		);
+	}, []);
 	const [handle, setHandle] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
@@ -175,6 +176,7 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 				)}
 			</div>
 			<Languages />
+			<Legal links={legal} />
 		</main>
 	);
 }
@@ -245,6 +247,7 @@ function Forgot({ who: given, onBack }: { who: string; onBack: () => void }) {
 				</p>
 			</div>
 			<Languages />
+			<LegalBeforeSignIn />
 		</main>
 	);
 }

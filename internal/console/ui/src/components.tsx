@@ -2,8 +2,8 @@
 import { AppWindow, ChartColumn, Check, Copy, FileText, Globe, House, KeyRound, Lock, Presentation, Users, X } from "lucide-preact";
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
-import { explain } from "./api";
-import type { Activation, Window } from "./api.gen";
+import { cahut, explain } from "./api";
+import type { Activation, LegalLinks, LegalPages, SignInPage, Window } from "./api.gen";
 import { useConsole } from "./context";
 import { de, lang, langs, locale, setLang, words } from "./i18n";
 import { useLoad } from "./load";
@@ -49,6 +49,11 @@ const t = words({
 		mb: "MB",
 		gb: "GB",
 		language: "Language",
+		legalPages: "Legal pages",
+		legalNotice: "Legal notice",
+		terms: "Terms",
+		privacy: "Privacy",
+		support: "Support",
 	},
 	fr: {
 		copy: "Copier",
@@ -87,6 +92,11 @@ const t = words({
 		mb: "Mo",
 		gb: "Go",
 		language: "Langue",
+		legalPages: "Pages légales",
+		legalNotice: "Mentions légales",
+		terms: "Conditions d'utilisation",
+		privacy: "Confidentialité",
+		support: "Assistance",
 	},
 });
 
@@ -156,6 +166,68 @@ export function Languages() {
 			)}
 		</nav>
 	);
+}
+
+/** The legal pages that a Cahut may link, in the order that the foot of a page links them, each with its name. */
+export const legalPages: { page: keyof LegalPages; name: string }[] = [
+	{ page: "legal_notice", name: t.legalNotice },
+	{ page: "terms", name: t.terms },
+	{ page: "privacy", name: t.privacy },
+	{ page: "support", name: t.support },
+];
+
+/**
+ * The links to the legal pages of the Cahut, in a discreet line at the foot
+ * of a page, in the language of the console: the address in French of a
+ * page, when the console speaks French and the page has one, or else its
+ * other address. Each opens in a new tab, so that a form being filled stays
+ * as it is. Nothing at all when the Cahut links none. See
+ * docs/adr/0042-the-legal-pages-of-a-cahut.md.
+ */
+export function Legal({ links }: { links?: LegalLinks }) {
+	const shown = legalPages.flatMap(({ page, name }) => {
+		const url = (lang === "fr" ? links?.fr?.[page] : undefined) || links?.[page];
+		return url && /^https:\/\//i.test(url) ? [{ page, name, url }] : [];
+	});
+	if (shown.length === 0) return null;
+	return (
+		<footer class="legal">
+			<nav class="legal__links c-small" aria-label={t.legalPages}>
+				{shown.map((l) => (
+					<a key={l.page} href={l.url} target="_blank" rel="noopener">
+						{l.name}
+					</a>
+				))}
+			</nav>
+		</footer>
+	);
+}
+
+let signInPage: Promise<SignInPage> | undefined;
+
+/**
+ * What the pages before sign-in offer, from describe_sign_in: asked once
+ * for each load of the console, since every call of a visitor counts
+ * against the sign-ins of its address.
+ */
+export function describeSignIn(): Promise<SignInPage> {
+	signInPage ??= cahut("describe_sign_in", {}).catch((err: unknown) => {
+		signInPage = undefined;
+		throw err;
+	});
+	return signInPage;
+}
+
+/** The links to the legal pages of the Cahut, at the foot of a page that opens before sign-in. */
+export function LegalBeforeSignIn() {
+	const [links, setLinks] = useState<LegalLinks>();
+	useEffect(() => {
+		describeSignIn().then(
+			(p) => setLinks(p.legal),
+			() => undefined,
+		);
+	}, []);
+	return <Legal links={links} />;
 }
 
 /** How long a page stays in front before its buttons that grant something arm. */
