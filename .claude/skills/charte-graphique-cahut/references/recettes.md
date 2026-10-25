@@ -94,7 +94,7 @@ Les gabarits de `charte/applications/gabarits/` sont des pages HTML à taille fi
 
 4. Ouvrir le PNG obtenu et le regarder avant de livrer : coupures de texte, débordements, polices chargées.
 
-Formats en place : image de partage 1200 × 630, aperçu GitHub 1280 × 640, couverture de page LinkedIn 1512 × 256, bannière de profil LinkedIn 1584 × 396, bannière X 1500 × 500, avatar 400 × 400, diapositives 1920 × 1080. Sur les bannières, le logo de la page ou la photo du profil se pose en bas à gauche : rien dans le quart gauche d'une couverture de page LinkedIn, rien dans le tiers gauche d'une bannière de profil LinkedIn, coin inférieur gauche libre sur X. LinkedIn recadre une image qui n'a pas le format attendu.
+Formats en place : image de partage 1200 × 630, aperçu GitHub 1280 × 640, couverture de page LinkedIn 1512 × 256, bannière de profil LinkedIn 1584 × 396, bannière X 1500 × 500, avatar 400 × 400, diapositives 1920 × 1080. Les bannières sont sur Paper, avec la maison ouverte à droite ; le logo de la page ou la photo du profil se pose en bas à gauche : rien dans le quart gauche d'une couverture de page LinkedIn, rien dans le tiers gauche d'une bannière de profil LinkedIn, coin inférieur gauche libre sur X (sous y = 300, avant x = 400). LinkedIn recadre une image qui n'a pas le format attendu.
 
 ## Présentation
 
