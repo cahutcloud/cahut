@@ -70,7 +70,7 @@ Les durées sont comptées à temps plein ; elles s'étirent selon la disponibil
 C'est la première tranche verticale de la feuille de route.
 
 - Registre d'opérations, Logbook, SQLite avec migrations, stockage des fichiers des Windows sur disque.
-- Plusieurs Cahuts par serveur dès le modèle de données : une base par Cahut et une base du serveur, un Cahut déclaré par son domaine en ligne de commande (ADR 8).
+- Plusieurs Cahuts par serveur dès le modèle de données : une base par Cahut et une base du serveur, une Cahut déclarée par son domaine en ligne de commande (ADR 8).
 - Opérations `publish_window`, `get_window` et `list_windows`, exposées en outils MCP (Streamable HTTP) avec le SDK Go officiel.
 - Jeton personnel créé en ligne de commande, pour Claude Code ; il servira ensuite aux IA de terminal.
 - Service des Windows en HTTPS à `<domaine>/<room>/<window>/` (ADR 9), chacune dans un bac à sable CSP (ADR 10), un certificat ACME automatique par Cahut.
@@ -87,7 +87,7 @@ Le détail du lot est dans le [plan du lot 2](plan-lot-2.md).
 - Room personnelle créée d'office pour chaque personne, au nom de son handle ; Rooms d'équipe avec propriétaires et membres ; les droits sont appliqués par le registre d'opérations.
 - Coquille de la console : connexion, navigation, liste des Rooms et des Windows, lecture du Logbook, déclaration des Cahuts. Application légère embarquée dans le binaire, construite avec `cahut-ui.css`, qui n'appelle que l'API publique. Servie sur le port 8443 de chaque domaine, cloisonnée par Cahut, authentifiée par jeton et non par cookie (ADR 11), puis sous `/console/` sur le port 443 (ADR 20).
 
-**Fin de lot** : deux Cahuts sur le même serveur ; dans l'un, deux comptes et une Room d'équipe ; chacun ne voit que ses Windows ; le Logbook se lit dans la console.
+**Fin de lot** : deux Cahuts sur le même serveur ; dans l'une, deux comptes et une Room d'équipe ; chacun ne voit que ses Windows ; le Logbook se lit dans la console.
 
 ### Lot 3 · Brancher les IA : OAuth
 
@@ -96,15 +96,15 @@ Le détail du lot est dans le [plan du lot 2](plan-lot-2.md).
 - Écran des IA connectées : chaque IA, au nom de qui elle agit, sa portée, révocation en un clic.
 - Test de fumée avec ChatGPT dès ce lot, pour lever tôt le risque du deuxième client.
 
-**Fin de lot, jalon PoC** : Cahut ajouté comme connecteur dans claude.ai, une présentation publiée dans une Room d'équipe, visible dans la console.
+**Fin de lot, jalon PoC** : Cahut ajoutée comme connecteur dans claude.ai, une présentation publiée dans une Room d'équipe, visible dans la console.
 
 ### Lot 4 · Windows complètes : versions et accès
 
 Le détail du lot est dans le [plan du lot 4](plan-lot-4.md).
 
 - `update_window` garde la version précédente ; `rollback_window` y revient.
-- Accès de chaque Window : Room seulement (par défaut), interne (les personnes connectées du Cahut), Key (un mot de passe), public ; date de fin réglable et prolongeable.
-- La Key d'une Window est hachée et s'ouvre par une page d'accès à la house style du Cahut. Les lecteurs d'une Window interne se connectent sur le port 443 en passant par la connexion de la console (ADR 11).
+- Accès de chaque Window : Room seulement (par défaut), interne (les personnes connectées de la Cahut), Key (un mot de passe), public ; date de fin réglable et prolongeable.
+- La Key d'une Window est hachée et s'ouvre par une page d'accès à la house style de la Cahut. Les lecteurs d'une Window interne se connectent sur le port 443 en passant par la connexion de la console (ADR 11).
 - Les Windows protégées sont servies dans un cadre (iframe) en bac à sable, par une adresse à capacité (ADR 10) ; tests sous Chrome, Firefox et Safari.
 - La page d'une Room liste les Windows que son lecteur peut ouvrir ; une Window fermée répond comme une Window absente.
 - La déclaration de l'IA (scripts, appels vers l'extérieur, formulaires) est enregistrée, affichée dans la console et appliquée par une politique CSP : une Window qui déclare ne rien appeler ne peut rien appeler.
@@ -141,7 +141,7 @@ Le détail du lot est dans le [plan du lot 6](plan-lot-6.md).
 Le détail du lot est dans le [plan du lot 7](plan-lot-7.md).
 
 - Une commande sur AlmaLinux et Ubuntu vierges : utilisateur système, service systemd avec `CAP_NET_BIND_SERVICE`, pare-feu (firewalld ou ufw) pour les ports 80 et 443, contextes SELinux sur AlmaLinux, commande `cahut doctor` pour diagnostiquer, rappel d'ouvrir ces ports chez l'hébergeur.
-- Premier démarrage guidé dans le navigateur, ouvert par un lien à usage unique affiché en fin d'installation : administrateur du serveur, premier Cahut et son domaine, house style de base, première IA (adresse MCP à copier, pas à pas pour chaque client). Adresse de repli sans domaine à trancher : un certificat d'adresse IP est une piste.
+- Premier démarrage guidé dans le navigateur, ouvert par un lien à usage unique affiché en fin d'installation : administrateur du serveur, première Cahut et son domaine, house style de base, première IA (adresse MCP à copier, pas à pas pour chaque client). Adresse de repli sans domaine à trancher : un certificat d'adresse IP est une piste.
 - Mises à jour : vérification des releases GitHub signées, remplacement du binaire, contrôle de santé, retour arrière automatique.
 - Test d'installation automatisé sur machines virtuelles vierges (Lima en local).
 
@@ -165,7 +165,7 @@ Le détail du lot est dans le [plan du lot 8](plan-lot-8.md).
 | Installation sur un VPS vierge | Moins de 10 minutes, une commande, sur AlmaLinux et sur Ubuntu |
 | Première publication par une IA | Moins de 5 minutes après le premier démarrage, sans toucher au serveur |
 | Partage par une personne non technique | Une présentation partagée par lien, avec une Key, en quelques minutes |
-| IA prises en charge | Le même Cahut fonctionne avec Claude et un deuxième client |
+| IA prises en charge | La même Cahut fonctionne avec Claude et un deuxième client |
 | Gouvernance | Toute action d'une IA figure au Logbook, et s'annule ou a été approuvée |
 
 ## Décisions à prendre au lot 0
@@ -184,7 +184,7 @@ Le détail du lot est dans le [plan du lot 8](plan-lot-8.md).
 - **Taille des publications.** Une présentation avec des images passe mal en argument d'outil. À mesurer au lot 1 ; repli : un envoi en plusieurs opérations (ouvrir, ajouter des fichiers, valider).
 - **Différences entre clients MCP.** OAuth, schémas d'outils et limites varient d'un client à l'autre, d'où le test avec ChatGPT dès le lot 3.
 - **HTML non maîtrisé.** Une Window peut contenir n'importe quel script : le bac à sable CSP est la protection principale des autres Windows, de la console et des sessions. Il casse `localStorage` dans les pages : les consignes aux IA doivent le dire.
-- **Cloisonnement entre Cahuts.** Une fuite d'un Cahut vers un autre serait grave pour un hébergeur ; une base par Cahut la rend structurellement difficile.
+- **Cloisonnement entre Cahuts.** Une fuite d'une Cahut vers une autre serait grave pour un hébergeur ; une base par Cahut la rend structurellement difficile.
 - **Port 8443.** Certains réseaux d'entreprise ne laissent sortir que le port 443 : la console y était inaccessible, les Windows non. Levé par l'ADR 20 : la console est servie sous `/console/` sur le port 443.
 - **SELinux et pare-feu sur AlmaLinux.** C'est le principal danger pour le critère des 10 minutes.
 

@@ -4,7 +4,7 @@
 
 ## En bref
 
-Le lot 7 rend Cahut installable par quelqu'un qui ne le connaît pas. Une commande sur un AlmaLinux ou un Ubuntu vierge installe le service, ouvre le pare-feu, vérifie la signature de la release et finit par un lien à usage unique : il ouvre dans le navigateur un premier démarrage guidé, où l'on choisit son compte, règle la house style de base et branche sa première IA. Sans domaine, Cahut s'installe à l'adresse IP du serveur, avec un certificat de Let's Encrypt pour cette adresse, et passe à un domaine plus tard sans rien perdre. `cahut doctor` dit ce qui ne va pas. Les mises à jour viennent des releases GitHub signées : Cahut remplace son binaire, vérifie sa santé et revient seul en arrière si la nouvelle version ne démarre pas. Un test d'installation automatisé tourne sur des machines virtuelles vierges. Le lot compte neuf pull requests, pour environ onze jours à temps plein, et s'ouvre sur trois décisions écrites (ADR 24, 25 et 26).
+Le lot 7 rend Cahut installable par quelqu'un qui ne la connaît pas. Une commande sur un AlmaLinux ou un Ubuntu vierge installe le service, ouvre le pare-feu, vérifie la signature de la release et finit par un lien à usage unique : il ouvre dans le navigateur un premier démarrage guidé, où l'on choisit son compte, règle la house style de base et branche sa première IA. Sans domaine, Cahut s'installe à l'adresse IP du serveur, avec un certificat de Let's Encrypt pour cette adresse, et passe à un domaine plus tard sans rien perdre. `cahut doctor` dit ce qui ne va pas. Les mises à jour viennent des releases GitHub signées : Cahut remplace son binaire, vérifie sa santé et revient seule en arrière si la nouvelle version ne démarre pas. Un test d'installation automatisé tourne sur des machines virtuelles vierges. Le lot compte neuf pull requests, pour environ onze jours à temps plein, et s'ouvre sur trois décisions écrites (ADR 24, 25 et 26).
 
 **Fin de lot**, reprise du [plan de la V0](plan-v0.md) : installation chronométrée en moins de 10 minutes sur un VPS vierge de chaque système.
 
@@ -12,10 +12,10 @@ Le lot 7 rend Cahut installable par quelqu'un qui ne le connaît pas. Une comman
 
 Ce que les lots 1 à 6 ont laissé :
 
-- [install.sh](../install.sh) télécharge une release, vérifie sa somme SHA-256, ou prend un binaire donné par `--binary`. Il crée l'utilisateur système `cahut`, `/var/lib/cahut`, `/etc/cahut/cahut.env` et le service systemd, avec `CAP_NET_BIND_SERVICE` et un durcissement complet (`ProtectSystem=strict`, `NoNewPrivileges`), déclare le Cahut de `--domain`, ouvre les ports 80 et 443 dans firewalld ou ufw et rétablit les contextes SELinux du binaire et de l'unité. Il finit par les commandes à lancer pour créer son compte. Relancé, il met à jour, sans contrôle de santé ni retour arrière.
+- [install.sh](../install.sh) télécharge une release, vérifie sa somme SHA-256, ou prend un binaire donné par `--binary`. Il crée l'utilisateur système `cahut`, `/var/lib/cahut`, `/etc/cahut/cahut.env` et le service systemd, avec `CAP_NET_BIND_SERVICE` et un durcissement complet (`ProtectSystem=strict`, `NoNewPrivileges`), déclare la Cahut de `--domain`, ouvre les ports 80 et 443 dans firewalld ou ufw et rétablit les contextes SELinux du binaire et de l'unité. Il finit par les commandes à lancer pour créer son compte. Relancé, il met à jour, sans contrôle de santé ni retour arrière.
 - Le staging, sous AlmaLinux 10.2, tourne ainsi depuis le lot 1 ; chaque fin de lot y installe un binaire à la main.
 - Les releases sont des brouillons que GoReleaser construit au push d'une étiquette `v*`, avec un fichier de sommes, sans signature. L'[ADR 7](adr/0007-module-path-repository-and-releases.md) renvoie la signature au lot 7. Le dépôt est privé : lire les releases demande un jeton.
-- Un Cahut n'existe qu'à un domaine ([ADR 8](adr/0008-several-cahuts-per-server.md)) ; `add_domain` refuse les adresses IP. CertMagic obtient un certificat par Cahut, à la demande pour un domaine déclaré en marche.
+- Une Cahut n'existe qu'à un domaine ([ADR 8](adr/0008-several-cahuts-per-server.md)) ; `add_domain` refuse les adresses IP. CertMagic obtient un certificat par Cahut, à la demande pour un domaine déclaré en marche.
 - Les administrateurs du serveur et les personnes de chaque Cahut ont des comptes distincts ([ADR 13](adr/0013-people-sessions-and-rights.md)). Une personne naît d'un lien d'activation à usage unique, où elle choisit son mot de passe.
 - La console a un écran AIs and access, avec l'adresse MCP à copier et la commande de Claude Code, et la vue d'ensemble d'un administrateur du serveur, qui déclare les Cahuts. `/-/healthz` répond `ok` sur le port 443.
 - Une base de données plus récente que le binaire s'ouvre sans rien dire : `store.Open` n'applique que les migrations qui manquent.
@@ -38,8 +38,8 @@ L'[ADR 24](adr/0024-signed-releases-and-updates.md) fixe :
 
 L'[ADR 25](adr/0025-first-start-in-the-browser.md) fixe :
 
-- **Le lien.** L'installation finit par un lien `https://<adresse>/console/setup#<code>`, à usage unique, valable 24 heures, haché dans la base du serveur et lié à un Cahut. Il ne sert que tant que ce Cahut n'a personne. `cahut setup` en donne un nouveau, qui annule le précédent.
-- **Les étapes.** Vous : nom, handle, mot de passe ; la première personne du Cahut, administratrice, et, tant que le serveur n'en a aucun, son administrateur, avec le même handle et le même mot de passe, en deux comptes, comme le veut l'ADR 13. Votre Cahut : son adresse, et à une adresse IP comment passer à un domaine ; le nom de l'organisation, sa couleur principale et son logo, pour la house style, ou la house style neutre. Votre première IA : l'adresse MCP à copier, et le pas à pas de Claude Code, des applications Claude, de ChatGPT et des autres clients MCP ; l'écran attend l'IA et dit quand elle est branchée. Puis la console.
+- **Le lien.** L'installation finit par un lien `https://<adresse>/console/setup#<code>`, à usage unique, valable 24 heures, haché dans la base du serveur et lié à une Cahut. Il ne sert que tant que cette Cahut n'a personne. `cahut setup` en donne un nouveau, qui annule le précédent.
+- **Les étapes.** Vous : nom, handle, mot de passe ; la première personne de la Cahut, administratrice, et, tant que le serveur n'en a aucun, son administrateur, avec le même handle et le même mot de passe, en deux comptes, comme le veut l'ADR 13. Votre Cahut : son adresse, et à une adresse IP comment passer à un domaine ; le nom de l'organisation, sa couleur principale et son logo, pour la house style, ou la house style neutre. Votre première IA : l'adresse MCP à copier, et le pas à pas de Claude Code, des applications Claude, de ChatGPT et des autres clients MCP ; l'écran attend l'IA et dit quand elle est branchée. Puis la console.
 - **Les opérations.** Le lien se crée en ligne de commande (`create_setup_link`), se lit (`get_setup`) et sert une fois (`set_up`), sans compte, au même débit que la connexion. `set_up` passe par les opérations qui existent, la création d'une personne et son activation, et ouvre la session de la personne. La house style et l'IA passent ensuite par les opérations de toujours.
 - **Après coup.** Tant que personne n'a branché d'IA, la vue d'ensemble de la console propose de le faire, avec le même pas à pas.
 
@@ -47,10 +47,10 @@ L'[ADR 25](adr/0025-first-start-in-the-browser.md) fixe :
 
 L'[ADR 26](adr/0026-cahut-at-an-ip-address.md) fixe :
 
-- **L'adresse de repli.** Sans domaine, un Cahut se déclare à l'adresse IP publique de son serveur : `https://203.0.113.7/<room>/<window>/`. Seules les adresses publiques et globales passent. Une adresse ne porte qu'un Cahut. L'[ADR 28](adr/0028-ip-address-of-a-cahut-is-ipv4.md) s'en tient à IPv4 : une politique CSP ne peut pas nommer une adresse IPv6, et celle d'une Window nomme l'adresse de son Cahut.
+- **L'adresse de repli.** Sans domaine, une Cahut se déclare à l'adresse IP publique de son serveur : `https://203.0.113.7/<room>/<window>/`. Seules les adresses publiques et globales passent. Une adresse ne porte qu'une Cahut. L'[ADR 28](adr/0028-ip-address-of-a-cahut-is-ipv4.md) s'en tient à IPv4 : une politique CSP ne peut pas nommer une adresse IPv6, et celle d'une Window nomme l'adresse de sa Cahut.
 - **Le certificat.** Let's Encrypt délivre des certificats d'adresse IP depuis janvier 2026, au profil `shortlived` seulement, valables 160 heures ; CertMagic les renouvelle. Les domaines gardent le profil classique, de 90 jours. Un client qui ouvre une adresse IP n'envoie pas de nom (SNI) : Cahut choisit le certificat par l'adresse locale de la connexion.
-- **Passer à un domaine.** `rename_domain`, en ligne de commande (`cahut domain rename`) et dans la console, change l'adresse d'un Cahut : ses personnes, ses Rooms, ses Windows, sa house style et son Logbook restent. L'ancienne adresse ne sert plus rien ; les liens qui la nomment cessent de marcher, et les IA se rebranchent à la nouvelle. Le serveur relit le domaine de chaque Cahut à chaque requête, pour qu'un changement fait en ligne de commande prenne sans redémarrage.
-- **L'installation.** `install.sh --ip <adresse>` déclare le Cahut à cette adresse ; sans `--domain` ni `--ip`, le script prend l'adresse source de la route par défaut si elle est publique, et demande sinon l'une des deux options.
+- **Passer à un domaine.** `rename_domain`, en ligne de commande (`cahut domain rename`) et dans la console, change l'adresse d'une Cahut : ses personnes, ses Rooms, ses Windows, sa house style et son Logbook restent. L'ancienne adresse ne sert plus rien ; les liens qui la nomment cessent de marcher, et les IA se rebranchent à la nouvelle. Le serveur relit le domaine de chaque Cahut à chaque requête, pour qu'un changement fait en ligne de commande prenne sans redémarrage.
+- **L'installation.** `install.sh --ip <adresse>` déclare la Cahut à cette adresse ; sans `--domain` ni `--ip`, le script prend l'adresse source de la route par défaut si elle est publique, et demande sinon l'une des deux options.
 - **Les limites.** Un certificat de six jours dépend de Let's Encrypt chaque semaine ; un client IA peut refuser une adresse IP, à vérifier avec chaque client au lot 8. L'adresse IP sert à essayer, le domaine reste la règle.
 
 ## Modèle de données
@@ -76,10 +76,10 @@ La demande de la console est un fichier de `/var/lib/cahut`, `update-request`, q
 
 | Opération | Qui l'appelle | Ce qu'elle fait |
 | --- | --- | --- |
-| `create_setup_link` | administrateurs du serveur, la ligne de commande | Le lien du premier démarrage d'un Cahut qui n'a personne ; annule le précédent |
-| `get_setup` | sans compte | Dit si un code sert encore, et pour quel Cahut |
+| `create_setup_link` | administrateurs du serveur, la ligne de commande | Le lien du premier démarrage d'une Cahut qui n'a personne ; annule le précédent |
+| `get_setup` | sans compte | Dit si un code sert encore, et pour quelle Cahut |
 | `set_up` | sans compte, `PeopleOnly` | Consomme le code, crée la première personne, administratrice, et l'administrateur du serveur s'il n'en a aucun ; ouvre la session de la personne |
-| `rename_domain` | administrateurs du serveur | Change le domaine ou l'adresse d'un Cahut |
+| `rename_domain` | administrateurs du serveur | Change le domaine ou l'adresse d'une Cahut |
 | `get_updates` | administrateurs du serveur | La version en marche, la dernière release connue, la règle, la dernière vérification et la dernière mise à jour |
 | `request_update` | administrateurs du serveur | Demande à root de vérifier, ou d'installer une version plus récente que celle en marche |
 
@@ -89,8 +89,8 @@ La demande de la console est un fichier de `/var/lib/cahut`, `update-request`, q
 
 | Commande | Ce qu'elle fait |
 | --- | --- |
-| `cahut setup [--domain D]` | Donne le lien du premier démarrage du Cahut, le premier du serveur par défaut |
-| `cahut domain rename OLD NEW` | Change l'adresse d'un Cahut |
+| `cahut setup [--domain D]` | Donne le lien du premier démarrage de la Cahut, la première du serveur par défaut |
+| `cahut domain rename OLD NEW` | Change l'adresse d'une Cahut |
 | `cahut update [--check] [--version V] [--binary PATH] [--unattended]` | Met à jour, en root, avec retour arrière |
 | `cahut doctor` | Diagnostique le serveur ; en root, il vérifie aussi le pare-feu et SELinux |
 
@@ -101,7 +101,7 @@ La demande de la console est un fichier de `/var/lib/cahut`, `update-request`, q
 - vérifie la signature de la release avec `openssl`, puis la somme ;
 - accepte `--ip`, ou trouve l'adresse publique sans `--domain` ;
 - installe `cahut-update.service`, `cahut-update.timer` et `cahut-update.path`, et écrit `CAHUT_UPDATES=patch` à la première installation ; avec `GITHUB_TOKEN`, il le garde pour les mises à jour dans `/etc/cahut/update.env`, lisible de root seul, tant que le dépôt est privé ;
-- lance `cahut doctor` à la fin, puis donne le lien du premier démarrage si le Cahut n'a personne, et les commandes d'avant sinon ;
+- lance `cahut doctor` à la fin, puis donne le lien du premier démarrage si la Cahut n'a personne, et les commandes d'avant sinon ;
 - est servi par le site, à `https://cahut.cloud/install.sh`, copié du dépôt à chaque construction : `curl -fsSL https://cahut.cloud/install.sh | sudo sh -s -- --domain cahut.example.com`.
 
 Le service de Cahut ne change pas de durcissement. Le service de mise à jour tourne en root, sans durcissement qui l'empêcherait de remplacer le binaire, de redémarrer `cahut` ou de copier les bases.
@@ -114,7 +114,7 @@ Le service de Cahut ne change pas de durcissement. Le service de mise à jour to
 | Vue d'ensemble | Une carte « Connect your first AI » tant que la personne n'a ni IA branchée ni jeton, avec le pas à pas |
 | AIs and access | Le pas à pas par client remplace la seule commande de Claude Code |
 | This server · Updates, `/server/updates` | Pour les administrateurs du serveur : la version en marche, la dernière release et ses notes, la règle, la dernière vérification, la dernière mise à jour et son résultat ; « Check now » et « Update to 0.x.y » |
-| Vue d'ensemble du serveur | « Move to a domain » sur un Cahut à une adresse IP, puis sur tout Cahut : le domaine, ce qu'il résout, la confirmation |
+| Vue d'ensemble du serveur | « Move to a domain » sur une Cahut à une adresse IP, puis sur toute Cahut : le domaine, ce qu'il résout, la confirmation |
 
 Le pas à pas par client est un composant partagé : Claude Code (le plugin `cahut`, ou `claude mcp add` puis `claude mcp login`), les applications Claude (un connecteur personnalisé, et l'archive de la skill), ChatGPT (mode développeur, un connecteur à l'adresse MCP), les autres clients (l'adresse MCP avec OAuth, ou un jeton personnel).
 
@@ -122,11 +122,11 @@ Le pas à pas par client est un composant partagé : Claude Code (le plugin `cah
 
 - **Signature** : une release bien signée passe ; une signature fausse, une somme fausse, une archive changée, une clé inconnue échouent, en Go et dans `install.sh`.
 - **Versions** : comparaison des numéros, versions de développement comprises ; pas de descente ; la règle `patch` ne prend que les correctifs.
-- **Mise à jour** : avec un faux GitHub et un faux systemd, une mise à jour réussie, un binaire qui ne démarre pas, un service qui répond avec l'ancienne version, une migration qui échoue sur un Cahut ; chaque échec rend l'ancien binaire et les anciennes bases. La demande de la console : un lien symbolique, un contenu trop long, une version plus ancienne sont refusés.
+- **Mise à jour** : avec un faux GitHub et un faux systemd, une mise à jour réussie, un binaire qui ne démarre pas, un service qui répond avec l'ancienne version, une migration qui échoue sur une Cahut ; chaque échec rend l'ancien binaire et les anciennes bases. La demande de la console : un lien symbolique, un contenu trop long, une version plus ancienne sont refusés.
 - **Bases** : une base plus récente que le binaire est refusée, avec un message qui dit quoi faire.
 - **Santé** : `/-/healthz` sur la boucle locale dit la version et ouvre chaque Cahut ; d'ailleurs, il ne dit que `ok`.
-- **Adresse IP** : `add_domain` prend une adresse IPv4 publique, refuse une adresse privée, de boucle, de lien local ou IPv6 ; un Cahut à une adresse IP sert ses Windows, sa console et son MCP ; `rename_domain` garde tout, l'ancienne adresse répond 421, sans redémarrage ; le cloisonnement tient.
-- **Premier démarrage** : un code sert une fois, expire, ne sert plus quand le Cahut a quelqu'un ; l'administrateur du serveur n'est créé que s'il n'y en a aucun ; Logbook sans mot de passe ni code.
+- **Adresse IP** : `add_domain` prend une adresse IPv4 publique, refuse une adresse privée, de boucle, de lien local ou IPv6 ; une Cahut à une adresse IP sert ses Windows, sa console et son MCP ; `rename_domain` garde tout, l'ancienne adresse répond 421, sans redémarrage ; le cloisonnement tient.
+- **Premier démarrage** : un code sert une fois, expire, ne sert plus quand la Cahut a quelqu'un ; l'administrateur du serveur n'est créé que s'il n'y en a aucun ; Logbook sans mot de passe ni code.
 - **Diagnostic** : chaque vérification, avec des réponses simulées du système.
 - **Installation** : en CI, sur la machine Ubuntu de GitHub, `install.sh --binary`, le service actif, `cahut doctor`, `cahut update --binary` avec un binaire qui ne démarre pas puis avec un bon. En local, avec Lima, la même chose sur AlmaLinux 10 et Ubuntu 24.04 vierges, chronométrée.
 - **Navigateur** : le premier démarrage à 1 280 px et à 375 px, l'écran Updates, le déplacement vers un domaine.
@@ -139,7 +139,7 @@ Le pas à pas par client est un composant partagé : Claude Code (le plugin `cah
 | 2 | Releases signées | La clé, l'outil de signature et GoReleaser, le paquet `release` (GitHub, versions, vérification), la vérification dans `install.sh`, les bases plus récentes refusées | 1 j |
 | 3 | Mises à jour | `cahut update`, les copies des bases, la santé sur la boucle locale, le retour arrière, les unités systemd, `CAHUT_UPDATES`, l'état, la demande de la console, le Logbook, `get_updates` et `request_update` | 2 j |
 | 4 | Diagnostic | `cahut doctor`, lancé par `install.sh` | 1 j |
-| 5 | Adresse IP | Un Cahut à une adresse IP, les certificats `shortlived`, le choix sans SNI, `rename_domain`, `install.sh --ip` | 1,5 j |
+| 5 | Adresse IP | Une Cahut à une adresse IP, les certificats `shortlived`, le choix sans SNI, `rename_domain`, `install.sh --ip` | 1,5 j |
 | 6 | Premier démarrage | Migration, les trois opérations, `cahut setup`, l'écran du premier démarrage, le pas à pas par client, la carte de la vue d'ensemble, le lien en fin d'installation | 2 j |
 | 7 | Console du serveur | L'écran Updates, « Move to a domain » | 1 j |
 | 8 | Tests d'installation | Le test en CI, le script Lima, `install.sh` servi par le site | 1 j |
@@ -154,7 +154,7 @@ Soit environ 11 jours. Les pull requests s'enchaînent dans l'ordre.
 1. Sur le VPS AlmaLinux, chronomètre en main : `curl -fsSL https://cahut.cloud/install.sh | sudo sh -s -- --domain <domaine>`. La sortie montre la signature vérifiée, le pare-feu ouvert, `cahut doctor` sans échec, puis le lien du premier démarrage.
 2. Ouvrir le lien : créer son compte, nommer l'organisation, choisir une couleur, brancher Claude Code. L'écran dit que Claude est branché. Arrêter le chronomètre : moins de 10 minutes.
 3. Demander à Claude de publier une présentation : elle s'ouvre à l'adresse qu'il rend, moins de 5 minutes après le premier démarrage.
-4. Sur le VPS Ubuntu, sans domaine : `curl … | sudo sh`. Cahut s'installe à l'adresse IP, avec un certificat valide ; le premier démarrage s'y fait de même. Puis, dans la console, « Move to a domain » le passe au domaine, et les Windows le suivent.
+4. Sur le VPS Ubuntu, sans domaine : `curl … | sudo sh`. Cahut s'installe à l'adresse IP, avec un certificat valide ; le premier démarrage s'y fait de même. Puis, dans la console, « Move to a domain » la passe au domaine, et les Windows la suivent.
 5. Sur le staging, `sudo /usr/local/bin/cahut update` passe de la version du lot à la 0.4.0 publiée ; `cahut update --binary` avec un binaire qui ne démarre pas revient seul à la 0.4.0, et le Logbook du serveur montre les deux.
 
 ## Hors du lot 7
@@ -176,7 +176,7 @@ Le lot 7 s'est achevé le 23 octobre 2026, en neuf pull requests :
 | 2 | #75 | Les releases signées, la vérification dans `install.sh`, les bases plus récentes que le binaire refusées |
 | 3 | #76 | `cahut update`, la santé sur la boucle locale, le retour arrière, les unités systemd, `get_updates` et `request_update`, le Logbook |
 | 4 | #78 | `cahut doctor`, lancé par `install.sh` |
-| 5 | #79 | Un Cahut à l'adresse IPv4 de son serveur, les certificats `shortlived`, `rename_domain`, l'ADR 28 |
+| 5 | #79 | Une Cahut à l'adresse IPv4 de son serveur, les certificats `shortlived`, `rename_domain`, l'ADR 28 |
 | 6 | #80 | Le premier démarrage guidé, le pas à pas par client IA |
 | 7 | #81 | L'écran Updates et « Move to a domain » dans la console |
 | 8 | #82 | Le test d'installation en CI et sous Lima, `install.sh` servi par cahut.cloud |
@@ -184,14 +184,14 @@ Le lot 7 s'est achevé le 23 octobre 2026, en neuf pull requests :
 
 **Écarts par rapport au plan.**
 
-- **IPv4 seulement.** La grammaire des sources de CSP Level 3 n'admet pas d'adresse IPv6, et la politique d'une Window nomme l'origine de son Cahut : l'[ADR 28](adr/0028-ip-address-of-a-cahut-is-ipv4.md) restreint l'adresse de repli à IPv4 et remplace en partie l'ADR 26. Le numéro 27 était pris entre-temps par une autre session, pour les aperçus des Windows dans la console.
+- **IPv4 seulement.** La grammaire des sources de CSP Level 3 n'admet pas d'adresse IPv6, et la politique d'une Window nomme l'origine de sa Cahut : l'[ADR 28](adr/0028-ip-address-of-a-cahut-is-ipv4.md) restreint l'adresse de repli à IPv4 et remplace en partie l'ADR 26. Le numéro 27 était pris entre-temps par une autre session, pour les aperçus des Windows dans la console.
 - **Les migrations** se sont suivies dans l'ordre des pull requests : `0006_updates`, puis `0007_setup_links`.
 - **L'historique des mises à jour.** Le service écrit les mises à jour au Logbook une fois par minute ; une mise à jour et son retour arrière, dans la même minute, n'y laissaient que la dernière. `status.json` garde les dix dernières, et le service écrit chacune une fois.
-- **Deux configurations CertMagic**, sur un même cache et un même stockage : les domaines gardent le profil classique et ARI, les adresses IP prennent `shortlived` et le défi HTTP seul. Derrière un NAT, l'adresse du Cahut sert de nom par défaut quand le client n'en envoie aucun.
-- **`rename_domain`** déplace n'importe quel Cahut, pas seulement un Cahut à une adresse IP ; le serveur relit le domaine de chaque Cahut à chaque requête et ferme l'ancien accès une minute plus tard.
+- **Deux configurations CertMagic**, sur un même cache et un même stockage : les domaines gardent le profil classique et ARI, les adresses IP prennent `shortlived` et le défi HTTP seul. Derrière un NAT, l'adresse de la Cahut sert de nom par défaut quand le client n'en envoie aucun.
+- **`rename_domain`** déplace n'importe quelle Cahut, pas seulement une Cahut à une adresse IP ; le serveur relit le domaine de chaque Cahut à chaque requête et ferme l'ancien accès une minute plus tard.
 - **`cahut doctor`** signale aussi un domaine qui ne pointe que sur la boucle locale, et ne demande le pare-feu et SELinux qu'en root.
-- **`install.sh`** écrit ses réglages quand ils changent, en gardant ceux qu'on ne redonne pas, et ne demande le lien du premier démarrage que pour un Cahut qui n'a personne : sinon l'échec allait au Logbook à chaque réinstallation.
-- **La console.** AIs and access perd sa carte de la skill, reprise par le pas à pas ; la page du compte dit que chaque compte garde son mot de passe, comme le prévoyait l'ADR 25 ; le fragment de l'adresse est lu une fois pour toute la console ; le lien d'activation du premier administrateur d'un Cahut déclaré dans la console retrouve `/console/`, perdu à l'ADR 20.
+- **`install.sh`** écrit ses réglages quand ils changent, en gardant ceux qu'on ne redonne pas, et ne demande le lien du premier démarrage que pour une Cahut qui n'a personne : sinon l'échec allait au Logbook à chaque réinstallation.
+- **La console.** AIs and access perd sa carte de la skill, reprise par le pas à pas ; la page du compte dit que chaque compte garde son mot de passe, comme le prévoyait l'ADR 25 ; le fragment de l'adresse est lu une fois pour toute la console ; le lien d'activation du premier administrateur d'une Cahut déclarée dans la console retrouve `/console/`, perdu à l'ADR 20.
 - **La clé de signature** a été faite avec OpenSSL sur le Mac d'Olivier et posée en secret du dépôt, `CAHUT_RELEASE_KEY` ; sa copie hors ligne attend dans `tmp/release-key.pem`, ignoré de git.
 - Pas de nouvelle dépendance. Lima s'installe sur l'ordinateur qui lance le test, hors du dépôt.
 
@@ -199,8 +199,8 @@ Le lot 7 s'est achevé le 23 octobre 2026, en neuf pull requests :
 
 - Les tests couvrent la signature (bonne, d'une autre clé, fichier changé, trop courte), les sommes, l'ordre des versions, les bases plus récentes, le programme de mise à jour contre un faux GitHub, un faux systemd et de faux binaires (mise à jour, règles `patch`, `all`, `check` et `off`, retour arrière, retour arrière raté, releases refusées, jamais de descente, demandes de la console acceptées ou refusées, `--binary`, une exécution à la fois), la santé sur la boucle locale, `get_updates` et `request_update`, le Logbook des mises à jour, les trente cas de `cahut doctor`, les adresses IP acceptées et refusées, `rename_domain` et le service qui suit sans redémarrage, le choix du certificat par nom ou par adresse, le premier démarrage par les opérations et par l'API HTTP.
 - **Machines vierges.** AlmaLinux 10.2 arm64 sous Lima, SELinux en mode `Enforcing` : `install.sh` en 59 s, dont la moitié à attendre un certificat que le domaine d'essai ne peut pas avoir, le test entier en 152 s. Ubuntu 24.04 arm64 sous Lima : 59 s et 152 s ; un premier essai n'a pas démarré, Lima ayant dépassé son délai avant d'ouvrir SSH. Ubuntu 24.04 amd64 de GitHub, dans le job *Install* de la CI : 49 s et 133 s.
-- **Navigateur.** Dans le panneau de navigateur, contre un Cahut de développement vierge : les trois étapes du premier démarrage, le handle tiré du nom, la house style, l'écran qui voit une IA dès qu'un jeton sert, un lien servi à 375 px ; AIs and access et ses onglets ; l'écran Updates à 1 280 px et 375 px, « Check now » et sa demande ; « Move to a domain » d'un Cahut à une adresse IP.
-- **Staging.** La version du lot est installée (0.3.1-0.20261023132022-861c5fc724d9), avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-23-batch7`, par le nouvel `install.sh`, qui a posé les unités du programme de mise à jour et le jeton. `cahut doctor` n'y trouve aucun problème : SELinux, les deux domaines, leurs certificats, Let's Encrypt et GitHub. `cahut update --check` lit les releases ; un binaire qui ne démarre pas est revenu seul à la version du lot en une minute, ses deux Cahuts ouverts.
+- **Navigateur.** Dans le panneau de navigateur, contre une Cahut de développement vierge : les trois étapes du premier démarrage, le handle tiré du nom, la house style, l'écran qui voit une IA dès qu'un jeton sert, un lien servi à 375 px ; AIs and access et ses onglets ; l'écran Updates à 1 280 px et 375 px, « Check now » et sa demande ; « Move to a domain » d'une Cahut à une adresse IP.
+- **Staging.** La version du lot est installée (0.3.1-0.20261023132022-861c5fc724d9), avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-23-batch7`, par le nouvel `install.sh`, qui a posé les unités du programme de mise à jour et le jeton. `cahut doctor` n'y trouve aucun problème : SELinux, les deux domaines, leurs certificats, Let's Encrypt et GitHub. `cahut update --check` lit les releases ; un binaire qui ne démarre pas est revenu seul à la version du lot en une minute, ses deux Cahuts ouvertes.
 - **Release 0.4.0.** La première release signée, publiée le 23 octobre au commit 81e81b8, après vérification de sa signature et de ses sommes avec la clé d'`install.sh`. Sur le staging, `sudo cahut update` l'a lue avec le jeton gardé par l'installateur, a vérifié la signature et la somme, copié les bases des deux Cahuts, installé le binaire et vérifié la santé, en 3,4 secondes. Le binaire installé est celui de l'archive, octet pour octet ; `cahut doctor` ne trouve aucun problème, le Logbook du serveur note la mise à jour, et le connecteur MCP répond. Sauvegarde dans `/var/lib/cahut.bak-2026-10-23-v0.4.0`.
 
 **Reste à faire.**

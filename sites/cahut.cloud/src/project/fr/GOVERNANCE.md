@@ -1,6 +1,6 @@
-# Comment Cahut est mené
+# Comment Cahut est menée
 
-Cahut est un projet open source personnel d'Olivier Durand, indépendant de toute entreprise et de tout fournisseur d'IA. Une seule personne le maintient aujourd'hui. Cette page dit comment les décisions se prennent, qui fait quoi, ce que le projet promet, et comment cela change à mesure que le projet grandit. Les raisons sont dans [docs/gouvernance.md](docs/gouvernance.md), en français.
+Cahut est un projet open source personnel d'Olivier Durand, indépendant de toute entreprise et de tout fournisseur d'IA. Une seule personne la maintient aujourd'hui. Cette page dit comment les décisions se prennent, qui fait quoi, ce que le projet promet, et comment cela change à mesure que le projet grandit. Les raisons sont dans [docs/gouvernance.md](docs/gouvernance.md), en français.
 
 ## Les principes
 

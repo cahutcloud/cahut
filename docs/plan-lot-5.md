@@ -101,7 +101,7 @@ La console écrit chaque opération qui frappe en une phrase (« Make the Window
 - **Résultat** : `create_user` approuvée rend le lien d'activation à la personne, jamais à l'IA ; `get_knock` ne le montre pas.
 - **Opérations conditionnelles** : `set_window_access` frappe pour `public` seulement ; `set_ai_reach` frappe pour élargir et agit pour restreindre ; une IA limitée qui nomme une Room inconnue ne l'apprend pas avant l'approbation ; une IA en lecture seule voit `set_ai_reach` et rien d'autre qui écrive.
 - **Purge et suppression** : `purge_window` refuse une Window hors de la corbeille, efface ses versions, ses fichiers et ses laissez-passer, libère son nom ; `delete_room` refuse une Room personnelle, efface les Windows de la Room et leurs fichiers, garde le Logbook, coupe la Room des connexions limitées.
-- **Cloisonnement** : le Knock d'un Cahut n'existe pas dans un autre.
+- **Cloisonnement** : le Knock d'une Cahut n'existe pas dans une autre.
 - **Console** : dans le navigateur, le badge, l'approbation depuis le lien d'une IA, la purge et la suppression d'une Room avec leurs confirmations, le changement de portée.
 
 ## Découpage en pull requests
