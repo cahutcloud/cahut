@@ -2,25 +2,7 @@
 // the navigation, which a button opens on a narrow screen, with the account
 // and the languages of the console at its foot. The screens of the console
 // fill its main area.
-import {
-	Bot,
-	CircleUserRound,
-	DoorClosed,
-	Gauge,
-	House,
-	Languages as LanguagesIcon,
-	LogOut,
-	Mail,
-	Menu,
-	NotebookText,
-	Palette,
-	Plus,
-	RefreshCw,
-	Server,
-	ShieldCheck,
-	Users,
-	X,
-} from "lucide-preact";
+import { Languages as LanguagesIcon, LogOut, Menu, X } from "lucide-preact";
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import type { Room } from "./api.gen";
@@ -28,7 +10,8 @@ import { initials, Languages } from "./components";
 import { useConsole } from "./context";
 import { words } from "./i18n";
 import { Logo } from "./logo";
-import { roomIcon } from "./pages/rooms";
+import { roomPictogram } from "./pages/rooms";
+import { Pictogram } from "./pictograms";
 import { Link } from "./router";
 
 const t = words({
@@ -139,37 +122,36 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 				</div>
 			</header>
 			<nav id="sidebar" class="c-sidebar" aria-label={t.main} data-open={open}>
-				{nav("/", <House class="i" size={18} aria-hidden="true" />, t.overview)}
-				{person && nav("/knocks", <DoorClosed class="i" size={18} aria-hidden="true" />, t.knocks, false, knocks)}
-				{person && nav("/logbook", <NotebookText class="i" size={18} aria-hidden="true" />, t.logbook)}
+				{nav("/", <Pictogram name="cahut" />, t.overview)}
+				{person && nav("/knocks", <Pictogram name="knockFirst" />, t.knocks, false, knocks)}
+				{person && nav("/logbook", <Pictogram name="logbook" />, t.logbook)}
 				{person && (
 					<>
 						<div class="c-label">{t.rooms}</div>
-						{props.rooms.map((r) => {
-							const Icon = roomIcon(r, individual);
-							return <Fragment key={r.name}>{nav(`/rooms/${r.name}`, <Icon class="i" size={18} aria-hidden="true" />, r.title)}</Fragment>;
-						})}
-						{nav("/rooms", <Plus class="i" size={18} aria-hidden="true" />, isAdmin ? t.everyRoom : t.newRoom)}
+						{props.rooms.map((r) => (
+							<Fragment key={r.name}>{nav(`/rooms/${r.name}`, <Pictogram name={roomPictogram(r, individual)} />, r.title)}</Fragment>
+						))}
+						{nav("/rooms", <Pictogram name="roomNew" />, isAdmin ? t.everyRoom : t.newRoom)}
 					</>
 				)}
 				{!person && (
 					<>
 						<div class="c-label">{t.thisServer}</div>
-						{nav("/server/admins", <ShieldCheck class="i" size={18} aria-hidden="true" />, t.serverAdmins)}
-						{nav("/server/logbook", <NotebookText class="i" size={18} aria-hidden="true" />, t.serverLogbook)}
-						{nav("/server/updates", <RefreshCw class="i" size={18} aria-hidden="true" />, t.updates)}
+						{nav("/server/admins", <Pictogram name="serverAdmins" />, t.serverAdmins)}
+						{nav("/server/logbook", <Pictogram name="logbook" />, t.serverLogbook)}
+						{nav("/server/updates", <Pictogram name="updates" />, t.updates)}
 					</>
 				)}
 				<div class="c-label">{t.thisCahut}</div>
-				{isAdmin && nav("/people", <Users class="i" size={18} aria-hidden="true" />, t.people)}
-				{isAdmin && nav("/house-style", <Palette class="i" size={18} aria-hidden="true" />, t.houseStyle)}
-				{isAdmin && nav("/settings", <Gauge class="i" size={18} aria-hidden="true" />, t.kindAndLimits)}
-				{isAdmin && nav("/mail", <Mail class="i" size={18} aria-hidden="true" />, t.email)}
-				{!person && nav("/rooms", <Server class="i" size={18} aria-hidden="true" />, t.rooms, false)}
-				{!person && nav("/logbook", <NotebookText class="i" size={18} aria-hidden="true" />, t.logbook)}
-				{person && nav("/access", <Bot class="i" size={18} aria-hidden="true" />, t.access)}
+				{isAdmin && nav("/people", <Pictogram name="people" />, t.people)}
+				{isAdmin && nav("/house-style", <Pictogram name="houseStyle" />, t.houseStyle)}
+				{isAdmin && nav("/settings", <Pictogram name="limits" />, t.kindAndLimits)}
+				{isAdmin && nav("/mail", <Pictogram name="email" />, t.email)}
+				{!person && nav("/rooms", <Pictogram name="room" />, t.rooms, false)}
+				{!person && nav("/logbook", <Pictogram name="logbook" />, t.logbook)}
+				{person && nav("/access", <Pictogram name="aiAccess" />, t.access)}
 				<div class="sidebar-foot">
-					{nav("/account", <CircleUserRound class="i" size={18} aria-hidden="true" />, t.account)}
+					{nav("/account", <Pictogram name="account" />, t.account)}
 					<div class="sidebar-languages">
 						<LanguagesIcon class="i" size={16} aria-hidden="true" />
 						<Languages />

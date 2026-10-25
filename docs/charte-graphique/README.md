@@ -1,6 +1,6 @@
 # Cahut · Charte graphique
 
-Version 1.5 · 25 octobre 2026 · Olivier Durand
+Version 1.6 · 25 octobre 2026 · Olivier Durand
 
 ![Cahut, la maison ouverte](illustrations/maison-ouverte.png)
 
@@ -210,6 +210,31 @@ En secours : `ui-sans-serif, system-ui, "Segoe UI", sans-serif` et `ui-monospace
 - Trait en Ink (`currentColor`, modifiable en CSS), une seule couleur d'accent : Sky 300 pour les surfaces, Sky 400 pour les objets, Soft Yellow pour la lumière ou l'attente.
 - Usage : site, documentation, écrans vides, accueil. Taille minimale 32 px.
 
+**Les pictogrammes de navigation** ([`icones/navigation/`](icones/navigation/)) redessinent les pictogrammes pour la barre latérale de la console, où ils tiennent en 20 px à côté de leur étiquette.
+
+- Grille de 24 px, trait de 2 px en Ink (`currentColor`), extrémités et angles arrondis.
+- Le même accent en aplat que les pictogrammes : Sky 300 pour les surfaces, Sky 400 pour les objets, Soft Yellow pour la lumière ou l'attente. Le jaune reste à Cahut, à Knock first et à House style.
+- Des détails réduits : deux lignes au carnet du Logbook, une onde de moins à Knock first. Les murs de la Room ne passent pas à cette taille ; les Rooms posent leurs personnes sur son sol bleu.
+- Toujours en couleur et toujours avec une étiquette. La couleur d'un pictogramme de navigation ne compte pas dans l'accent unique d'un écran, qui vaut pour son contenu.
+
+| Pictogramme | Fichier | Entrée de la console |
+| --- | --- | --- |
+| Cahut | [`cahut.svg`](icones/navigation/cahut.svg) | Overview |
+| Knock first | [`knock-first.svg`](icones/navigation/knock-first.svg) | Knocks |
+| Logbook | [`logbook.svg`](icones/navigation/logbook.svg) | Logbook, Logbook of the server |
+| Room | [`room.svg`](icones/navigation/room.svg) | Une Room à soi dans une Cahut individuelle, Rooms pour un administrateur du serveur |
+| Room personnelle | [`room-personal.svg`](icones/navigation/room-personal.svg) | La Room de chaque personne : une personne sur le sol de la Room |
+| Room d'équipe | [`room-team.svg`](icones/navigation/room-team.svg) | Une Room d'équipe : deux personnes sur le sol de la Room |
+| Nouvelle Room | [`room-new.svg`](icones/navigation/room-new.svg) | New Room, Every Room |
+| IA et accès | [`ai-access.svg`](icones/navigation/ai-access.svg) | AIs and access : une prise, jamais un robot |
+| Compte | [`account.svg`](icones/navigation/account.svg) | Account |
+| Personnes | [`people.svg`](icones/navigation/people.svg) | People : une carte de membre |
+| House style | [`house-style.svg`](icones/navigation/house-style.svg) | House style |
+| Type et limites | [`limits.svg`](icones/navigation/limits.svg) | Kind and limits |
+| E-mail | [`email.svg`](icones/navigation/email.svg) | E-mail |
+| Administrateurs du serveur | [`server-admins.svg`](icones/navigation/server-admins.svg) | Server administrators |
+| Mises à jour | [`updates.svg`](icones/navigation/updates.svg) | Updates |
+
 **Les icônes d'interface** viennent de [Lucide](https://lucide.dev) (licence ISC) : grille de 24 px, trait de 2 px, extrémités arrondies, couleur du texte. Tailles 16, 20 ou 24 px. Une action importante a toujours une étiquette texte à côté de son icône.
 
 ## 6. Illustrations et motif
@@ -391,6 +416,7 @@ charte-graphique/
 ├── tokens/                      Jetons CSS et JSON, polices web
 ├── typographie/                 Spécimen, hiérarchie, polices TTF et WOFF2 (OFL)
 ├── icones/                      Pictogrammes SVG (64 px), planche et son gabarit
+│   └── navigation/              Pictogrammes de navigation (24 px), pour la console
 ├── illustrations/               Illustrations et motifs SVG
 ├── photos/                      Planche, aperçus, crédits, script de téléchargement
 ├── ui/                          Kit d'interface CSS, composants, console
@@ -409,5 +435,6 @@ charte-graphique/
 | 1.3 | 25 octobre 2026 | La porte éclairée : l'icône d'application, ses icônes web et l'avatar des réseaux passent sur Paper, avec le symbole Ink et la porte en Soft Yellow, à la place du symbole blanc sur Sky. Le blanc sur Sky ne sert plus. La bannière X passe sur Paper, avec la maison ouverte, comme celles de LinkedIn |
 | 1.4 | 25 octobre 2026 | En français, Cahut est féminin : *une Cahut*, *votre Cahut est prête*. La personnalité et les valeurs s'accordent |
 | 1.5 | 25 octobre 2026 | Bannière YouTube, 2560 × 1440, avec son texte et son logo dans la zone sûre de 1546 × 423 que montrent tous les écrans |
+| 1.6 | 25 octobre 2026 | Pictogrammes de navigation, sur une grille de 24 px, pour la barre latérale de la console : chaque entrée a le sien, en couleur, la Room personnelle et la Room d'équipe chacune le leur. La planche des pictogrammes les montre, la maquette de la console les emploie |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.
