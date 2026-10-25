@@ -61,7 +61,7 @@ const t = words({
 	},
 	fr: {
 		overview: "Vue d'ensemble",
-		signedInAs: (name, admin) => `Connecté en tant ${que(name)}, ${admin ? "administrateur" : "membre"} de ce Cahut.`,
+		signedInAs: (name, admin) => `Connecté en tant ${que(name)}, ${admin ? "administrateur" : "membre"} de cette Cahut.`,
 		connectFirst: "Connectez votre première IA",
 		connectText:
 			"Votre IA publie sur Cahut par MCP. Connectez-la, puis demandez-lui un document, une présentation ou un tableau de bord.",
@@ -74,35 +74,35 @@ const t = words({
 		),
 		yourRooms: "Vos Rooms",
 		yourLimits: "Vos limites",
-		cahutLimits: "Limites de ce Cahut",
+		cahutLimits: "Limites de cette Cahut",
 		thisServer: "Ce serveur",
 		administer: (host) =>
-			`Vous administrez ce serveur, et ici le Cahut ${de(host)}. Pour un autre Cahut, connectez-vous à sa propre console.`,
-		declaredOn: (date) => `Déclaré le ${date}`,
+			`Vous administrez ce serveur, et ici la Cahut ${de(host)}. Pour une autre Cahut, connectez-vous à sa propre console.`,
+		declaredOn: (date) => `Déclarée le ${date}`,
 		atConsole: "Vous êtes sur sa console.",
 		openConsole: "Ouvrir sa console",
 		moveToDomain: "Passer à un domaine",
 		changeDomain: "Changer de domaine",
 		moveText: (domain) => (
 			<>
-				Faites d'abord pointer l'enregistrement DNS du nouveau domaine vers ce serveur. Tout ce que contient le Cahut reste, mais
+				Faites d'abord pointer l'enregistrement DNS du nouveau domaine vers ce serveur. Tout ce que contient la Cahut reste, mais
 				les liens qui nomment <span class="c-mono">{domain}</span> cessent de fonctionner, et les IA se reconnectent à la
 				nouvelle adresse.
 			</>
 		),
 		newDomain: "Nouveau domaine",
-		moveCahut: "Déplacer le Cahut",
+		moveCahut: "Déplacer la Cahut",
 		cancel: "Annuler",
-		declareCahut: "Déclarer un Cahut",
+		declareCahut: "Déclarer une Cahut",
 		declareText:
-			"Faites d'abord pointer l'enregistrement DNS du domaine vers ce serveur. Le Cahut obtient son certificat à la première visite.",
+			"Faites d'abord pointer l'enregistrement DNS du domaine vers ce serveur. La Cahut obtient son certificat à la première visite.",
 		domain: "Domaine",
 		firstAdmin: "Identifiant de son premier administrateur",
 		theirName: "Son nom",
 		declare: "Déclarer",
 		declared: (domain) => (
 			<>
-				Le Cahut <span class="c-mono">{domain}</span> est déclaré.
+				La Cahut <span class="c-mono">{domain}</span> est déclarée.
 			</>
 		),
 		sendLink: (name) => ` Envoyez ce lien à ${name}, qui y choisira son mot de passe. Il ne sert qu'une fois, pendant 7 jours.`,

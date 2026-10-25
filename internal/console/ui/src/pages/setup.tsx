@@ -74,7 +74,7 @@ const t = words({
 		steps: ["Vous", "Votre Cahut", "Votre première IA"],
 		noCode: "Ce lien n'a pas de code. Ouvrez le lien entier qu'a affiché l'installation.",
 		gone: "Ce lien n'ouvre pas le premier démarrage",
-		newLink: "Sur le serveur, cette commande donne un nouveau lien, valable 24 heures, tant que le Cahut n'a personne :",
+		newLink: "Sur le serveur, cette commande donne un nouveau lien, valable 24 heures, tant que la Cahut n'a personne :",
 		signInInstead: (
 			<>
 				Si le premier démarrage est fait,{" "}
@@ -87,8 +87,8 @@ const t = words({
 		differ: "Les deux mots de passe diffèrent.",
 		welcome: "Bienvenue dans votre Cahut",
 		youServer: (domain) =>
-			`Vous administrerez le Cahut ${de(domain)}, et ce serveur, avec l'identifiant et le mot de passe que vous choisissez ici.`,
-		you: (domain) => `Vous administrerez le Cahut ${de(domain)}, avec l'identifiant et le mot de passe que vous choisissez ici.`,
+			`Vous administrerez la Cahut ${de(domain)}, et ce serveur, avec l'identifiant et le mot de passe que vous choisissez ici.`,
+		you: (domain) => `Vous administrerez la Cahut ${de(domain)}, avec l'identifiant et le mot de passe que vous choisissez ici.`,
 		name: "Votre nom",
 		handle: "Identifiant",
 		handleHelp: "Vous vous connectez avec, et il donne son nom à votre Room personnelle.",
@@ -99,12 +99,12 @@ const t = words({
 		yourCahut: "Votre Cahut",
 		answers: (origin) => (
 			<>
-				Il répond à <strong>{origin}/</strong>, où chaque Room et chaque Window a sa propre adresse.
+				Elle répond à <strong>{origin}/</strong>, où chaque Room et chaque Window a sa propre adresse.
 			</>
 		),
 		noDomain: (
 			<>
-				Ce Cahut n'a pas encore de domaine. Quand vous en aurez un, pointez-le vers ce serveur, puis déplacez-y le Cahut, dans la console
+				Cette Cahut n'a pas encore de domaine. Quand vous en aurez un, pointez-le vers ce serveur, puis déplacez-y la Cahut, dans la console
 				de l'administrateur du serveur ou avec <code class="c-mono">cahut domain rename</code>. Les liens partagés d'ici là cessent
 				alors de fonctionner.
 			</>
@@ -120,7 +120,7 @@ const t = words({
 		save: "Enregistrer et continuer",
 		neutral: "Garder le style neutre",
 		firstAI: "Votre première IA",
-		connects: "Votre IA se connecte à ce Cahut par MCP. Vous choisissez les Rooms qu'elle atteint, et tout ce qu'elle fait va au Logbook.",
+		connects: "Votre IA se connecte à cette Cahut par MCP. Vous choisissez les Rooms qu'elle atteint, et tout ce qu'elle fait va au Logbook.",
 		open: "Ouvrir la console",
 		skip: "Passer, ouvrir la console",
 	},

@@ -5,7 +5,10 @@
 // must have every English one, with the same arguments.
 //
 // The words of the house (Cahut, Room, Window, Key, House style, Knock first,
-// Logbook) stay in English, as on the website. What the API answers comes
+// Logbook) stay in English, as on the website, and take a gender in French: a
+// Cahut is feminine, as a « cahute » is (« une Cahut », « ma Cahut »), and so
+// are a Room, a Window, a Key and the house style; a Knock and the Logbook are
+// masculine. What the API answers comes
 // from the server in English, but for the refusals that carry a code, which
 // refusals.ts says in both languages. See
 // docs/adr/0036-console-in-english-and-french.md and

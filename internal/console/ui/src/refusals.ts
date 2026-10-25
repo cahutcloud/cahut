@@ -33,14 +33,14 @@ const said = words<Sentences>({
 		wrong_handle_or_password: "Wrong handle or password.",
 	},
 	fr: {
-		account_disabled: "Ce compte est désactivé : un administrateur du Cahut peut le réactiver.",
+		account_disabled: "Ce compte est désactivé : un administrateur de la Cahut peut le réactiver.",
 		activation_link_gone:
-			"Ce lien d'activation est inconnu, déjà utilisé ou expiré : demandez-en un nouveau à un administrateur du Cahut.",
+			"Ce lien d'activation est inconnu, déjà utilisé ou expiré : demandez-en un nouveau à un administrateur de la Cahut.",
 		email_link_gone: "Ce lien est inconnu, déjà utilisé ou expiré : changez à nouveau votre adresse depuis votre compte.",
-		email_taken: (v) => `${v.email} est déjà l'adresse e-mail d'une autre personne de ce Cahut.`,
+		email_taken: (v) => `${v.email} est déjà l'adresse e-mail d'une autre personne de cette Cahut.`,
 		invitation_gone:
 			"Cette invitation n'ouvre plus la Window : elle a été retirée, elle a expiré, ou la Window a changé de Key ou d'accès. Demandez-en une nouvelle à la personne qui vous l'a envoyée.",
-		no_password_link: "Ce Cahut n'envoie pas d'e-mail : un administrateur du Cahut peut vous donner un nouveau lien.",
+		no_password_link: "Cette Cahut n'envoie pas d'e-mail : un administrateur de la Cahut peut vous donner un nouveau lien.",
 		password_too_long: (v) => `Le mot de passe a ${plural(v.length, "caractère", "caractères")} : utilisez-en ${v.limit} au plus.`,
 		password_too_short: (v) => `Le mot de passe a ${plural(v.length, "caractère", "caractères")} : utilisez-en au moins ${v.limit}.`,
 		server_account_disabled: "Ce compte est désactivé : un autre administrateur du serveur peut le réactiver.",

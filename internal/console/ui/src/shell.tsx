@@ -68,7 +68,7 @@ const t = words({
 		serverAdmins: "Administrateurs du serveur",
 		serverLogbook: "Logbook du serveur",
 		updates: "Mises à jour",
-		thisCahut: "Ce Cahut",
+		thisCahut: "Cette Cahut",
 		people: "Personnes",
 		houseStyle: "House style",
 		kindAndLimits: "Type et limites",

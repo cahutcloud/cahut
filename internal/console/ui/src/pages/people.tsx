@@ -97,15 +97,15 @@ const t = words({
 		member: "Membre",
 		memberHelp: "Travaille dans ses Rooms et connecte ses IA.",
 		admin: "Administrateur",
-		adminHelp: "Gère aussi les personnes, les Rooms et les réglages de ce Cahut.",
-		onlyAdmins: "Seuls les administrateurs de ce Cahut en gèrent les personnes.",
+		adminHelp: "Gère aussi les personnes, les Rooms et les réglages de cette Cahut.",
+		onlyAdmins: "Seuls les administrateurs de cette Cahut en gèrent les personnes.",
 		person: "personne",
 		people: "personnes",
 		administrator: "administrateur",
 		administrators: "administrateurs",
 		withoutPassword: (n) => `${n} encore sans mot de passe`,
 		disabledCount: (n) => `${n} ${n > 1 ? "désactivées" : "désactivée"}`,
-		thisCahut: "Ce Cahut",
+		thisCahut: "Cette Cahut",
 		title: "Personnes",
 		newPerson: "Nouvelle personne",
 		intro: "Chaque personne se connecte avec son propre mot de passe, a une Room personnelle et connecte ses IA.",
@@ -120,7 +120,7 @@ const t = words({
 		manage: "Gérer",
 		created: (name, room) => (
 			<>
-				<strong>{name} est dans ce Cahut.</strong>
+				<strong>{name} est dans cette Cahut.</strong>
 				Sa Room personnelle est à l'adresse <span class="c-mono">{room}</span>.
 			</>
 		),
@@ -139,9 +139,9 @@ const t = words({
 		add: "Ajouter la personne",
 		makeAdmin: "Rendre administrateur",
 		makeMember: "Rendre membre",
-		askAdmin: (name) => `Faire ${de(name)} un administrateur ? ${name} gérera les personnes, les Rooms et les réglages de ce Cahut.`,
-		askSelfMember: "Devenir membre ? Vous ne gérerez plus ce Cahut.",
-		askMember: (name) => `Faire ${de(name)} un membre ? ${name} ne gérera plus ce Cahut.`,
+		askAdmin: (name) => `Faire ${de(name)} un administrateur ? ${name} gérera les personnes, les Rooms et les réglages de cette Cahut.`,
+		askSelfMember: "Devenir membre ? Vous ne gérerez plus cette Cahut.",
+		askMember: (name) => `Faire ${de(name)} un membre ? ${name} ne gérera plus cette Cahut.`,
 		roleDone: (self, name, admin) => `${self ? "Vous êtes" : `${name} est`} maintenant ${admin ? "administrateur" : "membre"}.`,
 		choosePassword: "Lien pour choisir un mot de passe",
 		newPassword: "Nouveau mot de passe",
