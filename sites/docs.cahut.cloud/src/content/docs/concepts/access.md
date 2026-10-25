@@ -47,7 +47,7 @@ A Window open to its Room or to the Cahut goes to people of the Cahut only, by h
 
 ## Readers who sign in
 
-To open a Window that is Room only or internal, a reader signs in. The link on the page of a closed Window, or on the home of the Cahut, `https://<domain>/`, goes through the [console](/admin/console/): the reader signs in there if they need to, and comes back to the Window at once. The browser then keeps a reader session on the address of the Windows, which lasts like a session of the console: 7 days without use, 30 days in any case. **Sign out**, on the home of the Cahut, ends it, and so does signing out of the console in that browser.
+To open a Window that is Room only or internal, a reader signs in. The link on the page of a closed Window goes through the [console](/admin/console/), and so does the home of the Cahut, `https://<domain>/`, for whoever has not signed in: the reader signs in there if they need to, and comes back at once. The browser then keeps a reader session on the address of the Windows, which lasts like a session of the console: 7 days without use, 30 days in any case. **Sign out**, at the top of the pages of the Cahut, ends it with the session of the console that opened it in that browser, which would otherwise sign the reader in again at once. Signing out of the console ends it too.
 
 A reader session is no session of the console: it opens Windows, and calls no operation. Disabling a person, or a change of their password, ends their reader sessions too. The administrators of the server are not people of a Cahut, and do not sign in as readers.
 

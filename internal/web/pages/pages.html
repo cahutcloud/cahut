@@ -82,18 +82,13 @@ docs/adr/0032-the-page-of-a-room.md. */}}
 <header class="hero{{if .Brand.NeutralLook}} hero--cahut{{end}}">
 <p class="c-label">Cahut</p>
 <h1 class="hero__title">{{.Brand.Name}}</h1>
-{{if .Reader}}<p class="hero__meta">Signed in as <span class="c-mono">{{.Reader}}</span></p>{{end}}
+<p class="hero__meta">Signed in as <span class="c-mono">{{.Reader}}</span></p>
 </header>
-{{if .Reader}}{{if .Rooms}}<h2 class="c-h4 section-title">Your Rooms</h2>
+{{if .Rooms}}<h2 class="c-h4 section-title">Your Rooms</h2>
 <ul class="rooms">
 {{range .Rooms}}<li><a class="c-card room" href="/{{.Name}}/"><span class="room__title">{{.Title}}</span><span class="c-mono room__address">/{{.Name}}/</span></a></li>
 {{end}}</ul>
 {{else}}<p class="c-muted">You are in no Room yet.</p>{{end}}
-{{else}}<section class="c-card panel">
-<h2 class="c-h4">Sign in</h2>
-<p class="c-muted">Sign in to open the Windows of your Rooms.</p>
-<p><a class="c-btn c-btn--primary" href="{{.SignIn}}">{{icon "log-in" 16}}Sign in</a></p>
-</section>{{end}}
 <p class="c-small c-muted foot">AIs connect to this Cahut over MCP, at <span class="c-mono">{{.MCP}}</span>.</p>
 </main>
 </body>

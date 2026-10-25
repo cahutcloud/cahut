@@ -128,46 +128,101 @@ func TestRightKeyOpensAWindowUnderAttack(t *testing.T) {
 	}
 }
 
-// TestSignOutEndsReaderSessions checks that signing out of the console
-// signs out of the Windows too, in that browser.
-func TestSignOutEndsReaderSessions(t *testing.T) {
-	f := setup(t)
+// consoleSession signs the person handle in to the console of localhost
+// with a password, activating their account the first time, and returns
+// its token and the person it acts for.
+func (f *fixture) consoleSession(t *testing.T, handle string) (string, operation.Actor) {
+	t.Helper()
 	ctx := context.Background()
 	c := f.open(t, "localhost")
-	olivier := f.person(t, "localhost", "olivier")
-	publishDeck(t, f, olivier)
-
-	link, err := operation.Do(ctx, c.Registry, account.CreateActivationLink, admin, account.ActivationLinkInput{User: "olivier"})
-	if err != nil {
-		t.Fatal(err)
-	}
+	actor := f.person(t, "localhost", handle)
+	const password = "correct horse battery staple"
 	visitor := operation.Actor{Kind: operation.Visitor, Via: "api", Domain: "localhost"}
-	s, err := operation.Do(ctx, c.Registry, account.ActivateAccount, visitor, account.ActivateInput{Code: link.Code, Password: "correct horse battery staple"})
+	s, err := operation.Do(ctx, c.Registry, account.SignIn, visitor, account.SignInInput{Handle: handle, Password: password})
 	if err != nil {
-		t.Fatal(err)
+		link, err := operation.Do(ctx, c.Registry, account.CreateActivationLink, admin, account.ActivationLinkInput{User: handle})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if s, err = operation.Do(ctx, c.Registry, account.ActivateAccount, visitor, account.ActivateInput{Code: link.Code, Password: password}); err != nil {
+			t.Fatal(err)
+		}
 	}
 	owner, err := account.VerifySession(ctx, c.DB, s.Token, time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}
-	olivier.Session = owner.SessionID
+	actor.Session = owner.SessionID
+	return s.Token, actor
+}
 
-	code := f.call(t, "localhost", olivier, "sign_in_to_windows", `{}`).(account.ReaderCode).Code
+// readerFrom signs actor in to read Windows from its console session, as
+// the console's /read page does, and returns the cookie of the reader.
+func (f *fixture) readerFrom(t *testing.T, actor operation.Actor) *http.Cookie {
+	t.Helper()
+	code := f.call(t, "localhost", actor, "sign_in_to_windows", `{}`).(account.ReaderCode).Code
 	resp, _ := f.do(t, "localhost", http.MethodGet, "/-/session?code="+code+"&to=%2Folivier%2F", nil, nil)
-	var reader *http.Cookie
 	for _, ck := range resp.Cookies() {
 		if ck.Name == "__Host-cahut-reader" {
-			reader = &http.Cookie{Name: ck.Name, Value: ck.Value} //nolint:gosec // a cookie that the test sends back
+			return &http.Cookie{Name: ck.Name, Value: ck.Value} //nolint:gosec // a cookie that the test sends back
 		}
 	}
-	if reader == nil {
-		t.Fatalf("no reader cookie: %d %v", resp.StatusCode, resp.Header)
-	}
+	t.Fatalf("no reader cookie: %d %v", resp.StatusCode, resp.Header)
+	return nil
+}
+
+// TestSignOutEndsReaderSessions checks that signing out of the console
+// signs out of the Windows too, in that browser.
+func TestSignOutEndsReaderSessions(t *testing.T) {
+	f := setup(t)
+	c := f.open(t, "localhost")
+	olivier := f.person(t, "localhost", "olivier")
+	publishDeck(t, f, olivier)
+	_, olivier = f.consoleSession(t, "olivier")
+	reader := f.readerFrom(t, olivier)
 	f.frame(t, "/olivier/q3-review/", reader)
 
 	f.call(t, "localhost", olivier, "sign_out", `{}`)
-	if _, err := account.VerifyReader(ctx, c.DB, reader.Value, time.Now()); err == nil {
+	if _, err := account.VerifyReader(context.Background(), c.DB, reader.Value, time.Now()); err == nil {
 		t.Error("the reader session opened by a console session lasts after it signed out")
+	}
+}
+
+// TestReaderSignOutEndsConsoleSession checks that signing out on the
+// pages of the Cahut signs out of the console too, in that browser, which
+// would sign the reader in again at once: on another device, the sessions
+// of the person last.
+func TestReaderSignOutEndsConsoleSession(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	c := f.open(t, "localhost")
+	olivier := f.person(t, "localhost", "olivier")
+	publishDeck(t, f, olivier)
+	token, here := f.consoleSession(t, "olivier")
+	reader, otherTab := f.readerFrom(t, here), f.readerFrom(t, here)
+	elsewhere, there := f.consoleSession(t, "olivier")
+	readerThere := f.readerFrom(t, there)
+
+	resp, _ := f.do(t, "localhost", http.MethodPost, "/-/sign-out", []*http.Cookie{reader}, url.Values{})
+	if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != "/" {
+		t.Errorf("sign out = %d %q", resp.StatusCode, resp.Header.Get("Location"))
+	}
+	if _, err := account.VerifySession(ctx, c.DB, token, time.Now()); err == nil {
+		t.Error("the console session that opened a reader session lasts after the reader signed out")
+	}
+	if _, err := account.VerifyReader(ctx, c.DB, otherTab.Value, time.Now()); err == nil {
+		t.Error("another reader session of the same console session lasts after the reader signed out")
+	}
+	if _, err := account.VerifySession(ctx, c.DB, elsewhere, time.Now()); err != nil {
+		t.Errorf("the console session of another device: %v", err)
+	}
+	if _, err := account.VerifyReader(ctx, c.DB, readerThere.Value, time.Now()); err != nil {
+		t.Errorf("the reader session of another device: %v", err)
+	}
+	// Back home, the reader signs in again, with a password.
+	resp, _ = f.do(t, "localhost", http.MethodGet, "/", []*http.Cookie{reader}, nil)
+	if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != "https://localhost/console/read?to=%2F" {
+		t.Errorf("the home after signing out = %d %q", resp.StatusCode, resp.Header.Get("Location"))
 	}
 }
 
