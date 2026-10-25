@@ -18,7 +18,6 @@ import (
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/housestyle"
-	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/window"
 )
 
@@ -157,29 +156,12 @@ func (s *Server) notFound(w http.ResponseWriter, r *http.Request, reader string)
 	s.render(w, r, http.StatusNotFound, "notfound", s.page(r, reader, "Not found"))
 }
 
-// serveRoot serves the home of the Cahut: the Rooms of a reader signed in.
-// Whoever has not signed in goes to the console to sign in, and comes back
-// here.
+// serveRoot sends the root of the Cahut to its console, which opens on its
+// overview for whoever has signed in, and on its page of sign-in for the
+// others: only the console knows its session, which lives in the browser.
+// See docs/adr/0038-the-root-of-a-cahut-opens-its-console.md.
 func (s *Server) serveRoot(w http.ResponseWriter, r *http.Request) {
-	c := siteOf(r).cahut
-	reader, ok := s.readerOf(r, time.Now())
-	if !ok {
-		http.Redirect(w, r, s.signInURL(r, r.URL.RequestURI()), http.StatusSeeOther) //nolint:gosec // the console of this Cahut
-		return
-	}
-	p := s.page(r, reader.Handle, "")
-	p.Title = p.Brand.Name
-	data := struct {
-		page
-		Rooms []room.Access
-		MCP   string
-	}{page: p, MCP: s.cfg.BaseURL(c.Domain) + "mcp"}
-	var err error
-	if data.Rooms, err = room.Of(r.Context(), c.DB, reader.UserID); err != nil {
-		s.internal(w, "list the Rooms of a reader", err)
-		return
-	}
-	s.render(w, r, http.StatusOK, "home", data)
+	http.Redirect(w, r, s.cfg.ConsoleURL(siteOf(r).cahut.Domain), http.StatusSeeOther)
 }
 
 // roomPage is the page that lists the Windows of a Room.

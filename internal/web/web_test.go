@@ -487,8 +487,21 @@ func TestRouting(t *testing.T) {
 			t.Errorf("GET %s%s = %d, want %d", tt.host, tt.path, resp.StatusCode, tt.want)
 		}
 	}
-	if resp, _ := f.get(t, "beta.localhost", http.MethodGet, "/"); resp.Header.Get("Location") != "https://beta.localhost/console/read?to=%2F" {
+	if resp, _ := f.get(t, "beta.localhost", http.MethodGet, "/"); resp.Header.Get("Location") != "https://beta.localhost/console/" {
 		t.Errorf("GET beta.localhost/ goes to %q", resp.Header.Get("Location"))
+	}
+}
+
+// The root of a Cahut opens its console, for a reader signed in as for
+// anyone: the console knows whether its person has signed in. See
+// docs/adr/0038-the-root-of-a-cahut-opens-its-console.md.
+func TestRootOpensTheConsole(t *testing.T) {
+	f := setup(t)
+	for _, cookies := range [][]*http.Cookie{nil, {f.signIn(t, "localhost", "olivier")}} {
+		resp, _ := f.do(t, "localhost", http.MethodGet, "/", cookies, nil)
+		if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != "https://localhost/console/" {
+			t.Errorf("GET / with %d cookies = %d %q, want 303 to the console", len(cookies), resp.StatusCode, resp.Header.Get("Location"))
+		}
 	}
 }
 
@@ -703,7 +716,7 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 	if _, err := operation.Do(ctx, f.srv.Registry, f.srv.AddDomain, admin, server.AddDomainInput{Domain: "203.0.113.7"}); err != nil {
 		t.Fatal(err)
 	}
-	// The home sends whoever has not signed in to the console of the Cahut.
+	// The root opens the console of the Cahut.
 	home := func(host string) string {
 		t.Helper()
 		resp, _ := f.get(t, host, http.MethodGet, "/")
@@ -713,7 +726,7 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 		return resp.Header.Get("Location")
 	}
 	for _, host := range []string{"203.0.113.7", "203.0.113.7:443"} {
-		if to := home(host); to != "https://203.0.113.7/console/read?to=%2F" {
+		if to := home(host); to != "https://203.0.113.7/console/" {
 			t.Errorf("GET %s/ goes to %q", host, to)
 		}
 	}
@@ -724,7 +737,7 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 	if resp, _ := f.get(t, "203.0.113.7", http.MethodGet, "/"); resp.StatusCode != http.StatusMisdirectedRequest {
 		t.Errorf("GET at the old address = %d, want 421", resp.StatusCode)
 	}
-	if to := home("gamma.localhost"); to != "https://gamma.localhost/console/read?to=%2F" {
+	if to := home("gamma.localhost"); to != "https://gamma.localhost/console/" {
 		t.Errorf("GET at the new domain goes to %q", to)
 	}
 	// Moved back, the Cahut is opened once, at its address.
@@ -732,7 +745,7 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 		server.RenameDomainInput{Domain: "gamma.localhost", To: "203.0.113.7"}); err != nil {
 		t.Fatal(err)
 	}
-	if to := home("203.0.113.7"); to != "https://203.0.113.7/console/read?to=%2F" {
+	if to := home("203.0.113.7"); to != "https://203.0.113.7/console/" {
 		t.Errorf("GET at the address again goes to %q", to)
 	}
 	f.web.mu.Lock()

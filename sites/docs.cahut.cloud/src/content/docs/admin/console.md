@@ -3,7 +3,7 @@ title: The console
 description: Sign in to the web console of a Cahut, under /console/ of its domain, and what each person and each administrator finds there.
 ---
 
-Each Cahut has a web console, under `/console/` of its domain: `https://cahut.example.com/console/`. `/admin` leads there too. People sign in there, see their Rooms and Windows, connect their AIs and read the Logbook; administrators manage people, Rooms and the server. The console uses the same [API](/reference/http-api/) as the AIs, and nothing else.
+Each Cahut has a web console, under `/console/` of its domain: `https://cahut.example.com/console/`. The root of the domain, `https://cahut.example.com/`, and `/admin` lead there too: the console opens on its overview once you have signed in, and on its page of sign-in until then. People sign in there, see their Rooms and Windows, connect their AIs and read the Logbook; administrators manage people, Rooms and the server. The console uses the same [API](/reference/http-api/) as the AIs, and nothing else.
 
 Port 443 keeps the Windows and MCP. Some company networks let only port 443 out: from there, the console is out of reach, the Windows are not.
 

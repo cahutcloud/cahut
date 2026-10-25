@@ -75,26 +75,6 @@ docs/adr/0032-the-page-of-a-room.md. */}}
 </html>
 {{end}}
 
-{{define "home"}}{{template "head" .}}</head>
-<body>
-{{template "top" .}}
-<main class="page">
-<header class="hero{{if .Brand.NeutralLook}} hero--cahut{{end}}">
-<p class="c-label">Cahut</p>
-<h1 class="hero__title">{{.Brand.Name}}</h1>
-<p class="hero__meta">Signed in as <span class="c-mono">{{.Reader}}</span></p>
-</header>
-{{if .Rooms}}<h2 class="c-h4 section-title">Your Rooms</h2>
-<ul class="rooms">
-{{range .Rooms}}<li><a class="c-card room" href="/{{.Name}}/"><span class="room__title">{{.Title}}</span><span class="c-mono room__address">/{{.Name}}/</span></a></li>
-{{end}}</ul>
-{{else}}<p class="c-muted">You are in no Room yet.</p>{{end}}
-<p class="c-small c-muted foot">AIs connect to this Cahut over MCP, at <span class="c-mono">{{.MCP}}</span>.</p>
-</main>
-</body>
-</html>
-{{end}}
-
 {{define "key"}}{{template "head" .}}</head>
 <body>
 {{template "top" .}}
