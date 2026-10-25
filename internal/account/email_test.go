@@ -104,7 +104,7 @@ func TestCreateUserWithEmail(t *testing.T) {
 	}
 
 	// A new link goes to the address too.
-	a, err := operation.Do(ctx, f.r, CreateActivationLink, admin, UserInput{User: "olivier"})
+	a, err := operation.Do(ctx, f.r, CreateActivationLink, admin, ActivationLinkInput{User: "olivier"})
 	if err != nil || !a.Emailed {
 		t.Fatalf("create_activation_link: %+v %v", a, err)
 	}

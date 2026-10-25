@@ -137,7 +137,7 @@ func TestSignOutEndsReaderSessions(t *testing.T) {
 	olivier := f.person(t, "localhost", "olivier")
 	publishDeck(t, f, olivier)
 
-	link, err := operation.Do(ctx, c.Registry, account.CreateActivationLink, admin, account.UserInput{User: "olivier"})
+	link, err := operation.Do(ctx, c.Registry, account.CreateActivationLink, admin, account.ActivationLinkInput{User: "olivier"})
 	if err != nil {
 		t.Fatal(err)
 	}

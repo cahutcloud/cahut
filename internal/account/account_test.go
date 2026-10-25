@@ -340,7 +340,7 @@ func TestActivationLinks(t *testing.T) {
 	_, first := f.person(t, "camille", false)
 
 	// A new link replaces the first.
-	a, err := operation.Do(ctx, f.r, CreateActivationLink, me, UserInput{User: "camille"})
+	a, err := operation.Do(ctx, f.r, CreateActivationLink, me, ActivationLinkInput{User: "camille"})
 	if err != nil {
 		t.Fatalf("create_activation_link: %v", err)
 	}
@@ -354,7 +354,7 @@ func TestActivationLinks(t *testing.T) {
 
 	// After an oversight, the old password works until the new link is used,
 	// and the link ends every session.
-	a, err = operation.Do(ctx, f.r, CreateActivationLink, admin, UserInput{User: "olivier"})
+	a, err = operation.Do(ctx, f.r, CreateActivationLink, admin, ActivationLinkInput{User: "olivier"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -370,11 +370,11 @@ func TestActivationLinks(t *testing.T) {
 	}
 
 	member := f.active(t, "bruno", false)
-	if _, err := operation.Do(ctx, f.r, CreateActivationLink, member, UserInput{User: "camille"}); !errors.Is(err, operation.ErrForbidden) {
+	if _, err := operation.Do(ctx, f.r, CreateActivationLink, member, ActivationLinkInput{User: "camille"}); !errors.Is(err, operation.ErrForbidden) {
 		t.Errorf("create_activation_link by a member: err = %v, want ErrForbidden", err)
 	}
 	ai := operation.Actor{Kind: operation.AI, Via: "mcp", UserID: me.UserID, Handle: "olivier", TokenID: 1, Client: "Claude"}
-	if _, err := operation.Do(ctx, f.r, CreateActivationLink, ai, UserInput{User: "camille"}); !errors.Is(err, operation.ErrForbidden) {
+	if _, err := operation.Do(ctx, f.r, CreateActivationLink, ai, ActivationLinkInput{User: "camille"}); !errors.Is(err, operation.ErrForbidden) {
 		t.Errorf("create_activation_link by an AI: err = %v, want ErrForbidden", err)
 	}
 }

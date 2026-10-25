@@ -30,6 +30,12 @@ const (
 	Person  ActorKind = "person"  // a person, in the console
 	AI      ActorKind = "ai"      // an AI acting on behalf of a person
 	Visitor ActorKind = "visitor" // someone who has not signed in, to sign in
+	// Service is a program on the server, with a service token of the
+	// Cahut, such as the site where people sign up. It acts with the rights
+	// of the administrators of the Cahut, for the operations open to
+	// services only, and never knocks. See
+	// docs/adr/0035-a-program-on-the-server-manages-people-with-a-service-token.md.
+	Service ActorKind = "service"
 )
 
 // Actor is who calls an operation.
@@ -42,7 +48,7 @@ type Actor struct {
 	Session int64  // the session a person or an administrator signed in with
 	TokenID int64  // the personal token an AI presented
 	Conn    int64  // the connection of an AI that connected over OAuth
-	Client  string // the AI, as its token or its connection, and its software, name it
+	Client  string // the AI, as its token or its connection, and its software, name it; the service token of a service
 	// Address is the client's address on the network, as limits count it:
 	// an IPv4 address, or the /64 of an IPv6 one. Empty on the command line.
 	Address string
@@ -139,6 +145,12 @@ type Op[In, Out any] struct {
 	// OpenWorld operations reach people outside the Cahut, such as
 	// invite_to_window, which sends e-mail. MCP tells AI clients so.
 	OpenWorld bool
+	// Services may call the operation, with a service token of the Cahut,
+	// through the admin API: a program on the server that manages people.
+	// They act with the rights of the administrators of the Cahut, and
+	// never knock. See
+	// docs/adr/0035-a-program-on-the-server-manages-people-with-a-service-token.md.
+	Services bool
 	// Prepare, when set, does the slow part of a call before its
 	// transaction opens, so that the call holds no connection to the
 	// database meanwhile: checking a password, fetching a document. c.Tx is
@@ -166,6 +178,7 @@ type Info struct {
 	KnocksWhen   string
 	ReadOnlyAIs  bool
 	OpenWorld    bool
+	Services     bool
 	Input        reflect.Type
 	Output       reflect.Type
 }
@@ -447,6 +460,7 @@ func (op *Op[In, Out]) info() Info {
 		KnocksWhen:   op.KnocksWhen,
 		ReadOnlyAIs:  op.ReadOnlyAIs,
 		OpenWorld:    op.OpenWorld,
+		Services:     op.Services,
 		Input:        reflect.TypeFor[In](),
 		Output:       reflect.TypeFor[Out](),
 	}
@@ -583,8 +597,13 @@ func (r *Registry) fail(ctx context.Context, info Info, c *Call, logged bool, er
 
 func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
 	actor := c.Actor.Kind
-	if actor == Visitor {
+	switch actor {
+	case Visitor:
 		actor = cmp.Or(c.as, Person)
+	case Service:
+		// A service acts as the administrators of the Cahut: the Logbook says
+		// so, with its token as the client and admin-api as the way in.
+		actor = Admin
 	}
 	e := logbook.Entry{
 		At:         c.Now,
@@ -640,6 +659,13 @@ func authorize(info Info, a Actor) error {
 		if !info.Visitors {
 			return Forbiddenf("%s needs someone signed in", info.Name)
 		}
+	case Service:
+		if a.Client == "" {
+			return errors.New("operation: service without the name of its token")
+		}
+		if !info.Services {
+			return Forbiddenf("%s is not open to service tokens: they manage the people of a Cahut only", info.Name)
+		}
 	default:
 		return fmt.Errorf("operation: unknown actor kind %q", a.Kind)
 	}
@@ -654,7 +680,7 @@ func authorize(info Info, a Actor) error {
 // c.Admin.
 func (r *Registry) admit(ctx context.Context, info Info, c *Call) error {
 	switch c.Actor.Kind {
-	case Admin:
+	case Admin, Service:
 		c.Admin = true
 	case Person, AI:
 		if r.CheckPerson == nil {

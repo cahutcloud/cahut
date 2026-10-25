@@ -23,6 +23,7 @@ var (
 	adminAI  = Actor{Kind: AI, Via: "mcp", UserID: 2, Handle: "camille", TokenID: 8, Client: "Claude Code"}
 	disabled = Actor{Kind: Person, Via: "api", UserID: 3, Handle: "bruno", Session: 5}
 	visitor  = Actor{Kind: Visitor, Via: "api"}
+	service  = Actor{Kind: Service, Via: "admin-api", Client: "service token account"}
 )
 
 type roomIn struct {
@@ -183,6 +184,7 @@ func TestReadsAreLoggedForAIsOnly(t *testing.T) {
 // rules copies the rules of an operation, not its name or its Run.
 func rules(op *Op[roomIn, roomOut], from Op[roomIn, roomOut]) {
 	op.Level, op.PeopleOnly, op.Visitors, op.KnockFirst = from.Level, from.PeopleOnly, from.Visitors, from.KnockFirst
+	op.Services = from.Services
 }
 
 func TestRefusals(t *testing.T) {
@@ -199,6 +201,8 @@ func TestRefusals(t *testing.T) {
 		{name: "for server administrators, by a person", rules: Op[roomIn, roomOut]{Level: ServerAdmin}, actor: member, want: ErrForbidden},
 		{name: "by a disabled person", actor: disabled, want: ErrForbidden},
 		{name: "by a visitor", actor: visitor, want: ErrForbidden},
+		{name: "not open to services, by a service", rules: Op[roomIn, roomOut]{Level: CahutAdmin}, actor: service, want: ErrForbidden},
+		{name: "for server administrators, by a service", rules: Op[roomIn, roomOut]{Level: ServerAdmin, Services: true}, actor: service, want: ErrForbidden},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -229,6 +233,19 @@ func TestRefusals(t *testing.T) {
 	}
 }
 
+func TestServiceWithoutItsToken(t *testing.T) {
+	r, db := testRegistry(t)
+	op := createRoom(nil)
+	op.Services = true
+	Register(r, op)
+	if _, err := Do(context.Background(), r, op, Actor{Kind: Service, Via: "admin-api"}, roomIn{Name: "Team"}); err == nil || Public(err) {
+		t.Errorf("a service without its token: err = %v, want an internal error", err)
+	}
+	if rooms(t, db) != 0 {
+		t.Error("the operation ran")
+	}
+}
+
 func TestAdmission(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -242,6 +259,9 @@ func TestAdmission(t *testing.T) {
 		{name: "for server administrators, by the command line", rules: Op[roomIn, roomOut]{Level: ServerAdmin}, actor: admin, wantAdmin: true},
 		{name: "knock first, by a person", rules: Op[roomIn, roomOut]{KnockFirst: true}, actor: member},
 		{name: "for visitors, by a visitor", rules: Op[roomIn, roomOut]{Visitors: true, PeopleOnly: true}, actor: visitor},
+		{name: "open to services, knock first, by a service", rules: Op[roomIn, roomOut]{
+			Level: CahutAdmin, KnockFirst: true, PeopleOnly: true, Services: true,
+		}, actor: service, wantAdmin: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -269,12 +289,19 @@ func TestAdmission(t *testing.T) {
 			}
 			// A visitor is logged as the person Identify names; Identify
 			// changes nobody else.
+			// A service is logged as an administrator, under its token.
 			wantActor, wantHandle := string(tt.actor.Kind), tt.actor.Handle
-			if tt.actor.Kind == Visitor {
+			switch tt.actor.Kind {
+			case Visitor:
 				wantActor, wantHandle = "person", "someone"
+			case Service:
+				wantActor = "admin"
 			}
 			if got[0].Actor != wantActor || got[0].UserHandle != wantHandle {
 				t.Errorf("entry actor %q %q, want %q %q", got[0].Actor, got[0].UserHandle, wantActor, wantHandle)
+			}
+			if got[0].Via != tt.actor.Via || got[0].Client != tt.actor.Client {
+				t.Errorf("entry via %q, client %q", got[0].Via, got[0].Client)
 			}
 		})
 	}

@@ -61,9 +61,11 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/approve_knock` | Any person | yes |
 | `POST /api/change_email` | Any person | yes |
 | `POST /api/change_password` | Any person | yes |
+| `POST /api/check_handle` | Administrators of the Cahut | yes |
 | `POST /api/confirm_email` | Anyone, to sign in | no |
 | `POST /api/create_activation_link` | Administrators of the Cahut | yes |
 | `POST /api/create_room` | Any person | yes |
+| `POST /api/create_service_token` | Administrators of the server | yes |
 | `POST /api/create_token` | Any person | yes |
 | `POST /api/create_user` | Administrators of the Cahut | yes |
 | `POST /api/delete_room` | Any person | yes |
@@ -81,6 +83,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/get_knock` | Any person | yes |
 | `POST /api/get_mail_relay` | Administrators of the Cahut | yes |
 | `POST /api/get_room` | Any person | yes |
+| `POST /api/get_user` | Administrators of the Cahut | yes |
 | `POST /api/get_window` | Any person | yes |
 | `POST /api/invite_to_window` | Any person | yes |
 | `POST /api/list_connected_ais` | Any person | yes |
@@ -88,6 +91,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/list_knocks` | Any person | yes |
 | `POST /api/list_logbook` | Any person | yes |
 | `POST /api/list_rooms` | Any person | yes |
+| `POST /api/list_service_tokens` | Administrators of the server | yes |
 | `POST /api/list_tokens` | Any person | yes |
 | `POST /api/list_users` | Any person | yes |
 | `POST /api/list_windows` | Any person | yes |
@@ -99,6 +103,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/request_password_link` | Anyone, to sign in | no |
 | `POST /api/restore_window` | Any person | yes |
 | `POST /api/revoke_invitation` | Any person | yes |
+| `POST /api/revoke_service_token` | Administrators of the server | yes |
 | `POST /api/revoke_token` | Any person | yes |
 | `POST /api/rollback_house_style` | Administrators of the Cahut | yes |
 | `POST /api/rollback_window` | Any person | yes |
@@ -142,3 +147,29 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | `POST /api/server/set_up` | Anyone, to sign in | no |
 | `POST /api/server/sign_in` | Anyone, to sign in | no |
 | `POST /api/server/sign_out` | Administrators of the server | yes |
+
+## Admin API
+
+A program on the server, such as a site where people sign up, manages the people of a Cahut through the admin API, with a service token, and without a Knock. The API is off unless `cahut serve --admin-api <address>`, or `CAHUT_ADMIN_API`, gives it an address of the machine itself, such as `127.0.0.1:8090`: Cahut refuses to start with another one, and the API refuses every client that is not on the machine.
+
+| Route | What it runs |
+| --- | --- |
+| `POST /api/<operation>` | An operation of the Cahut that the host of the request names, among those open to services |
+
+Calls, inputs, outputs and errors are those of the API of the console, with a service token in the header `Authorization: Bearer <token>` in place of a session. A service token starts with `cahut_svc_`. It belongs to one Cahut, and opens nothing else: neither the console, nor MCP, nor the Windows. The administrators of the server create one with `cahut service-token create`, see them with `cahut service-token list` and revoke one with `cahut service-token revoke`, which ends its access at once.
+
+```bash
+curl -X POST http://127.0.0.1:8090/api/check_handle \
+  -H "Host: cahut.example.com" -H "Authorization: Bearer <service token>" -d '{"handle": "ada"}'
+```
+
+| Route | What it does |
+| --- | --- |
+| `POST /api/check_handle` | Say whether a handle can go to a new person: of the form of a handle, not reserved, and held by no person and by no Room. For the administrators of the Cahut. |
+| `POST /api/create_activation_link` | Give a person a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. It goes to their e-mail address too, when they have one and the Cahut sends e-mail. Their password works until they use the link. |
+| `POST /api/create_user` | Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. |
+| `POST /api/disable_user` | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. |
+| `POST /api/enable_user` | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. |
+| `POST /api/get_cahut` | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. |
+| `POST /api/get_user` | Describe one person of the Cahut, as list_users does, with their e-mail address. For the administrators of the Cahut. |
+| `POST /api/set_user_email` | Give a person an e-mail address, where their activation links and notices go, or remove it with an empty address. Their old address gets a notice. For the administrators of the Cahut. |

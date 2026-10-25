@@ -109,6 +109,13 @@ export interface Activation {
   emailed?: boolean;
 }
 
+export interface ActivationLinkInput {
+  /** handle of the person */
+  user: string;
+  /** false keeps the link from the e-mail address of the person, when you give it to them yourself; true when absent */
+  send_activation_email?: boolean;
+}
+
 export interface AddDomainInput {
   /** the domain of the new Cahut, such as cahut.example.com, or the public IPv4 address of the server, for a Cahut without a domain */
   domain: string;
@@ -195,6 +202,10 @@ export interface Check {
   error?: string;
 }
 
+export interface CheckHandleInput {
+  handle: string;
+}
+
 export interface ColorsInput {
   /** body text, as #rrggbb */
   text?: string;
@@ -252,6 +263,11 @@ export interface CreateRoomInput {
   owner?: string;
 }
 
+export interface CreateServiceTokenInput {
+  /** what uses the token, such as the site where people sign up */
+  name: string;
+}
+
 export interface CreateSetupLinkInput {
   /** the Cahut, by its domain or its address */
   domain: string;
@@ -270,6 +286,8 @@ export interface CreateUserInput {
   admin?: boolean;
   /** the e-mail address of the person, where their activation link goes */
   email?: string;
+  /** false keeps the activation link from the e-mail address of the person, when you give it to them yourself; true when absent */
+  send_activation_email?: boolean;
 }
 
 export interface Declaration {
@@ -452,6 +470,14 @@ export type GetAccountInput = Record<string, never>;
 export type GetCahutInput = Record<string, never>;
 
 export type GetMailRelayInput = Record<string, never>;
+
+export interface HandleCheck {
+  handle: string;
+  /** the handle can go to a new person */
+  available: boolean;
+  /** why it cannot: invalid, reserved or taken */
+  reason?: string;
+}
 
 export interface HouseStyle {
   /** the name of the organization; the domain of the Cahut until an administrator sets one */
@@ -665,6 +691,8 @@ export interface ListRoomsInput {
   all?: boolean;
 }
 
+export type ListServiceTokensInput = Record<string, never>;
+
 export interface ListTokensInput {
   /** only the tokens of this person; for a person who is not an administrator, their own tokens */
   user?: string;
@@ -716,6 +744,12 @@ export interface NewCahut {
   created_at: string;
   /** the first administrator of the Cahut, with their activation link */
   admin?: NewUser;
+}
+
+export interface NewServiceToken {
+  id: number;
+  name: string;
+  token: string;
 }
 
 export interface NewToken {
@@ -899,6 +933,10 @@ export interface RevokeInvitationInput {
   invitation: number;
 }
 
+export interface RevokeServiceTokenInput {
+  id: number;
+}
+
 export interface RevokeTokenInput {
   id: number;
 }
@@ -984,6 +1022,18 @@ export interface ServerSession {
   /** when the session ends at the latest; it ends sooner after 7 days without use */
   expires_at: string;
   admin: Admin;
+}
+
+export interface ServiceTokenInfo {
+  id: number;
+  name: string;
+  created_at: string;
+  last_used_at?: string;
+  revoked_at?: string;
+}
+
+export interface ServiceTokenList {
+  tokens: ServiceTokenInfo[];
 }
 
 export interface SetAIReachInput {
@@ -1337,12 +1387,16 @@ export interface CahutOperations {
   change_email: { input: ChangeEmailInput; output: EmailChanged };
   /** Change your password. Your other sessions end. */
   change_password: { input: ChangePasswordInput; output: PasswordChanged };
+  /** Say whether a handle can go to a new person: of the form of a handle, not reserved, and held by no person and by no Room. For the administrators of the Cahut. */
+  check_handle: { input: CheckHandleInput; output: HandleCheck };
   /** Confirm a new e-mail address from the link sent to it, which makes it the address of its person. */
   confirm_email: { input: ConfirmEmailInput; output: EmailChanged };
   /** Give a person a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. It goes to their e-mail address too, when they have one and the Cahut sends e-mail. Their password works until they use the link. */
-  create_activation_link: { input: UserInput; output: Activation };
+  create_activation_link: { input: ActivationLinkInput; output: Activation };
   /** Create a team Room, at <domain>/<name>/. You become its owner, and can then add members. Windows published in it are for its members. In an individual Cahut, you stay its only member, and its name starts with your handle and a hyphen. */
   create_room: { input: CreateRoomInput; output: Room };
+  /** Create a service token, with which a program on this server manages the people of the Cahut through the admin API, without a Knock: it creates them, gives them their activation link, and disables them. */
+  create_service_token: { input: CreateServiceTokenInput; output: NewServiceToken };
   /** Create a personal token that lets an AI act on behalf of a person. */
   create_token: { input: CreateTokenInput; output: NewToken };
   /** Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. */
@@ -1377,6 +1431,8 @@ export interface CahutOperations {
   get_mail_relay: { input: GetMailRelayInput; output: Delivery };
   /** Describe a Room: its title, its owners and members, and how many Windows it holds. */
   get_room: { input: RoomGetInput; output: RoomDetail };
+  /** Describe one person of the Cahut, as list_users does, with their e-mail address. For the administrators of the Cahut. */
+  get_user: { input: UserInput; output: User };
   /** Describe a Window and list its files, optionally with their contents. */
   get_window: { input: WindowGetInput; output: WindowDetail };
   /** Send the address of a Window by e-mail, with a note: to people of the Cahut, named by handle, who sign in to read it, or to anyone else, named by address, when the Window opens with its Key or to the public. For a Window with a Key, each address gets a personal link that opens it for them alone, until revoke_invitation takes it back; the Key itself never goes. 20 people a call, and 100 invitations a day. get_cahut says whether the Cahut sends e-mail. */
@@ -1391,6 +1447,8 @@ export interface CahutOperations {
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
   /** List your Rooms, your personal Room first, with your role and how many members and Windows each has. */
   list_rooms: { input: ListRoomsInput; output: RoomList };
+  /** List the service tokens of the Cahut, newest first, with their last use. */
+  list_service_tokens: { input: ListServiceTokensInput; output: ServiceTokenList };
   /** List personal tokens, newest first. */
   list_tokens: { input: ListTokensInput; output: TokenList };
   /** List the people of the Cahut, with their handles, names, roles and states. In an individual Cahut, for its administrators only. */
@@ -1413,6 +1471,8 @@ export interface CahutOperations {
   restore_window: { input: RefInput; output: Window };
   /** Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. */
   revoke_invitation: { input: RevokeInvitationInput; output: Invitation };
+  /** Revoke a service token. The program that used it loses access to the admin API at once. */
+  revoke_service_token: { input: RevokeServiceTokenInput; output: ServiceTokenInfo };
   /** Revoke a personal token. The AI that used it loses access at once. */
   revoke_token: { input: RevokeTokenInput; output: TokenInfo };
   /** Go back to the previous house style of this Cahut. The house style you leave becomes the previous one, so calling rollback_house_style again returns to it. For the administrators of the Cahut. */

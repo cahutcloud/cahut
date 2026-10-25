@@ -347,6 +347,7 @@ Title: Add a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`
 | `name` | string | yes |  |
 | `admin` | boolean | no |  |
 | `email` | string | no | the e-mail address of the person, where their activation link goes |
+| `send_activation_email` | boolean or null | no | false keeps the activation link from the e-mail address of the person, when you give it to them yourself; true when absent |
 
 <details>
 <summary>JSON Schema</summary>
@@ -367,6 +368,13 @@ Title: Add a person. Annotations: `readOnlyHint: false`, `destructiveHint: true`
     },
     "name": {
       "type": "string"
+    },
+    "send_activation_email": {
+      "description": "false keeps the activation link from the e-mail address of the person, when you give it to them yourself; true when absent",
+      "type": [
+        "null",
+        "boolean"
+      ]
     }
   },
   "required": [
