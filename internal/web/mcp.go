@@ -198,7 +198,9 @@ func sessionKey(c *cahut.Cahut, r *http.Request) string {
 // for the AIs of a person who administers c or not, when they may change
 // things or only read, in a Cahut that is individual or not.
 func (s *Server) mcpServer(c *cahut.Cahut, individual, admin, readOnly bool) *mcp.Server {
-	srv := mcp.NewServer(&mcp.Implementation{Name: "cahut", Version: version.Get().Version},
+	base := s.cfg.BaseURL(c.Domain)
+	srv := mcp.NewServer(&mcp.Implementation{Name: "cahut", Title: "Cahut", Version: version.Get().Version,
+		WebsiteURL: base, Icons: mcpIcons(base)},
 		&mcp.ServerOptions{Instructions: instructions})
 	for _, info := range c.Registry.Ops() {
 		if !info.ForAIsIn(individual, admin, readOnly) {
@@ -211,6 +213,18 @@ func (s *Server) mcpServer(c *cahut.Cahut, individual, admin, readOnly bool) *mc
 		srv.AddTool(tool, s.callTool(c, info.Name))
 	}
 	return srv
+}
+
+// mcpIcons are the icons of the MCP server of the Cahut at base, which AI
+// clients show beside its connector: the app icon of Cahut, at the origin
+// of the Cahut, which a client reaches as it reaches its tools. See
+// docs/adr/0040-the-icon-of-a-cahut.md.
+func mcpIcons(base string) []mcp.Icon {
+	brand := base + strings.TrimPrefix(BrandPath, "/")
+	return []mcp.Icon{
+		{Source: brand + "logos/cahut-icone-app.svg", MIMEType: "image/svg+xml", Sizes: []string{"any"}},
+		{Source: brand + "logos/favicon/icon-512.png", MIMEType: "image/png", Sizes: []string{"512x512"}},
+	}
 }
 
 func toolFor(info operation.Info) (*mcp.Tool, error) {

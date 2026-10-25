@@ -182,6 +182,10 @@ func TestBrandFiles(t *testing.T) {
 		{"/-/brand/typographie/polices/web/plus-jakarta-sans-latin-variable.woff2", "font/woff2", http.StatusOK},
 		{"/-/brand/typographie/polices/OFL-PlusJakartaSans.txt", "text/plain; charset=utf-8", http.StatusOK},
 		{"/-/brand/logos/cahut-logo-horizontal.svg", "image/svg+xml", http.StatusOK},
+		{"/-/brand/logos/cahut-icone-app.svg", "image/svg+xml", http.StatusOK},
+		{"/-/brand/logos/favicon/favicon.ico", "image/x-icon", http.StatusOK},
+		{"/-/brand/logos/favicon/apple-touch-icon.png", "image/png", http.StatusOK},
+		{"/-/brand/logos/favicon/icon-512.png", "image/png", http.StatusOK},
 		{"/-/brand/tokens/", "", http.StatusNotFound},
 		{"/-/brand/", "", http.StatusNotFound},
 		{"/-/brand/README.md", "", http.StatusNotFound},
@@ -205,6 +209,38 @@ func TestBrandFiles(t *testing.T) {
 	if !strings.Contains(css, `url("../typographie/polices/web/plus-jakarta-sans-latin-variable.woff2")`) {
 		t.Errorf("the fonts sheet = %q", css)
 	}
+}
+
+// The root of a Cahut serves the icon of Cahut, where browsers and the
+// services that draw the icon of a site look for it, while its house style
+// keeps the look of the neutral one, as its pages do. The console names its
+// icons under /-/brand/, which stay. See docs/adr/0040-the-icon-of-a-cahut.md.
+func TestRootIcons(t *testing.T) {
+	f := setup(t)
+	icons := func(want int) {
+		t.Helper()
+		for p, file := range rootIcons {
+			resp, body := f.get(t, "localhost", http.MethodGet, p)
+			if resp.StatusCode != want {
+				t.Errorf("GET %s = %d, want %d", p, resp.StatusCode, want)
+				continue
+			}
+			if want == http.StatusOK && body != string(brandAssets()[file].Content) {
+				t.Errorf("GET %s = %d bytes, not those of %s", p, len(body), file)
+			}
+			if resp, _ := f.get(t, "localhost", http.MethodGet, BrandPath+file); resp.StatusCode != http.StatusOK {
+				t.Errorf("GET %s%s = %d", BrandPath, file, resp.StatusCode)
+			}
+		}
+	}
+	icons(http.StatusOK)
+	if resp, _ := f.get(t, "localhost", http.MethodGet, "/favicon.ico"); resp.Header.Get("Content-Type") != "image/x-icon" {
+		t.Errorf("GET /favicon.ico is a %q", resp.Header.Get("Content-Type"))
+	}
+	f.call(t, "localhost", admin, "set_house_style", `{"name": "Example"}`)
+	icons(http.StatusNotFound)
+	f.call(t, "localhost", admin, "set_house_style", `{"neutral": true}`)
+	icons(http.StatusOK)
 }
 
 // A Window links the house style of its Cahut from the root of the domain,
