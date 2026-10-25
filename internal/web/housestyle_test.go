@@ -104,7 +104,12 @@ func TestHouseStyleServed(t *testing.T) {
 // docs/adr/0032-the-page-of-a-room.md.
 func TestPagesInTheHouseStyle(t *testing.T) {
 	f := setup(t)
-	resp, home := f.get(t, "localhost", http.MethodGet, "/")
+	olivier := f.person(t, "localhost", "olivier")
+	reader := f.signIn(t, "localhost", "olivier")
+	homePage := func() (response, string) {
+		return f.do(t, "localhost", http.MethodGet, "/", []*http.Cookie{reader}, nil)
+	}
+	resp, home := homePage()
 	if !strings.Contains(home, `<img class="top__cahut" src="/-/brand/logos/cahut-logo-horizontal.svg" alt="Cahut"`) ||
 		!strings.Contains(home, `<span class="top__domain">localhost</span>`) ||
 		!strings.Contains(home, `<link rel="stylesheet" href="/-/brand/tokens/cahut-fonts.css">`) ||
@@ -119,7 +124,7 @@ func TestPagesInTheHouseStyle(t *testing.T) {
 	}
 
 	f.call(t, "localhost", admin, "set_house_style", `{"name": "Example & Co", "logo": {"content": "<svg xmlns=\"http://www.w3.org/2000/svg\"/>"}}`)
-	_, home = f.get(t, "localhost", http.MethodGet, "/")
+	_, home = homePage()
 	if !strings.Contains(home, `<img class="top__logo" src="/-/house-style/logo" alt="Example &amp; Co">`) ||
 		!strings.Contains(home, `<h1 class="hero__title">Example &amp; Co</h1>`) ||
 		!strings.Contains(home, `<html lang="en" data-theme="light" data-house-style>`) ||
@@ -127,20 +132,19 @@ func TestPagesInTheHouseStyle(t *testing.T) {
 		strings.Contains(home, "cahut-logo") || strings.Contains(home, "cahut-fonts.css") {
 		t.Errorf("home with a logo = %q", home)
 	}
-	olivier := f.person(t, "localhost", "olivier")
 	publishDeck(t, f, olivier)
 	f.call(t, "localhost", olivier, "set_window_access", `{"window": "olivier/q3-review", "access": "key", "key": "correct horse"}`)
 	resp, page := f.get(t, "localhost", http.MethodGet, "/olivier/q3-review/")
 	if resp.StatusCode != http.StatusUnauthorized || !strings.Contains(page, `alt="Example &amp; Co"`) {
 		t.Errorf("the page of a Key = %d %q", resp.StatusCode, page)
 	}
-	if _, home := f.get(t, "beta.localhost", http.MethodGet, "/"); !strings.Contains(home, `<span class="top__domain">beta.localhost</span>`) {
-		t.Errorf("home of beta.localhost = %q", home)
+	if _, page := f.get(t, "beta.localhost", http.MethodGet, "/nope/"); !strings.Contains(page, `<span class="top__domain">beta.localhost</span>`) {
+		t.Errorf("a page of beta.localhost = %q", page)
 	}
 
 	// Back to the neutral house style, the pages carry the brand of Cahut again.
 	f.call(t, "localhost", admin, "set_house_style", `{"neutral": true}`)
-	if _, home := f.get(t, "localhost", http.MethodGet, "/"); !strings.Contains(home, "cahut-logo-horizontal.svg") {
+	if _, home := homePage(); !strings.Contains(home, "cahut-logo-horizontal.svg") {
 		t.Errorf("home of the neutral house style again = %q", home)
 	}
 
@@ -159,7 +163,7 @@ func TestPagesInTheHouseStyle(t *testing.T) {
 		{`"logo": {"content": "<svg xmlns=\"http://www.w3.org/2000/svg\"/>"}`, false},
 	} {
 		f.call(t, "localhost", admin, "set_house_style", `{"neutral": true, `+tt.change+`}`)
-		_, home := f.get(t, "localhost", http.MethodGet, "/")
+		_, home := homePage()
 		if cahut := strings.Contains(home, "cahut-logo-horizontal.svg") && !strings.Contains(home, "data-house-style"); cahut != tt.cahut {
 			t.Errorf("with %s, the pages carry the brand of Cahut: %v, want %v", tt.change, cahut, tt.cahut)
 		}

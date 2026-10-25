@@ -132,9 +132,16 @@ func nullID(id int64) sql.NullInt64 {
 	return sql.NullInt64{Int64: id, Valid: id != 0}
 }
 
-// EndReaderSession ends the reader session of token, if it is one.
+// EndReaderSession ends the reader session of token, if it is one, with
+// the console session that opened it and the other reader sessions that
+// this one opened, as sign_out does from the console: a console left open
+// would sign the reader in again at once, without a password.
 func EndReaderSession(ctx context.Context, db *store.DB, token string) error {
-	_, err := db.Write.ExecContext(ctx, "DELETE FROM sessions WHERE hash = ? AND reader = 1", credential.Hash(token))
+	_, err := db.Write.ExecContext(ctx, `
+		WITH ended AS (SELECT id, user_id, opened_by FROM sessions WHERE hash = ? AND reader = 1)
+		DELETE FROM sessions WHERE user_id IN (SELECT user_id FROM ended)
+		AND (id IN (SELECT id FROM ended) OR id IN (SELECT opened_by FROM ended) AND reader = 0
+			OR opened_by IN (SELECT opened_by FROM ended) AND reader = 1)`, credential.Hash(token))
 	return err
 }
 

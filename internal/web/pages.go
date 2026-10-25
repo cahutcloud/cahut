@@ -157,11 +157,16 @@ func (s *Server) notFound(w http.ResponseWriter, r *http.Request, reader string)
 	s.render(w, r, http.StatusNotFound, "notfound", s.page(r, reader, "Not found"))
 }
 
-// serveRoot serves the home of the Cahut: the Rooms of a reader signed in,
-// or a link to sign in.
+// serveRoot serves the home of the Cahut: the Rooms of a reader signed in.
+// Whoever has not signed in goes to the console to sign in, and comes back
+// here.
 func (s *Server) serveRoot(w http.ResponseWriter, r *http.Request) {
 	c := siteOf(r).cahut
-	reader, _ := s.readerOf(r, time.Now())
+	reader, ok := s.readerOf(r, time.Now())
+	if !ok {
+		http.Redirect(w, r, s.signInURL(r, r.URL.RequestURI()), http.StatusSeeOther) //nolint:gosec // the console of this Cahut
+		return
+	}
 	p := s.page(r, reader.Handle, "")
 	p.Title = p.Brand.Name
 	data := struct {
@@ -169,12 +174,10 @@ func (s *Server) serveRoot(w http.ResponseWriter, r *http.Request) {
 		Rooms []room.Access
 		MCP   string
 	}{page: p, MCP: s.cfg.BaseURL(c.Domain) + "mcp"}
-	if reader.UserID != 0 {
-		var err error
-		if data.Rooms, err = room.Of(r.Context(), c.DB, reader.UserID); err != nil {
-			s.internal(w, "list the Rooms of a reader", err)
-			return
-		}
+	var err error
+	if data.Rooms, err = room.Of(r.Context(), c.DB, reader.UserID); err != nil {
+		s.internal(w, "list the Rooms of a reader", err)
+		return
 	}
 	s.render(w, r, http.StatusOK, "home", data)
 }

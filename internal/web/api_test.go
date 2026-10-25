@@ -186,8 +186,69 @@ func TestAPISignInLimit(t *testing.T) {
 		}
 	}
 	r := call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/sign_in", "", body)
-	if r.status != http.StatusTooManyRequests || !strings.Contains(r.raw, "this address") {
+	if r.status != http.StatusTooManyRequests || !strings.Contains(r.raw, "this address") || r.body["code"] != "too_many_attempts_from_address" {
 		t.Errorf("the 11th sign-in from an address: %d %s", r.status, r.raw)
+	}
+}
+
+// TestAPIRefusalCodes checks that the refusals that people meet give their
+// code and their values next to their message, which the console says in
+// the language of its person. See
+// docs/adr/0037-refusals-with-a-code-for-the-console.md.
+func TestAPIRefusalCodes(t *testing.T) {
+	f := setup(t)
+	console := f.ts
+	activate(t, f, console, "camille", false)
+	c := f.open(t, "localhost")
+	u, err := operation.Do(context.Background(), c.Registry, account.CreateUser, admin, account.CreateUserInput{Handle: "bruno", Name: "Bruno"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, tt := range []struct {
+		name, path, body string
+		status           int
+		error, code      string
+		values           map[string]any
+	}{
+		{
+			name: "a wrong password", path: "/console/api/sign_in", body: `{"handle": "camille", "password": "not the password at all"}`,
+			status: 403, error: "not allowed: wrong handle or password", code: "wrong_handle_or_password",
+		},
+		{
+			name: "a short password", path: "/console/api/activate_account", body: `{"code": "` + u.Activation.Code + `", "password": "short"}`,
+			status: 400, error: "invalid input: the password has 5 characters: use at least 15", code: "password_too_short",
+			values: map[string]any{"length": 5.0, "limit": 15.0},
+		},
+		{
+			name: "a used link", path: "/console/api/activate_account", body: `{"code": "used", "password": "` + password + `"}`,
+			status: 403, code: "activation_link_gone",
+			error: "not allowed: this activation link is unknown, used or expired: ask an administrator of the Cahut for a new one",
+		},
+		{
+			name: "a link of the server", path: "/console/api/server/activate_account", body: `{"code": "used", "password": "` + password + `"}`,
+			status: 403, code: "server_activation_link_gone",
+		},
+		{
+			name: "no session", path: "/console/api/get_account",
+			status: 401, error: "invalid or ended session: sign in first, then send the session token in the Authorization header", code: "session_ended",
+		},
+		{
+			name: "a refusal without a code", path: "/console/api/get_invitation", body: `{"x": 1}`,
+			status: 400, error: `invalid input: arguments: json: unknown field "x"`,
+		},
+	} {
+		r := call(t, f, console, http.MethodPost, "localhost", tt.path, "", tt.body)
+		code, _ := r.body["code"].(string)
+		values, _ := r.body["values"].(map[string]any)
+		if r.status != tt.status || tt.error != "" && r.body["error"] != tt.error || code != tt.code || len(values) != len(tt.values) {
+			t.Errorf("%s: %d %s", tt.name, r.status, r.raw)
+		}
+		for k, v := range tt.values {
+			if values[k] != v {
+				t.Errorf("%s: values[%s] = %v, want %v", tt.name, k, values[k], v)
+			}
+		}
 	}
 }
 

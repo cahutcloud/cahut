@@ -40,6 +40,10 @@ const (
 	SignInEvery = 6 * time.Second
 )
 
+// errAddressLimit refuses the calls of an address that signs in too often.
+var errAddressLimit = operation.NewRefusal("too_many_attempts_from_address", nil,
+	"too many attempts from this address: wait a minute")
+
 // apiPolicy forbids a response of the API to load or frame anything.
 const apiPolicy = "default-src 'none'; frame-ancestors 'none'"
 
@@ -101,14 +105,14 @@ func (s *Server) callAPI(w http.ResponseWriter, r *http.Request, reg *operation.
 		// Signing in takes no session; it is limited by address, on top of
 		// the limits by handle that the operation applies.
 		if !s.visitors.allow(clientKey(r)) {
-			apiError(w, http.StatusTooManyRequests, "too many attempts from this address: wait a minute")
+			apiRefusal(w, http.StatusTooManyRequests, errAddressLimit)
 			return
 		}
 	} else {
 		actor, err = s.sessionActor(r, st, ofServer)
 		if errors.Is(err, account.ErrInvalidSession) {
 			w.Header().Set("WWW-Authenticate", "Bearer")
-			apiError(w, http.StatusUnauthorized, err.Error())
+			apiRefusal(w, http.StatusUnauthorized, err)
 			return
 		}
 		if err != nil {
@@ -141,13 +145,14 @@ func readCall(w http.ResponseWriter, r *http.Request, limit int64) ([]byte, bool
 func (s *Server) invoke(w http.ResponseWriter, r *http.Request, reg *operation.Registry, name string, actor operation.Actor, body []byte) {
 	out, err := reg.Invoke(r.Context(), name, actor, body)
 	if err != nil {
-		status, msg := apiStatus(err)
+		status := apiStatus(err)
 		if status == http.StatusInternalServerError {
 			s.log.Error("API call failed", "cahut", actor.Domain, "operation", name, "user", actor.Handle,
 				"client", actor.Client, "error", err)
-			msg = "Internal error. An administrator can find it in the Logbook."
+			apiError(w, status, "Internal error. An administrator can find it in the Logbook.")
+			return
 		}
-		apiError(w, status, msg)
+		apiRefusal(w, status, err)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(out); err != nil {
@@ -196,29 +201,49 @@ func signInAgain(err error) error {
 	return err
 }
 
-// apiStatus returns the status code of a failed call, and the message that
-// the caller may read.
-func apiStatus(err error) (int, string) {
+// apiStatus returns the status code of a failed call: an internal error
+// when its message is not for the caller.
+func apiStatus(err error) int {
 	switch {
 	case errors.Is(err, operation.ErrInvalid):
-		return http.StatusBadRequest, err.Error()
+		return http.StatusBadRequest
 	case errors.Is(err, operation.ErrForbidden):
-		return http.StatusForbidden, err.Error()
+		return http.StatusForbidden
 	case errors.Is(err, operation.ErrNotFound):
-		return http.StatusNotFound, err.Error()
+		return http.StatusNotFound
 	case errors.Is(err, operation.ErrApprovalRequired):
-		return http.StatusConflict, err.Error()
+		return http.StatusConflict
 	case errors.Is(err, operation.ErrTooMany):
-		return http.StatusTooManyRequests, err.Error()
+		return http.StatusTooManyRequests
 	}
-	return http.StatusInternalServerError, ""
+	return http.StatusInternalServerError
+}
+
+// apiFailure is the body of a failed call: its message, in English, and,
+// for a refusal that the console says in the language of its person, its
+// code and its values. See
+// docs/adr/0037-refusals-with-a-code-for-the-console.md.
+type apiFailure struct {
+	Error  string `json:"error"`
+	Code   string `json:"code,omitempty"`
+	Values any    `json:"values,omitempty"`
 }
 
 func apiError(w http.ResponseWriter, status int, msg string) {
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(struct {
-		Error string `json:"error"`
-	}{msg})
+	_ = json.NewEncoder(w).Encode(apiFailure{Error: msg})
+}
+
+// apiRefusal answers a call with the message of err, and with its code and
+// its values when it is an operation.Refusal.
+func apiRefusal(w http.ResponseWriter, status int, err error) {
+	f := apiFailure{Error: err.Error()}
+	var r *operation.Refusal
+	if errors.As(err, &r) {
+		f.Code, f.Values = r.Code, r.Values
+	}
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(f)
 }
 
 // clientIP returns the address of the request's client, without its port.

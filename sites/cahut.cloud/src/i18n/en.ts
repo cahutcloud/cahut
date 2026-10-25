@@ -26,7 +26,7 @@ export default {
 			project: 'Project',
 			github: 'GitHub',
 		},
-		footer: { cahut: 'Cahut', project: 'Project' },
+		footer: { cahut: 'Cahut', project: 'Project', follow: 'Follow' },
 		signature: 'Your own cloud for everything your AI makes.',
 		about:
 			'Cahut is a personal open source project by Olivier Durand, independent of any company and of any AI vendor. It is in early development.',
@@ -555,7 +555,7 @@ export default {
 				'One service on a Linux server, holding one or more Cahuts, each at its own domain with its certificate, or at the IPv4 address of the server until it has one.',
 				'Collaborative Cahuts, or individual ones where each person works alone, and limits on people, Rooms, Windows and disk, set by the administrators of the server.',
 				'People who sign in, administrators of the Cahut and of the server, and team Rooms with owners and members. The page of each Room lists its Windows, or shows the one its owners choose.',
-				'A web console: Knocks, Rooms, Windows, the Logbook, people, connected AIs, personal tokens, e-mail and the server.',
+				'A web console, in English and French: Knocks, Rooms, Windows, the Logbook, people, connected AIs, personal tokens, e-mail and the server.',
 				'AI clients that connect over OAuth, such as claude.ai, Claude Code, ChatGPT and Le Chat, to the Rooms and the scope a person grants, or with a personal token.',
 				'Windows published over MCP: documents, decks, dashboards and static sites, served in a sandbox that holds them to what their AI declares they load and call.',
 				'Two versions of each Window with a rollback, a trash, and an access: Room only, internal, with a Key or public, until a date.',

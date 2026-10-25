@@ -7,10 +7,108 @@ import type { NewCahut } from "../api.gen";
 import { CopyField, Failure, Notice, PageHead, plural, WindowCards } from "../components";
 import { ConnectSteps, ipAddress } from "../connect";
 import { useConsole } from "../context";
+import { de, locale, que, words } from "../i18n";
 import { useLoad } from "../load";
 import { href, Link } from "../router";
 import { RoomCards } from "./rooms";
 import { LimitsTable } from "./settings";
+
+const t = words({
+	en: {
+		overview: "Overview",
+		signedInAs: (name: string, admin: boolean) => `Signed in as ${name}, ${admin ? "an administrator" : "a member"} of this Cahut.`,
+		connectFirst: "Connect your first AI",
+		connectText: "Your AI publishes on Cahut over MCP. Connect it, then ask it to make a document, a deck or a dashboard.",
+		latestWindows: "Latest Windows",
+		noWindow: () => (
+			<>
+				No Window yet. Ask your AI to publish one: <Link class="c-link" href="/access">connect an AI</Link> first.
+			</>
+		),
+		yourRooms: "Your Rooms",
+		yourLimits: "Your limits",
+		cahutLimits: "Limits of this Cahut",
+		thisServer: "This server",
+		administer: (host: string) =>
+			`You administer this server, and here the Cahut of ${host}. For another Cahut, sign in at its own console.`,
+		declaredOn: (date: string) => `Declared on ${date}`,
+		atConsole: "You are at its console.",
+		openConsole: "Open its console",
+		moveToDomain: "Move to a domain",
+		changeDomain: "Change its domain",
+		moveText: (domain: string) => (
+			<>
+				Point the DNS record of the new domain to this server first. Everything in the Cahut stays, but the links that name{" "}
+				<span class="c-mono">{domain}</span> stop working, and AIs connect again at the new address.
+			</>
+		),
+		newDomain: "New domain",
+		moveCahut: "Move the Cahut",
+		cancel: "Cancel",
+		declareCahut: "Declare a Cahut",
+		declareText: "Point the DNS record of the domain to this server first. The Cahut gets its certificate at the first visit.",
+		domain: "Domain",
+		firstAdmin: "Handle of its first administrator",
+		theirName: "Their name",
+		declare: "Declare",
+		declared: (domain: string) => (
+			<>
+				Declared <span class="c-mono">{domain}</span>.
+			</>
+		),
+		sendLink: (name: string) => ` Send ${name} this link, where they choose their password. It works once, for 7 days.`,
+		activationLink: "the activation link",
+	},
+	fr: {
+		overview: "Vue d'ensemble",
+		signedInAs: (name, admin) => `Connecté en tant ${que(name)}, ${admin ? "administrateur" : "membre"} de cette Cahut.`,
+		connectFirst: "Connectez votre première IA",
+		connectText:
+			"Votre IA publie sur Cahut par MCP. Connectez-la, puis demandez-lui un document, une présentation ou un tableau de bord.",
+		latestWindows: "Dernières Windows",
+		noWindow: () => (
+			<>
+				Pas encore de Window. Demandez à votre IA d'en publier une : <Link class="c-link" href="/access">connectez une IA</Link>{" "}
+				d'abord.
+			</>
+		),
+		yourRooms: "Vos Rooms",
+		yourLimits: "Vos limites",
+		cahutLimits: "Limites de cette Cahut",
+		thisServer: "Ce serveur",
+		administer: (host) =>
+			`Vous administrez ce serveur, et ici la Cahut ${de(host)}. Pour une autre Cahut, connectez-vous à sa propre console.`,
+		declaredOn: (date) => `Déclarée le ${date}`,
+		atConsole: "Vous êtes sur sa console.",
+		openConsole: "Ouvrir sa console",
+		moveToDomain: "Passer à un domaine",
+		changeDomain: "Changer de domaine",
+		moveText: (domain) => (
+			<>
+				Faites d'abord pointer l'enregistrement DNS du nouveau domaine vers ce serveur. Tout ce que contient la Cahut reste, mais
+				les liens qui nomment <span class="c-mono">{domain}</span> cessent de fonctionner, et les IA se reconnectent à la
+				nouvelle adresse.
+			</>
+		),
+		newDomain: "Nouveau domaine",
+		moveCahut: "Déplacer la Cahut",
+		cancel: "Annuler",
+		declareCahut: "Déclarer une Cahut",
+		declareText:
+			"Faites d'abord pointer l'enregistrement DNS du domaine vers ce serveur. La Cahut obtient son certificat à la première visite.",
+		domain: "Domaine",
+		firstAdmin: "Identifiant de son premier administrateur",
+		theirName: "Son nom",
+		declare: "Déclarer",
+		declared: (domain) => (
+			<>
+				La Cahut <span class="c-mono">{domain}</span> est déclarée.
+			</>
+		),
+		sendLink: (name) => ` Envoyez ce lien à ${name}, qui y choisira son mot de passe. Il ne sert qu'une fois, pendant 7 jours.`,
+		activationLink: "le lien d'activation",
+	},
+});
 
 export function Overview() {
 	return useConsole().session.kind === "admin" ? <ServerOverview /> : <PersonOverview />;
@@ -35,35 +133,31 @@ function PersonOverview() {
 	const noAI = !connections.some((c) => c.status !== "ended") && !tokens.some((t) => !t.revoked_at);
 	return (
 		<>
-			<PageHead label="Overview" title={location.hostname}>
-				Signed in as {account.name}, {account.role === "admin" ? "an administrator" : "a member"} of this Cahut.
+			<PageHead label={t.overview} title={location.hostname}>
+				{t.signedInAs(account.name, account.role === "admin")}
 			</PageHead>
 			{noAI && (
 				<section class="section c-card panel">
-					<h2 class="c-h4">Connect your first AI</h2>
-					<p class="c-small">
-						Your AI publishes on Cahut over MCP. Connect it, then ask it to make a document, a deck or a dashboard.
-					</p>
+					<h2 class="c-h4">{t.connectFirst}</h2>
+					<p class="c-small">{t.connectText}</p>
 					<ConnectSteps mcp={about.mcp ?? `${location.origin}/mcp`} />
 				</section>
 			)}
 			<section class="section">
-				<h2 class="c-h4">Latest Windows</h2>
+				<h2 class="c-h4">{t.latestWindows}</h2>
 				{windows.length === 0 ? (
-					<Notice>
-						No Window yet. Ask your AI to publish one: <Link class="c-link" href="/access">connect an AI</Link> first.
-					</Notice>
+					<Notice>{t.noWindow()}</Notice>
 				) : (
 					<WindowCards windows={windows.slice(0, 6)} showRoom />
 				)}
 			</section>
 			<section class="section">
-				<h2 class="c-h4">Your Rooms</h2>
+				<h2 class="c-h4">{t.yourRooms}</h2>
 				<RoomCards rooms={rooms} />
 			</section>
 			{account.role !== "admin" && Object.keys(about.limits).length > 0 && (
 				<section class="section">
-					<h2 class="c-h4">{about.yours ? "Your limits" : "Limits of this Cahut"}</h2>
+					<h2 class="c-h4">{about.yours ? t.yourLimits : t.cahutLimits}</h2>
 					<LimitsTable settings={about} />
 				</section>
 			)}
@@ -80,19 +174,19 @@ function ServerOverview() {
 	const origin = (domain: string) => `${location.protocol}//${domain}${location.port ? `:${location.port}` : ""}`;
 	return (
 		<>
-			<PageHead label="This server" title={plural(data.cahuts.length, "Cahut", "Cahuts")}>
-				You administer this server, and here the Cahut of {location.hostname}. For another Cahut, sign in at its own console.
+			<PageHead label={t.thisServer} title={plural(data.cahuts.length, "Cahut", "Cahuts")}>
+				{t.administer(location.hostname)}
 			</PageHead>
 			<div class="cards">
 				{data.cahuts.map((c) => (
 					<article key={c.domain} class="c-card card">
 						<div class="c-window__title c-mono">{c.domain}</div>
-						<span class="c-small c-muted">Declared on {new Date(c.created_at).toLocaleDateString("en-GB", { dateStyle: "medium" })}</span>
+						<span class="c-small c-muted">{t.declaredOn(new Date(c.created_at).toLocaleDateString(locale, { dateStyle: "medium" }))}</span>
 						{c.domain === location.hostname ? (
-							<span class="c-small">You are at its console.</span>
+							<span class="c-small">{t.atConsole}</span>
 						) : (
 							<a class="c-link c-small" href={`${origin(c.domain)}${href("/server/sign-in")}`}>
-								Open its console
+								{t.openConsole}
 								<ArrowUpRight class="i" size={14} aria-hidden="true" />
 							</a>
 						)}
@@ -120,7 +214,7 @@ function MoveCahut(props: { domain: string; origin: (domain: string) => string; 
 		return (
 			<div>
 				<button class={`c-btn c-btn--sm ${ip ? "c-btn--primary" : "c-btn--ghost"}`} type="button" onClick={() => setOpen(true)}>
-					{ip ? "Move to a domain" : "Change its domain"}
+					{ip ? t.moveToDomain : t.changeDomain}
 				</button>
 			</div>
 		);
@@ -146,21 +240,18 @@ function MoveCahut(props: { domain: string; origin: (domain: string) => string; 
 	};
 	return (
 		<form class="form" onSubmit={move}>
-			<p class="c-small">
-				Point the DNS record of the new domain to this server first. Everything in the Cahut stays, but the links that name{" "}
-				<span class="c-mono">{props.domain}</span> stop working, and AIs connect again at the new address.
-			</p>
+			<p class="c-small">{t.moveText(props.domain)}</p>
 			<label class="c-field">
-				<span class="c-field__label">New domain</span>
+				<span class="c-field__label">{t.newDomain}</span>
 				<input class="c-input c-mono" required placeholder="cahut.example.com" value={to} onInput={(e) => setTo(e.currentTarget.value)} />
 			</label>
 			{error && <Failure message={error} />}
 			<div class="updates__actions">
 				<button class="c-btn c-btn--primary c-btn--sm" type="submit" disabled={busy}>
-					Move the Cahut
+					{t.moveCahut}
 				</button>
 				<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => setOpen(false)}>
-					Cancel
+					{t.cancel}
 				</button>
 			</div>
 		</form>
@@ -191,22 +282,20 @@ function DeclareCahut({ origin, onDeclared }: { origin: (domain: string) => stri
 	};
 	return (
 		<section class="section c-card panel">
-			<h2 class="c-h4">Declare a Cahut</h2>
-			<p class="c-small c-muted">
-				Point the DNS record of the domain to this server first. The Cahut gets its certificate at the first visit.
-			</p>
+			<h2 class="c-h4">{t.declareCahut}</h2>
+			<p class="c-small c-muted">{t.declareText}</p>
 			<form class="form" onSubmit={submit}>
 				<label class="c-field">
-					<span class="c-field__label">Domain</span>
+					<span class="c-field__label">{t.domain}</span>
 					<input class="c-input c-mono" required placeholder="cahut.example.com" value={domain} onInput={(e) => setDomain(e.currentTarget.value)} />
 				</label>
 				<div class="form__row">
 					<label class="c-field">
-						<span class="c-field__label">Handle of its first administrator</span>
+						<span class="c-field__label">{t.firstAdmin}</span>
 						<input class="c-input" autocapitalize="none" value={handle} onInput={(e) => setHandle(e.currentTarget.value)} />
 					</label>
 					<label class="c-field">
-						<span class="c-field__label">Their name</span>
+						<span class="c-field__label">{t.theirName}</span>
 						<input class="c-input" value={name} onInput={(e) => setName(e.currentTarget.value)} />
 					</label>
 				</div>
@@ -214,18 +303,18 @@ function DeclareCahut({ origin, onDeclared }: { origin: (domain: string) => stri
 				<div>
 					<button class="c-btn c-btn--primary" type="submit">
 						<Plus class="i" size={16} aria-hidden="true" />
-						Declare
+						{t.declare}
 					</button>
 				</div>
 			</form>
 			{done && (
 				<div class="result" role="status">
 					<p class="c-small">
-						Declared <span class="c-mono">{done.domain}</span>.
-						{done.admin?.activation && ` Send ${done.admin.name} this link, where they choose their password. It works once, for 7 days.`}
+						{t.declared(done.domain)}
+						{done.admin?.activation && t.sendLink(done.admin.name)}
 					</p>
 					{done.admin?.activation && (
-						<CopyField label="the activation link" value={`${origin(done.domain)}${href("/activate")}#${done.admin.activation.code}`} />
+						<CopyField label={t.activationLink} value={`${origin(done.domain)}${href("/activate")}#${done.admin.activation.code}`} />
 					)}
 				</div>
 			)}

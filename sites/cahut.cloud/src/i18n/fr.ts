@@ -27,10 +27,10 @@ const fr: Dictionary = {
 			project: 'Projet',
 			github: 'GitHub',
 		},
-		footer: { cahut: 'Cahut', project: 'Projet' },
+		footer: { cahut: 'Cahut', project: 'Projet', follow: 'Suivre' },
 		signature: 'Votre propre nuage pour tout ce que fabriquent vos IA.',
 		about:
-			"Cahut est un projet open source personnel d'Olivier Durand, indépendant de toute entreprise et de tout fournisseur d'IA. Il est en début de développement.",
+			"Cahut est un projet open source personnel d'Olivier Durand, indépendant de toute entreprise et de tout fournisseur d'IA. Elle est en début de développement.",
 		theme: { dark: 'Passer au thème sombre', light: 'Passer au thème clair' },
 		language: { label: 'English version', short: 'EN' },
 	},
@@ -58,11 +58,11 @@ const fr: Dictionary = {
 			local: { label: 'Sur votre machine', meta: 'Git · make · Go' },
 		},
 		comments: {
-			install: 'Installer Cahut comme service, avec votre premier Cahut',
+			install: 'Installer Cahut comme service, avec votre première Cahut',
 			account: "Ouvrir le lien qu'il affiche : votre compte, votre house style, votre IA",
 			connect: 'Ou ajouter vous-même votre Cahut à Claude Code, et vous connecter',
 			build: 'Compiler Cahut depuis les sources',
-			declare: 'Déclarer un Cahut sur localhost, avec votre compte et un jeton',
+			declare: 'Déclarer une Cahut sur localhost, avec votre compte et un jeton',
 			serve: 'Le servir sur http://localhost:8080',
 			connectLocal: "L'ajouter à Claude Code, avec le jeton",
 			ask: 'Puis demandez à votre IA',
@@ -135,7 +135,7 @@ const fr: Dictionary = {
 		label: "L'idée",
 		title: 'Vos IA fabriquent, Cahut fait vivre.',
 		lead: "Tout ce qu'elles produisent est publié, partagé, rangé et protégé au même endroit, à vos couleurs, chez vous, quelle que soit l'IA.",
-		text: "Cahut ne crée pas de contenu, il l'héberge. Il ne concurrence ni les IA ni les outils de création : c'est la maison neutre et auto-hébergée où vit leur travail.",
+		text: "Cahut ne crée pas de contenu, elle l'héberge. Elle ne concurrence ni les IA ni les outils de création : c'est la maison neutre et auto-hébergée où vit leur travail.",
 		layers: [
 			{
 				layer: 'Créer',
@@ -186,7 +186,7 @@ const fr: Dictionary = {
 			{
 				title: 'Partager',
 				heading: 'Partagez un lien, pas un fichier.',
-				text: "Chaque Window s'ouvre à sa Room seulement, à tout votre Cahut, à qui a sa Key, ou au public. Les lecteurs l'ouvrent dans un navigateur et la commentent.",
+				text: "Chaque Window s'ouvre à sa Room seulement, à toute votre Cahut, à qui a sa Key, ou au public. Les lecteurs l'ouvrent dans un navigateur et la commentent.",
 				call: 'set_window_access(window: "marketing/q3-review", access: "key")',
 			},
 			{
@@ -254,7 +254,7 @@ const fr: Dictionary = {
 		approvedItems: [
 			'Supprimer définitivement une Window, une appli ou une base de données',
 			'Rendre une Window publique',
-			'Ajouter une personne à un Cahut',
+			'Ajouter une personne à une Cahut',
 			"Changer les droits d'une personne ou d'une IA",
 			'Effacer des sauvegardes ou changer leur destination',
 		],
@@ -370,11 +370,11 @@ const fr: Dictionary = {
 				features: [
 					{
 						area: 'Partage',
-						text: 'Par lien, Window par Window : sa Room seulement, interne (tout le Cahut), une Key (un mot de passe) ou public, avec une date de fin facultative.',
+						text: 'Par lien, Window par Window : sa Room seulement, interne (toute la Cahut), une Key (un mot de passe) ou public, avec une date de fin facultative.',
 					},
 					{
 						area: 'Invitations',
-						text: 'Une Window envoyée par e-mail, aux personnes du Cahut ou au-dehors, avec un lien personnel qui tient lieu de Key.',
+						text: 'Une Window envoyée par e-mail, aux personnes de la Cahut ou au-dehors, avec un lien personnel qui tient lieu de Key.',
 					},
 					{ area: 'Commentaires', text: 'Les retours des lecteurs, directement sur les pages.' },
 					{
@@ -401,7 +401,7 @@ const fr: Dictionary = {
 					},
 					{
 						area: 'Domaines et TLS',
-						text: 'Plusieurs Cahuts par serveur, chacun à son domaine ou sous-domaine. Pas de wildcard, des certificats automatiques.',
+						text: 'Plusieurs Cahuts par serveur, chacune à son domaine ou sous-domaine. Pas de wildcard, des certificats automatiques.',
 					},
 					{
 						area: 'Limites',
@@ -428,7 +428,7 @@ const fr: Dictionary = {
 			"Faire tourner un modèle d'IA sur le serveur : les IA restent dehors et s'y connectent.",
 			"Dépendre d'un fournisseur d'IA, ou enfermer le travail dans un format propriétaire.",
 			'Donner à une IA un accès libre au serveur.',
-			'Tourner sur plusieurs machines : un serveur porte un ou plusieurs Cahuts.',
+			'Tourner sur plusieurs machines : un serveur porte une ou plusieurs Cahuts.',
 		],
 	},
 
@@ -440,7 +440,7 @@ const fr: Dictionary = {
 			{
 				word: 'Cahut',
 				meaning:
-					'Votre instance, à son propre domaine. Un serveur peut en porter plusieurs, chacun avec ses personnes et sa base de données.',
+					'Votre instance, à son propre domaine. Un serveur peut en porter plusieurs, chacune avec ses personnes et sa base de données.',
 			},
 			{
 				word: 'Room',
@@ -470,12 +470,12 @@ const fr: Dictionary = {
 	roadmap: {
 		label: 'Feuille de route',
 		title: 'Où en est Cahut',
-		lead: "Cahut est un projet personnel d'Olivier Durand, indépendant de toute entreprise et de tout fournisseur d'IA. Il est écrit en Go, en public, une étape après l'autre.",
+		lead: "Cahut est un projet personnel d'Olivier Durand, indépendant de toute entreprise et de tout fournisseur d'IA. Elle est écrite en Go, en public, une étape après l'autre.",
 		steps: [
 			"Protéger le nom : organisation GitHub, noms des paquets, recherche d'antériorité de marque.",
 			"Écrire l'architecture cible : comparer les options et trancher, avec leurs raisons.",
 			'Construire la première tranche verticale en Go : installer sur un serveur, publier une page par MCP, la servir en HTTPS.',
-			'Preuve de concept : Cahut installé sur un VPS vierge, une IA qui publie une présentation par MCP, la console.',
+			'Preuve de concept : Cahut installée sur un VPS vierge, une IA qui publie une présentation par MCP, la console.',
 			"Feuille de route jusqu'au lancement public.",
 		],
 		underWay: 'En cours',
@@ -492,7 +492,7 @@ const fr: Dictionary = {
 			},
 			{
 				criterion: 'IA prises en charge',
-				threshold: "Le même Cahut fonctionne avec au moins deux clients d'IA différents",
+				threshold: "La même Cahut fonctionne avec au moins deux clients d'IA différents",
 			},
 			{
 				criterion: 'Gouvernance',
@@ -513,7 +513,7 @@ const fr: Dictionary = {
 		},
 		descriptions: {
 			governance: "Qui décide dans le projet Cahut, ses principes, ses rôles, comment il grandit, et ce que fait l'argent.",
-			roadmap: "Les lots de Cahut, ce qui marche aujourd'hui, et ce qui le rend prêt pour le lancement.",
+			roadmap: "Les lots de Cahut, ce qui marche aujourd'hui, et ce qui la rend prête pour le lancement.",
 			contribute:
 				"Ce qui aide Cahut tout de suite, ce qui se discute d'abord, comment une pull request entre, et les règles des contributions faites avec une IA.",
 			support: "Où demander de l'aide sur Cahut, comment bien demander, et à quoi s'attendre.",
@@ -552,7 +552,7 @@ const fr: Dictionary = {
 				},
 				{
 					title: 'Windows complètes : versions et accès',
-					text: "Mettre à jour une Window garde la version précédente, et un geste y revient. Chaque Window s'ouvre à sa Room seulement, à tout son Cahut, à qui a sa Key, ou au public.",
+					text: "Mettre à jour une Window garde la version précédente, et un geste y revient. Chaque Window s'ouvre à sa Room seulement, à toute sa Cahut, à qui a sa Key, ou au public.",
 				},
 				{
 					title: 'Knock first',
@@ -577,13 +577,13 @@ const fr: Dictionary = {
 			],
 			milestones: 'Les jalons sur GitHub',
 			todayTitle: "Ce qui marche aujourd'hui",
-			todayLead: "Les lots 0 à 9 sont faits. Aujourd'hui, dans un Cahut :",
+			todayLead: "Les lots 0 à 9 sont faits. Aujourd'hui, dans une Cahut :",
 			today: [
 				"Une commande qui installe un serveur Linux, un premier démarrage dans le navigateur, et des mises à jour quotidiennes depuis les releases signées, avec retour arrière.",
-				"Un service sur un serveur Linux, qui porte un ou plusieurs Cahuts, chacun à son domaine avec son certificat, ou à l'adresse IPv4 du serveur tant qu'il n'en a pas.",
-				'Des Cahuts collaboratifs, ou individuels où chacun travaille seul, et des limites sur les personnes, les Rooms, les Windows et le disque, que fixent les administrateurs du serveur.',
-				"Des personnes qui se connectent, des administrateurs du Cahut et du serveur, et des Rooms d'équipe avec propriétaires et membres. La page de chaque Room liste ses Windows, ou montre celle que ses propriétaires choisissent.",
-				'Une console web : Knocks, Rooms, Windows, Logbook, personnes, IA connectées, jetons personnels, e-mail et serveur.',
+				"Un service sur un serveur Linux, qui porte une ou plusieurs Cahuts, chacune à son domaine avec son certificat, ou à l'adresse IPv4 du serveur tant qu'elle n'en a pas.",
+				'Des Cahuts collaboratives, ou individuelles où chacun travaille seul, et des limites sur les personnes, les Rooms, les Windows et le disque, que fixent les administrateurs du serveur.',
+				"Des personnes qui se connectent, des administrateurs de la Cahut et du serveur, et des Rooms d'équipe avec propriétaires et membres. La page de chaque Room liste ses Windows, ou montre celle que ses propriétaires choisissent.",
+				'Une console web, en anglais et en français : Knocks, Rooms, Windows, Logbook, personnes, IA connectées, jetons personnels, e-mail et serveur.',
 				"Des clients d'IA qui se connectent par OAuth, comme claude.ai, Claude Code, ChatGPT et Le Chat, aux Rooms et dans la portée qu'une personne accorde, ou avec un jeton personnel.",
 				"Des Windows publiées par MCP : documents, présentations, tableaux de bord et sites statiques, servis dans un bac à sable qui les tient à ce que leur IA déclare charger et appeler.",
 				"Deux versions de chaque Window avec retour en arrière, une corbeille, et un accès : Room seulement, interne, avec une Key ou public, jusqu'à une date.",

@@ -1,13 +1,103 @@
-// The account: who is signed in, their e-mail address and notices, a new
-// password, and signing out.
+// The account: who is signed in, their e-mail address and notices, the
+// language of the console, a new password, and signing out.
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { EmailChange } from "../api.gen";
 import { Failure, PageHead } from "../components";
 import { useConsole } from "../context";
+import { lang, langs, locale, setLang, words } from "../i18n";
 import { useLoad } from "../load";
 
 const minPassword = 15;
+
+const t = words({
+	en: {
+		differ: "The two new passwords differ.",
+		account: "Account",
+		admin: ", administrator of the server.",
+		at: (host: string) => `, at ${host}.`,
+		language: "Language",
+		languageHelp: "The console speaks this language in this browser. What the server writes, such as its messages, stays in English.",
+		changePassword: "Change your password",
+		adminPassword:
+			"This is your password as an administrator of the server. Your account as a person of a Cahut, if you have one, keeps its own.",
+		personPassword:
+			"This is your password in this Cahut. Your account as an administrator of the server, if you have one, keeps its own.",
+		current: "Current password",
+		newPassword: "New password",
+		atLeast: (n: number) => `At least ${n} characters. Your other sessions end.`,
+		again: "The same new password again",
+		changed: "Password changed. Your other sessions have ended.",
+		change: "Change the password",
+		signOut: "Sign out",
+		linkWent: (email: string) => `A link went to ${email}. Your address changes once you use it.`,
+		removed: "Your address is removed.",
+		email: "E-mail",
+		goTo: (email: string) => (
+			<>
+				Links and notices go to <span class="c-mono">{email}</span>.
+			</>
+		),
+		noEmail: "Your account has no e-mail address: links come from an administrator, and no notice reaches you.",
+		waits: (email: string, until: string) => (
+			<>
+				<span class="c-mono">{email}</span> waits for you to use the link sent to it, until {until}.
+			</>
+		),
+		newAddress: "New address",
+		address: "Address",
+		addressHelp: "A link goes to it: your address changes once you use it, within 24 hours.",
+		send: "Send the link",
+		remove: "Remove your address",
+		off: "Notices are off, but for those about your account and your Knocks.",
+		on: "Notices are on.",
+		notices: "Tell me by e-mail when I join a Room, or when the access of a Window that I set ends",
+	},
+	fr: {
+		differ: "Les deux nouveaux mots de passe diffèrent.",
+		account: "Compte",
+		admin: ", administrateur du serveur.",
+		at: (host) => `, sur ${host}.`,
+		language: "Langue",
+		languageHelp:
+			"La console parle cette langue dans ce navigateur. Ce qu'écrit le serveur, comme ses messages d'erreur, reste en anglais.",
+		changePassword: "Changer de mot de passe",
+		adminPassword:
+			"C'est votre mot de passe d'administrateur du serveur. Votre compte de personne d'une Cahut, si vous en avez un, garde le sien.",
+		personPassword:
+			"C'est votre mot de passe dans cette Cahut. Votre compte d'administrateur du serveur, si vous en avez un, garde le sien.",
+		current: "Mot de passe actuel",
+		newPassword: "Nouveau mot de passe",
+		atLeast: (n) => `Au moins ${n} caractères. Vos autres sessions prennent fin.`,
+		again: "Le même nouveau mot de passe, une seconde fois",
+		changed: "Mot de passe changé. Vos autres sessions ont pris fin.",
+		change: "Changer le mot de passe",
+		signOut: "Se déconnecter",
+		linkWent: (email) => `Un lien est parti à ${email}. Votre adresse change dès que vous l'utilisez.`,
+		removed: "Votre adresse est retirée.",
+		email: "E-mail",
+		goTo: (email) => (
+			<>
+				Les liens et les notifications vont à <span class="c-mono">{email}</span>.
+			</>
+		),
+		noEmail:
+			"Votre compte n'a pas d'adresse e-mail : les liens viennent d'un administrateur, et aucune notification ne vous parvient.",
+		waits: (email, until) => (
+			<>
+				<span class="c-mono">{email}</span> attend que vous utilisiez le lien qui lui a été envoyé, jusqu'au {until}.
+			</>
+		),
+		newAddress: "Nouvelle adresse",
+		address: "Adresse",
+		addressHelp: "Un lien y part : votre adresse change dès que vous l'utilisez, dans les 24 heures.",
+		send: "Envoyer le lien",
+		remove: "Retirer votre adresse",
+		off: "Les notifications sont désactivées, sauf celles sur votre compte et vos Knocks.",
+		on: "Les notifications sont activées.",
+		notices: "Me prévenir par e-mail quand je rejoins une Room, ou quand prend fin l'accès que j'ai donné à une Window",
+	},
+});
 
 export function Account({ onSignOut }: { onSignOut: () => void }) {
 	const api = useConsole();
@@ -21,7 +111,7 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 		setError("");
 		setDone(false);
 		if (next !== again) {
-			setError("The two new passwords differ.");
+			setError(t.differ);
 			return;
 		}
 		try {
@@ -37,49 +127,65 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 	};
 	return (
 		<>
-			<PageHead label="Account" title={api.session.name}>
+			<PageHead label={t.account} title={api.session.name}>
 				<span class="c-mono">{api.session.handle}</span>
-				{api.session.kind === "admin" ? ", administrator of the server." : `, at ${location.hostname}.`}
+				{api.session.kind === "admin" ? t.admin : t.at(location.hostname)}
 			</PageHead>
 			{api.session.kind === "person" && api.sendsMail && <EmailSection />}
+			<Language />
 			<section class="section c-card panel narrow">
-				<h2 class="c-h4">Change your password</h2>
-				<p class="c-small c-muted">
-					{api.session.kind === "admin"
-						? "This is your password as an administrator of the server. Your account as a person of a Cahut, if you have one, keeps its own."
-						: "This is your password in this Cahut. Your account as an administrator of the server, if you have one, keeps its own."}
-				</p>
+				<h2 class="c-h4">{t.changePassword}</h2>
+				<p class="c-small c-muted">{api.session.kind === "admin" ? t.adminPassword : t.personPassword}</p>
 				<form class="form" onSubmit={submit}>
 					<label class="c-field">
-						<span class="c-field__label">Current password</span>
+						<span class="c-field__label">{t.current}</span>
 						<input class="c-input" type="password" autocomplete="current-password" required value={password} onInput={(e) => setPassword(e.currentTarget.value)} />
 					</label>
 					<label class="c-field">
-						<span class="c-field__label">New password</span>
+						<span class="c-field__label">{t.newPassword}</span>
 						<input class="c-input" type="password" autocomplete="new-password" minLength={minPassword} required value={next} onInput={(e) => setNext(e.currentTarget.value)} />
-						<span class="c-field__help">At least {minPassword} characters. Your other sessions end.</span>
+						<span class="c-field__help">{t.atLeast(minPassword)}</span>
 					</label>
 					<label class="c-field">
-						<span class="c-field__label">The same new password again</span>
+						<span class="c-field__label">{t.again}</span>
 						<input class="c-input" type="password" autocomplete="new-password" minLength={minPassword} required value={again} onInput={(e) => setAgain(e.currentTarget.value)} />
 					</label>
 					{error && <Failure message={error} />}
 					{done && (
 						<div class="c-alert c-alert--success" role="status">
-							Password changed. Your other sessions have ended.
+							{t.changed}
 						</div>
 					)}
 					<div>
 						<button class="c-btn c-btn--primary" type="submit">
-							Change the password
+							{t.change}
 						</button>
 					</div>
 				</form>
 			</section>
 			<button class="c-btn c-btn--secondary" type="button" onClick={onSignOut}>
-				Sign out
+				{t.signOut}
 			</button>
 		</>
+	);
+}
+
+/** The language of the console in this browser, which a choice changes at once. */
+function Language() {
+	return (
+		<section class="section c-card panel narrow">
+			<h2 class="c-h4">{t.language}</h2>
+			<p class="c-small c-muted">{t.languageHelp}</p>
+			<fieldset class="consent__group">
+				<legend class="visually-hidden">{t.language}</legend>
+				{langs.map((l) => (
+					<label key={l.lang} class="c-check" lang={l.lang}>
+						<input type="radio" name="language" checked={l.lang === lang} onChange={() => setLang(l.lang)} />
+						<span>{l.name}</span>
+					</label>
+				))}
+			</fieldset>
+		</section>
 	);
 }
 
@@ -123,36 +229,27 @@ function EmailSection() {
 			const input = { email };
 			const r = await api.cahut("change_email", input);
 			setEmail("");
-			return r.waiting ? `A link went to ${r.waiting.email}. Your address changes once you use it.` : "Your address is removed.";
+			return r.waiting ? t.linkWent(r.waiting.email) : t.removed;
 		});
 	};
 	return (
 		<section class="section c-card panel narrow">
-			<h2 class="c-h4">E-mail</h2>
-			<p class="c-small">
-				{data.email ? (
-					<>
-						Links and notices go to <span class="c-mono">{data.email}</span>.
-					</>
-				) : (
-					"Your account has no e-mail address: links come from an administrator, and no notice reaches you."
-				)}
-			</p>
+			<h2 class="c-h4">{t.email}</h2>
+			<p class="c-small">{data.email ? t.goTo(data.email) : t.noEmail}</p>
 			{data.change && (
 				<p class="c-small c-muted">
-					<span class="c-mono">{data.change.email}</span> waits for you to use the link sent to it, until{" "}
-					{new Date(data.change.expires_at).toLocaleString("en-GB", { dateStyle: "long", timeStyle: "short" })}.
+					{t.waits(data.change.email, new Date(data.change.expires_at).toLocaleString(locale, { dateStyle: "long", timeStyle: "short" }))}
 				</p>
 			)}
 			<form class="form" onSubmit={change}>
 				<label class="c-field">
-					<span class="c-field__label">{data.email ? "New address" : "Address"}</span>
+					<span class="c-field__label">{data.email ? t.newAddress : t.address}</span>
 					<input class="c-input" type="email" autocomplete="email" required value={email} onInput={(e) => setEmail(e.currentTarget.value)} />
-					<span class="c-field__help">A link goes to it: your address changes once you use it, within 24 hours.</span>
+					<span class="c-field__help">{t.addressHelp}</span>
 				</label>
 				<div class="actions">
 					<button class="c-btn c-btn--primary" type="submit">
-						Send the link
+						{t.send}
 					</button>
 					{data.email && (
 						<button
@@ -161,11 +258,11 @@ function EmailSection() {
 							onClick={() =>
 								act(async () => {
 									await api.cahut("change_email", { email: "" });
-									return "Your address is removed.";
+									return t.removed;
 								})
 							}
 						>
-							Remove your address
+							{t.remove}
 						</button>
 					)}
 				</div>
@@ -178,13 +275,11 @@ function EmailSection() {
 						const off = !e.currentTarget.checked;
 						act(async () => {
 							await api.cahut("set_mail_notices", { off });
-							return off
-								? "Notices are off, but for those about your account and your Knocks."
-								: "Notices are on.";
+							return off ? t.off : t.on;
 						});
 					}}
 				/>
-				Tell me by e-mail when I join a Room, or when the access of a Window that I set ends
+				{t.notices}
 			</label>
 			{said && (
 				<div class="c-alert c-alert--success" role="status">

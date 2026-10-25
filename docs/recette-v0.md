@@ -4,7 +4,7 @@
 
 ## En bref
 
-La V0 est acquise quand les cinq critères du README passent sur deux VPS vierges, un sous AlmaLinux et un sous Ubuntu, avec Claude et ChatGPT. Ce document dit comment le vérifier, pas à pas et chronomètre en main, et garde les résultats de chaque passage. Une partie de la recette tourne aussi à chaque changement, en CI : le test d'installation sur un Ubuntu vierge, et un test qui rejoue les quatre autres critères sur un Cahut de test.
+La V0 est acquise quand les cinq critères du README passent sur deux VPS vierges, un sous AlmaLinux et un sous Ubuntu, avec Claude et ChatGPT. Ce document dit comment le vérifier, pas à pas et chronomètre en main, et garde les résultats de chaque passage. Une partie de la recette tourne aussi à chaque changement, en CI : le test d'installation sur un Ubuntu vierge, et un test qui rejoue les quatre autres critères sur une Cahut de test.
 
 ## Les critères
 
@@ -13,13 +13,13 @@ La V0 est acquise quand les cinq critères du README passent sur deux VPS vierge
 | 1 | Installation sur un VPS vierge | Moins de 10 minutes, une commande, sur AlmaLinux et sur Ubuntu |
 | 2 | Première publication par une IA | Moins de 5 minutes après l'ouverture du lien du premier démarrage, sans toucher au serveur |
 | 3 | Partage par une personne non technique | Une présentation partagée par lien, avec une Key, en quelques minutes, depuis la console seule |
-| 4 | IA prises en charge | Le même Cahut fonctionne avec Claude et ChatGPT : chacun publie, met à jour et partage une Window |
+| 4 | IA prises en charge | La même Cahut fonctionne avec Claude et ChatGPT : chacun publie, met à jour et partage une Window |
 | 5 | Gouvernance | Toute action d'une IA figure au Logbook, et s'annule ou a été approuvée |
 
 ## Ce que la CI vérifie à chaque changement
 
 - **Critère 1.** Le job *Install* lance [test/install/run.sh](../test/install/run.sh) sur l'Ubuntu vierge de GitHub : `install.sh`, `cahut doctor`, une mise à jour et un retour arrière. `make install-test` fait de même sous Lima, sur AlmaLinux 10 et Ubuntu 24.04. Ni l'un ni l'autre n'obtient de certificat : ils n'ont pas de domaine public.
-- **Critères 2 à 5.** `TestV0Acceptance` ([internal/web/acceptance_test.go](../internal/web/acceptance_test.go)) rejoue sur un Cahut de test :
+- **Critères 2 à 5.** `TestV0Acceptance` ([internal/web/acceptance_test.go](../internal/web/acceptance_test.go)) rejoue sur une Cahut de test :
   - le premier démarrage par son lien et la house style ;
   - un client qui s'identifie par son document, comme ChatGPT, lit la house style et publie une présentation ;
   - la personne lui donne une Key par l'API de la console, et un lecteur l'ouvre avec la Key ;
@@ -75,7 +75,7 @@ Sans terminal, dans la console :
 
 ### 4. Deuxième client : ChatGPT
 
-1. Dans ChatGPT sur le web, Plugins, le bouton plus, puis « Add custom MCP server » : un nom, l'adresse MCP du Cahut, OAuth ; accepter l'avertissement, créer le plugin.
+1. Dans ChatGPT sur le web, Plugins, le bouton plus, puis « Add custom MCP server » : un nom, l'adresse MCP de la Cahut, OAuth ; accepter l'avertissement, créer le plugin.
 2. Se connecter quand ChatGPT renvoie vers la console, garder « Read and publish » et toutes les Rooms.
 3. Dans une conversation, choisir le plugin et demander : « Mets à jour la présentation des résultats du trimestre : ajoute une diapositive de conclusion, à la house style. »
 4. Puis : « Reviens à la version précédente de cette présentation. »
@@ -93,8 +93,8 @@ Sans terminal, dans la console :
 
 ### 6. En option
 
-- **Le Chat** : dans Le Chat, Connectors, ajouter un connecteur MCP personnalisé à l'adresse du Cahut ; Le Chat trouve OAuth seul. Lister les Windows, puis en publier une.
-- **Sans domaine** : sur un troisième VPS, ou à la place du domaine sur l'Ubuntu, `install.sh` sans `--domain` installe le Cahut à l'adresse IPv4 du serveur, avec un certificat de Let's Encrypt pour cette adresse. Brancher claude.ai à `https://<adresse>/mcp` ; ChatGPT ne se branche pas à un Cahut à une adresse IP, et l'onglet ChatGPT de la console le dit. Puis, dans la console, « Move to a domain ».
+- **Le Chat** : dans Le Chat, Connectors, ajouter un connecteur MCP personnalisé à l'adresse de la Cahut ; Le Chat trouve OAuth seul. Lister les Windows, puis en publier une.
+- **Sans domaine** : sur un troisième VPS, ou à la place du domaine sur l'Ubuntu, `install.sh` sans `--domain` installe la Cahut à l'adresse IPv4 du serveur, avec un certificat de Let's Encrypt pour cette adresse. Brancher claude.ai à `https://<adresse>/mcp` ; ChatGPT ne se branche pas à une Cahut à une adresse IP, et l'onglet ChatGPT de la console le dit. Puis, dans la console, « Move to a domain ».
 
 ## Résultats
 

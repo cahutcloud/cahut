@@ -5,17 +5,111 @@ import { CircleCheck, Download, LoaderCircle } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
 import type { Connection, TokenInfo } from "./api.gen";
 import { CopyField, Notice } from "./components";
+import { words } from "./i18n";
 import { Link } from "./router";
+
+const t = words({
+	en: {
+		claudeApps: "Claude apps",
+		others: "Other clients",
+		clients: "AI clients",
+		plugin: (host: string) => (
+			<>
+				The Cahut plugin connects this Cahut and teaches Claude its house style. It asks for the domain of this Cahut,{" "}
+				<code class="c-mono">{host}</code>.
+			</>
+		),
+		addMarketplace: "the command that adds the marketplace",
+		installPlugin: "the command that installs the plugin",
+		orTerminal: "Or connect the Cahut only, from a terminal, then sign in here when Claude Code sends you:",
+		addCahut: "the command that adds the Cahut",
+		login: "the command that signs Claude Code in",
+		claudeConnector:
+			"In claude.ai or the Claude app, open Settings, then Connectors, and add a custom connector with this address. Connect it: Claude sends you here to sign in, and you choose the Rooms it reaches.",
+		address: "the address",
+		uploadSkill: "Then upload the skill for Claude in the settings of Claude, beside the connector.",
+		downloadSkill: "Download the skill",
+		chatgptIP: (
+			<>
+				ChatGPT does not connect to a Cahut at an IP address. Point a domain to this server and move the Cahut there, in the
+				console of the administrator of the server or with <code class="c-mono">cahut domain rename</code>, then add it to ChatGPT
+				at its new address.
+			</>
+		),
+		chatgpt:
+			"In ChatGPT on the web, open Plugins, select the plus button, then Add custom MCP server. Give it a name, this address, and OAuth as its authentication, then create it. ChatGPT sends you here to sign in, and you choose the Rooms it reaches. It asks you to confirm the calls that change something.",
+		chatgptPlans: "Custom MCP servers need a Business, Enterprise or Edu plan of ChatGPT.",
+		leChat:
+			"In Le Chat, open Connectors and add a custom MCP connector with this address. Le Chat finds that the Cahut signs in with OAuth and sends you here to sign in.",
+		other: (
+			<>
+				Give any MCP client this address, over HTTP. A client that signs in with OAuth sends you here; one that does not takes a
+				personal token, which{" "}
+				<Link class="c-link" href="/access">
+					AIs and access
+				</Link>{" "}
+				creates.
+			</>
+		),
+		connected: (name: string) => `${name} is connected. Ask it to publish something on Cahut.`,
+		waiting: "Waiting for your AI. This page sees it as soon as it connects.",
+	},
+	fr: {
+		claudeApps: "Applis Claude",
+		others: "Autres clients",
+		clients: "Clients d'IA",
+		plugin: (host) => (
+			<>
+				Le plugin Cahut connecte cette Cahut et apprend sa house style à Claude. Il demande le domaine de cette Cahut,{" "}
+				<code class="c-mono">{host}</code>.
+			</>
+		),
+		addMarketplace: "la commande qui ajoute la marketplace",
+		installPlugin: "la commande qui installe le plugin",
+		orTerminal: "Ou connectez seulement la Cahut, depuis un terminal, puis connectez-vous ici quand Claude Code vous y envoie :",
+		addCahut: "la commande qui ajoute la Cahut",
+		login: "la commande qui connecte Claude Code",
+		claudeConnector:
+			"Dans claude.ai ou l'appli Claude, ouvrez les paramètres, puis les connecteurs, et ajoutez un connecteur personnalisé avec cette adresse. Connectez-le : Claude vous envoie ici pour vous connecter, et vous choisissez les Rooms qu'il atteint.",
+		address: "l'adresse",
+		uploadSkill: "Puis importez la skill pour Claude dans les paramètres de Claude, à côté du connecteur.",
+		downloadSkill: "Télécharger la skill",
+		chatgptIP: (
+			<>
+				ChatGPT ne se connecte pas à une Cahut à une adresse IP. Faites pointer un domaine vers ce serveur et déplacez-y la Cahut, dans
+				la console de l'administrateur du serveur ou avec <code class="c-mono">cahut domain rename</code>, puis ajoutez-le à
+				ChatGPT à sa nouvelle adresse.
+			</>
+		),
+		chatgpt:
+			"Dans ChatGPT sur le web, ouvrez les plugins, choisissez le bouton plus, puis l'ajout d'un serveur MCP personnalisé. Donnez-lui un nom, cette adresse, et OAuth comme authentification, puis créez-le. ChatGPT vous envoie ici pour vous connecter, et vous choisissez les Rooms qu'il atteint. Il vous demande de confirmer les appels qui changent quelque chose.",
+		chatgptPlans: "Les serveurs MCP personnalisés demandent un abonnement Business, Enterprise ou Edu à ChatGPT.",
+		leChat:
+			"Dans Le Chat, ouvrez les connecteurs et ajoutez un connecteur MCP personnalisé avec cette adresse. Le Chat voit que la Cahut se connecte par OAuth et vous envoie ici pour vous connecter.",
+		other: (
+			<>
+				Donnez cette adresse à tout client MCP, en HTTP. Un client qui se connecte par OAuth vous envoie ici ; un autre prend un
+				jeton personnel, que crée la page{" "}
+				<Link class="c-link" href="/access">
+					IA et accès
+				</Link>
+				.
+			</>
+		),
+		connected: (name) => `${name} est connecté. Demandez-lui de publier quelque chose sur Cahut.`,
+		waiting: "En attente de votre IA. Cette page la voit dès qu'elle se connecte.",
+	},
+});
 
 /** An address that is an IPv4 address, not a domain. */
 export const ipAddress = /^\d{1,3}(\.\d{1,3}){3}$/;
 
 const clients = [
 	{ id: "claude-code", name: "Claude Code" },
-	{ id: "claude", name: "Claude apps" },
+	{ id: "claude", name: t.claudeApps },
 	{ id: "chatgpt", name: "ChatGPT" },
 	{ id: "le-chat", name: "Le Chat" },
-	{ id: "other", name: "Other clients" },
+	{ id: "other", name: t.others },
 ] as const;
 
 type Client = (typeof clients)[number]["id"];
@@ -25,7 +119,7 @@ export function ConnectSteps({ mcp }: { mcp: string }) {
 	const [client, setClient] = useState<Client>("claude-code");
 	return (
 		<div class="connect">
-			<div class="c-tabs" role="tablist" aria-label="AI clients">
+			<div class="c-tabs" role="tablist" aria-label={t.clients}>
 				{clients.map((c) => (
 					<button
 						key={c.id}
@@ -55,15 +149,12 @@ export function ConnectSteps({ mcp }: { mcp: string }) {
 function ClaudeCode({ mcp }: { mcp: string }) {
 	return (
 		<>
-			<p class="c-small">
-				The Cahut plugin connects this Cahut and teaches Claude its house style. It asks for the domain of this Cahut,{" "}
-				<code class="c-mono">{location.host}</code>.
-			</p>
-			<CopyField label="the command that adds the marketplace" value="/plugin marketplace add getcahut/cahut" />
-			<CopyField label="the command that installs the plugin" value="/plugin install cahut@cahut" />
-			<p class="c-small">Or connect the Cahut only, from a terminal, then sign in here when Claude Code sends you:</p>
-			<CopyField label="the command that adds the Cahut" value={`claude mcp add --transport http cahut ${mcp}`} />
-			<CopyField label="the command that signs Claude Code in" value="claude mcp login cahut" />
+			<p class="c-small">{t.plugin(location.host)}</p>
+			<CopyField label={t.addMarketplace} value="/plugin marketplace add getcahut/cahut" />
+			<CopyField label={t.installPlugin} value="/plugin install cahut@cahut" />
+			<p class="c-small">{t.orTerminal}</p>
+			<CopyField label={t.addCahut} value={`claude mcp add --transport http cahut ${mcp}`} />
+			<CopyField label={t.login} value="claude mcp login cahut" />
 		</>
 	);
 }
@@ -71,16 +162,13 @@ function ClaudeCode({ mcp }: { mcp: string }) {
 function ClaudeApps({ mcp }: { mcp: string }) {
 	return (
 		<>
-			<p class="c-small">
-				In claude.ai or the Claude app, open Settings, then Connectors, and add a custom connector with this address. Connect it:
-				Claude sends you here to sign in, and you choose the Rooms it reaches.
-			</p>
-			<CopyField label="the address" value={mcp} />
-			<p class="c-small">Then upload the skill for Claude in the settings of Claude, beside the connector.</p>
+			<p class="c-small">{t.claudeConnector}</p>
+			<CopyField label={t.address} value={mcp} />
+			<p class="c-small">{t.uploadSkill}</p>
 			<div>
 				<a class="c-btn c-btn--secondary c-btn--sm" href="/-/cahut-skill.zip" download>
 					<Download class="i" size={14} aria-hidden="true" />
-					Download the skill
+					{t.downloadSkill}
 				</a>
 			</div>
 		</>
@@ -92,22 +180,14 @@ function ChatGPT({ mcp }: { mcp: string }) {
 	// it says it finds no OAuth settings there.
 	if (ipAddress.test(location.hostname)) {
 		return (
-			<Notice>
-				ChatGPT does not connect to a Cahut at an IP address. Point a domain to this server and move the Cahut there, in the
-				console of the administrator of the server or with <code class="c-mono">cahut domain rename</code>, then add it to ChatGPT
-				at its new address.
-			</Notice>
+			<Notice>{t.chatgptIP}</Notice>
 		);
 	}
 	return (
 		<>
-			<p class="c-small">
-				In ChatGPT on the web, open Plugins, select the plus button, then Add custom MCP server. Give it a name, this address,
-				and OAuth as its authentication, then create it. ChatGPT sends you here to sign in, and you choose the Rooms it reaches.
-				It asks you to confirm the calls that change something.
-			</p>
-			<CopyField label="the address" value={mcp} />
-			<p class="c-small">Custom MCP servers need a Business, Enterprise or Edu plan of ChatGPT.</p>
+			<p class="c-small">{t.chatgpt}</p>
+			<CopyField label={t.address} value={mcp} />
+			<p class="c-small">{t.chatgptPlans}</p>
 		</>
 	);
 }
@@ -115,11 +195,8 @@ function ChatGPT({ mcp }: { mcp: string }) {
 function LeChat({ mcp }: { mcp: string }) {
 	return (
 		<>
-			<p class="c-small">
-				In Le Chat, open Connectors and add a custom MCP connector with this address. Le Chat finds that the Cahut signs in with
-				OAuth and sends you here to sign in.
-			</p>
-			<CopyField label="the address" value={mcp} />
+			<p class="c-small">{t.leChat}</p>
+			<CopyField label={t.address} value={mcp} />
 		</>
 	);
 }
@@ -127,11 +204,8 @@ function LeChat({ mcp }: { mcp: string }) {
 function Other({ mcp }: { mcp: string }) {
 	return (
 		<>
-			<p class="c-small">
-				Give any MCP client this address, over HTTP. A client that signs in with OAuth sends you here; one that does not takes a
-				personal token, which <Link class="c-link" href="/access">AIs and access</Link> creates.
-			</p>
-			<CopyField label="the address" value={mcp} />
+			<p class="c-small">{t.other}</p>
+			<CopyField label={t.address} value={mcp} />
 		</>
 	);
 }
@@ -175,12 +249,12 @@ export function ConnectedStatus({ name }: { name: string }) {
 	return name ? (
 		<p class="connect__status connect__status--done" role="status">
 			<CircleCheck class="i" size={18} aria-hidden="true" />
-			{name} is connected. Ask it to publish something on Cahut.
+			{t.connected(name)}
 		</p>
 	) : (
 		<p class="connect__status" role="status">
 			<LoaderCircle class="i connect__spin" size={18} aria-hidden="true" />
-			Waiting for your AI. This page sees it as soon as it connects.
+			{t.waiting}
 		</p>
 	);
 }

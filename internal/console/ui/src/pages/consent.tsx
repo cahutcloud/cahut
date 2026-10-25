@@ -4,9 +4,85 @@
 import { useEffect, useState } from "preact/hooks";
 import { ApiError, cahut, explain } from "../api";
 import type { Authorization, Request as AuthRequest } from "../api.gen";
-import { Failure, useArmed } from "../components";
+import { Failure, Languages, useArmed } from "../components";
+import { de, words } from "../i18n";
 import { Logo } from "../logo";
 import type { Session } from "../session";
+
+const t = words({
+	en: {
+		sendingBack: "Sending you back…",
+		reading: "Reading the request…",
+		cannotConnect: "This AI cannot connect",
+		invalid: "The request is invalid.",
+		learnsWhy: (client: string, host: string) => (
+			<>
+				Nothing was granted. {client} learns why at <b class="c-mono">{host}</b>, if you go back there.
+			</>
+		),
+		goBack: (host: string) => `Go back to ${host}`,
+		tryAgain: "Nothing was granted. Go back to the AI and try again, or ask it to register again.",
+		connectTitle: (client: string) => `Connect ${client}`,
+		asks: (client: string, name: string, host: string, back: string) => (
+			<>
+				{client} asks to act for you, {name}, in the Cahut at {host}. Then it goes back to <b class="c-mono">{back}</b>.
+			</>
+		),
+		describedBy: (host: string) => (
+			<>
+				Its description comes from <b class="c-mono">{host}</b>.
+			</>
+		),
+		anyName: (host: string) =>
+			`Anyone can register an AI under any name: connect it only if you started this from the AI, and ${host} is where you use it.`,
+		mayDo: "What it may do",
+		write: "Read and publish: everything you can do in your Rooms",
+		read: "Read only: your Rooms, their Windows and the Logbook",
+		where: "Where",
+		allRooms: "All your Rooms, and those you join later",
+		someRooms: "Only these Rooms",
+		personalRoom: "Your personal Room",
+		connect: "Connect",
+		refuse: "Refuse",
+		logbook: "Every call it makes goes to the Logbook. You can disconnect it at any time, in AIs and access.",
+	},
+	fr: {
+		sendingBack: "Redirection…",
+		reading: "Lecture de la demande…",
+		cannotConnect: "Cette IA ne peut pas se connecter",
+		invalid: "La demande n'est pas valide.",
+		learnsWhy: (client, host) => (
+			<>
+				Rien n'a été accordé. {client} en apprendra la raison sur <b class="c-mono">{host}</b>, si vous y retournez.
+			</>
+		),
+		goBack: (host) => `Retourner sur ${host}`,
+		tryAgain: "Rien n'a été accordé. Retournez dans l'IA et réessayez, ou demandez-lui de s'enregistrer à nouveau.",
+		connectTitle: (client) => `Connecter ${client}`,
+		asks: (client, name, host, back) => (
+			<>
+				{client} demande à agir pour vous, {name}, dans la Cahut {de(host)}. Vous revenez ensuite sur <b class="c-mono">{back}</b>.
+			</>
+		),
+		describedBy: (host) => (
+			<>
+				Sa description vient de <b class="c-mono">{host}</b>.
+			</>
+		),
+		anyName: (host) =>
+			`N'importe qui peut enregistrer une IA sous n'importe quel nom : connectez-la seulement si vous avez lancé cette connexion depuis l'IA, et si vous l'utilisez bien sur ${host}.`,
+		mayDo: "Ce qu'elle peut faire",
+		write: "Lecture et publication : tout ce que vous pouvez faire dans vos Rooms",
+		read: "Lecture seule : vos Rooms, leurs Windows et le Logbook",
+		where: "Où",
+		allRooms: "Toutes vos Rooms, et celles que vous rejoindrez plus tard",
+		someRooms: "Seulement ces Rooms",
+		personalRoom: "Votre Room personnelle",
+		connect: "Connecter",
+		refuse: "Refuser",
+		logbook: "Chacun de ses appels va au Logbook. Vous pouvez la déconnecter à tout moment, sur la page IA et accès.",
+	},
+});
 
 /** The parameters of the authorization request, from the page's address. */
 function request(): AuthRequest {
@@ -89,71 +165,59 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 		<main class="auth">
 			<div class="c-card auth__card consent">
 				<Logo height={32} />
-				{!auth && !error && !back && <p class="c-muted">{leaving ? "Sending you back…" : "Reading the request…"}</p>}
+				{!auth && !error && !back && <p class="c-muted">{leaving ? t.sendingBack : t.reading}</p>}
 				{back && (
 					<div class="auth__head">
-						<h1 class="c-h3">This AI cannot connect</h1>
-						<Failure message={back.error ?? "The request is invalid."} />
-						<p class="c-small c-muted">
-							Nothing was granted. {back.client} learns why at <b class="c-mono">{back.redirect_host}</b>, if you go back there.
-						</p>
+						<h1 class="c-h3">{t.cannotConnect}</h1>
+						<Failure message={back.error ?? t.invalid} />
+						<p class="c-small c-muted">{t.learnsWhy(back.client, back.redirect_host)}</p>
 						<div>
 							<button class="c-btn c-btn--secondary" type="button" disabled={leaving} onClick={() => leave(back.redirect ?? "")}>
-								Go back to {back.redirect_host}
+								{t.goBack(back.redirect_host)}
 							</button>
 						</div>
 					</div>
 				)}
 				{!auth && error && (
 					<div class="auth__head">
-						<h1 class="c-h3">This AI cannot connect</h1>
+						<h1 class="c-h3">{t.cannotConnect}</h1>
 						<Failure message={error} />
-						<p class="c-small c-muted">Nothing was granted. Go back to the AI and try again, or ask it to register again.</p>
+						<p class="c-small c-muted">{t.tryAgain}</p>
 					</div>
 				)}
 				{auth && (
 					<form onSubmit={approve}>
 						<div class="auth__head">
-							<h1 class="c-h3">Connect {auth.client}</h1>
-							<p class="c-small c-muted">
-								{auth.client} asks to act for you, {session.name}, in the Cahut at {location.hostname}. Then it goes back to{" "}
-								<b class="c-mono">{auth.redirect_host}</b>.
-							</p>
+							<h1 class="c-h3">{t.connectTitle(auth.client)}</h1>
+							<p class="c-small c-muted">{t.asks(auth.client, session.name, location.hostname, auth.redirect_host)}</p>
 							{auth.client_host ? (
-								<p class="c-small c-muted">
-									Its description comes from <b class="c-mono">{auth.client_host}</b>.
-								</p>
+								<p class="c-small c-muted">{t.describedBy(auth.client_host)}</p>
 							) : (
-								<p class="c-small c-muted">
-									Anyone can register an AI under any name: connect it only if you started this from the AI, and{" "}
-									{auth.redirect_host} is where you use it.
-								</p>
+								<p class="c-small c-muted">{t.anyName(auth.redirect_host)}</p>
 							)}
 						</div>
 
 						<fieldset class="consent__group">
-							<legend class="c-field__label">What it may do</legend>
+							<legend class="c-field__label">{t.mayDo}</legend>
 							<label class="c-check">
 								<input type="radio" name="scope" checked={scope === "write"} disabled={auth.scope === "read"} onChange={() => setScope("write")} />
-								<span>
-									Read and publish: everything you can do in your Rooms
-								</span>
+								<span>{t.write}</span>
 							</label>
 							<label class="c-check">
 								<input type="radio" name="scope" checked={scope === "read"} onChange={() => setScope("read")} />
-								<span>Read only: your Rooms, their Windows and the Logbook</span>
+								<span>{t.read}</span>
 							</label>
 						</fieldset>
 
 						<fieldset class="consent__group">
-							<legend class="c-field__label">Where</legend>
+							<legend class="c-field__label">{t.where}</legend>
 							<label class="c-check">
 								<input type="radio" name="rooms" checked={allRooms} onChange={() => setAllRooms(true)} />
-								<span>All your Rooms, and those you join later</span>
+								<span>{t.allRooms}</span>
 							</label>
 							<label class="c-check">
 								<input type="radio" name="rooms" checked={!allRooms} onChange={() => setAllRooms(false)} />
-								<span>Only these Rooms</span>
+								<span>{t.someRooms}</span>
 							</label>
 							{!allRooms && (
 								<div class="consent__rooms">
@@ -161,7 +225,7 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 										<label class="c-check" key={r.name}>
 											<input type="checkbox" checked={rooms.includes(r.name)} onChange={(e) => toggle(r.name, e.currentTarget.checked)} />
 											<span>
-												{r.kind === "personal" ? "Your personal Room" : r.title} <span class="c-mono c-muted">{r.name}</span>
+												{r.kind === "personal" ? t.personalRoom : r.title} <span class="c-mono c-muted">{r.name}</span>
 											</span>
 										</label>
 									))}
@@ -172,18 +236,17 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 						{error && <Failure message={error} />}
 						<div class="consent__actions">
 							<button class="c-btn c-btn--primary" type="submit" disabled={leaving || !armed || (!allRooms && rooms.length === 0)}>
-								Connect
+								{t.connect}
 							</button>
 							<button class="c-btn c-btn--secondary" type="button" disabled={leaving} onClick={deny}>
-								Refuse
+								{t.refuse}
 							</button>
 						</div>
-						<p class="c-small c-muted">
-							Every call it makes goes to the Logbook. You can disconnect it at any time, in AIs and access.
-						</p>
+						<p class="c-small c-muted">{t.logbook}</p>
 					</form>
 				)}
 			</div>
+			<Languages />
 		</main>
 	);
 }

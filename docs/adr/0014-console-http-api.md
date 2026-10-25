@@ -1,6 +1,6 @@
 # 14. The console calls each operation at its own HTTP route
 
-- Status: Accepted, superseded in part by [ADR 20](0020-console-under-a-path-of-port-443.md) (the API is under `/console/api/` on port 443)
+- Status: Accepted, superseded in part by [ADR 20](0020-console-under-a-path-of-port-443.md) (the API is under `/console/api/` on port 443), extended by [ADR 37](0037-refusals-with-a-code-for-the-console.md) (the body of a refusal that people meet gives its code and its values)
 - Date: 2026-10-22
 
 ## Context

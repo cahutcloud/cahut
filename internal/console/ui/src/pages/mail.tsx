@@ -6,9 +6,95 @@ import { Send } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Delivery, SetMailRelayInput } from "../api.gen";
-import { ago, ConfirmButton, Failure, Notice, PageHead } from "../components";
+import { agoInText, ConfirmButton, Failure, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
+import { words } from "../i18n";
 import { useLoad } from "../load";
+
+const t = words({
+	en: {
+		onlyAdmins: "Only the administrators of this Cahut set its e-mail.",
+		testSent: (to: string) => `A test went to ${to}. Look in that mailbox.`,
+		label: "This Cahut",
+		title: "E-mail",
+		lead: "The SMTP relay that sends the e-mail of this Cahut, from an address of its own: activation links, invitations and notices. Without one, this Cahut sends no e-mail, and the console offers nothing that would.",
+		howTitle: "How e-mail goes out",
+		lastSent: (ago: string) => `A message last went out ${ago}.`,
+		lastError: (ago: string | undefined, error: string) => `The last message that failed, ${ago ?? "lately"}: ${error}`,
+		testTo: "Send a test to",
+		testYours: "Send a test to your address",
+		test: "Send a test",
+		through: (host: string, port: number, security: string, from: string) => `Through ${host}:${port}, with ${security}, from ${from}.`,
+		development:
+			"This Cahut has no relay. The server runs for development: it writes the messages of this Cahut to disk, in the mail folder of its data.",
+		none: "This Cahut has no relay: it sends no e-mail. People get their links from an administrator, and nobody can invite by e-mail or ask for a new password.",
+		changeRelay: "Change the relay",
+		setRelay: "Set a relay for this Cahut",
+		provider:
+			"Your provider of e-mail gives these settings. The relay is on the internet, and speaks TLS. Cahut connects and signs in before it keeps it.",
+		host: "Host",
+		port: "Port",
+		security: "Security",
+		starttls: "STARTTLS, usually on port 587",
+		tls: "TLS from the start, usually on port 465",
+		username: "User name",
+		usernameHelp: "Leave it empty when the relay takes no authentication.",
+		password: "Password",
+		kept: "Kept",
+		keepHelp: "Leave it empty to keep the password.",
+		sealedHelp: "Cahut keeps it sealed, and never shows it again.",
+		from: "From",
+		fromHelp: "An address that the relay accepts.",
+		name: "Name",
+		namePlaceholder: "The name of the Cahut",
+		connecting: "Connecting…",
+		save: "Connect and save",
+		remove: "Remove the relay",
+		removeAsk: "Remove it? This Cahut stops sending e-mail, and the console no longer offers what would.",
+		removeConfirm: "Remove",
+	},
+	fr: {
+		onlyAdmins: "Seuls les administrateurs de cette Cahut règlent son e-mail.",
+		testSent: (to) => `Un test est parti à ${to}. Regardez dans cette boîte.`,
+		label: "Cette Cahut",
+		title: "E-mail",
+		lead: "Le relais SMTP qui envoie les e-mails de cette Cahut, depuis sa propre adresse : liens d'activation, invitations et notifications. Sans relais, cette Cahut n'envoie aucun e-mail, et la console n'offre rien qui en enverrait.",
+		howTitle: "Comment partent les e-mails",
+		lastSent: (ago) => `Le dernier message est parti ${ago}.`,
+		lastError: (ago, error) => `Le dernier message en échec, ${ago ?? "récemment"} : ${error}`,
+		testTo: "Envoyer un test à",
+		testYours: "Envoyer un test à votre adresse",
+		test: "Envoyer un test",
+		through: (host, port, security, from) => `Par ${host}:${port}, en ${security}, depuis ${from}.`,
+		development:
+			"Cette Cahut n'a pas de relais. Le serveur tourne pour le développement : il écrit les messages de cette Cahut sur le disque, dans le dossier mail de ses données.",
+		none: "Cette Cahut n'a pas de relais : elle n'envoie aucun e-mail. Les personnes reçoivent leurs liens d'un administrateur, et personne ne peut inviter par e-mail ni demander un nouveau mot de passe.",
+		changeRelay: "Modifier le relais",
+		setRelay: "Régler un relais pour cette Cahut",
+		provider:
+			"Votre fournisseur d'e-mail donne ces réglages. Le relais est sur internet, et parle TLS. Cahut s'y connecte et s'y identifie avant de le garder.",
+		host: "Hôte",
+		port: "Port",
+		security: "Sécurité",
+		starttls: "STARTTLS, en général sur le port 587",
+		tls: "TLS dès le départ, en général sur le port 465",
+		username: "Nom d'utilisateur",
+		usernameHelp: "Laissez-le vide quand le relais ne demande pas d'authentification.",
+		password: "Mot de passe",
+		kept: "Gardé",
+		keepHelp: "Laissez-le vide pour garder le mot de passe.",
+		sealedHelp: "Cahut le garde scellé, et ne l'affiche plus jamais.",
+		from: "Expéditeur",
+		fromHelp: "Une adresse que le relais accepte.",
+		name: "Nom",
+		namePlaceholder: "Le nom de la Cahut",
+		connecting: "Connexion…",
+		save: "Se connecter et enregistrer",
+		remove: "Retirer le relais",
+		removeAsk: "Le retirer ? Cette Cahut cesse d'envoyer des e-mails, et la console n'offre plus ce qui en enverrait.",
+		removeConfirm: "Retirer",
+	},
+});
 
 export function MailPage() {
 	const api = useConsole();
@@ -19,7 +105,7 @@ export function MailPage() {
 	// they say.
 	const [to, setTo] = useState("");
 	const own = api.session.kind === "person";
-	if (!api.isAdmin) return <Notice>Only the administrators of this Cahut set its e-mail.</Notice>;
+	if (!api.isAdmin) return <Notice>{t.onlyAdmins}</Notice>;
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
 
@@ -35,36 +121,35 @@ export function MailPage() {
 	};
 	const test = (e: Event) => {
 		e.preventDefault();
-		act(async () => `A test went to ${(await api.cahut("send_test_mail", own ? {} : { to })).to}. Look in that mailbox.`);
+		act(async () => t.testSent((await api.cahut("send_test_mail", own ? {} : { to })).to));
 	};
 	const changed = () => (reload(), api.reloadCahut());
 	return (
 		<>
-			<PageHead label="This Cahut" title="E-mail">
-				The SMTP relay that sends the e-mail of this Cahut, from an address of its own: activation links, invitations and notices. Without
-				one, this Cahut sends no e-mail, and the console offers nothing that would.
+			<PageHead label={t.label} title={t.title}>
+				{t.lead}
 			</PageHead>
 			<section class="section c-card panel">
-				<h2 class="c-h4">How e-mail goes out</h2>
+				<h2 class="c-h4">{t.howTitle}</h2>
 				<p class="c-small">{describe(data)}</p>
-				{data.last_sent && <p class="c-small c-muted">A message last went out {ago(data.last_sent).toLowerCase()}.</p>}
+				{data.last_sent && <p class="c-small c-muted">{t.lastSent(agoInText(data.last_sent))}</p>}
 				{data.last_error && (
 					<div class="c-alert c-alert--warning" role="status">
-						The last message that failed, {data.last_error_at ? ago(data.last_error_at).toLowerCase() : "lately"}: {data.last_error}
+						{t.lastError(data.last_error_at ? agoInText(data.last_error_at) : undefined, data.last_error)}
 					</div>
 				)}
 				{data.relay && (
 					<form class="form" onSubmit={test}>
 						{!own && (
 							<label class="c-field">
-								<span class="c-field__label">Send a test to</span>
+								<span class="c-field__label">{t.testTo}</span>
 								<input class="c-input" type="email" required autocomplete="email" value={to} onInput={(e) => setTo(e.currentTarget.value)} />
 							</label>
 						)}
 						<div>
 							<button class="c-btn c-btn--secondary" type="submit">
 								<Send class="i" size={16} aria-hidden="true" />
-								{own ? "Send a test to your address" : "Send a test"}
+								{own ? t.testYours : t.test}
 							</button>
 						</div>
 					</form>
@@ -96,10 +181,10 @@ export function MailPage() {
 function describe(d: Delivery): string {
 	if (d.relay) {
 		const from = d.relay.name ? `${d.relay.name} <${d.relay.from}>` : d.relay.from;
-		return `Through ${d.relay.host}:${d.relay.port}, with ${d.relay.security === "tls" ? "TLS" : "STARTTLS"}, from ${from}.`;
+		return t.through(d.relay.host, d.relay.port, d.relay.security === "tls" ? "TLS" : "STARTTLS", from);
 	}
-	if (d.sends) return "This Cahut has no relay. The server runs for development: it writes the messages of this Cahut to disk, in the mail folder of its data.";
-	return "This Cahut has no relay: it sends no e-mail. People get their links from an administrator, and nobody can invite by e-mail or ask for a new password.";
+	if (d.sends) return t.development;
+	return t.none;
 }
 
 function RelayForm(props: { delivery: Delivery; onSave: (input: SetMailRelayInput) => Promise<void>; onRemove: () => Promise<void> }) {
@@ -136,71 +221,68 @@ function RelayForm(props: { delivery: Delivery; onSave: (input: SetMailRelayInpu
 	};
 	return (
 		<section class="section c-card panel">
-			<h2 class="c-h4">{r ? "Change the relay" : "Set a relay for this Cahut"}</h2>
-			<p class="c-small c-muted">
-				Your provider of e-mail gives these settings. The relay is on the internet, and speaks TLS. Cahut connects and signs in before it
-				keeps it.
-			</p>
+			<h2 class="c-h4">{r ? t.changeRelay : t.setRelay}</h2>
+			<p class="c-small c-muted">{t.provider}</p>
 			<form class="form" onSubmit={submit}>
 				<div class="form__row">
 					<label class="c-field">
-						<span class="c-field__label">Host</span>
+						<span class="c-field__label">{t.host}</span>
 						<input class="c-input c-mono" required placeholder="smtp.example.com" autocapitalize="none" value={host} onInput={(e) => setHost(e.currentTarget.value)} />
 					</label>
 					<label class="c-field">
-						<span class="c-field__label">Port</span>
+						<span class="c-field__label">{t.port}</span>
 						<input class="c-input c-mono" inputMode="numeric" placeholder={security === "tls" ? "465" : "587"} value={port} onInput={(e) => setPort(e.currentTarget.value)} />
 					</label>
 					<label class="c-field">
-						<span class="c-field__label">Security</span>
+						<span class="c-field__label">{t.security}</span>
 						<select class="c-input" value={security} onChange={(e) => setSecurity(e.currentTarget.value)}>
-							<option value="starttls">STARTTLS, usually on port 587</option>
-							<option value="tls">TLS from the start, usually on port 465</option>
+							<option value="starttls">{t.starttls}</option>
+							<option value="tls">{t.tls}</option>
 						</select>
 					</label>
 				</div>
 				<div class="form__row">
 					<label class="c-field">
-						<span class="c-field__label">User name</span>
+						<span class="c-field__label">{t.username}</span>
 						<input class="c-input" autocomplete="off" autocapitalize="none" value={username} onInput={(e) => setUsername(e.currentTarget.value)} />
-						<span class="c-field__help">Leave it empty when the relay takes no authentication.</span>
+						<span class="c-field__help">{t.usernameHelp}</span>
 					</label>
 					<label class="c-field">
-						<span class="c-field__label">Password</span>
+						<span class="c-field__label">{t.password}</span>
 						<input
 							class="c-input"
 							type="password"
 							autocomplete="new-password"
-							placeholder={kept ? "Kept" : ""}
+							placeholder={kept ? t.kept : ""}
 							value={password}
 							onInput={(e) => setPassword(e.currentTarget.value)}
 						/>
 						<span class="c-field__help">
-							{kept ? "Leave it empty to keep the password." : "Cahut keeps it sealed, and never shows it again."}
+							{kept ? t.keepHelp : t.sealedHelp}
 						</span>
 					</label>
 				</div>
 				<div class="form__row">
 					<label class="c-field">
-						<span class="c-field__label">From</span>
+						<span class="c-field__label">{t.from}</span>
 						<input class="c-input c-mono" type="email" required placeholder="cahut@example.com" value={from} onInput={(e) => setFrom(e.currentTarget.value)} />
-						<span class="c-field__help">An address that the relay accepts.</span>
+						<span class="c-field__help">{t.fromHelp}</span>
 					</label>
 					<label class="c-field">
-						<span class="c-field__label">Name</span>
-						<input class="c-input" placeholder="The name of the Cahut" value={name} onInput={(e) => setName(e.currentTarget.value)} />
+						<span class="c-field__label">{t.name}</span>
+						<input class="c-input" placeholder={t.namePlaceholder} value={name} onInput={(e) => setName(e.currentTarget.value)} />
 					</label>
 				</div>
 				{error && <Failure message={error} />}
 				<div class="actions">
 					<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
-						{busy ? "Connecting…" : "Connect and save"}
+						{busy ? t.connecting : t.save}
 					</button>
 					{r && (
 						<ConfirmButton
-							label="Remove the relay"
-							question="Remove it? This Cahut stops sending e-mail, and the console no longer offers what would."
-							confirm="Remove"
+							label={t.remove}
+							question={t.removeAsk}
+							confirm={t.removeConfirm}
 							danger
 							onConfirm={remove}
 						/>

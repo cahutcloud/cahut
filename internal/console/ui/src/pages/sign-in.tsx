@@ -2,9 +2,66 @@
 // server, who sign in at the console of any Cahut.
 import { useEffect, useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
+import { Languages } from "../components";
+import { words } from "../i18n";
 import { Logo } from "../logo";
 import { Link } from "../router";
 import type { Session } from "../session";
+
+const t = words({
+	en: {
+		administer: "Administer this server",
+		signIn: "Sign in",
+		asAdmin: (host: string) => `Sign in as an administrator of the server, at ${host}.`,
+		to: (host: string, purpose?: string) => `Sign in to ${host}${purpose ? ` ${purpose}` : ""}.`,
+		handle: "Handle",
+		password: "Password",
+		adminForgot: (
+			<>
+				Forgot your password? Another administrator of the server, or <span class="c-mono">cahut admin link</span> on the server,
+				gives you a new link.
+			</>
+		),
+		asPerson: "Sign in as a person of this Cahut",
+		forgot: "Forgot your password?",
+		askAdmin: "Forgot your password? An administrator of the Cahut can give you a new link.",
+		administerServer: "Administer the server",
+		newPassword: "Choose a new password",
+		giveHandle:
+			"Give your handle, or the e-mail address of your account. A link to choose a new password goes to that address. If your account has none, an administrator of the Cahut can give you a link.",
+		sent: (message: string) => message,
+		handleOrEmail: "Handle or e-mail address",
+		sendLink: "Send me a link",
+		back: "Back to sign in",
+	},
+	fr: {
+		administer: "Administrer ce serveur",
+		signIn: "Se connecter",
+		asAdmin: (host) => `Connectez-vous en tant qu'administrateur du serveur, à ${host}.`,
+		to: (host, purpose) => `Connectez-vous à ${host}${purpose ? ` ${purpose}` : ""}.`,
+		handle: "Identifiant",
+		password: "Mot de passe",
+		adminForgot: (
+			<>
+				Mot de passe oublié ? Un autre administrateur du serveur, ou <span class="c-mono">cahut admin link</span> sur le serveur,
+				vous donne un nouveau lien.
+			</>
+		),
+		asPerson: "Se connecter en tant que personne de cette Cahut",
+		forgot: "Mot de passe oublié ?",
+		askAdmin: "Mot de passe oublié ? Un administrateur de la Cahut peut vous donner un nouveau lien.",
+		administerServer: "Administrer le serveur",
+		newPassword: "Choisissez un nouveau mot de passe",
+		giveHandle:
+			"Donnez votre identifiant, ou l'adresse e-mail de votre compte. Un lien pour choisir un nouveau mot de passe part à cette adresse. Si votre compte n'en a pas, un administrateur de la Cahut peut vous donner un lien.",
+		// The answer is the same for every account: the console says it in French.
+		sent: () =>
+			"Si un compte de cette Cahut a cet identifiant ou cette adresse, un lien pour choisir un nouveau mot de passe est parti à son adresse. Il est valable une heure.",
+		handleOrEmail: "Identifiant ou adresse e-mail",
+		sendLink: "M'envoyer un lien",
+		back: "Retour à la connexion",
+	},
+});
 
 export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; purpose?: string; onSignIn: (s: Session) => void }) {
 	const [forgot, setForgot] = useState(false);
@@ -49,16 +106,14 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 			<div class="c-card auth__card">
 				<Logo height={32} />
 				<div class="auth__head">
-					<h1 class="c-h3">{kind === "admin" ? "Administer this server" : "Sign in"}</h1>
+					<h1 class="c-h3">{kind === "admin" ? t.administer : t.signIn}</h1>
 					<p class="c-small c-muted">
-						{kind === "admin"
-							? `Sign in as an administrator of the server, at ${location.hostname}.`
-							: `Sign in to ${location.hostname}${purpose ? ` ${purpose}` : ""}.`}
+						{kind === "admin" ? t.asAdmin(location.hostname) : t.to(location.hostname, purpose)}
 					</p>
 				</div>
 				<form onSubmit={submit}>
 					<label class="c-field">
-						<span class="c-field__label">Handle</span>
+						<span class="c-field__label">{t.handle}</span>
 						<input
 							class="c-input"
 							name="username"
@@ -71,7 +126,7 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 						/>
 					</label>
 					<label class="c-field">
-						<span class="c-field__label">Password</span>
+						<span class="c-field__label">{t.password}</span>
 						<input
 							class="c-input"
 							type="password"
@@ -88,18 +143,15 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 						</div>
 					)}
 					<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
-						Sign in
+						{t.signIn}
 					</button>
 				</form>
 				{kind === "admin" ? (
 					<div class="auth__foot">
-						<p class="c-small c-muted">
-							Forgot your password? Another administrator of the server, or <span class="c-mono">cahut admin link</span> on the server,
-							gives you a new link.
-						</p>
+						<p class="c-small c-muted">{t.adminForgot}</p>
 						<p class="c-small">
 							<Link class="c-link" href="/sign-in">
-								Sign in as a person of this Cahut
+								{t.asPerson}
 							</Link>
 						</p>
 					</div>
@@ -108,20 +160,21 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 						{sendsMail ? (
 							<p class="c-small">
 								<button class="c-link link-button" type="button" onClick={() => setForgot(true)}>
-									Forgot your password?
+									{t.forgot}
 								</button>
 							</p>
 						) : (
-							<p class="c-small c-muted">Forgot your password? An administrator of the Cahut can give you a new link.</p>
+							<p class="c-small c-muted">{t.askAdmin}</p>
 						)}
 						<p class="c-small">
 							<Link class="c-link" href="/server/sign-in">
-								Administer the server
+								{t.administerServer}
 							</Link>
 						</p>
 					</div>
 				)}
 			</div>
+			<Languages />
 		</main>
 	);
 }
@@ -142,7 +195,7 @@ function Forgot({ who: given, onBack }: { who: string; onBack: () => void }) {
 		setError("");
 		try {
 			const r = await cahut("request_password_link", { who });
-			setSent(r.message);
+			setSent(t.sent(r.message));
 		} catch (err) {
 			setError(explain(err));
 		}
@@ -153,11 +206,8 @@ function Forgot({ who: given, onBack }: { who: string; onBack: () => void }) {
 			<div class="c-card auth__card">
 				<Logo height={32} />
 				<div class="auth__head">
-					<h1 class="c-h3">Choose a new password</h1>
-					<p class="c-small c-muted">
-						Give your handle, or the e-mail address of your account. A link to choose a new password goes to that address. If your
-						account has none, an administrator of the Cahut can give you a link.
-					</p>
+					<h1 class="c-h3">{t.newPassword}</h1>
+					<p class="c-small c-muted">{t.giveHandle}</p>
 				</div>
 				{sent ? (
 					<div class="c-alert c-alert--success" role="status">
@@ -166,7 +216,7 @@ function Forgot({ who: given, onBack }: { who: string; onBack: () => void }) {
 				) : (
 					<form onSubmit={submit}>
 						<label class="c-field">
-							<span class="c-field__label">Handle or e-mail address</span>
+							<span class="c-field__label">{t.handleOrEmail}</span>
 							<input
 								class="c-input"
 								name="username"
@@ -184,16 +234,17 @@ function Forgot({ who: given, onBack }: { who: string; onBack: () => void }) {
 							</div>
 						)}
 						<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
-							Send me a link
+							{t.sendLink}
 						</button>
 					</form>
 				)}
 				<p class="c-small">
 					<button class="c-link link-button" type="button" onClick={onBack}>
-						Back to sign in
+						{t.back}
 					</button>
 				</p>
 			</div>
+			<Languages />
 		</main>
 	);
 }

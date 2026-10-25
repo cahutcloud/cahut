@@ -6,19 +6,131 @@ import { ArrowRight, Upload } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
 import type { Setup as SetupInfo } from "../api.gen";
+import { Languages } from "../components";
 import { ConnectedStatus, ConnectSteps, ipAddress, useConnectedAI } from "../connect";
 import { fragment as code } from "../fragment";
+import { de, words } from "../i18n";
 import { Logo } from "../logo";
 import { Link, navigate } from "../router";
 import type { Session } from "../session";
 import { minPassword } from "./activate";
 import { base64 } from "./house-style";
 
-const steps = ["You", "Your Cahut", "Your first AI"];
+const t = words({
+	en: {
+		steps: ["You", "Your Cahut", "Your first AI"],
+		noCode: "This link has no code. Open the whole link that the installation printed.",
+		gone: "This link does not open the first start",
+		newLink: "On the server, this command gives a new link, valid for 24 hours, as long as the Cahut has nobody:",
+		signInInstead: (
+			<>
+				If the first start is done,{" "}
+				<Link class="c-link" href="/sign-in">
+					sign in
+				</Link>{" "}
+				instead.
+			</>
+		),
+		differ: "The two passwords differ.",
+		welcome: "Welcome to your Cahut",
+		youServer: (domain: string) =>
+			`You will administer the Cahut of ${domain}, and this server, with the handle and the password you choose here.`,
+		you: (domain: string) => `You will administer the Cahut of ${domain}, with the handle and the password you choose here.`,
+		name: "Your name",
+		handle: "Handle",
+		handleHelp: "You sign in with it, and it names your personal Room.",
+		password: "Password",
+		passwordHelp: (min: number) => `At least ${min} characters. A short sentence works well.`,
+		again: "The same password again",
+		create: "Create my account",
+		yourCahut: "Your Cahut",
+		answers: (origin: string) => (
+			<>
+				It answers at <strong>{origin}/</strong>, where each Room and each Window has its own address.
+			</>
+		),
+		noDomain: (
+			<>
+				This Cahut has no domain yet. When you have one, point it to this server, then move the Cahut there, in the console of the
+				administrator of the server or with <code class="c-mono">cahut domain rename</code>. The links shared before then stop working.
+			</>
+		),
+		houseStyle:
+			"The house style gives every Window that AIs make the look of your organization. Change it later, fonts included, in House style.",
+		organization: "Name of the organization",
+		color: "Main color",
+		logo: "Logo",
+		replace: "Replace",
+		upload: "Upload",
+		logoHelp: "SVG, PNG or WebP, 512 KB at most.",
+		save: "Save and continue",
+		neutral: "Keep the neutral style",
+		firstAI: "Your first AI",
+		connects: "Your AI connects to this Cahut over MCP. You choose the Rooms it reaches, and everything it does goes to the Logbook.",
+		open: "Open the console",
+		skip: "Skip, open the console",
+	},
+	fr: {
+		steps: ["Vous", "Votre Cahut", "Votre première IA"],
+		noCode: "Ce lien n'a pas de code. Ouvrez le lien entier qu'a affiché l'installation.",
+		gone: "Ce lien n'ouvre pas le premier démarrage",
+		newLink: "Sur le serveur, cette commande donne un nouveau lien, valable 24 heures, tant que la Cahut n'a personne :",
+		signInInstead: (
+			<>
+				Si le premier démarrage est fait,{" "}
+				<Link class="c-link" href="/sign-in">
+					connectez-vous
+				</Link>{" "}
+				plutôt.
+			</>
+		),
+		differ: "Les deux mots de passe diffèrent.",
+		welcome: "Bienvenue dans votre Cahut",
+		youServer: (domain) =>
+			`Vous administrerez la Cahut ${de(domain)}, et ce serveur, avec l'identifiant et le mot de passe que vous choisissez ici.`,
+		you: (domain) => `Vous administrerez la Cahut ${de(domain)}, avec l'identifiant et le mot de passe que vous choisissez ici.`,
+		name: "Votre nom",
+		handle: "Identifiant",
+		handleHelp: "Vous vous connectez avec, et il donne son nom à votre Room personnelle.",
+		password: "Mot de passe",
+		passwordHelp: (min) => `Au moins ${min} caractères. Une courte phrase convient bien.`,
+		again: "Le même mot de passe, une seconde fois",
+		create: "Créer mon compte",
+		yourCahut: "Votre Cahut",
+		answers: (origin) => (
+			<>
+				Elle répond à <strong>{origin}/</strong>, où chaque Room et chaque Window a sa propre adresse.
+			</>
+		),
+		noDomain: (
+			<>
+				Cette Cahut n'a pas encore de domaine. Quand vous en aurez un, pointez-le vers ce serveur, puis déplacez-y la Cahut, dans la console
+				de l'administrateur du serveur ou avec <code class="c-mono">cahut domain rename</code>. Les liens partagés d'ici là cessent
+				alors de fonctionner.
+			</>
+		),
+		houseStyle:
+			"La house style donne à chaque Window que font les IA l'apparence de votre organisation. Vous la modifierez plus tard, polices comprises, dans House style.",
+		organization: "Nom de l'organisation",
+		color: "Couleur principale",
+		logo: "Logo",
+		replace: "Remplacer",
+		upload: "Importer",
+		logoHelp: "SVG, PNG ou WebP, 512 ko au plus.",
+		save: "Enregistrer et continuer",
+		neutral: "Garder le style neutre",
+		firstAI: "Votre première IA",
+		connects: "Votre IA se connecte à cette Cahut par MCP. Vous choisissez les Rooms qu'elle atteint, et tout ce qu'elle fait va au Logbook.",
+		open: "Ouvrir la console",
+		skip: "Passer, ouvrir la console",
+	},
+});
+
+const steps = t.steps;
 
 export function Setup({ onSession }: { onSession: (s: Session) => void }) {
 	const [info, setInfo] = useState<SetupInfo | null>(null);
-	const [error, setError] = useState(code ? "" : "This link has no code. Open the whole link that the installation printed.");
+	const [error, setError] = useState(code ? "" : t.noCode);
 	const [step, setStep] = useState(0);
 	const [session, setSession] = useState<Session | null>(null);
 
@@ -56,6 +168,7 @@ export function Setup({ onSession }: { onSession: (s: Session) => void }) {
 						session && <FirstAI session={session} />
 					)}
 				</div>
+				{step === 0 && <Languages />}
 			</div>
 		</main>
 	);
@@ -64,21 +177,13 @@ export function Setup({ onSession }: { onSession: (s: Session) => void }) {
 function Gone({ message }: { message: string }) {
 	return (
 		<div class="setup__body">
-			<h1 class="c-h3">This link does not open the first start</h1>
+			<h1 class="c-h3">{t.gone}</h1>
 			<div class="c-alert c-alert--warning" role="alert">
 				{message}
 			</div>
-			<p class="c-small">
-				On the server, this command gives a new link, valid for 24 hours, as long as the Cahut has nobody:
-			</p>
+			<p class="c-small">{t.newLink}</p>
 			<pre class="c-mono setup__command">sudo -u cahut /usr/local/bin/cahut setup --domain {location.hostname}</pre>
-			<p class="c-small">
-				If the first start is done,{" "}
-				<Link class="c-link" href="/sign-in">
-					sign in
-				</Link>{" "}
-				instead.
-			</p>
+			<p class="c-small">{t.signInInstead}</p>
 		</div>
 	);
 }
@@ -105,7 +210,7 @@ function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }
 	const submit = async (e: Event) => {
 		e.preventDefault();
 		if (password !== again) {
-			setError("The two passwords differ.");
+			setError(t.differ);
 			return;
 		}
 		setBusy(true);
@@ -122,16 +227,12 @@ function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }
 	return (
 		<form class="setup__body" onSubmit={submit}>
 			<div class="setup__intro">
-				<h1 class="c-h3">Welcome to your Cahut</h1>
-				<p class="c-small c-muted">
-					{info.server_admin
-						? `You will administer the Cahut of ${info.domain}, and this server, with the handle and the password you choose here.`
-						: `You will administer the Cahut of ${info.domain}, with the handle and the password you choose here.`}
-				</p>
+				<h1 class="c-h3">{t.welcome}</h1>
+				<p class="c-small c-muted">{info.server_admin ? t.youServer(info.domain) : t.you(info.domain)}</p>
 			</div>
 			<div class="form__row">
 				<label class="c-field">
-					<span class="c-field__label">Your name</span>
+					<span class="c-field__label">{t.name}</span>
 					<input
 						class="c-input"
 						required
@@ -144,7 +245,7 @@ function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }
 					/>
 				</label>
 				<label class="c-field">
-					<span class="c-field__label">Handle</span>
+					<span class="c-field__label">{t.handle}</span>
 					<input
 						class="c-input c-mono"
 						required
@@ -156,11 +257,11 @@ function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }
 							setHandle(e.currentTarget.value);
 						}}
 					/>
-					<span class="c-field__help">You sign in with it, and it names your personal Room.</span>
+					<span class="c-field__help">{t.handleHelp}</span>
 				</label>
 			</div>
 			<label class="c-field">
-				<span class="c-field__label">Password</span>
+				<span class="c-field__label">{t.password}</span>
 				<input
 					class="c-input"
 					type="password"
@@ -170,10 +271,10 @@ function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }
 					value={password}
 					onInput={(e) => setPassword(e.currentTarget.value)}
 				/>
-				<span class="c-field__help">At least {minPassword} characters. A short sentence works well.</span>
+				<span class="c-field__help">{t.passwordHelp(minPassword)}</span>
 			</label>
 			<label class="c-field">
-				<span class="c-field__label">The same password again</span>
+				<span class="c-field__label">{t.again}</span>
 				<input
 					class="c-input"
 					type="password"
@@ -191,7 +292,7 @@ function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }
 			)}
 			<div class="setup__actions">
 				<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
-					Create my account
+					{t.create}
 					<ArrowRight class="i" size={16} aria-hidden="true" />
 				</button>
 			</div>
@@ -242,45 +343,36 @@ function YourCahut({ session, onDone }: { session: Session; onDone: () => void }
 	return (
 		<form class="setup__body" onSubmit={save}>
 			<div class="setup__intro">
-				<h1 class="c-h3">Your Cahut</h1>
-				<p class="c-small c-muted">
-					It answers at <strong>{location.origin}/</strong>, where each Room and each Window has its own address.
-				</p>
+				<h1 class="c-h3">{t.yourCahut}</h1>
+				<p class="c-small c-muted">{t.answers(location.origin)}</p>
 			</div>
 			{ip && (
-				<div class="c-alert c-alert--info">
-					This Cahut has no domain yet. When you have one, point it to this server, then move the Cahut there, in the console of
-					the administrator of the server or with <code class="c-mono">cahut domain rename</code>. The links shared before then stop
-					working.
-				</div>
+				<div class="c-alert c-alert--info">{t.noDomain}</div>
 			)}
-			<p class="c-small">
-				The house style gives every Window that AIs make the look of your organization. Change it later, fonts included, in House
-				style.
-			</p>
+			<p class="c-small">{t.houseStyle}</p>
 			<label class="c-field">
-				<span class="c-field__label">Name of the organization</span>
+				<span class="c-field__label">{t.organization}</span>
 				<input class="c-input" placeholder={location.hostname} value={name} onInput={(e) => setName(e.currentTarget.value)} />
 			</label>
 			<div class="form__row">
 				<label class="c-field">
-					<span class="c-field__label">Main color</span>
+					<span class="c-field__label">{t.color}</span>
 					<span class="setup__color">
 						<input type="color" value={primary} onInput={(e) => setPrimary(e.currentTarget.value)} />
 						<code class="c-mono">{primary}</code>
 					</span>
 				</label>
 				<div class="c-field">
-					<span class="c-field__label">Logo</span>
+					<span class="c-field__label">{t.logo}</span>
 					<span class="setup__logo">
 						{logo && <img src={logo.preview} alt="" />}
 						<label class="c-btn c-btn--secondary c-btn--sm">
 							<Upload class="i" size={14} aria-hidden="true" />
-							{logo ? "Replace" : "Upload"}
+							{logo ? t.replace : t.upload}
 							<input class="house__file" type="file" accept=".svg,.png,.webp,image/svg+xml,image/png,image/webp" onChange={pick} />
 						</label>
 					</span>
-					<span class="c-field__help">SVG, PNG or WebP, 512 KB at most.</span>
+					<span class="c-field__help">{t.logoHelp}</span>
 				</div>
 			</div>
 			{error && (
@@ -290,11 +382,11 @@ function YourCahut({ session, onDone }: { session: Session; onDone: () => void }
 			)}
 			<div class="setup__actions">
 				<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
-					Save and continue
+					{t.save}
 					<ArrowRight class="i" size={16} aria-hidden="true" />
 				</button>
 				<button class="c-btn c-btn--ghost" type="button" onClick={onDone}>
-					Keep the neutral style
+					{t.neutral}
 				</button>
 			</div>
 		</form>
@@ -313,16 +405,14 @@ function FirstAI({ session }: { session: Session }) {
 	return (
 		<div class="setup__body">
 			<div class="setup__intro">
-				<h1 class="c-h3">Your first AI</h1>
-				<p class="c-small c-muted">
-					Your AI connects to this Cahut over MCP. You choose the Rooms it reaches, and everything it does goes to the Logbook.
-				</p>
+				<h1 class="c-h3">{t.firstAI}</h1>
+				<p class="c-small c-muted">{t.connects}</p>
 			</div>
 			<ConnectSteps mcp={mcp} />
 			<ConnectedStatus name={connected} />
 			<div class="setup__actions">
 				<button class="c-btn c-btn--primary" type="button" onClick={() => navigate("/", true)}>
-					{connected ? "Open the console" : "Skip, open the console"}
+					{connected ? t.open : t.skip}
 					<ArrowRight class="i" size={16} aria-hidden="true" />
 				</button>
 			</div>

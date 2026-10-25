@@ -4,6 +4,7 @@ import { cahut, server } from "./api";
 import type { Room } from "./api.gen";
 import { PageHead } from "./components";
 import { bind, ConsoleProvider } from "./context";
+import { words } from "./i18n";
 import { Access } from "./pages/access";
 import { Account } from "./pages/account";
 import { Activate } from "./pages/activate";
@@ -27,6 +28,25 @@ import { WindowPage } from "./pages/window";
 import { navigate, Redirect, usePath } from "./router";
 import { clear, load, save, type Session } from "./session";
 import { Shell } from "./shell";
+
+const t = words({
+	en: {
+		toConnect: "to connect an AI",
+		toRead: "to open its Windows",
+		toKnock: "to answer a Knock",
+		notFound: "Not found",
+		nothingHere: "Nothing here",
+		noPage: "This page does not exist.",
+	},
+	fr: {
+		toConnect: "pour connecter une IA",
+		toRead: "pour ouvrir ses Windows",
+		toKnock: "pour répondre à un Knock",
+		notFound: "Introuvable",
+		nothingHere: "Rien ici",
+		noPage: "Cette page n'existe pas.",
+	},
+});
 
 /** Where someone signs in again: as a person, or as an administrator. */
 function signInPage(s: Session | null): string {
@@ -93,7 +113,7 @@ export function App() {
 		return session?.kind === "person" ? (
 			<Consent key={session.token} session={session} onExpired={() => stay(null)} />
 		) : (
-			<SignIn kind="person" purpose="to connect an AI" onSignIn={stay} />
+			<SignIn kind="person" purpose={t.toConnect} onSignIn={stay} />
 		);
 	}
 	// A reader of the Windows of this Cahut signs in here, then goes back to
@@ -109,7 +129,7 @@ export function App() {
 		return session?.kind === "person" ? (
 			<Read key={session.token} session={session} onExpired={() => stay(null)} />
 		) : (
-			<SignIn kind="person" purpose="to open its Windows" onSignIn={stay} />
+			<SignIn kind="person" purpose={t.toRead} onSignIn={stay} />
 		);
 	}
 	// An AI gives its person the link of its Knock: they sign in on the
@@ -119,7 +139,7 @@ export function App() {
 			save(s);
 			setSession(s);
 		};
-		return <SignIn kind="person" purpose="to answer a Knock" onSignIn={stay} />;
+		return <SignIn kind="person" purpose={t.toKnock} onSignIn={stay} />;
 	}
 	if (!session) {
 		return <Redirect to="/sign-in" />;
@@ -240,5 +260,9 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 		case "/server/updates":
 			return <Updates />;
 	}
-	return <PageHead label="Not found" title="Nothing here">This page does not exist.</PageHead>;
+	return (
+		<PageHead label={t.notFound} title={t.nothingHere}>
+			{t.noPage}
+		</PageHead>
+	);
 }

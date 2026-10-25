@@ -1,6 +1,6 @@
 # Cahut · Charte graphique
 
-Version 1.3 · 25 octobre 2026 · Olivier Durand
+Version 1.5 · 25 octobre 2026 · Olivier Durand
 
 ![Cahut, la maison ouverte](illustrations/maison-ouverte.png)
 
@@ -41,18 +41,18 @@ Cette charte fixe l'identité visuelle de Cahut : logo, couleurs, typographie, p
 | Chez soi | Les données restent sur votre serveur | Le nuage est une maison, avec sa porte |
 | Neutre | Toutes les IA, aucun fournisseur favori | Aucune couleur ni forme empruntée à une IA |
 | Simple | Une commande pour installer, un lien pour partager | Peu d'éléments, beaucoup d'air |
-| Prudent | L'IA frappe avant toute action irréversible (*knock first*) | La porte, le jaune réservé à ce qui attend une décision |
-| Accueillant | Clair, chaleureux, sans jargon | Arrondis, papier chaud, touche de soleil |
+| Prudente | L'IA frappe avant toute action irréversible (*knock first*) | La porte, le jaune réservé à ce qui attend une décision |
+| Accueillante | Claire, chaleureuse, sans jargon | Arrondis, papier chaud, touche de soleil |
 
 **La personnalité.**
 
 | Cahut est | Cahut n'est pas |
 | --- | --- |
-| calme | froid |
-| précis | technique |
-| chaleureux | mignon |
-| sûr de lui | autoritaire |
-| ouvert | bavard |
+| calme | froide |
+| précise | technique |
+| chaleureuse | mignonne |
+| sûre d'elle | autoritaire |
+| ouverte | bavarde |
 
 ## 2. Le logo
 
@@ -80,10 +80,10 @@ Un nuage dessiné d'un seul trait, dont la base s'ouvre sur une porte. Le nuage 
 | Logo inversé | Sur Ink ou fond sombre | [`cahut-logo-inverse.svg`](logos/cahut-logo-inverse.svg) |
 | Monochrome | Impression une couleur, gravure, tampon | [`cahut-logo-noir.svg`](logos/cahut-logo-noir.svg), [`cahut-logo-blanc.svg`](logos/cahut-logo-blanc.svg) |
 | Logo horizontal | En-têtes, barres de navigation, pieds de page | [`cahut-logo-horizontal.svg`](logos/cahut-logo-horizontal.svg) et ses variantes |
-| Symbole seul | Petits espaces, filigrane ; sur Sky, l'avatar des réseaux (section 10) | [`cahut-symbole.svg`](logos/cahut-symbole.svg) et ses variantes |
+| Symbole seul | Petits espaces, filigrane ; avec sa porte éclairée, l'avatar des réseaux (section 10) | [`cahut-symbole.svg`](logos/cahut-symbole.svg) et ses variantes |
 | Symbole petites tailles | Sous 64 px, trait renforcé | [`cahut-symbole-petites-tailles.svg`](logos/cahut-symbole-petites-tailles.svg) |
 | Logotype seul | Quand le symbole figure déjà à côté | [`cahut-logotype.svg`](logos/cahut-logotype.svg) |
-| Icône d'application | Sky, symbole blanc | [`cahut-icone-app.svg`](logos/cahut-icone-app.svg), variante [Ink](logos/cahut-icone-app-ink.svg) |
+| Icône d'application | Paper, symbole Ink, porte éclairée | [`cahut-icone-app.svg`](logos/cahut-icone-app.svg), variante [Ink](logos/cahut-icone-app-ink.svg) |
 | Favicon | Dessiné sur la grille de 16 px | [`cahut-favicon.svg`](logos/cahut-favicon.svg), [`favicon/`](logos/favicon/) |
 
 <p>
@@ -91,6 +91,8 @@ Un nuage dessiné d'un seul trait, dont la base s'ouvre sur une porte. Le nuage 
 <img src="logos/cahut-logo-horizontal.svg" alt="Logo horizontal" height="48">&nbsp;&nbsp;&nbsp;
 <img src="logos/cahut-icone-app.svg" alt="Icône d'application" height="96">
 </p>
+
+**La porte éclairée.** Sur l'icône d'application et l'avatar des réseaux, la porte s'allume en Soft Yellow : quelqu'un est là, comme dans les illustrations. Le jaune remplit l'arche sous le trait, jusqu'à la ligne de base. C'est le seul remplissage du symbole : le logo, le symbole seul et le logo horizontal gardent leur porte vide. Le fond est Paper, qui laisse au trait Ink 13,4:1 de contraste ; le blanc sur Sky n'en avait que 2,6:1.
 
 Les exports PNG transparents sont dans [`logos/png/`](logos/png/), en plusieurs largeurs. Le logo horizontal utilise le symbole renforcé, aligné sur la ligne de base du logotype, à 1,2 fois la hauteur des ascendantes.
 
@@ -111,7 +113,7 @@ Autour du logo, gardez un espace libre au moins égal à **p**, la largeur exté
 
 ![Interdits](logos/interdits.png)
 
-Ne pas déformer, recolorer, incliner, ombrer, recomposer ou remplir le logo. Ne pas le poser sur un fond qui ne lui laisse pas 4,5:1 de contraste ni sur une photo chargée. Ne pas redessiner le logotype dans une autre police.
+Ne pas déformer, recolorer, incliner, ombrer, recomposer ou remplir le logo, hors la porte éclairée de l'icône d'application et de l'avatar. Ne pas le poser sur un fond qui ne lui laisse pas 4,5:1 de contraste ni sur une photo chargée. Ne pas redessiner le logotype dans une autre police.
 
 ## 3. Couleurs
 
@@ -121,7 +123,7 @@ Ne pas déformer, recolorer, incliner, ombrer, recomposer ou remplir le logo. Ne
 | --- | --- | --- | --- | --- | --- |
 | **Ink** | Texte, logo, traits, fonds sombres | `#1F2A33` | 31 42 51 | 39 18 0 80 | 207° 24 % 16 % |
 | **Paper** | Fond principal | `#F7F5F0` | 247 245 240 | 0 1 3 3 | 43° 30 % 95 % |
-| **Sky** | Accent, icône d'app, états actifs | `#5FA8D3` | 95 168 211 | 55 20 0 17 | 202° 57 % 60 % |
+| **Sky** | Accent, états actifs | `#5FA8D3` | 95 168 211 | 55 20 0 17 | 202° 57 % 60 % |
 | **Light Grey** | Bordures, séparateurs, reliefs | `#D9DCDF` | 217 220 223 | 3 1 0 13 | 210° 9 % 86 % |
 | **Soft Yellow** | Lumière, chaleur, attention | `#F4D27A` | 244 210 122 | 0 14 50 4 | 43° 85 % 72 % |
 
@@ -151,7 +153,7 @@ Objectif WCAG 2.2 niveau AA : 4,5:1 pour le texte courant, 3:1 pour le grand tex
 | Paper sur Ink 950 | 16,0:1 | Texte en mode sombre |
 | Sky sur Ink 950 | 6,7:1 | Accent en mode sombre |
 | Sky sur Paper | 2,4:1 | Jamais pour du texte, décor et grandes formes seulement |
-| Blanc sur Sky | 2,6:1 | Icône d'application seulement, jamais de texte |
+| Blanc sur Sky | 2,6:1 | Jamais, ni pour du texte ni pour le logo |
 
 Règle simple : sur Sky, on écrit en Ink, jamais en blanc. Sky et Soft Yellow ne portent jamais de texte sur Paper. Une information ne passe jamais par la couleur seule : on l'accompagne d'une icône ou d'un mot.
 
@@ -226,7 +228,7 @@ En secours : `ui-sans-serif, system-ui, "Segoe UI", sans-serif` et `ui-monospace
 
 **Style.** Aplats sans dégradé ni ombre. Traits Ink arrondis, d'épaisseur régulière. Collines en Ink 100 et Ink 200, soleil en Soft Yellow, accents en Sky. Beaucoup d'air. La porte éclairée en jaune signifie « quelqu'un est là ».
 
-**À éviter.** Robots, cerveaux, circuits lumineux, étincelles « magiques », personnages en 3D : Cahut ne fait pas l'IA, il l'accueille.
+**À éviter.** Robots, cerveaux, circuits lumineux, étincelles « magiques », personnages en 3D : Cahut ne fait pas l'IA, elle l'accueille.
 
 ## 7. Photographie
 
@@ -317,9 +319,9 @@ Chaque visuel a son gabarit HTML modifiable dans [`applications/gabarits/`](appl
 <img src="applications/diapo-contenu.png" alt="Diapositive de contenu" width="32%">
 </p>
 
-**Réseaux.** L'avatar est le même sur GitHub, LinkedIn, X et ailleurs : [`avatar-reseaux.png`](applications/avatar-reseaux.png), un carré Sky plein avec le symbole blanc. Il n'a pas de coins arrondis, car chaque réseau pose son propre masque : un cercle sur X et les profils GitHub, un carré arrondi sur les organisations GitHub et les pages LinkedIn. Le symbole tient dans le cercle. L'icône d'application ne convient pas, ses coins arrondis laisseraient des angles vides, ni le symbole seul, transparent.
+**Réseaux.** L'avatar est le même sur GitHub, LinkedIn, X et ailleurs : [`avatar-reseaux.png`](applications/avatar-reseaux.png), un carré Paper plein avec le symbole Ink et sa porte éclairée (section 2). Il n'a pas de coins arrondis, car chaque réseau pose son propre masque : un cercle sur X et les profils GitHub, un carré arrondi sur les organisations GitHub et les pages LinkedIn. Le symbole tient dans le cercle. L'icône d'application ne convient pas, ses coins arrondis laisseraient des angles vides, ni le symbole seul, transparent.
 
-Sur les bannières, le logo de la page ou la photo du profil se pose en bas à gauche. Sur LinkedIn, ne mettez rien dans le quart gauche de la couverture d'une page, ni dans le tiers gauche de la bannière d'un profil ; sur X, gardez libre le coin inférieur gauche. LinkedIn recadre une image qui n'a pas le format attendu, et ce format n'est pas le même pour une page et pour un profil.
+Les bannières sont sur Paper, avec la maison ouverte à droite. Le logo de la page ou la photo du profil s'y pose en bas à gauche. Sur LinkedIn, ne mettez rien dans le quart gauche de la couverture d'une page, ni dans le tiers gauche de la bannière d'un profil ; sur X, gardez libre le coin inférieur gauche, sous y = 300 et avant x = 400. LinkedIn recadre une image qui n'a pas le format attendu, et ce format n'est pas le même pour une page et pour un profil.
 
 Sur YouTube, la photo de la chaîne se pose sous la bannière, mais l'image change de cadre selon l'écran : une télévision la montre entière, un ordinateur n'en garde que la bande de 2560 × 423 du milieu, et un téléphone la seule zone sûre de 1546 × 423 au centre. Le texte et le logo tiennent dans cette zone sûre ; le reste n'est que du fond.
 
@@ -353,10 +355,11 @@ Cahut parle la langue de la maison, en anglais simple. Chaque notion technique a
 - Phrases courtes, verbes concrets : *publish*, *share*, *approve*, *roll back*.
 - Dire qui agit : quelle IA, au nom de qui, avec quel résultat.
 - Rassurer sans alarmer : jamais de capitales, de points d'exclamation ou d'emoji d'alerte.
-- Pas de promesse magique sur l'IA : Cahut accueille le travail, il ne le crée pas.
+- Pas de promesse magique sur l'IA : Cahut accueille le travail, elle ne le crée pas.
 - Casse de phrase pour les titres, boutons et menus. Chiffres en chiffres.
-- Le nom s'écrit **Cahut** dans le texte, avec une capitale, et « cahut » en minuscules seulement dans le logo. Jamais « CAHUT ». Une instance est un Cahut, avec la même capitale : *your Cahut*, *3 Rooms in this Cahut*.
-- Une Window s'ouvre à sa Room seulement, à tout le Cahut (*internal*), à qui a sa Key, ou au public : on parle de son accès.
+- Le nom s'écrit **Cahut** dans le texte, avec une capitale, et « cahut » en minuscules seulement dans le logo. Jamais « CAHUT ». Une instance est une Cahut, avec la même capitale : *your Cahut*, *3 Rooms in this Cahut*.
+- En français, Cahut est féminin, comme la cahute dont elle tire son nom : *une Cahut*, *votre Cahut est prête*, *la Cahut de example.com*. Le produit aussi : *Cahut accueille le travail, elle ne le crée pas*.
+- Une Window s'ouvre à sa Room seulement, à toute la Cahut (*internal*), à qui a sa Key, ou au public : on parle de son accès.
 
 | Écrire | Éviter |
 | --- | --- |
@@ -367,11 +370,11 @@ Cahut parle la langue de la maison, en anglais simple. Chaque notion technique a
 
 ## 12. Cahut chez les autres
 
-Cahut porte la charte de chaque organisation (*house style*). Sur les pages publiées, la marque de l'organisation passe toujours en premier ; Cahut reste discret.
+Cahut porte la charte de chaque organisation (*house style*). Sur les pages publiées, la marque de l'organisation passe toujours en premier ; Cahut reste discrète.
 
 - Mention facultative en pied de page avec le badge [`cahut-badge-hosted.svg`](logos/cahut-badge-hosted.svg) (variante [inversée](logos/cahut-badge-hosted-inverse.svg)), 32 px de haut au plus.
 - Jamais le logo Cahut au-dessus ou à côté du logo d'un client.
-- Dans les écrans de Cahut lui-même (console, connexion, e-mails), la charte Cahut s'applique entièrement.
+- Dans les écrans de Cahut elle-même (console, connexion, e-mails), la charte Cahut s'applique entièrement.
 
 ## 13. Fichiers
 
@@ -403,6 +406,8 @@ charte-graphique/
 | 1.0 | 20 octobre 2026 | Première version, à partir de la planche retenue |
 | 1.1 | 21 octobre 2026 | Vocabulaire : Cahut remplace Home, Door disparaît, chaque Window a son accès. Pictogramme `cahut.svg`, plus de `door.svg`, gabarit de la planche. Badges d'accès `c-badge--key` et `c-badge--room` à la place de `--password` et `--invited`. Maquettes, hiérarchie typographique et diapositive de contenu mises à jour |
 | 1.2 | 23 octobre 2026 | Couverture de la page LinkedIn au format des pages, 1512 × 256 ; bannière du profil renommée `banniere-linkedin-profil` et recomposée hors de la photo. Règle de l'avatar des réseaux et des zones que couvrent le logo ou la photo |
-| 1.3 | 25 octobre 2026 | Bannière YouTube, 2560 × 1440, avec son texte et son logo dans la zone sûre de 1546 × 423 que montrent tous les écrans |
+| 1.3 | 25 octobre 2026 | La porte éclairée : l'icône d'application, ses icônes web et l'avatar des réseaux passent sur Paper, avec le symbole Ink et la porte en Soft Yellow, à la place du symbole blanc sur Sky. Le blanc sur Sky ne sert plus. La bannière X passe sur Paper, avec la maison ouverte, comme celles de LinkedIn |
+| 1.4 | 25 octobre 2026 | En français, Cahut est féminin : *une Cahut*, *votre Cahut est prête*. La personnalité et les valeurs s'accordent |
+| 1.5 | 25 octobre 2026 | Bannière YouTube, 2560 × 1440, avec son texte et son logo dans la zone sûre de 1546 × 423 que montrent tous les écrans |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.

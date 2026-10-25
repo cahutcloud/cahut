@@ -60,7 +60,7 @@ Les clients de messagerie ignorent les variables CSS, les SVG et souvent les pol
 - `font-family:'Plus Jakarta Sans',Arial,sans-serif` et `'IBM Plex Mono',Consolas,monospace` : la police de secours doit suffire.
 - Logo et images en PNG (`charte/logos/png/`) servis depuis une adresse publique, jamais en SVG ni en chemin local.
 - Signature : partir de `charte/applications/gabarits/signature-email.html`, remplacer nom, rôle et adresse de l'image.
-- E-mails envoyés par un Cahut (demande *knock first* par exemple) : dire quelle IA, quelle action, au nom de qui, quelle échéance, comme la carte `c-knock` de la console.
+- E-mails envoyés par une Cahut (demande *knock first* par exemple) : dire quelle IA, quelle action, au nom de qui, quelle échéance, comme la carte `c-knock` de la console.
 
 ## Icônes et pictogrammes
 
@@ -94,7 +94,7 @@ Les gabarits de `charte/applications/gabarits/` sont des pages HTML à taille fi
 
 4. Ouvrir le PNG obtenu et le regarder avant de livrer : coupures de texte, débordements, polices chargées.
 
-Formats en place : image de partage 1200 × 630, aperçu GitHub 1280 × 640, couverture de page LinkedIn 1512 × 256, bannière de profil LinkedIn 1584 × 396, bannière X 1500 × 500, bannière YouTube 2560 × 1440, avatar 400 × 400, diapositives 1920 × 1080. Sur les bannières, le logo de la page ou la photo du profil se pose en bas à gauche : rien dans le quart gauche d'une couverture de page LinkedIn, rien dans le tiers gauche d'une bannière de profil LinkedIn, coin inférieur gauche libre sur X. LinkedIn recadre une image qui n'a pas le format attendu. Sur YouTube, le texte et le logo tiennent dans la zone sûre de 1546 × 423 au centre, seule partie que montre un téléphone ; un ordinateur montre la bande de 2560 × 423 du milieu, une télévision l'image entière.
+Formats en place : image de partage 1200 × 630, aperçu GitHub 1280 × 640, couverture de page LinkedIn 1512 × 256, bannière de profil LinkedIn 1584 × 396, bannière X 1500 × 500, bannière YouTube 2560 × 1440, avatar 400 × 400, diapositives 1920 × 1080. Les bannières sont sur Paper, avec la maison ouverte à droite ; le logo de la page ou la photo du profil se pose en bas à gauche : rien dans le quart gauche d'une couverture de page LinkedIn, rien dans le tiers gauche d'une bannière de profil LinkedIn, coin inférieur gauche libre sur X (sous y = 300, avant x = 400). LinkedIn recadre une image qui n'a pas le format attendu. Sur YouTube, le texte et le logo tiennent dans la zone sûre de 1546 × 423 au centre, seule partie que montre un téléphone ; un ordinateur montre la bande de 2560 × 423 du milieu, une télévision l'image entière.
 
 ## Présentation
 

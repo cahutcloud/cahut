@@ -5,17 +5,17 @@ description: Charte graphique et ton de Cahut, la maison auto-hébergée de ce q
 
 # Charte graphique Cahut
 
-Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.3 du 25 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
+Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.5 du 25 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
 
 Dans ce document, les chemins partent de la racine du dépôt et **`charte/`** désigne `docs/charte-graphique/`.
 
 ## L'identité en une phrase
 
-Un abri simple et à soi, posé dans le nuage : **papier chaud, encre bleu-gris, une touche de ciel et un rayon de soleil rare**, des formes arrondies et beaucoup d'air, et une voix **calme, précise et accueillante** qui parle la langue de la maison en anglais simple. Cahut accueille le travail des IA, il ne le crée pas : rien dans l'image ne doit faire « IA magique ».
+Un abri simple et à soi, posé dans le nuage : **papier chaud, encre bleu-gris, une touche de ciel et un rayon de soleil rare**, des formes arrondies et beaucoup d'air, et une voix **calme, précise et accueillante** qui parle la langue de la maison en anglais simple. Cahut accueille le travail des IA, elle ne le crée pas : rien dans l'image ne doit faire « IA magique ».
 
 ## Périmètre : la charte Cahut, ou celle du client
 
-- **Charte Cahut** : tout ce qui est à Cahut lui-même (site, documentation, console, écran de connexion, e-mails envoyés par un Cahut, présentations, réseaux sociaux).
+- **Charte Cahut** : tout ce qui est à Cahut elle-même (site, documentation, console, écran de connexion, e-mails envoyés par une Cahut, présentations, réseaux sociaux).
 - **Charte de l'organisation (*house style*)** : les pages que Cahut publie pour ses utilisateurs. La marque de l'organisation passe en premier ; Cahut s'efface. Mention facultative en pied de page avec `charte/logos/cahut-badge-hosted.svg` (ou `-inverse`), 32 px de haut au plus. Jamais le logo Cahut au-dessus ou à côté de celui d'un client.
 
 ## Comment travailler
@@ -45,7 +45,7 @@ Un abri simple et à soi, posé dans le nuage : **papier chaud, encre bleu-gris,
 |---|---|---|---|
 | Paper | `#F7F5F0` | Fond principal | 60 % |
 | Ink | `#1F2A33` | Texte, logo, traits, fonds sombres | 22 % |
-| Sky | `#5FA8D3` | Accent, icône d'application, états actifs | 10 % |
+| Sky | `#5FA8D3` | Accent, états actifs | 10 % |
 | Light Grey | `#D9DCDF` | Bordures, séparateurs, reliefs (= Ink 200) | 5 % |
 | Soft Yellow | `#F4D27A` | Lumière, présence, ce qui attend une décision (*knock first*) | 3 % |
 
@@ -76,12 +76,12 @@ Un abri simple et à soi, posé dans le nuage : **papier chaud, encre bleu-gris,
 | Ink ou sombre | les mêmes en `-inverse` |
 | Impression une couleur | `-noir`, `-blanc` |
 | Symbole sous 64 px | `cahut-symbole-petites-tailles.svg` (trait renforcé) |
-| Icône d'application | `cahut-icone-app.svg` (Sky), `cahut-icone-app-ink.svg` |
-| Avatar sur GitHub, LinkedIn, X | `charte/applications/avatar-reseaux.png` : carré Sky plein, sans coins arrondis, le réseau pose son masque |
+| Icône d'application | `cahut-icone-app.svg` (Paper, symbole Ink, porte éclairée), `cahut-icone-app-ink.svg` |
+| Avatar sur GitHub, LinkedIn, X | `charte/applications/avatar-reseaux.png` : carré Paper plein, symbole Ink et porte éclairée, sans coins arrondis, le réseau pose son masque |
 
 - Tous dans `charte/logos/` (exports PNG dans `logos/png/`, favicons dans `logos/favicon/`). Logo horizontal pour les en-têtes et barres de navigation.
 - Zone de protection : la largeur de la porte (environ un quart de la largeur du symbole). Tailles minimales : logo 96 px, horizontal 100 px, symbole 24 px, favicon 16 px.
-- Ne pas déformer, recolorer, incliner, ombrer, recomposer ni remplir le logo ; ne pas redessiner le logotype dans une police ; pas de fond à moins de 4,5:1 ni de photo chargée derrière.
+- Ne pas déformer, recolorer, incliner, ombrer, recomposer ni remplir le logo (seule exception : la porte éclairée en Soft Yellow de l'icône d'application et de l'avatar) ; ne pas redessiner le logotype dans une police ; pas de fond à moins de 4,5:1 ni de photo chargée derrière.
 
 **Pictogrammes et icônes.**
 
@@ -110,12 +110,13 @@ Les textes du produit, du site et des visuels sont **en anglais**, langue du lan
 | Knock first | L'IA frappe avant toute action irréversible |
 | Logbook | Le registre de toutes les actions |
 
-- Une Window s'ouvre à sa Room seulement (*Room only*, par défaut), à tout le Cahut (*Internal*), à qui a sa Key, ou au public (*Public*). Le mot Door n'existe plus : on parle de l'accès d'une Window.
+- Une Window s'ouvre à sa Room seulement (*Room only*, par défaut), à toute la Cahut (*Internal*), à qui a sa Key, ou au public (*Public*). Le mot Door n'existe plus : on parle de l'accès d'une Window.
 - Cahut, Room, Window et Key prennent une capitale dans le texte courant (« 12 Windows, 4 members », « 3 Rooms in your Cahut »).
 - Phrases courtes, verbes concrets : *publish*, *share*, *approve*, *roll back*. Dire qui agit : quelle IA, au nom de qui, avec quel résultat.
 - Rassurer sans alarmer : ni capitales d'insistance, ni point d'exclamation, ni emoji d'alerte. Pas de promesse magique sur l'IA.
 - Casse de phrase pour les titres, boutons et menus. Chiffres en chiffres.
 - **Cahut** avec une capitale dans le texte, jamais « CAHUT » ; « cahut » en minuscules seulement dans le logo.
+- En français, Cahut est féminin, le produit comme chaque instance : « une Cahut », « votre Cahut est prête », « Cahut accueille le travail, elle ne le crée pas ».
 - Signature : *Your own cloud for everything your AI makes.*
 
 | Écrire | Éviter |
