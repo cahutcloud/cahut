@@ -320,7 +320,7 @@ Chaque visuel a son gabarit HTML modifiable dans [`applications/gabarits/`](appl
 
 **Réseaux.** L'avatar est le même sur GitHub, LinkedIn, X et ailleurs : [`avatar-reseaux.png`](applications/avatar-reseaux.png), un carré Paper plein avec le symbole Ink et sa porte éclairée (section 2). Il n'a pas de coins arrondis, car chaque réseau pose son propre masque : un cercle sur X et les profils GitHub, un carré arrondi sur les organisations GitHub et les pages LinkedIn. Le symbole tient dans le cercle. L'icône d'application ne convient pas, ses coins arrondis laisseraient des angles vides, ni le symbole seul, transparent.
 
-Sur les bannières, le logo de la page ou la photo du profil se pose en bas à gauche. Sur LinkedIn, ne mettez rien dans le quart gauche de la couverture d'une page, ni dans le tiers gauche de la bannière d'un profil ; sur X, gardez libre le coin inférieur gauche. LinkedIn recadre une image qui n'a pas le format attendu, et ce format n'est pas le même pour une page et pour un profil.
+Les bannières sont sur Paper, avec la maison ouverte à droite. Le logo de la page ou la photo du profil s'y pose en bas à gauche. Sur LinkedIn, ne mettez rien dans le quart gauche de la couverture d'une page, ni dans le tiers gauche de la bannière d'un profil ; sur X, gardez libre le coin inférieur gauche, sous y = 300 et avant x = 400. LinkedIn recadre une image qui n'a pas le format attendu, et ce format n'est pas le même pour une page et pour un profil.
 
 Pour la signature e-mail, remplacez l'image par une adresse publique avant usage.
 
@@ -402,6 +402,6 @@ charte-graphique/
 | 1.0 | 20 octobre 2026 | Première version, à partir de la planche retenue |
 | 1.1 | 21 octobre 2026 | Vocabulaire : Cahut remplace Home, Door disparaît, chaque Window a son accès. Pictogramme `cahut.svg`, plus de `door.svg`, gabarit de la planche. Badges d'accès `c-badge--key` et `c-badge--room` à la place de `--password` et `--invited`. Maquettes, hiérarchie typographique et diapositive de contenu mises à jour |
 | 1.2 | 23 octobre 2026 | Couverture de la page LinkedIn au format des pages, 1512 × 256 ; bannière du profil renommée `banniere-linkedin-profil` et recomposée hors de la photo. Règle de l'avatar des réseaux et des zones que couvrent le logo ou la photo |
-| 1.3 | 25 octobre 2026 | La porte éclairée : l'icône d'application, ses icônes web et l'avatar des réseaux passent sur Paper, avec le symbole Ink et la porte en Soft Yellow, à la place du symbole blanc sur Sky. Le blanc sur Sky ne sert plus |
+| 1.3 | 25 octobre 2026 | La porte éclairée : l'icône d'application, ses icônes web et l'avatar des réseaux passent sur Paper, avec le symbole Ink et la porte en Soft Yellow, à la place du symbole blanc sur Sky. Le blanc sur Sky ne sert plus. La bannière X passe sur Paper, avec la maison ouverte, comme celles de LinkedIn |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.
