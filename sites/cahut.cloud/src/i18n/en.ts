@@ -30,26 +30,67 @@ export default {
 		signature: 'Your own cloud for everything your AI makes.',
 		about:
 			'Cahut is a personal open source project by Olivier Durand, independent of any company and of any AI vendor. It is in early development.',
-		theme: { dark: 'Switch to the dark theme', light: 'Switch to the light theme' },
+		theme: { dark: 'Switch to the dark theme', light: 'Switch to the light theme', short: 'Theme' },
 		language: { label: 'Version française', short: 'FR' },
+		github: 'Cahut on GitHub',
+		menu: 'Menu',
+		// my.cahut.cloud, the Cahut hosted apart from the project (src/links.ts).
+		account: {
+			signIn: 'Sign in',
+			signInTitle: 'Open your Cahut on my.cahut.cloud',
+			signup: 'Create my Cahut',
+			free: 'Free, no credit card. Limited seats during the discovery phase.',
+		},
 	},
 
 	hero: {
 		status: 'In early development: the first version works',
 		title: 'The home for everything your AIs make.',
-		lead: 'Documents, slide decks, dashboards and small apps live online as living pages, in your house style, on your own server, whichever AI made them.',
-		start: 'Get started',
-		github: 'Follow the work on GitHub',
-		facts: ['One command on your server', 'Any AI, over MCP', 'A link, not a file'],
+		lead: 'Documents, slide decks, dashboards and small apps live online as living pages, in your house style, whichever AI made them.',
+		install: 'Install on my server',
+		facts: ['On your server or on my.cahut.cloud', 'Any AI, over MCP', 'A link, not a file'],
 		caption: 'A document, a dashboard, a site and a picture join a cloud with an open door, lit from inside.',
 		log: { action: 'published', done: 'Done' },
 	},
 
+	// The two ways to a Cahut, at the top of the quick start: my.cahut.cloud, or
+	// one's own server, whose commands follow.
+	doors: {
+		label: 'Get started',
+		title: 'Two ways to have your Cahut.',
+		lead: 'Without installing anything, or on your own server. It is the same Cahut: your AI connects over MCP and publishes its first Window in a few minutes.',
+		hosted: {
+			label: 'No server',
+			badge: 'Free · limited seats',
+			title: 'Your Cahut in two minutes, in your name.',
+			text: 'Nothing to install or run: your Cahut waits for you online, and your AI publishes there for you.',
+			example: { handle: 'helen', window: 'lisbon-trip' },
+			address: 'Your handle becomes the address of your Windows.',
+			steps: ['An e-mail and a handle', 'Your AI connected: Claude or Le Chat', 'Your first Window, online'],
+			member: 'Already a member? Open my.cahut.cloud',
+			fine: 'A service hosted in France by Olivier Durand, apart from the open source project. The same Cahut you install, with no reserved feature.',
+		},
+		server: {
+			label: 'On your server',
+			badge: 'Open source · AGPL-3.0',
+			title: 'One command, then ask your AI.',
+			text: 'On an AlmaLinux or Ubuntu VPS, with its HTTPS certificate. Your domain, your data, your limits.',
+			needs: {
+				label: 'You need',
+				items: [
+					'A Linux server with systemd',
+					'A domain that points to it, or its IPv4 address',
+					'Ports 80 and 443 open',
+					'An AI client that speaks MCP, such as Claude Code',
+				],
+			},
+			commands: 'See the commands',
+			allOptions: 'All install options',
+			fine: 'Free and unlimited, under the AGPL-3.0. You run the server, its backups and its updates.',
+		},
+	},
+
 	quickstart: {
-		label: 'Quick start',
-		title: 'One command, then ask your AI.',
-		lead: 'Cahut installs on a Linux server as a service, with its HTTPS certificate. Your AI connects over MCP and publishes its first Window in a few minutes.',
-		allOptions: 'All install options',
 		install: 'Install',
 		tabs: {
 			server: { label: 'On a server', meta: 'AlmaLinux · Ubuntu · amd64 · arm64' },
@@ -69,15 +110,6 @@ export default {
 		reply: 'Published at',
 		copy: 'Copy',
 		copied: 'Copied',
-		needs: {
-			label: 'You need',
-			items: [
-				'A Linux server with systemd',
-				'A domain that points to it, or its IPv4 address',
-				'Ports 80 and 443 open',
-				'An AI client that speaks MCP, such as Claude Code',
-			],
-		},
 		note: 'Cahut is in early development and keeps no backups yet: keep snapshots of your server.',
 		status: 'Where Cahut stands',
 	},

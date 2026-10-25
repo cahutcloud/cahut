@@ -31,27 +31,65 @@ const fr: Dictionary = {
 		signature: 'Votre propre nuage pour tout ce que fabriquent vos IA.',
 		about:
 			"Cahut est un projet open source personnel d'Olivier Durand, indépendant de toute entreprise et de tout fournisseur d'IA. Elle est en début de développement.",
-		theme: { dark: 'Passer au thème sombre', light: 'Passer au thème clair' },
+		theme: { dark: 'Passer au thème sombre', light: 'Passer au thème clair', short: 'Thème' },
 		language: { label: 'English version', short: 'EN' },
+		github: 'Cahut sur GitHub',
+		menu: 'Menu',
+		account: {
+			signIn: 'Se connecter',
+			signInTitle: 'Ouvrir votre Cahut sur my.cahut.cloud',
+			signup: 'Créer ma Cahut',
+			free: 'Gratuit, sans carte bancaire. Places limitées pendant la découverte.',
+		},
 	},
 
 	hero: {
 		status: 'En début de développement : la première version fonctionne',
 		title: 'La maison de tout ce que fabriquent vos IA.',
-		lead: "Documents, présentations, tableaux de bord et petites applis deviennent des pages vivantes en ligne, à vos couleurs, sur votre propre serveur, quelle que soit l'IA qui les a faits.",
-		start: 'Démarrer',
-		github: 'Suivre le projet sur GitHub',
-		facts: ['Une commande sur votre serveur', 'Toutes les IA, par MCP', 'Un lien, pas un fichier'],
+		lead: "Documents, présentations, tableaux de bord et petites applis deviennent des pages vivantes en ligne, à vos couleurs, quelle que soit l'IA qui les a faits.",
+		install: 'Installer sur mon serveur',
+		facts: ['Sur votre serveur ou sur my.cahut.cloud', 'Toutes les IA, par MCP', 'Un lien, pas un fichier'],
 		caption:
 			"Un document, un tableau de bord, un site et une image rejoignent un nuage à la porte ouverte, éclairée de l'intérieur.",
 		log: { action: 'a publié', done: 'Fait' },
 	},
 
+	doors: {
+		label: 'Démarrer',
+		title: "Deux façons d'avoir votre Cahut.",
+		lead: "Sans rien installer, ou sur votre propre serveur. C'est la même Cahut : votre IA s'y connecte par MCP et publie sa première Window en quelques minutes.",
+		hosted: {
+			label: 'Sans serveur',
+			badge: 'Gratuit · places limitées',
+			title: 'Votre Cahut en deux minutes, à votre nom.',
+			text: 'Rien à installer ni à administrer : votre Cahut vous attend en ligne, et votre IA y publie pour vous.',
+			example: { handle: 'helene', window: 'voyage-lisbonne' },
+			address: "Votre pseudo devient l'adresse de vos Windows.",
+			steps: ['Un e-mail et un pseudo', 'Votre IA connectée : Claude ou Le Chat', 'Votre première Window, en ligne'],
+			member: 'Déjà membre ? Ouvrir my.cahut.cloud',
+			fine: 'Un service hébergé en France par Olivier Durand, à part du projet open source. La même Cahut que celle que vous installez, sans fonctionnalité réservée.',
+		},
+		server: {
+			label: 'Sur votre serveur',
+			badge: 'Open source · AGPL-3.0',
+			title: 'Une commande, puis demandez à votre IA.',
+			text: 'Sur un VPS AlmaLinux ou Ubuntu, avec son certificat HTTPS. Votre domaine, vos données, vos limites.',
+			needs: {
+				label: 'Il vous faut',
+				items: [
+					'Un serveur Linux avec systemd',
+					'Un domaine qui pointe vers lui, ou son adresse IPv4',
+					'Les ports 80 et 443 ouverts',
+					"Un client d'IA qui parle MCP, comme Claude Code",
+				],
+			},
+			commands: 'Voir les commandes',
+			allOptions: "Toutes les options d'installation",
+			fine: 'Gratuit et sans limite, sous licence AGPL-3.0. Vous administrez le serveur, ses sauvegardes et ses mises à jour.',
+		},
+	},
+
 	quickstart: {
-		label: 'Démarrage rapide',
-		title: 'Une commande, puis demandez à votre IA.',
-		lead: "Cahut s'installe comme un service sur un serveur Linux, avec son certificat HTTPS. Votre IA s'y connecte par MCP et publie sa première Window en quelques minutes.",
-		allOptions: "Toutes les options d'installation",
 		install: 'Installer',
 		tabs: {
 			server: { label: 'Sur un serveur', meta: 'AlmaLinux · Ubuntu · amd64 · arm64' },
@@ -71,15 +109,6 @@ const fr: Dictionary = {
 		reply: "Publié à l'adresse",
 		copy: 'Copier',
 		copied: 'Copié',
-		needs: {
-			label: 'Il vous faut',
-			items: [
-				'Un serveur Linux avec systemd',
-				'Un domaine qui pointe vers lui, ou son adresse IPv4',
-				'Les ports 80 et 443 ouverts',
-				"Un client d'IA qui parle MCP, comme Claude Code",
-			],
-		},
 		note: 'Cahut est en début de développement et ne fait pas encore de sauvegardes : gardez des instantanés de votre serveur.',
 		status: 'Où en est Cahut',
 	},

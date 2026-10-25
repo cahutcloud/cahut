@@ -2,6 +2,7 @@
 // The home page of cahut.cloud, in each language of the site: its words come
 // from the dictionaries of src/i18n.
 import Address from './Address.astro';
+import Doors from './Doors.astro';
 import Flow from './Flow.astro';
 import Hero from './Hero.astro';
 import KnockDemo from './KnockDemo.astro';
@@ -73,22 +74,19 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 	alternates={{ en: localize('en'), fr: localize('fr') }}
 	fullWidth
 >
-	<Hero lang={lang} github={github} />
+	<Hero lang={lang} />
 
 	<section id="quickstart" class="section quickstart" aria-labelledby="quickstart-title">
 		<div class="container">
-			<header class="quickstart__head" data-reveal>
-				<div class="section__head">
-					<p class="c-label">{t.quickstart.label}</p>
-					<h2 id="quickstart-title" class="c-h1">{t.quickstart.title}</h2>
-					<p class="lead">{t.quickstart.lead}</p>
-				</div>
-				<a class="more" href={`${docs}/install/server/`} hreflang={docsLang}>
-					{t.quickstart.allOptions}
-					<Icon name="arrow-right" size={16} />
-				</a>
+			<header class="section__head" data-reveal>
+				<p class="c-label">{t.doors.label}</p>
+				<h2 id="quickstart-title" class="c-h1">{t.doors.title}</h2>
+				<p class="lead">{t.doors.lead}</p>
 			</header>
 			<div data-reveal>
+				<Doors lang={lang} />
+			</div>
+			<div id="install" class="install" data-reveal>
 				<Quickstart lang={lang} />
 			</div>
 		</div>
@@ -448,15 +446,9 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 	.quickstart {
 		padding-top: var(--space-16);
 	}
-	.quickstart__head {
-		display: flex;
-		align-items: end;
-		justify-content: space-between;
-		gap: var(--space-6) var(--space-12);
-		margin-bottom: var(--space-10);
-	}
-	.quickstart__head .section__head {
-		margin-bottom: 0;
+	/* The commands of the door to one's own server, under the two doors. */
+	.install {
+		margin-top: var(--space-12);
 	}
 	.more {
 		display: inline-flex;
@@ -1084,10 +1076,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 	}
 
 	@media (max-width: 960px) {
-		.quickstart__head {
-			flex-direction: column;
-			align-items: start;
-		}
 		.why,
 		.statement__grid,
 		.knock-first,

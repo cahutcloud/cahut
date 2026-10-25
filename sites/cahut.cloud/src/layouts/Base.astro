@@ -7,6 +7,7 @@ import '../styles/site.css';
 import Icon from '../components/Icon.astro';
 import { localize, otherLang, useTranslations, type Lang } from '../i18n';
 import { legalPages, legalPaths } from '../legal/legal';
+import { signInURL, signupURL } from '../links';
 import { pages, paths } from '../project/community';
 import logo from '@charte/logos/cahut-logo-horizontal.svg?url';
 import logoInverse from '@charte/logos/cahut-logo-horizontal-inverse.svg?url';
@@ -61,14 +62,13 @@ const social = [
 ];
 const home = (hash: string) => localize(lang, `/${hash}`);
 
-// The sections of the home page come first; small screens keep only the rest.
+// The sections of the home page, then the docs and the project; Knock first and
+// the brand are in the footer. Small screens show these links in the menu.
 const nav = [
 	{ href: home('#how-it-works'), label: t.base.nav.how, section: true },
-	{ href: home('#knock-first'), label: t.base.nav.knock, section: true },
 	{ href: home('#features'), label: t.base.nav.features, section: true },
 	{ href: docs, label: t.base.nav.docs, hreflang: 'en' },
-	{ href: localize(lang, '/project/'), label: t.base.nav.project, optional: true },
-	{ href: '/brand/', label: t.base.nav.brand, hreflang: 'en', optional: true },
+	{ href: localize(lang, '/project/'), label: t.base.nav.project },
 ];
 
 const footer: { title: string; links: { href: string; label: string; hreflang?: string; rel?: string }[] }[] = [
@@ -170,8 +170,8 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 				<nav aria-label={t.base.mainNav}>
 					<ul>
 						{
-							nav.map(({ href, label, section, optional, hreflang }) => (
-								<li class:list={{ 'in-page': section, optional }}>
+							nav.map(({ href, label, section, hreflang }) => (
+								<li>
 									<a
 										href={href}
 										hreflang={hreflang !== lang ? hreflang : undefined}
@@ -201,8 +201,63 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 						<Icon name="moon" size={16} class="to-dark" />
 						<Icon name="sun" size={16} class="to-light" />
 					</button>
-					<a class="c-btn c-btn--primary c-btn--sm github" href={github}>GitHub <Icon name="arrow-right" size={14} /></a>
+					<a class="tool" href={github} aria-label={t.base.github} title={t.base.github}>
+						<Icon name="github" size={16} />
+					</a>
+					<span class="separator" aria-hidden="true"></span>
+					<a class="c-btn c-btn--ghost sign-in" href={signInURL} title={t.base.account.signInTitle}>{t.base.account.signIn}</a>
 				</div>
+				<a class="c-btn c-btn--primary signup" href={signupURL(lang)}>{t.base.account.signup}</a>
+				<details class="menu" data-menu>
+					<summary class="tool menu__button" aria-label={t.base.menu} title={t.base.menu}>
+						<Icon name="menu" size={20} class="menu__open" />
+						<Icon name="x" size={20} class="menu__close" />
+					</summary>
+					<div class="menu__panel">
+						<a class="menu__sign-in" href={signInURL}>
+							<Icon name="log-in" size={20} />
+							{t.base.account.signIn}
+							<span class="c-mono menu__host">my.cahut.cloud</span>
+						</a>
+						<nav aria-label={t.base.mainNav}>
+							<ul>
+								{
+									nav.map(({ href, label, hreflang }) => (
+										<li>
+											<a href={href} hreflang={hreflang !== lang ? hreflang : undefined}>
+												{label}
+												<Icon name="chevron-right" size={20} />
+											</a>
+										</li>
+									))
+								}
+							</ul>
+						</nav>
+						<div class="menu__tools">
+							<a class="c-btn c-btn--secondary" href={otherHref} hreflang={other} lang={other}>
+								{t.base.language.label}
+							</a>
+							<button
+								type="button"
+								class="c-btn c-btn--secondary"
+								data-theme-toggle
+								data-label-dark={t.base.theme.dark}
+								data-label-light={t.base.theme.light}
+								aria-label={t.base.theme.dark}
+								title={t.base.theme.dark}
+							>
+								<Icon name="moon" size={16} class="to-dark" />
+								<Icon name="sun" size={16} class="to-light" />
+								{t.base.theme.short}
+							</button>
+							<a class="c-btn c-btn--secondary" href={github}><Icon name="github" size={16} />GitHub</a>
+						</div>
+						<div class="menu__signup">
+							<a class="c-btn c-btn--primary" href={signupURL(lang)}>{t.base.account.signup} <Icon name="arrow-right" /></a>
+							<p class="c-small c-muted">{t.base.account.free}</p>
+						</div>
+					</div>
+				</details>
 			</div>
 		</header>
 		<main id="content" class:list={{ container: !fullWidth, page: !fullWidth }}>
@@ -284,6 +339,22 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 			}
 			label();
 			paintBar();
+		});
+	});
+
+	// The menu of small screens closes on a link, on Escape, and once the screen
+	// is wide enough for the whole header.
+	document.querySelectorAll<HTMLDetailsElement>('[data-menu]').forEach((menu) => {
+		menu.addEventListener('click', (event) => {
+			if ((event.target as Element).closest('a')) menu.open = false;
+		});
+		addEventListener('keydown', (event) => {
+			if (event.key !== 'Escape' || !menu.open) return;
+			menu.open = false;
+			menu.querySelector('summary')?.focus();
+		});
+		matchMedia('(min-width: 1101px)').addEventListener('change', (query) => {
+			if (query.matches) menu.open = false;
 		});
 	});
 
@@ -408,8 +479,120 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 		background: var(--color-accent);
 		transform: scaleX(1);
 	}
-	.github {
+	.separator {
+		width: var(--border-width);
+		height: var(--space-6);
+		margin-inline: var(--space-2);
+		background: var(--color-border);
+	}
+	.sign-in,
+	.signup {
 		flex: none;
+	}
+
+	/* The menu of small screens: a disclosure, which works without scripts. */
+	.menu {
+		display: none;
+	}
+	/* Larger than the other tools, whose rule comes later in this sheet. */
+	.menu .menu__button {
+		width: 40px;
+		height: 40px;
+		list-style: none;
+	}
+	.menu__button::-webkit-details-marker {
+		display: none;
+	}
+	.menu .menu__button:hover :global(.i) {
+		rotate: none;
+	}
+	.menu[open] :global(.menu__open),
+	.menu:not([open]) :global(.menu__close) {
+		display: none;
+	}
+	.menu__panel {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-6);
+		box-sizing: border-box;
+		height: calc(100dvh - var(--header-height));
+		overflow-y: auto;
+		padding: var(--space-4) var(--page-margin) var(--space-6);
+		border-top: var(--border-width) solid var(--color-border);
+		background: var(--color-bg);
+	}
+	/* The open menu holds the page still, and has its own button to sign up. */
+	:global(html:has([data-menu][open])) {
+		overflow: hidden;
+	}
+	:global(html:has([data-menu][open])) .signup {
+		visibility: hidden;
+	}
+	.menu__sign-in {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		min-height: 56px;
+		padding-inline: var(--space-4);
+		border: var(--border-width) solid var(--color-border-strong);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+		color: var(--color-text);
+		font-weight: var(--weight-semibold);
+		text-decoration: none;
+	}
+	.menu__host {
+		margin-left: auto;
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		font-weight: var(--weight-regular);
+	}
+	.menu nav ul {
+		display: grid;
+		gap: 0;
+	}
+	.menu nav a {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		min-height: 56px;
+		padding-block: 0;
+		border-bottom: var(--border-width) solid var(--color-border);
+		border-radius: 0;
+		font-size: var(--text-lg);
+		line-height: var(--leading-lg);
+	}
+	.menu nav a::after {
+		display: none;
+	}
+	.menu nav :global(.i) {
+		color: var(--color-text-muted);
+	}
+	.menu__tools {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+	}
+	.menu__tools .c-btn {
+		height: 44px;
+	}
+	.menu__signup {
+		display: grid;
+		gap: var(--space-2);
+		margin-top: auto;
+		text-align: center;
+	}
+	.menu__signup .c-btn {
+		height: 48px;
+		font-size: var(--text-base);
+	}
+	.menu__signup p {
+		margin: 0;
 	}
 
 	/* The other language and the theme, as small square tools. */
@@ -454,25 +637,25 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 	 * visitor picked, or else the system's.
 	 */
 	.logo-dark,
-	.tool :global(.to-light) {
+	[data-theme-toggle] :global(.to-light) {
 		display: none !important;
 	}
 	@media (prefers-color-scheme: dark) {
 		:global(:root:not([data-theme='light'])) .logo-light,
-		:global(:root:not([data-theme='light'])) .tool :global(.to-dark) {
+		:global(:root:not([data-theme='light'])) [data-theme-toggle] :global(.to-dark) {
 			display: none !important;
 		}
 		:global(:root:not([data-theme='light'])) .logo-dark,
-		:global(:root:not([data-theme='light'])) .tool :global(.to-light) {
+		:global(:root:not([data-theme='light'])) [data-theme-toggle] :global(.to-light) {
 			display: block !important;
 		}
 	}
 	:global(:root[data-theme='dark']) .logo-light,
-	:global(:root[data-theme='dark']) .tool :global(.to-dark) {
+	:global(:root[data-theme='dark']) [data-theme-toggle] :global(.to-dark) {
 		display: none !important;
 	}
 	:global(:root[data-theme='dark']) .logo-dark,
-	:global(:root[data-theme='dark']) .tool :global(.to-light) {
+	:global(:root[data-theme='dark']) [data-theme-toggle] :global(.to-light) {
 		display: block !important;
 	}
 
@@ -542,11 +725,18 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 		text-decoration: underline;
 	}
 
-	/* The signature takes a row of its own, above the links. */
-	@media (max-width: 900px) {
-		.in-page {
+	/* Below this width, the links and the tools of the header move into the menu. */
+	@media (max-width: 1100px) {
+		.bar > nav,
+		.tools {
 			display: none;
 		}
+		.menu {
+			display: block;
+		}
+	}
+	/* The signature takes a row of its own, above the links. */
+	@media (max-width: 900px) {
 		.site-footer .container {
 			grid-template-columns: repeat(3, 1fr);
 		}
@@ -558,19 +748,20 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 		.bar {
 			gap: var(--space-4);
 		}
-		.bar nav ul {
-			flex-wrap: nowrap;
-			gap: var(--space-4);
-		}
 		.site-footer .container {
 			grid-template-columns: 1fr 1fr;
 		}
 	}
-	/* The brand and GitHub stay in the footer when the header runs out of room. */
-	@media (max-width: 480px) {
-		.optional,
-		.github {
-			display: none;
+	/* The narrowest phones keep the logo, the button and the menu on one line. */
+	@media (max-width: 400px) {
+		.bar {
+			gap: var(--space-3);
+		}
+		.logo img {
+			height: 24px;
+		}
+		.signup {
+			padding-inline: var(--space-3);
 		}
 	}
 </style>

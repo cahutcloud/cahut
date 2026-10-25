@@ -3,16 +3,17 @@
 // guidelines, whose Windows fly in and whose door lights up.
 import Icon from '../Icon.astro';
 import { useTranslations, type Lang } from '../../i18n';
+import { signupURL } from '../../links';
 import clouds from '@charte/illustrations/motif-nuages.svg?url';
 import house from '@charte/illustrations/maison-ouverte.svg?raw';
 
 interface Props {
 	lang: Lang;
-	github: string;
 }
 
-const { lang, github } = Astro.props;
-const t = useTranslations(lang).hero;
+const { lang } = Astro.props;
+const { hero: t, base } = useTranslations(lang);
+const account = base.account;
 
 // The illustration is drawn from its file as it is. Its French title would be
 // read out as is: the figure around it gives the description.
@@ -45,9 +46,10 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 			</h1>
 			<p class="hero__lead">{t.lead}</p>
 			<div class="hero__actions">
-				<a class="c-btn c-btn--primary" href="#quickstart">{t.start} <Icon name="arrow-down" /></a>
-				<a class="c-btn c-btn--secondary" href={github}>{t.github}</a>
+				<a class="c-btn c-btn--primary" href={signupURL(lang)}>{account.signup} <Icon name="arrow-right" /></a>
+				<a class="c-btn c-btn--secondary" href="#quickstart">{t.install} <Icon name="arrow-down" /></a>
 			</div>
+			<p class="hero__free">{account.free}</p>
 			<ul class="hero__facts" role="list">
 				{
 					facts.map(({ icon, text }) => (
@@ -183,6 +185,13 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 		padding-inline: var(--space-5);
 		font-size: var(--text-base);
 	}
+	/* What the first button costs, right under it. */
+	.hero__free {
+		margin: calc(-1 * var(--space-3)) 0 0;
+		color: var(--color-text-muted);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
 
 	.hero__facts {
 		display: flex;
@@ -292,6 +301,7 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 		:global(.js) .hero__status,
 		:global(.js) .hero__lead,
 		:global(.js) .hero__actions,
+		:global(.js) .hero__free,
 		:global(.js) .hero__facts {
 			opacity: 0;
 			animation: appear 800ms var(--ease-out) forwards;
@@ -304,6 +314,9 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 		}
 		:global(.js) .hero__actions {
 			animation-delay: 800ms;
+		}
+		:global(.js) .hero__free {
+			animation-delay: 880ms;
 		}
 		:global(.js) .hero__facts {
 			animation-delay: 950ms;

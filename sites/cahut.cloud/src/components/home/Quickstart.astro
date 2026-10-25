@@ -172,19 +172,6 @@ const highlight = (line: string) =>
 	</div>
 
 	<div class="qs__foot">
-		<div class="qs__needs">
-			<p class="c-label">{t.needs.label}</p>
-			<ul role="list">
-				{
-					t.needs.items.map((item) => (
-						<li>
-							<Icon name="check" size={16} />
-							{item}
-						</li>
-					))
-				}
-			</ul>
-		</div>
 		<p class="qs__note">
 			<Icon name="info" size={16} />
 			<span>
@@ -506,35 +493,9 @@ const highlight = (line: string) =>
 	}
 
 	/* Under the terminal */
+	/* What the server needs is on the door above; the note stays under the commands. */
 	.qs__foot {
 		display: grid;
-		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-		gap: var(--space-8);
-		align-items: start;
-	}
-	.qs__needs {
-		display: grid;
-		gap: var(--space-3);
-	}
-	.qs__needs ul {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--space-2) var(--space-6);
-		margin: 0;
-		padding: 0;
-		list-style: none;
-		font-size: var(--text-sm);
-		line-height: var(--leading-sm);
-	}
-	.qs__needs li {
-		display: flex;
-		align-items: start;
-		gap: var(--space-2);
-	}
-	.qs__needs li :global(.i) {
-		flex: none;
-		margin-top: 2px;
-		color: var(--color-success);
 	}
 	.qs__note {
 		display: flex;
@@ -556,9 +517,6 @@ const highlight = (line: string) =>
 	@media (max-width: 860px) {
 		.term__meta {
 			display: none;
-		}
-		.qs__foot {
-			grid-template-columns: minmax(0, 1fr);
 		}
 	}
 	@media (max-width: 640px) {
@@ -584,9 +542,6 @@ const highlight = (line: string) =>
 		}
 		.term__copy-text {
 			display: none;
-		}
-		.qs__needs ul {
-			grid-template-columns: minmax(0, 1fr);
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {

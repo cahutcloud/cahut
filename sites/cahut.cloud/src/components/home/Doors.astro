@@ -1,0 +1,250 @@
+---
+// The two ways to a Cahut, at the top of the quick start: my.cahut.cloud,
+// which Olivier Durand hosts apart from the project, or one's own server,
+// whose commands follow in the quick start.
+import Icon from '../Icon.astro';
+import { useTranslations, type Lang } from '../../i18n';
+import { signInURL, signupURL } from '../../links';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { doors: t, base } = useTranslations(lang);
+const docs = 'https://docs.cahut.cloud';
+const docsLang = lang === 'en' ? undefined : 'en';
+---
+
+<div class="doors">
+	<article class="door door--hosted" aria-labelledby="door-hosted">
+		<div class="door__head">
+			<span class="door__icon"><Icon name="cloud" size={24} /></span>
+			<div class="door__kind">
+				<p class="c-label">{t.hosted.label}</p>
+				<span class="c-badge c-badge--public">{t.hosted.badge}</span>
+			</div>
+		</div>
+		<div class="door__text">
+			<h3 id="door-hosted" class="c-h3">{t.hosted.title}</h3>
+			<p class="c-muted">{t.hosted.text}</p>
+		</div>
+		<div class="door__address">
+			<p class="address c-mono">
+				<Icon name="lock" size={16} />
+				<span>
+					<span class="c-muted">https://</span>my.cahut.cloud/<mark>{t.hosted.example.handle}</mark>/{
+						t.hosted.example.window
+					}
+				</span>
+			</p>
+			<p class="c-small c-muted">{t.hosted.address}</p>
+		</div>
+		<ol class="door__steps" role="list">
+			{
+				t.hosted.steps.map((step, index) => (
+					<li>
+						<span class="c-mono door__number" aria-hidden="true">
+							{index + 1}
+						</span>
+						{step}
+					</li>
+				))
+			}
+		</ol>
+		<div class="door__actions">
+			<a class="c-btn c-btn--primary" href={signupURL(lang)}>{base.account.signup} <Icon name="arrow-right" /></a>
+			<a class="door__link" href={signInURL}>{t.hosted.member}</a>
+		</div>
+		<p class="door__fine">{t.hosted.fine}</p>
+	</article>
+
+	<article class="door" aria-labelledby="door-server">
+		<div class="door__head">
+			<span class="door__icon"><Icon name="server" size={24} /></span>
+			<div class="door__kind">
+				<p class="c-label">{t.server.label}</p>
+				<span class="c-badge c-badge--neutral">{t.server.badge}</span>
+			</div>
+		</div>
+		<div class="door__text">
+			<h3 id="door-server" class="c-h3">{t.server.title}</h3>
+			<p class="c-muted">{t.server.text}</p>
+		</div>
+		<div class="door__needs">
+			<p class="c-label">{t.server.needs.label}</p>
+			<ul class="door__steps" role="list">
+				{
+					t.server.needs.items.map((item) => (
+						<li>
+							<Icon name="check" size={16} />
+							{item}
+						</li>
+					))
+				}
+			</ul>
+		</div>
+		<div class="door__actions">
+			<a class="c-btn c-btn--secondary" href="#install">{t.server.commands} <Icon name="arrow-down" /></a>
+			<a class="door__link" href={`${docs}/install/server/`} hreflang={docsLang}>{t.server.allOptions}</a>
+		</div>
+		<p class="door__fine">{t.server.fine}</p>
+	</article>
+</div>
+
+<style>
+	.doors {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-6);
+	}
+	.door {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-6);
+		padding: var(--space-8);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-xl);
+		background: var(--color-surface);
+		box-shadow: var(--shadow-md);
+	}
+	.door p {
+		margin: 0;
+	}
+
+	.door__head {
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+	}
+	.door__icon {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: var(--space-12);
+		height: var(--space-12);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface-muted);
+		color: var(--color-text);
+	}
+	/* The door without a server is the one most people take: it carries the accent. */
+	.door--hosted .door__icon {
+		background: var(--color-accent-soft);
+		color: var(--color-info);
+	}
+	.door__kind {
+		display: grid;
+		justify-items: start;
+		gap: var(--space-2);
+	}
+	.door__text {
+		display: grid;
+		gap: var(--space-3);
+	}
+
+	/* The address that the handle gives, its part lit like the door. */
+	.door__address {
+		display: grid;
+		gap: var(--space-2);
+	}
+	.address {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-4);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-md);
+		background: var(--color-bg);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+		overflow-wrap: anywhere;
+	}
+	.address :global(.i) {
+		flex: none;
+		color: var(--color-success);
+	}
+	mark {
+		padding: 0 var(--space-1);
+		border-radius: var(--radius-xs);
+		background: var(--color-highlight-soft);
+		color: var(--color-text);
+		font-weight: var(--weight-semibold);
+	}
+
+	.door__steps {
+		display: grid;
+		gap: var(--space-3);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	.door__steps li {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+	}
+	.door__needs {
+		display: grid;
+		gap: var(--space-3);
+	}
+	.door__needs :global(.i) {
+		flex: none;
+		color: var(--color-success);
+	}
+	.door__number {
+		display: grid;
+		place-items: center;
+		flex: none;
+		box-sizing: border-box;
+		width: var(--space-6);
+		height: var(--space-6);
+		border: var(--border-width) solid var(--color-border-strong);
+		border-radius: 50%;
+		font-size: var(--text-xs);
+		font-weight: var(--weight-semibold);
+	}
+
+	/* The buttons sit at the bottom of each door, whatever the door holds. */
+	.door__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-3) var(--space-5);
+		margin-top: auto;
+	}
+	.door__actions .c-btn {
+		height: 48px;
+		padding-inline: var(--space-5);
+		font-size: var(--text-base);
+	}
+	.door__link {
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	.door__fine {
+		padding-top: var(--space-5);
+		border-top: var(--border-width) solid var(--color-border);
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+		line-height: var(--leading-sm);
+	}
+
+	@media (max-width: 960px) {
+		.doors {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+	@media (max-width: 640px) {
+		.door {
+			gap: var(--space-5);
+			padding: var(--space-6);
+		}
+		.door__actions {
+			flex-direction: column;
+			align-items: stretch;
+			text-align: center;
+		}
+	}
+</style>
