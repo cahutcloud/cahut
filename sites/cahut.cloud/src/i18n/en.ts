@@ -26,7 +26,7 @@ export default {
 			project: 'Project',
 			github: 'GitHub',
 		},
-		footer: { cahut: 'Cahut', project: 'Project' },
+		footer: { cahut: 'Cahut', project: 'Project', follow: 'Follow' },
 		signature: 'Your own cloud for everything your AI makes.',
 		about:
 			'Cahut is a personal open source project by Olivier Durand, independent of any company and of any AI vendor. It is in early development.',

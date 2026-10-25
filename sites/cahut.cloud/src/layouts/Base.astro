@@ -51,6 +51,14 @@ const otherHref = alternates[other] ?? localize(other, '/');
 
 const github = 'https://github.com/getcahut/cahut';
 const docs = 'https://docs.cahut.cloud';
+// The accounts of Cahut, in the order of the channels of the governance: Mastodon
+// and LinkedIn carry the news, YouTube and X follow.
+const social = [
+	{ href: 'https://mastodon.social/@cahut', label: 'Mastodon' },
+	{ href: 'https://www.linkedin.com/company/cahut', label: 'LinkedIn' },
+	{ href: 'https://www.youtube.com/@CahutCloud', label: 'YouTube' },
+	{ href: 'https://x.com/getcahut', label: 'X' },
+];
 const home = (hash: string) => localize(lang, `/${hash}`);
 
 // The sections of the home page come first; small screens keep only the rest.
@@ -63,7 +71,7 @@ const nav = [
 	{ href: '/brand/', label: t.base.nav.brand, hreflang: 'en', optional: true },
 ];
 
-const footer: { title: string; links: { href: string; label: string; hreflang?: string }[] }[] = [
+const footer: { title: string; links: { href: string; label: string; hreflang?: string; rel?: string }[] }[] = [
 	{
 		title: t.base.footer.cahut,
 		links: [
@@ -82,6 +90,11 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 			{ href: '/brand/', label: t.base.nav.brand, hreflang: 'en' },
 			{ href: github, label: t.base.nav.github },
 		],
+	},
+	{
+		// rel="me" tells each network that the site and the account belong to the same project.
+		title: t.base.footer.follow,
+		links: social.map((account) => ({ ...account, rel: 'me' })),
 	},
 ];
 ---
@@ -131,6 +144,8 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 		<meta property="og:image:height" content={String(image.height)} />
 		<meta property="og:image:alt" content={imageAlt} />
 		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:site" content="@getcahut" />
+		<meta name="fediverse:creator" content="@cahut@mastodon.social" />
 
 		<!--
 			Before the first paint: the theme the visitor chose, and what reveals
@@ -204,9 +219,9 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 						<nav aria-label={title}>
 							<p class="c-label">{title}</p>
 							<ul>
-								{links.map(({ href, label, hreflang }) => (
+								{links.map(({ href, label, hreflang, rel }) => (
 									<li>
-										<a href={href} hreflang={hreflang !== lang ? hreflang : undefined}>
+										<a href={href} hreflang={hreflang !== lang ? hreflang : undefined} rel={rel}>
 											{label}
 										</a>
 									</li>
@@ -468,7 +483,7 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 	}
 	.site-footer .container {
 		display: grid;
-		grid-template-columns: 1fr auto auto;
+		grid-template-columns: 1fr auto auto auto;
 		align-items: start;
 		gap: var(--space-8) var(--space-16);
 	}
@@ -527,9 +542,16 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 		text-decoration: underline;
 	}
 
+	/* The signature takes a row of its own, above the links. */
 	@media (max-width: 900px) {
 		.in-page {
 			display: none;
+		}
+		.site-footer .container {
+			grid-template-columns: repeat(3, 1fr);
+		}
+		.signature {
+			grid-column: 1 / -1;
 		}
 	}
 	@media (max-width: 640px) {
@@ -542,9 +564,6 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 		}
 		.site-footer .container {
 			grid-template-columns: 1fr 1fr;
-		}
-		.signature {
-			grid-column: 1 / -1;
 		}
 	}
 	/* The brand and GitHub stay in the footer when the header runs out of room. */

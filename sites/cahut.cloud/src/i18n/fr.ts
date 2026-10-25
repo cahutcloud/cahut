@@ -27,7 +27,7 @@ const fr: Dictionary = {
 			project: 'Projet',
 			github: 'GitHub',
 		},
-		footer: { cahut: 'Cahut', project: 'Projet' },
+		footer: { cahut: 'Cahut', project: 'Projet', follow: 'Suivre' },
 		signature: 'Votre propre nuage pour tout ce que fabriquent vos IA.',
 		about:
 			"Cahut est un projet open source personnel d'Olivier Durand, indépendant de toute entreprise et de tout fournisseur d'IA. Il est en début de développement.",
