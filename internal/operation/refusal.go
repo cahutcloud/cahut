@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -104,6 +105,14 @@ func NewRefusalOf[V any](code string, kind error, message string) func(V) error 
 		})
 		return &Refusal{Code: code, Values: v, kind: kind, text: text}
 	}
+}
+
+// Quoted is a value of a refusal that its English message quotes, as %q
+// does, such as a handle that a person typed. The API gives it as it is.
+type Quoted string
+
+func (q Quoted) String() string {
+	return strconv.Quote(string(q))
 }
 
 // valueFields returns the index of each field of the struct t that JSON

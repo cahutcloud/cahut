@@ -101,8 +101,7 @@ var CreateAdmin = &operation.Op[CreateAdminInput, NewAdmin]{
 	Run: func(ctx context.Context, c *operation.Call, in CreateAdminInput) (NewAdmin, error) {
 		c.Log(in.Handle, "")
 		if !account.ValidHandle(in.Handle) {
-			return NewAdmin{}, operation.Invalidf("handle %q: use 2 to 32 lowercase letters, digits and hyphens, "+
-				"starting with a letter and ending with a letter or a digit", in.Handle)
+			return NewAdmin{}, account.InvalidHandle(in.Handle)
 		}
 		name := strings.TrimSpace(in.Name)
 		if name == "" {

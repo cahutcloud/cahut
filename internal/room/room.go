@@ -137,6 +137,26 @@ type CreateRoomInput struct {
 	Owner string `json:"owner,omitempty" jsonschema:"handle of its first owner; you when empty. Only administrators of the Cahut name someone else"`
 }
 
+// The refusals of the name of a new Room, which the console says in the
+// language of its person.
+var (
+	badName = operation.NewRefusalOf[NewName]("room_name_invalid", operation.ErrInvalid,
+		"name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit")
+	nameReserved = operation.NewRefusalOf[NewName]("room_name_reserved", operation.ErrInvalid,
+		"name {name} is reserved: it names a page of every Cahut")
+	nameTaken = operation.NewRefusalOf[NewName]("room_name_taken", operation.ErrInvalid,
+		"name {name} is taken, by a Room or a person: choose another")
+	nameYours = operation.NewRefusalOf[NewName]("room_name_yours", operation.ErrInvalid,
+		"you already have a Room {name}: choose another name")
+	nameUnavailable = operation.NewRefusalOf[NewName]("room_name_unavailable", operation.ErrInvalid,
+		"name {name} is not available: choose another")
+)
+
+// NewName fills the refusal of the name of a new Room.
+type NewName struct {
+	Name operation.Quoted `json:"name" jsonschema:"the name of the Room"`
+}
+
 // CreateRoom creates a team Room, whose first owner is the person who calls
 // it, or the one an administrator names.
 var CreateRoom = &operation.Op[CreateRoomInput, Room]{
@@ -176,10 +196,9 @@ var CreateRoom = &operation.Op[CreateRoomInput, Room]{
 		}
 		switch {
 		case !address.ValidName(name):
-			return Room{}, operation.Invalidf("name %q: use 1 to 63 lowercase letters, digits and hyphens, "+
-				"starting and ending with a letter or a digit", name)
+			return Room{}, badName(NewName{Name: operation.Quoted(name)})
 		case address.Reserved(name):
-			return Room{}, operation.Invalidf("name %q is reserved: it names a page of every Cahut", name)
+			return Room{}, nameReserved(NewName{Name: operation.Quoted(name)})
 		}
 		var taken, theirs bool
 		err = c.Tx.QueryRowContext(ctx, `
@@ -191,12 +210,12 @@ var CreateRoom = &operation.Op[CreateRoomInput, Room]{
 		}
 		switch {
 		case taken && individual && theirs:
-			return Room{}, operation.Invalidf("you already have a Room %q: choose another name", name)
+			return Room{}, nameYours(NewName{Name: operation.Quoted(name)})
 		case taken && individual:
 			// People of an individual Cahut do not learn what others hold.
-			return Room{}, operation.Invalidf("name %q is not available: choose another", name)
+			return Room{}, nameUnavailable(NewName{Name: operation.Quoted(name)})
 		case taken:
-			return Room{}, operation.Invalidf("name %q is taken, by a Room or a person: choose another", name)
+			return Room{}, nameTaken(NewName{Name: operation.Quoted(name)})
 		}
 		if err := settings.CheckRoom(ctx, c, owner); err != nil {
 			return Room{}, err
@@ -618,6 +637,15 @@ func roleOf(ctx context.Context, tx *sql.Tx, a Access, id int64, handle string) 
 	return role, err
 }
 
+// lastOwner refuses to leave a Room without an owner.
+var lastOwner = operation.NewRefusalOf[NoOwner]("room_needs_an_owner", operation.ErrInvalid,
+	"the Room {room} needs an owner: make another person one first")
+
+// NoOwner fills the refusal of a Room that would have no owner left.
+type NoOwner struct {
+	Room string `json:"room" jsonschema:"the name of the Room"`
+}
+
 // keepAnOwner returns an error wrapping operation.ErrInvalid when the Room a
 // has a single owner.
 func keepAnOwner(ctx context.Context, tx *sql.Tx, a Access) error {
@@ -626,7 +654,7 @@ func keepAnOwner(ctx context.Context, tx *sql.Tx, a Access) error {
 		return err
 	}
 	if owners < 2 {
-		return operation.Invalidf("the Room %s needs an owner: make another person one first", a.Name)
+		return lastOwner(NoOwner{Room: a.Name})
 	}
 	return nil
 }

@@ -57,16 +57,42 @@ A refusal that people meet in the console gives its code too, which never change
 | --- | --- | --- |
 | `account_disabled` |  | This account is disabled: an administrator of the Cahut can enable it |
 | `activation_link_gone` |  | This activation link is unknown, used or expired: ask an administrator of the Cahut for a new one |
+| `cahut_needs_an_admin` |  | The Cahut needs an administrator: make another person one first |
+| `email_already_yours` | `email` | {email} is already your e-mail address |
 | `email_link_gone` |  | This link is unknown, used or expired: change your address again from your account |
 | `email_taken` | `email` | {email} is already the e-mail address of another person of this Cahut |
+| `handle_invalid` | `handle` | Handle {handle}: use 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit |
+| `handle_reserved` | `handle` | Handle {handle} is reserved: it names a page of every Cahut |
+| `handle_taken` | `handle` | Handle {handle} is taken, by a person or a Room |
 | `invitation_gone` |  | This invitation does not open the Window any more: it was taken back, it expired, or the Window changed its Key or its access. Ask the person who invited you for a new one |
+| `invite_address_internal` | `room`, `window` | {room}/{window} opens to the people of the Cahut only: invite people of the Cahut by handle, or set its access to key first, so that each address gets a personal link |
+| `invite_address_room_only` | `room`, `window` | {room}/{window} opens to its Room only: invite people of the Cahut by handle, or set its access to key first, so that each address gets a personal link |
+| `invite_bad_address` | `to` | To: {to} is not an e-mail address: give one address alone, such as jane@example.com |
+| `invite_by_address` | `to` | {to}: in this Cahut, which is individual, invite by e-mail address, to a Window with a Key or public |
+| `invite_disabled` | `handle` | {handle} is disabled, and cannot read the Window |
+| `invite_no_person` | `to` | No person {to} in this Cahut: invite someone else by e-mail address |
+| `invite_not_in_room` | `handle`, `room`, `window` | {handle} is not in the Room {room}, and {room}/{window} opens to its Room only: add them to the Room, or set its access to internal or key first |
+| `key_has_spaces` |  | The Key starts or ends with a space |
+| `key_too_long` | `limit` | The Key has more than {limit} characters |
+| `key_too_short` | `length`, `limit` | The Key has {length} characters: give it {limit} at least, or let Cahut draw one |
+| `no_mail` |  | This Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console |
+| `no_mail_to_invite` |  | This Cahut sends no e-mail: give them the address of the Window yourself, with its Key if it has one |
 | `no_password_link` |  | This Cahut sends no e-mail: an administrator of the Cahut can give you a new link |
 | `password_too_long` | `length`, `limit` | The password has {length} characters: use at most {limit} |
 | `password_too_short` | `length`, `limit` | The password has {length} characters: use at least {limit} |
+| `room_name_invalid` | `name` | Name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit |
+| `room_name_reserved` | `name` | Name {name} is reserved: it names a page of every Cahut |
+| `room_name_taken` | `name` | Name {name} is taken, by a Room or a person: choose another |
+| `room_name_unavailable` | `name` | Name {name} is not available: choose another |
+| `room_name_yours` | `name` | You already have a Room {name}: choose another name |
+| `room_needs_an_owner` | `room` | The Room {room} needs an owner: make another person one first |
 | `server_account_disabled` |  | This account is disabled: another administrator of the server can enable it |
 | `server_activation_link_gone` |  | This activation link is unknown, used or expired: ask another administrator of the server for a new one, or run cahut admin link on the server |
 | `session_ended` |  | Invalid or ended session |
+| `setup_done` | `domain` | The Cahut of {domain} has people already: sign in at its console |
+| `setup_link_gone` |  | This link to the first start does not work any more: it was used, it expired, or it is for another address; cahut setup, on the server, gives a new one |
 | `too_many_attempts_from_address` |  | Too many attempts from this address: wait a minute |
+| `too_many_invitations` | `sent`, `handle`, `limit` | {sent} invitations went out for {handle} in the last 24 hours, and {limit} is the most: send the rest later |
 | `too_many_refused_sign_ins` | `minutes` | Too many refused sign-ins for this handle: try again in {minutes} minutes |
 | `too_many_sign_ins_at_once` |  | Too many sign-ins at once: try again in a few seconds |
 | `wrong_current_password` |  | The current password is wrong |
