@@ -4,7 +4,7 @@
 
 ## En bref
 
-Le lot 4 fait d'une Window une page qu'on gère : l'IA la met à jour sans perdre la version précédente, on y revient d'un geste, on la met à la corbeille, et chaque Window s'ouvre à qui on choisit : sa Room, tout le Cahut, les détenteurs d'une Key ou le public, jusqu'à une date si l'on veut. L'IA déclare ce que fait la Window (scripts, adresses qu'elle appelle, formulaires), et Cahut en tire la politique CSP qui l'enferme. Le lot compte six pull requests, pour environ sept jours et demi à temps plein. Il s'ouvre sur une décision écrite (ADR 19).
+Le lot 4 fait d'une Window une page qu'on gère : l'IA la met à jour sans perdre la version précédente, on y revient d'un geste, on la met à la corbeille, et chaque Window s'ouvre à qui on choisit : sa Room, toute la Cahut, les détenteurs d'une Key ou le public, jusqu'à une date si l'on veut. L'IA déclare ce que fait la Window (scripts, adresses qu'elle appelle, formulaires), et Cahut en tire la politique CSP qui l'enferme. Le lot compte six pull requests, pour environ sept jours et demi à temps plein. Il s'ouvre sur une décision écrite (ADR 19).
 
 **Fin de lot**, reprise du [plan de la V0](plan-v0.md) : une personne non technique partage une présentation avec une Key depuis la console, le lien s'ouvre en navigation privée, puis on revient à la version précédente.
 
@@ -13,7 +13,7 @@ Le lot 4 fait d'une Window une page qu'on gère : l'IA la met à jour sans perdr
 Ce que les lots 1 à 3 ont laissé :
 
 - `publish_window` crée une Window, à jamais dans sa première version. `get_window` et `list_windows` la décrivent. Les fichiers vivent sur le disque sous `windows/<id>/<version>/`, et la table `windows` porte déjà un numéro de version.
-- N'importe qui ayant l'adresse d'une Window la lit : chaque fichier est servi à son adresse, dans le bac à sable CSP de l'[ADR 10](adr/0010-windows-in-a-csp-sandbox.md), sans contrôle d'accès. L'adresse d'une Room répond 404 et celle du Cahut, une ligne de texte.
+- N'importe qui ayant l'adresse d'une Window la lit : chaque fichier est servi à son adresse, dans le bac à sable CSP de l'[ADR 10](adr/0010-windows-in-a-csp-sandbox.md), sans contrôle d'accès. L'adresse d'une Room répond 404 et celle de la Cahut, une ligne de texte.
 - Les personnes se connectent à la console, sur le port 8443, avec un jeton de session gardé dans le `localStorage` de son origine. Rien ne connaît encore le lecteur sur le port 443.
 - L'ADR 10 a fixé le principe des Windows protégées (une page de Cahut qui encadre la Window dans une iframe en bac à sable, par une adresse à capacité sous `/-/`) et l'[ADR 11](adr/0011-console-on-its-own-port.md) celui de la connexion du lecteur (la console remet un code à usage unique à `/-/session`, qui pose le cookie du lecteur). Le lot 4 les construit.
 
@@ -28,7 +28,7 @@ L'ADR 19 fixe :
 - **Accès.** Room seulement (par défaut), interne, Key, public, avec une date de fin facultative, après laquelle la Window ne s'ouvre plus qu'à sa Room. Les membres de la Room le règlent. Une IA règle tout sauf l'accès public, qui attend Knock first.
 - **Keys.** Choisie (10 à 256 caractères) ou tirée par Cahut, hachée en Argon2id, montrée une fois. Le lecteur la tape sur la page de la Window ; Cahut lui pose un laissez-passer, un cookie propre à la Window, valable 30 jours au plus.
 - **Lecteurs.** Un lecteur se connecte sur le port 443 en passant par la console : un code de 60 secondes, puis un cookie de session de lecteur, aux mêmes durées que les sessions de la console.
-- **Service.** Une Window publique est servie à son adresse. Une Window protégée l'est par une page de Cahut qui l'encadre ; ses fichiers viennent de `/-/w/<capacité>/`, une capacité signée par HMAC avec un secret du Cahut, liée à la Window et à la session ou au laissez-passer du lecteur, valable quatre heures. Chaque fichier revérifie l'accès.
+- **Service.** Une Window publique est servie à son adresse. Une Window protégée l'est par une page de Cahut qui l'encadre ; ses fichiers viennent de `/-/w/<capacité>/`, une capacité signée par HMAC avec un secret de la Cahut, liée à la Window et à la session ou au laissez-passer du lecteur, valable quatre heures. Chaque fichier revérifie l'accès.
 - **Déclaration.** `publish_window` et `update_window` exigent une déclaration : scripts ou non, origines que les pages chargent ou appellent, origines où leurs formulaires envoient. Cahut en tire la CSP de chaque fichier. Les Windows publiées avant le lot 4 restent « non déclarées », servies avec le seul bac à sable.
 
 ## Modèle de données
@@ -62,7 +62,7 @@ Sur le port 443, en plus de MCP et d'OAuth :
 
 | Adresse | Ce qu'elle sert |
 | --- | --- |
-| `/` | La page du Cahut : ses Rooms pour un lecteur connecté, un lien pour se connecter sinon |
+| `/` | La page de la Cahut : ses Rooms pour un lecteur connecté, un lien pour se connecter sinon |
 | `/<room>/` | Les Windows de la Room que le lecteur peut ouvrir ; 404 s'il n'en ouvre aucune et n'est pas membre |
 | `/<room>/<window>/…` | Une Window publique ; la page qui encadre une Window protégée ; la page de sa Key ; ou 404 |
 | `/-/w/<capacité>/…` | Les fichiers d'une Window protégée, dans le bac à sable |
@@ -72,7 +72,7 @@ Sur le port 443, en plus de MCP et d'OAuth :
 | `/-/sign-out` | Ferme la session du lecteur (POST) |
 | `/-/cahut.css`, `/-/frame.js` | Le style des pages de Cahut, et le script qui passe le fragment de l'adresse à la Window encadrée |
 
-Les pages de Cahut sur le port 443 sont rendues côté serveur, sans script en ligne, sous une CSP stricte avec `frame-ancestors 'none'`. Elles portent la house style du Cahut, neutre jusqu'au lot 6.
+Les pages de Cahut sur le port 443 sont rendues côté serveur, sans script en ligne, sous une CSP stricte avec `frame-ancestors 'none'`. Elles portent la house style de la Cahut, neutre jusqu'au lot 6.
 
 ## Console
 
@@ -86,7 +86,7 @@ Les pages de Cahut sur le port 443 sont rendues côté serveur, sans script en l
 
 - **Versions** : mise à jour, retour en arrière et retour au retour, numéros, fichiers effacés sur le disque, échec qui ne laisse rien.
 - **Accès** : la matrice des appelants (membre, propriétaire, personne hors de la Room, administrateur, IA limitée, IA en lecture seule) ; l'IA refusée pour l'accès public ; la date de fin ; la Key jamais au Logbook.
-- **Service** : chaque niveau d'accès pour un inconnu, une personne du Cahut, un membre, un détenteur de la Key ; capacité falsifiée, expirée, d'une autre Window, d'un autre Cahut ; laissez-passer après changement de Key ; session de lecteur après désactivation ; Window à la corbeille ; Room et racine ; limite de débit des Keys ; adresse de retour étrangère refusée.
+- **Service** : chaque niveau d'accès pour un inconnu, une personne de la Cahut, un membre, un détenteur de la Key ; capacité falsifiée, expirée, d'une autre Window, d'une autre Cahut ; laissez-passer après changement de Key ; session de lecteur après désactivation ; Window à la corbeille ; Room et racine ; limite de débit des Keys ; adresse de retour étrangère refusée.
 - **CSP** : la politique tirée de chaque déclaration, et celle des Windows non déclarées.
 - **Navigateurs** : une présentation encadrée, en plein écran, sous Chrome, Firefox et Safari.
 
@@ -144,7 +144,7 @@ Le lot 4 s'est achevé le 22 octobre 2026, en six pull requests :
 
 **Essais.**
 
-- Les tests couvrent les versions et leur numérotation, la corbeille, la matrice des accès, les Keys et leurs laissez-passer, les capacités falsifiées, expirées, d'une autre Window ou d'un autre Cahut, la désactivation d'un lecteur, l'adresse de retour étrangère, la limite des Keys, et la CSP de chaque déclaration.
+- Les tests couvrent les versions et leur numérotation, la corbeille, la matrice des accès, les Keys et leurs laissez-passer, les capacités falsifiées, expirées, d'une autre Window ou d'une autre Cahut, la désactivation d'un lecteur, l'adresse de retour étrangère, la limite des Keys, et la CSP de chaque déclaration.
 - En local, dans Chrome : la page de la Key, le laissez-passer, la présentation dans son cadre, le fragment `#s3` transmis, le plein écran permis ; la connexion d'un lecteur par la console, jusqu'au cadre. Dans le panneau de navigateur de l'application de bureau, la fiche d'une Window : mise à jour par MCP, Key tirée et montrée une fois, retour à la version 1, cartes de la Room, largeur de 375 px. Ce panneau bloque de lui-même les cadres en bac à sable (`ERR_BLOCKED_BY_CLIENT`) : ce n'est pas une cible.
 - Sur le staging, la version du lot est installée (0.1.2-0.20261022215409-64d98e5), avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-22-batch4`. Par MCP, avec un jeton de démonstration révoqué ensuite : publication de [Batch 4 demo](https://staging.cahut.cloud/marketing/batch-4-demo/) dans `marketing`, mise à jour en version 2, refus de l'accès public, Key jusqu'au 30 novembre ; dans un contexte de Chrome vierge, la page de la Key, puis la version 2 ; retour à la version 1, servie au même lien avec le même laissez-passer. Le Logbook inscrit chaque étape, refus compris, sans la Key.
 - Les Windows publiées avant le lot, dont [Proof of concept](https://staging.cahut.cloud/marketing/proof-of-concept/), s'ouvrent désormais à leur Room seulement, non déclarées.

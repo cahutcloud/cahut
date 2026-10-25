@@ -1,6 +1,6 @@
 # Contribuer à Cahut
 
-Merci de votre intérêt. Cahut est maintenu par une seule personne, en public. Cette page dit ce qui aide, ce qu'il faut discuter d'abord, et comment un changement entre. [GOVERNANCE.md](GOVERNANCE.md) dit comment le projet est mené ; le [code de conduite](CODE_OF_CONDUCT.md) s'applique partout.
+Merci de votre intérêt. Cahut est maintenue par une seule personne, en public. Cette page dit ce qui aide, ce qu'il faut discuter d'abord, et comment un changement entre. [GOVERNANCE.md](GOVERNANCE.md) dit comment le projet est mené ; le [code de conduite](CODE_OF_CONDUCT.md) s'applique partout.
 
 ## Bienvenu tout de suite
 
@@ -44,7 +44,7 @@ Cahut utilise le [Developer Certificate of Origin](https://developercertificate.
 
 ### Travailler avec une IA
 
-Cahut est écrit avec Claude Code, et [CLAUDE.md](CLAUDE.md) est public. Les contributions faites avec une IA sont bienvenues, à cinq règles :
+Cahut est écrite avec Claude Code, et [CLAUDE.md](CLAUDE.md) est public. Les contributions faites avec une IA sont bienvenues, à cinq règles :
 
 1. **Dites-le.** Nommez l'outil et sa part du travail, dans la pull request ou dans un pied de commit tel que `Assisted-by: Claude Code`.
 2. **Comprenez tout.** La personne qui signe a lu, compris, lancé et testé le changement, et répond elle-même aux relectures. Une réponse générée à une relecture ferme la pull request.
@@ -54,7 +54,7 @@ Cahut est écrit avec Claude Code, et [CLAUDE.md](CLAUDE.md) est public. Les con
 
 ## Signaler un bug
 
-Utilisez le formulaire de rapport de bug. Donnez la version de `cahut version`, le système, comment Cahut a été installé, ce que vous attendiez, ce qui s'est passé, et les lignes du Logbook qui vont avec, sans aucun jeton. Les questions vont dans les Discussions ([SUPPORT.md](SUPPORT.md)). Les failles passent par [SECURITY.md](SECURITY.md), jamais par un ticket.
+Utilisez le formulaire de rapport de bug. Donnez la version de `cahut version`, le système, comment Cahut a été installée, ce que vous attendiez, ce qui s'est passé, et les lignes du Logbook qui vont avec, sans aucun jeton. Les questions vont dans les Discussions ([SUPPORT.md](SUPPORT.md)). Les failles passent par [SECURITY.md](SECURITY.md), jamais par un ticket.
 
 ## La reconnaissance
 

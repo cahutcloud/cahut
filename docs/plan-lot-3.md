@@ -4,9 +4,9 @@
 
 ## En bref
 
-Le lot 3 permet de brancher une IA sur un Cahut sans copier de jeton : l'IA ouvre la console, la personne se connecte, choisit les Rooms et la portée qu'elle lui donne, et l'IA reçoit ses jetons. Chaque Cahut devient son propre serveur d'autorisation OAuth 2.1, sur le port de la console ([ADR 6](adr/0006-in-house-oauth-server.md), [ADR 11](adr/0011-console-on-its-own-port.md)). Le lot compte cinq pull requests, pour environ huit jours à temps plein. Il s'ouvre sur une décision écrite (ADR 16) et se termine par le jalon PoC.
+Le lot 3 permet de brancher une IA sur une Cahut sans copier de jeton : l'IA ouvre la console, la personne se connecte, choisit les Rooms et la portée qu'elle lui donne, et l'IA reçoit ses jetons. Chaque Cahut devient son propre serveur d'autorisation OAuth 2.1, sur le port de la console ([ADR 6](adr/0006-in-house-oauth-server.md), [ADR 11](adr/0011-console-on-its-own-port.md)). Le lot compte cinq pull requests, pour environ huit jours à temps plein. Il s'ouvre sur une décision écrite (ADR 16) et se termine par le jalon PoC.
 
-**Fin de lot, jalon PoC**, reprise du [plan de la V0](plan-v0.md) : Cahut ajouté comme connecteur dans claude.ai, une présentation publiée dans une Room d'équipe, visible dans la console.
+**Fin de lot, jalon PoC**, reprise du [plan de la V0](plan-v0.md) : Cahut ajoutée comme connecteur dans claude.ai, une présentation publiée dans une Room d'équipe, visible dans la console.
 
 ## Point de départ
 
@@ -88,7 +88,7 @@ Les points du protocole (métadonnées, enregistrement, jeton, révocation) ne s
 - **Protocole** : un parcours complet avec le client OAuth du SDK Go de MCP, par enregistrement dynamique et par Client ID Metadata Document.
 - **Pièges de l'ADR 6** : code à usage unique et lié, PKCE manquant ou faux, ressource étrangère, adresse de retour inexacte et bouclage à port libre, jeton de rafraîchissement rejoué hors et dans le délai de grâce, `iss` dans la réponse, garde SSRF (adresses privées, redirection, réponse trop grosse), champs inconnus et limite de débit de l'enregistrement, purge des clients.
 - **Portée** : une IA en lecture seule ne voit ni n'appelle les outils d'écriture ; une IA limitée ne voit ni ne touche les autres Rooms ; une personne désactivée suspend ses connexions ; une connexion coupée ferme ses jetons.
-- **Cloisonnement** : un jeton d'un Cahut est refusé par un autre ; la ressource d'un autre Cahut est refusée.
+- **Cloisonnement** : un jeton d'une Cahut est refusé par une autre ; la ressource d'une autre Cahut est refusée.
 - **Clients réels** : Claude Code en local, de bout en bout dans le navigateur ; claude.ai et ChatGPT sur le staging.
 
 ## Découpage en pull requests
@@ -113,7 +113,7 @@ Soit environ 8 jours. Les pull requests s'enchaînent dans l'ordre.
 4. Dans la console, la Window apparaît dans la Room, et le Logbook montre le consentement puis la publication, au nom de l'IA connectée.
 5. L'IA essaie de publier dans la Room personnelle : la Room n'existe pas pour elle.
 6. Dans « AIs and access », couper la connexion : l'appel suivant de claude.ai est refusé.
-7. Test de fumée avec ChatGPT, en mode développeur : brancher le même Cahut et lister les Windows.
+7. Test de fumée avec ChatGPT, en mode développeur : brancher la même Cahut et lister les Windows.
 
 Les étapes 1 à 7 demandent les comptes claude.ai et ChatGPT d'Olivier : il les rejoue lui-même. Le lot les prépare par un parcours scripté sur le staging et par Claude Code en local.
 
@@ -149,7 +149,7 @@ Le lot 3 s'est achevé le 22 octobre 2026, en cinq pull requests :
 - Les tests suivent les pièges de l'ADR 6 et rejouent le parcours complet avec le client OAuth du SDK Go de MCP, par enregistrement dynamique.
 - En local, dans le navigateur : un client enregistré dynamiquement, la connexion sur l'écran de consentement, la lecture seule et une seule Room, l'échange du code, `tools/list` réduit aux outils de lecture, la déconnexion depuis la console.
 - En local, avec le vrai Claude Code 2.1.307 : `claude mcp login` passe par son Client ID Metadata Document, `https://claude.ai/oauth/claude-code-client-metadata`, que Cahut récupère derrière sa garde ; l'écran affiche « Connect Claude Code », décrit par `claude.ai`, puis `get_account` répond et s'inscrit au Logbook.
-- Sur le staging, la version du lot est installée (0.1.2-dev+fcbeb98), avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-22-batch3`. Le jeton personnel existant de Claude Code marche toujours. Un parcours scripté en HTTPS sur `dev.cahut.cloud` passe : enregistrement, consentement par l'API, jetons, 14 outils, rafraîchissement, déconnexion puis 401. Il a laissé une personne de test, `oauth-test`, dans ce Cahut : rien ne permet encore de la désactiver en ligne de commande.
+- Sur le staging, la version du lot est installée (0.1.2-dev+fcbeb98), avec une sauvegarde dans `/var/lib/cahut.bak-2026-10-22-batch3`. Le jeton personnel existant de Claude Code marche toujours. Un parcours scripté en HTTPS sur `dev.cahut.cloud` passe : enregistrement, consentement par l'API, jetons, 14 outils, rafraîchissement, déconnexion puis 401. Il a laissé une personne de test, `oauth-test`, dans cette Cahut : rien ne permet encore de la désactiver en ligne de commande.
 
 **Correction après le bilan.** Le 22 octobre, l'ajout du staging comme connecteur dans claude.ai a échoué (« Couldn't register with … sign-in service »). Une capture sur le serveur a montré que les serveurs d'Anthropic n'ouvrent que le port 443, jamais le 8443 où se trouvaient l'émetteur et ses points. L'[ADR 17](adr/0017-oauth-endpoints-on-port-443.md) les place sur le port 443 : l'émetteur devient `https://<domaine>`, et seul l'écran de consentement reste dans la console. La même pull request accepte les types de grant inconnus à l'enregistrement (claude.ai annonce `jwt-bearer`), répond 404 à `/.well-known/openid-configuration` et journalise chaque requête du protocole.
 

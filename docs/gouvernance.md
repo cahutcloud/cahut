@@ -1,6 +1,6 @@
 # Cahut · Gouvernance et vie du projet
 
-Ce document propose comment Cahut est dirigé et comment il vit au quotidien : qui décide, comment on contribue, où l'on se parle, quel soutien attendre, et ce que deviennent le nom, la licence et l'argent. Il part d'une réalité, une seule personne porte le projet, et prépare la suite sans la présumer. Il s'appuie sur ce que des projets open source comparables ont appris, souvent à leurs dépens. Les faits cités sont datés et sourcés à la fin.
+Ce document propose comment Cahut est dirigée et comment elle vit au quotidien : qui décide, comment on contribue, où l'on se parle, quel soutien attendre, et ce que deviennent le nom, la licence et l'argent. Il part d'une réalité, une seule personne porte le projet, et prépare la suite sans la présumer. Il s'appuie sur ce que des projets open source comparables ont appris, souvent à leurs dépens. Les faits cités sont datés et sourcés à la fin.
 
 ## En bref
 
@@ -8,7 +8,7 @@ Ce document propose comment Cahut est dirigé et comment il vit au quotidien : q
 - **Trois promesses écrites avant l'ouverture du dépôt**, parce qu'elles coûtent cher à prendre plus tard : la licence ne changera pas, il n'y aura pas de version « pro » fermée, le nom est protégé mais le code est libre.
 - **Des phases déclenchées par des faits, pas par des dates.** Seul jusqu'à l'ouverture du dépôt, puis les premiers utilisateurs, puis les premiers contributeurs réguliers, puis une équipe de mainteneurs avec des règles de décision collectives et, si l'argent arrive, une structure pour porter le nom et le domaine.
 - **Un seul endroit par usage.** GitHub pour le code, les tickets, les discussions et les releases ; cahut.cloud pour expliquer le projet et donner des nouvelles ; docs.cahut.cloud pour la documentation. Pas de chat tant qu'une seule personne devrait le tenir.
-- **Les IA sont bienvenues, les humains répondent.** Cahut est construit avec Claude Code. Une contribution assistée par une IA est acceptée si la personne qui la signe la comprend, l'a testée et le dit.
+- **Les IA sont bienvenues, les humains répondent.** Cahut est construite avec Claude Code. Une contribution assistée par une IA est acceptée si la personne qui la signe la comprend, l'a testée et le dit.
 - **Ce qu'il reste à décider** est à la fin. La licence est tranchée depuis le 22 octobre 2026 : AGPL-3.0 ([ADR 15](adr/0015-license.md)). Restent le moment d'ouvrir le dépôt, les canaux, la marque, l'argent et la personne de confiance qui garde une clé de secours.
 
 ## Le point de départ
@@ -131,7 +131,7 @@ Pas de CLA. Un CLA (*Contributor License Agreement*) est ce qui a permis à Hash
 
 ### Les contributions assistées par une IA
 
-Cahut est écrit avec Claude Code, et [CLAUDE.md](../CLAUDE.md) est public : une interdiction serait hypocrite. Forgejo, Zig, Immich et Syncthing interdisent tout code généré, et PocketBase a fermé ses pull requests extérieures ; curl, Gitea, Ghostty, Caddy, Home Assistant, LLVM, Fedora, OpenClaw et le noyau Linux l'acceptent sous conditions. Cahut suit les seconds, avec leurs règles :
+Cahut est écrite avec Claude Code, et [CLAUDE.md](../CLAUDE.md) est public : une interdiction serait hypocrite. Forgejo, Zig, Immich et Syncthing interdisent tout code généré, et PocketBase a fermé ses pull requests extérieures ; curl, Gitea, Ghostty, Caddy, Home Assistant, LLVM, Fedora, OpenClaw et le noyau Linux l'acceptent sous conditions. Cahut suit les seconds, avec leurs règles :
 
 1. **Dites-le.** L'outil et son étendue, dans la pull request ou en pied de commit (`Assisted-by: Claude Code`, le trailer qu'adoptent Fedora et LLVM).
 2. **Comprenez tout.** La personne qui signe a lu, compris, exécuté et testé ce qu'elle propose, et répond elle-même en relecture. Une réponse générée à une relecture ferme la pull request.
@@ -218,7 +218,7 @@ Ces délais se comptent à partir de la première release taguée : ouvrir le d�
 
 ### Du côté des IA
 
-Cahut se branche sur les IA : il doit être trouvable là où leurs utilisateurs cherchent des connecteurs. Le registre officiel MCP (registry.modelcontextprotocol.io), les listes de serveurs MCP et, pour chaque client, l'endroit où se déclarent les plugins et les skills, sont des canaux de distribution à part entière, à prendre lot par lot avec chaque client IA.
+Cahut se branche sur les IA : elle doit être trouvable là où leurs utilisateurs cherchent des connecteurs. Le registre officiel MCP (registry.modelcontextprotocol.io), les listes de serveurs MCP et, pour chaque client, l'endroit où se déclarent les plugins et les skills, sont des canaux de distribution à part entière, à prendre lot par lot avec chaque client IA.
 
 ## Versions et releases
 
@@ -247,9 +247,9 @@ C'est la première décision, et elle conditionne les autres. Les deux options d
 
 | | Apache-2.0 | AGPL-3.0 |
 | --- | --- | --- |
-| Esprit | Permissive : chacun fait ce qu'il veut, y compris une version fermée | Copyleft réseau : qui modifie Cahut et le fait tourner pour d'autres publie ses modifications |
+| Esprit | Permissive : chacun fait ce qu'il veut, y compris une version fermée | Copyleft réseau : qui modifie Cahut et la fait tourner pour d'autres publie ses modifications |
 | Qui l'utilise | Caddy, Home Assistant, Kubernetes, Go | Nextcloud, Mastodon, Plausible, Immich, Vaultwarden, listmonk |
-| Hébergeurs partenaires (OVH, Hostinger) | Libres | Libres aussi : installer et distribuer Cahut sans le modifier n'oblige à rien, et Nextcloud, AGPL, est chez tous les hébergeurs |
+| Hébergeurs partenaires (OVH, Hostinger) | Libres | Libres aussi : installer et distribuer Cahut sans la modifier n'oblige à rien, et Nextcloud, AGPL, est chez tous les hébergeurs |
 | Offre hébergée par Olivier | Possible | Possible : le projet publie déjà tout |
 | Un concurrent qui fermerait une version améliorée | Possible | Pas sans publier |
 | Brevets | Clause explicite | Clause équivalente |
@@ -267,7 +267,7 @@ Le choix se tient dans les deux sens : avec l'Apache-2.0, le projet garderait la
 Les licences libres couvrent le code, pas le nom : l'Apache-2.0 le dit noir sur blanc, et c'est pour cela que Mastodon, Nextcloud et Rust ont une politique de marque. Pour Cahut :
 
 - **Déposer la marque verbale « Cahut »** à l'INPI avant l'ouverture du dépôt (environ 190 € pour une classe, en ligne), puis à l'EUIPO quand le projet a une traction (environ 850 € pour une classe). Les classes à retenir, logiciels et services en ligne, sont à vérifier avec l'INPI.
-- **Publier une politique de marque courte**, sur le modèle de Mastodon (mise à jour en août 2026) et de Nextcloud : libre de dire « compatible avec Cahut », « tourne sur Cahut », de distribuer Cahut sans le modifier, y compris en image de conteneur, de l'auto-héberger, d'écrire et d'enseigner à son sujet ; interdit d'utiliser le nom ou le logo dans le nom d'un produit, d'une entreprise, d'un domaine ou d'un service, de laisser croire à un lien officiel, ou de garder le nom sur une version modifiée. Un fork prend un autre nom. Un hébergement commercial sous le nom « Cahut » demande un accord écrit, à demander à `contact@cahut.cloud` : c'est la base du programme de partenaires du brief. La politique de Rust de 2023 montre la limite : trop restrictive, elle a soulevé la communauté et a été réécrite en 2025.
+- **Publier une politique de marque courte**, sur le modèle de Mastodon (mise à jour en août 2026) et de Nextcloud : libre de dire « compatible avec Cahut », « tourne sur Cahut », de distribuer Cahut sans la modifier, y compris en image de conteneur, de l'auto-héberger, d'écrire et d'enseigner à son sujet ; interdit d'utiliser le nom ou le logo dans le nom d'un produit, d'une entreprise, d'un domaine ou d'un service, de laisser croire à un lien officiel, ou de garder le nom sur une version modifiée. Un fork prend un autre nom. Un hébergement commercial sous le nom « Cahut » demande un accord écrit, à demander à `contact@cahut.cloud` : c'est la base du programme de partenaires du brief. La politique de Rust de 2023 montre la limite : trop restrictive, elle a soulevé la communauté et a été réécrite en 2025.
 - **Le logo reste tel quel**, en toutes versions, comme la charte le dit déjà ; la page `/brand` du site accueille la politique de marque.
 - **Le domaine** cahut.cloud se renouvelle longtemps à l'avance, avec un second contact.
 
@@ -349,7 +349,7 @@ Une section du site plutôt qu'un sous-domaine : un seul site à tenir, le pied 
 
 | Page | Contenu | Source |
 | --- | --- | --- |
-| `/project/` | Comment Cahut est mené : qui décide, les principes, les phases, comment aider, l'argent | GOVERNANCE.md |
+| `/project/` | Comment Cahut est menée : qui décide, les principes, les phases, comment aider, l'argent | GOVERNANCE.md |
 | `/project/contribute/` | Comment contribuer, avec la règle sur l'IA | CONTRIBUTING.md |
 | `/project/security/` | Signaler une faille | SECURITY.md |
 | `/project/code-of-conduct/` | Le code de conduite | CODE_OF_CONDUCT.md |

@@ -4,14 +4,14 @@
 
 ## En bref
 
-Le lot 9 permet à chaque Cahut d'envoyer des e-mails, comme l'a décidé l'ADR 31. Les administrateurs du serveur règlent un relais SMTP pour tout le serveur, et ceux d'un Cahut peuvent régler le leur. Chaque personne peut avoir une adresse e-mail :
+Le lot 9 permet à chaque Cahut d'envoyer des e-mails, comme l'a décidé l'ADR 31. Les administrateurs du serveur règlent un relais SMTP pour tout le serveur, et ceux d'une Cahut peuvent régler le leur. Chaque personne peut avoir une adresse e-mail :
 
 - son lien d'activation y arrive ;
 - elle y reçoit, sans passer par un administrateur, un lien pour choisir un nouveau mot de passe.
 
 Les membres d'une Room et leurs IA invitent des gens à lire une Window :
 
-- dans le Cahut, par leur handle ;
+- dans la Cahut, par leur handle ;
 - au-dehors, par leur adresse, avec un lien personnel qui tient lieu de Key.
 
 Les Knocks, la sécurité des comptes et la santé du serveur envoient des notifications.
@@ -51,7 +51,7 @@ Ce que la V0 et l'ADR 30 ont laissé :
 
 L'[ADR 31](adr/0031-e-mail-through-a-relay.md), « Each Cahut sends e-mail through its own relay or that of its server », est fusionné (#104) et fixe ce que fait ce lot. Olivier y a tranché quatre points :
 
-- **Deux relais.** Celui du serveur sert au serveur et aux Cahuts qui n'ont pas de relais à eux. Celui d'un Cahut passe en priorité pour ce Cahut, et doit être à une adresse publique.
+- **Deux relais.** Celui du serveur sert au serveur et aux Cahuts qui n'ont pas de relais à elles. Celui d'une Cahut passe en priorité pour cette Cahut, et doit être à une adresse publique.
 - **La charte de Cahut** dans les e-mails, pour l'instant. La house style viendra avec une autre décision.
 - **Une IA invite sans frapper**, dans des limites : 20 destinataires par appel, 100 invitations par jour et par personne.
 - **L'anglais**, comme la console.
@@ -59,7 +59,7 @@ L'[ADR 31](adr/0031-e-mail-through-a-relay.md), « Each Cahut sends e-mail throu
 L'ADR fixe aussi le reste :
 
 - le mot de passe d'un relais est chiffré sous une clé du serveur, et le réglage d'un relais n'est jamais proposé aux IA ;
-- seuls la personne et les administrateurs de son Cahut lisent une adresse ;
+- seuls la personne et les administrateurs de sa Cahut lisent une adresse ;
 - le lien de mot de passe oublié vaut une heure ;
 - la Key n'est jamais envoyée par e-mail ;
 - les messages partent après la validation de la transaction, depuis une file en mémoire, avec la bibliothèque standard de Go.
@@ -78,18 +78,18 @@ Chaque pull request apporte sa propre migration.
 Le mot de passe d'un relais est scellé en AES-256-GCM, sous une clé de 32 octets :
 
 - la clé est tirée au premier usage dans `<données>/mail.key`, en mode 0600, à côté de `server.db` ;
-- un Cahut copié sans ce fichier perd le mot de passe de son relais, qu'il faut retaper.
+- une Cahut copiée sans ce fichier perd le mot de passe de son relais, qu'il faut retaper.
 
 ## Le paquet `mail`
 
 `internal/mail` porte tout ce qui touche à SMTP, sans connaître les opérations.
 
 - **Relais.**
-  - Il lit et écrit le relais d'un Cahut ou du serveur, et scelle ou descelle son mot de passe.
-  - Il choisit le relais de chaque message : celui du Cahut, sinon celui du serveur, sinon aucun.
+  - Il lit et écrit le relais d'une Cahut ou du serveur, et scelle ou descelle son mot de passe.
+  - Il choisit le relais de chaque message : celui de la Cahut, sinon celui du serveur, sinon aucun.
 - **Connexion.**
   - `net/smtp`, en TLS implicite ou en STARTTLS, avec un certificat vérifié. Authentification PLAIN quand le relais la propose.
-  - La connexion au relais d'un Cahut passe par la garde des adresses publiques. Cette garde quitte `internal/oauth` pour `internal/address`, qui sert aux deux usages, et elle vérifie l'adresse IP à laquelle elle se connecte réellement.
+  - La connexion au relais d'une Cahut passe par la garde des adresses publiques. Cette garde quitte `internal/oauth` pour `internal/address`, qui sert aux deux usages, et elle vérifie l'adresse IP à laquelle elle se connecte réellement.
   - Seul le relais du serveur, sur son adresse de bouclage, peut se passer de TLS.
 - **Messages.**
   - Chaque message a un gabarit, avec une partie texte et une partie HTML (`multipart/alternative`, `quoted-printable`).
@@ -97,7 +97,7 @@ Le mot de passe d'un relais est scellé en AES-256-GCM, sous une clé de 32 octe
     - les couleurs et les polices viennent de `cahut-tokens.json`, recopiées dans un fichier Go qu'un test compare aux jetons ;
     - le logo horizontal, en PNG de la charte, voyage avec le message (`multipart/related`).
   - Les en-têtes portent `Message-ID`, `Date` et `Auto-Submitted: auto-generated`.
-  - Quand le relais ne donne pas de nom d'expéditeur, le message prend le nom du Cahut, celui de sa house style.
+  - Quand le relais ne donne pas de nom d'expéditeur, le message prend le nom de la Cahut, celui de sa house style.
 - **File.**
   - `Call.AfterCommit` remplit une file en mémoire du serveur.
   - Elle envoie un message à la fois par relais, réessaie au bout d'une, cinq et dix minutes, puis abandonne.
@@ -109,8 +109,8 @@ Le mot de passe d'un relais est scellé en AES-256-GCM, sous une clé de 32 octe
 
 | Opération | Où | Qui l'appelle | Ce qu'elle fait |
 | --- | --- | --- | --- |
-| `set_mail_relay` | Cahut, serveur | Les administrateurs du Cahut, ou ceux du serveur ; jamais une IA | Se connecte au relais dans `Prepare`, puis l'enregistre. Un relais vide est retiré |
-| `get_mail_relay` | Cahut, serveur | Les mêmes | Le relais sans son mot de passe, le dernier envoi et la dernière erreur. Pour un Cahut, dit s'il passe par le relais du serveur |
+| `set_mail_relay` | Cahut, serveur | Les administrateurs de la Cahut, ou ceux du serveur ; jamais une IA | Se connecte au relais dans `Prepare`, puis l'enregistre. Un relais vide est retiré |
+| `get_mail_relay` | Cahut, serveur | Les mêmes | Le relais sans son mot de passe, le dernier envoi et la dernière erreur. Pour une Cahut, dit si elle passe par le relais du serveur |
 | `send_test_mail` | Cahut, serveur | Les mêmes | Envoie un message à l'adresse de l'appelant, et attend la réponse du relais |
 | `create_user`, `create_admin` | Cahut, serveur | Inchangées, avec une adresse en plus | Envoient le lien d'activation à cette adresse |
 | `create_activation_link` | Cahut, serveur | Inchangée | Envoie aussi le lien à l'adresse de la personne |
@@ -124,7 +124,7 @@ Le mot de passe d'un relais est scellé en AES-256-GCM, sous une clé de 32 octe
 | `get_invitation` | Cahut | Les visiteurs | Ce que montre la page d'une invitation : la Window, qui invite, la note |
 | `open_invitation` | Cahut | Les visiteurs | Rend un code à usage unique, que la console remet à `/-/invitation`, qui pose le laissez-passer |
 | `set_mail_notices` | Cahut | La personne elle-même ; jamais une IA | Coupe ou rétablit les notifications qui ne concernent ni son compte ni un Knock |
-| `get_cahut` | Cahut | Inchangée | Dit en plus si le Cahut envoie des e-mails |
+| `get_cahut` | Cahut | Inchangée | Dit en plus si la Cahut envoie des e-mails |
 
 Précisions sur ces opérations :
 
@@ -134,20 +134,20 @@ Précisions sur ces opérations :
 - **Règles d'`invite_to_window`.**
   - Par handle, seulement vers une personne qui ouvre déjà la Window.
   - Par adresse, seulement pour une Window à Key ou publique.
-  - Dans un Cahut individuel, seulement par adresse, sans dire si cette adresse appartient à une personne du Cahut.
+  - Dans une Cahut individuelle, seulement par adresse, sans dire si cette adresse appartient à une personne de la Cahut.
   - Le Logbook inscrit les destinataires, coupés comme tout champ ; `list_invitations` garde la liste entière.
 
 ## MCP
 
 - `invite_to_window`, `list_invitations` et `revoke_invitation` deviennent des outils. `set_user_email` en devient un aussi pour les IA des administrateurs, et il frappe.
-- `invite_to_window` est le premier outil marqué `openWorldHint`, parce qu'il écrit à des gens hors du Cahut. Un nouveau champ des opérations, `OpenWorld`, le déclare.
+- `invite_to_window` est le premier outil marqué `openWorldHint`, parce qu'il écrit à des gens hors de la Cahut. Un nouveau champ des opérations, `OpenWorld`, le déclare.
 - Les consignes du serveur MCP gagnent une demi-phrase : `invite_to_window` envoie par e-mail l'adresse d'une Window, et un lien personnel pour une Window à Key.
-- Dans `get_cahut`, une IA voit si le Cahut envoie des e-mails. Sans relais, elle donne elle-même l'adresse de la Window ou sa Key.
+- Dans `get_cahut`, une IA voit si la Cahut envoie des e-mails. Sans relais, elle donne elle-même l'adresse de la Window ou sa Key.
 
 ## Ligne de commande
 
 - `cahut mail set`, `cahut mail show` et `cahut mail test` règlent, montrent et essaient un relais.
-  - Sans `--domain`, la commande vise le relais du serveur ; avec `--domain`, celui d'un Cahut.
+  - Sans `--domain`, la commande vise le relais du serveur ; avec `--domain`, celui d'une Cahut.
   - Le mot de passe se lit sur l'entrée standard (`--password-stdin`), jamais en argument, où `ps` le montrerait.
 - `cahut user create` et `cahut admin create` prennent `--email`.
 - `cahut user email --user <handle> <adresse>` donne une adresse à une personne, ou la lui retire.
@@ -165,7 +165,7 @@ Précisions sur ces opérations :
 | Mot de passe changé, jeton créé, IA connectée, rôle changé | La personne | Your password changed, A personal token was created, {Client} is connected to your account, You are now an administrator of {Cahut} |
 | Ajout à une Room | La personne | You were added to {Room} |
 | Fin d'un accès | Qui l'a réglé en dernier | {Window} closes to its readers on {date} |
-| Limite | Les administrateurs du Cahut et du serveur, ou la personne dans un Cahut individuel | {Cahut} is at 90% of its {limit}, ou {Cahut} reached its {limit} |
+| Limite | Les administrateurs de la Cahut et du serveur, ou la personne dans une Cahut individuelle | {Cahut} is at 90% of its {limit}, ou {Cahut} reached its {limit} |
 | Mise à jour, certificat, disque | Les administrateurs du serveur | An update failed on {machine}, Cahut {version} is ready to install, The certificate of {domain} cannot be renewed, The disk of {machine} is almost full |
 | Essai | L'appelant | A test from {Cahut} |
 
@@ -180,7 +180,7 @@ Ce que disent ces messages :
 Le service lance une tâche chaque heure. Elle prévient :
 
 - **la personne qui a réglé l'accès d'une Window** (`access_set_by`) quand cet accès finit dans les trois jours, une fois par fin d'accès ;
-- **les administrateurs du Cahut et du serveur** quand une limite d'un Cahut atteint 90 % ou est atteinte, une fois par jour et par limite. Dans un Cahut individuel, la personne est prévenue pour ses propres limites ;
+- **les administrateurs de la Cahut et du serveur** quand une limite d'une Cahut atteint 90 % ou est atteinte, une fois par jour et par limite. Dans une Cahut individuelle, la personne est prévenue pour ses propres limites ;
 - **les administrateurs du serveur** quand le dossier des données est plein à 90 %, mesuré comme le fait `cahut doctor`, une fois par jour ;
 - **les administrateurs du serveur** quand `status.json` annonce une version qui attend une personne, une fois par version.
 
@@ -200,7 +200,7 @@ Deux autres notifications viennent d'ailleurs :
 | Confirmation d'adresse, `/confirm-email` | Prend le code du fragment, confirme, et montre l'adresse retenue |
 | Compte | L'adresse, son état et le moyen de la changer ; les notifications à couper |
 | People | Pour les administrateurs : l'adresse de chaque personne, à donner à la création ou à changer. « Send by e-mail » à côté du lien d'activation |
-| Réglages du Cahut | Le relais : celui du serveur ou celui du Cahut. Le formulaire, l'essai, le dernier envoi, la dernière erreur |
+| Réglages de la Cahut | Le relais : celui du serveur ou celui de la Cahut. Le formulaire, l'essai, le dernier envoi, la dernière erreur |
 | Administration du serveur | Le relais du serveur, sous la même forme |
 | Fiche d'une Window | « Invite » : des handles ou des adresses, et une note. La liste des invitations, avec « Revoke » |
 | Invitation, `/invitation` | Sans connexion : qui invite, à quelle Window, avec quelle note. « Open » ouvre la Window |
@@ -212,7 +212,7 @@ Deux autres notifications viennent d'ailleurs :
   - Refus d'un relais de Cahut à une adresse privée : 127.0.0.1, 10.0.0.0/8, ::1, ou un nom qui résout vers une adresse privée au moment de la connexion. Le relais du serveur est accepté sur 127.0.0.1.
   - Refus d'un relais sans TLS.
   - Le mot de passe n'est jamais rendu ni inscrit au Logbook, et il reste illisible sans `mail.key`.
-  - Le relais du Cahut passe en priorité. Sans lui, le message part par celui du serveur, et sans relais du tout, il ne part pas.
+  - Le relais de la Cahut passe en priorité. Sans lui, le message part par celui du serveur, et sans relais du tout, il ne part pas.
 - **Envoi.**
   - Rien ne part avant la validation de la transaction. Un appel qui échoue, ou qui frappe, n'envoie rien.
   - Après un échec, la file réessaie puis abandonne, et garde la dernière erreur.
@@ -228,7 +228,7 @@ Deux autres notifications viennent d'ailleurs :
   - Les administrateurs du serveur ont le même parcours.
 - **Invitations.**
   - Par handle, seulement vers une personne qui ouvre déjà la Window. Par adresse, seulement pour une Window à Key ou publique ; refus pour l'accès `room` ou `internal`.
-  - Dans un Cahut individuel, par adresse seulement, avec la même réponse que l'adresse soit celle d'une personne du Cahut ou non.
+  - Dans une Cahut individuelle, par adresse seulement, avec la même réponse que l'adresse soit celle d'une personne de la Cahut ou non.
   - Le lien personnel donne un laissez-passer. Ouvrir la page sans cliquer n'accorde rien.
   - L'invitation prend fin à sa révocation, avec une nouvelle Key, un autre accès ou la fin de l'accès.
   - Au plus 20 destinataires par appel, et 100 invitations par jour, IA comprises.
@@ -236,9 +236,9 @@ Deux autres notifications viennent d'ailleurs :
 - **Notifications.**
   - Chaque événement de l'ADR 31 envoie son message, une fois par jour au plus, même après un redémarrage.
   - `set_mail_notices` les coupe, sauf celles qui concernent le compte ou un Knock.
-- **Cahut individuel.** Le test de l'ADR 30, qui parcourt un Cahut individuel de deux personnes, lit aussi les e-mails : aucun message à l'une ne nomme l'autre.
+- **Cahut individuelle.** Le test de l'ADR 30, qui parcourt une Cahut individuelle de deux personnes, lit aussi les e-mails : aucun message à l'une ne nomme l'autre.
 - **Gouvernance.** `revoke_invitation` entre dans `undo` pour `invite_to_window`. Les nouvelles opérations ont un titre.
-- **Cloisonnement.** Le relais, les adresses et les invitations d'un Cahut n'existent pas dans un autre, et le relais d'un Cahut ne sert jamais à un autre.
+- **Cloisonnement.** Le relais, les adresses et les invitations d'une Cahut n'existent pas dans une autre, et le relais d'une Cahut ne sert jamais à une autre.
 - **Console.** Les parcours s'essaient dans le navigateur, avec les `.eml` du mode `--dev`.
 
 ## Découpage en pull requests
@@ -264,13 +264,13 @@ Soit environ 11,5 jours. Les pull requests s'enchaînent dans l'ordre. Chacune r
 - une adresse e-mail sur le compte d'Olivier ;
 - Claude Code branché par OAuth.
 
-1. Dans les réglages du Cahut, la console montre le relais du serveur. « Send a test » arrive dans la boîte d'Olivier.
+1. Dans les réglages de la Cahut, la console montre le relais du serveur. « Send a test » arrive dans la boîte d'Olivier.
 2. Se déconnecter, puis cliquer sur « Forgot your password? » et donner le handle. L'e-mail arrive, et son lien permet de choisir un nouveau mot de passe. Les autres sessions se ferment, puis « Your password changed » arrive.
 3. Demander à Claude de mettre une Window de `marketing` en accès Key et d'inviter une seconde adresse d'Olivier. L'e-mail nomme Olivier et Claude. En navigation privée, son lien ouvre la page d'invitation, et « Open » ouvre la Window.
 4. Révoquer l'invitation dans la console. Le lien n'ouvre plus rien, et le laissez-passer non plus.
 5. Demander à Claude de rendre la Window publique. L'e-mail du Knock arrive, et son lien permet de l'approuver.
 6. Le Logbook montre l'invitation et son destinataire, la révocation et le Knock, sans aucun code.
-7. Donner à un autre Cahut du staging un relais à 127.0.0.1 : la console le refuse et dit pourquoi.
+7. Donner à une autre Cahut du staging un relais à 127.0.0.1 : la console le refuse et dit pourquoi.
 
 ## Questions ouvertes
 
@@ -290,7 +290,7 @@ Soit environ 11,5 jours. Les pull requests s'enchaînent dans l'ordre. Chacune r
 
 Le code du lot 9 est fusionné le 24 octobre 2026, en huit pull requests. Il reste le relais du staging et la démonstration.
 
-**Après le lot : l'ADR 34.** Le relais du serveur, le repli sur lui et l'e-mail des administrateurs du serveur sont retirés une fois le lot fusionné, sur décision d'Olivier. Seul un Cahut a un relais, réglé par ses administrateurs ; sans relais, il n'envoie rien et sa console ne montre aucune fonction d'e-mail : ni « Forgot your password? », ni adresse, ni invitation. Les administrateurs du serveur n'ont pas d'adresse, et le disque, les certificats et les mises à jour se lisent dans la console du serveur et dans `cahut doctor`. La migration `server/0013_no_mail` retire de `server.db` le relais, les adresses et les avis du serveur. Ce plan décrit le lot tel qu'il a été fait ; ce qui touche au relais du serveur ne vaut plus.
+**Après le lot : l'ADR 34.** Le relais du serveur, le repli sur lui et l'e-mail des administrateurs du serveur sont retirés une fois le lot fusionné, sur décision d'Olivier. Seule une Cahut a un relais, réglé par ses administrateurs ; sans relais, elle n'envoie rien et sa console ne montre aucune fonction d'e-mail : ni « Forgot your password? », ni adresse, ni invitation. Les administrateurs du serveur n'ont pas d'adresse, et le disque, les certificats et les mises à jour se lisent dans la console du serveur et dans `cahut doctor`. La migration `server/0013_no_mail` retire de `server.db` le relais, les adresses et les avis du serveur. Ce plan décrit le lot tel qu'il a été fait ; ce qui touche au relais du serveur ne vaut plus.
 
 | # | Pull request | Contenu |
 | --- | --- | --- |
@@ -309,8 +309,8 @@ Le code du lot 9 est fusionné le 24 octobre 2026, en huit pull requests. Il res
   - `server/0010_mail_relay`, `server/0011_addresses` et `server/0012_notices`, car la désactivation des administrateurs (#107) avait pris `server/0009` ;
   - `cahut/0019_invitations` et `cahut/0020_notices`, car la page d'accueil d'une Room (#115) avait pris `cahut/0018`.
 - **Les opérations du relais** vivent dans le paquet `mail`, qui connaît donc les opérations, contrairement à ce que disait le plan.
-- **`get_cahut` dit si le Cahut envoie des e-mails** dès la pull request 2, et non la 3.
-- **Le registre fournit des services d'un Cahut à ses opérations** (`Registry.Provide`, `Call.Value`, `Registry.Value`), sans changer leur forme. Un Knock enregistré exécute `Knocked.Then`, qui envoie son e-mail.
+- **`get_cahut` dit si la Cahut envoie des e-mails** dès la pull request 2, et non la 3.
+- **Le registre fournit des services d'une Cahut à ses opérations** (`Registry.Provide`, `Call.Value`, `Registry.Value`), sans changer leur forme. Un Knock enregistré exécute `Knocked.Then`, qui envoie son e-mail.
 - **`send_test_mail`** va à l'adresse de la personne qui l'appelle ; seule la ligne de commande nomme une adresse, comme le dit l'ADR 31.
 - **Le type de sortie des opérations du relais** s'appelle `mail.Delivery` : `MailRelay` bégayait, et `Setup` entrait en collision avec la sortie de `get_setup` dans les types de la console.
 - **La ligne de commande** prend `cahut user email --handle --email` au lieu de `--user <handle> <adresse>`.
@@ -326,14 +326,14 @@ Le code du lot 9 est fusionné le 24 octobre 2026, en huit pull requests. Il res
   - Le lien vaut une heure, sert une fois, porte son code dans le fragment, et n'est gardé que haché. L'utiliser ferme les autres sessions et prévient l'adresse.
   - Une IA ne change ni le relais, ni l'adresse de sa personne (`PeopleOnly`). Elle frappe pour l'adresse d'une autre personne.
   - Un administrateur qui change l'adresse d'une personne n'a pas plus de pouvoir qu'avant : il lui donnait déjà un lien d'activation.
-  - Le relais d'un Cahut ne joint que des adresses publiques, vérifiées au moment de la connexion. Le mot de passe d'un relais ne part pas vers un nouvel hôte : il ne reste que si l'hôte et l'utilisateur ne changent pas, et son scellement est lié à eux.
+  - Le relais d'une Cahut ne joint que des adresses publiques, vérifiées au moment de la connexion. Le mot de passe d'un relais ne part pas vers un nouvel hôte : il ne reste que si l'hôte et l'utilisateur ne changent pas, et son scellement est lié à eux.
   - Les en-têtes n'admettent ni saut de ligne ni seconde adresse. Le HTML échappe la note, et refuse les liens `javascript:`.
   - Ouvrir la page d'une invitation n'accorde rien. Le code qui donne le laissez-passer sert une fois, pendant une minute, et une invitation révoquée ou dépassée par une nouvelle Key n'en donne plus.
   - Le Logbook ne contient aucun code, ni l'adresse d'une personne. Il nomme seulement les destinataires d'une invitation, tapés par les membres de la Room.
 - **Risques acceptés.**
   - Le nom d'un client OAuth, écrit par un tiers, figure dans l'e-mail d'un Knock comme dans la console, coupé à 60 caractères sur une ligne.
-  - Un Cahut hébergé qui n'a pas de relais à lui envoie par celui du serveur sous son propre nom. Le pied de page dit de quel Cahut vient le message.
-  - La dernière erreur du relais du serveur, montrée aux administrateurs d'un tel Cahut, nomme l'hôte de ce relais.
+  - Une Cahut hébergée qui n'a pas de relais à elle envoie par celui du serveur sous son propre nom. Le pied de page dit de quelle Cahut vient le message.
+  - La dernière erreur du relais du serveur, montrée aux administrateurs d'une telle Cahut, nomme l'hôte de ce relais.
   - La note d'une invitation peut contenir une adresse web, que les clients de messagerie rendent cliquable. Le message la montre comme les mots de qui l'a écrite.
 
 **Essais.**

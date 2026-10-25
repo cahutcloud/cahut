@@ -60,7 +60,7 @@ Les clients de messagerie ignorent les variables CSS, les SVG et souvent les pol
 - `font-family:'Plus Jakarta Sans',Arial,sans-serif` et `'IBM Plex Mono',Consolas,monospace` : la police de secours doit suffire.
 - Logo et images en PNG (`charte/logos/png/`) servis depuis une adresse publique, jamais en SVG ni en chemin local.
 - Signature : partir de `charte/applications/gabarits/signature-email.html`, remplacer nom, rôle et adresse de l'image.
-- E-mails envoyés par un Cahut (demande *knock first* par exemple) : dire quelle IA, quelle action, au nom de qui, quelle échéance, comme la carte `c-knock` de la console.
+- E-mails envoyés par une Cahut (demande *knock first* par exemple) : dire quelle IA, quelle action, au nom de qui, quelle échéance, comme la carte `c-knock` de la console.
 
 ## Icônes et pictogrammes
 
