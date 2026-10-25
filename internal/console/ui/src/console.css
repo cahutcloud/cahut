@@ -302,8 +302,15 @@
 	color: var(--color-text);
 	text-decoration: none;
 }
+/* A label longer than the sidebar, a French word or the title of a Room,
+   goes on a second line inside its item rather than out of it. */
 .c-sidebar .c-nav {
 	min-width: 0;
+	height: auto;
+	min-height: 36px;
+	padding-block: 6px;
+	line-height: var(--leading-sm);
+	overflow-wrap: anywhere;
 }
 @media (max-width: 760px) {
 	.menu-button {

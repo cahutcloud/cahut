@@ -65,7 +65,7 @@ const t = words({
 		everyRoom: "Toutes les Rooms",
 		newRoom: "Nouvelle Room",
 		thisServer: "Ce serveur",
-		serverAdmins: "Administrateurs du serveur",
+		serverAdmins: "Administrateurs",
 		serverLogbook: "Logbook du serveur",
 		updates: "Mises à jour",
 		thisCahut: "Cette Cahut",
