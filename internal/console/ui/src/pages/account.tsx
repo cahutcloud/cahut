@@ -63,9 +63,9 @@ const t = words({
 			"La console parle cette langue dans ce navigateur. Ce qu'écrit le serveur, comme ses messages d'erreur, reste en anglais.",
 		changePassword: "Changer de mot de passe",
 		adminPassword:
-			"C'est votre mot de passe d'administrateur du serveur. Votre compte de personne d'un Cahut, si vous en avez un, garde le sien.",
+			"C'est votre mot de passe d'administrateur du serveur. Votre compte de personne d'une Cahut, si vous en avez un, garde le sien.",
 		personPassword:
-			"C'est votre mot de passe dans ce Cahut. Votre compte d'administrateur du serveur, si vous en avez un, garde le sien.",
+			"C'est votre mot de passe dans cette Cahut. Votre compte d'administrateur du serveur, si vous en avez un, garde le sien.",
 		current: "Mot de passe actuel",
 		newPassword: "Nouveau mot de passe",
 		atLeast: (n) => `Au moins ${n} caractères. Vos autres sessions prennent fin.`,

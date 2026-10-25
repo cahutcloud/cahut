@@ -61,7 +61,7 @@ const t = words({
 		connectTitle: (client) => `Connecter ${client}`,
 		asks: (client, name, host, back) => (
 			<>
-				{client} demande à agir pour vous, {name}, dans le Cahut {de(host)}. Vous revenez ensuite sur <b class="c-mono">{back}</b>.
+				{client} demande à agir pour vous, {name}, dans la Cahut {de(host)}. Vous revenez ensuite sur <b class="c-mono">{back}</b>.
 			</>
 		),
 		describedBy: (host) => (

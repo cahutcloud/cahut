@@ -70,7 +70,7 @@ const t = words({
 		roomOnly: "Room seulement",
 		roomWho: "les membres de sa Room",
 		internal: "Interne",
-		internalWho: "toute personne connectée à ce Cahut",
+		internalWho: "toute personne connectée à cette Cahut",
 		key: "Key",
 		keyWho: "quiconque a sa Key",
 		public: "Public",
