@@ -31,7 +31,7 @@ An administrator creates accounts in the console, under **People**, or on the co
 | Rooms | A new team Room, of which you become the owner |
 | Logbook | What you did, what your AIs did, and what happened in your Rooms, by day, with filters |
 | AIs and access | The address to give an AI client; your connected AIs, with what they may do and where, Change and Disconnect; your personal tokens: create one, shown once with the command that connects Claude Code, and revoke it in one click |
-| Account | Your name and your handle; your e-mail address and notices, when the Cahut sends e-mail; the language of the console; a new password, and signing out |
+| Account | At the foot of the navigation, and behind your name in the top bar: your name and your handle; your e-mail address and notices, when the Cahut sends e-mail; the language of the console; a new password, and signing out |
 
 A change to what someone may do, such as adding a person to a Room, making a Window public, and deleting anything for good, ask you to confirm first. When your AI asks for one of these changes, it knocks first: the change waits for you under **Knocks**. See [Knock first](/concepts/knock-first-and-logbook/#knock-first).
 
