@@ -132,9 +132,13 @@ func localPath(to string) string {
 // serveSignIn sends a reader to the console, which signs them in, then
 // sends them back to the path they came from.
 func (s *Server) serveSignIn(w http.ResponseWriter, r *http.Request) {
-	to := localPath(r.URL.Query().Get("to"))
-	target := s.cfg.ConsoleURL(siteOf(r).cahut.Domain) + "read?to=" + url.QueryEscape(to)
-	http.Redirect(w, r, target, http.StatusSeeOther)
+	http.Redirect(w, r, s.signInURL(r, r.URL.Query().Get("to")), http.StatusSeeOther) //nolint:gosec // the console of this Cahut
+}
+
+// signInURL is the page of the console that signs a reader in, then sends
+// them to the path to of this host.
+func (s *Server) signInURL(r *http.Request, to string) string {
+	return s.cfg.ConsoleURL(siteOf(r).cahut.Domain) + "read?to=" + url.QueryEscape(localPath(to))
 }
 
 // serveSession exchanges the code that the console handed over for a
@@ -177,7 +181,9 @@ func (s *Server) serveInvitation(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/"+win.Room+"/"+win.Name+"/", http.StatusSeeOther)
 }
 
-// serveSignOut ends the reader session of the request.
+// serveSignOut ends the reader session of the request, with the console
+// session that opened it, then sends the reader to the home, which asks
+// them to sign in.
 func (s *Server) serveSignOut(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie(s.cookieName(readerCookie)); err == nil {
 		if err := account.EndReaderSession(r.Context(), siteOf(r).cahut.DB, cookie.Value); err != nil {

@@ -71,7 +71,7 @@ A session holds at the domain where it opened: to look after another Cahut, sign
 
 ## Sessions
 
-A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. Signing out also ends the reader session that the console opened in that browser.
+A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. Signing out also ends the reader sessions that the console opened in that browser, and **Sign out** on the pages of the Cahut ends the session of the console that opened them.
 
 After 10 refused sign-ins to one handle from one address in 15 minutes, that address must wait; after 100 from everywhere, the handle waits everywhere. An address that tries too often must wait too, and an IPv6 address counts with its whole /64. The Logbook keeps the address of every sign-in.
 

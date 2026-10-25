@@ -15,7 +15,6 @@ func TestSandboxByDefault(t *testing.T) {
 	f.setAccess(t, "localhost", "q3-review", "public")
 
 	pages := []string{
-		"/",
 		"/olivier/",
 		"/nobody/",
 		"/olivier/missing/",
@@ -32,6 +31,7 @@ func TestSandboxByDefault(t *testing.T) {
 		{"localhost", http.MethodPost, "/olivier/q3-review/"},
 		{"localhost", http.MethodGet, "/-/nope"},
 		{"localhost", http.MethodGet, "/-/w/garbage/index.html"},
+		{"localhost", http.MethodGet, "/"},
 		{"localhost", http.MethodGet, "/-/sign-in?to=%2F"},
 		{"localhost", http.MethodGet, "/-/healthz"},
 		{"localhost", http.MethodGet, "/mcp"},
@@ -47,6 +47,11 @@ func TestSandboxByDefault(t *testing.T) {
 		if csp := resp.Header.Get("Content-Security-Policy"); csp != pagePolicy("https://localhost/") {
 			t.Errorf("GET %s = %d with the policy %q, want the policy of a page", p, resp.StatusCode, csp)
 		}
+	}
+	// The home is a page for a reader signed in, and a redirect for others.
+	resp, _ := f.do(t, "localhost", http.MethodGet, "/", []*http.Cookie{f.signIn(t, "localhost", "olivier")}, nil)
+	if csp := resp.Header.Get("Content-Security-Policy"); resp.StatusCode != http.StatusOK || csp != pagePolicy("https://localhost/") {
+		t.Errorf("GET / signed in = %d with the policy %q, want the policy of a page", resp.StatusCode, csp)
 	}
 	for _, tt := range sandboxed {
 		resp, _ := f.do(t, tt.host, tt.method, tt.path, nil, nil)

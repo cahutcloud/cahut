@@ -472,8 +472,8 @@ func TestRouting(t *testing.T) {
 		host, path string
 		want       int
 	}{
-		{"localhost", "/", http.StatusOK},
-		{"beta.localhost", "/", http.StatusOK},
+		{"localhost", "/", http.StatusSeeOther},
+		{"beta.localhost", "/", http.StatusSeeOther},
 		{"localhost", "/-/healthz", http.StatusOK},
 		{"localhost", "/-/nope", http.StatusNotFound},
 		{"localhost", "/console", http.StatusMovedPermanently},
@@ -487,8 +487,8 @@ func TestRouting(t *testing.T) {
 			t.Errorf("GET %s%s = %d, want %d", tt.host, tt.path, resp.StatusCode, tt.want)
 		}
 	}
-	if _, body := f.get(t, "beta.localhost", http.MethodGet, "/"); !strings.Contains(body, `<h1 class="hero__title">beta.localhost</h1>`) {
-		t.Errorf("GET beta.localhost/ = %q", body)
+	if resp, _ := f.get(t, "beta.localhost", http.MethodGet, "/"); resp.Header.Get("Location") != "https://beta.localhost/console/read?to=%2F" {
+		t.Errorf("GET beta.localhost/ goes to %q", resp.Header.Get("Location"))
 	}
 }
 
@@ -703,9 +703,18 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 	if _, err := operation.Do(ctx, f.srv.Registry, f.srv.AddDomain, admin, server.AddDomainInput{Domain: "203.0.113.7"}); err != nil {
 		t.Fatal(err)
 	}
+	// The home sends whoever has not signed in to the console of the Cahut.
+	home := func(host string) string {
+		t.Helper()
+		resp, _ := f.get(t, host, http.MethodGet, "/")
+		if resp.StatusCode != http.StatusSeeOther {
+			t.Errorf("GET %s/ = %d, want 303", host, resp.StatusCode)
+		}
+		return resp.Header.Get("Location")
+	}
 	for _, host := range []string{"203.0.113.7", "203.0.113.7:443"} {
-		if resp, body := f.get(t, host, http.MethodGet, "/"); resp.StatusCode != http.StatusOK || !strings.Contains(body, `<h1 class="hero__title">203.0.113.7</h1>`) {
-			t.Errorf("GET %s/ = %d %q", host, resp.StatusCode, body)
+		if to := home(host); to != "https://203.0.113.7/console/read?to=%2F" {
+			t.Errorf("GET %s/ goes to %q", host, to)
 		}
 	}
 	if _, err := operation.Do(ctx, f.srv.Registry, server.RenameDomain, admin,
@@ -715,16 +724,16 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 	if resp, _ := f.get(t, "203.0.113.7", http.MethodGet, "/"); resp.StatusCode != http.StatusMisdirectedRequest {
 		t.Errorf("GET at the old address = %d, want 421", resp.StatusCode)
 	}
-	if resp, body := f.get(t, "gamma.localhost", http.MethodGet, "/"); resp.StatusCode != http.StatusOK || !strings.Contains(body, `<h1 class="hero__title">gamma.localhost</h1>`) {
-		t.Errorf("GET at the new domain = %d %q", resp.StatusCode, body)
+	if to := home("gamma.localhost"); to != "https://gamma.localhost/console/read?to=%2F" {
+		t.Errorf("GET at the new domain goes to %q", to)
 	}
 	// Moved back, the Cahut is opened once, at its address.
 	if _, err := operation.Do(ctx, f.srv.Registry, server.RenameDomain, admin,
 		server.RenameDomainInput{Domain: "gamma.localhost", To: "203.0.113.7"}); err != nil {
 		t.Fatal(err)
 	}
-	if resp, _ := f.get(t, "203.0.113.7", http.MethodGet, "/"); resp.StatusCode != http.StatusOK {
-		t.Errorf("GET at the address again = %d", resp.StatusCode)
+	if to := home("203.0.113.7"); to != "https://203.0.113.7/console/read?to=%2F" {
+		t.Errorf("GET at the address again goes to %q", to)
 	}
 	f.web.mu.Lock()
 	open := len(f.web.sites)
