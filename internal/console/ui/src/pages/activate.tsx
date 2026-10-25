@@ -3,11 +3,42 @@
 // address, which the server never sees.
 import { useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
+import { Languages } from "../components";
 import { fragment as code } from "../fragment";
+import { words } from "../i18n";
 import { Logo } from "../logo";
 import type { Session } from "../session";
 
 export const minPassword = 15;
+
+const t = words({
+	en: {
+		differ: "The two passwords differ.",
+		chooseNew: "Choose a new password",
+		choose: "Choose your password",
+		reset: "Your current password works until you save this one. Your other sessions then end.",
+		admin: "You administer the server. Choose the password you will sign in with.",
+		person: (host: string) => `Choose the password you will sign in to ${host} with.`,
+		newPassword: "New password",
+		atLeast: (n: number) => `At least ${n} characters. A short sentence works well.`,
+		again: "The same password again",
+		save: "Save and sign in",
+		noCode: "This link has no code. Open the whole link you received, or ask an administrator for a new one.",
+	},
+	fr: {
+		differ: "Les deux mots de passe diffèrent.",
+		chooseNew: "Choisissez un nouveau mot de passe",
+		choose: "Choisissez votre mot de passe",
+		reset: "Votre mot de passe actuel fonctionne jusqu'à ce que vous enregistriez celui-ci. Vos autres sessions prennent alors fin.",
+		admin: "Vous administrez le serveur. Choisissez le mot de passe avec lequel vous vous connecterez.",
+		person: (host) => `Choisissez le mot de passe avec lequel vous vous connecterez à ${host}.`,
+		newPassword: "Nouveau mot de passe",
+		atLeast: (n) => `Au moins ${n} caractères. Une courte phrase convient bien.`,
+		again: "Le même mot de passe, une seconde fois",
+		save: "Enregistrer et se connecter",
+		noCode: "Ce lien n'a pas de code. Ouvrez le lien reçu en entier, ou demandez-en un nouveau à un administrateur.",
+	},
+});
 
 // A link that a forgotten password sent says so in its address, after a
 // question mark: the page then speaks of a new password.
@@ -22,7 +53,7 @@ export function Activate({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: 
 	const submit = async (e: Event) => {
 		e.preventDefault();
 		if (password !== again) {
-			setError("The two passwords differ.");
+			setError(t.differ);
 			return;
 		}
 		setBusy(true);
@@ -46,19 +77,15 @@ export function Activate({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: 
 			<div class="c-card auth__card">
 				<Logo height={32} />
 				<div class="auth__head">
-					<h1 class="c-h3">{reset ? "Choose a new password" : "Choose your password"}</h1>
+					<h1 class="c-h3">{reset ? t.chooseNew : t.choose}</h1>
 					<p class="c-small c-muted">
-						{reset
-							? "Your current password works until you save this one. Your other sessions then end."
-							: kind === "admin"
-								? "You administer the server. Choose the password you will sign in with."
-								: `Choose the password you will sign in to ${location.hostname} with.`}
+						{reset ? t.reset : kind === "admin" ? t.admin : t.person(location.hostname)}
 					</p>
 				</div>
 				{code ? (
 					<form onSubmit={submit}>
 						<label class="c-field">
-							<span class="c-field__label">New password</span>
+							<span class="c-field__label">{t.newPassword}</span>
 							<input
 								class="c-input"
 								type="password"
@@ -69,10 +96,10 @@ export function Activate({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: 
 								value={password}
 								onInput={(e) => setPassword(e.currentTarget.value)}
 							/>
-							<span class="c-field__help">At least {minPassword} characters. A short sentence works well.</span>
+							<span class="c-field__help">{t.atLeast(minPassword)}</span>
 						</label>
 						<label class="c-field">
-							<span class="c-field__label">The same password again</span>
+							<span class="c-field__label">{t.again}</span>
 							<input
 								class="c-input"
 								type="password"
@@ -90,15 +117,16 @@ export function Activate({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: 
 							</div>
 						)}
 						<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
-							Save and sign in
+							{t.save}
 						</button>
 					</form>
 				) : (
 					<div class="c-alert c-alert--warning" role="alert">
-						This link has no code. Open the whole link you received, or ask an administrator for a new one.
+						{t.noCode}
 					</div>
 				)}
 			</div>
+			<Languages />
 		</main>
 	);
 }

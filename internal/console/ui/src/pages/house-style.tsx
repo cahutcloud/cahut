@@ -8,20 +8,225 @@ import { explain } from "../api";
 import type { Font, FontInput, HouseStyle, SetInput } from "../api.gen";
 import { ConfirmButton, Failure, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
+import { de, locale, words } from "../i18n";
 import { useLoad } from "../load";
+
+const t = words({
+	en: {
+		text: "Text",
+		textHelp: "Body text.",
+		background: "Background",
+		backgroundHelp: "The background of pages and slides.",
+		primary: "Primary",
+		primaryHelp: "Headings of slides, links, buttons, slides that open a part.",
+		secondary: "Secondary",
+		secondaryHelp: "Accents, quotes, the progress of a deck.",
+		sansSerif: "Sans serif",
+		serif: "Serif",
+		monospace: "Monospace",
+		onlyAdmins: "Only the administrators of this Cahut set its house style.",
+		thisCahut: "This Cahut",
+		templates: "Templates",
+		templateKinds: { document: "Document", deck: "Deck", dashboard: "Dashboard" },
+		lead: "The look of your organization. AIs read it before they make a Window, and every Window that links it takes a change at once, as do the pages that readers see, such as the page of a Key.",
+		setOn: (date: string, by?: string) => `Set on ${date}${by ? ` for ${by}` : ""}.`,
+		use: "AIs use this house style",
+		active: "AIs read it before they make a Window, and start from its templates.",
+		inactive:
+			"Inactive: AIs get nothing of it, and make Windows in the style the user asks for, such as guidelines of your own given to them as a skill. The pages that readers see, and the Windows that link the style sheet, keep it.",
+		organization: "Organization",
+		name: "Name",
+		nameHelp: "At the top of the pages that readers see, and in the templates. The domain until you give one.",
+		logo: "Logo",
+		logoHelp: "For light backgrounds. SVG, PNG or WebP, 512 KB at most.",
+		logoInverse: "Logo for dark backgrounds",
+		logoInverseHelp: "On slides in the primary color. Without it, they show the name.",
+		colors: "Colors",
+		chartColors: "Colors of charts",
+		chartPlaceholder: "Derived from the primary and secondary colors",
+		chartHelp: "Up to 8 colors, in order, separated by commas. Empty, Cahut derives them from the primary and secondary colors when you save.",
+		fonts: "Fonts",
+		headings: "Headings",
+		bodyText: "Body text",
+		fontsHelp: "The browsers of readers download these fonts from this Cahut. Upload only fonts whose license allows it on the web.",
+		guidance: "Guidance for AIs",
+		guidanceLabel: "What the organization asks of AIs",
+		guidancePlaceholder: "Sentence case for titles. One idea per slide. Figures in thousands.",
+		guidanceHelp: (n: number) => `Its tone of voice, its rules for titles or charts. AIs read it with the house style; readers never see it. ${n} / 4000`,
+		save: "Save the house style",
+		discard: "Discard the changes",
+		versions: "Versions",
+		previous: (what: string) => `The previous version: ${what}. Going back keeps this one as the previous version.`,
+		previousNeutral: "the neutral house style",
+		previousSet: (date: string, by?: string) => `set on ${date}${by ? ` for ${by}` : ""}`,
+		goBackToIt: "Go back to it",
+		goBackQuestion: "Go back to the previous house style?",
+		goBack: "Go back",
+		noPrevious: "No previous version yet.",
+		neutralHelp: "The neutral house style uses the fonts of the system, dark text on white, and a blue.",
+		backToNeutral: "Back to neutral",
+		neutralQuestion: "Start again from the neutral house style? This one becomes the previous version.",
+		picker: (label: string) => `${label}, picker`,
+		textOnBackground: "Text on the background",
+		primaryOnBackground: "Primary on the background",
+		textOnPrimary: "Text on the primary color",
+		secondaryOnBackground: "Secondary on the background",
+		readsWell: "Reads well",
+		tooLow: "Too low to save",
+		hardToRead: "Hard to read",
+		swatches: "Colors of charts, in order",
+		none: "None",
+		replace: "Replace",
+		upload: "Upload",
+		remove: "Remove",
+		family: "Family",
+		familyPlaceholder: "The font of the system",
+		fallsBackOn: "Falls back on",
+		file: "File",
+		weight: "Weight",
+		style: "Style",
+		kb: (n: number) => `${n} KB`,
+		weightOf: (name: string) => `Weight of ${name}`,
+		variable: "100 to 900, variable",
+		styleOf: (name: string) => `Style of ${name}`,
+		normal: "Normal",
+		italic: "Italic",
+		removeFile: (name: string) => `Remove ${name}`,
+		addFiles: "Add font files",
+		filesHelp: "WOFF2, WOFF, TrueType or OpenType, 1 MB each. Without files, the family must be on the readers' systems.",
+		preview: "Preview",
+		previewLabel: "Preview, before saving",
+		report: "Report",
+		reportTitle: "Quarterly review",
+		reportText: (
+			<>
+				Revenue grew by 12% over the quarter, led by the North. <a href="#preview">See the figures</a>.
+			</>
+		),
+		revenue: "Revenue",
+		revenueValue: "2,980",
+		orders: "Orders",
+		ordersValue: "1,412",
+		openReport: "Open the report",
+		part: "Part 1",
+		results: "Results",
+	},
+	fr: {
+		text: "Texte",
+		textHelp: "Le texte courant.",
+		background: "Fond",
+		backgroundHelp: "Le fond des pages et des diapositives.",
+		primary: "Principale",
+		primaryHelp: "Titres des diapositives, liens, boutons, diapositives qui ouvrent une partie.",
+		secondary: "Secondaire",
+		secondaryHelp: "Accents, citations, progression d'une présentation.",
+		sansSerif: "Sans empattements",
+		serif: "Avec empattements",
+		monospace: "Chasse fixe",
+		onlyAdmins: "Seuls les administrateurs de ce Cahut fixent sa house style.",
+		thisCahut: "Ce Cahut",
+		templates: "Gabarits",
+		templateKinds: { document: "Document", deck: "Présentation", dashboard: "Tableau de bord" },
+		lead: "L'apparence de votre organisation. Les IA la lisent avant de faire une Window. Chaque Window qui la charge suit aussitôt ses changements, comme les pages que voient les lecteurs, telle la page d'une Key.",
+		setOn: (date, by) => `Fixée le ${date}${by ? ` pour ${by}` : ""}.`,
+		use: "Les IA utilisent cette house style",
+		active: "Les IA la lisent avant de faire une Window, et partent de ses gabarits.",
+		inactive:
+			"Inactive : les IA n'en reçoivent rien, et font les Windows dans le style que demande l'utilisateur, par exemple votre propre charte, qui leur est donnée sous forme de skill. Les pages que voient les lecteurs, et les Windows qui chargent la feuille de style, la gardent.",
+		organization: "Organisation",
+		name: "Nom",
+		nameHelp: "En haut des pages que voient les lecteurs, et dans les gabarits. Le domaine, tant que vous n'en donnez pas.",
+		logo: "Logo",
+		logoHelp: "Pour les fonds clairs. SVG, PNG ou WebP, 512 ko au plus.",
+		logoInverse: "Logo pour les fonds sombres",
+		logoInverseHelp: "Sur les diapositives à la couleur principale. Sans lui, elles montrent le nom.",
+		colors: "Couleurs",
+		chartColors: "Couleurs des graphiques",
+		chartPlaceholder: "Tirées des couleurs principale et secondaire",
+		chartHelp:
+			"Jusqu'à 8 couleurs, dans l'ordre, séparées par des virgules. Vide, Cahut les tire des couleurs principale et secondaire à l'enregistrement.",
+		fonts: "Polices",
+		headings: "Titres",
+		bodyText: "Texte courant",
+		fontsHelp:
+			"Les navigateurs des lecteurs téléchargent ces polices depuis ce Cahut. N'envoyez que des polices dont la licence permet l'usage sur le web.",
+		guidance: "Consignes pour les IA",
+		guidanceLabel: "Ce que l'organisation demande aux IA",
+		guidancePlaceholder: "Titres en minuscules, sauf la première lettre. Une idée par diapositive. Chiffres en milliers.",
+		guidanceHelp: (n) =>
+			`Son ton, ses règles pour les titres ou les graphiques. Les IA les lisent avec la house style ; les lecteurs ne les voient jamais. ${n} / 4000`,
+		save: "Enregistrer la house style",
+		discard: "Abandonner les modifications",
+		versions: "Versions",
+		previous: (what) => `La version précédente : ${what}. Y revenir garde celle-ci comme version précédente.`,
+		previousNeutral: "la house style neutre",
+		previousSet: (date, by) => `fixée le ${date}${by ? ` pour ${by}` : ""}`,
+		goBackToIt: "Y revenir",
+		goBackQuestion: "Revenir à la house style précédente ?",
+		goBack: "Revenir",
+		noPrevious: "Pas encore de version précédente.",
+		neutralHelp: "La house style neutre prend les polices du système, un texte sombre sur blanc, et un bleu.",
+		backToNeutral: "Revenir au style neutre",
+		neutralQuestion: "Repartir de la house style neutre ? Celle-ci devient la version précédente.",
+		picker: (label) => `${label}, sélecteur`,
+		textOnBackground: "Texte sur le fond",
+		primaryOnBackground: "Principale sur le fond",
+		textOnPrimary: "Texte sur la couleur principale",
+		secondaryOnBackground: "Secondaire sur le fond",
+		readsWell: "Se lit bien",
+		tooLow: "Trop faible pour enregistrer",
+		hardToRead: "Peu lisible",
+		swatches: "Couleurs des graphiques, dans l'ordre",
+		none: "Aucun",
+		replace: "Remplacer",
+		upload: "Importer",
+		remove: "Retirer",
+		family: "Famille",
+		familyPlaceholder: "La police du système",
+		fallsBackOn: "Police de repli",
+		file: "Fichier",
+		weight: "Graisse",
+		style: "Style",
+		kb: (n) => `${n} ko`,
+		weightOf: (name) => `Graisse ${de(name)}`,
+		variable: "100 à 900, variable",
+		styleOf: (name) => `Style ${de(name)}`,
+		normal: "Normal",
+		italic: "Italique",
+		removeFile: (name) => `Retirer ${name}`,
+		addFiles: "Ajouter des fichiers de police",
+		filesHelp: "WOFF2, WOFF, TrueType ou OpenType, 1 Mo chacun. Sans fichiers, la famille doit être installée sur le système des lecteurs.",
+		preview: "Aperçu",
+		previewLabel: "Aperçu, avant d'enregistrer",
+		report: "Rapport",
+		reportTitle: "Bilan trimestriel",
+		reportText: (
+			<>
+				Le chiffre d'affaires a crû de 12 % sur le trimestre, porté par le Nord. <a href="#preview">Voir les chiffres</a>.
+			</>
+		),
+		revenue: "Chiffre d'affaires",
+		revenueValue: "2 980",
+		orders: "Commandes",
+		ordersValue: "1 412",
+		openReport: "Ouvrir le rapport",
+		part: "Partie 1",
+		results: "Résultats",
+	},
+});
 
 type ColorName = "text" | "background" | "primary" | "secondary";
 const colorNames: { key: ColorName; label: string; help: string }[] = [
-	{ key: "text", label: "Text", help: "Body text." },
-	{ key: "background", label: "Background", help: "The background of pages and slides." },
-	{ key: "primary", label: "Primary", help: "Headings of slides, links, buttons, slides that open a part." },
-	{ key: "secondary", label: "Secondary", help: "Accents, quotes, the progress of a deck." },
+	{ key: "text", label: t.text, help: t.textHelp },
+	{ key: "background", label: t.background, help: t.backgroundHelp },
+	{ key: "primary", label: t.primary, help: t.primaryHelp },
+	{ key: "secondary", label: t.secondary, help: t.secondaryHelp },
 ];
 
 const fallbacks: Record<string, { label: string; stack: string }> = {
-	"sans-serif": { label: "Sans serif", stack: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' },
-	serif: { label: "Serif", stack: 'Georgia, "Times New Roman", Times, serif' },
-	monospace: { label: "Monospace", stack: 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace' },
+	"sans-serif": { label: t.sansSerif, stack: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' },
+	serif: { label: t.serif, stack: 'Georgia, "Times New Roman", Times, serif' },
+	monospace: { label: t.monospace, stack: 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace' },
 };
 
 /** A file of a font: one the house style keeps, or one to send. */
@@ -92,7 +297,7 @@ function draftOf(h: HouseStyle): Draft {
 export function HouseStylePage() {
 	const api = useConsole();
 	const { data, error, reload } = useLoad(() => api.cahut("get_house_style", {}));
-	if (!api.isAdmin) return <Notice>Only the administrators of this Cahut set its house style.</Notice>;
+	if (!api.isAdmin) return <Notice>{t.onlyAdmins}</Notice>;
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
 	return <Editor key={`${data.set_at ?? "neutral"}-${data.name}-${data.active}`} style={data} onSaved={reload} />;
@@ -132,36 +337,32 @@ function Editor({ style, onSaved }: { style: HouseStyle; onSaved: () => void }) 
 	return (
 		<>
 			<PageHead
-				label="This Cahut"
+				label={t.thisCahut}
 				title="House style"
 				actions={
 					<span class="house__templates">
-						<span class="c-small c-muted">Templates</span>
-						{["document", "deck", "dashboard"].map((kind) => (
+						<span class="c-small c-muted">{t.templates}</span>
+						{Object.entries(t.templateKinds).map(([kind, name]) => (
 							<a class="c-btn c-btn--secondary c-btn--sm" href={`/-/templates/${kind}`} target="_blank" rel="noopener" key={kind}>
-								{kind.charAt(0).toUpperCase() + kind.slice(1)}
+								{name}
 								<ExternalLink class="i" size={14} aria-hidden="true" />
 							</a>
 						))}
 					</span>
 				}
 			>
-				The look of your organization. AIs read it before they make a Window, and every Window that links it takes a change at once, as do the
-				pages that readers see, such as the page of a Key.
+				{t.lead}
 			</PageHead>
 			{style.set_at && (
 				<p class="c-small c-muted section">
-					Set on {new Date(style.set_at).toLocaleString("en-GB", { dateStyle: "long", timeStyle: "short" })}
-					{style.set_by ? ` for ${style.set_by}` : ""}.
+					{t.setOn(new Date(style.set_at).toLocaleString(locale, { dateStyle: "long", timeStyle: "short" }), style.set_by)}
 				</p>
 			)}
 			<section class="section c-card panel house__use">
 				<div class="house__use-text">
-					<h2 class="c-h4" id="house-use">AIs use this house style</h2>
+					<h2 class="c-h4" id="house-use">{t.use}</h2>
 					<p class="c-small c-muted">
-						{style.active
-							? "AIs read it before they make a Window, and start from its templates."
-							: "Inactive: AIs get nothing of it, and make Windows in the style the user asks for, such as guidelines of your own given to them as a skill. The pages that readers see, and the Windows that link the style sheet, keep it."}
+						{style.active ? t.active : t.inactive}
 					</p>
 				</div>
 				<button
@@ -177,9 +378,9 @@ function Editor({ style, onSaved }: { style: HouseStyle; onSaved: () => void }) 
 			<form class="house section" onSubmit={save}>
 				<div class="house__form">
 					<section class="c-card panel form">
-						<h2 class="c-h4">Organization</h2>
+						<h2 class="c-h4">{t.organization}</h2>
 						<label class="c-field">
-							<span class="c-field__label">Name</span>
+							<span class="c-field__label">{t.name}</span>
 							<input
 								class="c-input"
 								placeholder={location.hostname}
@@ -187,19 +388,19 @@ function Editor({ style, onSaved }: { style: HouseStyle; onSaved: () => void }) 
 								value={draft.name}
 								onInput={(e) => change("name", e.currentTarget.value)}
 							/>
-							<span class="c-field__help">At the top of the pages that readers see, and in the templates. The domain until you give one.</span>
+							<span class="c-field__help">{t.nameHelp}</span>
 						</label>
 						<div class="form__row">
 							<LogoField
-								label="Logo"
-								help="For light backgrounds. SVG, PNG or WebP, 512 KB at most."
+								label={t.logo}
+								help={t.logoHelp}
 								current={style.has_logo ? `/-/house-style/logo${version}` : ""}
 								draft={draft.logo}
 								onChange={(l) => change("logo", l)}
 							/>
 							<LogoField
-								label="Logo for dark backgrounds"
-								help="On slides in the primary color. Without it, they show the name."
+								label={t.logoInverse}
+								help={t.logoInverseHelp}
 								current={style.has_logo_inverse ? `/-/house-style/logo-inverse${version}` : ""}
 								draft={draft.logoInverse}
 								dark={draft.colors.primary}
@@ -209,7 +410,7 @@ function Editor({ style, onSaved }: { style: HouseStyle; onSaved: () => void }) 
 					</section>
 
 					<section class="c-card panel form">
-						<h2 class="c-h4">Colors</h2>
+						<h2 class="c-h4">{t.colors}</h2>
 						<div class="house__colors">
 							{colorNames.map((c) => (
 								<ColorField
@@ -223,44 +424,38 @@ function Editor({ style, onSaved }: { style: HouseStyle; onSaved: () => void }) 
 						</div>
 						<Contrasts colors={draft.colors} />
 						<label class="c-field">
-							<span class="c-field__label">Colors of charts</span>
+							<span class="c-field__label">{t.chartColors}</span>
 							<input
 								class="c-input c-mono"
-								placeholder="Derived from the primary and secondary colors"
+								placeholder={t.chartPlaceholder}
 								value={draft.chart}
 								onInput={(e) => change("chart", e.currentTarget.value)}
 							/>
-							<span class="c-field__help">
-								Up to 8 colors, in order, separated by commas. Empty, Cahut derives them from the primary and secondary colors when you save.
-							</span>
+							<span class="c-field__help">{t.chartHelp}</span>
 						</label>
 						<Swatches colors={chartOf(draft, style)} />
 					</section>
 
 					<section class="c-card panel form">
-						<h2 class="c-h4">Fonts</h2>
-						<FontField label="Headings" font={draft.heading} onChange={(f) => change("heading", f)} />
-						<FontField label="Body text" font={draft.body} onChange={(f) => change("body", f)} />
-						<p class="c-small c-muted">
-							The browsers of readers download these fonts from this Cahut. Upload only fonts whose license allows it on the web.
-						</p>
+						<h2 class="c-h4">{t.fonts}</h2>
+						<FontField label={t.headings} font={draft.heading} onChange={(f) => change("heading", f)} />
+						<FontField label={t.bodyText} font={draft.body} onChange={(f) => change("body", f)} />
+						<p class="c-small c-muted">{t.fontsHelp}</p>
 					</section>
 
 					<section class="c-card panel form">
-						<h2 class="c-h4">Guidance for AIs</h2>
+						<h2 class="c-h4">{t.guidance}</h2>
 						<label class="c-field">
-							<span class="c-field__label">What the organization asks of AIs</span>
+							<span class="c-field__label">{t.guidanceLabel}</span>
 							<textarea
 								class="c-input house__guidance"
 								maxLength={4000}
 								rows={6}
-								placeholder="Sentence case for titles. One idea per slide. Figures in thousands."
+								placeholder={t.guidancePlaceholder}
 								value={draft.guidance}
 								onInput={(e) => change("guidance", e.currentTarget.value)}
 							/>
-							<span class="c-field__help">
-								Its tone of voice, its rules for titles or charts. AIs read it with the house style; readers never see it. {draft.guidance.length} / 4000
-							</span>
+							<span class="c-field__help">{t.guidanceHelp(draft.guidance.length)}</span>
 						</label>
 					</section>
 
@@ -276,7 +471,7 @@ function Editor({ style, onSaved }: { style: HouseStyle; onSaved: () => void }) 
 					)}
 					<div class="house__actions">
 						<button class="c-btn c-btn--primary" type="submit" disabled={busy || touched.size === 0}>
-							Save the house style
+							{t.save}
 						</button>
 						{touched.size > 0 && (
 							<button
@@ -287,7 +482,7 @@ function Editor({ style, onSaved }: { style: HouseStyle; onSaved: () => void }) 
 									setTouched(new Set());
 								}}
 							>
-								Discard the changes
+								{t.discard}
 							</button>
 						)}
 					</div>
@@ -298,33 +493,33 @@ function Editor({ style, onSaved }: { style: HouseStyle; onSaved: () => void }) 
 			</form>
 
 			<section class="section c-card panel">
-				<h2 class="c-h4">Versions</h2>
+				<h2 class="c-h4">{t.versions}</h2>
 				{style.previous ? (
 					<div class="house__version">
 						<p class="c-small">
-							The previous version:{" "}
-							{style.previous.neutral
-								? "the neutral house style"
-								: `set on ${new Date(style.previous.set_at).toLocaleDateString("en-GB", { dateStyle: "long" })}${style.previous.set_by ? ` for ${style.previous.set_by}` : ""}`}
-							. Going back keeps this one as the previous version.
+							{t.previous(
+								style.previous.neutral
+									? t.previousNeutral
+									: t.previousSet(new Date(style.previous.set_at).toLocaleDateString(locale, { dateStyle: "long" }), style.previous.set_by),
+							)}
 						</p>
 						<ConfirmButton
-							label="Go back to it"
-							question="Go back to the previous house style?"
-							confirm="Go back"
+							label={t.goBackToIt}
+							question={t.goBackQuestion}
+							confirm={t.goBack}
 							onConfirm={() => run(() => api.cahut("rollback_house_style", {}))}
 						/>
 					</div>
 				) : (
-					<p class="c-small c-muted">No previous version yet.</p>
+					<p class="c-small c-muted">{t.noPrevious}</p>
 				)}
 				{!style.neutral && (
 					<div class="house__version">
-						<p class="c-small">The neutral house style uses the fonts of the system, dark text on white, and a blue.</p>
+						<p class="c-small">{t.neutralHelp}</p>
 						<ConfirmButton
-							label="Back to neutral"
-							question="Start again from the neutral house style? This one becomes the previous version."
-							confirm="Back to neutral"
+							label={t.backToNeutral}
+							question={t.neutralQuestion}
+							confirm={t.backToNeutral}
 							onConfirm={() => run(() => api.cahut("set_house_style", { neutral: true }))}
 						/>
 					</div>
@@ -424,7 +619,7 @@ function ColorField(props: { label: string; help: string; value: string; onChang
 				<input
 					class="house__picker"
 					type="color"
-					aria-label={`${props.label}, picker`}
+					aria-label={t.picker(props.label)}
 					value={valid ? mix(props.value, props.value, 1) : "#000000"}
 					onInput={(e) => props.onChange(e.currentTarget.value)}
 				/>
@@ -446,13 +641,13 @@ function ColorField(props: { label: string; help: string; value: string; onChang
 function Contrasts({ colors }: { colors: Record<ColorName, string> }) {
 	// Text on the background below its need is refused; the others warn.
 	const rows: { what: string; ratio: number; need: number; refused?: boolean }[] = [
-		{ what: "Text on the background", ratio: contrast(colors.text, colors.background), need: 4.5, refused: true },
-		{ what: "Primary on the background", ratio: contrast(colors.primary, colors.background), need: 3 },
-		{ what: "Text on the primary color", ratio: contrast(on(colors.primary, colors.text, colors.background), colors.primary), need: 4.5 },
-		{ what: "Secondary on the background", ratio: contrast(colors.secondary, colors.background), need: 3 },
+		{ what: t.textOnBackground, ratio: contrast(colors.text, colors.background), need: 4.5, refused: true },
+		{ what: t.primaryOnBackground, ratio: contrast(colors.primary, colors.background), need: 3 },
+		{ what: t.textOnPrimary, ratio: contrast(on(colors.primary, colors.text, colors.background), colors.primary), need: 4.5 },
+		{ what: t.secondaryOnBackground, ratio: contrast(colors.secondary, colors.background), need: 3 },
 	];
 	const badge = (r: (typeof rows)[number]) =>
-		r.ratio >= r.need ? ["c-badge--success", "Reads well"] : r.refused ? ["c-badge--danger", "Too low to save"] : ["c-badge--warning", "Hard to read"];
+		r.ratio >= r.need ? ["c-badge--success", t.readsWell] : r.refused ? ["c-badge--danger", t.tooLow] : ["c-badge--warning", t.hardToRead];
 	return (
 		<ul class="house__contrasts">
 			{rows.map((r) => {
@@ -460,7 +655,7 @@ function Contrasts({ colors }: { colors: Record<ColorName, string> }) {
 				return (
 					<li key={r.what}>
 						<span>{r.what}</span>
-						<span class="c-mono">{r.ratio.toFixed(1)}:1</span>
+						<span class="c-mono">{r.ratio.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}:1</span>
 						<span class={`c-badge ${variant}`}>{word}</span>
 					</li>
 				);
@@ -471,7 +666,7 @@ function Contrasts({ colors }: { colors: Record<ColorName, string> }) {
 
 function Swatches({ colors }: { colors: string[] }) {
 	return (
-		<div class="house__swatches" aria-label="Colors of charts, in order">
+		<div class="house__swatches" aria-label={t.swatches}>
 			{colors.map((c, i) => (
 				<span class="house__swatch" key={`${i}-${c}`} title={`${i + 1}: ${c}`} style={{ "--swatch": c }} />
 			))}
@@ -507,18 +702,18 @@ function LogoField(props: {
 		<div class="c-field">
 			<span class="c-field__label">{props.label}</span>
 			<div class="house__logo" style={props.dark ? { "--logo-bg": props.dark } : undefined} data-dark={props.dark ? "" : undefined}>
-				{shown ? <img src={shown} alt="" /> : <span class="c-small c-muted">None</span>}
+				{shown ? <img src={shown} alt="" /> : <span class="c-small c-muted">{t.none}</span>}
 			</div>
 			<span class="house__logo-actions">
 				<label class="c-btn c-btn--secondary c-btn--sm">
 					<Upload class="i" size={14} aria-hidden="true" />
-					{shown ? "Replace" : "Upload"}
+					{shown ? t.replace : t.upload}
 					<input class="house__file" type="file" accept=".svg,.png,.webp,image/svg+xml,image/png,image/webp" onChange={pick} />
 				</label>
 				{shown && (
 					<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => props.onChange({ content: "", preview: "" })}>
 						<Trash2 class="i" size={14} aria-hidden="true" />
-						Remove
+						{t.remove}
 					</button>
 				)}
 			</span>
@@ -565,16 +760,16 @@ function FontField({ label, font, onChange }: { label: string; font: FontDraft; 
 			<legend class="c-field__label">{label}</legend>
 			<div class="form__row">
 				<label class="c-field">
-					<span class="c-field__label">Family</span>
+					<span class="c-field__label">{t.family}</span>
 					<input
 						class="c-input"
-						placeholder="The font of the system"
+						placeholder={t.familyPlaceholder}
 						value={font.family}
 						onInput={(e) => onChange({ ...font, family: e.currentTarget.value })}
 					/>
 				</label>
 				<label class="c-field">
-					<span class="c-field__label">Falls back on</span>
+					<span class="c-field__label">{t.fallsBackOn}</span>
 					<select class="c-input" value={font.fallback} onChange={(e) => onChange({ ...font, fallback: e.currentTarget.value })}>
 						{Object.entries(fallbacks).map(([value, f]) => (
 							<option value={value} key={value}>
@@ -589,9 +784,9 @@ function FontField({ label, font, onChange }: { label: string; font: FontDraft; 
 					<table class="table">
 						<thead>
 							<tr>
-								<th>File</th>
-								<th>Weight</th>
-								<th>Style</th>
+								<th>{t.file}</th>
+								<th>{t.weight}</th>
+								<th>{t.style}</th>
 								<th />
 							</tr>
 						</thead>
@@ -599,12 +794,12 @@ function FontField({ label, font, onChange }: { label: string; font: FontDraft; 
 							{font.files.map((f, i) => (
 								<tr key={f.key}>
 									<td class="c-mono c-small">
-										{f.name} <span class="c-muted">{Math.ceil(f.size / 1024)} KB</span>
+										{f.name} <span class="c-muted">{t.kb(Math.ceil(f.size / 1024))}</span>
 									</td>
 									<td>
 										<select
 											class="c-input"
-											aria-label={`Weight of ${f.name}`}
+											aria-label={t.weightOf(f.name)}
 											value={f.maxWeight ? `${f.weight}-${f.maxWeight}` : String(f.weight)}
 											onChange={(e) => {
 												const [w, max] = e.currentTarget.value.split("-").map(Number);
@@ -616,20 +811,20 @@ function FontField({ label, font, onChange }: { label: string; font: FontDraft; 
 													{w}
 												</option>
 											))}
-											<option value="100-900">100 to 900, variable</option>
+											<option value="100-900">{t.variable}</option>
 										</select>
 									</td>
 									<td>
-										<select class="c-input" aria-label={`Style of ${f.name}`} value={f.style} onChange={(e) => set(i, { style: e.currentTarget.value })}>
-											<option value="normal">Normal</option>
-											<option value="italic">Italic</option>
+										<select class="c-input" aria-label={t.styleOf(f.name)} value={f.style} onChange={(e) => set(i, { style: e.currentTarget.value })}>
+											<option value="normal">{t.normal}</option>
+											<option value="italic">{t.italic}</option>
 										</select>
 									</td>
 									<td class="table__actions">
 										<button
 											class="c-btn c-btn--ghost c-btn--sm"
 											type="button"
-											aria-label={`Remove ${f.name}`}
+											aria-label={t.removeFile(f.name)}
 											onClick={() => onChange({ ...font, files: font.files.filter((_, j) => j !== i) })}
 										>
 											<Trash2 class="i" size={14} aria-hidden="true" />
@@ -644,10 +839,10 @@ function FontField({ label, font, onChange }: { label: string; font: FontDraft; 
 			<span class="house__logo-actions">
 				<label class="c-btn c-btn--secondary c-btn--sm">
 					<Upload class="i" size={14} aria-hidden="true" />
-					Add font files
+					{t.addFiles}
 					<input class="house__file" type="file" multiple accept=".woff2,.woff,.ttf,.otf,font/woff2,font/woff,font/ttf,font/otf" onChange={add} />
 				</label>
-				<span class="c-small c-muted">WOFF2, WOFF, TrueType or OpenType, 1 MB each. Without files, the family must be on the readers' systems.</span>
+				<span class="c-small c-muted">{t.filesHelp}</span>
 			</span>
 		</fieldset>
 	);
@@ -705,23 +900,21 @@ function Preview({ draft, style, version }: { draft: Draft; style: HouseStyle; v
 	const name = draft.name.trim() || location.hostname;
 	const chart = chartOf(draft, style);
 	return (
-		<div class="house__preview" aria-label="Preview" style={vars}>
-			<span class="c-label">Preview, before saving</span>
+		<div class="house__preview" aria-label={t.preview} style={vars}>
+			<span class="c-label">{t.previewLabel}</span>
 			<div class="preview">
 				<div class="preview__top">{logo ? <img src={logo} alt={name} /> : <strong>{name}</strong>}</div>
-				<span class="preview__kicker">Report</span>
-				<h3 class="preview__title">Quarterly review</h3>
-				<p class="preview__text">
-					Revenue grew by 12% over the quarter, led by the North. <a href="#preview">See the figures</a>.
-				</p>
+				<span class="preview__kicker">{t.report}</span>
+				<h3 class="preview__title">{t.reportTitle}</h3>
+				<p class="preview__text">{t.reportText}</p>
 				<div class="preview__kpis">
 					<span class="preview__kpi">
-						<span>Revenue</span>
-						<strong>2,980</strong>
+						<span>{t.revenue}</span>
+						<strong>{t.revenueValue}</strong>
 					</span>
 					<span class="preview__kpi">
-						<span>Orders</span>
-						<strong>1,412</strong>
+						<span>{t.orders}</span>
+						<strong>{t.ordersValue}</strong>
 					</span>
 				</div>
 				<div class="preview__bars">
@@ -729,11 +922,11 @@ function Preview({ draft, style, version }: { draft: Draft; style: HouseStyle; v
 						<span key={`${i}-${color}`} style={{ "--bar": color, "--w": `${90 - i * 18}%` }} />
 					))}
 				</div>
-				<span class="preview__button">Open the report</span>
+				<span class="preview__button">{t.openReport}</span>
 			</div>
 			<div class="preview preview--slide">
-				<span class="preview__kicker">Part 1</span>
-				<h3 class="preview__title">Results</h3>
+				<span class="preview__kicker">{t.part}</span>
+				<h3 class="preview__title">{t.results}</h3>
 				<div class="preview__foot">{inverse ? <img src={inverse} alt={name} /> : <strong>{name}</strong>}</div>
 			</div>
 		</div>

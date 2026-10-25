@@ -5,8 +5,20 @@
 import { useEffect, useState } from "preact/hooks";
 import { ApiError, cahut, explain } from "../api";
 import { Failure } from "../components";
+import { de, words } from "../i18n";
 import { Logo } from "../logo";
 import type { Session } from "../session";
+
+const t = words({
+	en: {
+		cannot: "Cannot open the Windows",
+		opening: (host: string) => `Opening the Windows of ${host}…`,
+	},
+	fr: {
+		cannot: "Impossible d'ouvrir les Windows",
+		opening: (host) => `Ouverture des Windows ${de(host)}…`,
+	},
+});
 
 /** The path of the Cahut to go back to, from the page's address. */
 function destination(): string {
@@ -37,11 +49,11 @@ export function Read({ session, onExpired }: { session: Session; onExpired: () =
 				<Logo height={32} />
 				{error ? (
 					<div class="auth__head">
-						<h1 class="c-h3">Cannot open the Windows</h1>
+						<h1 class="c-h3">{t.cannot}</h1>
 						<Failure message={error} />
 					</div>
 				) : (
-					<p class="c-muted">Opening the Windows of {location.hostname}…</p>
+					<p class="c-muted">{t.opening(location.hostname)}</p>
 				)}
 			</div>
 		</main>

@@ -6,19 +6,120 @@ import { explain } from "../api";
 import type { Limits, Settings as CahutSettings } from "../api.gen";
 import { bytes, Failure, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
+import { words } from "../i18n";
 import { useLoad } from "../load";
+
+const t = words({
+	en: {
+		people: "People",
+		peopleHelp: "Active or waiting for their activation, administrators included. Disabled people do not count.",
+		admins: "Administrators",
+		adminsHelp: "Administrators of the Cahut, counted the same way.",
+		rooms: "Rooms",
+		roomsHelp: "Team Rooms, or in an individual Cahut the Rooms beside the personal ones.",
+		windows: "Windows",
+		windowsHelp: "Windows out of the trash, in the whole Cahut.",
+		windowsPerRoom: "Windows per Room",
+		windowsPerRoomHelp: "Windows out of the trash in one Room, personal Rooms included.",
+		disk: "Disk",
+		diskHelp: "Every version of every Window, the trash included, and the files of the house style.",
+		roomsPerPerson: "Rooms per person",
+		roomsPerPersonHelp: "Rooms of each person beside their personal Room.",
+		windowsPerPerson: "Windows per person",
+		windowsPerPersonHelp: "Windows of each person out of the trash, over their Rooms.",
+		diskPerPerson: "Disk per person",
+		diskPerPersonHelp: "Every version of the Windows of each person, the trash included.",
+		collaborative: "Collaborative",
+		collaborativeAbout: "People create team Rooms, add one another to them, and open Windows to the whole Cahut.",
+		individual: "Individual",
+		individualAbout: "People share the Cahut, not their work: each Room keeps one member, and nobody sees the others.",
+		label: "This Cahut",
+		title: "Kind and limits",
+		leadServer: "As an administrator of the server, you choose how people work in this Cahut, and bound what it holds.",
+		leadCahut: "The administrators of the server choose how people work in this Cahut, and bound what it holds.",
+		kindTitle: (kind: string) => `${kind} Cahut`,
+		limits: "Limits",
+		noLimit: "This Cahut has no limit.",
+		what: "What",
+		yours: "Yours",
+		holds: "Holds",
+		limit: "Limit",
+		unlimited: "No limit",
+		over: "Over the limit",
+		at: "At the limit",
+		change: "Change them",
+		kind: "Kind",
+		kindChoice: (name: string, about: string) => `${name}: ${about}`,
+		becomesIndividual:
+			"A Cahut becomes individual once no Room has more than one member and no Window opens to the whole Cahut. The names of new Rooms then start with the handle of their owner.",
+		gb: " (GB)",
+		lift: "Leave a limit empty to lift it. Lowering one deletes nothing: the Cahut keeps what it holds and refuses what would add to it. The disk counts in gigabytes of a billion bytes.",
+		saved: "Saved. The change is in the Logbook of this Cahut.",
+		save: "Save",
+	},
+	fr: {
+		people: "Personnes",
+		peopleHelp: "Actives ou en attente de leur activation, administrateurs compris. Les personnes désactivées ne comptent pas.",
+		admins: "Administrateurs",
+		adminsHelp: "Administrateurs du Cahut, comptés de la même façon.",
+		rooms: "Rooms",
+		roomsHelp: "Les Rooms d'équipe, ou dans un Cahut individuel les Rooms en plus des Rooms personnelles.",
+		windows: "Windows",
+		windowsHelp: "Les Windows hors de la corbeille, dans tout le Cahut.",
+		windowsPerRoom: "Windows par Room",
+		windowsPerRoomHelp: "Les Windows hors de la corbeille dans une Room, Rooms personnelles comprises.",
+		disk: "Disque",
+		diskHelp: "Toutes les versions de toutes les Windows, corbeille comprise, et les fichiers de la house style.",
+		roomsPerPerson: "Rooms par personne",
+		roomsPerPersonHelp: "Les Rooms de chaque personne en plus de sa Room personnelle.",
+		windowsPerPerson: "Windows par personne",
+		windowsPerPersonHelp: "Les Windows de chaque personne hors de la corbeille, dans toutes ses Rooms.",
+		diskPerPerson: "Disque par personne",
+		diskPerPersonHelp: "Toutes les versions des Windows de chaque personne, corbeille comprise.",
+		collaborative: "Collaboratif",
+		collaborativeAbout:
+			"Les personnes créent des Rooms d'équipe, s'y ajoutent les unes les autres, et ouvrent des Windows à tout le Cahut.",
+		individual: "Individuel",
+		individualAbout:
+			"Les personnes partagent le Cahut, pas leur travail : chaque Room garde un seul membre, et personne ne voit les autres.",
+		label: "Ce Cahut",
+		title: "Type et limites",
+		leadServer:
+			"En tant qu'administrateur du serveur, vous choisissez comment les personnes travaillent dans ce Cahut, et bornez ce qu'il contient.",
+		leadCahut: "Les administrateurs du serveur choisissent comment les personnes travaillent dans ce Cahut, et bornent ce qu'il contient.",
+		kindTitle: (kind) => `Cahut ${kind.toLowerCase()}`,
+		limits: "Limites",
+		noLimit: "Ce Cahut n'a aucune limite.",
+		what: "Ressource",
+		yours: "Utilisé par vous",
+		holds: "Utilisé",
+		limit: "Limite",
+		unlimited: "Aucune limite",
+		over: "Au-delà de la limite",
+		at: "À la limite",
+		change: "Les modifier",
+		kind: "Type",
+		kindChoice: (name, about) => `${name} : ${about}`,
+		becomesIndividual:
+			"Un Cahut devient individuel dès qu'aucune Room n'a plus d'un membre et qu'aucune Window ne s'ouvre à tout le Cahut. Les noms des nouvelles Rooms commencent alors par l'identifiant de leur propriétaire.",
+		gb: " (Go)",
+		lift: "Laissez une limite vide pour la lever. En baisser une ne supprime rien : le Cahut garde ce qu'il contient et refuse ce qui s'y ajouterait. Le disque se compte en gigaoctets d'un milliard d'octets.",
+		saved: "Enregistré. La modification figure au Logbook de ce Cahut.",
+		save: "Enregistrer",
+	},
+});
 
 /** The limits of a Cahut, as the screens name them, with what each counts. */
 const limits: { key: keyof Limits; name: string; help: string; disk?: boolean; perPerson?: boolean }[] = [
-	{ key: "people", name: "People", help: "Active or waiting for their activation, administrators included. Disabled people do not count." },
-	{ key: "admins", name: "Administrators", help: "Administrators of the Cahut, counted the same way." },
-	{ key: "rooms", name: "Rooms", help: "Team Rooms, or in an individual Cahut the Rooms beside the personal ones." },
-	{ key: "windows", name: "Windows", help: "Windows out of the trash, in the whole Cahut." },
-	{ key: "windows_per_room", name: "Windows per Room", help: "Windows out of the trash in one Room, personal Rooms included." },
-	{ key: "disk", name: "Disk", help: "Every version of every Window, the trash included, and the files of the house style.", disk: true },
-	{ key: "rooms_per_person", name: "Rooms per person", help: "Rooms of each person beside their personal Room.", perPerson: true },
-	{ key: "windows_per_person", name: "Windows per person", help: "Windows of each person out of the trash, over their Rooms.", perPerson: true },
-	{ key: "disk_per_person", name: "Disk per person", help: "Every version of the Windows of each person, the trash included.", disk: true, perPerson: true },
+	{ key: "people", name: t.people, help: t.peopleHelp },
+	{ key: "admins", name: t.admins, help: t.adminsHelp },
+	{ key: "rooms", name: t.rooms, help: t.roomsHelp },
+	{ key: "windows", name: t.windows, help: t.windowsHelp },
+	{ key: "windows_per_room", name: t.windowsPerRoom, help: t.windowsPerRoomHelp },
+	{ key: "disk", name: t.disk, help: t.diskHelp, disk: true },
+	{ key: "rooms_per_person", name: t.roomsPerPerson, help: t.roomsPerPersonHelp, perPerson: true },
+	{ key: "windows_per_person", name: t.windowsPerPerson, help: t.windowsPerPersonHelp, perPerson: true },
+	{ key: "disk_per_person", name: t.diskPerPerson, help: t.diskPerPersonHelp, disk: true, perPerson: true },
 ];
 
 /** What the Cahut, or the person in an individual Cahut, holds against the limit key. */
@@ -41,11 +142,8 @@ function held(s: CahutSettings, key: keyof Limits): number | undefined {
 }
 
 const kinds: Record<string, { name: string; about: string }> = {
-	collaborative: { name: "Collaborative", about: "People create team Rooms, add one another to them, and open Windows to the whole Cahut." },
-	individual: {
-		name: "Individual",
-		about: "People share the Cahut, not their work: each Room keeps one member, and nobody sees the others.",
-	},
+	collaborative: { name: t.collaborative, about: t.collaborativeAbout },
+	individual: { name: t.individual, about: t.individualAbout },
 };
 
 export function Settings() {
@@ -56,17 +154,15 @@ export function Settings() {
 	const server = api.session.kind === "admin";
 	return (
 		<>
-			<PageHead label="This Cahut" title="Kind and limits">
-				{server
-					? "As an administrator of the server, you choose how people work in this Cahut, and bound what it holds."
-					: "The administrators of the server choose how people work in this Cahut, and bound what it holds."}
+			<PageHead label={t.label} title={t.title}>
+				{server ? t.leadServer : t.leadCahut}
 			</PageHead>
 			<section class="section c-card panel">
-				<h2 class="c-h4">{(kinds[data.kind] ?? kinds.collaborative).name} Cahut</h2>
+				<h2 class="c-h4">{t.kindTitle((kinds[data.kind] ?? kinds.collaborative).name)}</h2>
 				<p class="c-small">{(kinds[data.kind] ?? kinds.collaborative).about}</p>
 			</section>
 			<section class="section">
-				<h2 class="c-h4">Limits</h2>
+				<h2 class="c-h4">{t.limits}</h2>
 				<LimitsTable settings={data} />
 			</section>
 			{server && <SettingsForm settings={data} onSaved={() => (reload(), api.reloadCahut(), api.reloadRooms())} />}
@@ -77,16 +173,16 @@ export function Settings() {
 /** The limits of a Cahut with what it holds, as its reader may read them. */
 export function LimitsTable({ settings: s }: { settings: CahutSettings }) {
 	const rows = limits.filter((l) => (l.perPerson ? s.kind === "individual" : s.usage !== undefined || s.limits[l.key] !== undefined));
-	if (rows.length === 0) return <Notice>This Cahut has no limit.</Notice>;
+	if (rows.length === 0) return <Notice>{t.noLimit}</Notice>;
 	const show = (n: number | undefined, disk?: boolean) => (n === undefined ? "" : disk ? bytes(n) : String(n));
 	return (
 		<div class="table-wrap">
 			<table class="table">
 				<thead>
 					<tr>
-						<th>What</th>
-						<th>{s.kind === "individual" && s.usage === undefined ? "Yours" : "Holds"}</th>
-						<th>Limit</th>
+						<th>{t.what}</th>
+						<th>{s.kind === "individual" && s.usage === undefined ? t.yours : t.holds}</th>
+						<th>{t.limit}</th>
 						<th />
 					</tr>
 				</thead>
@@ -104,8 +200,8 @@ export function LimitsTable({ settings: s }: { settings: CahutSettings }) {
 									</span>
 								</td>
 								<td class="c-small limit__value">{show(now, l.disk)}</td>
-								<td class="c-small limit__value">{limit === undefined ? <span class="c-muted">No limit</span> : show(limit, l.disk)}</td>
-								<td>{full && <span class="c-badge c-badge--warning">{now > limit ? "Over the limit" : "At the limit"}</span>}</td>
+								<td class="c-small limit__value">{limit === undefined ? <span class="c-muted">{t.unlimited}</span> : show(limit, l.disk)}</td>
+								<td>{full && <span class="c-badge c-badge--warning">{now > limit ? t.over : t.at}</span>}</td>
 							</tr>
 						);
 					})}
@@ -153,24 +249,19 @@ function SettingsForm({ settings, onSaved }: { settings: CahutSettings; onSaved:
 	};
 	return (
 		<section class="section c-card panel">
-			<h2 class="c-h4">Change them</h2>
+			<h2 class="c-h4">{t.change}</h2>
 			<form class="form" onSubmit={submit}>
 				<fieldset class="consent__group">
-					<legend class="c-field__label">Kind</legend>
+					<legend class="c-field__label">{t.kind}</legend>
 					{Object.entries(kinds).map(([value, k]) => (
 						<label class="c-check" key={value}>
 							<input type="radio" name="kind" checked={kind === value} onChange={() => setKind(value)} />
-							<span>
-								{k.name}: {k.about}
-							</span>
+							<span>{t.kindChoice(k.name, k.about)}</span>
 						</label>
 					))}
 				</fieldset>
 				{kind === "individual" && settings.kind !== "individual" && (
-					<p class="c-small c-muted">
-						A Cahut becomes individual once no Room has more than one member and no Window opens to the whole Cahut. The names of new
-						Rooms then start with the handle of their owner.
-					</p>
+					<p class="c-small c-muted">{t.becomesIndividual}</p>
 				)}
 				<div class="form__row">
 					{limits
@@ -179,7 +270,7 @@ function SettingsForm({ settings, onSaved }: { settings: CahutSettings; onSaved:
 							<label class="c-field" key={l.key}>
 								<span class="c-field__label">
 									{l.name}
-									{l.disk && " (GB)"}
+									{l.disk && t.gb}
 								</span>
 								<input
 									class="c-input"
@@ -187,26 +278,23 @@ function SettingsForm({ settings, onSaved }: { settings: CahutSettings; onSaved:
 									inputMode={l.disk ? "decimal" : "numeric"}
 									min={l.key === "people" || l.key === "admins" ? 1 : 0}
 									step={l.disk ? "any" : 1}
-									placeholder="No limit"
+									placeholder={t.unlimited}
 									value={values[l.key]}
 									onInput={(e) => setValues({ ...values, [l.key]: e.currentTarget.value })}
 								/>
 							</label>
 						))}
 				</div>
-				<p class="c-small c-muted">
-					Leave a limit empty to lift it. Lowering one deletes nothing: the Cahut keeps what it holds and refuses what would add to it. The
-					disk counts in gigabytes of a billion bytes.
-				</p>
+				<p class="c-small c-muted">{t.lift}</p>
 				{error && <Failure message={error} />}
 				{saved && (
 					<p class="c-small" role="status">
-						Saved. The change is in the Logbook of this Cahut.
+						{t.saved}
 					</p>
 				)}
 				<div>
 					<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
-						Save
+						{t.save}
 					</button>
 				</div>
 			</form>

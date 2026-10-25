@@ -4,8 +4,32 @@
 import { useEffect, useState } from "preact/hooks";
 import { cahut, explain } from "../api";
 import { fragment as code } from "../fragment";
+import { words } from "../i18n";
 import { Logo } from "../logo";
 import { Link } from "../router";
+
+const t = words({
+	en: {
+		title: "Your e-mail address",
+		noCode: "This link has no code. Open the whole link of the e-mail.",
+		now: (email: string) => (
+			<>
+				Your e-mail address is now <span class="c-mono">{email}</span>. Your old address got a notice.
+			</>
+		),
+		console: "Go to the console",
+	},
+	fr: {
+		title: "Votre adresse e-mail",
+		noCode: "Ce lien n'a pas de code. Ouvrez en entier le lien de l'e-mail.",
+		now: (email) => (
+			<>
+				Votre adresse e-mail est désormais <span class="c-mono">{email}</span>. Votre ancienne adresse a reçu une notification.
+			</>
+		),
+		console: "Aller à la console",
+	},
+});
 
 export function ConfirmEmail() {
 	const [state, setState] = useState<{ email?: string; error?: string }>({});
@@ -21,18 +45,16 @@ export function ConfirmEmail() {
 			<div class="c-card auth__card">
 				<Logo height={32} />
 				<div class="auth__head">
-					<h1 class="c-h3">Your e-mail address</h1>
+					<h1 class="c-h3">{t.title}</h1>
 				</div>
 				{!code && (
 					<div class="c-alert c-alert--warning" role="alert">
-						This link has no code. Open the whole link of the e-mail.
+						{t.noCode}
 					</div>
 				)}
 				{state.email && (
 					<div class="c-alert c-alert--success" role="status">
-						<div>
-							Your e-mail address is now <span class="c-mono">{state.email}</span>. Your old address got a notice.
-						</div>
+						<div>{t.now(state.email)}</div>
 					</div>
 				)}
 				{state.error && (
@@ -42,7 +64,7 @@ export function ConfirmEmail() {
 				)}
 				<p class="c-small">
 					<Link class="c-link" href="/">
-						Go to the console
+						{t.console}
 					</Link>
 				</p>
 			</div>
