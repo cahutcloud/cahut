@@ -1,11 +1,13 @@
 // The frame of every page once signed in: the top bar, with the account, and
-// the navigation, which a button opens on a narrow screen. The screens of
-// the console fill its main area.
+// the navigation, which a button opens on a narrow screen, with the
+// languages of the console at its foot. The screens of the console fill its
+// main area.
 import {
 	Bot,
 	DoorClosed,
 	Gauge,
 	House,
+	Languages as LanguagesIcon,
 	LogOut,
 	Mail,
 	Menu,
@@ -21,7 +23,7 @@ import {
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import type { Room } from "./api.gen";
-import { initials } from "./components";
+import { initials, Languages } from "./components";
 import { useConsole } from "./context";
 import { words } from "./i18n";
 import { Logo } from "./logo";
@@ -161,6 +163,10 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 				{!person && nav("/rooms", <Server class="i" size={18} aria-hidden="true" />, t.rooms, false)}
 				{!person && nav("/logbook", <NotebookText class="i" size={18} aria-hidden="true" />, t.logbook)}
 				{person && nav("/access", <Bot class="i" size={18} aria-hidden="true" />, t.access)}
+				<div class="sidebar-languages">
+					<LanguagesIcon class="i" size={16} aria-hidden="true" />
+					<Languages />
+				</div>
 			</nav>
 			<main class="c-main">{props.children}</main>
 		</div>

@@ -120,7 +120,8 @@ export function Notice({ children }: { children: ComponentChildren }) {
 
 /**
  * The languages of the console, under the card of a page that opens before
- * sign-in: each in its own words, the current one without a button.
+ * sign-in and at the foot of the navigation once signed in: each in its own
+ * words, the current one without a button.
  */
 export function Languages() {
 	return (
