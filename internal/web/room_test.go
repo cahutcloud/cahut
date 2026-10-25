@@ -167,3 +167,19 @@ func TestRoomHome(t *testing.T) {
 		t.Errorf("the home of the Room after its purge = %v, %v", home, err)
 	}
 }
+
+// A new handle renames the personal Room: its Windows answer at the new
+// address only.
+func TestHandleMovesWindows(t *testing.T) {
+	f := setup(t)
+	publishPage(t, f, "Notes", "public")
+	if resp, body := f.do(t, "localhost", http.MethodGet, "/olivier/notes/", nil, nil); resp.StatusCode != http.StatusOK {
+		t.Fatalf("GET /olivier/notes/ = %d %q", resp.StatusCode, body)
+	}
+	f.call(t, "localhost", f.person(t, "localhost", "olivier"), "change_handle", `{"handle": "odurand"}`)
+	for path, want := range map[string]int{"/odurand/notes/": http.StatusOK, "/olivier/notes/": http.StatusNotFound, "/olivier/": http.StatusNotFound} {
+		if resp, _ := f.do(t, "localhost", http.MethodGet, path, nil, nil); resp.StatusCode != want {
+			t.Errorf("GET %s = %d, want %d", path, resp.StatusCode, want)
+		}
+	}
+}

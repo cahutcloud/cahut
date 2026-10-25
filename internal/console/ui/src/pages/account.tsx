@@ -1,9 +1,10 @@
-// The account: who is signed in, their e-mail address and notices, the
-// language of the console, a new password, and signing out.
+// The account: who is signed in, their name and handle, their e-mail
+// address and notices, the language of the console, a new password, and
+// signing out.
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { EmailChange } from "../api.gen";
-import { Failure, PageHead } from "../components";
+import { ConfirmButton, Failure, PageHead } from "../components";
 import { useConsole } from "../context";
 import { lang, langs, locale, setLang, words } from "../i18n";
 import { useLoad } from "../load";
@@ -52,6 +53,36 @@ const t = words({
 		off: "Notices are off, but for those about your account and your Knocks.",
 		on: "Notices are on.",
 		notices: "Tell me by e-mail when I join a Room, or when the access of a Window that I set ends",
+		profile: "Profile",
+		name: "Name",
+		nameHelp: "As the people of this Cahut see it. Your personal Room takes it too, unless you gave it another title.",
+		saveName: "Save the name",
+		nameSaved: "Name saved.",
+		handle: "Handle",
+		handleHelp: (host: string, handle: string) => (
+			<>
+				You sign in with it. It names your personal Room too, at <span class="c-mono">{`${host}/${handle}/`}</span>.
+			</>
+		),
+		handleWarning: (host: string, old: string, next: string) => (
+			<>
+				Your personal Room and its Windows move to <span class="c-mono">{`${host}/${next}/`}</span>. The links to them under{" "}
+				<span class="c-mono">{`${host}/${old}/`}</span> stop working, for you and for everyone you gave them to, and{" "}
+				<span class="c-mono">{old}</span> becomes free for another person or Room.
+			</>
+		),
+		handleWarningIndividual: (host: string, old: string, next: string) => (
+			<>
+				Your Rooms and their Windows move: <span class="c-mono">{`${host}/${old}/`}</span> to{" "}
+				<span class="c-mono">{`${host}/${next}/`}</span>, and <span class="c-mono">{`${host}/${old}-…/`}</span> to{" "}
+				<span class="c-mono">{`${host}/${next}-…/`}</span>. The links to them under the old addresses stop working, for you and for
+				everyone you gave them to, and <span class="c-mono">{old}</span> becomes free for another person.
+			</>
+		),
+		changeHandle: "Change the handle",
+		handleQuestion: "The old links stop working.",
+		changeIt: "Change it",
+		handleChanged: (handle: string) => `Your handle is now ${handle}: sign in with it from now on.`,
 	},
 	fr: {
 		differ: "Les deux nouveaux mots de passe diffèrent.",
@@ -96,6 +127,37 @@ const t = words({
 		off: "Les notifications sont désactivées, sauf celles sur votre compte et vos Knocks.",
 		on: "Les notifications sont activées.",
 		notices: "Me prévenir par e-mail quand je rejoins une Room, ou quand prend fin l'accès que j'ai donné à une Window",
+		profile: "Profil",
+		name: "Nom",
+		nameHelp: "Tel que le voient les personnes de cette Cahut. Votre Room personnelle le prend aussi, sauf si vous lui avez donné un autre titre.",
+		saveName: "Enregistrer le nom",
+		nameSaved: "Nom enregistré.",
+		handle: "Identifiant",
+		handleHelp: (host, handle) => (
+			<>
+				Vous vous connectez avec lui. Il nomme aussi votre Room personnelle, à <span class="c-mono">{`${host}/${handle}/`}</span>.
+			</>
+		),
+		handleWarning: (host, old, next) => (
+			<>
+				Votre Room personnelle et ses Windows passent à <span class="c-mono">{`${host}/${next}/`}</span>. Les liens vers elles sous{" "}
+				<span class="c-mono">{`${host}/${old}/`}</span> ne marcheront plus, pour vous comme pour toutes les personnes à qui vous les avez
+				donnés, et <span class="c-mono">{old}</span> devient libre pour une autre personne ou une Room.
+			</>
+		),
+		handleWarningIndividual: (host, old, next) => (
+			<>
+				Vos Rooms et leurs Windows changent d'adresse : <span class="c-mono">{`${host}/${old}/`}</span> devient{" "}
+				<span class="c-mono">{`${host}/${next}/`}</span>, et <span class="c-mono">{`${host}/${old}-…/`}</span> devient{" "}
+				<span class="c-mono">{`${host}/${next}-…/`}</span>. Les liens vers elles sous les anciennes adresses ne marcheront plus, pour
+				vous comme pour toutes les personnes à qui vous les avez donnés, et <span class="c-mono">{old}</span> devient libre pour une autre
+				personne.
+			</>
+		),
+		changeHandle: "Changer d'identifiant",
+		handleQuestion: "Les anciens liens ne marcheront plus.",
+		changeIt: "Changer",
+		handleChanged: (handle) => `Votre identifiant est désormais ${handle} : connectez-vous avec lui à partir de maintenant.`,
 	},
 });
 
@@ -131,6 +193,7 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 				<span class="c-mono">{api.session.handle}</span>
 				{api.session.kind === "admin" ? t.admin : t.at(location.hostname)}
 			</PageHead>
+			{api.session.kind === "person" && <Profile />}
 			{api.session.kind === "person" && api.sendsMail && <EmailSection />}
 			<Language />
 			<section class="section c-card panel narrow">
@@ -167,6 +230,95 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 				{t.signOut}
 			</button>
 		</>
+	);
+}
+
+/**
+ * The name and the handle of the person, which they change themselves. A
+ * new handle renames their personal Room: the console says first that the
+ * links to its Windows stop working, and asks again on the spot.
+ */
+function Profile() {
+	const api = useConsole();
+	const { handle: current, name: currentName } = api.session;
+	const host = location.host;
+	const [name, setName] = useState(currentName);
+	const [handle, setHandle] = useState(current);
+	const [said, setSaid] = useState("");
+	const [error, setError] = useState("");
+	const act = async (run: () => Promise<string>) => {
+		setError("");
+		setSaid("");
+		try {
+			setSaid(await run());
+		} catch (err) {
+			setError(explain(err));
+		}
+	};
+	const saveName = (e: Event) => {
+		e.preventDefault();
+		act(async () => {
+			const u = await api.cahut("change_name", { name });
+			setName(u.name);
+			api.renamed(u);
+			return t.nameSaved;
+		});
+	};
+	const changeHandle = () =>
+		act(async () => {
+			const u = await api.cahut("change_handle", { handle });
+			api.renamed(u);
+			return t.handleChanged(u.handle);
+		});
+	const moving = handle !== "" && handle !== current;
+	return (
+		<section class="section c-card panel narrow">
+			<h2 class="c-h4">{t.profile}</h2>
+			<form class="form" onSubmit={saveName}>
+				<label class="c-field">
+					<span class="c-field__label">{t.name}</span>
+					<input class="c-input" type="text" autocomplete="name" maxLength={200} required value={name} onInput={(e) => setName(e.currentTarget.value)} />
+					<span class="c-field__help">{t.nameHelp}</span>
+				</label>
+				<div>
+					<button class="c-btn c-btn--primary" type="submit" disabled={name.trim() === "" || name.trim() === currentName}>
+						{t.saveName}
+					</button>
+				</div>
+			</form>
+			<div class="form">
+				<label class="c-field">
+					<span class="c-field__label">{t.handle}</span>
+					<input
+						class="c-input c-mono"
+						type="text"
+						autocomplete="username"
+						autocapitalize="none"
+						spellcheck={false}
+						maxLength={32}
+						value={handle}
+						onInput={(e) => setHandle(e.currentTarget.value.trim().toLowerCase())}
+					/>
+					<span class="c-field__help">{t.handleHelp(host, current)}</span>
+				</label>
+				{moving && (
+					<>
+						<div class="c-alert c-alert--warning" role="status">
+							<div>{(api.individual ? t.handleWarningIndividual : t.handleWarning)(host, current, handle)}</div>
+						</div>
+						<div>
+							<ConfirmButton label={t.changeHandle} question={t.handleQuestion} confirm={t.changeIt} danger onConfirm={changeHandle} />
+						</div>
+					</>
+				)}
+			</div>
+			{said && (
+				<div class="c-alert c-alert--success" role="status">
+					{said}
+				</div>
+			)}
+			{error && <Failure message={error} />}
+		</section>
 	);
 }
 

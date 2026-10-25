@@ -37,6 +37,12 @@ export interface Console {
 	knocks: number;
 	/** Counts the Knocks that wait again, after an answer. */
 	reloadKnocks(): void;
+	/**
+	 * Keeps the new name or handle of the person in the session of this
+	 * browser, and loads the Rooms of the sidebar again: their personal Room
+	 * follows them.
+	 */
+	renamed(person: { handle: string; name: string }): void;
 }
 
 const context = createContext<Console | null>(null);

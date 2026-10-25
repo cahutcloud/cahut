@@ -31,7 +31,7 @@ An administrator creates accounts in the console, under **People**, or on the co
 | Rooms | A new team Room, of which you become the owner |
 | Logbook | What you did, what your AIs did, and what happened in your Rooms, by day, with filters |
 | AIs and access | The address to give an AI client; your connected AIs, with what they may do and where, Change and Disconnect; your personal tokens: create one, shown once with the command that connects Claude Code, and revoke it in one click |
-| Account | Your e-mail address and notices, when the Cahut sends e-mail; the language of the console; a new password, and signing out |
+| Account | Your name and your handle; your e-mail address and notices, when the Cahut sends e-mail; the language of the console; a new password, and signing out |
 
 A change to what someone may do, such as adding a person to a Room, making a Window public, and deleting anything for good, ask you to confirm first. When your AI asks for one of these changes, it knocks first: the change waits for you under **Knocks**. See [Knock first](/concepts/knock-first-and-logbook/#knock-first).
 
@@ -76,6 +76,12 @@ A session ends 7 days after its last use, and 30 days after it opened in any cas
 After 10 refused sign-ins to one handle from one address in 15 minutes, that address must wait; after 100 from everywhere, the handle waits everywhere. An address that tries too often must wait too, and an IPv6 address counts with its whole /64. The Logbook keeps the address of every sign-in.
 
 On a Knock, **Approve** and, on the consent screen of an AI, **Connect** become active once the page has been in front for a moment and you have moved the pointer or pressed a key: a page that would slip them under a double-click gets nowhere.
+
+## Name and handle
+
+Anyone changes their name and their handle under **Account**. Their personal Room takes the new name as its title, unless they gave it another one.
+
+A new handle must be free, held by no person and no Room. It becomes the name of the personal Room and, in an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), the start of the name of each Room of the person, such as `bob-projects`: the addresses of their Windows change, and the old ones stop working, the links already given out included. The old handle is free for someone else. The console shows the old and the new addresses, and asks again before the change. Answer the Knocks that wait for you first, since they name the old addresses. Your sessions, tokens and connected AIs go on as before, and you sign in with the new handle.
 
 ## Language
 

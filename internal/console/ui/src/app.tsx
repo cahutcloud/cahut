@@ -144,10 +144,20 @@ export function App() {
 	if (!session) {
 		return <Redirect to="/sign-in" />;
 	}
-	return <SignedIn key={session.token} session={session} path={path} onExpired={expired} onSignOut={signOut} />;
+	const keep = (s: Session) => {
+		save(s);
+		setSession(s);
+	};
+	return <SignedIn key={session.token} session={session} path={path} onSession={keep} onExpired={expired} onSignOut={signOut} />;
 }
 
-function SignedIn(props: { session: Session; path: string; onExpired: () => void; onSignOut: () => void }) {
+function SignedIn(props: {
+	session: Session;
+	path: string;
+	onSession: (s: Session) => void;
+	onExpired: () => void;
+	onSignOut: () => void;
+}) {
 	const { session, path } = props;
 	const api = bind(session, props.onExpired);
 	const [rooms, setRooms] = useState<Room[]>([]);
@@ -167,9 +177,15 @@ function SignedIn(props: { session: Session; path: string; onExpired: () => void
 			api.cahut("list_rooms", {}).then((r) => setRooms(r.rooms), () => undefined);
 		}
 	}, [roomsVersion]);
+	// The person may have changed their name or handle in another browser.
+	const renamed = (p: { handle: string; name: string }) => {
+		if (p.handle !== session.handle || p.name !== session.name) {
+			props.onSession({ ...session, handle: p.handle, name: p.name });
+		}
+	};
 	useEffect(() => {
 		if (session.kind === "person") {
-			api.cahut("get_account", {}).then((a) => setAdmin(a.role === "admin"), () => undefined);
+			api.cahut("get_account", {}).then((a) => (setAdmin(a.role === "admin"), renamed(a)), () => undefined);
 		}
 	}, []);
 	const knocks = useWaitingKnocks(api, session);
@@ -184,6 +200,10 @@ function SignedIn(props: { session: Session; path: string; onExpired: () => void
 		reloadRooms: () => setRoomsVersion((n) => n + 1),
 		knocks: knocks.count,
 		reloadKnocks: knocks.reload,
+		renamed: (p: { handle: string; name: string }) => {
+			renamed(p);
+			setRoomsVersion((n) => n + 1);
+		},
 	};
 	return (
 		<ConsoleProvider value={value}>

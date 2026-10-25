@@ -29,6 +29,8 @@ func Register(r *operation.Registry) {
 	operation.Register(r, CheckHandle)
 	operation.Register(r, GetUser)
 	operation.Register(r, GetAccount)
+	operation.Register(r, ChangeName)
+	operation.Register(r, ChangeHandle)
 	operation.Register(r, SetUserRole)
 	operation.Register(r, DisableUser)
 	operation.Register(r, EnableUser)
@@ -214,9 +216,9 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 		if address.Reserved(in.Handle) {
 			return NewUser{}, handleReserved(Handle{Handle: operation.Quoted(in.Handle)})
 		}
-		name := strings.TrimSpace(in.Name)
-		if name == "" {
-			return NewUser{}, operation.Invalidf("name is empty")
+		name, err := personName(in.Name)
+		if err != nil {
+			return NewUser{}, err
 		}
 		var email sql.NullString
 		if strings.TrimSpace(in.Email) != "" {
