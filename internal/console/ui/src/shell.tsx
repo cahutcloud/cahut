@@ -28,6 +28,7 @@ const t = words({
 		everyRoom: "Every Room",
 		newRoom: "New Room",
 		thisServer: "This server",
+		cahuts: "Cahuts",
 		serverAdmins: "Server administrators",
 		serverLogbook: "Logbook of the server",
 		updates: "Updates",
@@ -53,6 +54,7 @@ const t = words({
 		everyRoom: "Toutes les Rooms",
 		newRoom: "Nouvelle Room",
 		thisServer: "Ce serveur",
+		cahuts: "Cahuts",
 		serverAdmins: "Administrateurs",
 		serverLogbook: "Logbook du serveur",
 		updates: "Mises à jour",
@@ -68,7 +70,7 @@ const t = words({
 });
 
 export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => void; children: ComponentChildren }) {
-	const { session, isAdmin, individual, knocks, legal } = useConsole();
+	const { session, serverSession, isAdmin, individual, knocks, legal } = useConsole();
 	const [open, setOpen] = useState(false);
 	useEffect(() => setOpen(false), [props.path]);
 
@@ -89,6 +91,17 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 		</Link>
 	);
 	const person = session.kind === "person";
+	// The pages of the server follow those of the person when the browser
+	// holds both sessions. See docs/adr/0043-the-console-holds-two-sessions.md.
+	const serverPages = (cahuts: boolean) => (
+		<>
+			<div class="c-label">{t.thisServer}</div>
+			{cahuts && nav("/server/cahuts", <Pictogram name="cahut" />, t.cahuts)}
+			{nav("/server/admins", <Pictogram name="serverAdmins" />, t.serverAdmins)}
+			{nav("/server/logbook", <Pictogram name="logbook" />, t.serverLogbook)}
+			{nav("/server/updates", <Pictogram name="updates" />, t.updates)}
+		</>
+	);
 	return (
 		<div class="c-app">
 			<header class="c-topbar">
@@ -134,22 +147,16 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 						{nav("/rooms", <Pictogram name="roomNew" />, isAdmin ? t.everyRoom : t.newRoom)}
 					</>
 				)}
-				{!person && (
-					<>
-						<div class="c-label">{t.thisServer}</div>
-						{nav("/server/admins", <Pictogram name="serverAdmins" />, t.serverAdmins)}
-						{nav("/server/logbook", <Pictogram name="logbook" />, t.serverLogbook)}
-						{nav("/server/updates", <Pictogram name="updates" />, t.updates)}
-					</>
-				)}
+				{!person && serverPages(false)}
 				<div class="c-label">{t.thisCahut}</div>
 				{isAdmin && nav("/people", <Pictogram name="people" />, t.people)}
 				{isAdmin && nav("/house-style", <Pictogram name="houseStyle" />, t.houseStyle)}
-				{isAdmin && nav("/settings", <Pictogram name="limits" />, t.kindAndLimits)}
+				{(isAdmin || serverSession) && nav("/settings", <Pictogram name="limits" />, t.kindAndLimits)}
 				{isAdmin && nav("/mail", <Pictogram name="email" />, t.email)}
 				{!person && nav("/rooms", <Pictogram name="room" />, t.rooms, false)}
 				{!person && nav("/logbook", <Pictogram name="logbook" />, t.logbook)}
 				{person && nav("/access", <Pictogram name="aiAccess" />, t.access)}
+				{person && serverSession && serverPages(true)}
 				<div class="sidebar-foot">
 					{nav("/account", <Pictogram name="account" />, t.account)}
 					<div class="sidebar-languages">

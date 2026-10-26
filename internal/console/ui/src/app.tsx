@@ -3,7 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { cahut, server } from "./api";
 import type { LegalLinks, Room } from "./api.gen";
 import { PageHead } from "./components";
-import { bind, ConsoleProvider } from "./context";
+import { bind, ConsoleProvider, useConsole } from "./context";
 import { words } from "./i18n";
 import { Access } from "./pages/access";
 import { Account } from "./pages/account";
@@ -16,7 +16,7 @@ import { Invitation } from "./pages/invitation";
 import { KnockPage, Knocks } from "./pages/knocks";
 import { Logbook } from "./pages/logbook";
 import { MailPage } from "./pages/mail";
-import { Overview } from "./pages/overview";
+import { Overview, ServerOverview } from "./pages/overview";
 import { People } from "./pages/people";
 import { Read } from "./pages/read";
 import { RoomPage, RoomsPage } from "./pages/rooms";
@@ -48,42 +48,73 @@ const t = words({
 	},
 });
 
-/** Where someone signs in again: as a person, or as an administrator. */
-function signInPage(s: Session | null): string {
-	return s?.kind === "admin" ? "/server/sign-in" : "/sign-in";
+/** Where someone signs in again with an account: as a person, or as an administrator of the server. */
+function signInPage(kind: Session["kind"]): string {
+	return kind === "admin" ? "/server/sign-in" : "/sign-in";
+}
+
+/** Ends a session on the server, whatever it says. */
+function end(s: Session): Promise<unknown> {
+	const call = s.kind === "admin" ? server("sign_out", {}, s.token) : cahut("sign_out", {}, s.token);
+	return call.catch(() => undefined);
 }
 
 export function App() {
 	const path = usePath();
-	const [session, setSession] = useState(load);
+	const [held, setHeld] = useState(load);
+	// The console acts as the person when the browser holds their session,
+	// and as the administrator of the server when it holds theirs alone. See
+	// docs/adr/0043-the-console-holds-two-sessions.md.
+	const session = held.person ?? held.admin;
 
-	const signIn = (s: Session) => {
+	// Keeps a session in its own place, beside the other, and ends the one
+	// it replaces.
+	const hold = (s: Session) => {
+		const old = held[s.kind];
+		if (old && old.token !== s.token) {
+			end(old);
+		}
 		save(s);
-		setSession(s);
-		navigate("/", true);
+		setHeld((h) => ({ ...h, [s.kind]: s }));
 	};
-	// The session has ended: forget it, and sign in again. The page of a
-	// Knock keeps its address, and signs in on the spot.
-	const expired = () => {
-		clear();
-		setSession(null);
+	const drop = (kind: Session["kind"]) => {
+		clear(kind);
+		setHeld((h) => ({ ...h, [kind]: null }));
+	};
+	// An administrator of the server who signs in beside a person goes to
+	// the pages of the server.
+	const signIn = (s: Session) => {
+		hold(s);
+		navigate(s.kind === "admin" && held.person ? "/server/cahuts" : "/", true);
+	};
+	// A session has ended: forget it, and sign in again with its account.
+	// The page of a Knock keeps its address, and signs in on the spot.
+	const expired = (kind: Session["kind"]) => {
+		drop(kind);
 		if (!path.startsWith("/knocks/")) {
-			navigate(signInPage(session), true);
+			navigate(signInPage(kind), true);
 		}
 	};
 	const signOut = async () => {
-		if (session) {
-			const end = session.kind === "admin" ? server("sign_out", {}, session.token) : cahut("sign_out", {}, session.token);
-			await end.catch(() => undefined); // signed out here, whatever the server says
+		const ending = [held.person, held.admin].filter((s): s is Session => s !== null);
+		await Promise.all(ending.map(end)); // signed out here, whatever the server says
+		drop("person");
+		drop("admin");
+		navigate(signInPage(session?.kind ?? "person"), true);
+	};
+	const leaveServer = async () => {
+		if (held.admin) {
+			await end(held.admin);
 		}
-		expired();
+		drop("admin");
+		navigate("/", true);
 	};
 
 	switch (path) {
 		case "/sign-in":
-			return <SignIn kind="person" onSignIn={signIn} />;
+			return <SignIn kind="person" beside={held.admin !== null} onSignIn={signIn} />;
 		case "/server/sign-in":
-			return <SignIn kind="admin" onSignIn={signIn} />;
+			return <SignIn kind="admin" beside={held.person !== null} onSignIn={signIn} />;
 		case "/activate":
 			return <Activate kind="person" onSignIn={signIn} />;
 		case "/server/activate":
@@ -93,73 +124,62 @@ export function App() {
 		case "/invitation":
 			return <Invitation />;
 		case "/setup":
-			return (
-				<Setup
-					onSession={(s) => {
-						save(s);
-						setSession(s);
-					}}
-				/>
-			);
+			return <Setup onSession={hold} />;
 	}
-	// An AI client sends the person to the consent screen: they sign in on
-	// the spot, and the address keeps the request.
+	// The consent screen, the sign-in of readers and the page of a Knock
+	// need the person: they sign in on the spot, beside the session of the
+	// server if the browser holds it, and the address keeps the request.
+	const stay = (s: Session | null) => (s ? hold(s) : drop("person"));
+	// An AI client sends the person to the consent screen.
 	if (path === "/oauth/authorize") {
-		const stay = (s: Session | null) => {
-			if (s) save(s);
-			else clear();
-			setSession(s);
-		};
-		return session?.kind === "person" ? (
-			<Consent key={session.token} session={session} onExpired={() => stay(null)} />
+		return held.person ? (
+			<Consent key={held.person.token} session={held.person} onExpired={() => stay(null)} />
 		) : (
 			<SignIn kind="person" purpose={t.toConnect} onSignIn={stay} />
 		);
 	}
 	// A reader of the Windows of this Cahut signs in here, then goes back to
 	// the address of the Windows. The administrators of the server read no
-	// Windows: they sign in on the spot as a person, like on the consent
-	// screen.
+	// Windows.
 	if (path === "/read") {
-		const stay = (s: Session | null) => {
-			if (s) save(s);
-			else clear();
-			setSession(s);
-		};
-		return session?.kind === "person" ? (
-			<Read key={session.token} session={session} onExpired={() => stay(null)} />
+		return held.person ? (
+			<Read key={held.person.token} session={held.person} onExpired={() => stay(null)} />
 		) : (
 			<SignIn kind="person" purpose={t.toRead} onSignIn={stay} />
 		);
 	}
-	// An AI gives its person the link of its Knock: they sign in on the
-	// spot, and the address keeps the Knock.
-	if (!session && path.startsWith("/knocks/")) {
-		const stay = (s: Session) => {
-			save(s);
-			setSession(s);
-		};
+	// An AI gives its person the link of its Knock.
+	if (!held.person && path.startsWith("/knocks/")) {
 		return <SignIn kind="person" purpose={t.toKnock} onSignIn={stay} />;
 	}
 	if (!session) {
 		return <Redirect to="/sign-in" />;
 	}
-	const keep = (s: Session) => {
-		save(s);
-		setSession(s);
-	};
-	return <SignedIn key={session.token} session={session} path={path} onSession={keep} onExpired={expired} onSignOut={signOut} />;
+	return (
+		<SignedIn
+			key={`${session.token} ${held.admin?.token ?? ""}`}
+			session={session}
+			serverSession={held.admin}
+			path={path}
+			onSession={hold}
+			onExpired={expired}
+			onSignOut={signOut}
+			onLeaveServer={leaveServer}
+		/>
+	);
 }
 
 function SignedIn(props: {
 	session: Session;
+	serverSession: Session | null;
 	path: string;
 	onSession: (s: Session) => void;
-	onExpired: () => void;
+	onExpired: (kind: Session["kind"]) => void;
 	onSignOut: () => void;
+	onLeaveServer: () => void;
 }) {
 	const { session, path } = props;
-	const api = bind(session, props.onExpired);
+	const api = bind(session, props.serverSession, props.onExpired);
 	const [rooms, setRooms] = useState<Room[]>([]);
 	const [roomsVersion, setRoomsVersion] = useState(0);
 	const [isAdmin, setAdmin] = useState(session.kind === "admin");
@@ -193,6 +213,7 @@ function SignedIn(props: {
 
 	const value = {
 		...api,
+		leaveServer: props.onLeaveServer,
 		isAdmin,
 		individual,
 		sendsMail,
@@ -248,6 +269,12 @@ function useWaitingKnocks(api: ReturnType<typeof bind>, session: Session): { cou
 }
 
 function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
+	const { serverSession } = useConsole();
+	// The pages of the server need its session, which the person adds from
+	// the page of their account.
+	if (path.startsWith("/server/") && !serverSession) {
+		return <Redirect to="/server/sign-in" />;
+	}
 	const knock = path.match(/^\/knocks\/([0-9]+)\/?$/);
 	if (knock) return <KnockPage key={path} id={Number(knock[1])} />;
 	const room = path.match(/^\/rooms\/([a-z0-9-]+)\/?$/);
@@ -275,6 +302,8 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 			return <Access />;
 		case "/account":
 			return <Account onSignOut={onSignOut} />;
+		case "/server/cahuts":
+			return <ServerOverview />;
 		case "/server/admins":
 			return <Admins />;
 		case "/server/logbook":

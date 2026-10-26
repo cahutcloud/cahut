@@ -1,5 +1,7 @@
 // Sign-in, for the people of this Cahut and for the administrators of the
-// server, who sign in at the console of any Cahut.
+// server, who sign in at the console of any Cahut. Each sign-in keeps the
+// other session that the browser holds. See
+// docs/adr/0043-the-console-holds-two-sessions.md.
 import { useEffect, useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
 import type { LegalLinks } from "../api.gen";
@@ -34,6 +36,9 @@ const t = words({
 		handleOrEmail: "Handle or e-mail address",
 		sendLink: "Send me a link",
 		back: "Back to sign in",
+		keepsPerson: " Your session as a person stays open.",
+		keepsAdmin: " Your session as an administrator of the server stays open.",
+		backToConsole: "Back to the console",
 	},
 	fr: {
 		administer: "Administrer ce serveur",
@@ -61,10 +66,20 @@ const t = words({
 		handleOrEmail: "Identifiant ou adresse e-mail",
 		sendLink: "M'envoyer un lien",
 		back: "Retour à la connexion",
+		keepsPerson: " Votre session de personne reste ouverte.",
+		keepsAdmin: " Votre session d'administrateur du serveur reste ouverte.",
+		backToConsole: "Retour à la console",
 	},
 });
 
-export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; purpose?: string; onSignIn: (s: Session) => void }) {
+export function SignIn(props: {
+	kind: Session["kind"];
+	purpose?: string;
+	/** Whether the browser holds the session of the other kind, which stays open. */
+	beside?: boolean;
+	onSignIn: (s: Session) => void;
+}) {
+	const { kind, purpose, beside, onSignIn } = props;
 	const [forgot, setForgot] = useState(false);
 	// A person who forgot their password gets a link by e-mail only where
 	// this Cahut sends e-mail. See
@@ -110,6 +125,7 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 					<h1 class="c-h3">{kind === "admin" ? t.administer : t.signIn}</h1>
 					<p class="c-small c-muted">
 						{kind === "admin" ? t.asAdmin(location.hostname) : t.to(location.hostname, purpose)}
+						{beside && (kind === "admin" ? t.keepsPerson : t.keepsAdmin)}
 					</p>
 				</div>
 				<form onSubmit={submit}>
@@ -151,8 +167,8 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 					<div class="auth__foot">
 						<p class="c-small c-muted">{t.adminForgot}</p>
 						<p class="c-small">
-							<Link class="c-link" href="/sign-in">
-								{t.asPerson}
+							<Link class="c-link" href={beside ? "/" : "/sign-in"}>
+								{beside ? t.backToConsole : t.asPerson}
 							</Link>
 						</p>
 					</div>
@@ -168,8 +184,8 @@ export function SignIn({ kind, purpose, onSignIn }: { kind: Session["kind"]; pur
 							<p class="c-small c-muted">{t.askAdmin}</p>
 						)}
 						<p class="c-small">
-							<Link class="c-link" href="/server/sign-in">
-								{t.administerServer}
+							<Link class="c-link" href={beside ? "/" : "/server/sign-in"}>
+								{beside ? t.backToConsole : t.administerServer}
 							</Link>
 						</p>
 					</div>

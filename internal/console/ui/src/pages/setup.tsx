@@ -161,7 +161,7 @@ export function Setup({ onSession }: { onSession: (s: Session) => void }) {
 					{error ? (
 						<Gone message={error} />
 					) : step === 0 ? (
-						info && <You info={info} onDone={signedIn} />
+						info && <You info={info} onDone={signedIn} onServer={onSession} />
 					) : step === 1 && session ? (
 						<YourCahut session={session} onDone={() => setStep(2)} />
 					) : (
@@ -198,7 +198,7 @@ function handleOf(name: string): string {
 		.slice(0, 32);
 }
 
-function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }) {
+function You({ info, onDone, onServer }: { info: SetupInfo; onDone: (s: Session) => void; onServer: (s: Session) => void }) {
 	const [name, setName] = useState("");
 	const [handle, setHandle] = useState("");
 	const [edited, setEdited] = useState(false);
@@ -219,6 +219,15 @@ function You({ info, onDone }: { info: SetupInfo; onDone: (s: Session) => void }
 			const r = await server("set_up", { code, handle, name, password });
 			const s = r.session;
 			onDone({ kind: "person", token: s.token, handle: s.user.handle, name: s.user.name, expiresAt: s.expires_at });
+			// The administrator of the server, made with the same handle and
+			// password, signs in beside the person. See
+			// docs/adr/0043-the-console-holds-two-sessions.md.
+			if (r.server_admin) {
+				server("sign_in", { handle: s.user.handle, password }).then(
+					(a) => onServer({ kind: "admin", token: a.token, handle: a.admin.handle, name: a.admin.name, expiresAt: a.expires_at }),
+					() => undefined,
+				);
+			}
 		} catch (err) {
 			setError(explain(err));
 			setBusy(false);

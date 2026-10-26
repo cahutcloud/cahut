@@ -1,6 +1,6 @@
 // The account: who is signed in, their name and handle, their e-mail
-// address and notices, the language of the console, a new password, and
-// signing out.
+// address and notices, the language of the console, a new password, the
+// other account that the console holds or adds, and signing out.
 import { LogOut } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
@@ -9,6 +9,7 @@ import { ConfirmButton, Failure, PageHead } from "../components";
 import { useConsole } from "../context";
 import { lang, langs, locale, setLang, words } from "../i18n";
 import { useLoad } from "../load";
+import { Link } from "../router";
 
 const minPassword = 15;
 
@@ -34,6 +35,22 @@ const t = words({
 		signOut: "Sign out",
 		signOutTitle: "Sign out",
 		sessionEnds: (when: string) => `Your session in this browser lasts until ${when} at the latest. Sign out to end it now.`,
+		bothEnd: " Signing out also ends your session as an administrator of the server. To end that one only, stop administering the server here.",
+		serverTitle: "Administrator of the server",
+		serverHeld: (handle: string) => (
+			<>
+				This browser also holds your session as an administrator of the server, with the handle <span class="c-mono">{handle}</span>: the
+				pages of the server join the console. This account keeps its own password.
+			</>
+		),
+		leaveServer: "Stop administering the server here",
+		addServerTitle: "Administer the server",
+		addServer: "If you also administer this server, sign in with that account: the pages of the server join the console, and you stay signed in.",
+		addServerLink: "Sign in to the server",
+		addPersonTitle: "Your account in this Cahut",
+		addPerson:
+			"If you also have an account as a person of this Cahut, sign in with it: its Rooms, its Knocks and its AIs join the console, and you stay signed in to the server.",
+		addPersonLink: "Sign in as a person",
 		linkWent: (email: string) => `A link went to ${email}. Your address changes once you use it.`,
 		removed: "Your address is removed.",
 		email: "E-mail",
@@ -109,6 +126,23 @@ const t = words({
 		signOut: "Se déconnecter",
 		signOutTitle: "Déconnexion",
 		sessionEnds: (when) => `Votre session dans ce navigateur dure jusqu'au ${when} au plus tard. Déconnectez-vous pour la terminer maintenant.`,
+		bothEnd: " La déconnexion met aussi fin à votre session d'administrateur du serveur. Pour ne fermer que celle-ci, cessez d'administrer le serveur ici.",
+		serverTitle: "Administrateur du serveur",
+		serverHeld: (handle) => (
+			<>
+				Ce navigateur tient aussi votre session d'administrateur du serveur, avec l'identifiant <span class="c-mono">{handle}</span> : les
+				pages du serveur s'ajoutent à la console. Ce compte garde son propre mot de passe.
+			</>
+		),
+		leaveServer: "Ne plus administrer le serveur ici",
+		addServerTitle: "Administrer le serveur",
+		addServer:
+			"Si vous administrez aussi ce serveur, connectez-vous avec ce compte : les pages du serveur s'ajoutent à la console, sans vous déconnecter.",
+		addServerLink: "Se connecter au serveur",
+		addPersonTitle: "Votre compte dans cette Cahut",
+		addPerson:
+			"Si vous avez aussi un compte de personne dans cette Cahut, connectez-vous avec lui : ses Rooms, ses Knocks et ses IA s'ajoutent à la console, sans vous déconnecter du serveur.",
+		addPersonLink: "Se connecter en tant que personne",
 		linkWent: (email) => `Un lien est parti à ${email}. Votre adresse change dès que vous l'utilisez.`,
 		removed: "Votre adresse est retirée.",
 		email: "E-mail",
@@ -168,6 +202,78 @@ const t = words({
 
 export function Account({ onSignOut }: { onSignOut: () => void }) {
 	const api = useConsole();
+	const person = api.session.kind === "person";
+	// The session of the server, beside that of the person. See
+	// docs/adr/0043-the-console-holds-two-sessions.md.
+	const server = person ? api.serverSession : null;
+	return (
+		<>
+			<PageHead label={t.account} title={api.session.name}>
+				<span class="c-mono">{api.session.handle}</span>
+				{person ? t.at(location.hostname) : t.admin}
+			</PageHead>
+			{person && <Profile />}
+			{person && api.sendsMail && <EmailSection />}
+			<Language />
+			<section class="section c-card panel narrow">
+				<h2 class="c-h4">{t.changePassword}</h2>
+				<p class="c-small c-muted">{person ? t.personPassword : t.adminPassword}</p>
+				<PasswordForm kind={api.session.kind} />
+			</section>
+			{server && (
+				<section class="section c-card panel narrow">
+					<h2 class="c-h4">{t.serverTitle}</h2>
+					<p class="c-small c-muted">{t.serverHeld(server.handle)}</p>
+					<PasswordForm kind="admin" />
+				</section>
+			)}
+			{person && !server && api.isAdmin && (
+				<section class="section c-card panel narrow">
+					<h2 class="c-h4">{t.addServerTitle}</h2>
+					<p class="c-small c-muted">{t.addServer}</p>
+					<div>
+						<Link class="c-btn c-btn--secondary" href="/server/sign-in">
+							{t.addServerLink}
+						</Link>
+					</div>
+				</section>
+			)}
+			{!person && (
+				<section class="section c-card panel narrow">
+					<h2 class="c-h4">{t.addPersonTitle}</h2>
+					<p class="c-small c-muted">{t.addPerson}</p>
+					<div>
+						<Link class="c-btn c-btn--secondary" href="/sign-in">
+							{t.addPersonLink}
+						</Link>
+					</div>
+				</section>
+			)}
+			<section class="section c-card panel narrow">
+				<h2 class="c-h4">{t.signOutTitle}</h2>
+				<p class="c-small c-muted">
+					{t.sessionEnds(new Date(api.session.expiresAt).toLocaleString(locale, { dateStyle: "long", timeStyle: "short" }))}
+					{server && t.bothEnd}
+				</p>
+				<div class="actions">
+					<button class="c-btn c-btn--secondary" type="button" onClick={onSignOut}>
+						<LogOut class="i" size={16} aria-hidden="true" />
+						{t.signOut}
+					</button>
+					{server && (
+						<button class="c-btn c-btn--ghost" type="button" onClick={api.leaveServer}>
+							{t.leaveServer}
+						</button>
+					)}
+				</div>
+			</section>
+		</>
+	);
+}
+
+/** Changes the password of an account: that of the person, or that of the server. */
+function PasswordForm({ kind }: { kind: "person" | "admin" }) {
+	const api = useConsole();
 	const [password, setPassword] = useState("");
 	const [next, setNext] = useState("");
 	const [again, setAgain] = useState("");
@@ -183,7 +289,7 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 		}
 		try {
 			const input = { password, new_password: next };
-			await (api.session.kind === "admin" ? api.server("change_password", input) : api.cahut("change_password", input));
+			await (kind === "admin" ? api.server("change_password", input) : api.cahut("change_password", input));
 			setPassword("");
 			setNext("");
 			setAgain("");
@@ -193,57 +299,32 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 		}
 	};
 	return (
-		<>
-			<PageHead label={t.account} title={api.session.name}>
-				<span class="c-mono">{api.session.handle}</span>
-				{api.session.kind === "admin" ? t.admin : t.at(location.hostname)}
-			</PageHead>
-			{api.session.kind === "person" && <Profile />}
-			{api.session.kind === "person" && api.sendsMail && <EmailSection />}
-			<Language />
-			<section class="section c-card panel narrow">
-				<h2 class="c-h4">{t.changePassword}</h2>
-				<p class="c-small c-muted">{api.session.kind === "admin" ? t.adminPassword : t.personPassword}</p>
-				<form class="form" onSubmit={submit}>
-					<label class="c-field">
-						<span class="c-field__label">{t.current}</span>
-						<input class="c-input" type="password" autocomplete="current-password" required value={password} onInput={(e) => setPassword(e.currentTarget.value)} />
-					</label>
-					<label class="c-field">
-						<span class="c-field__label">{t.newPassword}</span>
-						<input class="c-input" type="password" autocomplete="new-password" minLength={minPassword} required value={next} onInput={(e) => setNext(e.currentTarget.value)} />
-						<span class="c-field__help">{t.atLeast(minPassword)}</span>
-					</label>
-					<label class="c-field">
-						<span class="c-field__label">{t.again}</span>
-						<input class="c-input" type="password" autocomplete="new-password" minLength={minPassword} required value={again} onInput={(e) => setAgain(e.currentTarget.value)} />
-					</label>
-					{error && <Failure message={error} />}
-					{done && (
-						<div class="c-alert c-alert--success" role="status">
-							{t.changed}
-						</div>
-					)}
-					<div>
-						<button class="c-btn c-btn--primary" type="submit">
-							{t.change}
-						</button>
-					</div>
-				</form>
-			</section>
-			<section class="section c-card panel narrow">
-				<h2 class="c-h4">{t.signOutTitle}</h2>
-				<p class="c-small c-muted">
-					{t.sessionEnds(new Date(api.session.expiresAt).toLocaleString(locale, { dateStyle: "long", timeStyle: "short" }))}
-				</p>
-				<div>
-					<button class="c-btn c-btn--secondary" type="button" onClick={onSignOut}>
-						<LogOut class="i" size={16} aria-hidden="true" />
-						{t.signOut}
-					</button>
+		<form class="form" onSubmit={submit}>
+			<label class="c-field">
+				<span class="c-field__label">{t.current}</span>
+				<input class="c-input" type="password" autocomplete="current-password" required value={password} onInput={(e) => setPassword(e.currentTarget.value)} />
+			</label>
+			<label class="c-field">
+				<span class="c-field__label">{t.newPassword}</span>
+				<input class="c-input" type="password" autocomplete="new-password" minLength={minPassword} required value={next} onInput={(e) => setNext(e.currentTarget.value)} />
+				<span class="c-field__help">{t.atLeast(minPassword)}</span>
+			</label>
+			<label class="c-field">
+				<span class="c-field__label">{t.again}</span>
+				<input class="c-input" type="password" autocomplete="new-password" minLength={minPassword} required value={again} onInput={(e) => setAgain(e.currentTarget.value)} />
+			</label>
+			{error && <Failure message={error} />}
+			{done && (
+				<div class="c-alert c-alert--success" role="status">
+					{t.changed}
 				</div>
-			</section>
-		</>
+			)}
+			<div>
+				<button class="c-btn c-btn--primary" type="submit">
+					{t.change}
+				</button>
+			</div>
+		</form>
 	);
 }
 

@@ -16,7 +16,8 @@ import { LimitsTable } from "./settings";
 const t = words({
 	en: {
 		overview: "Overview",
-		signedInAs: (name: string, admin: boolean) => `Signed in as ${name}, ${admin ? "an administrator" : "a member"} of this Cahut.`,
+		signedInAs: (name: string, admin: boolean, server: boolean) =>
+			`Signed in as ${name}, ${admin ? "an administrator of this Cahut" : "a member of this Cahut"}${server ? (admin ? " and of the server" : ", and an administrator of the server") : ""}.`,
 		connectFirst: "Connect your first AI",
 		connectText: "Your AI publishes on Cahut over MCP. Connect it, then ask it to make a document, a deck or a dashboard.",
 		latestWindows: "Latest Windows",
@@ -61,7 +62,8 @@ const t = words({
 	},
 	fr: {
 		overview: "Vue d'ensemble",
-		signedInAs: (name, admin) => `Connecté en tant ${que(name)}, ${admin ? "administrateur" : "membre"} de cette Cahut.`,
+		signedInAs: (name, admin, server) =>
+			`Connecté en tant ${que(name)}, ${admin ? "administrateur" : "membre"} de cette Cahut${server ? (admin ? " et du serveur" : " et administrateur du serveur") : ""}.`,
 		connectFirst: "Connectez votre première IA",
 		connectText:
 			"Votre IA publie sur Cahut par MCP. Connectez-la, puis demandez-lui un document, une présentation ou un tableau de bord.",
@@ -134,7 +136,7 @@ function PersonOverview() {
 	return (
 		<>
 			<PageHead label={t.overview} title={<Domain name={location.hostname} />}>
-				{t.signedInAs(account.name, account.role === "admin")}
+				{t.signedInAs(account.name, account.role === "admin", api.serverSession !== null)}
 			</PageHead>
 			{noAI && (
 				<section class="section c-card panel">
@@ -165,7 +167,8 @@ function PersonOverview() {
 	);
 }
 
-function ServerOverview() {
+/** The Cahuts of the server, for its administrators. */
+export function ServerOverview() {
 	const api = useConsole();
 	const { data, error, reload } = useLoad(() => api.server("list_domains", {}));
 	if (error) return <Failure message={error} />;
