@@ -3947,7 +3947,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 
 Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent.
 
-Title: Take back an invitation. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Take back an invitation. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -4687,7 +4687,7 @@ Offered also to the AIs that may only read, though it changes things.
 
 Knock first when it widens the reach of an AI: that call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Title: Change what an AI reaches. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Change what an AI reaches. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -4845,7 +4845,7 @@ Change the house style of this Cahut: the name of the organization, its colors, 
 
 Offered to the AIs of administrators of the Cahut only.
 
-Title: Change the house style. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Change the house style. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -6024,7 +6024,7 @@ Set who opens a Window: room, the members of its Room (the default); internal, e
 
 Knock first when it makes a Window public: that call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
-Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: true`.
 
 ### Arguments
 
@@ -6556,7 +6556,7 @@ Title: Retitle a Room. Annotations: `readOnlyHint: false`, `destructiveHint: fal
 
 Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted.
 
-Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
 ### Arguments
 

@@ -139,11 +139,17 @@ type Op[In, Out any] struct {
 	// only, which ones, such as "it makes a Window public". Run calls
 	// Call.Knock for them.
 	KnocksWhen string
+	// Destructive operations replace or take away something that a person
+	// may miss, though they do not knock first: an older version, an access,
+	// a link. MCP tells AI clients so, as it does for every operation that
+	// knocks first, and they ask before calling them.
+	Destructive bool
 	// ReadOnlyAIs operations change things, yet are offered to the AIs that
 	// may only read: set_ai_reach is how they ask for more.
 	ReadOnlyAIs bool
 	// OpenWorld operations reach people outside the Cahut, such as
-	// invite_to_window, which sends e-mail. MCP tells AI clients so.
+	// invite_to_window, which sends e-mail, or set_window_access, which can
+	// open a Window to anyone. MCP tells AI clients so.
 	OpenWorld bool
 	// Services may call the operation, with a service token of the Cahut,
 	// through the admin API: a program on the server that manages people.
@@ -176,6 +182,7 @@ type Info struct {
 	Visitors     bool
 	KnockFirst   bool
 	KnocksWhen   string
+	Destructive  bool
 	ReadOnlyAIs  bool
 	OpenWorld    bool
 	Services     bool
@@ -458,6 +465,7 @@ func (op *Op[In, Out]) info() Info {
 		Visitors:     op.Visitors,
 		KnockFirst:   op.KnockFirst,
 		KnocksWhen:   op.KnocksWhen,
+		Destructive:  op.Destructive,
 		ReadOnlyAIs:  op.ReadOnlyAIs,
 		OpenWorld:    op.OpenWorld,
 		Services:     op.Services,

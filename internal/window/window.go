@@ -61,7 +61,8 @@ func (s *Service) Register(r *operation.Registry) {
 		Description: "Publish a new version of a Window: give all its files again, as for publish_window. " +
 			"Its address stays. Its current version becomes the previous one, which rollback_window goes back to; " +
 			"the version before that is deleted.",
-		Run: s.update,
+		Destructive: true,
+		Run:         s.update,
 	})
 	operation.Register(r, &operation.Op[RefInput, Window]{
 		Name:  "rollback_window",
@@ -106,8 +107,10 @@ func (s *Service) Register(r *operation.Registry) {
 			"key, anyone who types its Key; or public, anyone with its address. The access may end at a date, " +
 			"after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, " +
 			"and returns it once: give it to the person. Making a Window public waits for the approval of a person.",
-		KnocksWhen: "it makes a Window public",
-		Run:        s.setAccess,
+		KnocksWhen:  "it makes a Window public",
+		Destructive: true,
+		OpenWorld:   true,
+		Run:         s.setAccess,
 	})
 	operation.Register(r, &operation.Op[InviteInput, Invited]{
 		Name:  "invite_to_window",
@@ -131,7 +134,8 @@ func (s *Service) Register(r *operation.Registry) {
 		Title: "Take back an invitation",
 		Description: "Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. " +
 			"The e-mail stays sent.",
-		Run: s.revokeInvitation,
+		Destructive: true,
+		Run:         s.revokeInvitation,
 	})
 	operation.Register(r, &operation.Op[InvitationCodeInput, InvitationPage]{
 		Name:        "get_invitation",

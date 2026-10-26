@@ -138,7 +138,8 @@ func Register(r *operation.Registry, domain string) {
 		Description: "Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, " +
 			"what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. " +
 			"The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut.",
-		Level: operation.CahutAdmin,
+		Level:       operation.CahutAdmin,
+		Destructive: true,
 		Run: func(ctx context.Context, c *operation.Call, in SetInput) (HouseStyle, error) {
 			return set(ctx, c, in, domain)
 		},

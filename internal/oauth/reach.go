@@ -28,6 +28,7 @@ var SetAIReach = &operation.Op[SetAIReachInput, Connection]{
 		"A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, " +
 		"and widening it, such as asking for write or for another Room, waits for its person to approve.",
 	KnocksWhen:  "it widens the reach of an AI",
+	Destructive: true,
 	ReadOnlyAIs: true,
 	Run: func(ctx context.Context, c *operation.Call, in SetAIReachInput) (Connection, error) {
 		id := in.ID

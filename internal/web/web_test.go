@@ -372,11 +372,18 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 	var names []string
 	for _, tool := range tools.Tools {
 		names = append(names, tool.Name)
-		if tool.Name == "disable_user" && (tool.Annotations.DestructiveHint == nil || !*tool.Annotations.DestructiveHint) {
-			t.Errorf("disable_user is not marked destructive: %+v", tool.Annotations)
+		// disable_user knocks first; the others replace or take away
+		// something without knocking.
+		destructive := []string{"disable_user", "revoke_invitation", "set_ai_reach", "set_house_style", "set_window_access", "update_window"}
+		if slices.Contains(destructive, tool.Name) && (tool.Annotations.DestructiveHint == nil || !*tool.Annotations.DestructiveHint) {
+			t.Errorf("%s is not marked destructive: %+v", tool.Name, tool.Annotations)
 		}
-		// It writes to people outside the Cahut.
-		if open := tool.Annotations.OpenWorldHint != nil && *tool.Annotations.OpenWorldHint; open != (tool.Name == "invite_to_window") {
+		if tool.Annotations.ReadOnlyHint && tool.Annotations.DestructiveHint != nil && *tool.Annotations.DestructiveHint {
+			t.Errorf("%s only reads, yet is marked destructive", tool.Name)
+		}
+		// They reach people outside the Cahut: by e-mail, or by opening a
+		// Window to anyone.
+		if open := tool.Annotations.OpenWorldHint != nil && *tool.Annotations.OpenWorldHint; open != (tool.Name == "invite_to_window" || tool.Name == "set_window_access") {
 			t.Errorf("%s is marked open world: %v", tool.Name, open)
 		}
 	}
