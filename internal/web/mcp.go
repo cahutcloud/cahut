@@ -232,7 +232,7 @@ func toolFor(info operation.Info) (*mcp.Tool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("input schema of %s: %w", info.Name, err)
 	}
-	destructive, openWorld := info.KnockFirst, info.OpenWorld
+	destructive, openWorld := info.KnockFirst || info.Destructive, info.OpenWorld
 	description := info.Description
 	switch {
 	case info.KnockFirst:
