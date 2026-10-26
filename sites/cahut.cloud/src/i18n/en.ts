@@ -39,7 +39,7 @@ export default {
 			signIn: 'Sign in',
 			signInTitle: 'Open your Cahut on my.cahut.cloud',
 			signup: 'Create my Cahut',
-			free: 'Free, no credit card. Limited seats during the discovery phase.',
+			free: 'Free to try, no credit card. Limited seats during the discovery phase.',
 		},
 	},
 
@@ -53,22 +53,23 @@ export default {
 		log: { action: 'published', done: 'Done' },
 	},
 
-	// The two ways to a Cahut, at the top of the quick start: my.cahut.cloud, or
-	// one's own server, whose commands follow.
+	// The two ways to a Cahut, at the top of the quick start: my.cahut.cloud, to
+	// try Cahut with limits, or one's own server, with every feature, whose
+	// commands follow.
 	doors: {
 		label: 'Get started',
 		title: 'Two ways to have your Cahut.',
-		lead: 'Without installing anything, or on your own server. It is the same Cahut: your AI connects over MCP and publishes its first Window in a few minutes.',
+		lead: 'Try Cahut without a server, then install it on your own server to have every feature. Either way, your AI connects over MCP and publishes its first Window in a few minutes.',
 		hosted: {
 			label: 'No server',
 			badge: 'Free · limited seats',
 			title: 'Your Cahut in two minutes, in your name.',
-			text: 'Nothing to install or run: your Cahut waits for you online, and your AI publishes there for you.',
+			text: 'The quickest way to try Cahut, without committing. Nothing to install or run: your Cahut waits for you online, and your AI publishes there for you.',
 			example: { handle: 'helen', window: 'lisbon-trip' },
 			address: 'Your handle becomes the address of your Windows.',
 			steps: ['An e-mail and a handle', 'Your AI connected: Claude or Le Chat', 'Your first Window, online'],
 			member: 'Already a member? Open my.cahut.cloud',
-			fine: 'A service hosted in France by Olivier Durand, apart from the open source project. The same Cahut you install, with no reserved feature.',
+			fine: 'Limited features: no team Rooms, limited disk space, and a limited number of Rooms and Windows. A service hosted in France by Olivier Durand, apart from the open source project.',
 		},
 		server: {
 			label: 'On your server',
@@ -86,7 +87,7 @@ export default {
 			},
 			commands: 'See the commands',
 			allOptions: 'All install options',
-			fine: 'Free and unlimited, under the AGPL-3.0. You run the server, its backups and its updates.',
+			fine: 'Every feature, free and unlimited, under the AGPL-3.0. You run the server, its backups and its updates.',
 		},
 	},
 
