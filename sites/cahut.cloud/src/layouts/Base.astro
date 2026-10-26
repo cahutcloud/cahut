@@ -12,6 +12,7 @@ import { pages, paths } from '../project/community';
 import logo from '@charte/logos/cahut-logo-horizontal.svg?url';
 import logoInverse from '@charte/logos/cahut-logo-horizontal-inverse.svg?url';
 import defaultImage from '@charte/applications/og-image.png';
+import appleTouchIcon from '@charte/logos/favicon/apple-touch-icon.png';
 import tokens from '@charte/tokens/cahut-tokens.json';
 import type { ImageMetadata } from 'astro';
 
@@ -116,7 +117,12 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 		{!noindex && alternates.en && <link rel="alternate" hreflang="x-default" href={new URL(alternates.en, Astro.site)} />}
 		<link rel="icon" href="/favicon.ico" sizes="32x32" />
 		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<!--
+			The icon for iOS goes by an address that changes with the file, so that
+			favicon services, where AI clients take the icon of a connector, fetch
+			it again when it changes.
+		-->
+		<link rel="apple-touch-icon" href={appleTouchIcon.src} />
 		<link rel="manifest" href="/site.webmanifest" />
 		<meta name="color-scheme" content="light dark" />
 		<meta
