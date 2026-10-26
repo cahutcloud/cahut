@@ -58,9 +58,11 @@ The **AIs and access** screen of every person gives the commands that install th
 
 The administrators of the server have accounts of their own, apart from the people of the Cahuts: see [Administrators of the server](/admin/commands/#administrators-of-the-server). They sign in at **Administer the server**, under the sign-in form of any Cahut, or at `/server/sign-in`. Their first link opens at `/server/activate#...`.
 
+A person who also administers the server holds both accounts in the same browser. **Sign in to the server**, on the **Account** page of a Cahut administrator, keeps the session of the person, and the pages of the server join their console under **This server**. The pages of the Cahut act as the person, but for its kind, its limits and its legal pages, which act as the administrator of the server. **Sign out** ends both sessions, and **Stop administering the server here** ends that of the server only. An administrator of the server who signs in alone finds **Sign in as a person** on their **Account** page.
+
 They find:
 
-- **Overview**: the Cahuts of the server, a form that declares one with its first administrator, whose link the console shows, and on each Cahut **Move to a domain** or **Change its domain**. When the Cahut of the console moves, the console sends you to sign in again at its new address.
+- **Overview**, or **Cahuts** beside the console of a person: the Cahuts of the server, a form that declares one with its first administrator, whose link the console shows, and on each Cahut **Move to a domain** or **Change its domain**. When the Cahut of the console moves, the console sends you to sign in again at its new address.
 - **Server administrators**: the list, with the day each was added and their state. **New administrator** adds one and gives their link. **Manage** gives another administrator a new link, or disables and enables them; disabling asks to confirm first. A disabled administrator loses their sessions and cannot sign in; the server keeps at least one who is not disabled. The screen reminds that an administrator of one Cahut only is made under **People**.
 - **Logbook of the server**: the Cahuts declared and moved, the administrators and their sign-ins, and the updates.
 - **Updates**: the version running, the newest release, the last update and how it ended, with **Check now** and **Update**. See [Updates](/admin/updates/).
@@ -71,7 +73,7 @@ A session holds at the domain where it opened: to look after another Cahut, sign
 
 ## Sessions
 
-A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. Signing out also ends the reader sessions that the console opened in that browser, and **Sign out** on the pages of the Cahut ends the session of the console that opened them.
+A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. A browser holds at most two sessions at a Cahut, that of a person and that of an administrator of the server, and a session that ends asks to sign in again with its own account. Signing out also ends the reader sessions that the console opened in that browser, and **Sign out** on the pages of the Cahut ends the session of the console that opened them.
 
 After 10 refused sign-ins to one handle from one address in 15 minutes, that address must wait; after 100 from everywhere, the handle waits everywhere. An address that tries too often must wait too, and an IPv6 address counts with its whole /64. The Logbook keeps the address of every sign-in.
 

@@ -1,5 +1,5 @@
-// What every screen of a signed-in console shares: the session, the API
-// bound to it, and the Rooms of the sidebar.
+// What every screen of a signed-in console shares: the sessions, the API
+// bound to them, and the Rooms of the sidebar.
 import { createContext, type ComponentChildren } from "preact";
 import { useContext } from "preact/hooks";
 import { ApiError, cahut as callCahut, server as callServer } from "./api";
@@ -7,11 +7,25 @@ import type { CahutOperations, LegalLinks, ServerOperations } from "./api.gen";
 import type { Session } from "./session";
 
 export interface Console {
+	/** The session the console acts with: that of the person, or else that of an administrator of the server alone. */
 	session: Session;
+	/**
+	 * The session of an administrator of the server, alone or beside that of
+	 * the person. See docs/adr/0043-the-console-holds-two-sessions.md.
+	 */
+	serverSession: Session | null;
 	/** Runs an operation of the Cahut of this domain, with the session. */
 	cahut<K extends keyof CahutOperations>(op: K, input: CahutOperations[K]["input"]): Promise<CahutOperations[K]["output"]>;
+	/**
+	 * Runs an operation of the Cahut of this domain that only the
+	 * administrators of the server call, such as its kind and limits, with
+	 * the session of the server.
+	 */
+	cahutAsServer<K extends keyof CahutOperations>(op: K, input: CahutOperations[K]["input"]): Promise<CahutOperations[K]["output"]>;
 	/** Runs an operation of the server, with the session of its administrator. */
 	server<K extends keyof ServerOperations>(op: K, input: ServerOperations[K]["input"]): Promise<ServerOperations[K]["output"]>;
+	/** Ends the session of the server in this browser, and keeps that of the person. */
+	leaveServer(): void;
 	/** Whether the person administers this Cahut, or the server. */
 	isAdmin: boolean;
 	/**
@@ -60,19 +74,29 @@ export function useConsole(): Console {
 	return c;
 }
 
-/** Binds the API to session: a session that has ended calls expired. */
-export function bind(session: Session, expired: () => void): Pick<Console, "session" | "cahut" | "server"> {
-	const watch = <T,>(p: Promise<T>): Promise<T> =>
+/**
+ * Binds the API to the sessions: that of the console, and that of the
+ * server when the browser holds it. A session that has ended calls expired
+ * with its kind.
+ */
+export function bind(
+	session: Session,
+	serverSession: Session | null,
+	expired: (kind: Session["kind"]) => void,
+): Pick<Console, "session" | "serverSession" | "cahut" | "cahutAsServer" | "server"> {
+	const watch = <T,>(p: Promise<T>, kind: Session["kind"]): Promise<T> =>
 		p.catch((err: unknown) => {
 			if (err instanceof ApiError && err.status === 401) {
-				expired();
+				expired(kind);
 			}
 			throw err;
 		});
 	return {
 		session,
-		cahut: (op, input) => watch(callCahut(op, input, session.token)),
-		server: (op, input) => watch(callServer(op, input, session.token)),
+		serverSession,
+		cahut: (op, input) => watch(callCahut(op, input, session.token), session.kind),
+		cahutAsServer: (op, input) => watch(callCahut(op, input, serverSession?.token), "admin"),
+		server: (op, input) => watch(callServer(op, input, serverSession?.token), "admin"),
 	};
 }
 

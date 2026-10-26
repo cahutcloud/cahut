@@ -181,7 +181,9 @@ export function Settings() {
 	const { data, error, reload } = useLoad(() => api.cahut("get_cahut", {}));
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
-	const server = api.session.kind === "admin";
+	// Only the administrators of the server set the kind, the limits and the
+	// legal pages, with their session, alone or beside that of the person.
+	const server = api.serverSession !== null;
 	return (
 		<>
 			<PageHead label={t.label} title={t.title}>
@@ -278,7 +280,7 @@ function LegalForm({ legal, onSaved }: { legal: LegalLinks; onSaved: () => void 
 		}
 		if (Object.keys(fr).length > 0) set.fr = fr;
 		try {
-			await api.cahut("set_legal_links", set);
+			await api.cahutAsServer("set_legal_links", set);
 			setSaved(true);
 			onSaved();
 		} catch (err) {
@@ -399,7 +401,7 @@ function SettingsForm({ settings, onSaved }: { settings: CahutSettings; onSaved:
 			set[l.key] = l.disk ? Math.round(Number(v) * 1e9) : Number(v);
 		}
 		try {
-			await api.cahut("set_cahut_settings", { kind, limits: set });
+			await api.cahutAsServer("set_cahut_settings", { kind, limits: set });
 			setSaved(true);
 			onSaved();
 		} catch (err) {

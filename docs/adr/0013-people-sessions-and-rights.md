@@ -1,6 +1,6 @@
 # 13. People sign in to their Cahut, and the registry checks their rights
 
-- Status: Accepted, superseded in part by [ADR 21](0021-ais-knock-first.md) (an AI that calls an operation that knocks first gets a Knock, not a refusal), extended by [ADR 30](0030-kind-and-limits-of-each-cahut.md) (in an individual Cahut, only administrators list people, and a Room has one member) and by [ADR 31](0031-e-mail-through-a-relay.md) (a person has an e-mail address, where their links and a forgotten password go)
+- Status: Accepted, superseded in part by [ADR 21](0021-ais-knock-first.md) (an AI that calls an operation that knocks first gets a Knock, not a refusal), extended by [ADR 30](0030-kind-and-limits-of-each-cahut.md) (in an individual Cahut, only administrators list people, and a Room has one member) by [ADR 31](0031-e-mail-through-a-relay.md) (a person has an e-mail address, where their links and a forgotten password go) and by [ADR 43](0043-the-console-holds-two-sessions.md) (the console holds the session of a person and that of an administrator of the server together)
 - Date: 2026-10-22
 
 ## Context
