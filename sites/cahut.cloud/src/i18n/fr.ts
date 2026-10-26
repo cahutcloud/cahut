@@ -39,7 +39,7 @@ const fr: Dictionary = {
 			signIn: 'Se connecter',
 			signInTitle: 'Ouvrir votre Cahut sur my.cahut.cloud',
 			signup: 'Créer ma Cahut',
-			free: 'Gratuit, sans carte bancaire. Places limitées pendant la découverte.',
+			free: 'Gratuit pour essayer, sans carte bancaire. Places limitées pendant la découverte.',
 		},
 	},
 
@@ -57,17 +57,17 @@ const fr: Dictionary = {
 	doors: {
 		label: 'Démarrer',
 		title: "Deux façons d'avoir votre Cahut.",
-		lead: "Sans rien installer, ou sur votre propre serveur. C'est la même Cahut : votre IA s'y connecte par MCP et publie sa première Window en quelques minutes.",
+		lead: "Essayez Cahut sans serveur, puis installez-la sur votre propre serveur pour en avoir toutes les fonctionnalités. Dans les deux cas, votre IA s'y connecte par MCP et publie sa première Window en quelques minutes.",
 		hosted: {
 			label: 'Sans serveur',
 			badge: 'Gratuit · places limitées',
 			title: 'Votre Cahut en deux minutes, à votre nom.',
-			text: 'Rien à installer ni à administrer : votre Cahut vous attend en ligne, et votre IA y publie pour vous.',
+			text: "Le moyen le plus rapide d'essayer Cahut, sans engagement. Rien à installer ni à administrer : votre Cahut vous attend en ligne, et votre IA y publie pour vous.",
 			example: { handle: 'helene', window: 'voyage-lisbonne' },
 			address: "Votre pseudo devient l'adresse de vos Windows.",
 			steps: ['Un e-mail et un pseudo', 'Votre IA connectée : Claude ou Le Chat', 'Votre première Window, en ligne'],
 			member: 'Déjà membre ? Ouvrir my.cahut.cloud',
-			fine: 'Un service hébergé en France par Olivier Durand, à part du projet open source. La même Cahut que celle que vous installez, sans fonctionnalité réservée.',
+			fine: "Fonctionnalités limitées : pas de Rooms d'équipe, un espace disque limité, et un nombre limité de Rooms et de Windows. Un service hébergé en France par Olivier Durand, à part du projet open source.",
 		},
 		server: {
 			label: 'Sur votre serveur',
@@ -85,7 +85,7 @@ const fr: Dictionary = {
 			},
 			commands: 'Voir les commandes',
 			allOptions: "Toutes les options d'installation",
-			fine: 'Gratuit et sans limite, sous licence AGPL-3.0. Vous administrez le serveur, ses sauvegardes et ses mises à jour.',
+			fine: 'Toutes les fonctionnalités, gratuitement et sans limite, sous licence AGPL-3.0. Vous administrez le serveur, ses sauvegardes et ses mises à jour.',
 		},
 	},
 
