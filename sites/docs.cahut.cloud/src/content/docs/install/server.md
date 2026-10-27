@@ -25,19 +25,19 @@ curl -fsSL https://cahut.cloud/install.sh | sudo sh -s -- --domain cahut.example
 Add `--email you@example.com` for Let's Encrypt to write to you about your certificates. The script says what it does, runs [cahut doctor](/admin/doctor/), and prints the link to the first start:
 
 ```text
-cahut: downloading Cahut 0.9.3 for linux/amd64
+cahut: downloading Cahut 0.9.4 for linux/amd64
 cahut: signature and checksum checked
 cahut: creating the cahut system user
 cahut: writing /etc/cahut/cahut.env
 cahut: declaring the Cahut of cahut.example.com
 cahut: opening ports 80 and 443 in firewalld
-cahut: cahut 0.9.3 (commit bca780b, 2026-10-27T05:35:09Z, go1.27.3 linux/amd64) is running
+cahut: cahut 0.9.4 (commit 7d54f1b, 2026-10-27T09:08:24Z, go1.27.3 linux/amd64) is running
 cahut: waiting for the certificate of cahut.example.com
 
 ok    System             AlmaLinux 10.2 (Lavender Lion), amd64.
 ok    Clock              Synchronized.
 ok    Service            The cahut service runs, and starts at boot.
-ok    Service            Cahut 0.9.3 answers, with 1 Cahut.
+ok    Service            Cahut 0.9.4 answers, with 1 Cahut.
 …
 ok    cahut.example.com  Its certificate, from Let's Encrypt, is valid until 22 January 2027.
 ok    cahut.example.com  https://cahut.example.com/ answers.
