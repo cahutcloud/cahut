@@ -1,7 +1,9 @@
 // Sign-in, for the people of this Cahut and for the administrators of the
 // server, who sign in at the console of any Cahut. Each sign-in keeps the
 // other session that the browser holds. See
-// docs/adr/0043-the-console-holds-two-sessions.md.
+// docs/adr/0043-the-console-holds-two-sessions.md. The sign-in of a person
+// does not show the way to that of the server, which its administrators
+// reach at /server/sign-in, or from the page of their account.
 import { useEffect, useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
 import type { LegalLinks } from "../api.gen";
@@ -28,7 +30,6 @@ const t = words({
 		asPerson: "Sign in as a person of this Cahut",
 		forgot: "Forgot your password?",
 		askAdmin: "Forgot your password? An administrator of the Cahut can give you a new link.",
-		administerServer: "Administer the server",
 		newPassword: "Choose a new password",
 		giveHandle:
 			"Give your handle, or the e-mail address of your account. A link to choose a new password goes to that address. If your account has none, an administrator of the Cahut can give you a link.",
@@ -56,7 +57,6 @@ const t = words({
 		asPerson: "Se connecter en tant que personne de cette Cahut",
 		forgot: "Mot de passe oublié ?",
 		askAdmin: "Mot de passe oublié ? Un administrateur de la Cahut peut vous donner un nouveau lien.",
-		administerServer: "Administrer le serveur",
 		newPassword: "Choisissez un nouveau mot de passe",
 		giveHandle:
 			"Donnez votre identifiant, ou l'adresse e-mail de votre compte. Un lien pour choisir un nouveau mot de passe part à cette adresse. Si votre compte n'en a pas, un administrateur de la Cahut peut vous donner un lien.",
@@ -183,11 +183,13 @@ export function SignIn(props: {
 						) : (
 							<p class="c-small c-muted">{t.askAdmin}</p>
 						)}
-						<p class="c-small">
-							<Link class="c-link" href={beside ? "/" : "/server/sign-in"}>
-								{beside ? t.backToConsole : t.administerServer}
-							</Link>
-						</p>
+						{beside && (
+							<p class="c-small">
+								<Link class="c-link" href="/">
+									{t.backToConsole}
+								</Link>
+							</p>
+						)}
 					</div>
 				)}
 			</div>
