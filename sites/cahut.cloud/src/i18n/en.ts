@@ -584,7 +584,7 @@ export default {
 				},
 				{
 					title: 'A second AI client and acceptance',
-					text: 'A second AI client tested from end to end, a security review, and the success criteria checked on fresh servers.',
+					text: 'A second AI client tested from end to end, a security review, and the success criteria checked on a fresh server.',
 				},
 				{
 					title: 'E-mail from each Cahut',
@@ -593,7 +593,7 @@ export default {
 			],
 			milestones: 'The milestones on GitHub',
 			todayTitle: 'What works today',
-			todayLead: 'Batches 0 to 9 are done. In a Cahut, today:',
+			todayLead: 'Batches 0 to 9 are done, and the first version met the success criteria on a fresh server. In a Cahut, today:',
 			today: [
 				'One command that installs a Linux server, a first start in the browser, and daily updates from signed releases, with a rollback.',
 				'One service on a Linux server, holding one or more Cahuts, each at its own domain with its certificate, or at the IPv4 address of the server until it has one.',
