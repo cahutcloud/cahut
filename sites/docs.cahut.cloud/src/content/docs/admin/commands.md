@@ -171,7 +171,7 @@ Only a Cahut has a relay: without one, it sends no e-mail. On a server that hold
 
 ## Administrators of the server
 
-The administrators of the server have accounts of their own, apart from the people of the Cahuts. In the console, they declare Cahuts and read the Logbook of the server, and in each Cahut they manage its people and its Rooms, but do not open its Windows. They sign in at the console of any Cahut: a session holds at the domain where it opened, so an administrator who looks after several Cahuts signs in to each.
+The administrators of the server have accounts of their own, apart from the people of the Cahuts. In the console, they declare Cahuts and read the Logbook of the server, and in each Cahut they manage its people and its Rooms, but do not open its Windows. They sign in at `/console/server/sign-in` of any Cahut: a session holds at the domain where it opened, so an administrator who looks after several Cahuts signs in to each.
 
 ```bash
 sudo -u cahut /usr/local/bin/cahut admin create --handle olivier --name "Olivier Durand"

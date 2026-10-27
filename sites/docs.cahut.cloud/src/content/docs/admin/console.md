@@ -56,7 +56,7 @@ The **AIs and access** screen of every person gives the commands that install th
 
 ## Administrators of the server
 
-The administrators of the server have accounts of their own, apart from the people of the Cahuts: see [Administrators of the server](/admin/commands/#administrators-of-the-server). They sign in at **Administer the server**, under the sign-in form of any Cahut, or at `/server/sign-in`. Their first link opens at `/server/activate#...`.
+The administrators of the server have accounts of their own, apart from the people of the Cahuts: see [Administrators of the server](/admin/commands/#administrators-of-the-server). They sign in at `/console/server/sign-in` of any Cahut, which its sign-in page does not link, so that the people of the Cahut are not shown the way to the server. Their first link opens at `/console/server/activate#...`.
 
 A person who also administers the server holds both accounts in the same browser. **Sign in to the server**, on the **Account** page of a Cahut administrator, keeps the session of the person, and the pages of the server join their console under **This server**. The pages of the Cahut act as the person, but for its kind, its limits and its legal pages, which act as the administrator of the server. **Sign out** ends both sessions, and **Stop administering the server here** ends that of the server only. An administrator of the server who signs in alone finds **Sign in as a person** on their **Account** page.
 
