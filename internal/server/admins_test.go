@@ -330,3 +330,53 @@ func TestDisableAdmins(t *testing.T) {
 		t.Errorf("logbook = %q, want %q", ops, want)
 	}
 }
+
+func TestRenameAdmins(t *testing.T) {
+	s := setup(t)
+	now := clock(s)
+	ctx := context.Background()
+	olivier := activeAdmin(t, s, "olivier", *now)
+	activeAdmin(t, s, "tester", *now)
+
+	// An administrator renames themselves, or another one: the handle stays.
+	a, err := operation.Do(ctx, s.Registry, RenameAdmin, olivier, RenameAdminInput{Admin: "olivier", Name: " Olivier Durand "})
+	if err != nil || a.Handle != "olivier" || a.Name != "Olivier Durand" || a.Status != account.Active {
+		t.Fatalf("rename_admin of oneself = %+v, %v", a, err)
+	}
+	if a, err = operation.Do(ctx, s.Registry, RenameAdmin, olivier, RenameAdminInput{Admin: "tester", Name: "Camille Tester"}); err != nil || a.Name != "Camille Tester" {
+		t.Fatalf("rename_admin of another = %+v, %v", a, err)
+	}
+	list, err := operation.Do(ctx, s.Registry, ListAdmins, olivier, ListAdminsInput{})
+	if err != nil || len(list.Admins) != 2 || list.Admins[0].Name != "Olivier Durand" || list.Admins[1].Name != "Camille Tester" {
+		t.Errorf("list_admins = %+v, %v", list, err)
+	}
+
+	for _, in := range []RenameAdminInput{
+		{Admin: "olivier", Name: " "},
+		{Admin: "olivier", Name: strings.Repeat("é", 101)},
+	} {
+		if _, err := operation.Do(ctx, s.Registry, RenameAdmin, olivier, in); !errors.Is(err, operation.ErrInvalid) {
+			t.Errorf("rename_admin to %q: err = %v, want ErrInvalid", in.Name, err)
+		}
+	}
+	if _, err := operation.Do(ctx, s.Registry, RenameAdmin, olivier, RenameAdminInput{Admin: "nobody", Name: "Nobody"}); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("rename_admin of an unknown administrator: err = %v, want ErrNotFound", err)
+	}
+	if _, err := operation.Do(ctx, s.Registry, CreateAdmin, admin, CreateAdminInput{Handle: "long", Name: strings.Repeat("a", 201)}); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("create_admin with a name of 201 bytes: err = %v, want ErrInvalid", err)
+	}
+
+	entries, err := logbook.List(ctx, s.DB.Read, 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var renames []string
+	for _, e := range entries {
+		if e.Operation == "rename_admin" && e.Outcome == logbook.OK {
+			renames = append(renames, e.Target+" "+e.Detail+" by "+e.UserHandle)
+		}
+	}
+	if want := []string{"tester Camille Tester by olivier", "olivier Olivier Durand by olivier"}; !slices.Equal(renames, want) {
+		t.Errorf("logbook = %q, want %q", renames, want)
+	}
+}

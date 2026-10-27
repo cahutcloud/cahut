@@ -198,6 +198,12 @@ sudo -u cahut /usr/local/bin/cahut admin disable --handle camille
 sudo -u cahut /usr/local/bin/cahut admin enable --handle camille
 ```
 
+`admin rename` changes the name of an administrator of the server. Their handle stays: they sign in with it. In the console, each administrator changes their own name, or another's, under **Manage**.
+
+```bash
+sudo -u cahut /usr/local/bin/cahut admin rename --handle camille --name "Camille Martin"
+```
+
 ## Manage tokens
 
 ```bash

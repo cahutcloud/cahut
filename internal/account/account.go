@@ -216,7 +216,7 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 		if address.Reserved(in.Handle) {
 			return NewUser{}, handleReserved(Handle{Handle: operation.Quoted(in.Handle)})
 		}
-		name, err := personName(in.Name)
+		name, err := PersonName(in.Name)
 		if err != nil {
 			return NewUser{}, err
 		}

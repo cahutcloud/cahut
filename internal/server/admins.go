@@ -27,6 +27,7 @@ const SessionPrefix = "cahut_adm_"
 func registerAdmins(r *operation.Registry) {
 	operation.Register(r, CreateAdmin)
 	operation.Register(r, ListAdmins)
+	operation.Register(r, RenameAdmin)
 	operation.Register(r, DisableAdmin)
 	operation.Register(r, EnableAdmin)
 	operation.Register(r, CreateActivationLink)
@@ -103,13 +104,13 @@ var CreateAdmin = &operation.Op[CreateAdminInput, NewAdmin]{
 		if !account.ValidHandle(in.Handle) {
 			return NewAdmin{}, account.InvalidHandle(in.Handle)
 		}
-		name := strings.TrimSpace(in.Name)
-		if name == "" {
-			return NewAdmin{}, operation.Invalidf("name is empty")
+		name, err := account.PersonName(in.Name)
+		if err != nil {
+			return NewAdmin{}, err
 		}
 		a := NewAdmin{Admin: Admin{Handle: in.Handle, Name: name, Status: account.Pending, CreatedAt: c.Now}}
 		var id int64
-		err := c.Tx.QueryRowContext(ctx, "INSERT INTO admins (handle, name, created_at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING RETURNING id",
+		err = c.Tx.QueryRowContext(ctx, "INSERT INTO admins (handle, name, created_at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING RETURNING id",
 			a.Handle, a.Name, store.FormatTime(c.Now)).Scan(&id)
 		if errors.Is(err, sql.ErrNoRows) {
 			return NewAdmin{}, operation.Invalidf("handle %q is taken by another administrator", a.Handle)
@@ -158,6 +159,38 @@ var ListAdmins = &operation.Op[ListAdminsInput, AdminList]{
 			list.Admins = append(list.Admins, a)
 		}
 		return list, rows.Err()
+	},
+}
+
+// RenameAdminInput is the input of rename_admin.
+type RenameAdminInput struct {
+	Admin string `json:"admin" jsonschema:"handle of the administrator"`
+	Name  string `json:"name" jsonschema:"their new name"`
+}
+
+// RenameAdmin changes the name of an administrator of the server, theirs or
+// another's. Their handle stays: they sign in with it.
+var RenameAdmin = &operation.Op[RenameAdminInput, Admin]{
+	Name:        "rename_admin",
+	Title:       "Rename a server administrator",
+	Description: "Change the name of an administrator of the server, yours or another's. Their handle, with which they sign in, stays.",
+	Level:       operation.ServerAdmin,
+	Run: func(ctx context.Context, c *operation.Call, in RenameAdminInput) (Admin, error) {
+		c.Log(in.Admin, "")
+		name, err := account.PersonName(in.Name)
+		if err != nil {
+			return Admin{}, err
+		}
+		a, err := findAdmin(ctx, c.Tx, in.Admin)
+		if err != nil {
+			return Admin{}, err
+		}
+		c.Log(a.Handle, name)
+		if _, err := c.Tx.ExecContext(ctx, "UPDATE admins SET name = ? WHERE id = ?", name, a.id); err != nil {
+			return Admin{}, err
+		}
+		a.Name = name
+		return a.Admin, nil
 	},
 }
 

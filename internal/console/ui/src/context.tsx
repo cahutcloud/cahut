@@ -62,6 +62,8 @@ export interface Console {
 	 * follows them.
 	 */
 	renamed(person: { handle: string; name: string }): void;
+	/** Keeps the new name of the administrator of the server in the session of this browser. */
+	serverRenamed(admin: { name: string }): void;
 }
 
 const context = createContext<Console | null>(null);

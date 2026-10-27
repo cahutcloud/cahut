@@ -197,10 +197,17 @@ func TestServerAdminCommands(t *testing.T) {
 	if code != exitOK || !strings.Contains(out, "Enabled olivier (Olivier Durand) again.") {
 		t.Errorf("admin enable: %d %q %q", code, out, errOut)
 	}
+	code, out, errOut = run(t, data, "admin", "rename", "--handle", "camille", "--name", " Camille Martin ")
+	if code != exitOK || out != "Renamed camille (Camille Martin).\n" {
+		t.Errorf("admin rename: %d %q %q", code, out, errOut)
+	}
+	if code, _, errOut := run(t, data, "admin", "rename", "--handle", "camille", "--name", " "); code != exitError || !strings.Contains(errOut, "name is empty") {
+		t.Errorf("admin rename to an empty name: %d %q", code, errOut)
+	}
 
 	code, out, _ = run(t, data, "logbook", "--server")
 	if code != exitOK || !strings.Contains(out, "create_activation_link") || !strings.Contains(out, "create_admin") ||
-		!strings.Contains(out, "disable_admin") || !strings.Contains(out, "enable_admin") {
+		!strings.Contains(out, "disable_admin") || !strings.Contains(out, "enable_admin") || !strings.Contains(out, "rename_admin") {
 		t.Errorf("server logbook: %d\n%s", code, out)
 	}
 }
