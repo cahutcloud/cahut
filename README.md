@@ -5,9 +5,9 @@
   <img alt="Cahut" src="docs/charte-graphique/logos/cahut-logo-horizontal.svg" width="300">
 </picture>
 
-<h3>The home for everything your AIs make.</h3>
+<h3>A home to publish and share what your AIs make.</h3>
 
-Documents, slide decks, dashboards and small apps live online as living pages,<br>
+Documents, slide decks, dashboards and small apps, as pages at your address,<br>
 in your house style, on your own server, whichever AI made them.
 
 <p>
@@ -24,35 +24,37 @@ in your house style, on your own server, whichever AI made them.
 
 <br>
 
-Cahut installs with one command on a Linux server. Claude, ChatGPT, Mistral or Copilot publish to it over MCP, and you share a link instead of sending a file. The AI does on its own what can be undone, a human approves the rest, and every action is logged.
+Cahut installs with one command on a Linux server. Claude, ChatGPT, Mistral or Copilot publish to it over MCP, and you share a link instead of sending a file. Your team reads it, comments on it and asks the AI for the next version, in Rooms where people and their AIs work on the same Windows. The AI does on its own what can be undone, a human approves the rest, and every action is logged.
 
 > [!WARNING]
 > Cahut is in early development. Its first version installs on a server, connects Claude and ChatGPT, and publishes and shares documents, decks, dashboards and sites, as [Installation](#installation) shows. Apps, comments, search, export, single sign-on and backups come before the public launch: the rest of this page describes the launch. There are no backups yet, so keep snapshots of your server.
 
 ## Why Cahut
 
-The file is going away. Word, PowerPoint and Excel were designed for humans who write, lay out and calculate by hand. When an AI produces the content, it naturally produces living pages, each with its own address. You no longer send an attachment, you share a link: the page updates, takes comments, keeps its versions, and exports to PDF or PowerPoint for whoever still needs a file.
+Today, what your AIs make stays at the AI's place. A Claude link, a ChatGPT link, a Gamma deck: each lives on the service of the AI that made it. To publish it, share it or work on it with others, you turn it back into a file.
 
-Today, what AIs make has no home:
+The file is going away. Word, PowerPoint and Excel were designed for humans who write, lay out and calculate by hand. When an AI makes the content, a page at its own address does better: it updates, takes comments, keeps its versions, and exports to PDF or PowerPoint for whoever still needs a file.
 
-- **Scattered**: a Claude link here, a ChatGPT link there, a Gamma deck somewhere else. Each AI keeps what it makes on its own service.
-- **Converted back**: for lack of anything better, the result is turned back into a PowerPoint or a Word file so it can be shared and filed.
+Publish, share, work together: today, all three are hard.
+
+- **Scattered**: a Claude link here, a ChatGPT link there, a Gamma deck somewhere else. Each AI keeps what it makes on its own service, so nothing is published in one place.
+- **Converted back**: to share it, the result is turned back into a PowerPoint or a Word file, then attached and forwarded.
 - **Uncontrolled**: who has access, until when, which version is the right one, where the data lives. Nobody really knows.
-- **Inconsistent**: every AI has its own style, and the organization's brand gets lost.
+- **Inconsistent**: each person works with their own AI, in its own style. The team has no common place, and the organization's brand gets lost.
 - **Unguarded**: handing a server to an AI means giving it a root shell, or going through a platform built for humans that it can barely use.
 
 <p align="center">
   <img alt="Documents, dashboards, code and images join the cloud house of Cahut" src="docs/charte-graphique/illustrations/maison-ouverte.svg" width="560">
 </p>
 
-**Your AIs make it, Cahut keeps it alive.** Everything they produce is published, shared, organized and protected in one place, in your colors, on your server, whatever the AI.
+**Your AIs make it and publish it. You share it and work on it together.** Everything they produce lives in one place, as pages at your address, in your colors, on your server, whatever the AI.
 
-Cahut does not create content, it hosts it. It does not compete with AIs or creation tools: it is the neutral, self-hosted home where their work lives.
+Cahut does not create content, it hosts it. It does not compete with AIs or creation tools: it is the neutral, self-hosted home where their work lives, and where your team works on it.
 
 | Layer | Who handles it | What it brings |
 | --- | --- | --- |
 | Create | The AIs (Claude, ChatGPT, Mistral, Copilot...) | The content: documents, decks, dashboards, apps |
-| Keep and share | Cahut, on your server | Publishing, links, permissions, versions, comments, search, export, logbook |
+| Publish, share, work together | Cahut, on your server | A page at your address, a link opened to the right people, Rooms where the team and its AIs work, versions, comments, search, export, logbook |
 | Look and feel | The house style, carried by Cahut | Your colors, fonts and logo, given to every AI with templates, or your own guidelines instead |
 
 ## How it works

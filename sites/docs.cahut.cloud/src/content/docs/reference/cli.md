@@ -7,7 +7,7 @@ sidebar:
 
 <!-- Generated from the code by make docs-reference: do not edit. -->
 
-Cahut is the home for everything your AIs make. The `cahut` binary serves the Cahuts of a server, and administers them from its command line.
+Cahut is a home to publish and share what your AIs make. The `cahut` binary serves the Cahuts of a server, and administers them from its command line.
 
 ```text
 cahut <command> [arguments]
