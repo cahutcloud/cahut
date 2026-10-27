@@ -46,7 +46,8 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [40](0040-the-icon-of-a-cahut.md) | Each Cahut gives its icon to browsers, favicon services and AI clients | Accepted |
 | [41](0041-the-proxy-protocol-from-trusted-proxies.md) | Cahut reads the PROXY protocol from the proxies it trusts | Accepted |
 | [42](0042-the-legal-pages-of-a-cahut.md) | The pages of a Cahut link its legal pages, which the administrators of its server give | Accepted |
-| [43](0043-the-console-holds-two-sessions.md) | The console holds the session of a person and that of an administrator of the server together | Accepted |
+| [43](0043-the-console-holds-two-sessions.md) | The console holds the session of a person and that of an administrator of the server together | Accepted, superseded in part by 44 |
+| [44](0044-two-bars-for-the-server-and-the-cahut.md) | The console shows the server and the Cahut in two bars, and each signs out of its own session | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 
