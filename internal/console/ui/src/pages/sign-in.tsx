@@ -3,14 +3,16 @@
 // other session that the browser holds. See
 // docs/adr/0043-the-console-holds-two-sessions.md. The sign-in of a person
 // does not show the way to that of the server, which its administrators
-// reach at /server/sign-in, or from the page of their account.
-import { useEffect, useState } from "preact/hooks";
+// reach at /server/sign-in, or from the page of their account. Behind the
+// card, the Windows of the open house come out, and go back in once signed in.
+import { useEffect, useRef, useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
 import type { LegalLinks } from "../api.gen";
 import { describeSignIn, Languages, Legal, LegalBeforeSignIn } from "../components";
 import { words } from "../i18n";
 import { Logo } from "../logo";
 import { Link } from "../router";
+import { type SceneMotion, SignInScene } from "../sign-in-scene";
 import type { Session } from "../session";
 
 const t = words({
@@ -97,6 +99,8 @@ export function SignIn(props: {
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
 	const [busy, setBusy] = useState(false);
+	const card = useRef<HTMLDivElement>(null);
+	const scene = useRef<SceneMotion | undefined>(undefined);
 
 	const submit = async (e: Event) => {
 		e.preventDefault();
@@ -105,21 +109,25 @@ export function SignIn(props: {
 		try {
 			if (kind === "admin") {
 				const s = await server("sign_in", { handle, password });
+				await scene.current?.home();
 				onSignIn({ kind, token: s.token, handle: s.admin.handle, name: s.admin.name, expiresAt: s.expires_at });
 			} else {
 				const s = await cahut("sign_in", { handle, password });
+				await scene.current?.home();
 				onSignIn({ kind, token: s.token, handle: s.user.handle, name: s.user.name, expiresAt: s.expires_at });
 			}
 		} catch (err) {
 			setError(explain(err));
 			setBusy(false);
+			scene.current?.startle();
 		}
 	};
 
 	if (forgot) return <Forgot who={handle} onBack={() => setForgot(false)} />;
 	return (
-		<main class="auth">
-			<div class="c-card auth__card">
+		<main class="auth auth--scene">
+			<SignInScene card={card} motion={scene} />
+			<div class="c-card auth__card" ref={card}>
 				<Logo height={32} />
 				<div class="auth__head">
 					<h1 class="c-h3">{kind === "admin" ? t.administer : t.signIn}</h1>

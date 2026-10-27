@@ -80,6 +80,195 @@
 	overflow-wrap: break-word;
 }
 
+/* The scene behind the card of the sign-in page, drawn and moved by
+   sign-in-scene.tsx: the sky, the sun, the hills, and the Windows of the
+   open house with their dotted lines. */
+.auth--scene {
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+}
+.auth--scene .auth__card {
+	box-shadow: var(--shadow-lg);
+}
+/* The hills may pass behind the lines under the card: a ground of the page
+   keeps them readable. */
+.auth--scene .languages,
+.auth--scene .legal__links {
+	padding: 2px var(--space-3);
+	border-radius: var(--radius-lg);
+	background: var(--color-bg);
+}
+/* On a narrow screen, the Windows peek out from behind the top of the card. */
+@media (max-width: 859px) {
+	.auth--scene {
+		padding-top: 104px;
+	}
+}
+.scene {
+	--scene-card: var(--cahut-white);
+	--scene-ink: var(--cahut-ink-900);
+	--scene-grey: var(--cahut-ink-300);
+	--scene-bar: var(--cahut-sky-200);
+	--scene-accent: var(--cahut-sky-600);
+	--scene-photo: var(--cahut-sky-50);
+	--scene-photo-hill-1: var(--cahut-ink-100);
+	--scene-photo-hill-2: var(--cahut-ink-200);
+	--scene-hill-back: var(--cahut-ink-100);
+	--scene-hill-front: var(--cahut-ink-200);
+	--scene-clouds: 0.4;
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	overflow: hidden;
+	pointer-events: none;
+	opacity: 0;
+}
+@media (prefers-color-scheme: dark) {
+	.scene {
+		--scene-card: var(--cahut-ink-900);
+		--scene-ink: var(--cahut-ink-200);
+		--scene-grey: var(--cahut-ink-600);
+		--scene-bar: var(--cahut-sky-800);
+		--scene-accent: var(--cahut-sky-300);
+		--scene-photo: var(--cahut-sky-950);
+		--scene-photo-hill-1: var(--cahut-ink-800);
+		--scene-photo-hill-2: var(--cahut-ink-700);
+		--scene-hill-back: var(--cahut-ink-900);
+		--scene-hill-front: var(--cahut-ink-800);
+		--scene-clouds: 0.06;
+	}
+}
+/* The cloud pattern of the brand drifts slowly, as on cahut.cloud. */
+.scene__clouds {
+	position: absolute;
+	inset: 0;
+	background-size: 160px 160px;
+	opacity: var(--scene-clouds);
+	-webkit-mask-image: linear-gradient(to bottom, black 25%, transparent 80%);
+	mask-image: linear-gradient(to bottom, black 25%, transparent 80%);
+	animation: scene-drift 120s linear infinite;
+}
+.scene__sun,
+.scene__window {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+.scene__idle {
+	width: 100%;
+	height: 100%;
+}
+.scene__disc {
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	background: var(--color-highlight);
+}
+.scene__hills {
+	position: absolute;
+	right: -60px;
+	bottom: 0;
+	left: -60px;
+}
+.scene__hills--back {
+	height: min(30vh, 280px);
+}
+.scene__hills--front {
+	height: min(14vh, 120px);
+}
+.scene__hills svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+.scene__hills--back path {
+	fill: var(--scene-hill-back);
+}
+.scene__hills--front path {
+	fill: var(--scene-hill-front);
+}
+.scene__lines {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+/* The dots run towards the card, as they run towards the house in the
+   illustration; a mask draws each line behind its Window. */
+.scene__line {
+	fill: none;
+	stroke: var(--color-accent);
+	stroke-width: 4;
+	stroke-linecap: round;
+	stroke-dasharray: 1 13;
+	animation: scene-flow 1.2s linear infinite;
+}
+.scene__reveal {
+	fill: none;
+	stroke: var(--cahut-white);
+	stroke-width: 18;
+	stroke-linecap: round;
+	stroke-dasharray: 1 2;
+	stroke-dashoffset: 1.05;
+}
+.scene__window svg {
+	display: block;
+	overflow: visible;
+}
+.scene__frame {
+	fill: var(--scene-card);
+	stroke: var(--scene-ink);
+}
+.scene__ink {
+	stroke: var(--scene-ink);
+}
+.scene__grey {
+	stroke: var(--scene-grey);
+}
+.scene__accent {
+	stroke: var(--scene-accent);
+}
+.scene__bar {
+	fill: var(--scene-bar);
+}
+.scene__photo {
+	fill: var(--scene-photo);
+}
+.scene__photo-sun {
+	fill: var(--color-highlight);
+}
+.scene__hill-1 {
+	fill: var(--scene-photo-hill-1);
+}
+.scene__hill-2 {
+	fill: var(--scene-photo-hill-2);
+}
+/* What draws itself: the lines of the document, the line of the chart, the code. */
+.scene__draw {
+	fill: none;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	stroke-dasharray: 1 2;
+}
+@keyframes scene-drift {
+	to {
+		background-position: 480px -160px;
+	}
+}
+@keyframes scene-flow {
+	to {
+		stroke-dashoffset: 14;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.scene__clouds,
+	.scene__line {
+		animation: none;
+	}
+}
+
 /* The first start of a Cahut, on a full screen. See
    docs/adr/0025-first-start-in-the-browser.md. */
 .setup {
