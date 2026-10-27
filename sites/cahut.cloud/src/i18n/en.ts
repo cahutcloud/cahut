@@ -4,7 +4,7 @@
 
 export default {
 	meta: {
-		title: 'Cahut: a home to publish, share and work together on what your AIs make',
+		title: 'Cahut: a home to publish and share what your AIs make',
 		description:
 			'Publish the documents, slide decks, dashboards and small apps your AIs make as pages at your address, share them by link and work on them as a team, on your own server, whichever AI made them. Cahut is in early development.',
 		imageAlt:
@@ -47,7 +47,7 @@ export default {
 
 	hero: {
 		status: 'In early development: the first version works',
-		title: 'A home to publish, share and work together on what your AIs make.',
+		title: 'A home to publish and share what your AIs make.',
 		lead: 'Documents, slide decks, dashboards and small apps, as pages at your address, in your house style, on your own server, whichever AI made them.',
 		install: 'Install on my server',
 		facts: ['On your server or on my.cahut.cloud', 'Any AI, over MCP', 'A link, not a file'],
