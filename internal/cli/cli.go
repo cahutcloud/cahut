@@ -65,7 +65,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 }
 
 func usage(w io.Writer) {
-	fmt.Fprint(w, "Cahut is the home for everything your AIs make.\n\n")
+	fmt.Fprint(w, "Cahut is a home to publish and share what your AIs make.\n\n")
 	fmt.Fprint(w, "Usage:\n\n\tcahut <command> [arguments]\n\nCommands:\n\n")
 	list(w, commands)
 	fmt.Fprintf(w, "\t%-10s %s\n", "help", "Print this help")

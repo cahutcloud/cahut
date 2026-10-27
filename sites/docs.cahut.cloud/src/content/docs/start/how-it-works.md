@@ -3,7 +3,7 @@ title: How Cahut works
 description: AIs connect to your Cahut over MCP, publish Windows through bounded operations, and every call goes to the Logbook.
 ---
 
-Cahut hosts what AIs make. It does not make it: the AIs stay outside, on your laptop or with their vendor, and connect to Cahut when they have something to publish. No AI model runs on the server.
+Cahut hosts what AIs make: they publish it there, you share it by link, and your team works on it with them. Cahut does not make it: the AIs stay outside, on your laptop or with their vendor, and connect to Cahut when they have something to publish. No AI model runs on the server.
 
 ## The path of a Window
 
@@ -11,7 +11,7 @@ Cahut hosts what AIs make. It does not make it: the AIs stay outside, on your la
 2. **You give your AI the address** of the Cahut, `https://cahut.example.com/mcp`. It sends you to the console, where you sign in and choose the Rooms it reaches and whether it may publish. It acts for you, in that Cahut only.
 3. **The AI connects** over MCP. It sees a few tools and nothing else: no shell, no files of the server.
 4. **The AI publishes a Window**: the HTML of a document, deck, dashboard or site, and its other files. Cahut keeps them and returns the address where the Window opens, such as `https://cahut.example.com/you/q3-review/`.
-5. **You share the link.** Readers open the Window in their browser. Its pages run in a sandbox, apart from the other Windows.
+5. **You share the link.** Readers open the Window in their browser, and the members of its Room work on it with their AIs. Its pages run in a sandbox, apart from the other Windows.
 6. **Every call is logged.** The Logbook of the Cahut records which AI acted, on whose behalf, what it did and with what result.
 
 Without a server, [My Cahut](/start/my-cahut/) at `my.cahut.cloud` takes the place of the first step: you sign up, and Claude finds My Cahut in its directory of connectors.

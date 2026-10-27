@@ -1,12 +1,12 @@
 # Cahut · Brief projet
 
-20 octobre 2026, mis à jour le 21 octobre 2026 · Olivier Durand
+20 octobre 2026, mis à jour le 27 octobre 2026 · Olivier Durand
 
 ## En bref
 
-Cahut est la maison de tout ce que vos IA fabriquent : documents, présentations, tableaux de bord et petites applis y vivent en ligne, comme des pages vivantes, à vos couleurs et sur votre propre serveur, quelle que soit l'IA qui les a créés.
+Cahut est une maison pour publier et partager ce que fabriquent vos IA : documents, présentations, tableaux de bord et petites applis, en pages à votre adresse, à vos couleurs, sur votre propre serveur, quelle que soit l'IA qui les a faits.
 
-On l'installe d'une commande sur un VPS. Claude, ChatGPT, Mistral ou Copilot y publient par MCP, et l'on partage un lien au lieu d'envoyer un fichier. L'IA fait seule ce qui s'annule, un humain valide le reste, et tout est tracé.
+On l'installe d'une commande sur un VPS. Claude, ChatGPT, Mistral ou Copilot y publient par MCP, et l'on partage un lien au lieu d'envoyer un fichier. L'équipe lit la page, la commente et demande à l'IA la version suivante, dans des Rooms où les personnes et leurs IA travaillent sur les mêmes Windows. L'IA fait seule ce qui s'annule, un humain valide le reste, et tout est tracé.
 
 - **Nom** : Cahut
 - **Adresses** : cahut.cloud (site), getcahut.com (redirection), déjà réservés
@@ -16,26 +16,28 @@ On l'installe d'une commande sur un VPS. Claude, ChatGPT, Mistral ou Copilot y p
 
 ## Vision et positionnement
 
-Le fichier disparaît. Word, PowerPoint et Excel ont été conçus pour des humains qui écrivent, mettent en page et calculent à la main ; quand l'IA fabrique le contenu, elle produit naturellement des pages vivantes, chacune avec son adresse. On n'envoie plus une pièce jointe, on partage un lien : la page se met à jour, se commente, garde ses versions et s'exporte en PDF ou en PowerPoint pour qui en a encore besoin.
+Aujourd'hui, ce que fabriquent vos IA reste chez l'IA. Un lien Claude, un lien ChatGPT, une présentation Gamma : chacun vit sur le service de l'IA qui l'a fait. Pour le publier, le partager ou y travailler à plusieurs, vous le retransformez en fichier.
+
+Le fichier s'efface. Word, PowerPoint et Excel ont été conçus pour des humains qui écrivent, mettent en page et calculent à la main. Quand une IA fabrique le contenu, une page à sa propre adresse fait mieux : elle se met à jour, reçoit des commentaires, garde ses versions et s'exporte en PDF ou en PowerPoint pour qui a encore besoin d'un fichier.
 
 Ce n'est pas une hypothèse : mises devant une plateforme de ce type, des personnes non techniques l'adoptent en quelques semaines et publient elles-mêmes présentations, sites et applis faits par l'IA.
 
-**Le problème.** Ce que l'IA fabrique n'a pas de maison.
+**Le problème.** Publier, partager, travailler ensemble : aujourd'hui, les trois sont compliqués.
 
-- **Éparpillé** : un lien Claude ici, un lien ChatGPT là, une présentation Gamma ailleurs ; chaque IA garde chez elle ce qu'elle fabrique.
-- **Retransformé** : faute de mieux, on reconvertit le résultat en PowerPoint ou en Word pour pouvoir le partager et le ranger.
-- **Sans contrôle** : qui y a accès, jusqu'à quand, quelle version fait foi, où sont les données ? Personne ne le sait vraiment.
-- **Sans cohérence** : chaque IA produit son propre style, et la charte de l'organisation se perd.
-- **Sans garde-fou** : confier un serveur à une IA, c'est lui ouvrir un shell root ou passer par une plateforme pensée pour des humains, à laquelle elle accède mal.
+- **Éparpillé** : un lien Claude ici, un lien ChatGPT là, une présentation Gamma ailleurs ; chaque IA garde ce qu'elle fabrique sur son propre service, et rien n'est publié au même endroit.
+- **Reconverti** : pour le partager, le résultat redevient un PowerPoint ou un Word, en pièce jointe, transféré de main en main.
+- **Hors de contrôle** : qui a accès, jusqu'à quand, quelle version est la bonne, où vivent les données ? Personne ne le sait vraiment.
+- **Incohérent** : chacun travaille avec sa propre IA, dans son propre style ; l'équipe n'a pas d'endroit commun, et la marque de l'organisation se perd.
+- **Sans garde-fou** : confier un serveur à une IA, c'est lui donner un shell root, ou passer par une plateforme faite pour des humains, qu'elle sait à peine utiliser.
 
-**La promesse.** Vos IA fabriquent, Cahut fait vivre. Tout ce qu'elles produisent est publié, partagé, rangé et protégé au même endroit, à vos couleurs, chez vous, quelle que soit l'IA.
+**La promesse.** Vos IA le fabriquent et le publient. Vous le partagez et y travaillez ensemble. Tout ce qu'elles produisent vit au même endroit, en pages à votre adresse, à vos couleurs, chez vous, quelle que soit l'IA.
 
-**Le positionnement.** Cahut ne crée pas le contenu, elle l'accueille. Elle ne concurrence pas les IA ni les outils de création : elle est la maison neutre et souveraine où leur travail vit, avec trois couches bien séparées.
+**Le positionnement.** Cahut ne crée pas le contenu, elle l'accueille. Elle ne concurrence pas les IA ni les outils de création : elle est la maison neutre et souveraine où leur travail vit, et où votre équipe travaille dessus, avec trois couches bien séparées.
 
 | Couche | Qui s'en charge | Ce qu'elle apporte |
 | --- | --- | --- |
 | Créer | Les IA (Claude, ChatGPT, Mistral, Copilot…) | Le contenu : documents, présentations, tableaux de bord, applis |
-| Garder et partager | Cahut, sur votre serveur | Publication, liens, droits, versions, commentaires, recherche, export, journal |
+| Publier, partager, travailler ensemble | Cahut, sur votre serveur | Une page à votre adresse, un lien ouvert aux bonnes personnes, des Rooms où l'équipe et ses IA travaillent, versions, commentaires, recherche, export, journal |
 | À quoi ça ressemble | La charte, portée par Cahut | Vos couleurs et vos formats, fournis à toutes les IA sous forme de modèles et de skills |
 
 ## Pour qui
