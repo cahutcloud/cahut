@@ -30,11 +30,13 @@ export default {
 		signature: 'Your own cloud for everything your AI makes.',
 		about:
 			'Cahut is a personal open source project by Olivier Durand, independent of any company and of any AI vendor. It is in early development.',
+		// Around the link to Tetra7.
+		hosted: ['My Cahut, at my.cahut.cloud, is offered by ', ' in support of the project.'],
 		theme: { dark: 'Switch to the dark theme', light: 'Switch to the light theme', short: 'Theme' },
 		language: { label: 'Version française', short: 'FR' },
 		github: 'Cahut on GitHub',
 		menu: 'Menu',
-		// my.cahut.cloud, the Cahut hosted apart from the project (src/links.ts).
+		// My Cahut, the Cahut at my.cahut.cloud that Tetra7 offers (src/links.ts).
 		account: {
 			signIn: 'Sign in',
 			signInTitle: 'Open your Cahut on my.cahut.cloud',
@@ -53,9 +55,9 @@ export default {
 		log: { action: 'published', done: 'Done' },
 	},
 
-	// The two ways to a Cahut, at the top of the quick start: my.cahut.cloud, to
-	// try Cahut with limits, or one's own server, with every feature, whose
-	// commands follow.
+	// The two ways to a Cahut, at the top of the quick start: My Cahut, at
+	// my.cahut.cloud, to try Cahut with limits, or one's own server, with every
+	// feature, whose commands follow.
 	doors: {
 		label: 'Get started',
 		title: 'Two ways to have your Cahut.',
@@ -64,12 +66,21 @@ export default {
 			label: 'No server',
 			badge: 'Free · limited seats',
 			title: 'Your Cahut in two minutes, in your name.',
-			text: 'The quickest way to try Cahut, without committing. Nothing to install or run: your Cahut waits for you online, and your AI publishes there for you.',
+			text: 'The quickest way to try Cahut, without committing. Nothing to install or run: with My Cahut, your Cahut waits for you online, and your AI publishes there for you.',
 			example: { handle: 'helen', window: 'lisbon-trip' },
 			address: 'Your handle becomes the address of your Windows.',
 			steps: ['An e-mail and a handle', 'Your AI connected: Claude or Le Chat', 'Your first Window, online'],
+			claude: {
+				text: 'In Claude, nothing to copy: search for My Cahut in its directory of connectors.',
+				link: 'Open My Cahut in Claude',
+			},
 			member: 'Already a member? Open my.cahut.cloud',
-			fine: 'Limited features: no team Rooms, limited disk space, and a limited number of Rooms and Windows. A service hosted in France by Olivier Durand, apart from the open source project.',
+			fine: 'Limited features: no team Rooms, limited disk space, and a limited number of Rooms and Windows.',
+			// Around the link to Tetra7.
+			by: [
+				'My Cahut is offered by ',
+				', which hosts it in France to support the project. The open source project stays a personal project of Olivier Durand.',
+			],
 		},
 		server: {
 			label: 'On your server',

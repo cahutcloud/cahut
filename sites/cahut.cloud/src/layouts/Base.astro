@@ -7,7 +7,7 @@ import '../styles/site.css';
 import Icon from '../components/Icon.astro';
 import { localize, otherLang, useTranslations, type Lang } from '../i18n';
 import { legalPages, legalPaths } from '../legal/legal';
-import { signInURL, signupURL } from '../links';
+import { signInURL, signupURL, tetra7URL } from '../links';
 import { pages, paths } from '../project/community';
 import logo from '@charte/logos/cahut-logo-horizontal.svg?url';
 import logoInverse from '@charte/logos/cahut-logo-horizontal-inverse.svg?url';
@@ -292,7 +292,10 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 					))
 				}
 				<div class="about">
-					<p class="c-small c-muted">{t.base.about}</p>
+					<div class="about__text">
+						<p class="c-small c-muted">{t.base.about}</p>
+						<p class="c-small c-muted">{t.base.hosted[0]}<a href={tetra7URL}>Tetra7</a>{t.base.hosted[1]}</p>
+					</div>
 					<ul class="c-small" role="list">
 						{
 							legalPages.map((page) => (
@@ -713,6 +716,11 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 		gap: var(--space-4) var(--space-8);
 		padding-top: var(--space-6);
 		border-top: var(--border-width) solid var(--color-border);
+	}
+	/* The project, then My Cahut, apart from it. */
+	.site-footer .about__text {
+		display: grid;
+		gap: var(--space-2);
 	}
 	.site-footer .about p {
 		max-width: var(--measure);

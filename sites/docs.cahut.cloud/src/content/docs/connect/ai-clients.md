@@ -19,6 +19,8 @@ The address to give is on the **AIs and access** screen of [the console](/admin/
 | Le Chat | Connectors, add a custom MCP connector with the address of the Cahut. Le Chat finds OAuth by itself |
 | Others | The address of the Cahut. The client finds the rest by itself |
 
+A Cahut on my.cahut.cloud needs no address in claude.ai and Claude Desktop: [My Cahut](https://claude.ai/directory/my-cahut) is in the directory of connectors of Claude. Search for it, then select **Connect**.
+
 The client opens a page of the console in your browser, at `https://<domain>/console/oauth/authorize`. The servers of the client, and your browser, reach the Cahut on port 443 only.
 
 ChatGPT does not connect to a Cahut at the IP address of its server: its servers never call the Cahut, and ChatGPT says that it cannot find the OAuth settings. [Move the Cahut to a domain](/install/server/#without-a-domain) first, then add it to ChatGPT at its new address.
