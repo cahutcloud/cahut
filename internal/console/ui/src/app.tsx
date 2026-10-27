@@ -95,20 +95,21 @@ export function App() {
 			navigate(signInPage(kind), true);
 		}
 	};
-	const signOut = async () => {
-		const ending = [held.person, held.admin].filter((s): s is Session => s !== null);
-		await Promise.all(ending.map(end)); // signed out here, whatever the server says
-		drop("person");
-		drop("admin");
-		navigate(signInPage(session?.kind ?? "person"), true);
-	};
-	const leaveServer = async () => {
-		if (held.admin) {
-			await end(held.admin);
+	// Each bar signs out of its own session, and the console stays open with
+	// the other one, if the browser holds it. See
+	// docs/adr/0044-two-bars-for-the-server-and-the-cahut.md.
+	const signOutOf = async (kind: Session["kind"]) => {
+		const s = held[kind];
+		if (s) {
+			await end(s); // signed out here, whatever the server says
 		}
-		drop("admin");
-		navigate("/", true);
+		drop(kind);
+		navigate(held[kind === "person" ? "admin" : "person"] ? "/" : signInPage(kind), true);
 	};
+	// Signing out ends the session the console acts with: that of the
+	// person, or that of the server when the browser holds it alone.
+	const signOut = () => signOutOf(session?.kind ?? "person");
+	const leaveServer = () => signOutOf("admin");
 
 	switch (path) {
 		case "/sign-in":
