@@ -198,6 +198,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/server/list_admins` | Administrators of the server | yes |
 | `POST /api/server/list_domains` | Administrators of the server | yes |
 | `POST /api/server/list_logbook` | Administrators of the server | yes |
+| `POST /api/server/rename_admin` | Administrators of the server | yes |
 | `POST /api/server/rename_domain` | Administrators of the server | yes |
 | `POST /api/server/request_update` | Administrators of the server | yes |
 | `POST /api/server/set_up` | Anyone, to sign in | no |

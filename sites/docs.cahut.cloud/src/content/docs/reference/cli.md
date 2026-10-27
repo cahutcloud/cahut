@@ -31,6 +31,7 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut mail test`](#cahut-mail-test) | Send a test message through the relay of a Cahut |
 | [`cahut admin create`](#cahut-admin-create) | Create an administrator of the server, with an activation link |
 | [`cahut admin list`](#cahut-admin-list) | List the administrators of the server |
+| [`cahut admin rename`](#cahut-admin-rename) | Change the name of an administrator of the server |
 | [`cahut admin link`](#cahut-admin-link) | Give an administrator of the server a new link where they choose their password |
 | [`cahut admin disable`](#cahut-admin-disable) | Disable an administrator of the server: their sessions end, and they cannot sign in |
 | [`cahut admin enable`](#cahut-admin-enable) | Enable a disabled administrator of the server again |
@@ -281,6 +282,20 @@ cahut admin list [flags]
 | Flag | Default | Description |
 | --- | --- | --- |
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+
+### `cahut admin rename`
+
+Change the name of an administrator of the server.
+
+```text
+cahut admin rename [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--handle string` |  | the administrator of the server, whose handle stays |
+| `--name string` |  | their new full name |
 
 ### `cahut admin link`
 

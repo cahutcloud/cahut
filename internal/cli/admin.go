@@ -32,6 +32,7 @@ var domainCommands = []command{
 var adminCommands = []command{
 	{name: "create", summary: "Create an administrator of the server, with an activation link", run: runAdminCreate},
 	{name: "list", summary: "List the administrators of the server", run: runAdminList},
+	{name: "rename", summary: "Change the name of an administrator of the server", run: runAdminRename},
 	{name: "link", summary: "Give an administrator of the server a new link where they choose their password", run: runAdminLink},
 	{name: "disable", summary: "Disable an administrator of the server: their sessions end, and they cannot sign in", run: runAdminDisable},
 	{name: "enable", summary: "Enable a disabled administrator of the server again", run: runAdminEnable},
@@ -237,6 +238,23 @@ func runAdminList(args []string, stdout, stderr io.Writer) int {
 	if err := tw.Flush(); err != nil {
 		return exitError
 	}
+	return exitOK
+}
+
+func runAdminRename(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("admin rename", stderr)
+	data := dataFlag(fs)
+	var in server.RenameAdminInput
+	fs.StringVar(&in.Admin, "handle", "", "the administrator of the server, whose handle stays")
+	fs.StringVar(&in.Name, "name", "", "their new full name")
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	a, ok := onServer(*data, server.RenameAdmin, in, stderr)
+	if !ok {
+		return exitError
+	}
+	fmt.Fprintf(stdout, "Renamed %s (%s).\n", a.Handle, a.Name)
 	return exitOK
 }
 

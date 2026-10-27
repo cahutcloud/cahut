@@ -228,6 +228,12 @@ function SignedIn(props: {
 			renamed(p);
 			setRoomsVersion((n) => n + 1);
 		},
+		serverRenamed: (a: { name: string }) => {
+			const s = props.serverSession;
+			if (s && a.name !== s.name) {
+				props.onSession({ ...s, name: a.name });
+			}
+		},
 	};
 	return (
 		<ConsoleProvider value={value}>

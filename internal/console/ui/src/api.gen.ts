@@ -1000,6 +1000,13 @@ export interface RemoveMemberInput {
   user: string;
 }
 
+export interface RenameAdminInput {
+  /** handle of the administrator */
+  admin: string;
+  /** their new name */
+  name: string;
+}
+
 export interface RenameDomainInput {
   /** the domain or the address of the Cahut now */
   domain: string;
@@ -1694,6 +1701,8 @@ export interface ServerOperations {
   list_domains: { input: ListDomainsInput; output: DomainList };
   /** Read the latest entries of the server's Logbook, newest first. */
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
+  /** Change the name of an administrator of the server, yours or another's. Their handle, with which they sign in, stays. */
+  rename_admin: { input: RenameAdminInput; output: Admin };
   /** Move a Cahut to another domain, or from the IP address of the server to a domain. Its people, Rooms, Windows, house style and Logbook stay; the links that name its old address stop working, and AIs connect again at the new one. */
   rename_domain: { input: RenameDomainInput; output: Info };
   /** Ask the updater of the server to check for new releases, or to install a release newer than the one running. It runs as root within a minute, checks the signature, and goes back to the version running if the new one fails. */

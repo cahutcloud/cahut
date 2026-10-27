@@ -33,9 +33,10 @@ type MovedRoom struct {
 	Name operation.Quoted `json:"name" jsonschema:"the name it would take"`
 }
 
-// personName trims the name of a person, which is neither empty nor longer
-// than the title of a Room.
-func personName(s string) (string, error) {
+// PersonName trims the name of a person, which is neither empty nor longer
+// than the title of a Room. The administrators of the server have names of
+// the same kind.
+func PersonName(s string) (string, error) {
 	name := strings.TrimSpace(s)
 	if name == "" {
 		return "", nameEmpty
@@ -64,7 +65,7 @@ var ChangeName = &operation.Op[ChangeNameInput, User]{
 			return User{}, err
 		}
 		c.Log(c.Actor.Handle, "")
-		name, err := personName(in.Name)
+		name, err := PersonName(in.Name)
 		if err != nil {
 			return User{}, err
 		}

@@ -1,13 +1,13 @@
 // The administrators of the server, for themselves: who they are, and two
 // dialogs. One adds an administrator and gives the link where they choose
-// their password; the other manages one: a new link, disabling. They hold
-// every Cahut of the server, unlike the administrators of a Cahut, whom the
-// screen of its people makes.
+// their password; the other manages one: their name, a new link, disabling,
+// and only the name for oneself. They hold every Cahut of the server, unlike
+// the administrators of a Cahut, whom the screen of its people makes.
 import { Check, Plus } from "lucide-preact";
-import { useState } from "preact/hooks";
+import { useEffect, useId, useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Activation, Admin } from "../api.gen";
-import { ActivationResult, Dialog, Failure, handleFrom, initials, Notice, PageHead, plural, Setting, StatusBadge } from "../components";
+import { ActivationResult, Dialog, Failure, handleFrom, initials, Notice, Outcome, PageHead, plural, Setting, StatusBadge } from "../components";
 import { useConsole } from "../context";
 import { de, locale, words } from "../i18n";
 import { useLoad } from "../load";
@@ -56,6 +56,12 @@ const t = words({
 		cancel: "Cancel",
 		add: "Add the administrator",
 		addedOn: (day: string) => `Added ${day}`,
+		nameHelp: "As the administrators of the server see it. They still sign in with their handle.",
+		nameHelpSelf: "As the administrators of the server see it. You still sign in with your handle.",
+		save: "Save",
+		nameSaved: "Name saved.",
+		password: "Password",
+		passwordHelp: "You change yours on the page of your account.",
 		choosePassword: "Link to choose a password",
 		newPassword: "New password",
 		pendingHelp: (name: string) => `${name} has not chosen a password yet. A new link replaces the one they had.`,
@@ -116,6 +122,12 @@ const t = words({
 		cancel: "Annuler",
 		add: "Ajouter l'administrateur",
 		addedOn: (day) => `Ajouté le ${day}`,
+		nameHelp: "Tel que le voient les administrateurs du serveur. Cette personne se connecte toujours avec son identifiant.",
+		nameHelpSelf: "Tel que le voient les administrateurs du serveur. Vous vous connectez toujours avec votre identifiant.",
+		save: "Enregistrer",
+		nameSaved: "Nom enregistré.",
+		password: "Mot de passe",
+		passwordHelp: "Vous changez le vôtre sur la page de votre compte.",
 		choosePassword: "Lien pour choisir un mot de passe",
 		newPassword: "Nouveau mot de passe",
 		pendingHelp: (name) => `${name} n'a pas encore choisi de mot de passe. Un nouveau lien remplace l'ancien.`,
@@ -145,11 +157,18 @@ export function Admins() {
 	const { data, error, reload } = useLoad(() => api.server("list_admins", {}));
 	const [adding, setAdding] = useState(false);
 	const [managing, setManaging] = useState("");
+	// The administrator who signs in, alone or beside a person.
+	const isSelf = (a: Admin) => a.handle === api.serverSession?.handle;
+	// Their name may have changed in another browser: the bar of the server
+	// takes it.
+	useEffect(() => {
+		const me = data?.admins.find(isSelf);
+		if (me) api.serverRenamed(me);
+	}, [data]);
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
 
 	const admins = data.admins;
-	const isSelf = (a: Admin) => api.session.kind === "admin" && a.handle === api.session.handle;
 	const managed = admins.find((a) => a.handle === managing);
 	const summary = [plural(admins.length, t.administrator, t.administrators)];
 	const waiting = admins.filter((a) => a.status === "pending").length;
@@ -212,15 +231,9 @@ export function Admins() {
 										<StatusBadge status={a.status} />
 									</td>
 									<td class="table__actions">
-										{isSelf(a) ? (
-											<Link class="c-btn c-btn--secondary c-btn--sm" href="/account">
-												{t.yourAccount}
-											</Link>
-										) : (
-											<button class="c-btn c-btn--secondary c-btn--sm" type="button" aria-label={t.manageLabel(a.name)} onClick={() => setManaging(a.handle)}>
-												{t.manage}
-											</button>
-										)}
+										<button class="c-btn c-btn--secondary c-btn--sm" type="button" aria-label={t.manageLabel(a.name)} onClick={() => setManaging(a.handle)}>
+											{t.manage}
+										</button>
 									</td>
 								</tr>
 							))}
@@ -229,7 +242,7 @@ export function Admins() {
 				</div>
 			</section>
 			{adding && <NewAdmin onCreated={reload} onClose={() => setAdding(false)} />}
-			{managed && <ManageAdmin admin={managed} onChanged={reload} onClose={() => setManaging("")} />}
+			{managed && <ManageAdmin admin={managed} self={isSelf(managed)} onChanged={reload} onClose={() => setManaging("")} />}
 		</>
 	);
 }
@@ -332,14 +345,22 @@ function NewAdmin({ onCreated, onClose }: { onCreated: () => void; onClose: () =
 	);
 }
 
-/** The dialog that manages another administrator of the server: each change with what it does. */
-function ManageAdmin(props: { admin: Admin; onChanged: () => void; onClose: () => void }) {
+/**
+ * The dialog that manages an administrator of the server: each change with
+ * what it does. One's own name changes here too; one's password, on the
+ * page of one's account.
+ */
+function ManageAdmin(props: { admin: Admin; self: boolean; onChanged: () => void; onClose: () => void }) {
 	const api = useConsole();
 	const a = props.admin;
 	const run = async <T,>(call: () => Promise<T>): Promise<T> => {
 		const out = await call();
 		props.onChanged();
 		return out;
+	};
+	const rename = async (name: string) => {
+		const b = await run(() => api.server("rename_admin", { admin: a.handle, name }));
+		if (props.self) api.serverRenamed(b);
 	};
 	return (
 		<Dialog
@@ -355,7 +376,21 @@ function ManageAdmin(props: { admin: Admin; onChanged: () => void; onClose: () =
 			onClose={props.onClose}
 		>
 			<div class="settings">
-				{a.status !== "disabled" && (
+				<NameSetting admin={a} self={props.self} onSave={rename} />
+				{props.self && (
+					<div class="setting">
+						<div class="setting__text">
+							<span class="setting__title">{t.password}</span>
+							<p class="c-small c-muted">{t.passwordHelp}</p>
+						</div>
+						<div class="setting__action">
+							<Link class="c-btn c-btn--secondary" href="/account">
+								{t.yourAccount}
+							</Link>
+						</div>
+					</div>
+				)}
+				{!props.self && a.status !== "disabled" && (
 					<Setting
 						key="link"
 						title={a.status === "pending" ? t.choosePassword : t.newPassword}
@@ -367,7 +402,7 @@ function ManageAdmin(props: { admin: Admin; onChanged: () => void; onClose: () =
 						}}
 					/>
 				)}
-				{a.status === "disabled" ? (
+				{props.self ? null : a.status === "disabled" ? (
 					<Setting
 						key="state"
 						title={t.enable}
@@ -394,5 +429,61 @@ function ManageAdmin(props: { admin: Admin; onChanged: () => void; onClose: () =
 				)}
 			</div>
 		</Dialog>
+	);
+}
+
+/** The name of an administrator of the server, which any of them changes. Their handle stays. */
+function NameSetting({ admin, self, onSave }: { admin: Admin; self: boolean; onSave: (name: string) => Promise<unknown> }) {
+	const id = useId();
+	const [value, setValue] = useState(admin.name);
+	const [busy, setBusy] = useState(false);
+	const [said, setSaid] = useState("");
+	const [error, setError] = useState("");
+	const name = value.trim();
+	const save = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		setSaid("");
+		try {
+			await onSave(name);
+			setValue(name);
+			setSaid(t.nameSaved);
+		} catch (err) {
+			setError(explain(err));
+		} finally {
+			setBusy(false);
+		}
+	};
+	return (
+		<form class="setting" onSubmit={save}>
+			<div class="setting__text">
+				<label class="setting__title" for={id}>
+					{t.name}
+				</label>
+				<p class="c-small c-muted">{self ? t.nameHelpSelf : t.nameHelp}</p>
+			</div>
+			<div class="setting__more setting__inline">
+				<input
+					id={id}
+					class="c-input"
+					type="text"
+					autocomplete={self ? "name" : "off"}
+					maxLength={200}
+					required
+					value={value}
+					onInput={(e) => (setValue(e.currentTarget.value), setSaid(""))}
+				/>
+				<button class="c-btn c-btn--secondary" type="submit" disabled={busy || name === "" || name === admin.name}>
+					{t.save}
+				</button>
+			</div>
+			{said && <Outcome>{said}</Outcome>}
+			{error && (
+				<div class="setting__more">
+					<Failure message={error} />
+				</div>
+			)}
+		</form>
 	);
 }
