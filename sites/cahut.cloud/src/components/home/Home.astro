@@ -61,9 +61,9 @@ const accessBadges = [
 ] as const;
 const access = accessBadges.map((item, index) => ({ ...item, text: t.vocabulary.access[index] }));
 
-// The step under way, in the order of the roadmap: the proof of concept, the
-// first version checked on fresh servers.
-const currentStep = 3;
+// The step under way, in the order of the roadmap: the road to the public
+// launch, since the first version met the success criteria on a fresh server.
+const currentStep = 4;
 const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index === currentStep }));
 ---
 

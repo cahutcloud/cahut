@@ -32,7 +32,7 @@ Ces tests ne remplacent pas la recette sur de vrais serveurs : ils ne voient ni 
 
 ## Matériel
 
-- Deux VPS vierges chez un hébergeur, à l'image standard : AlmaLinux 10 et Ubuntu 24.04, 2 vCPU, 4 Go de mémoire, 40 Go de disque, une adresse IPv4 publique, les ports 80 et 443 ouverts chez l'hébergeur.
+- Deux VPS vierges chez un hébergeur, à l'image standard : AlmaLinux 10 et Ubuntu 24.04 ou 26.04, 2 vCPU, 4 Go de mémoire, 40 Go de disque, une adresse IPv4 publique, les ports 80 et 443 ouverts chez l'hébergeur. Sur Ubuntu 26.04, `cahut doctor` avertit que ce système n'est pas encore dans ceux que Cahut teste.
 - Un domaine ou sous-domaine pour chacun, dont l'enregistrement A pointe sur son adresse avant de commencer.
 - La release à recetter, publiée et signée.
 - Un compte claude.ai, un compte ChatGPT qui ajoute un serveur MCP personnalisé (selon l'aide d'OpenAI d'octobre 2026 : offre Business, Enterprise ou Edu, dans Plugins), et en option un compte Le Chat.
@@ -59,7 +59,7 @@ Démarrer un second chronomètre et ouvrir le lien.
 1. **Vous** : nom, handle, mot de passe de 15 caractères au moins.
 2. **Votre Cahut** : le nom de l'organisation et une couleur.
 3. **Votre première IA** : dans claude.ai, Settings, Connectors, ajouter un connecteur personnalisé à l'adresse MCP affichée ; se connecter quand claude.ai renvoie vers la console, garder « Read and publish » et toutes les Rooms. L'écran du premier démarrage dit que Claude est branché.
-4. Demander à Claude : « Fais une présentation de trois diapositives sur nos résultats du trimestre, à la house style de Cahut, et publie-la. »
+4. Demander à Claude, avec des chiffres, car il refuse d'inventer des résultats : « Fais une présentation de trois diapositives sur nos résultats du trimestre, à la house style de Cahut, et publie-la. Ce sont des données de démonstration : chiffre d'affaires du T3, 1,24 M€, +12 % sur le T2 ; 38 nouveaux clients ; marge brute, 64 % ; par offre, abonnements 720 k€, services 380 k€, formation 140 k€ ; à retenir, faire passer la mise en route des nouveaux clients de 21 à 10 jours. »
 
 **On doit voir** Claude appeler `get_house_style` puis `publish_window`, et rendre une adresse `https://<domaine>/<handle>/<window>/`. Arrêter le chronomètre quand la présentation s'ouvre dans la console : **moins de 5 minutes**, sans commande sur le serveur.
 
@@ -80,7 +80,7 @@ Sans terminal, dans la console :
 3. Dans une conversation, choisir le plugin et demander : « Mets à jour la présentation des résultats du trimestre : ajoute une diapositive de conclusion, à la house style. »
 4. Puis : « Reviens à la version précédente de cette présentation. »
 
-**On doit voir** ChatGPT demander une confirmation avant chaque appel qui change quelque chose, lire la house style, publier la nouvelle version, puis revenir à la précédente. Le lien avec la Key montre chaque fois la version en place.
+**On doit voir** ChatGPT demander une confirmation avant chaque appel qui change quelque chose, lire la house style, publier la nouvelle version, puis revenir à la précédente. Le lien avec la Key montre chaque fois la version en place. Le Logbook dit si ChatGPT a vraiment agi : une ligne `update_window`, puis une ligne `rollback_window`.
 
 ### 5. Gouvernance
 
@@ -105,3 +105,11 @@ Sans terminal, dans la console :
 | 23/10/2026 | Ubuntu 24.04 amd64, CI | lot 8 | 49 s | | | | | Job *Install*, à chaque pull request |
 | 23/10/2026 | Cahut de test, CI | lot 8 | | passe | passe | passe (CIMD et DCR) | passe | `TestV0Acceptance` |
 | 23/10/2026 | AlmaLinux 10.2 amd64, staging, Cahut à `51.83.68.4` | lot 8 | | | passe, avec la Key | Codex et Vibe, par Internet, jetons personnels | passe : accès public en Knock | Certificat d'adresse IP de Let's Encrypt, `shortlived` ; pas un VPS vierge |
+| 27/10/2026 | Ubuntu 26.04 LTS amd64, VPS vierge chez OVH, `demo.cahut.cloud` | 0.9.4 | 20 s | 3 min, claude.ai | 30 s, depuis la console | Claude et ChatGPT, par OAuth : ChatGPT lit la house style, met à jour, revient à la version précédente | passe : accès public en Knock, approuvé ; chaque appel au Logbook avec son client | Certificat obtenu pendant l'installation ; `cahut doctor` : un avertissement, Ubuntu 26.04 non testé. Claude a refusé d'inventer les chiffres de la consigne : un aller-retour, compté dans les 3 min, et la consigne donne maintenant des chiffres. ChatGPT a d'abord répondu sans appeler `rollback_window`, absent du Logbook ; il l'a appelé à la seconde demande |
+| 27/10/2026 | AlmaLinux 10.2 arm64, Lima, SELinux en mode enforcing | `main` après 0.9.4 (cda2ec3) | 58 s | | | | | Test d'installation entier en 151 s : refus d'un compte `cahut` de personne, `install.sh`, `cahut doctor`, mise à jour, retour arrière ; sans domaine public ni certificat. Depuis #99, le test s'arrêtait à la création de ce compte : `useradd` ne trouvait plus d'UID subordonnés dans la machine de Lima |
+
+## Bilan
+
+Le 27 octobre 2026, les cinq critères passent sur un VPS Ubuntu vierge, avec la 0.9.4, Claude et ChatGPT : la V0 est acquise sur Ubuntu.
+
+AlmaLinux n'est couvert que par le test d'installation sous Lima, repassé le même jour sur AlmaLinux 10.2 avec SELinux en mode enforcing : sans domaine public, sans certificat et sans client d'IA. Le passage du 23 octobre sur le staging sous AlmaLinux ne compte pas : ce serveur n'était pas vierge. Un passage sur un VPS AlmaLinux vierge s'ajoutera au tableau quand il aura lieu.

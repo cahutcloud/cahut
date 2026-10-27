@@ -606,7 +606,7 @@ const fr: Dictionary = {
 				},
 				{
 					title: 'Deuxième client IA et recette',
-					text: "Un deuxième client d'IA testé de bout en bout, une revue de sécurité, et les critères de réussite vérifiés sur des serveurs vierges.",
+					text: "Un deuxième client d'IA testé de bout en bout, une revue de sécurité, et les critères de réussite vérifiés sur un serveur vierge.",
 				},
 				{
 					title: "L'envoi d'e-mails",
@@ -615,7 +615,7 @@ const fr: Dictionary = {
 			],
 			milestones: 'Les jalons sur GitHub',
 			todayTitle: "Ce qui marche aujourd'hui",
-			todayLead: "Les lots 0 à 9 sont faits. Aujourd'hui, dans une Cahut :",
+			todayLead: "Les lots 0 à 9 sont faits, et la première version a rempli les critères de réussite sur un serveur vierge. Aujourd'hui, dans une Cahut :",
 			today: [
 				"Une commande qui installe un serveur Linux, un premier démarrage dans le navigateur, et des mises à jour quotidiennes depuis les releases signées, avec retour arrière.",
 				"Un service sur un serveur Linux, qui porte une ou plusieurs Cahuts, chacune à son domaine avec son certificat, ou à l'adresse IPv4 du serveur tant qu'elle n'en a pas.",

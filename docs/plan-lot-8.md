@@ -166,7 +166,7 @@ Le lot 8 s'est achevé le 23 octobre 2026, en sept pull requests :
 
 **Reste à faire.**
 
-- **Le jalon V0** : la recette sur deux VPS vierges, AlmaLinux et Ubuntu, avec claude.ai et ChatGPT, en suivant [recette-v0.md](recette-v0.md). Elle demande les VPS, leurs domaines, et les comptes d'Olivier, dont un ChatGPT qui ajoute un serveur MCP personnalisé.
+- **Le jalon V0** : la recette sur deux VPS vierges, AlmaLinux et Ubuntu, avec claude.ai et ChatGPT, en suivant [recette-v0.md](recette-v0.md). Elle demande les VPS, leurs domaines, et les comptes d'Olivier, dont un ChatGPT qui ajoute un serveur MCP personnalisé. Faite le 27 octobre 2026 sur un VPS Ubuntu vierge, avec la 0.9.4 : les cinq critères passent. AlmaLinux n'est couvert que par le test d'installation sous Lima ([recette-v0.md](recette-v0.md#bilan)).
 - Brancher claude.ai au staging, et à `https://51.83.68.4/mcp`, pour savoir s'il accepte un serveur MCP à une adresse IP ; essayer Le Chat. Le Knock 1 de la Cahut à l'adresse IP attend une réponse jusqu'au 24 octobre ; cette Cahut a une personne, `olivier`, dont le lien d'activation n'a pas servi, et rien ne supprime encore une Cahut.
 - La décision sur le risque accepté par la revue, après la V0.
 - Toujours : Firefox et Safari ; ranger la clé privée des releases dans le gestionnaire de mots de passe d'Olivier.

@@ -28,7 +28,9 @@ answers() {
 }
 
 step "install.sh refuses an account named cahut that a person signs in with"
-useradd --create-home --shell /bin/sh cahut
+# Without subordinate IDs, which the AlmaLinux machine of Lima has none
+# left to give, and which the test does not need.
+useradd -K SUB_UID_COUNT=0 -K SUB_GID_COUNT=0 --create-home --shell /bin/sh cahut
 out=$(sh "$script" --binary "$a" --domain cahut.test --staging 2>&1) && fail "install.sh took the account cahut for the service"
 echo "$out"
 echo "$out" | grep -q "is not a system account" || fail "install.sh did not say why it refused the account cahut"
