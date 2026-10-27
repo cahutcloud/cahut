@@ -35,7 +35,7 @@ const t = words({
 		signOut: "Sign out",
 		signOutTitle: "Sign out",
 		sessionEnds: (when: string) => `Your session in this browser lasts until ${when} at the latest. Sign out to end it now.`,
-		bothEnd: " Signing out also ends your session as an administrator of the server. To end that one only, stop administering the server here.",
+		serverStays: " Your session as an administrator of the server stays open until you sign out of the server.",
 		serverTitle: "Administrator of the server",
 		serverHeld: (handle: string) => (
 			<>
@@ -43,7 +43,7 @@ const t = words({
 				pages of the server join the console. This account keeps its own password.
 			</>
 		),
-		leaveServer: "Stop administering the server here",
+		leaveServer: "Sign out of the server",
 		addServerTitle: "Administer the server",
 		addServer: "If you also administer this server, sign in with that account: the pages of the server join the console, and you stay signed in.",
 		addServerLink: "Sign in to the server",
@@ -126,7 +126,7 @@ const t = words({
 		signOut: "Se déconnecter",
 		signOutTitle: "Déconnexion",
 		sessionEnds: (when) => `Votre session dans ce navigateur dure jusqu'au ${when} au plus tard. Déconnectez-vous pour la terminer maintenant.`,
-		bothEnd: " La déconnexion met aussi fin à votre session d'administrateur du serveur. Pour ne fermer que celle-ci, cessez d'administrer le serveur ici.",
+		serverStays: " Votre session d'administrateur du serveur reste ouverte jusqu'à ce que vous vous déconnectiez du serveur.",
 		serverTitle: "Administrateur du serveur",
 		serverHeld: (handle) => (
 			<>
@@ -134,7 +134,7 @@ const t = words({
 				pages du serveur s'ajoutent à la console. Ce compte garde son propre mot de passe.
 			</>
 		),
-		leaveServer: "Ne plus administrer le serveur ici",
+		leaveServer: "Se déconnecter du serveur",
 		addServerTitle: "Administrer le serveur",
 		addServer:
 			"Si vous administrez aussi ce serveur, connectez-vous avec ce compte : les pages du serveur s'ajoutent à la console, sans vous déconnecter.",
@@ -253,7 +253,7 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 				<h2 class="c-h4">{t.signOutTitle}</h2>
 				<p class="c-small c-muted">
 					{t.sessionEnds(new Date(api.session.expiresAt).toLocaleString(locale, { dateStyle: "long", timeStyle: "short" }))}
-					{server && t.bothEnd}
+					{server && t.serverStays}
 				</p>
 				<div class="actions">
 					<button class="c-btn c-btn--secondary" type="button" onClick={onSignOut}>

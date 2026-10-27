@@ -167,14 +167,18 @@ function PersonOverview() {
 	);
 }
 
+/** The origin of the console of a Cahut of this server: each has its own, on the same port of its own domain. */
+export function originOf(domain: string): string {
+	return `${location.protocol}//${domain}${location.port ? `:${location.port}` : ""}`;
+}
+
 /** The Cahuts of the server, for its administrators. */
 export function ServerOverview() {
 	const api = useConsole();
 	const { data, error, reload } = useLoad(() => api.server("list_domains", {}));
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
-	// Each Cahut has its own console, on the same port of its own domain.
-	const origin = (domain: string) => `${location.protocol}//${domain}${location.port ? `:${location.port}` : ""}`;
+	const origin = originOf;
 	return (
 		<>
 			<PageHead label={t.thisServer} title={plural(data.cahuts.length, "Cahut", "Cahuts")}>
