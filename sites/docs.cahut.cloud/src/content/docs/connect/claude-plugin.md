@@ -26,7 +26,7 @@ Each Cahut serves the skill as a zip, at `https://<domain>/-/cahut-skill.zip`. T
 
 1. Download the skill.
 2. Upload it in the settings of Claude, where skills are added.
-3. Add your Cahut as a custom connector, with the address of its MCP endpoint: see [Connect an AI client](/connect/ai-clients/).
+3. Add your Cahut as a custom connector, with the address of its MCP endpoint: see [Connect an AI client](/connect/ai-clients/). On my.cahut.cloud, add My Cahut from the directory of Claude instead: see [Try Cahut on My Cahut](/start/my-cahut/#connect-claude).
 
 ## Ask
 

@@ -14,6 +14,8 @@ Cahut hosts what AIs make. It does not make it: the AIs stay outside, on your la
 5. **You share the link.** Readers open the Window in their browser. Its pages run in a sandbox, apart from the other Windows.
 6. **Every call is logged.** The Logbook of the Cahut records which AI acted, on whose behalf, what it did and with what result.
 
+Without a server, [My Cahut](/start/my-cahut/) at `my.cahut.cloud` takes the place of the first step: you sign up, and Claude finds My Cahut in its directory of connectors.
+
 ## One server, one or more Cahuts
 
 A server runs one `cahut` service, which holds one or more Cahuts. Each Cahut has its own domain, its own people and tokens, its own Windows and its own Logbook, and shares nothing else with the others. See [Cahuts and servers](/concepts/cahuts/).
