@@ -4,9 +4,9 @@
 
 export default {
 	meta: {
-		title: 'Cahut: the home for everything your AIs make',
+		title: 'Cahut: a home to publish, share and work together on what your AIs make',
 		description:
-			'Documents, slide decks, dashboards and small apps live online as living pages, in your house style, on your own server, whichever AI made them. Cahut is in early development.',
+			'Publish the documents, slide decks, dashboards and small apps your AIs make as pages at your address, share them by link and work on them as a team, on your own server, whichever AI made them. Cahut is in early development.',
 		imageAlt:
 			'Your own cloud for everything your AI makes. Documents, decks, dashboards and apps, in your house style, on your own server.',
 		locale: 'en_US',
@@ -47,8 +47,8 @@ export default {
 
 	hero: {
 		status: 'In early development: the first version works',
-		title: 'The home for everything your AIs make.',
-		lead: 'Documents, slide decks, dashboards and small apps live online as living pages, in your house style, whichever AI made them.',
+		title: 'A home to publish, share and work together on what your AIs make.',
+		lead: 'Documents, slide decks, dashboards and small apps, as pages at your address, in your house style, on your own server, whichever AI made them.',
 		install: 'Install on my server',
 		facts: ['On your server or on my.cahut.cloud', 'Any AI, over MCP', 'A link, not a file'],
 		caption: 'A document, a dashboard, a site and a picture join a cloud with an open door, lit from inside.',
@@ -128,24 +128,27 @@ export default {
 
 	why: {
 		label: 'Why Cahut',
-		title: 'The file is going away.',
-		lead: 'Word, PowerPoint and Excel were designed for humans who write, lay out and calculate by hand. When an AI produces the content, it naturally produces living pages, each with its own address.',
-		text: 'You no longer send an attachment, you share a link: the page updates, takes comments, keeps its versions, and exports to PDF or PowerPoint for whoever still needs a file.',
-		problemsTitle: 'Today, what AIs make has no home.',
+		title: "Today, what your AIs make stays at the AI's place.",
+		lead: 'A Claude link, a ChatGPT link, a Gamma deck: each lives on the service of the AI that made it. To publish it, share it or work on it with others, you turn it back into a file.',
+		text: 'The file is going away. Word, PowerPoint and Excel were designed for humans who write, lay out and calculate by hand. When an AI makes the content, a page at its own address does better: it updates, takes comments, keeps its versions, and exports to PDF or PowerPoint for whoever still needs a file.',
+		problemsTitle: 'Publish, share, work together: today, all three are hard.',
 		problems: [
 			{
 				title: 'Scattered',
-				text: 'A Claude link here, a ChatGPT link there, a Gamma deck somewhere else. Each AI keeps what it makes on its own service.',
+				text: 'A Claude link here, a ChatGPT link there, a Gamma deck somewhere else. Each AI keeps what it makes on its own service, so nothing is published in one place.',
 			},
 			{
 				title: 'Converted back',
-				text: 'For lack of anything better, the result is turned back into a PowerPoint or a Word file so it can be shared and filed.',
+				text: 'To share it, the result is turned back into a PowerPoint or a Word file, then attached and forwarded.',
 			},
 			{
 				title: 'Uncontrolled',
 				text: 'Who has access, until when, which version is the right one, where the data lives. Nobody really knows.',
 			},
-			{ title: 'Inconsistent', text: "Every AI has its own style, and the organization's brand gets lost." },
+			{
+				title: 'Inconsistent',
+				text: "Each person works with their own AI, in its own style. The team has no common place, and the organization's brand gets lost.",
+			},
 			{
 				title: 'Unguarded',
 				text: 'Handing a server to an AI means giving it a root shell, or going through a platform built for humans that it can barely use.',
@@ -174,9 +177,9 @@ export default {
 
 	statement: {
 		label: 'The idea',
-		title: 'Your AIs make it, Cahut keeps it alive.',
-		lead: 'Everything they produce is published, shared, organized and protected in one place, in your colors, on your server, whatever the AI.',
-		text: 'Cahut does not create content, it hosts it. It does not compete with AIs or creation tools: it is the neutral, self-hosted home where their work lives.',
+		title: 'Your AIs make it and publish it. You share it and work on it together.',
+		lead: 'Everything they produce lives in one place, as pages at your address, in your colors, on your server, whatever the AI.',
+		text: 'Cahut does not create content, it hosts it. It does not compete with AIs or creation tools: it is the neutral, self-hosted home where their work lives, and where your team works on it.',
 		layers: [
 			{
 				layer: 'Create',
@@ -185,10 +188,10 @@ export default {
 				tags: ['Claude', 'ChatGPT', 'Mistral', 'Copilot'],
 			},
 			{
-				layer: 'Keep and share',
+				layer: 'Publish, share, work together',
 				who: 'Cahut, on your server',
-				what: 'Publishing, links, permissions, versions, comments, search, export and the Logbook.',
-				tags: ['Publish', 'Share', 'Versions', 'Comments', 'Search', 'Export', 'Logbook'],
+				what: 'A page at your address, a link opened to the right people, Rooms where the team and its AIs work, versions, comments, search, export and the Logbook.',
+				tags: ['Publish', 'Share', 'Rooms', 'Versions', 'Comments', 'Search', 'Export', 'Logbook'],
 			},
 			{
 				layer: 'Look and feel',
@@ -227,7 +230,7 @@ export default {
 			{
 				title: 'Share',
 				heading: 'Share a link, not a file.',
-				text: 'Each Window opens to its Room only, to everyone in your Cahut, to anyone with its Key, or to the public. Readers open it in a browser and comment on it.',
+				text: 'Each Window opens to its Room only, to everyone in your Cahut, to anyone with its Key, or to the public. Your team reads it, comments on it, and asks the AI for the next version.',
 				call: 'set_window_access(window: "marketing/q3-review", access: "key")',
 			},
 			{
@@ -280,7 +283,7 @@ export default {
 	knock: {
 		label: 'Governance',
 		title: 'Knock first',
-		lead: 'The AI is the intended operator of Cahut, but never without guardrails. What can be undone, it does alone. What cannot waits for a human.',
+		lead: 'A home has a door. The AI is the intended operator of Cahut, but never without guardrails: what can be undone, it does alone. What cannot waits for a human.',
 		reversible: 'Reversible',
 		alone: 'The AI does it alone',
 		aloneItems: [
@@ -365,7 +368,7 @@ export default {
 	features: {
 		label: 'Features',
 		title: 'What ships at launch',
-		lead: 'The full scope ships at launch, with no reduced trial version. Today, the first version works: it installs on a server, connects Claude and ChatGPT, and publishes and shares documents, decks, dashboards and sites. Apps, comments, search, export, single sign-on and backups are the target.',
+		lead: 'The full scope ships at launch, with no reduced trial version. Today, the first version works: it installs on a server, connects Claude and ChatGPT, publishes and shares documents, decks, dashboards and sites, and gathers a team in Rooms. Apps, comments, search, export, single sign-on and backups are the target.',
 		groups: [
 			{
 				title: 'Publish',
@@ -399,8 +402,8 @@ export default {
 				],
 			},
 			{
-				title: 'Share',
-				text: 'A link, opened to the right people.',
+				title: 'Share and work together',
+				text: 'A link opened to the right people, and Rooms for the team.',
 				features: [
 					{
 						area: 'Sharing',
@@ -413,7 +416,7 @@ export default {
 					{ area: 'Comments', text: 'Reader feedback directly on the pages.' },
 					{
 						area: 'Users and Rooms',
-						text: 'The people of each Cahut and its admins, a personal Room for each person, team Rooms with owners and members.',
+						text: 'The people of each Cahut and its admins, a personal Room for each person, and team Rooms with owners and members, where people and their AIs work on the same Windows.',
 					},
 					{
 						area: 'Sign-in',
@@ -623,7 +626,7 @@ export default {
 	},
 
 	closing: {
-		title: 'Share a link, not a file.',
+		title: 'Publish it, share it, work on it together.',
 		lead: 'Cahut is built in the open, one step at a time. Follow the work on GitHub, or read in the docs how it fits together.',
 		github: 'Follow the work on GitHub',
 		docs: 'Read the docs',

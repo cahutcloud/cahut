@@ -5,9 +5,9 @@ import type { Dictionary } from './index';
 
 const fr: Dictionary = {
 	meta: {
-		title: 'Cahut : la maison de tout ce que fabriquent vos IA',
+		title: 'Cahut : une maison pour publier et partager ce que fabriquent vos IA, et y travailler ensemble',
 		description:
-			"Documents, présentations, tableaux de bord et petites applis deviennent des pages vivantes en ligne, à vos couleurs, sur votre propre serveur, quelle que soit l'IA qui les a faits. Cahut est en début de développement.",
+			"Publiez les documents, présentations, tableaux de bord et petites applis que fabriquent vos IA en pages à votre adresse, partagez-les par un lien et travaillez dessus en équipe, sur votre propre serveur, quelle que soit l'IA qui les a faits. Cahut est en début de développement.",
 		imageAlt:
 			'Votre propre nuage pour tout ce que fabriquent vos IA. Documents, présentations, tableaux de bord et applis, à vos couleurs, sur votre propre serveur.',
 		locale: 'fr_FR',
@@ -46,8 +46,8 @@ const fr: Dictionary = {
 
 	hero: {
 		status: 'En début de développement : la première version fonctionne',
-		title: 'La maison de tout ce que fabriquent vos IA.',
-		lead: "Documents, présentations, tableaux de bord et petites applis deviennent des pages vivantes en ligne, à vos couleurs, quelle que soit l'IA qui les a faits.",
+		title: 'Une maison pour publier et partager ce que fabriquent vos IA, et y travailler ensemble.',
+		lead: "Documents, présentations, tableaux de bord et petites applis, en pages à votre adresse, à vos couleurs, sur votre propre serveur, quelle que soit l'IA qui les a faits.",
 		install: 'Installer sur mon serveur',
 		facts: ['Sur votre serveur ou sur my.cahut.cloud', 'Toutes les IA, par MCP', 'Un lien, pas un fichier'],
 		caption:
@@ -124,24 +124,27 @@ const fr: Dictionary = {
 
 	why: {
 		label: 'Pourquoi Cahut',
-		title: "Le fichier s'efface.",
-		lead: 'Word, PowerPoint et Excel ont été conçus pour des humains qui écrivent, mettent en page et calculent à la main. Quand une IA produit le contenu, elle produit naturellement des pages vivantes, chacune à sa propre adresse.',
-		text: "Vous n'envoyez plus de pièce jointe, vous partagez un lien : la page se met à jour, reçoit des commentaires, garde ses versions, et s'exporte en PDF ou en PowerPoint pour qui a encore besoin d'un fichier.",
-		problemsTitle: "Aujourd'hui, ce que fabriquent les IA n'a pas de maison.",
+		title: "Aujourd'hui, ce que fabriquent vos IA reste chez l'IA.",
+		lead: "Un lien Claude, un lien ChatGPT, une présentation Gamma : chacun vit sur le service de l'IA qui l'a fait. Pour le publier, le partager ou y travailler à plusieurs, vous le retransformez en fichier.",
+		text: "Le fichier s'efface. Word, PowerPoint et Excel ont été conçus pour des humains qui écrivent, mettent en page et calculent à la main. Quand une IA fabrique le contenu, une page à sa propre adresse fait mieux : elle se met à jour, reçoit des commentaires, garde ses versions et s'exporte en PDF ou en PowerPoint pour qui a encore besoin d'un fichier.",
+		problemsTitle: "Publier, partager, travailler ensemble : aujourd'hui, les trois sont compliqués.",
 		problems: [
 			{
 				title: 'Éparpillé',
-				text: "Un lien Claude ici, un lien ChatGPT là, une présentation Gamma ailleurs. Chaque IA garde ce qu'elle fabrique sur son propre service.",
+				text: "Un lien Claude ici, un lien ChatGPT là, une présentation Gamma ailleurs. Chaque IA garde ce qu'elle fabrique sur son propre service : rien n'est publié au même endroit.",
 			},
 			{
 				title: 'Reconverti',
-				text: 'Faute de mieux, le résultat redevient un PowerPoint ou un Word pour pouvoir être partagé et rangé.',
+				text: 'Pour le partager, le résultat redevient un PowerPoint ou un Word, en pièce jointe, transféré de main en main.',
 			},
 			{
 				title: 'Hors de contrôle',
 				text: "Qui a accès, jusqu'à quand, quelle version est la bonne, où vivent les données. Personne ne le sait vraiment.",
 			},
-			{ title: 'Incohérent', text: "Chaque IA a son propre style, et la marque de l'organisation se perd." },
+			{
+				title: 'Incohérent',
+				text: "Chacun travaille avec sa propre IA, dans son propre style. L'équipe n'a pas d'endroit commun, et la marque de l'organisation se perd.",
+			},
 			{
 				title: 'Sans garde-fou',
 				text: "Confier un serveur à une IA, c'est lui donner un shell root, ou passer par une plateforme faite pour des humains, qu'elle sait à peine utiliser.",
@@ -171,9 +174,9 @@ const fr: Dictionary = {
 
 	statement: {
 		label: "L'idée",
-		title: 'Vos IA fabriquent, Cahut fait vivre.',
-		lead: "Tout ce qu'elles produisent est publié, partagé, rangé et protégé au même endroit, à vos couleurs, chez vous, quelle que soit l'IA.",
-		text: "Cahut ne crée pas de contenu, elle l'héberge. Elle ne concurrence ni les IA ni les outils de création : c'est la maison neutre et auto-hébergée où vit leur travail.",
+		title: 'Vos IA le fabriquent et le publient. Vous le partagez et y travaillez ensemble.',
+		lead: "Tout ce qu'elles produisent vit au même endroit, en pages à votre adresse, à vos couleurs, sur votre serveur, quelle que soit l'IA.",
+		text: "Cahut ne crée pas de contenu, elle l'héberge. Elle ne concurrence ni les IA ni les outils de création : c'est la maison neutre et auto-hébergée où leur travail vit, et où votre équipe travaille dessus.",
 		layers: [
 			{
 				layer: 'Créer',
@@ -182,10 +185,10 @@ const fr: Dictionary = {
 				tags: ['Claude', 'ChatGPT', 'Mistral', 'Copilot'],
 			},
 			{
-				layer: 'Garder et partager',
+				layer: 'Publier, partager, travailler ensemble',
 				who: 'Cahut, sur votre serveur',
-				what: 'Publication, liens, droits, versions, commentaires, recherche, export et Logbook.',
-				tags: ['Publier', 'Partager', 'Versions', 'Commentaires', 'Recherche', 'Export', 'Logbook'],
+				what: "Une page à votre adresse, un lien ouvert aux bonnes personnes, des Rooms où l'équipe et ses IA travaillent, les versions, les commentaires, la recherche, l'export et le Logbook.",
+				tags: ['Publier', 'Partager', 'Rooms', 'Versions', 'Commentaires', 'Recherche', 'Export', 'Logbook'],
 			},
 			{
 				layer: 'Apparence',
@@ -224,7 +227,7 @@ const fr: Dictionary = {
 			{
 				title: 'Partager',
 				heading: 'Partagez un lien, pas un fichier.',
-				text: "Chaque Window s'ouvre à sa Room seulement, à toute votre Cahut, à qui a sa Key, ou au public. Les lecteurs l'ouvrent dans un navigateur et la commentent.",
+				text: "Chaque Window s'ouvre à sa Room seulement, à toute votre Cahut, à qui a sa Key, ou au public. Votre équipe la lit, la commente et demande à l'IA la version suivante.",
 				call: 'set_window_access(window: "marketing/q3-review", access: "key")',
 			},
 			{
@@ -277,7 +280,7 @@ const fr: Dictionary = {
 	knock: {
 		label: 'Gouvernance',
 		title: 'Knock first',
-		lead: "L'IA est l'opératrice prévue de Cahut, mais jamais sans garde-fous. Ce qui s'annule, elle le fait seule. Ce qui ne s'annule pas attend un humain.",
+		lead: "Une maison a une porte. L'IA est l'opératrice prévue de Cahut, mais jamais sans garde-fous : ce qui s'annule, elle le fait seule. Ce qui ne s'annule pas attend un humain.",
 		reversible: 'Réversible',
 		alone: "L'IA le fait seule",
 		aloneItems: [
@@ -366,7 +369,7 @@ const fr: Dictionary = {
 	features: {
 		label: 'Fonctionnalités',
 		title: 'Ce qui sort au lancement',
-		lead: "Le périmètre complet sort au lancement, sans version d'essai réduite. Aujourd'hui, la première version fonctionne : elle s'installe sur un serveur, connecte Claude et ChatGPT, et publie et partage documents, présentations, tableaux de bord et sites. Les applis, les commentaires, la recherche, l'export, l'authentification unique et les sauvegardes sont la cible.",
+		lead: "Le périmètre complet sort au lancement, sans version d'essai réduite. Aujourd'hui, la première version fonctionne : elle s'installe sur un serveur, connecte Claude et ChatGPT, publie et partage documents, présentations, tableaux de bord et sites, et réunit une équipe dans des Rooms. Les applis, les commentaires, la recherche, l'export, l'authentification unique et les sauvegardes sont la cible.",
 		groups: [
 			{
 				title: 'Publier',
@@ -403,8 +406,8 @@ const fr: Dictionary = {
 				],
 			},
 			{
-				title: 'Partager',
-				text: 'Un lien, ouvert aux bonnes personnes.',
+				title: 'Partager et travailler ensemble',
+				text: "Un lien ouvert aux bonnes personnes, et des Rooms pour l'équipe.",
 				features: [
 					{
 						area: 'Partage',
@@ -417,7 +420,7 @@ const fr: Dictionary = {
 					{ area: 'Commentaires', text: 'Les retours des lecteurs, directement sur les pages.' },
 					{
 						area: 'Personnes et Rooms',
-						text: "Les personnes de chaque Cahut et ses administrateurs, une Room personnelle pour chacun, des Rooms d'équipe avec propriétaires et membres.",
+						text: "Les personnes de chaque Cahut et ses administrateurs, une Room personnelle pour chacun, et des Rooms d'équipe avec propriétaires et membres, où les personnes et leurs IA travaillent sur les mêmes Windows.",
 					},
 					{
 						area: 'Connexion',
@@ -646,7 +649,7 @@ const fr: Dictionary = {
 	},
 
 	closing: {
-		title: 'Partagez un lien, pas un fichier.',
+		title: 'Publiez-le, partagez-le, travaillez dessus ensemble.',
 		lead: "Cahut se construit en public, une étape après l'autre. Suivez le projet sur GitHub, ou lisez dans la documentation comment il s'assemble.",
 		github: 'Suivre le projet sur GitHub',
 		docs: 'Lire la documentation',
