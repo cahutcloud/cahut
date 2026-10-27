@@ -1,11 +1,11 @@
 ---
-// The two ways to a Cahut, at the top of the quick start: my.cahut.cloud,
-// which Olivier Durand hosts apart from the project, to try Cahut with limits,
-// or one's own server, with every feature, whose commands follow in the quick
-// start.
+// The two ways to a Cahut, at the top of the quick start: My Cahut, at
+// my.cahut.cloud, which Tetra7 offers in support of the project, to try Cahut
+// with limits, or one's own server, with every feature, whose commands follow
+// in the quick start.
 import Icon from '../Icon.astro';
 import { useTranslations, type Lang } from '../../i18n';
-import { signInURL, signupURL } from '../../links';
+import { claudeDirectoryURL, signInURL, signupURL, tetra7URL } from '../../links';
 
 interface Props {
 	lang: Lang;
@@ -53,11 +53,21 @@ const docsLang = lang === 'en' ? undefined : 'en';
 				))
 			}
 		</ol>
+		<div class="door__claude">
+			<Icon name="search" />
+			<p>
+				{t.hosted.claude.text}{' '}
+				<a href={claudeDirectoryURL}>{t.hosted.claude.link} <Icon name="arrow-right" size={14} /></a>
+			</p>
+		</div>
 		<div class="door__actions">
 			<a class="c-btn c-btn--primary" href={signupURL(lang)}>{base.account.signup} <Icon name="arrow-right" /></a>
 			<a class="door__link" href={signInURL}>{t.hosted.member}</a>
 		</div>
-		<p class="door__fine">{t.hosted.fine}</p>
+		<div class="door__fine">
+			<p>{t.hosted.fine}</p>
+			<p>{t.hosted.by[0]}<a href={tetra7URL}>Tetra7</a>{t.hosted.by[1]}</p>
+		</div>
 	</article>
 
 	<article class="door" aria-labelledby="door-server">
@@ -207,6 +217,29 @@ const docsLang = lang === 'en' ? undefined : 'en';
 		font-weight: var(--weight-semibold);
 	}
 
+	/* Claude finds My Cahut in its directory: no address to copy. */
+	.door__claude {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--radius-md);
+		background: var(--color-accent-soft);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	.door__claude > :global(.i) {
+		flex: none;
+		margin-top: 2px;
+		color: var(--color-info);
+	}
+	.door__claude a {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
+		font-weight: var(--weight-semibold);
+	}
+
 	/* The buttons sit at the bottom of each door, whatever the door holds. */
 	.door__actions {
 		display: flex;
@@ -225,6 +258,8 @@ const docsLang = lang === 'en' ? undefined : 'en';
 		line-height: var(--leading-sm);
 	}
 	.door__fine {
+		display: grid;
+		gap: var(--space-2);
 		padding-top: var(--space-5);
 		border-top: var(--border-width) solid var(--color-border);
 		color: var(--color-text-muted);

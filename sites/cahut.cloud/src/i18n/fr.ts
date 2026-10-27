@@ -31,6 +31,7 @@ const fr: Dictionary = {
 		signature: 'Votre propre nuage pour tout ce que fabriquent vos IA.',
 		about:
 			"Cahut est un projet open source personnel d'Olivier Durand, indépendant de toute entreprise et de tout fournisseur d'IA. Elle est en début de développement.",
+		hosted: ['My Cahut, à my.cahut.cloud, est offerte par ', ' en soutien au projet.'],
 		theme: { dark: 'Passer au thème sombre', light: 'Passer au thème clair', short: 'Thème' },
 		language: { label: 'English version', short: 'EN' },
 		github: 'Cahut sur GitHub',
@@ -62,12 +63,20 @@ const fr: Dictionary = {
 			label: 'Sans serveur',
 			badge: 'Gratuit · places limitées',
 			title: 'Votre Cahut en deux minutes, à votre nom.',
-			text: "Le moyen le plus rapide d'essayer Cahut, sans engagement. Rien à installer ni à administrer : votre Cahut vous attend en ligne, et votre IA y publie pour vous.",
+			text: "Le moyen le plus rapide d'essayer Cahut, sans engagement. Rien à installer ni à administrer : avec My Cahut, votre Cahut vous attend en ligne, et votre IA y publie pour vous.",
 			example: { handle: 'helene', window: 'voyage-lisbonne' },
 			address: "Votre pseudo devient l'adresse de vos Windows.",
 			steps: ['Un e-mail et un pseudo', 'Votre IA connectée : Claude ou Le Chat', 'Votre première Window, en ligne'],
+			claude: {
+				text: 'Dans Claude, rien à copier : cherchez My Cahut dans son catalogue de connecteurs.',
+				link: 'Ouvrir My Cahut dans Claude',
+			},
 			member: 'Déjà membre ? Ouvrir my.cahut.cloud',
-			fine: "Fonctionnalités limitées : pas de Rooms d'équipe, un espace disque limité, et un nombre limité de Rooms et de Windows. Un service hébergé en France par Olivier Durand, à part du projet open source.",
+			fine: "Fonctionnalités limitées : pas de Rooms d'équipe, un espace disque limité, et un nombre limité de Rooms et de Windows.",
+			by: [
+				'My Cahut est offerte par ',
+				", qui l'héberge en France pour soutenir le projet. Le projet open source reste un projet personnel d'Olivier Durand.",
+			],
 		},
 		server: {
 			label: 'Sur votre serveur',
