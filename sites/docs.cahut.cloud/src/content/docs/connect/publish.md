@@ -77,6 +77,7 @@ Every publication declares what its pages do, and Cahut lets them do that and no
 
 - An origin is `https://` or `wss://`, a host and an optional port, without a path. Each list holds 20 origins at most.
 - The files of the Window, and the house style under `/-/`, need no origin: they come from the Cahut, which the policy always allows. A deck that uses the engine declares `scripts`.
+- The `data:` and `blob:` URLs that the pages make need no origin either: a 3D model whose textures three.js reads from `blob:` URLs, as it does for a `.glb` file, loads as it is.
 - A page that loads from an origin it did not declare does not get it: the browser blocks the request, and the console of the browser says so. Declare every origin, or put the files in the Window.
 - A deck that only shows text and images declares `{"scripts": false}`: it can then call nothing at all.
 
