@@ -5,7 +5,7 @@ import type { Dictionary } from './index';
 
 const fr: Dictionary = {
 	meta: {
-		title: 'Cahut : une maison pour publier et partager ce que fabriquent vos IA, et y travailler ensemble',
+		title: 'Cahut : une maison pour publier et partager ce que fabriquent vos IA',
 		description:
 			"Publiez les documents, présentations, tableaux de bord et petites applis que fabriquent vos IA en pages à votre adresse, partagez-les par un lien et travaillez dessus en équipe, sur votre propre serveur, quelle que soit l'IA qui les a faits. Cahut est en début de développement.",
 		imageAlt:
@@ -46,7 +46,7 @@ const fr: Dictionary = {
 
 	hero: {
 		status: 'En début de développement : la première version fonctionne',
-		title: 'Une maison pour publier et partager ce que fabriquent vos IA, et y travailler ensemble.',
+		title: 'Une maison pour publier et partager ce que fabriquent vos IA.',
 		lead: "Documents, présentations, tableaux de bord et petites applis, en pages à votre adresse, à vos couleurs, sur votre propre serveur, quelle que soit l'IA qui les a faits.",
 		install: 'Installer sur mon serveur',
 		facts: ['Sur votre serveur ou sur my.cahut.cloud', 'Toutes les IA, par MCP', 'Un lien, pas un fichier'],
