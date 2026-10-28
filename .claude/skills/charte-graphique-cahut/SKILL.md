@@ -5,7 +5,7 @@ description: Charte graphique et ton de Cahut, la maison auto-hébergée de ce q
 
 # Charte graphique Cahut
 
-Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.6 du 25 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
+Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.7 du 28 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
 
 Dans ce document, les chemins partent de la racine du dépôt et **`charte/`** désigne `docs/charte-graphique/`.
 
@@ -118,7 +118,7 @@ Les textes du produit, du site et des visuels sont **en anglais**, langue du lan
 - Casse de phrase pour les titres, boutons et menus. Chiffres en chiffres.
 - **Cahut** avec une capitale dans le texte, jamais « CAHUT » ; « cahut » en minuscules seulement dans le logo.
 - En français, Cahut est féminin, le produit comme chaque instance : « une Cahut », « votre Cahut est prête », « Cahut accueille le travail, elle ne le crée pas ».
-- Signature : *Your own cloud for everything your AI makes.*
+- Signature : *Your home to publish and share what your AIs make.* En français : *Votre maison pour publier et partager ce que fabriquent vos IA.*
 
 | Écrire | Éviter |
 |---|---|

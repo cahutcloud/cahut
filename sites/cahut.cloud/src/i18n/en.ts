@@ -8,7 +8,7 @@ export default {
 		description:
 			'Publish the documents, slide decks, dashboards and small apps your AIs make as pages at your address, share them by link and work on them as a team, on your own server, whichever AI made them. Cahut is in early development.',
 		imageAlt:
-			'Your own cloud for everything your AI makes. Documents, decks, dashboards and apps, in your house style, on your own server.',
+			'Your home to publish and share what your AIs make. Documents, decks, dashboards and apps, on your own server.',
 		locale: 'en_US',
 	},
 
@@ -28,7 +28,7 @@ export default {
 			github: 'GitHub',
 		},
 		footer: { cahut: 'Cahut', project: 'Project', follow: 'Follow' },
-		signature: 'Your own cloud for everything your AI makes.',
+		signature: 'Your home to publish and share what your AIs make.',
 		about:
 			'Cahut is a personal open source project by Olivier Durand, independent of any company and of any AI vendor. It is in early development.',
 		// Around the link to Tetra7.
