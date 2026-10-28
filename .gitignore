@@ -16,5 +16,7 @@ node_modules/
 /sites/*/dist/
 /sites/*/.astro/
 
-# Local working folder of each contributor
+# Local working folders of each contributor: .workshop at the root,
+# .private anywhere, such as docs/.private
 /.workshop/
+.private/
