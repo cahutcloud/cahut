@@ -9,6 +9,9 @@ export function signupURL(lang: Lang): string {
 	return `https://account.cahut.cloud/${lang}/signup`;
 }
 
+/** My Cahut itself, which its members open. */
+export const myCahutURL = 'https://my.cahut.cloud/';
+
 /** Where the members of my.cahut.cloud sign in. */
 export const signInURL = 'https://my.cahut.cloud/console/';
 

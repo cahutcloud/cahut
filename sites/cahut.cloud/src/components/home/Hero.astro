@@ -1,27 +1,50 @@
 ---
-// The top of the home page: the promise, and the open house of the brand
-// guidelines, whose Windows fly in and whose door lights up.
+// The top of the home page: you ask, your AI publishes, you share. Beside the
+// title, a scene plays it with the demos of demo.cahut.cloud: a request is
+// typed, the AI publishes the Window, then knocks to make it public.
+import { getImage } from 'astro:assets';
 import Icon from '../Icon.astro';
+import { examples, bare } from './examples';
 import { useTranslations, type Lang } from '../../i18n';
-import { signupURL } from '../../links';
+import { signupURL, myCahutURL } from '../../links';
 import clouds from '@charte/illustrations/motif-nuages.svg?url';
-import house from '@charte/illustrations/maison-ouverte.svg?raw';
+import knockPicto from '@charte/icones/knock-first.svg?raw';
 
 interface Props {
 	lang: Lang;
 }
 
 const { lang } = Astro.props;
-const { hero: t, base } = useTranslations(lang);
+const { hero: t, base, examples: words, vocabulary } = useTranslations(lang);
 const account = base.account;
 
-// The illustration is drawn from its file as it is. Its French title would be
-// read out as is: the figure around it gives the description.
-const art = house
-	.replace(/<title>.*?<\/title>/, '')
-	.replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true" focusable="false"');
-
 const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon, text: t.facts[index] }));
+
+// Each word of the title rises in turn, line after line.
+let count = 0;
+const lines = t.title.map((line) => line.split(' ').map((word) => ({ word, index: count++ })));
+
+// The four demos that play, with their request and their first screen.
+const scenes = await Promise.all(
+	examples.slice(0, 4).map(async ({ url, room, image }, index) => ({
+		prompt: words.items[index].prompt,
+		url: bare(url),
+		room,
+		image: (await getImage({ src: image, width: 1200, format: 'webp' })).src,
+	})),
+);
+
+const access = [
+	{ id: 'room', icon: 'lock', label: vocabulary.accessLabels.room },
+	{ id: 'internal', icon: 'users', label: vocabulary.accessLabels.internal },
+	{ id: 'key', icon: 'key-round', label: vocabulary.accessLabels.key },
+	{ id: 'public', icon: 'globe', label: vocabulary.accessLabels.public },
+] as const;
+
+const picto = knockPicto
+	.replace(/<title>.*?<\/title>/, '')
+	.replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true" focusable="false"')
+	.replace(/ color="[^"]*"/, '');
 ---
 
 <section class="hero" aria-labelledby="hero-title">
@@ -35,12 +58,16 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 			</a>
 			<h1 id="hero-title" class="c-display hero__title">
 				{
-					t.title.split(' ').map((word, index) => (
-						<>
-							<span class="word">
-								<span style={`--i: ${index}`}>{word}</span>
-							</span>{' '}
-						</>
+					lines.map((line, number) => (
+						<span class:list={['hero__line', { 'hero__line--last': number === lines.length - 1 }]}>
+							{line.map(({ word, index }) => (
+								<>
+									<span class="word">
+										<span style={`--i: ${index}`}>{word}</span>
+									</span>{' '}
+								</>
+							))}
+						</span>
 					))
 				}
 			</h1>
@@ -49,7 +76,12 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 				<a class="c-btn c-btn--primary" href={signupURL(lang)}>{account.signup} <Icon name="arrow-right" /></a>
 				<a class="c-btn c-btn--secondary" href="#quickstart">{t.install} <Icon name="arrow-down" /></a>
 			</div>
-			<p class="hero__free">{account.free}</p>
+			<div class="hero__under">
+				<p class="hero__free">{account.free}</p>
+				<p class="hero__member">
+					<a href={myCahutURL}>{account.member} <Icon name="arrow-up-right" size={14} /></a>
+				</p>
+			</div>
 			<ul class="hero__facts" role="list">
 				{
 					facts.map(({ icon, text }) => (
@@ -62,22 +94,69 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 			</ul>
 		</div>
 
-		<figure class="hero__art">
-			<div class="hero__panel">
-				<div class="hero__scene" set:html={art} />
+		<div
+			class="stage"
+			data-stage
+			data-scenes={JSON.stringify(scenes)}
+			data-approve={t.stage.approve}
+			data-approved={t.stage.approved}
+		>
+			<p class="visually-hidden">{t.stage.label}</p>
+			<div class="stage__browser" aria-hidden="true">
+				<div class="stage__bar">
+					<span class="stage__dots"><i></i><i></i><i></i></span>
+					<span class="stage__address"><Icon name="lock" size={12} /><span class="c-mono" data-scene-address></span></span>
+				</div>
+				<div class="stage__view">
+					<span class="stage__skeleton"></span>
+					<img alt="" data-scene-shot />
+				</div>
 			</div>
-			<figcaption class="visually-hidden">{t.caption}</figcaption>
-			<div class="hero__chip hero__chip--address" aria-hidden="true">
-				<Icon name="lock" size={14} />
-				<span class="c-mono">cahut.example.com/marketing/q3-review</span>
+			<div class="stage__chat" aria-hidden="true">
+				<p class="stage__head">
+					<span class="stage__ai"></span>{t.stage.ai}<span class="stage__clients">{t.stage.clients}</span>
+				</p>
+				<div class="stage__messages">
+					<p class="bubble bubble--you" data-scene-prompt></p>
+					<div class="bubble bubble--ai" data-scene-reply hidden>
+						<p class="bubble__busy" data-scene-busy><span class="spinner"></span>{t.stage.publishing}</p>
+						<p data-scene-done hidden>
+							{t.stage.online} <strong data-scene-room></strong>{lang === 'fr' ? ' :' : ':'}<br /><span
+								class="c-mono bubble__url"
+								data-scene-url></span>
+						</p>
+					</div>
+				</div>
 			</div>
-			<div class="hero__chip hero__chip--log" aria-hidden="true">
-				<span class="c-mono c-muted">09:14</span>
-				<span class="c-ai"><span class="c-ai__mark">Cl</span>Claude</span>
-				<span>{t.log.action} <b>Q3 review</b></span>
-				<span class="c-badge c-badge--success">{t.log.done}</span>
+			<div class="stage__share" aria-hidden="true">
+				<p class="c-label">{t.stage.access}</p>
+				<ul class="stage__access" role="list">
+					{
+						access.map(({ id, icon, label }) => (
+							<li class={`c-badge c-badge--${id}`} data-scene-access={id}>
+								<Icon name={icon} size={14} />
+								{label}
+							</li>
+						))
+					}
+				</ul>
+				<div class="stage__knock" data-scene-knock hidden>
+					<span class="stage__picto" set:html={picto} />
+					<p><strong>Knock first.</strong> {t.stage.knock}</p>
+					<span class="stage__approve" data-scene-approve-button>{t.stage.approve}</span>
+				</div>
 			</div>
-		</figure>
+			<div class="stage__controls">
+				<div class="stage__steps" role="group" aria-label={t.stage.example}>
+					{
+						scenes.map((_, index) => (
+							<button type="button" data-scene-step={index} aria-label={`${t.stage.example} ${index + 1}`} />
+						))
+					}
+				</div>
+				<a class="stage__more" href="#examples">{t.stage.more} <Icon name="arrow-down" size={14} /></a>
+			</div>
+		</div>
 	</div>
 </section>
 
@@ -102,9 +181,9 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 
 	.hero__grid {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		grid-template-columns: minmax(0, 11fr) minmax(0, 13fr);
 		align-items: center;
-		gap: var(--space-16);
+		gap: var(--space-12);
 		padding-block: var(--space-16) var(--space-24);
 	}
 
@@ -150,9 +229,16 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 	}
 
 	.hero__title {
-		font-size: clamp(var(--text-4xl), 5.4vw, var(--text-5xl));
+		font-size: clamp(var(--text-4xl), 4.4vw, var(--text-5xl));
 		line-height: 1.12;
-		max-width: 12em;
+	}
+	.hero__line {
+		display: block;
+	}
+	/* The last line, what you do with it, is marked as with a highlighter. */
+	.hero__line--last {
+		display: inline-block;
+		background: linear-gradient(transparent 60%, var(--color-accent-soft) 60%);
 	}
 	/* Each word rises out of its own line. */
 	.word {
@@ -185,12 +271,30 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 		padding-inline: var(--space-5);
 		font-size: var(--text-base);
 	}
-	/* What the first button costs, right under it. */
-	.hero__free {
-		margin: calc(-1 * var(--space-3)) 0 0;
-		color: var(--color-text-muted);
+	/* What the first button costs, and the way in for its members, right under it. */
+	.hero__under {
+		display: grid;
+		gap: var(--space-1);
+		margin-top: calc(-1 * var(--space-3));
 		font-size: var(--text-sm);
 		line-height: var(--leading-sm);
+	}
+	.hero__under p {
+		margin: 0;
+	}
+	.hero__free {
+		color: var(--color-text-muted);
+	}
+	.hero__member a {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
+		font-weight: var(--weight-semibold);
+		text-decoration: none;
+	}
+	.hero__member a:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
 	}
 
 	.hero__facts {
@@ -210,68 +314,307 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 		gap: var(--space-2);
 	}
 
-	/* The art */
-	.hero__art {
+	/* The scene: a browser, the AI that publishes into it, and the access of the Window. */
+	.stage {
 		position: relative;
-		margin: 0;
+		min-height: 640px;
 	}
-	.hero__panel {
+	.stage__browser,
+	.stage__chat,
+	.stage__share {
 		border: var(--border-width) solid var(--color-border);
-		border-radius: var(--radius-xl);
-		background: var(--cahut-white);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
 		box-shadow: var(--shadow-lg);
+	}
+	.stage__browser {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 88%;
 		overflow: hidden;
 	}
-	.hero__scene :global(svg) {
-		display: block;
-		width: 100%;
-		height: auto;
+	.stage__chat {
+		position: absolute;
+		top: 190px;
+		left: 0;
+		z-index: 2;
+		width: 52%;
+	}
+	.stage__share {
+		position: absolute;
+		top: 400px;
+		right: var(--space-4);
+		z-index: 3;
+		width: 58%;
+		padding: var(--space-4);
 	}
 
-	.hero__chip {
-		position: absolute;
+	.stage__bar {
 		display: flex;
 		align-items: center;
-		gap: var(--space-2);
+		gap: var(--space-3);
 		padding: var(--space-2) var(--space-3);
-		border: var(--border-width) solid var(--color-border);
-		border-radius: var(--radius-md);
+		border-bottom: var(--border-width) solid var(--color-border);
+		background: var(--color-surface-muted);
+	}
+	.stage__dots {
+		display: flex;
+		gap: 6px;
+	}
+	.stage__dots i {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		background: var(--color-border-strong);
+	}
+	.stage__address {
+		display: flex;
+		flex: 1;
+		align-items: center;
+		gap: var(--space-2);
+		min-width: 0;
+		padding: var(--space-1) var(--space-3);
+		border-radius: var(--radius-pill);
 		background: var(--color-surface);
-		color: var(--color-text);
-		box-shadow: var(--shadow-md);
+		color: var(--color-text-muted);
 		font-size: var(--text-xs);
 		line-height: var(--leading-xs);
 		white-space: nowrap;
 	}
-	.hero__chip--address {
-		top: 7%;
-		left: calc(-1 * var(--space-8));
+	.stage__address .c-mono {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		min-height: 1em;
 	}
-	.hero__chip--address :global(.i) {
-		color: var(--color-success);
+	.stage__view {
+		position: relative;
+		aspect-ratio: 16 / 10;
+		background: var(--color-surface-muted);
+		overflow: hidden;
 	}
-	.hero__chip--log {
-		right: calc(-1 * var(--space-6));
-		bottom: 9%;
-		gap: var(--space-3);
+	/* A page waiting for its content, before the Window arrives. */
+	.stage__skeleton {
+		position: absolute;
+		inset: 0;
+		opacity: 0.7;
+		background:
+			linear-gradient(var(--color-border) 0 0) 8% 14% / 40% 8% no-repeat,
+			linear-gradient(var(--color-border) 0 0) 8% 30% / 60% 4% no-repeat,
+			linear-gradient(var(--color-border) 0 0) 8% 38% / 52% 4% no-repeat,
+			linear-gradient(var(--color-border) 0 0) 8% 70% / 26% 18% no-repeat,
+			linear-gradient(var(--color-border) 0 0) 38% 70% / 26% 18% no-repeat,
+			linear-gradient(var(--color-border) 0 0) 68% 70% / 26% 18% no-repeat;
+	}
+	.stage__view img {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: top;
+		clip-path: inset(0 0 100% 0);
+		transition: clip-path 900ms var(--ease-out);
+	}
+	.stage__view img.is-shown {
+		clip-path: inset(0 0 0 0);
+	}
+
+	.stage__head {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		margin: 0;
 		padding: var(--space-3) var(--space-4);
+		border-bottom: var(--border-width) solid var(--color-border);
+		font-size: var(--text-sm);
+		font-weight: var(--weight-semibold);
+	}
+	.stage__ai {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--color-accent);
+	}
+	.stage__clients {
+		margin-left: auto;
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+		font-weight: var(--weight-regular);
+	}
+	.stage__messages {
+		display: grid;
+		align-content: start;
+		gap: var(--space-3);
+		min-height: 196px;
+		padding: var(--space-4);
+	}
+	.bubble {
+		max-width: 92%;
+		margin: 0;
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--radius-lg);
 		font-size: var(--text-sm);
 		line-height: var(--leading-sm);
 	}
+	.bubble p {
+		margin: 0;
+	}
+	.bubble--you {
+		justify-self: end;
+		min-height: 2.6em;
+		border-bottom-right-radius: var(--radius-xs);
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+	}
+	.bubble--you:empty:not(.is-typing) {
+		visibility: hidden;
+	}
+	.bubble--you.is-typing::after {
+		content: '';
+		display: inline-block;
+		width: 2px;
+		height: 1em;
+		margin-left: 2px;
+		vertical-align: -2px;
+		background: currentColor;
+		animation: caret 1s steps(1) infinite;
+	}
+	.bubble--ai {
+		justify-self: start;
+		border-bottom-left-radius: var(--radius-xs);
+		background: var(--color-surface-muted);
+	}
+	.bubble__busy {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		color: var(--color-text-muted);
+	}
+	.spinner {
+		flex: none;
+		width: 14px;
+		height: 14px;
+		border: 2px solid var(--color-border-strong);
+		border-top-color: var(--color-text);
+		border-radius: 50%;
+		animation: spin 800ms linear infinite;
+	}
+	.bubble__url {
+		color: var(--color-link);
+		font-size: var(--text-xs);
+		word-break: break-all;
+	}
+	[hidden] {
+		display: none !important;
+	}
 
-	/* In the dark, the illustration keeps its light panel: it has no dark version. */
+	.stage__share .c-label {
+		margin: 0 0 var(--space-2);
+	}
+	.stage__access {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	/* The access of the Window: the current one stands out, the others wait. */
+	.stage__access li {
+		opacity: 0.4;
+		transition: opacity var(--duration-slow) var(--ease-out);
+	}
+	.stage__access li.is-on {
+		opacity: 1;
+		box-shadow: var(--ring);
+	}
+	.stage__knock {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		align-items: center;
+		gap: var(--space-3);
+		margin-top: var(--space-3);
+		padding: var(--space-3);
+		border: var(--border-width) solid var(--color-warning-border);
+		border-left-width: 4px;
+		border-radius: var(--radius-md);
+		background: var(--color-highlight-soft);
+	}
+	.stage__knock p {
+		margin: 0;
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+	}
+	.stage__picto :global(svg) {
+		display: block;
+		width: 32px;
+		height: 32px;
+	}
+	.stage__approve {
+		padding: var(--space-1) var(--space-3);
+		border-radius: var(--radius-sm);
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+		font-size: var(--text-xs);
+		font-weight: var(--weight-semibold);
+		white-space: nowrap;
+		transition:
+			scale var(--duration-fast),
+			background var(--duration-base);
+	}
+	.stage__approve.is-pressed {
+		scale: 0.94;
+	}
+	.stage__approve.is-done {
+		background: var(--color-success);
+		color: var(--color-success-bg);
+	}
+
+	.stage__controls {
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+	}
+	.stage__steps {
+		display: flex;
+		gap: var(--space-2);
+	}
+	.stage__steps button {
+		width: 28px;
+		height: 6px;
+		padding: 0;
+		border: 0;
+		border-radius: var(--radius-pill);
+		background: var(--color-border-strong);
+		cursor: pointer;
+	}
+	.stage__steps button[aria-current='true'] {
+		background: var(--color-text);
+	}
+	.stage__more {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
+		margin-left: auto;
+		font-size: var(--text-sm);
+		font-weight: var(--weight-semibold);
+		text-decoration: none;
+	}
+	.stage__more:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
 	@media (prefers-color-scheme: dark) {
-		:global(:root:not([data-theme='light'])) .hero__panel {
-			background: var(--cahut-paper);
-			border-color: var(--color-border-strong);
-		}
 		:global(:root:not([data-theme='light'])) .hero__sky {
 			opacity: 0.05;
 		}
-	}
-	:global(:root[data-theme='dark']) .hero__panel {
-		background: var(--cahut-paper);
-		border-color: var(--color-border-strong);
 	}
 	:global(:root[data-theme='dark']) .hero__sky {
 		opacity: 0.05;
@@ -301,7 +644,7 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 		:global(.js) .hero__status,
 		:global(.js) .hero__lead,
 		:global(.js) .hero__actions,
-		:global(.js) .hero__free,
+		:global(.js) .hero__under,
 		:global(.js) .hero__facts {
 			opacity: 0;
 			animation: appear 800ms var(--ease-out) forwards;
@@ -315,79 +658,20 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 		:global(.js) .hero__actions {
 			animation-delay: 800ms;
 		}
-		:global(.js) .hero__free {
+		:global(.js) .hero__under {
 			animation-delay: 880ms;
 		}
 		:global(.js) .hero__facts {
 			animation-delay: 950ms;
 		}
-
-		.hero__panel {
+		.stage {
 			animation: appear 1s var(--ease-out) 200ms both;
 		}
-
-		/* The parts of the illustration, in the order of its file. */
-		.hero__scene > :global(svg > circle) {
-			animation: sun 1.8s var(--ease-out) 400ms both;
+		.bubble--ai {
+			animation: pop 400ms var(--ease-out);
 		}
-		.hero__scene > :global(svg > path:not([stroke-dasharray])) {
-			animation: hills 1.4s var(--ease-out) 250ms both;
-		}
-		.hero__scene > :global(svg > path[stroke-dasharray]) {
-			animation:
-				appear 600ms var(--ease-out) 1.5s both,
-				flow 1.2s linear infinite;
-		}
-		.hero__scene > :global(svg > g:first-of-type > path:first-child) {
-			animation: appear 900ms var(--ease-out) 700ms both;
-		}
-		.hero__scene > :global(svg > g:first-of-type > path:last-child) {
-			stroke-dasharray: 1000;
-			animation: draw 1.8s var(--ease-in-out) 350ms both;
-		}
-		/* The door lights up once the Windows are in. */
-		.hero__scene > :global(svg > g:first-of-type > path:nth-child(2)) {
-			animation:
-				appear 700ms var(--ease-out) 2.1s both,
-				glow 4s ease-in-out 3s infinite alternate;
-		}
-		.hero__scene > :global(svg > g:not(:first-of-type)) {
-			animation:
-				arrive 1.3s var(--ease-out) var(--arrive) both,
-				float var(--float) ease-in-out calc(var(--arrive) + 1.3s) infinite alternate;
-		}
-		.hero__scene > :global(svg > g:nth-of-type(2)) {
-			--from: -180px 40px;
-			--arrive: 800ms;
-			--float: 6s;
-		}
-		.hero__scene > :global(svg > g:nth-of-type(3)) {
-			--from: 180px 30px;
-			--arrive: 1050ms;
-			--float: 7s;
-		}
-		.hero__scene > :global(svg > g:nth-of-type(4)) {
-			--from: -160px 120px;
-			--arrive: 950ms;
-			--float: 6.5s;
-		}
-		.hero__scene > :global(svg > g:nth-of-type(5)) {
-			--from: 160px -80px;
-			--arrive: 1150ms;
-			--float: 5.5s;
-		}
-
-		.hero__chip {
-			animation:
-				pop 700ms var(--ease-out) var(--pop) both,
-				bob 6s ease-in-out calc(var(--pop) + 700ms) infinite alternate;
-		}
-		.hero__chip--address {
-			--pop: 2.3s;
-		}
-		.hero__chip--log {
-			--pop: 2.7s;
-			animation-duration: 700ms, 7s;
+		.stage__knock {
+			animation: pop 400ms var(--ease-out);
 		}
 	}
 
@@ -419,91 +703,55 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 			opacity: 1;
 		}
 	}
-	@keyframes sun {
-		from {
-			opacity: 0;
-			translate: 0 120px;
-		}
-		to {
-			opacity: 1;
-			translate: 0 0;
-		}
-	}
-	@keyframes hills {
-		from {
-			translate: 0 80px;
-		}
-		to {
-			translate: 0 0;
-		}
-	}
-	@keyframes flow {
-		to {
-			stroke-dashoffset: -16;
-		}
-	}
-	@keyframes draw {
-		from {
-			stroke-dashoffset: 1000;
-		}
-		to {
-			stroke-dashoffset: 0;
-		}
-	}
-	@keyframes glow {
-		to {
-			opacity: 0.7;
-		}
-	}
-	@keyframes arrive {
-		from {
-			opacity: 0;
-			translate: var(--from);
-		}
-		to {
-			opacity: 1;
-			translate: 0 0;
-		}
-	}
-	@keyframes float {
-		to {
-			translate: 0 -14px;
-		}
-	}
 	@keyframes pop {
 		from {
 			opacity: 0;
-			translate: 0 var(--space-3);
-			scale: 0.96;
-		}
-		to {
-			opacity: 1;
-			translate: 0 0;
-			scale: 1;
+			translate: 0 8px;
 		}
 	}
-	@keyframes bob {
+	@keyframes caret {
+		50% {
+			opacity: 0;
+		}
+	}
+	@keyframes spin {
 		to {
-			translate: 0 calc(-1 * var(--space-2));
+			rotate: 360deg;
 		}
 	}
 
 	@media (max-width: 1024px) {
 		.hero__grid {
 			grid-template-columns: 1fr;
-			gap: var(--space-12);
+			gap: var(--space-10);
 			padding-block: var(--space-12) var(--space-20);
 		}
-		.hero__art {
-			max-width: 40rem;
-			width: 100%;
-			justify-self: center;
+		.stage {
+			display: grid;
+			gap: var(--space-4);
+			min-height: 0;
 		}
-		.hero__chip--address {
-			left: var(--space-4);
+		.stage__browser,
+		.stage__chat,
+		.stage__share,
+		.stage__controls {
+			position: static;
+			width: auto;
 		}
-		.hero__chip--log {
-			right: var(--space-4);
+		.stage__chat {
+			order: 1;
+		}
+		.stage__browser {
+			order: 2;
+		}
+		.stage__share {
+			order: 3;
+		}
+		.stage__controls {
+			order: 4;
+		}
+		.stage__messages {
+			min-height: 150px;
 		}
 	}
 
@@ -517,22 +765,128 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 		.hero__actions .c-btn {
 			flex: 1 1 auto;
 		}
-		.hero__chip {
-			font-size: 11px;
+		.stage__knock {
+			grid-template-columns: auto 1fr;
 		}
-		.hero__chip--address {
-			top: var(--space-3);
-			left: var(--space-3);
-		}
-		.hero__chip--log {
-			right: var(--space-3);
-			bottom: var(--space-3);
-			gap: var(--space-2);
-			padding: var(--space-2) var(--space-3);
-			font-size: var(--text-xs);
-		}
-		.hero__chip--log .c-badge {
-			display: none;
+		.stage__approve {
+			grid-column: 2;
+			justify-self: start;
 		}
 	}
 </style>
+
+<script>
+	// The scene plays the demos one after the other: the request is typed, the
+	// AI publishes the Window, then knocks to make it public and a person
+	// approves. With reduced motion, each demo shows at once, at its end.
+	type Scene = { prompt: string; url: string; room: string; image: string };
+
+	document.querySelectorAll<HTMLElement>('[data-stage]').forEach((stage) => {
+		const scenes: Scene[] = JSON.parse(stage.dataset.scenes ?? '[]');
+		const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const get = <T extends HTMLElement>(name: string) => stage.querySelector<T>(`[data-scene-${name}]`)!;
+		const prompt = get('prompt');
+		const reply = get('reply');
+		const busy = get('busy');
+		const done = get('done');
+		const room = get('room');
+		const url = get('url');
+		const address = get('address');
+		const shot = get<HTMLImageElement>('shot');
+		const knock = get('knock');
+		const approve = get('approve-button');
+		const accesses = [...stage.querySelectorAll<HTMLElement>('[data-scene-access]')];
+		const steps = [...stage.querySelectorAll<HTMLButtonElement>('[data-scene-step]')];
+		let run = 0;
+
+		// The images load before their turn, so that the page never waits.
+		scenes.forEach(({ image }) => {
+			new Image().src = image;
+		});
+
+		const wait = (ms: number, id: number) =>
+			new Promise<void>((resolve, reject) => setTimeout(() => (id === run ? resolve() : reject()), ms));
+		const setAccess = (id: string) => accesses.forEach((item) => item.classList.toggle('is-on', item.dataset.sceneAccess === id));
+
+		function reset(scene: Scene) {
+			prompt.textContent = '';
+			prompt.classList.remove('is-typing');
+			reply.hidden = true;
+			busy.hidden = false;
+			done.hidden = true;
+			room.textContent = scene.room;
+			url.textContent = scene.url;
+			address.textContent = '';
+			shot.classList.remove('is-shown');
+			shot.src = scene.image;
+			knock.hidden = true;
+			approve.textContent = stage.dataset.approve ?? '';
+			approve.classList.remove('is-pressed', 'is-done');
+			setAccess('room');
+		}
+
+		function end(scene: Scene) {
+			reset(scene);
+			prompt.textContent = scene.prompt;
+			reply.hidden = false;
+			busy.hidden = true;
+			done.hidden = false;
+			address.textContent = scene.url;
+			shot.classList.add('is-shown');
+			knock.hidden = false;
+			approve.textContent = stage.dataset.approved ?? '';
+			approve.classList.add('is-done');
+			setAccess('public');
+		}
+
+		async function play(index: number) {
+			const id = ++run;
+			const scene = scenes[index];
+			steps.forEach((step, n) => step.setAttribute('aria-current', String(n === index)));
+			if (reduced) {
+				end(scene);
+				return;
+			}
+			try {
+				reset(scene);
+				await wait(500, id);
+				// 1. The person asks.
+				prompt.classList.add('is-typing');
+				for (let k = 1; k <= scene.prompt.length; k++) {
+					prompt.textContent = scene.prompt.slice(0, k);
+					await wait(scene.prompt[k - 1] === ' ' ? 24 : 18, id);
+				}
+				prompt.classList.remove('is-typing');
+				await wait(450, id);
+				// 2. The AI publishes the Window.
+				reply.hidden = false;
+				await wait(1100, id);
+				busy.hidden = true;
+				done.hidden = false;
+				for (let k = 1; k <= scene.url.length; k += 2) {
+					address.textContent = scene.url.slice(0, k);
+					await wait(14, id);
+				}
+				address.textContent = scene.url;
+				shot.classList.add('is-shown');
+				await wait(1900, id);
+				// 3. Making it public knocks first, and a person approves.
+				knock.hidden = false;
+				await wait(1500, id);
+				approve.classList.add('is-pressed');
+				await wait(180, id);
+				approve.classList.remove('is-pressed');
+				approve.classList.add('is-done');
+				approve.textContent = stage.dataset.approved ?? '';
+				setAccess('public');
+				await wait(2600, id);
+				play((index + 1) % scenes.length);
+			} catch {
+				// A newer run took over.
+			}
+		}
+
+		steps.forEach((step, index) => step.addEventListener('click', () => play(index)));
+		if (scenes.length) play(0);
+	});
+</script>

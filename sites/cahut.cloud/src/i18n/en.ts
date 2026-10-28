@@ -19,6 +19,7 @@ export default {
 		nav: {
 			quickstart: 'Get started',
 			how: 'How it works',
+			examples: 'Examples',
 			knock: 'Knock first',
 			features: 'Features',
 			docs: 'Docs',
@@ -42,137 +43,31 @@ export default {
 			signInTitle: 'Open your Cahut on my.cahut.cloud',
 			signup: 'Create my Cahut',
 			free: 'Free to try, no credit card. Limited seats during the discovery phase.',
+			member: 'Already a member? Open my.cahut.cloud',
 		},
 	},
 
 	hero: {
 		status: 'In early development: the first version works',
-		title: 'A home to publish and share what your AIs make.',
-		lead: 'Documents, slide decks, dashboards and small apps, as pages at your address, in your house style, on your own server, whichever AI made them.',
+		// One line each: what you do, what your AI does, what you do next.
+		title: ['You ask.', 'Your AI publishes.', 'You share.'],
+		lead: 'Cahut is where your AIs publish what they make for you: a CV, a deck, a dashboard, a small game. Each page gets its own address, in your Cahut, and you decide who can open it.',
 		install: 'Install on my server',
 		facts: ['On your server or on my.cahut.cloud', 'Any AI, over MCP', 'A link, not a file'],
-		caption: 'A document, a dashboard, a site and a picture join a cloud with an open door, lit from inside.',
-		log: { action: 'published', done: 'Done' },
-	},
-
-	// The two ways to a Cahut, at the top of the quick start: My Cahut, at
-	// my.cahut.cloud, to try Cahut with limits, or one's own server, with every
-	// feature, whose commands follow.
-	doors: {
-		label: 'Get started',
-		title: 'Two ways to have your Cahut.',
-		lead: 'Try Cahut without a server, then install it on your own server to have every feature. Either way, your AI connects over MCP and publishes its first Window in a few minutes.',
-		hosted: {
-			label: 'No server',
-			badge: 'Free · limited seats',
-			title: 'Your Cahut in two minutes, in your name.',
-			text: 'The quickest way to try Cahut, without committing. Nothing to install or run: with My Cahut, your Cahut waits for you online, and your AI publishes there for you.',
-			example: { handle: 'helen', window: 'lisbon-trip' },
-			address: 'Your handle becomes the address of your Windows.',
-			steps: ['An e-mail and a handle', 'Your AI connected: Claude or Le Chat', 'Your first Window, online'],
-			claude: {
-				text: 'In Claude, nothing to copy: search for My Cahut in its directory of connectors.',
-				link: 'Open My Cahut in Claude',
-			},
-			member: 'Already a member? Open my.cahut.cloud',
-			fine: 'Limited features: no team Rooms, limited disk space, and a limited number of Rooms and Windows.',
-			// Around the link to Tetra7.
-			by: [
-				'My Cahut is offered by ',
-				', which hosts it in France to support the project. The open source project stays a personal project of Olivier Durand.',
-			],
+		// The scene beside the title: an AI publishes an example, then shares it.
+		stage: {
+			label: 'An AI publishes a page in a Cahut, then makes it public once a person approves',
+			ai: 'Your AI',
+			clients: 'Claude, ChatGPT, Le Chat…',
+			publishing: 'Publishing the Window in your Cahut…',
+			online: "It's online, in the Room",
+			access: 'Access',
+			knock: 'Your AI asks to make this Window public.',
+			approve: 'Approve',
+			approved: 'Approved',
+			example: 'Example',
+			more: 'See the examples',
 		},
-		server: {
-			label: 'On your server',
-			badge: 'Open source · AGPL-3.0',
-			title: 'One command, then ask your AI.',
-			text: 'On an AlmaLinux or Ubuntu VPS, with its HTTPS certificate. Your domain, your data, your limits.',
-			needs: {
-				label: 'You need',
-				items: [
-					'A Linux server with systemd',
-					'A domain that points to it, or its IPv4 address',
-					'Ports 80 and 443 open',
-					'An AI client that speaks MCP, such as Claude Code',
-				],
-			},
-			commands: 'See the commands',
-			allOptions: 'All install options',
-			fine: 'Every feature, free and unlimited, under the AGPL-3.0. You run the server, its backups and its updates.',
-		},
-	},
-
-	quickstart: {
-		install: 'Install',
-		tabs: {
-			server: { label: 'On a server', meta: 'AlmaLinux · Ubuntu · amd64 · arm64' },
-			local: { label: 'On your machine', meta: 'Git · make · Go' },
-		},
-		comments: {
-			install: 'Install Cahut as a service, with your first Cahut',
-			account: 'Open the link it prints: your account, your house style, your AI',
-			connect: 'Or add your Cahut to Claude Code yourself, and sign in',
-			build: 'Build Cahut from source',
-			declare: 'Declare a Cahut at localhost, with your account and a token',
-			serve: 'Serve it on http://localhost:8080',
-			connectLocal: 'Add it to Claude Code, with the token',
-			ask: 'Then ask your AI',
-		},
-		prompt: 'Make a one-page summary of this project as a document, and publish it on Cahut.',
-		reply: 'Published at',
-		copy: 'Copy',
-		copied: 'Copied',
-		note: 'Cahut is in early development and keeps no backups yet: keep snapshots of your server.',
-		status: 'Where Cahut stands',
-	},
-
-	why: {
-		label: 'Why Cahut',
-		title: "Today, what your AIs make stays at the AI's place.",
-		lead: 'A Claude link, a ChatGPT link, a Gamma deck: each lives on the service of the AI that made it. To publish it, share it or work on it with others, you turn it back into a file.',
-		text: 'The file is going away. Word, PowerPoint and Excel were designed for humans who write, lay out and calculate by hand. When an AI makes the content, a page at its own address does better: it updates, takes comments, keeps its versions, and exports to PDF or PowerPoint for whoever still needs a file.',
-		problemsTitle: 'Publish, share, work together: today, all three are hard.',
-		problems: [
-			{
-				title: 'Scattered',
-				text: 'A Claude link here, a ChatGPT link there, a Gamma deck somewhere else. Each AI keeps what it makes on its own service, so nothing is published in one place.',
-			},
-			{
-				title: 'Converted back',
-				text: 'To share it, the result is turned back into a PowerPoint or a Word file, then attached and forwarded.',
-			},
-			{
-				title: 'Uncontrolled',
-				text: 'Who has access, until when, which version is the right one, where the data lives. Nobody really knows.',
-			},
-			{
-				title: 'Inconsistent',
-				text: "Each person works with their own AI, in its own style. The team has no common place, and the organization's brand gets lost.",
-			},
-			{
-				title: 'Unguarded',
-				text: 'Handing a server to an AI means giving it a root shell, or going through a platform built for humans that it can barely use.',
-			},
-		],
-	},
-
-	files: {
-		compare: 'Compare',
-		files: 'Today: files',
-		link: 'With Cahut: a link',
-		today: 'Today',
-		withCahut: 'With Cahut',
-		items: [
-			{ name: 'Q3 review v4 FINAL.pptx', meta: 'Attached, 8.2 MB' },
-			{ name: 'Q3 review v5 (2).pptx', meta: 'Forwarded twice' },
-			{ name: 'q3-notes.docx', meta: 'Converted back' },
-			{ name: 'A chat link', meta: 'On one AI service' },
-			{ name: 'Q3 numbers.xlsx', meta: 'Which version?' },
-			{ name: 'A deck elsewhere', meta: 'On another service' },
-		],
-		facts: ['Updated 2 minutes ago', 'Version 2, the previous one kept', '3 comments'],
-		captionFiles: 'Six files and links for one deck. Which one is right, and who can see it?',
-		captionLink: 'One address. The page updates, takes comments, keeps its versions, and exports to PDF or PowerPoint.',
 	},
 
 	statement: {
@@ -204,80 +99,57 @@ export default {
 
 	how: {
 		label: 'How it works',
-		title: 'From a request to a link, in five steps.',
-		lead: 'The AIs stay outside. They connect to Cahut over MCP, drop their work through bounded operations, then disconnect. Your readers open it in a browser.',
-	},
-
-	flow: {
-		group: 'How Cahut works, in five steps',
-		step: 'Step',
-		of: 'of 5',
-		pause: 'Pause',
-		play: 'Play',
+		title: 'Three steps, with the AI you already use',
 		steps: [
 			{
-				title: 'Connect',
-				heading: 'Add Cahut to your AI, once.',
-				text: 'Your AI connects to your Cahut over MCP, the open protocol that links AIs to tools. You authorize it with OAuth, with the scope you choose. No AI model runs on your server.',
-				call: 'MCP · OAuth · on behalf of Olivier',
+				title: 'You ask',
+				text: 'You write to your AI, as usual. Claude, ChatGPT or another: they all connect to your Cahut, and you keep your habits.',
 			},
+			{ title: 'Your AI publishes', text: 'It makes a Window: a living page at its own address, in one of your Rooms.' },
 			{
-				title: 'Publish',
-				heading: 'Ask for a deck. The AI publishes a Window.',
-				text: 'The AI calls one typed operation, never a shell. Cahut applies your house style, files the Window in its Room, and hands back its address.',
-				call: 'publish_window(room: "marketing", title: "Q3 review")',
-			},
-			{
-				title: 'Share',
-				heading: 'Share a link, not a file.',
-				text: 'Each Window opens to its Room only, to everyone in your Cahut, to anyone with its Key, or to the public. Your team reads it, comments on it, and asks the AI for the next version.',
-				call: 'set_window_access(window: "marketing/q3-review", access: "key")',
-			},
-			{
-				title: 'Knock first',
-				heading: 'What cannot be undone waits for you.',
-				text: 'Making a Window public cannot be undone. So the AI knocks: the request waits in the console, with a notification and an expiry, until a person approves it.',
-				call: 'set_window_access(access: "public") → waiting for Olivier',
-			},
-			{
-				title: 'Logbook',
-				heading: 'Every action is in the Logbook.',
-				text: 'Which AI, on whose behalf, what it did and with what result. The Logbook keeps every action, readable in the console.',
-				call: 'logbook: 4 entries, 1 approved by a person',
+				title: 'You share',
+				text: 'A Window opens first to the members of its Room. Open it to your whole Cahut, to anyone with its Key, or to the public. For the public, the AI knocks first and you approve.',
 			},
 		],
-		ais: 'Your AIs',
-		aisNote: 'They stay outside. No AI runs on your server.',
-		server: 'Your server',
-		cahut: 'Your Cahut',
-		houseStyle: 'House style',
-		room: 'Room · marketing',
-		noWindows: 'No Windows yet',
-		knock: 'Knock first',
-		nothingWaits: 'Nothing waits for you',
-		waiting: 'Waiting',
-		approved: 'Approved',
-		knockText: 'Wants to make <b>Q3 review</b> public.',
-		approve: 'Approve',
-		decline: 'Decline',
-		knockDone: 'Approved by Olivier, 09:33',
-		logbook: 'Logbook',
-		log: [
-			'connected for Olivier',
-			'published <b>Q3 review</b>',
-			'gave <b>Q3 review</b> a Key',
-			'asked to make <b>Q3 review</b> public',
+		// The parts of the address under the steps, in its order.
+		address: [
+			{ word: 'Your Cahut', meaning: 'at your domain' },
+			{ word: 'A Room', meaning: 'the space of a person or a team' },
+			{ word: 'A Window', meaning: 'the page your AI published' },
 		],
-		readers: 'Your readers',
-		readerNames: [
-			{ who: 'Marketing team', short: 'Team' },
-			{ who: 'A client, with the Key', short: 'Key' },
-			{ who: 'Anyone', short: 'Public' },
+	},
+
+	// The demos of demo.cahut.cloud, in the order of src/components/home/examples.ts.
+	examples: {
+		label: 'Examples',
+		title: 'See for yourself: pages published by an AI',
+		lead: 'Each one started from a single request. They are public: open them.',
+		all: 'All the demos, with their prompts',
+		items: [
+			{
+				title: 'An online CV',
+				prompt: 'Can you create a Window in my Room on Cahut to publish my CV? Here is my background.',
+			},
+			{
+				title: 'A team report',
+				prompt: 'Write the monthly report of the Platform team from this data, and publish it for the executive committee.',
+			},
+			{
+				title: 'A travel journal',
+				prompt: 'Here are our photos and notes from Iceland. Make a travel journal with a map of our route, and publish it for the family.',
+			},
+			{
+				title: 'A 3D configurator',
+				prompt: 'Create a 3D configurator for our armchairs, with fabrics, price and a PDF quote. Publish it in the PME Room.',
+			},
+			{ title: 'An investor deck', prompt: 'Prepare the deck for our €2.5M fundraise from these figures.' },
+			{
+				title: 'A live dashboard',
+				prompt: 'Make a dashboard of our 14 sites around the world, for the screen at head office.',
+			},
+			{ title: 'A made-to-measure game', prompt: 'Noé turns 9 on Saturday. Invent a little game for him, with a surprise at the end.' },
+			{ title: 'A mini poll', prompt: 'Create a short poll to choose where the 2027 offsite goes.' },
 		],
-		closed: 'Closed',
-		comment: 'Looks good',
-		access: { room: 'Room only', internal: 'Internal', key: 'Key', public: 'Public' },
-		packets: { linkKey: 'Link and Key', link: 'Link' },
 	},
 
 	knock: {
@@ -481,6 +353,7 @@ export default {
 			{ word: 'Knock first', meaning: 'The governance rule: the AI knocks before any irreversible action.' },
 			{ word: 'Logbook', meaning: 'The record of every action.' },
 		],
+		accessLabels: { room: 'Room only', internal: 'Internal', key: 'Key', public: 'Public' },
 		accessTitle: 'Access',
 		accessText: 'Each Window opens to one of four circles. You choose, Window by Window.',
 		access: [
@@ -626,10 +499,25 @@ export default {
 	},
 
 	closing: {
-		title: 'Publish it, share it, work on it together.',
-		lead: 'Cahut is built in the open, one step at a time. Follow the work on GitHub, or read in the docs how it fits together.',
-		github: 'Follow the work on GitHub',
+		title: 'Your first Window in a few minutes.',
+		lead: 'Cahut is free and open source. Try it without a server, or install it on yours.',
+		hosted: {
+			title: 'Try it without a server',
+			text: 'Create your Cahut on My Cahut and connect your AI in two minutes.',
+			// Around the link to Tetra7.
+			fine: ['Free, limited seats. My Cahut is offered by ', ', which hosts it in France to support the project.'],
+			more: 'All about My Cahut',
+		},
+		server: {
+			title: 'Install it on your server',
+			text: 'One command on an Ubuntu or AlmaLinux server.',
+			copy: 'Copy',
+			copied: 'Copied',
+			fine: 'Every feature, free and unlimited, under the AGPL-3.0.',
+			guide: 'The install guide',
+		},
 		docs: 'Read the docs',
+		github: 'Follow the work on GitHub',
 	},
 
 	legal: {

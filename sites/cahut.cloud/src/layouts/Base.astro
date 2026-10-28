@@ -67,6 +67,7 @@ const home = (hash: string) => localize(lang, `/${hash}`);
 // the brand are in the footer. Small screens show these links in the menu.
 const nav = [
 	{ href: home('#how-it-works'), label: t.base.nav.how, section: true },
+	{ href: home('#examples'), label: t.base.nav.examples, section: true },
 	{ href: home('#features'), label: t.base.nav.features, section: true },
 	{ href: docs, label: t.base.nav.docs, hreflang: 'en' },
 	{ href: localize(lang, '/project/'), label: t.base.nav.project },
@@ -78,6 +79,7 @@ const footer: { title: string; links: { href: string; label: string; hreflang?: 
 		links: [
 			{ href: home('#quickstart'), label: t.base.nav.quickstart },
 			{ href: home('#how-it-works'), label: t.base.nav.how },
+			{ href: home('#examples'), label: t.base.nav.examples },
 			{ href: home('#knock-first'), label: t.base.nav.knock },
 			{ href: home('#features'), label: t.base.nav.features },
 		],

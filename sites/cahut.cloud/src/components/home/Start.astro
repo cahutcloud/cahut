@@ -1,0 +1,209 @@
+---
+// The end of the home page: the two ways to a first Window, My Cahut without a
+// server, or one's own server in one command. The details live in the docs.
+import Icon from '../Icon.astro';
+import { useTranslations, type Lang } from '../../i18n';
+import { myCahutURL, signupURL, tetra7URL } from '../../links';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { closing: t, base } = useTranslations(lang);
+const docsLang = lang === 'en' ? undefined : 'en';
+
+const docs = 'https://docs.cahut.cloud';
+const github = 'https://github.com/getcahut/cahut';
+const install = 'curl -fsSL https://cahut.cloud/install.sh | sudo sh';
+---
+
+<section id="quickstart" class="start" data-theme="dark" aria-labelledby="start-title">
+	<div class="container">
+		<header class="start__head" data-reveal>
+			<h2 id="start-title" class="c-display">{t.title}</h2>
+			<p class="lead c-muted">{t.lead}</p>
+		</header>
+		<div class="paths" data-reveal-group>
+			<div class="path" data-reveal>
+				<h3 class="c-h3">{t.hosted.title}</h3>
+				<p class="c-muted">{t.hosted.text}</p>
+				<div class="path__actions">
+					<a class="c-btn c-btn--accent" href={signupURL(lang)}>{base.account.signup} <Icon name="arrow-right" /></a>
+					<a class="path__link" href={myCahutURL}>{base.account.member} <Icon name="arrow-up-right" size={14} /></a>
+				</div>
+				<p class="c-small c-muted path__fine">
+					{t.hosted.fine[0]}<a href={tetra7URL}>Tetra7</a>{t.hosted.fine[1]}{' '}
+					<a class="path__link" href={`${docs}/start/my-cahut/`} hreflang={docsLang}>
+						{t.hosted.more}
+						<Icon name="arrow-up-right" size={14} />
+					</a>
+				</p>
+			</div>
+			<div class="path" data-reveal>
+				<h3 class="c-h3">{t.server.title}</h3>
+				<p class="c-muted">{t.server.text}</p>
+				<p class="command">
+					<code class="c-mono">{install}</code>
+					<button type="button" class="c-btn c-btn--secondary command__copy" data-start-copy={install} data-start-copied={t.server.copied}>
+						<Icon name="copy" size={14} />
+						<span>{t.server.copy}</span>
+					</button>
+				</p>
+				<p class="c-small c-muted path__fine">
+					{t.server.fine}{' '}
+					<a class="path__link" href={`${docs}/install/server/`} hreflang={docsLang}>
+						{t.server.guide}
+						<Icon name="arrow-up-right" size={14} />
+					</a>
+				</p>
+			</div>
+		</div>
+		<p class="start__links" data-reveal>
+			<a href={docs} hreflang={docsLang}>{t.docs} <Icon name="arrow-up-right" size={14} /></a>
+			<a href={github}>{t.github} <Icon name="arrow-up-right" size={14} /></a>
+		</p>
+	</div>
+</section>
+
+<style>
+	.start {
+		padding-block: var(--space-24);
+		background: var(--color-bg);
+		color: var(--color-text);
+	}
+	.start__head {
+		display: grid;
+		gap: var(--space-4);
+		max-width: 48rem;
+		margin-bottom: var(--space-12);
+	}
+	.start__head .lead {
+		margin: 0;
+		font-size: var(--text-lg);
+		line-height: var(--leading-lg);
+	}
+
+	.paths {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-6);
+	}
+	.path {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+		padding: var(--space-8);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+	.path p {
+		margin: 0;
+	}
+	.path__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-3) var(--space-5);
+		margin-top: auto;
+	}
+	.path__link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
+		color: var(--color-link);
+		font-weight: var(--weight-semibold);
+		text-decoration: none;
+		white-space: nowrap;
+	}
+	.path__link:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.path__fine a:not(.path__link) {
+		color: inherit;
+	}
+
+	.command {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		width: 100%;
+		margin-top: auto !important;
+		padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-md);
+		background: var(--color-bg);
+	}
+	.command code {
+		flex: 1;
+		min-width: 0;
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+		overflow-wrap: anywhere;
+	}
+	.command__copy {
+		flex: none;
+	}
+
+	.start__links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3) var(--space-8);
+		margin: var(--space-10) 0 0;
+	}
+	.start__links a {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
+		color: var(--color-link);
+		font-weight: var(--weight-semibold);
+		text-decoration: none;
+	}
+	.start__links a:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	@media (max-width: 960px) {
+		.paths {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+	@media (max-width: 640px) {
+		.start {
+			padding-block: var(--space-16);
+		}
+		.path {
+			padding: var(--space-6);
+		}
+		.start .c-display {
+			font-size: var(--text-4xl);
+			line-height: var(--leading-4xl);
+		}
+	}
+</style>
+
+<script>
+	// Copy the command, or select it when the browser refuses the clipboard.
+	document.querySelectorAll<HTMLButtonElement>('[data-start-copy]').forEach((button) => {
+		const label = button.querySelector('span')!;
+		const text = label.textContent;
+		button.addEventListener('click', async () => {
+			try {
+				await navigator.clipboard.writeText(button.dataset.startCopy ?? '');
+				label.textContent = button.dataset.startCopied ?? '';
+				setTimeout(() => (label.textContent = text), 2000);
+			} catch {
+				const code = button.parentElement?.querySelector('code');
+				if (!code) return;
+				const range = document.createRange();
+				range.selectNodeContents(code);
+				getSelection()?.removeAllRanges();
+				getSelection()?.addRange(range);
+			}
+		});
+	});
+</script>
