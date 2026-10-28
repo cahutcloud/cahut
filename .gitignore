@@ -15,3 +15,6 @@
 node_modules/
 /sites/*/dist/
 /sites/*/.astro/
+
+# Local working folder of each contributor
+/.workshop/
