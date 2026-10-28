@@ -202,6 +202,7 @@ sites/                 npm workspace of the sites (ADR 12)
   docs.cahut.cloud/    The documentation, Astro with Starlight
   brand/               @cahut/brand: the brand of docs/charte-graphique for the sites
 .github/
+  assets/              The GIF at the head of the README
   workflows/           CI, sites and release
   ISSUE_TEMPLATE/      The bug report and accepted feature forms; config.yml sends questions to the Discussions
   PULL_REQUEST_TEMPLATE.md   What a pull request says

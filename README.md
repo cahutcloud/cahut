@@ -20,6 +20,10 @@ in your house style, on your own server, whichever AI made them.
 
 **[Website](https://cahut.cloud)** · **[Documentation](https://docs.cahut.cloud)** · **[Brand](https://cahut.cloud/brand)** · **[Contributing](CONTRIBUTING.md)** · **[Security](SECURITY.md)**
 
+<br>
+
+<img alt="You ask Claude for a deck, and it publishes the deck on your Cahut, at its own address. Making it public waits in the console of the Cahut, where you approve it. The deck is public." src=".github/assets/cahut-demo.gif" width="800">
+
 </div>
 
 <br>
