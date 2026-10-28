@@ -228,12 +228,18 @@ const picto = knockPicto
 		background: var(--color-highlight);
 	}
 
+	/*
+	 * Each line of the title stays whole and takes the width of the column: in
+	 * WebKit, a title sized to its content could wrap every line word by word.
+	 */
 	.hero__title {
+		width: 100%;
 		font-size: clamp(var(--text-4xl), 4.4vw, var(--text-5xl));
 		line-height: 1.12;
 	}
 	.hero__line {
 		display: block;
+		white-space: nowrap;
 	}
 	/* The last line, what you do with it, is marked as with a highlighter. */
 	.hero__line--last {
@@ -759,8 +765,10 @@ const picto = knockPicto
 		.hero__grid {
 			padding-block: var(--space-10) var(--space-16);
 		}
+		/* The longest line, about nine times as wide as the font is high, fits the screen. */
 		.hero__title {
-			line-height: var(--leading-4xl);
+			font-size: min(var(--text-4xl), calc((100vw - 2.5rem) / 9));
+			line-height: 1.15;
 		}
 		.hero__actions .c-btn {
 			flex: 1 1 auto;
