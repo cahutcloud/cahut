@@ -1,6 +1,6 @@
 # Cahut · Charte graphique
 
-Version 1.6 · 25 octobre 2026 · Olivier Durand
+Version 1.7 · 28 octobre 2026 · Olivier Durand
 
 ![Cahut, la maison ouverte](illustrations/maison-ouverte.png)
 
@@ -32,7 +32,7 @@ Cette charte fixe l'identité visuelle de Cahut : logo, couleurs, typographie, p
 
 **La promesse.** Vos IA fabriquent, Cahut fait vivre. Tout ce qu'elles produisent est publié, partagé, rangé et protégé au même endroit, à vos couleurs, chez vous, quelle que soit l'IA.
 
-**La signature.** *Your own cloud for everything your AI makes.* Elle accompagne le logo sur le site, les visuels de partage et les présentations.
+**La signature.** *Your home to publish and share what your AIs make.* En français : *Votre maison pour publier et partager ce que fabriquent vos IA.* Elle accompagne le logo sur le site, les visuels de partage et les présentations.
 
 **Les valeurs.**
 
@@ -436,5 +436,6 @@ charte-graphique/
 | 1.4 | 25 octobre 2026 | En français, Cahut est féminin : *une Cahut*, *votre Cahut est prête*. La personnalité et les valeurs s'accordent |
 | 1.5 | 25 octobre 2026 | Bannière YouTube, 2560 × 1440, avec son texte et son logo dans la zone sûre de 1546 × 423 que montrent tous les écrans |
 | 1.6 | 25 octobre 2026 | Pictogrammes de navigation, sur une grille de 24 px, pour la barre latérale de la console : chaque entrée a le sien, en couleur, la Room personnelle et la Room d'équipe chacune le leur. La planche des pictogrammes les montre, la maquette de la console les emploie |
+| 1.7 | 28 octobre 2026 | Nouvelle signature : *Your home to publish and share what your AIs make.* (en français : *Votre maison pour publier et partager ce que fabriquent vos IA.*), à la place de *Your own cloud for everything your AI makes.* Elle dit ce que fait Cahut. L'image de partage, l'aperçu GitHub, les bannières et la signature e-mail la reprennent, et l'image de partage ne parle plus de *house style* |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.

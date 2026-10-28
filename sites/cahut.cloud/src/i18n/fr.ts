@@ -9,7 +9,7 @@ const fr: Dictionary = {
 		description:
 			"Publiez les documents, présentations, tableaux de bord et petites applis que fabriquent vos IA en pages à votre adresse, partagez-les par un lien et travaillez dessus en équipe, sur votre propre serveur, quelle que soit l'IA qui les a faits. Cahut est en début de développement.",
 		imageAlt:
-			'Votre propre nuage pour tout ce que fabriquent vos IA. Documents, présentations, tableaux de bord et applis, à vos couleurs, sur votre propre serveur.',
+			'Votre maison pour publier et partager ce que fabriquent vos IA. Documents, présentations, tableaux de bord et applis, sur votre propre serveur.',
 		locale: 'fr_FR',
 	},
 
@@ -28,7 +28,7 @@ const fr: Dictionary = {
 			github: 'GitHub',
 		},
 		footer: { cahut: 'Cahut', project: 'Projet', follow: 'Suivre' },
-		signature: 'Votre propre nuage pour tout ce que fabriquent vos IA.',
+		signature: 'Votre maison pour publier et partager ce que fabriquent vos IA.',
 		about:
 			"Cahut est un projet open source personnel d'Olivier Durand, indépendant de toute entreprise et de tout fournisseur d'IA. Elle est en début de développement.",
 		hosted: ['My Cahut, à my.cahut.cloud, est offerte par ', ' en soutien au projet.'],
