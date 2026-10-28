@@ -20,6 +20,7 @@ const fr: Dictionary = {
 		nav: {
 			quickstart: 'Démarrer',
 			how: 'Comment ça marche',
+			examples: 'Exemples',
 			knock: 'Knock first',
 			features: 'Fonctionnalités',
 			docs: 'Docs',
@@ -41,135 +42,29 @@ const fr: Dictionary = {
 			signInTitle: 'Ouvrir votre Cahut sur my.cahut.cloud',
 			signup: 'Créer ma Cahut',
 			free: 'Gratuit pour essayer, sans carte bancaire. Places limitées pendant la découverte.',
+			member: 'Déjà membre ? Ouvrir my.cahut.cloud',
 		},
 	},
 
 	hero: {
 		status: 'En début de développement : la première version fonctionne',
-		title: 'Une maison pour publier et partager ce que fabriquent vos IA.',
-		lead: "Documents, présentations, tableaux de bord et petites applis, en pages à votre adresse, à vos couleurs, sur votre propre serveur, quelle que soit l'IA qui les a faits.",
+		title: ['Vous demandez.', 'Votre IA publie.', 'Vous partagez.'],
+		lead: "Cahut est l'endroit où vos IA publient ce qu'elles font pour vous : un CV, un deck, un tableau de bord, un petit jeu. Chaque page arrive à sa propre adresse, dans votre Cahut, et c'est vous qui décidez qui peut l'ouvrir.",
 		install: 'Installer sur mon serveur',
 		facts: ['Sur votre serveur ou sur my.cahut.cloud', 'Toutes les IA, par MCP', 'Un lien, pas un fichier'],
-		caption:
-			"Un document, un tableau de bord, un site et une image rejoignent un nuage à la porte ouverte, éclairée de l'intérieur.",
-		log: { action: 'a publié', done: 'Fait' },
-	},
-
-	doors: {
-		label: 'Démarrer',
-		title: "Deux façons d'avoir votre Cahut.",
-		lead: "Essayez Cahut sans serveur, puis installez-la sur votre propre serveur pour en avoir toutes les fonctionnalités. Dans les deux cas, votre IA s'y connecte par MCP et publie sa première Window en quelques minutes.",
-		hosted: {
-			label: 'Sans serveur',
-			badge: 'Gratuit · places limitées',
-			title: 'Votre Cahut en deux minutes, à votre nom.',
-			text: "Le moyen le plus rapide d'essayer Cahut, sans engagement. Rien à installer ni à administrer : avec My Cahut, votre Cahut vous attend en ligne, et votre IA y publie pour vous.",
-			example: { handle: 'helene', window: 'voyage-lisbonne' },
-			address: "Votre pseudo devient l'adresse de vos Windows.",
-			steps: ['Un e-mail et un pseudo', 'Votre IA connectée : Claude ou Le Chat', 'Votre première Window, en ligne'],
-			claude: {
-				text: 'Dans Claude, rien à copier : cherchez My Cahut dans son catalogue de connecteurs.',
-				link: 'Ouvrir My Cahut dans Claude',
-			},
-			member: 'Déjà membre ? Ouvrir my.cahut.cloud',
-			fine: "Fonctionnalités limitées : pas de Rooms d'équipe, un espace disque limité, et un nombre limité de Rooms et de Windows.",
-			by: [
-				'My Cahut est offerte par ',
-				", qui l'héberge en France pour soutenir le projet. Le projet open source reste un projet personnel d'Olivier Durand.",
-			],
+		stage: {
+			label: "Une IA publie une page dans une Cahut, puis la rend publique quand une personne l'approuve",
+			ai: 'Votre IA',
+			clients: 'Claude, ChatGPT, Le Chat…',
+			publishing: 'Je publie la Window dans votre Cahut…',
+			online: "C'est en ligne, dans la Room",
+			access: 'Accès',
+			knock: 'Votre IA demande à rendre cette Window publique.',
+			approve: 'Approuver',
+			approved: 'Approuvé',
+			example: 'Exemple',
+			more: 'Voir les exemples',
 		},
-		server: {
-			label: 'Sur votre serveur',
-			badge: 'Open source · AGPL-3.0',
-			title: 'Une commande, puis demandez à votre IA.',
-			text: 'Sur un VPS AlmaLinux ou Ubuntu, avec son certificat HTTPS. Votre domaine, vos données, vos limites.',
-			needs: {
-				label: 'Il vous faut',
-				items: [
-					'Un serveur Linux avec systemd',
-					'Un domaine qui pointe vers lui, ou son adresse IPv4',
-					'Les ports 80 et 443 ouverts',
-					"Un client d'IA qui parle MCP, comme Claude Code",
-				],
-			},
-			commands: 'Voir les commandes',
-			allOptions: "Toutes les options d'installation",
-			fine: 'Toutes les fonctionnalités, gratuitement et sans limite, sous licence AGPL-3.0. Vous administrez le serveur, ses sauvegardes et ses mises à jour.',
-		},
-	},
-
-	quickstart: {
-		install: 'Installer',
-		tabs: {
-			server: { label: 'Sur un serveur', meta: 'AlmaLinux · Ubuntu · amd64 · arm64' },
-			local: { label: 'Sur votre machine', meta: 'Git · make · Go' },
-		},
-		comments: {
-			install: 'Installer Cahut comme service, avec votre première Cahut',
-			account: "Ouvrir le lien qu'il affiche : votre compte, votre house style, votre IA",
-			connect: 'Ou ajouter vous-même votre Cahut à Claude Code, et vous connecter',
-			build: 'Compiler Cahut depuis les sources',
-			declare: 'Déclarer une Cahut sur localhost, avec votre compte et un jeton',
-			serve: 'Le servir sur http://localhost:8080',
-			connectLocal: "L'ajouter à Claude Code, avec le jeton",
-			ask: 'Puis demandez à votre IA',
-		},
-		prompt: 'Fais un résumé de ce projet en une page, sous forme de document, et publie-le sur Cahut.',
-		reply: "Publié à l'adresse",
-		copy: 'Copier',
-		copied: 'Copié',
-		note: 'Cahut est en début de développement et ne fait pas encore de sauvegardes : gardez des instantanés de votre serveur.',
-		status: 'Où en est Cahut',
-	},
-
-	why: {
-		label: 'Pourquoi Cahut',
-		title: "Aujourd'hui, ce que fabriquent vos IA reste chez l'IA.",
-		lead: "Un lien Claude, un lien ChatGPT, une présentation Gamma : chacun vit sur le service de l'IA qui l'a fait. Pour le publier, le partager ou y travailler à plusieurs, vous le retransformez en fichier.",
-		text: "Le fichier s'efface. Word, PowerPoint et Excel ont été conçus pour des humains qui écrivent, mettent en page et calculent à la main. Quand une IA fabrique le contenu, une page à sa propre adresse fait mieux : elle se met à jour, reçoit des commentaires, garde ses versions et s'exporte en PDF ou en PowerPoint pour qui a encore besoin d'un fichier.",
-		problemsTitle: "Publier, partager, travailler ensemble : aujourd'hui, les trois sont compliqués.",
-		problems: [
-			{
-				title: 'Éparpillé',
-				text: "Un lien Claude ici, un lien ChatGPT là, une présentation Gamma ailleurs. Chaque IA garde ce qu'elle fabrique sur son propre service : rien n'est publié au même endroit.",
-			},
-			{
-				title: 'Reconverti',
-				text: 'Pour le partager, le résultat redevient un PowerPoint ou un Word, en pièce jointe, transféré de main en main.',
-			},
-			{
-				title: 'Hors de contrôle',
-				text: "Qui a accès, jusqu'à quand, quelle version est la bonne, où vivent les données. Personne ne le sait vraiment.",
-			},
-			{
-				title: 'Incohérent',
-				text: "Chacun travaille avec sa propre IA, dans son propre style. L'équipe n'a pas d'endroit commun, et la marque de l'organisation se perd.",
-			},
-			{
-				title: 'Sans garde-fou',
-				text: "Confier un serveur à une IA, c'est lui donner un shell root, ou passer par une plateforme faite pour des humains, qu'elle sait à peine utiliser.",
-			},
-		],
-	},
-
-	files: {
-		compare: 'Comparer',
-		files: "Aujourd'hui : des fichiers",
-		link: 'Avec Cahut : un lien',
-		today: "Aujourd'hui",
-		withCahut: 'Avec Cahut',
-		items: [
-			{ name: 'Q3 review v4 FINAL.pptx', meta: 'En pièce jointe, 8,2 Mo' },
-			{ name: 'Q3 review v5 (2).pptx', meta: 'Transféré deux fois' },
-			{ name: 'q3-notes.docx', meta: 'Reconverti' },
-			{ name: 'Un lien de conversation', meta: "Sur un service d'IA" },
-			{ name: 'Q3 numbers.xlsx', meta: 'Quelle version ?' },
-			{ name: 'Une présentation ailleurs', meta: 'Sur un autre service' },
-		],
-		facts: ['Mise à jour il y a 2 minutes', 'Version 2, la précédente gardée', '3 commentaires'],
-		captionFiles: 'Six fichiers et liens pour une seule présentation. Lequel est le bon, et qui peut le voir ?',
-		captionLink:
-			"Une seule adresse. La page se met à jour, reçoit des commentaires, garde ses versions, et s'exporte en PDF ou en PowerPoint.",
 	},
 
 	statement: {
@@ -201,80 +96,64 @@ const fr: Dictionary = {
 
 	how: {
 		label: 'Comment ça marche',
-		title: "D'une demande à un lien, en cinq étapes.",
-		lead: "Les IA restent dehors. Elles se connectent à Cahut par MCP, déposent leur travail par des opérations bornées, puis se déconnectent. Vos lecteurs l'ouvrent dans un navigateur.",
-	},
-
-	flow: {
-		group: 'Comment fonctionne Cahut, en cinq étapes',
-		step: 'Étape',
-		of: 'sur 5',
-		pause: 'Pause',
-		play: 'Lecture',
+		title: "Trois temps, avec l'IA que vous utilisez déjà",
 		steps: [
 			{
-				title: 'Connecter',
-				heading: 'Ajoutez Cahut à votre IA, une fois.',
-				text: "Votre IA se connecte à votre Cahut par MCP, le protocole ouvert qui relie les IA aux outils. Vous l'autorisez avec OAuth, dans le périmètre que vous choisissez. Aucun modèle d'IA ne tourne sur votre serveur.",
-				call: "MCP · OAuth · au nom d'Olivier",
+				title: 'Vous demandez',
+				text: "Vous écrivez à votre IA, comme d'habitude. Claude, ChatGPT ou une autre : elles se branchent toutes à votre Cahut, et vous gardez vos habitudes.",
 			},
 			{
-				title: 'Publier',
-				heading: "Demandez une présentation. L'IA publie une Window.",
-				text: "L'IA appelle une opération typée, jamais un shell. Cahut applique votre house style, range la Window dans sa Room et renvoie son adresse.",
-				call: 'publish_window(room: "marketing", title: "Q3 review")',
+				title: 'Votre IA publie',
+				text: 'Elle en fait une Window : une page vivante, à sa propre adresse, rangée dans une de vos Rooms.',
 			},
 			{
-				title: 'Partager',
-				heading: 'Partagez un lien, pas un fichier.',
-				text: "Chaque Window s'ouvre à sa Room seulement, à toute votre Cahut, à qui a sa Key, ou au public. Votre équipe la lit, la commente et demande à l'IA la version suivante.",
-				call: 'set_window_access(window: "marketing/q3-review", access: "key")',
-			},
-			{
-				title: 'Knock first',
-				heading: "Ce qui ne s'annule pas vous attend.",
-				text: "Rendre une Window publique ne s'annule pas. Alors l'IA frappe : la demande attend dans la console, avec une notification et une échéance, jusqu'à ce qu'une personne l'approuve.",
-				call: 'set_window_access(access: "public") → en attente d\'Olivier',
-			},
-			{
-				title: 'Logbook',
-				heading: 'Chaque action est dans le Logbook.',
-				text: "Quelle IA, au nom de qui, ce qu'elle a fait et avec quel résultat. Le Logbook garde chaque action, lisible dans la console.",
-				call: 'logbook: 4 entrées, 1 approuvée par une personne',
+				title: 'Vous partagez',
+				text: "Une Window s'ouvre d'abord aux membres de sa Room. Vous l'ouvrez à toute la Cahut, à qui a sa Key, ou au public. Pour le public, l'IA frappe d'abord et vous approuvez.",
 			},
 		],
-		ais: 'Vos IA',
-		aisNote: 'Elles restent dehors. Aucune IA ne tourne sur votre serveur.',
-		server: 'Votre serveur',
-		cahut: 'Votre Cahut',
-		houseStyle: 'House style',
-		room: 'Room · marketing',
-		noWindows: 'Pas encore de Window',
-		knock: 'Knock first',
-		nothingWaits: 'Rien ne vous attend',
-		waiting: 'En attente',
-		approved: 'Approuvé',
-		knockText: 'Veut rendre <b>Q3 review</b> publique.',
-		approve: 'Approuver',
-		decline: 'Refuser',
-		knockDone: 'Approuvé par Olivier, 09:33',
-		logbook: 'Logbook',
-		log: [
-			"s'est connecté pour Olivier",
-			'a publié <b>Q3 review</b>',
-			'a donné une Key à <b>Q3 review</b>',
-			'a demandé à rendre <b>Q3 review</b> publique',
+		address: [
+			{ word: 'Votre Cahut', meaning: 'à votre domaine' },
+			{ word: 'Une Room', meaning: "l'espace d'une personne ou d'une équipe" },
+			{ word: 'Une Window', meaning: 'la page publiée par votre IA' },
 		],
-		readers: 'Vos lecteurs',
-		readerNames: [
-			{ who: 'Équipe marketing', short: 'Équipe' },
-			{ who: 'Un client, avec la Key', short: 'Key' },
-			{ who: 'Tout le monde', short: 'Public' },
+	},
+
+	examples: {
+		label: 'Exemples',
+		title: 'Voyez par vous-même : des pages publiées par une IA',
+		lead: "Chacune part d'une seule demande. Elles sont publiques : ouvrez-les.",
+		all: 'Toutes les démos, avec leurs prompts',
+		items: [
+			{
+				title: 'Un CV en ligne',
+				prompt: 'Peux-tu créer une Window dans ma Room sur Cahut pour publier mon CV ? Voici mon parcours.',
+			},
+			{
+				title: "Un reporting d'équipe",
+				prompt: "Fais-moi le reporting mensuel de l'équipe Plateforme à partir de ces données, et publie-le pour le comité de direction.",
+			},
+			{
+				title: 'Un carnet de voyage',
+				prompt: 'Voici nos photos et nos notes de voyage en Islande. Fais-en un carnet avec la carte de notre route, et publie-le pour la famille.',
+			},
+			{
+				title: 'Un configurateur 3D',
+				prompt: 'Crée un configurateur 3D de nos fauteuils, avec les tissus, le prix et un devis en PDF. Publie-le dans la Room PME.',
+			},
+			{
+				title: "Un deck d'investisseurs",
+				prompt: 'Prépare le deck de notre levée de fonds de 2,5 M€ à partir de ces chiffres.',
+			},
+			{
+				title: 'Un tableau de bord en direct',
+				prompt: "Fais un tableau de bord de nos 14 sites dans le monde, pour l'écran du siège.",
+			},
+			{
+				title: 'Un jeu fait sur mesure',
+				prompt: 'Noé a 9 ans samedi. Invente-lui un petit jeu, avec une surprise à la fin.',
+			},
+			{ title: 'Un mini sondage', prompt: 'Crée un petit sondage pour choisir la destination du séminaire 2027.' },
 		],
-		closed: 'Fermé',
-		comment: 'Parfait',
-		access: { room: 'Room seulement', internal: 'Interne', key: 'Key', public: 'Public' },
-		packets: { linkKey: 'Lien et Key', link: 'Lien' },
 	},
 
 	knock: {
@@ -498,6 +377,7 @@ const fr: Dictionary = {
 			{ word: 'Knock first', meaning: "La règle de gouvernance : l'IA frappe avant toute action irréversible." },
 			{ word: 'Logbook', meaning: 'Le registre de toutes les actions.' },
 		],
+		accessLabels: { room: 'Room seulement', internal: 'Interne', key: 'Key', public: 'Public' },
 		accessTitle: 'Accès',
 		accessText: "Chaque Window s'ouvre à l'un de quatre cercles. Vous choisissez, Window par Window.",
 		access: [
@@ -649,10 +529,24 @@ const fr: Dictionary = {
 	},
 
 	closing: {
-		title: 'Publiez-le, partagez-le, travaillez dessus ensemble.',
-		lead: "Cahut se construit en public, une étape après l'autre. Suivez le projet sur GitHub, ou lisez dans la documentation comment il s'assemble.",
-		github: 'Suivre le projet sur GitHub',
+		title: 'Votre première Window en quelques minutes.',
+		lead: 'Cahut est libre et open source. Essayez-la sans serveur, ou installez-la sur le vôtre.',
+		hosted: {
+			title: 'Essayer sans serveur',
+			text: 'Créez votre Cahut sur My Cahut et connectez votre IA en deux minutes.',
+			fine: ['Gratuit, places limitées. My Cahut est offerte par ', ", qui l'héberge en France pour soutenir le projet."],
+			more: 'Tout sur My Cahut',
+		},
+		server: {
+			title: 'Installer sur votre serveur',
+			text: 'Une commande sur un serveur Ubuntu ou AlmaLinux.',
+			copy: 'Copier',
+			copied: 'Copié',
+			fine: 'Toutes les fonctions, sans limite, sous AGPL-3.0.',
+			guide: "Le guide d'installation",
+		},
 		docs: 'Lire la documentation',
+		github: 'Suivre le projet sur GitHub',
 	},
 
 	legal: {

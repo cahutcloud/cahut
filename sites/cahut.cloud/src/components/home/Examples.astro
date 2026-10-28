@@ -1,0 +1,158 @@
+---
+// The demos of demo.cahut.cloud: each opens its Window, and shows on hover the
+// request it started from. They say what Cahut does better than a long text.
+import { Image } from 'astro:assets';
+import Icon from '../Icon.astro';
+import { examples, examplesURL } from './examples';
+import { useTranslations, type Lang } from '../../i18n';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang).examples;
+
+const demos = examples.map((demo, index) => ({
+	...demo,
+	...t.items[index],
+	path: demo.url.replace('https://demo.cahut.cloud', ''),
+}));
+---
+
+<section id="examples" class="section container" aria-labelledby="examples-title">
+	<header class="examples__head" data-reveal>
+		<div>
+			<p class="c-label">{t.label}</p>
+			<h2 id="examples-title" class="c-h1">{t.title}</h2>
+			<p class="lead c-muted">{t.lead}</p>
+		</div>
+		<a class="c-btn c-btn--secondary" href={examplesURL}>{t.all} <Icon name="arrow-up-right" /></a>
+	</header>
+	<ul class="demos" role="list" data-reveal-group>
+		{
+			demos.map(({ url, image, title, prompt, path }) => (
+				<li class="demo" data-reveal>
+					<a href={url}>
+						<span class="demo__shot">
+							<Image src={image} alt="" width={600} format="webp" loading="lazy" />
+							<span class="demo__prompt">{prompt}</span>
+						</span>
+						<span class="demo__title">{title}</span>
+						<span class="c-mono demo__path">{path}</span>
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<style>
+	.section {
+		padding-block: var(--space-24);
+	}
+	.examples__head {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: end;
+		gap: var(--space-6);
+		margin-bottom: var(--space-10);
+	}
+	.examples__head .c-h1 {
+		margin: var(--space-3) 0;
+	}
+	.examples__head .lead {
+		margin: 0;
+		font-size: var(--text-lg);
+		line-height: var(--leading-lg);
+	}
+
+	.demos {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--space-8) var(--space-5);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.demo a {
+		display: grid;
+		gap: 2px;
+		color: inherit;
+		text-decoration: none;
+	}
+	.demo__shot {
+		position: relative;
+		margin-bottom: var(--space-3);
+		overflow: hidden;
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		box-shadow: var(--shadow-sm);
+		transition:
+			box-shadow var(--duration-slow) var(--ease-out),
+			translate var(--duration-slow) var(--ease-out);
+	}
+	.demo__shot img {
+		display: block;
+		width: 100%;
+		height: auto;
+		aspect-ratio: 16 / 10;
+		object-fit: cover;
+		object-position: top;
+		transition: scale 800ms var(--ease-out);
+	}
+	/* The request the demo started from, as the person typed it. */
+	.demo__prompt {
+		position: absolute;
+		inset: auto var(--space-2) var(--space-2) var(--space-2);
+		padding: var(--space-2) var(--space-3);
+		border-radius: var(--radius-md);
+		border-bottom-right-radius: var(--radius-xs);
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		opacity: 0;
+		translate: 0 8px;
+		transition:
+			opacity var(--duration-slow),
+			translate var(--duration-slow) var(--ease-out);
+	}
+	.demo a:hover .demo__shot,
+	.demo a:focus-visible .demo__shot {
+		box-shadow: var(--shadow-lg);
+		translate: 0 -3px;
+	}
+	.demo a:hover .demo__shot img {
+		scale: 1.04;
+	}
+	.demo a:hover .demo__prompt,
+	.demo a:focus-visible .demo__prompt {
+		opacity: 1;
+		translate: 0 0;
+	}
+	.demo__title {
+		font-weight: var(--weight-bold);
+	}
+	.demo__path {
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		overflow-wrap: anywhere;
+	}
+
+	@media (max-width: 960px) {
+		.examples__head {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.demos {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+	@media (max-width: 640px) {
+		.section {
+			padding-block: var(--space-16);
+		}
+	}
+</style>

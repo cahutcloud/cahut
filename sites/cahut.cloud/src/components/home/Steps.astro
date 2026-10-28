@@ -1,0 +1,222 @@
+---
+// How it works, in three steps: you ask your AI, it publishes a Window, you
+// share it. Under them, the address of a demo, read part by part.
+import { useTranslations, type Lang } from '../../i18n';
+import keyPicto from '@charte/icones/key.svg?raw';
+import windowPicto from '@charte/icones/window.svg?raw';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang).how;
+
+// The pictograms follow the color of the text, as the brand guidelines ask.
+const quiet = (svg: string) =>
+	svg
+		.replace(/<title>.*?<\/title>/, '')
+		.replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true" focusable="false"')
+		.replace(/ color="[^"]*"/, '');
+
+// To ask, a pictogram drawn on the grid of the others: an Ink outline, and one
+// Sky accent for the answer.
+const askPicto = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true" focusable="false"><path d="M11 10h32a4 4 0 0 1 4 4v19a4 4 0 0 1-4 4H25l-10 8v-8h-4a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M15 20h22M15 27h14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M37 32h17a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-2v7l-8-7h-7a3 3 0 0 1-3-3V35a3 3 0 0 1 3-3z" style="fill: var(--cahut-sky-400); stroke: var(--cahut-sky-600)" stroke-width="2.5" stroke-linejoin="round"/><path d="M40 39h11M40 44h7" fill="none" style="stroke: var(--cahut-white)" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+
+const steps = t.steps.map((step, index) => ({ ...step, picto: [askPicto, quiet(windowPicto), quiet(keyPicto)][index] }));
+const parts = ['demo.cahut.cloud', 'perso', 'cv-de-camille-roussel'].map((text, index) => ({
+	text,
+	id: ['cahut', 'room', 'window'][index],
+	...t.address[index],
+}));
+---
+
+<section id="how-it-works" class="section container" aria-labelledby="how-title">
+	<header class="section__head" data-reveal>
+		<p class="c-label">{t.label}</p>
+		<h2 id="how-title" class="c-h1">{t.title}</h2>
+	</header>
+	<ol class="steps" role="list" data-reveal-group>
+		{
+			steps.map(({ title, text, picto }, index) => (
+				<li class="step" data-reveal>
+					<span class="c-mono step__number">{index + 1}</span>
+					<span class="step__picto" set:html={picto} />
+					<h3 class="c-h4">{title}</h3>
+					<p class="c-muted">{text}</p>
+				</li>
+			))
+		}
+	</ol>
+	<figure class="anatomy" data-reveal data-anatomy>
+		<p class="anatomy__address c-mono">
+			{
+				parts.map(({ id, text }) => (
+					<>
+						<span class="anatomy__part" data-part={id}>
+							{text}
+						</span>
+						<span class="anatomy__slash">/</span>
+					</>
+				))
+			}
+		</p>
+		<figcaption class="anatomy__legend">
+			{
+				parts.map(({ id, word, meaning }) => (
+					<span data-part={id}>
+						<strong>{word}</strong>, {meaning}
+					</span>
+				))
+			}
+		</figcaption>
+	</figure>
+</section>
+
+<style>
+	.section {
+		padding-block: var(--space-24);
+	}
+	.section__head {
+		display: grid;
+		gap: var(--space-4);
+		max-width: var(--measure);
+		margin-bottom: var(--space-12);
+	}
+	.section__head > * {
+		margin: 0;
+	}
+	.steps {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--space-6);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.step {
+		position: relative;
+		display: grid;
+		align-content: start;
+		gap: var(--space-2);
+		padding: var(--space-8) var(--space-6) var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+	/* A line joins each step to the next. */
+	.step:not(:last-child)::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		right: calc(-1 * var(--space-6));
+		width: var(--space-6);
+		height: var(--border-width);
+		background: var(--color-border-strong);
+	}
+	.step__number {
+		position: absolute;
+		top: var(--space-6);
+		right: var(--space-6);
+		color: var(--color-text-muted);
+		font-size: var(--text-sm);
+	}
+	.step__picto {
+		margin-bottom: var(--space-3);
+	}
+	.step__picto :global(svg) {
+		display: block;
+		width: 56px;
+		height: 56px;
+	}
+	.step p {
+		margin: 0;
+	}
+
+	.anatomy {
+		margin: var(--space-12) 0 0;
+		padding: var(--space-8);
+		border-radius: var(--radius-xl);
+		background: var(--color-surface-muted);
+		text-align: center;
+	}
+	.anatomy__address {
+		margin: 0;
+		font-size: clamp(var(--text-base), 2.6vw, var(--text-3xl));
+		line-height: 1.4;
+		overflow-wrap: anywhere;
+	}
+	.anatomy__slash {
+		margin: 0 0.15em;
+		color: var(--color-text-muted);
+	}
+	.anatomy__part {
+		padding-bottom: 4px;
+		border-bottom: 3px solid transparent;
+		transition: border-color var(--duration-slow) var(--ease-out);
+	}
+	.anatomy__legend {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--space-3) var(--space-8);
+		margin-top: var(--space-6);
+		color: var(--color-text-muted);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	.anatomy__legend strong {
+		color: var(--color-text);
+	}
+	.anatomy__legend span::before {
+		content: '';
+		display: inline-block;
+		width: 18px;
+		height: 3px;
+		margin-right: var(--space-2);
+		vertical-align: middle;
+		border-radius: 2px;
+		background: var(--mark);
+	}
+	[data-part='cahut'] {
+		--mark: var(--color-border-strong);
+	}
+	[data-part='room'] {
+		--mark: var(--color-accent);
+	}
+	[data-part='window'] {
+		--mark: var(--color-text);
+	}
+	/* The parts underline themselves in turn, once in view. */
+	:global(.is-visible) .anatomy__part,
+	:global(html:not(.js)) .anatomy__part {
+		border-color: var(--mark);
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		:global(.is-visible) .anatomy__part[data-part='room'] {
+			transition-delay: 350ms;
+		}
+		:global(.is-visible) .anatomy__part[data-part='window'] {
+			transition-delay: 700ms;
+		}
+	}
+
+	@media (max-width: 960px) {
+		.steps {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.step:not(:last-child)::after {
+			display: none;
+		}
+	}
+	@media (max-width: 640px) {
+		.anatomy {
+			padding: var(--space-6) var(--space-4);
+		}
+	}
+	@media (max-width: 640px) {
+		.section {
+			padding-block: var(--space-16);
+		}
+	}
+</style>

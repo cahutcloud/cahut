@@ -2,12 +2,11 @@
 // The home page of cahut.cloud, in each language of the site: its words come
 // from the dictionaries of src/i18n.
 import Address from './Address.astro';
-import Doors from './Doors.astro';
-import Flow from './Flow.astro';
+import Examples from './Examples.astro';
 import Hero from './Hero.astro';
 import KnockDemo from './KnockDemo.astro';
-import LinkNotFile from './LinkNotFile.astro';
-import Quickstart from './Quickstart.astro';
+import Start from './Start.astro';
+import Steps from './Steps.astro';
 import Icon, { type IconName } from '../Icon.astro';
 import Base from '../../layouts/Base.astro';
 import { localize, useTranslations, type Lang } from '../../i18n';
@@ -16,7 +15,6 @@ import houseStylePicto from '@charte/icones/house-style.svg?raw';
 import keyPicto from '@charte/icones/key.svg?raw';
 import knockFirstPicto from '@charte/icones/knock-first.svg?raw';
 import logbookPicto from '@charte/icones/logbook.svg?raw';
-import symbol from '@charte/logos/cahut-symbole.svg?raw';
 
 interface Props {
 	lang: Lang;
@@ -25,14 +23,7 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 
-const github = 'https://github.com/getcahut/cahut';
-const docs = 'https://docs.cahut.cloud';
-const docsLang = lang === 'en' ? undefined : 'en';
-
 // The icons and pictograms go with the words, in the order of the dictionaries.
-const problemIcons: IconName[] = ['shuffle', 'undo-2', 'eye-off', 'palette', 'terminal'];
-const problems = t.why.problems.map((problem, index) => ({ ...problem, icon: problemIcons[index] }));
-
 const layers = t.statement.layers.map((layer, index) => ({ ...layer, home: index === 1 }));
 
 const featureIcons: IconName[][] = [
@@ -54,10 +45,10 @@ const wordPictos = [keyPicto, houseStylePicto, knockFirstPicto, logbookPicto];
 const words = t.vocabulary.words.map((word, index) => ({ ...word, picto: wordPictos[index] }));
 
 const accessBadges = [
-	{ badge: 'room', icon: 'lock', label: t.flow.access.room },
-	{ badge: 'internal', icon: 'users', label: t.flow.access.internal },
-	{ badge: 'key', icon: 'key-round', label: t.flow.access.key },
-	{ badge: 'public', icon: 'globe', label: t.flow.access.public },
+	{ badge: 'room', icon: 'lock', label: t.vocabulary.accessLabels.room },
+	{ badge: 'internal', icon: 'users', label: t.vocabulary.accessLabels.internal },
+	{ badge: 'key', icon: 'key-round', label: t.vocabulary.accessLabels.key },
+	{ badge: 'public', icon: 'globe', label: t.vocabulary.accessLabels.public },
 ] as const;
 const access = accessBadges.map((item, index) => ({ ...item, text: t.vocabulary.access[index] }));
 
@@ -75,51 +66,8 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 	fullWidth
 >
 	<Hero lang={lang} />
-
-	<section id="quickstart" class="section quickstart" aria-labelledby="quickstart-title">
-		<div class="container">
-			<header class="section__head" data-reveal>
-				<p class="c-label">{t.doors.label}</p>
-				<h2 id="quickstart-title" class="c-h1">{t.doors.title}</h2>
-				<p class="lead">{t.doors.lead}</p>
-			</header>
-			<div data-reveal>
-				<Doors lang={lang} />
-			</div>
-			<div id="install" class="install" data-reveal>
-				<Quickstart lang={lang} />
-			</div>
-		</div>
-	</section>
-
-	<section id="why" class="section container" aria-labelledby="why-title">
-		<div class="why">
-			<header class="section__head why__head" data-reveal>
-				<p class="c-label">{t.why.label}</p>
-				<h2 id="why-title" class="c-h1">{t.why.title}</h2>
-				<p class="lead">{t.why.lead}</p>
-				<p class="c-muted">{t.why.text}</p>
-			</header>
-			<div data-reveal>
-				<LinkNotFile lang={lang} />
-			</div>
-		</div>
-
-		<h3 class="c-h3 subhead" data-reveal>{t.why.problemsTitle}</h3>
-		<ul class="problems" role="list" data-reveal-group>
-			{
-				problems.map(({ title, text, icon }) => (
-					<li class="problem" data-reveal>
-						<span class="problem__icon">
-							<Icon name={icon} size={20} />
-						</span>
-						<h4 class="c-h4">{title}</h4>
-						<p class="c-muted">{text}</p>
-					</li>
-				))
-			}
-		</ul>
-	</section>
+	<Steps lang={lang} />
+	<Examples lang={lang} />
 
 	<section class="statement" data-theme="dark" aria-labelledby="statement-title">
 		<div class="container statement__grid">
@@ -150,17 +98,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 					))
 				}
 			</ol>
-		</div>
-	</section>
-
-	<section id="how-it-works" class="section container" aria-labelledby="how-title">
-		<header class="section__head" data-reveal>
-			<p class="c-label">{t.how.label}</p>
-			<h2 id="how-title" class="c-h1">{t.how.title}</h2>
-			<p class="lead">{t.how.lead}</p>
-		</header>
-		<div data-reveal>
-			<Flow lang={lang} />
 		</div>
 	</section>
 
@@ -380,17 +317,7 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 		</div>
 	</section>
 
-	<section class="closing" aria-labelledby="closing-title">
-		<div class="container closing__inner" data-reveal>
-			<span class="closing__symbol" aria-hidden="true" set:html={symbol} />
-			<h2 id="closing-title" class="c-display closing__title">{t.closing.title}</h2>
-			<p class="lead">{t.closing.lead}</p>
-			<div class="actions">
-				<a class="c-btn c-btn--primary" href={github}>{t.closing.github} <Icon name="arrow-right" /></a>
-				<a class="c-btn c-btn--secondary" href={docs} hreflang={docsLang}>{t.closing.docs}</a>
-			</div>
-		</div>
-	</section>
+	<Start lang={lang} />
 </Base>
 
 <style>
@@ -414,16 +341,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 		list-style: none;
 	}
 
-	.actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-3);
-	}
-	.actions .c-btn {
-		height: 48px;
-		padding-inline: var(--space-5);
-		font-size: var(--text-base);
-	}
 
 	/* Sections */
 	.section {
@@ -442,14 +359,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 		margin: var(--space-20) 0 var(--space-8);
 	}
 
-	/* Quick start */
-	.quickstart {
-		padding-top: var(--space-16);
-	}
-	/* The commands of the door to one's own server, under the two doors. */
-	.install {
-		margin-top: var(--space-12);
-	}
 	.more {
 		display: inline-flex;
 		align-items: center;
@@ -473,40 +382,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 		justify-self: start;
 	}
 
-	/* Why */
-	.why {
-		display: grid;
-		grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-		align-items: center;
-		gap: var(--space-16);
-	}
-	.why__head {
-		margin-bottom: 0;
-	}
-	.problems {
-		display: grid;
-		grid-template-columns: repeat(5, minmax(0, 1fr));
-		gap: var(--space-4);
-	}
-	.problem {
-		display: grid;
-		align-content: start;
-		gap: var(--space-3);
-		padding: var(--space-6) var(--space-5);
-		border: var(--border-width) solid var(--color-border);
-		border-radius: var(--radius-lg);
-		background: var(--color-surface);
-		transition:
-			opacity var(--duration-reveal) var(--ease-out),
-			translate var(--duration-reveal) var(--ease-out),
-			border-color var(--duration-slow) var(--ease-out),
-			box-shadow var(--duration-slow) var(--ease-out);
-	}
-	.problem:hover {
-		border-color: var(--color-border-strong);
-		box-shadow: var(--shadow-md);
-	}
-	.problem__icon,
 	.feature__icon,
 	.principle__icon {
 		display: grid;
@@ -517,14 +392,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 		background: var(--color-surface-muted);
 		color: var(--color-text);
 	}
-	.problem__icon {
-		margin-bottom: var(--space-2);
-	}
-	.problem p {
-		font-size: var(--text-sm);
-		line-height: var(--leading-sm);
-	}
-
 	/* Statement */
 	.statement {
 		padding-block: var(--space-24);
@@ -964,40 +831,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 		font-weight: var(--weight-semibold);
 	}
 
-	/* Closing */
-	.closing {
-		padding-block: var(--space-24);
-		border-top: var(--border-width) solid var(--color-border);
-	}
-	.closing__inner {
-		display: grid;
-		justify-items: center;
-		gap: var(--space-6);
-		text-align: center;
-	}
-	.closing__inner .lead {
-		max-width: 36rem;
-		color: var(--color-text-muted);
-	}
-	.closing__inner .actions {
-		justify-content: center;
-	}
-	.closing__symbol {
-		display: block;
-		width: 7.5rem;
-	}
-	.closing__symbol :global(svg) {
-		display: block;
-		width: 100%;
-		height: auto;
-	}
-	.closing__symbol :global(path) {
-		stroke: var(--color-text);
-	}
-	.closing__title {
-		max-width: 14em;
-	}
-
 	/* In the dark, the muted bands would be lighter than the cards they hold. */
 	@media (prefers-color-scheme: dark) {
 		:global(:root:not([data-theme='light'])) .section--muted {
@@ -1011,14 +844,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
-		/* The symbol draws itself, then its door lights up for a moment. */
-		:global(.js) .closing__symbol :global(path) {
-			stroke-dasharray: 1000;
-			stroke-dashoffset: 1000;
-		}
-		:global(.js) .is-visible .closing__symbol :global(path) {
-			animation: draw 2.2s var(--ease-in-out) 200ms forwards;
-		}
 		.layer--home .layer__picto :global(path:first-child) {
 			animation: door 3s ease-in-out infinite alternate;
 		}
@@ -1049,11 +874,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 			opacity: 0;
 		}
 	}
-	@keyframes draw {
-		to {
-			stroke-dashoffset: 0;
-		}
-	}
 	@keyframes door {
 		from {
 			opacity: 0.4;
@@ -1061,9 +881,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 	}
 
 	@media (max-width: 1080px) {
-		.problems {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-		}
 		.principles {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
@@ -1076,7 +893,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 	}
 
 	@media (max-width: 960px) {
-		.why,
 		.statement__grid,
 		.knock-first,
 		.roadmap {
@@ -1099,8 +915,7 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 
 	@media (max-width: 640px) {
 		.section,
-		.statement,
-		.closing {
+		.statement {
 			padding-block: var(--space-16);
 		}
 		.section__head {
@@ -1113,11 +928,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 			font-size: var(--text-3xl);
 			line-height: var(--leading-3xl);
 		}
-		.closing__title {
-			font-size: var(--text-4xl);
-			line-height: var(--leading-4xl);
-		}
-		.problems,
 		.principles,
 		.words,
 		.access__list {
@@ -1137,9 +947,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 		.not-done,
 		.criteria {
 			padding: var(--space-5);
-		}
-		.actions .c-btn {
-			flex: 1 1 auto;
 		}
 	}
 </style>
