@@ -174,6 +174,14 @@ function expires(k: Knock): string {
 	return t.expiresInHours(Math.round(minutes / 60));
 }
 
+/** The name of an AI client without the parenthesized part that some add at
+ * its end, such as "Claude (Anthropic/ClaudeAI 1.0.0)" for claude.ai: the
+ * card keeps the full name in its title. */
+function shortName(client: string): string {
+	const short = client.replace(/\s*\([^()]*\)$/, "").trim();
+	return short || client;
+}
+
 function when(at: string): string {
 	return new Date(at).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
 }
@@ -203,6 +211,7 @@ function KnockCard(props: { knock: Knock; onAnswer?: (a: Answer | Knock) => void
 	const [error, setError] = useState("");
 	const armed = useArmed();
 	const state = states[k.state] ?? states.expired;
+	const client = shortName(k.client);
 	const answer = async (approve: boolean) => {
 		setBusy(true);
 		setError("");
@@ -219,11 +228,11 @@ function KnockCard(props: { knock: Knock; onAnswer?: (a: Answer | Knock) => void
 	return (
 		<article class={`c-card ${k.state === "waiting" ? "c-knock" : "panel knock-past"}`}>
 			<div class="c-knock__head">
-				<span class="c-ai">
+				<span class="c-ai" title={client === k.client ? undefined : k.client}>
 					<span class="c-ai__mark" aria-hidden="true">
-						{k.client.slice(0, 2)}
+						{client.slice(0, 2)}
 					</span>
-					{k.client}
+					{client}
 				</span>
 				<span class={`c-badge ${state.badge} knock__state`}>
 					{k.state === "waiting" && <span class="c-dot" aria-hidden="true" />}
@@ -321,7 +330,7 @@ export function KnockPage({ id }: { id: number }) {
 	return (
 		<>
 			<PageHead label={t.waiting} title={`Knock ${k.id}`}>
-				{t.asked(k.client, when(k.created_at), k.user)}{" "}
+				{t.asked(shortName(k.client), when(k.created_at), k.user)}{" "}
 				<Link class="c-link" href="/knocks">
 					{t.allKnocks}
 				</Link>

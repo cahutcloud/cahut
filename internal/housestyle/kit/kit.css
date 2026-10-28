@@ -759,6 +759,16 @@
 	pointer-events: none;
 }
 
+/* While the controls show, they carry the number of the slide: the number at
+   its foot steps aside, and comes back once the pointer stops. */
+.hs-live .hs-slide::after {
+	transition: opacity 0.3s ease;
+}
+
+.hs-live:not(.hs-idle) .hs-slide::after {
+	opacity: 0;
+}
+
 .hs-live.hs-idle {
 	cursor: none;
 }
@@ -791,7 +801,8 @@
 
 @media (prefers-reduced-motion: reduce) {
 	.hs-live .hs-progress,
-	.hs-live .hs-controls {
+	.hs-live .hs-controls,
+	.hs-live .hs-slide::after {
 		transition: none;
 	}
 }
@@ -938,6 +949,10 @@
 	.hs-live .hs-controls,
 	.hs-live .hs-progress {
 		display: none;
+	}
+
+	.hs-live:not(.hs-idle) .hs-slide::after {
+		opacity: 1;
 	}
 }
 
