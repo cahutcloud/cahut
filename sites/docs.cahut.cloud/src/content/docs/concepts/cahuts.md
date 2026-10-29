@@ -97,6 +97,19 @@ The pages that the Cahut serves itself link them in a discreet line at their foo
 
 Windows show none of them: a Window is the content of its Room, and a Room that shows a Window at its address leaves the page to it. Every change of the links goes to the Logbook of the Cahut, and `get_cahut` gives them to people and to AIs.
 
+## Suspension
+
+The administrators of the server suspend a Cahut, after a decision of moderation or when its organization stops paying, and resume it later, in its console under **Kind and limits** or with [`cahut domain suspend`](/admin/commands/#suspend-a-cahut). A suspended Cahut keeps everything: its people and their sessions, their AIs and their connections, its Rooms, its Windows and its Logbook. Until it is resumed, it serves nothing but to the administrators of its server:
+
+- its Windows, the pages of its Rooms, its Keys and its invitations answer with a page that says that the Cahut is suspended, in the brand of Cahut, with the links to its legal pages;
+- its console says the same in place of its sign-in, and to the people who had signed in;
+- the AIs stay connected, and each of their calls is refused with a message that says the Cahut is suspended;
+- the programs of the [admin API](/reference/http-api/#admin-api) are refused too, and the Cahut sends no e-mail.
+
+The administrators of the server keep its console and the command line, to look into it and to resume it. Once resumed, everything works as before: nobody signs in or connects again.
+
+The reason of a suspension is for the administrators of the Cahut, who receive it by e-mail when the Cahut has a relay, and read it in its Logbook once it is resumed. Readers, people and AIs never read it. The list of the Cahuts of the server says which are suspended, since when and why.
+
 ## Who administers
 
 The server's command line acts as the administrator of the server and of every Cahut: whoever runs `cahut` as the service user can read its data folder anyway. A person created with `--admin` is recorded as an administrator of their Cahut. That role takes effect with the console, where the administrators of a Cahut will manage its people.

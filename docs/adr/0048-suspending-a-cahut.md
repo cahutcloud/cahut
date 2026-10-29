@@ -1,6 +1,6 @@
 # 48. The administrators of the server suspend a Cahut, which keeps everything and serves nothing until they resume it
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-29
 
 ## Context

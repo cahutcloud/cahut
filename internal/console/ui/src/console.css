@@ -868,6 +868,11 @@ a.cahut-menu__item:hover {
 .section > .cards {
 	margin-top: 0;
 }
+/* The notice of a suspended Cahut, above the head of every page that its
+   administrators of the server see. See docs/adr/0048-suspending-a-cahut.md. */
+.suspended-banner {
+	margin-bottom: var(--space-6);
+}
 .panel {
 	padding: var(--space-5) var(--space-6);
 }

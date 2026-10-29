@@ -27,6 +27,7 @@ import (
 	"cahut.cloud/internal/notice"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/update"
 	"cahut.cloud/internal/version"
 	"cahut.cloud/internal/window"
@@ -146,6 +147,15 @@ type site struct {
 // New returns a web server for the Cahuts of srv.
 func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s := &Server{srv: srv, cfg: cfg, log: log, sites: map[string]*site{}}
+	// The operations of the server read the Cahuts that this server holds
+	// open, rather than open them again.
+	srv.Opened = func(ctx context.Context, domain string) (*cahut.Cahut, error) {
+		st, err := s.site(ctx, domain)
+		if err != nil {
+			return nil, err
+		}
+		return st.cahut, nil
+	}
 	s.streams, s.endStreams = context.WithCancel(context.Background())
 	s.mux = http.NewServeMux()
 	s.mux.HandleFunc("GET /{$}", s.serveRoot)
@@ -270,6 +280,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.console.ServeHTTP(w, r)
 	case p == strings.TrimSuffix(ConsolePath, "/"), p == "/admin", strings.HasPrefix(p, "/admin/"):
 		redirectToConsole(w, r)
+	case !servedWhileSuspended(p) && s.serveSuspended(w, r):
 	default:
 		s.mux.ServeHTTP(w, r)
 	}
@@ -456,9 +467,15 @@ func (s *Server) serveLocalHealth(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, d := range domains {
 		c := update.CahutHealth{Domain: d, OK: true}
-		if _, err := s.site(r.Context(), d); err != nil {
+		st, err := s.site(r.Context(), d)
+		var suspension *settings.Suspension
+		if err == nil {
+			suspension, err = settings.SuspensionOf(r.Context(), st.cahut.DB.Read)
+		}
+		if err != nil {
 			c.OK, c.Error, h.OK = false, err.Error(), false
 		}
+		c.Suspended = suspension != nil
 		h.Cahuts = append(h.Cahuts, c)
 	}
 	s.mu.Lock()

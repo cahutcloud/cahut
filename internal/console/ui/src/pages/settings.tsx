@@ -1,15 +1,17 @@
 // The kind and the limits of the Cahut, and the links to its legal pages:
 // the administrators of the server set them, its administrators read them,
-// and its people read what concerns them. See
-// docs/adr/0030-kind-and-limits-of-each-cahut.md and
-// docs/adr/0042-the-legal-pages-of-a-cahut.md.
+// and its people read what concerns them. The administrators of the server
+// suspend the Cahut here too, and resume it. See
+// docs/adr/0030-kind-and-limits-of-each-cahut.md,
+// docs/adr/0042-the-legal-pages-of-a-cahut.md and
+// docs/adr/0048-suspending-a-cahut.md.
 import { Fragment } from "preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
-import type { LegalLinks, LegalPages, Limits, SetLegalLinksInput, Settings as CahutSettings } from "../api.gen";
+import type { LegalLinks, LegalPages, Limits, SetLegalLinksInput, Settings as CahutSettings, Suspension } from "../api.gen";
 import { bytes, Failure, legalPages, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
-import { words } from "../i18n";
+import { locale, words } from "../i18n";
 import { useLoad } from "../load";
 
 const t = words({
@@ -72,6 +74,22 @@ const t = words({
 		https: "An address that starts with https://",
 		legalHelp:
 			"Give an address in French only where the page in French differs: the console links it when it speaks French. Leave a field empty to remove its link.",
+		suspension: "Suspension",
+		suspendTitle: "Suspend this Cahut",
+		suspendHelp:
+			"After a decision of moderation, or when its organization stops paying. It keeps everything, and serves nothing but to the administrators of the server until they resume it: its Windows say that it is suspended, its people cannot sign in, and their AIs cannot act in it.",
+		suspend: "Suspend",
+		reason: "Reason",
+		reasonHelp: (n: number) =>
+			`${n} of 500 characters. Its administrators read it by e-mail, when the Cahut sends e-mail, and in its Logbook once it is resumed. Readers, people and AIs never do.`,
+		suspendNow: "Suspend the Cahut",
+		cancel: "Cancel",
+		suspendedSince: (since: string) => `Suspended since ${since}`,
+		reasonIs: "Reason:",
+		resumeHelp: "Resuming it opens its Windows again, and its people and their AIs find everything as it was.",
+		resume: "Resume",
+		changeReason: "Change the reason",
+		saveReason: "Save the reason",
 	},
 	fr: {
 		people: "Personnes",
@@ -136,6 +154,22 @@ const t = words({
 		https: "Une adresse qui commence par https://",
 		legalHelp:
 			"Ne donnez une adresse en français que si la page en français diffère : la console la lie quand elle parle français. Laissez un champ vide pour retirer son lien.",
+		suspension: "Suspension",
+		suspendTitle: "Suspendre cette Cahut",
+		suspendHelp:
+			"Après une décision de modération, ou quand son organisation ne paie plus. Elle garde tout, et ne sert plus rien qu'aux administrateurs du serveur jusqu'à ce qu'ils la réactivent : ses Windows disent qu'elle est suspendue, ses personnes ne peuvent plus se connecter, et leurs IA ne peuvent plus y agir.",
+		suspend: "Suspendre",
+		reason: "Motif",
+		reasonHelp: (n) =>
+			`${n} caractères sur 500. Ses administrateurs le lisent par e-mail, quand la Cahut envoie des e-mails, et dans son Logbook une fois réactivée. Les lecteurs, les personnes et les IA ne le lisent jamais.`,
+		suspendNow: "Suspendre la Cahut",
+		cancel: "Annuler",
+		suspendedSince: (since) => `Suspendue depuis le ${since}`,
+		reasonIs: "Motif :",
+		resumeHelp: "La réactiver rouvre ses Windows, et ses personnes et leurs IA retrouvent tout comme avant.",
+		resume: "Réactiver",
+		changeReason: "Modifier le motif",
+		saveReason: "Enregistrer le motif",
 	},
 });
 
@@ -204,7 +238,108 @@ export function Settings() {
 				{!server && <LegalTable legal={data.legal} />}
 			</section>
 			{server && <LegalForm legal={data.legal} onSaved={() => (reload(), api.reloadCahut())} />}
+			{server && <SuspensionForm suspension={data.suspension} onChanged={(on) => (reload(), api.setSuspended(on))} />}
 		</>
+	);
+}
+
+/**
+ * The suspension of the Cahut, which only the administrators of the server
+ * decide: they suspend it with a reason, change the reason, and resume it.
+ */
+function SuspensionForm({ suspension, onChanged }: { suspension?: Suspension; onChanged: (suspended: boolean) => void }) {
+	const api = useConsole();
+	const [asking, setAsking] = useState(false);
+	const [reason, setReason] = useState(suspension?.reason ?? "");
+	const [error, setError] = useState("");
+	const [busy, setBusy] = useState(false);
+	const call = async (run: () => Promise<unknown>, suspended: boolean) => {
+		setBusy(true);
+		setError("");
+		try {
+			await run();
+			setAsking(false);
+			onChanged(suspended);
+		} catch (err) {
+			setError(explain(err));
+		}
+		setBusy(false);
+	};
+	const suspend = (e: Event) => {
+		e.preventDefault();
+		call(() => api.cahutAsServer("suspend_cahut", { reason }), true);
+	};
+	const resume = () => call(() => api.cahutAsServer("resume_cahut", {}), false);
+	const form = (submit: string) => (
+		<form class="setting__more setting__confirm" onSubmit={suspend}>
+			<label class="c-field">
+				<span class="c-field__label">{t.reason}</span>
+				<textarea class="c-input" required maxLength={500} rows={3} value={reason} onInput={(e) => setReason(e.currentTarget.value)} />
+				<span class="c-field__help">{t.reasonHelp(reason.length)}</span>
+			</label>
+			<div class="actions">
+				<button class="c-btn c-btn--danger c-btn--sm" type="submit" disabled={busy || reason.trim() === ""}>
+					{submit}
+				</button>
+				<button
+					class="c-btn c-btn--ghost c-btn--sm"
+					type="button"
+					onClick={() => (setAsking(false), setReason(suspension?.reason ?? ""), setError(""))}
+				>
+					{t.cancel}
+				</button>
+			</div>
+		</form>
+	);
+	return (
+		<section class="section c-card panel">
+			<h2 class="c-h4">{t.suspension}</h2>
+			<div class="settings">
+				{suspension ? (
+					<div class="setting">
+						<div class="setting__text">
+							<span class="setting__title">
+								{t.suspendedSince(new Date(suspension.since).toLocaleDateString(locale, { dateStyle: "long" }))}
+							</span>
+							<p class="c-small">
+								{t.reasonIs} {suspension.reason}
+							</p>
+							<p class="c-small c-muted">{t.resumeHelp}</p>
+						</div>
+						<div class="setting__action">
+							<button class="c-btn c-btn--primary" type="button" disabled={busy} onClick={resume}>
+								{t.resume}
+							</button>
+						</div>
+						{asking ? (
+							form(t.saveReason)
+						) : (
+							<p class="setting__more c-small">
+								<button class="c-link link-button" type="button" onClick={() => setAsking(true)}>
+									{t.changeReason}
+								</button>
+							</p>
+						)}
+					</div>
+				) : (
+					<div class="setting">
+						<div class="setting__text">
+							<span class="setting__title">{t.suspendTitle}</span>
+							<p class="c-small c-muted">{t.suspendHelp}</p>
+						</div>
+						{!asking && (
+							<div class="setting__action">
+								<button class="c-btn c-btn--danger" type="button" onClick={() => setAsking(true)}>
+									{t.suspend}
+								</button>
+							</div>
+						)}
+						{asking && form(t.suspendNow)}
+					</div>
+				)}
+			</div>
+			{error && <Failure message={error} />}
+		</section>
 	);
 }
 

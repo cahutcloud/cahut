@@ -32,9 +32,9 @@ sudo -u cahut /usr/local/bin/cahut domain list
 
 ```text
 Declared docs.example.org: its Cahut is ready. Point its DNS to this server, then serve it.
-ID  DOMAIN             CREATED
-1   cahut.example.com  2026-10-20
-2   docs.example.org   2026-10-21
+ID  DOMAIN             CREATED     STATE
+1   cahut.example.com  2026-10-20  active
+2   docs.example.org   2026-10-21  active
 ```
 
 The running service serves the new Cahut at once, and gets its certificate at the first HTTPS connection to its domain. A domain is a host name such as `cahut.example.com`; a Cahut without a domain takes the public IPv4 address of the server instead, such as `203.0.113.7`. There is no command yet to remove a Cahut.
@@ -123,6 +123,27 @@ support       none
 ```
 
 Each address starts with `https://`. An address in French is for a page whose French version differs: the console links it when it speaks French, and needs the address of the same page for the other languages. Without a flag, `settings links` prints the links; `settings show` prints them too.
+
+## Suspend a Cahut
+
+After a decision of moderation, or when its organization stops paying, the administrators of the server [suspend a Cahut](/concepts/cahuts/#suspension), with a reason, and resume it later:
+
+```bash
+sudo -u cahut /usr/local/bin/cahut domain suspend docs.example.org --reason "Invoice of October unpaid"
+sudo -u cahut /usr/local/bin/cahut domain list
+sudo -u cahut /usr/local/bin/cahut domain resume docs.example.org
+```
+
+```text
+The Cahut of docs.example.org is suspended since 2026-10-29 10:42: it keeps everything, and serves nothing but to the administrators of the server.
+Its administrators hear of it by e-mail when it has a relay. Resume it with cahut domain resume docs.example.org.
+ID  DOMAIN             CREATED     STATE
+1   cahut.example.com  2026-10-20  active
+2   docs.example.org   2026-10-21  suspended since 2026-10-29: Invoice of October unpaid
+The Cahut of docs.example.org is open again: its Windows, its people and their AIs find everything as it was.
+```
+
+The reason holds 500 characters at most. Suspending a suspended Cahut again changes its reason only. The running service follows at once, and both commands go to the Logbook of the Cahut, with the reason.
 
 ## Create a person
 

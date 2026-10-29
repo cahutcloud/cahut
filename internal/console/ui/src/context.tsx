@@ -3,7 +3,7 @@
 import { createContext, type ComponentChildren } from "preact";
 import { useContext } from "preact/hooks";
 import { ApiError, cahut as callCahut, server as callServer } from "./api";
-import type { CahutOperations, LegalLinks, ServerOperations } from "./api.gen";
+import type { CahutOperations, LegalLinks, ServerOperations, Suspension } from "./api.gen";
 import type { Session } from "./session";
 
 export interface Console {
@@ -46,6 +46,14 @@ export interface Console {
 	 * screen shows. See docs/adr/0042-the-legal-pages-of-a-cahut.md.
 	 */
 	legal?: LegalLinks;
+	/**
+	 * Since when and why the administrators of the server suspended this
+	 * Cahut, which only they read: the console then acts with their session.
+	 * See docs/adr/0048-suspending-a-cahut.md.
+	 */
+	suspension?: Suspension;
+	/** Says that this Cahut is now suspended, or resumed, so that the console acts with the right session. */
+	setSuspended(suspended: boolean): void;
 	/** Reads this Cahut again, after a change of its kind, of its relay or of its legal pages. */
 	reloadCahut(): void;
 	/** Loads the Rooms of the sidebar again, after a change. */
@@ -79,17 +87,23 @@ export function useConsole(): Console {
 /**
  * Binds the API to the sessions: that of the console, and that of the
  * server when the browser holds it. A session that has ended calls expired
- * with its kind.
+ * with its kind. A call of the person that a suspended Cahut refuses calls
+ * suspended: the console then shows the notice of a suspended Cahut, or
+ * acts with the session of the server.
  */
 export function bind(
 	session: Session,
 	serverSession: Session | null,
 	expired: (kind: Session["kind"]) => void,
+	suspended: () => void = () => undefined,
 ): Pick<Console, "session" | "serverSession" | "cahut" | "cahutAsServer" | "server"> {
 	const watch = <T,>(p: Promise<T>, kind: Session["kind"]): Promise<T> =>
 		p.catch((err: unknown) => {
 			if (err instanceof ApiError && err.status === 401) {
 				expired(kind);
+			}
+			if (err instanceof ApiError && err.code === "cahut_suspended" && kind === "person") {
+				suspended();
 			}
 			throw err;
 		});

@@ -17,6 +17,7 @@ import { Link } from "../router";
 import { type SceneMotion, SignInScene } from "../sign-in-scene";
 import type { Session } from "../session";
 import { useServerTheme } from "../theme";
+import { Suspended } from "./suspended";
 
 const t = words({
 	en: {
@@ -93,9 +94,12 @@ export function SignIn(props: {
 	// foot of the page links the legal pages of the Cahut.
 	const [sendsMail, setSendsMail] = useState(false);
 	const [legal, setLegal] = useState<LegalLinks>();
+	// Nobody but the administrators of the server signs in to a suspended
+	// Cahut. See docs/adr/0048-suspending-a-cahut.md.
+	const [suspended, setSuspended] = useState(false);
 	useEffect(() => {
 		describeSignIn().then(
-			(p) => (setSendsMail(p.sends_mail), setLegal(p.legal)),
+			(p) => (setSendsMail(p.sends_mail), setLegal(p.legal), setSuspended(p.suspended === true)),
 			() => undefined,
 		);
 	}, []);
@@ -127,6 +131,7 @@ export function SignIn(props: {
 		}
 	};
 
+	if (suspended && kind === "person") return <Suspended beside={beside} />;
 	if (forgot) return <Forgot who={handle} onBack={() => setForgot(false)} />;
 	return (
 		<main class="auth auth--scene">

@@ -26,7 +26,7 @@ docs/adr/0042-the-legal-pages-of-a-cahut.md. */}}
 {{define "top"}}<header class="top">
 <a class="top__home" href="/">{{if .Brand.NeutralLook}}<picture><source srcset="/-/brand/logos/cahut-logo-horizontal-inverse.svg" media="(prefers-color-scheme: dark)"><img class="top__cahut" src="/-/brand/logos/cahut-logo-horizontal.svg" alt="Cahut" width="100" height="26"></picture><span class="top__domain">{{.Domain}}</span>{{else if .Brand.Logo}}<img class="top__logo" src="/-/house-style/logo" alt="{{.Brand.Name}}">{{else}}<span class="top__name">{{.Brand.Name}}</span>{{end}}</a>
 {{if .Reader}}<form class="top__reader" method="post" action="/-/sign-out"><span class="top__handle">{{.Reader}}</span><button class="c-btn c-btn--ghost c-btn--sm" type="submit">{{icon "log-out" 16}}Sign out</button></form>
-{{else}}<a class="c-btn c-btn--secondary c-btn--sm" href="{{.SignIn}}">{{icon "log-in" 16}}Sign in</a>
+{{else if .SignIn}}<a class="c-btn c-btn--secondary c-btn--sm" href="{{.SignIn}}">{{icon "log-in" 16}}Sign in</a>
 {{end}}</header>
 {{end}}
 
@@ -145,6 +145,21 @@ docs/adr/0042-the-legal-pages-of-a-cahut.md. */}}
 <h1 class="c-h3">This link has expired</h1>
 <p>The link that signs you in works once, for a minute.</p>
 <p><a class="c-btn c-btn--primary" href="{{.SignIn}}">{{icon "log-in" 16}}Sign in again</a></p>
+</section>
+</main>
+{{template "legal" .}}</body>
+</html>
+{{end}}
+
+{{define "suspended"}}{{template "head" .}}</head>
+<body>
+{{template "top" .}}
+<main class="page page--narrow">
+<section class="c-card panel">
+<p class="c-label">Suspended</p>
+<h1 class="c-h3">This Cahut is suspended</h1>
+<p>The administrators of its server suspended it. It keeps everything it holds, and its Windows open again once they resume it.</p>
+<p class="c-small c-muted">If you work in this Cahut, ask its administrators.</p>
 </section>
 </main>
 {{template "legal" .}}</body>

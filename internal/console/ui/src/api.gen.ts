@@ -19,6 +19,8 @@ export interface About {
   yours?: PersonUsage;
   /** the links to the legal pages of the Cahut, which its host publishes elsewhere, and which the console and the pages for readers show at their foot; empty when it links none */
   legal: LegalLinks;
+  /** since when and why the administrators of the server suspended the Cahut; absent while it is active */
+  suspension?: Suspension;
 }
 
 export interface AccessInput {
@@ -577,6 +579,8 @@ export interface Info {
   id: number;
   domain: string;
   created_at: string;
+  /** since when and why the administrators of the server suspended this Cahut, which serves nothing meanwhile; absent while it is active */
+  suspension?: Suspension;
 }
 
 export interface Invitation {
@@ -840,6 +844,8 @@ export interface NewCahut {
   id: number;
   domain: string;
   created_at: string;
+  /** since when and why the administrators of the server suspended this Cahut, which serves nothing meanwhile; absent while it is active */
+  suspension?: Suspension;
   /** the first administrator of the Cahut, with their activation link */
   admin?: NewUser;
 }
@@ -1066,6 +1072,8 @@ export interface RequestedUpdate {
   /** check, or the version to install */
   requested: string;
 }
+
+export type ResumeCahutInput = Record<string, never>;
 
 export interface RevokeInvitationInput {
   /** the id of the invitation, which list_invitations gives */
@@ -1308,6 +1316,8 @@ export interface Settings {
   yours?: PersonUsage;
   /** the links to the legal pages of the Cahut, which its host publishes elsewhere, and which the console and the pages for readers show at their foot; empty when it links none */
   legal: LegalLinks;
+  /** since when and why the administrators of the server suspended the Cahut; absent while it is active */
+  suspension?: Suspension;
 }
 
 export interface Setup {
@@ -1341,6 +1351,8 @@ export interface SignInPage {
   sends_mail: boolean;
   /** the links to the legal pages of the Cahut, which the pages before sign-in show at their foot */
   legal: LegalLinks;
+  /** whether the administrators of the server suspended this Cahut: nobody but them signs in until they resume it */
+  suspended?: boolean;
 }
 
 export type SignInToWindowsInput = Record<string, never>;
@@ -1352,6 +1364,18 @@ export type SignedOut = Record<string, never>;
 export interface Started {
   /** the domain of the Cahut */
   domain: string;
+}
+
+export interface SuspendCahutInput {
+  /** why the Cahut is suspended, in 500 characters at most, such as an unpaid invoice or a decision of moderation; its administrators read it, and readers, people and AIs never do */
+  reason: string;
+}
+
+export interface Suspension {
+  /** when the administrators of the server suspended the Cahut */
+  since: string;
+  /** why the administrators of the server suspended the Cahut; its administrators read it, and readers, people and AIs never do */
+  reason: string;
 }
 
 export interface TakenEmail {
@@ -1594,7 +1618,7 @@ export interface CahutOperations {
   deny_knock: { input: AnswerInput; output: Knock };
   /** Check the request of an AI client to connect to this Cahut, and describe it to the person who consents: the client, where it will be sent back, the scope it asks for, and the Rooms the person may grant. */
   describe_authorization: { input: DescribeInput; output: Authorization };
-  /** Say what the page of sign-in of this Cahut offers, before anyone signs in: whether it sends e-mail, and so a link to a person who forgot their password, and the links to the legal pages of the Cahut. */
+  /** Say what the page of sign-in of this Cahut offers, before anyone signs in: whether it sends e-mail, and so a link to a person who forgot their password, the links to the legal pages of the Cahut, and whether the Cahut is suspended. */
   describe_sign_in: { input: DescribeSignInInput; output: SignInPage };
   /** Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. */
   disable_user: { input: UserInput; output: User };
@@ -1654,6 +1678,8 @@ export interface CahutOperations {
   request_password_link: { input: RequestPasswordLinkInput; output: PasswordLinkRequested };
   /** Bring a Window back from the trash, with its versions. */
   restore_window: { input: RefInput; output: Window };
+  /** Resume this Cahut, which suspend_cahut suspended: its Windows open again, its people sign in, and their AIs act in it as before, without connecting again. Its administrators hear of it by e-mail when it sends e-mail. For the administrators of the server. */
+  resume_cahut: { input: ResumeCahutInput; output: Settings };
   /** Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. */
   revoke_invitation: { input: RevokeInvitationInput; output: Invitation };
   /** Revoke a service token. The program that used it loses access to the admin API at once. */
@@ -1694,6 +1720,8 @@ export interface CahutOperations {
   sign_in_to_windows: { input: SignInToWindowsInput; output: ReaderCode };
   /** End the session you signed in with, and the sessions it opened to read Windows. */
   sign_out: { input: SignOutInput; output: SignedOut };
+  /** Suspend this Cahut, with a reason, after a decision of moderation or when its organization stops paying. It keeps everything: its people and their sessions, their AIs, its Rooms, its Windows and its Logbook. Until resume_cahut, it serves nothing to anyone but the administrators of the server: its Windows answer with a page that says it is suspended, and every call of a person, an AI or a service is refused. Its administrators receive the reason by e-mail when it sends e-mail. Suspending a suspended Cahut changes its reason only. For the administrators of the server. */
+  suspend_cahut: { input: SuspendCahutInput; output: Settings };
   /** Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. */
   trash_window: { input: RefInput; output: Window };
   /** Change the title of a Room. Its name, and so its address, stays. */
@@ -1726,7 +1754,7 @@ export interface ServerOperations {
   get_updates: { input: UpdatesInput; output: Updates };
   /** List the administrators of the server. */
   list_admins: { input: ListAdminsInput; output: AdminList };
-  /** List the Cahuts of this server and their domains. */
+  /** List the Cahuts of this server, their domains, and those that are suspended. */
   list_domains: { input: ListDomainsInput; output: DomainList };
   /** Read the latest entries of the server's Logbook, newest first. */
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
@@ -1752,6 +1780,8 @@ export interface Refusals {
   activation_link_gone: null;
   /** the Cahut needs an administrator: make another person one first */
   cahut_needs_an_admin: null;
+  /** this Cahut is suspended by the administrators of its server: it keeps everything it holds, and nothing in it can be read or changed until they resume it. Ask the administrators of the Cahut, or, for an AI, tell the person you act for */
+  cahut_suspended: null;
   /** {email} is already your e-mail address */
   email_already_yours: TakenEmail;
   /** this link is unknown, used or expired: change your address again from your account */

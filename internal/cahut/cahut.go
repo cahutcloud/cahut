@@ -85,6 +85,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	}
 	r := operation.NewRegistry(db)
 	r.Individual = func(ctx context.Context, tx *sql.Tx) (bool, error) { return settings.IsIndividual(ctx, tx) }
+	r.Suspended = settings.CheckActive
 	account.Register(r)
 	room.Register(r)
 	w := window.NewService(filepath.Join(cfg.Dir, "windows"), url, frameKey)
@@ -104,6 +105,8 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	housestyle.Register(r, cfg.Domain)
 	operation.Register(r, settings.Set)
 	operation.Register(r, settings.SetLegalLinks)
+	operation.Register(r, settings.Suspend)
+	operation.Register(r, settings.Resume)
 	operation.Register(r, ListLogbook)
 	name := func(ctx context.Context) (string, error) {
 		b, err := housestyle.LoadBrand(ctx, db, cfg.Domain)

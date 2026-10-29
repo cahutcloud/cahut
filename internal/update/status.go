@@ -280,9 +280,12 @@ type ProxyHealth struct {
 	Refusal     string     `json:"refusal,omitempty"`
 }
 
-// CahutHealth says whether a Cahut opened, with its migrations.
+// CahutHealth says whether a Cahut opened, with its migrations, and
+// whether the administrators of the server suspended it: a suspended Cahut
+// opens as any other. See docs/adr/0048-suspending-a-cahut.md.
 type CahutHealth struct {
-	Domain string `json:"domain"`
-	OK     bool   `json:"ok"`
-	Error  string `json:"error,omitempty"`
+	Domain    string `json:"domain"`
+	OK        bool   `json:"ok"`
+	Error     string `json:"error,omitempty"`
+	Suspended bool   `json:"suspended,omitempty"`
 }

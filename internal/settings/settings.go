@@ -81,6 +81,10 @@ type Settings struct {
 	Usage  *Usage       `json:"usage,omitempty" jsonschema:"what the Cahut holds, as its limits count it; absent for a member of an individual Cahut"`
 	Yours  *PersonUsage `json:"yours,omitempty" jsonschema:"in an individual Cahut, what the person you act for holds, as the limits per person count it"`
 	Legal  LegalLinks   `json:"legal" jsonschema:"the links to the legal pages of the Cahut, which its host publishes elsewhere, and which the console and the pages for readers show at their foot; empty when it links none"`
+	// Suspension is set while the administrators of the server keep the
+	// Cahut suspended, when only they read its settings. See
+	// docs/adr/0048-suspending-a-cahut.md.
+	Suspension *Suspension `json:"suspension,omitempty" jsonschema:"since when and why the administrators of the server suspended the Cahut; absent while it is active"`
 }
 
 // querier runs a query, in a transaction or not.
@@ -164,7 +168,11 @@ func Read(ctx context.Context, tx *sql.Tx, userID int64, admin bool) (Settings, 
 	if err != nil {
 		return Settings{}, err
 	}
-	s := Settings{Kind: kind, Limits: l, Legal: legal}
+	suspension, err := SuspensionOf(ctx, tx)
+	if err != nil {
+		return Settings{}, err
+	}
+	s := Settings{Kind: kind, Limits: l, Legal: legal, Suspension: suspension}
 	if kind == Individual && userID != 0 {
 		u, err := UseOf(ctx, tx, userID)
 		if err != nil {

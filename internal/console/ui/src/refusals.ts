@@ -44,6 +44,8 @@ const said = words<Sentences>({
 		account_disabled: "This account is disabled: an administrator of the Cahut can enable it.",
 		activation_link_gone: "This activation link is unknown, used or expired: ask an administrator of the Cahut for a new one.",
 		cahut_needs_an_admin: "The Cahut needs an administrator: make another person one first.",
+		cahut_suspended:
+			"This Cahut is suspended by the administrators of its server. It keeps everything it holds, and opens again once they resume it: ask its administrators.",
 		email_already_yours: (v) => `${v.email} is already your e-mail address.`,
 		email_link_gone: "This link is unknown, used or expired: change your address again from your account.",
 		email_taken: (v) => `${v.email} is already the e-mail address of another person of this Cahut.`,
@@ -107,6 +109,8 @@ const said = words<Sentences>({
 		activation_link_gone:
 			"Ce lien d'activation est inconnu, déjà utilisé ou expiré : demandez-en un nouveau à un administrateur de la Cahut.",
 		cahut_needs_an_admin: "La Cahut a besoin d'un administrateur : faites d'abord d'une autre personne un administrateur.",
+		cahut_suspended:
+			"Cette Cahut est suspendue par les administrateurs de son serveur. Elle garde tout ce qu'elle contient, et rouvre dès qu'ils la réactivent : demandez à ses administrateurs.",
 		email_already_yours: (v) => `${v.email} est déjà votre adresse e-mail.`,
 		email_link_gone: "Ce lien est inconnu, déjà utilisé ou expiré : changez à nouveau votre adresse depuis votre compte.",
 		email_taken: (v) => `${v.email} est déjà l'adresse e-mail d'une autre personne de cette Cahut.`,

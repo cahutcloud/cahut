@@ -157,6 +157,11 @@ type Op[In, Out any] struct {
 	// never knock. See
 	// docs/adr/0035-a-program-on-the-server-manages-people-with-a-service-token.md.
 	Services bool
+	// WhileSuspended operations answer everyone in a suspended Cahut, whom
+	// every other call is refused: describe_sign_in, which says that it is
+	// suspended, and the end of a connection, which takes an access away.
+	// See docs/adr/0048-suspending-a-cahut.md.
+	WhileSuspended bool
 	// Prepare, when set, does the slow part of a call before its
 	// transaction opens, so that the call holds no connection to the
 	// database meanwhile: checking a password, fetching a document. c.Tx is
@@ -186,8 +191,10 @@ type Info struct {
 	ReadOnlyAIs  bool
 	OpenWorld    bool
 	Services     bool
-	Input        reflect.Type
-	Output       reflect.Type
+	// WhileSuspended operations answer in a suspended Cahut.
+	WhileSuspended bool
+	Input          reflect.Type
+	Output         reflect.Type
 }
 
 // ForAIs reports whether the operation is offered to the AIs of a person,
@@ -351,6 +358,14 @@ type Registry struct {
 	// their Level. Each Cahut sets it; the registry of the server does not.
 	Individual func(ctx context.Context, tx *sql.Tx) (bool, error)
 
+	// Suspended reads, in the transaction of a call, whether the Cahut is
+	// suspended, and returns the refusal of the call when it is. The
+	// registry asks it for every call but those of the administrators of
+	// the server and of the operations that answer a suspended Cahut. Each
+	// Cahut sets it; the registry of the server does not. See
+	// docs/adr/0048-suspending-a-cahut.md.
+	Suspended func(ctx context.Context, tx *sql.Tx) error
+
 	// Knock records, in tx, the Knock that a call of an AI makes, or returns
 	// the one that already waits for the same call. Each Cahut sets it; a
 	// registry without it refuses the calls that knock. See
@@ -455,22 +470,23 @@ func (r *Registry) Invoke(ctx context.Context, name string, actor Actor, args js
 
 func (op *Op[In, Out]) info() Info {
 	return Info{
-		Name:         op.Name,
-		Title:        op.Title,
-		Description:  op.Description,
-		ReadOnly:     op.ReadOnly,
-		Level:        op.Level,
-		InIndividual: op.InIndividual,
-		PeopleOnly:   op.PeopleOnly,
-		Visitors:     op.Visitors,
-		KnockFirst:   op.KnockFirst,
-		KnocksWhen:   op.KnocksWhen,
-		Destructive:  op.Destructive,
-		ReadOnlyAIs:  op.ReadOnlyAIs,
-		OpenWorld:    op.OpenWorld,
-		Services:     op.Services,
-		Input:        reflect.TypeFor[In](),
-		Output:       reflect.TypeFor[Out](),
+		Name:           op.Name,
+		Title:          op.Title,
+		Description:    op.Description,
+		ReadOnly:       op.ReadOnly,
+		Level:          op.Level,
+		InIndividual:   op.InIndividual,
+		PeopleOnly:     op.PeopleOnly,
+		Visitors:       op.Visitors,
+		KnockFirst:     op.KnockFirst,
+		KnocksWhen:     op.KnocksWhen,
+		Destructive:    op.Destructive,
+		ReadOnlyAIs:    op.ReadOnlyAIs,
+		OpenWorld:      op.OpenWorld,
+		Services:       op.Services,
+		WhileSuspended: op.WhileSuspended,
+		Input:          reflect.TypeFor[In](),
+		Output:         reflect.TypeFor[Out](),
 	}
 }
 
@@ -683,10 +699,15 @@ func authorize(info Info, a Actor) error {
 	return nil
 }
 
-// admit checks, in the transaction of the call, what the records say: the
-// role and the state of the person who acts, or for whom an AI acts. It sets
-// c.Admin.
+// admit checks, in the transaction of the call, what the records say:
+// whether the Cahut is suspended, and the role and the state of the person
+// who acts, or for whom an AI acts. It sets c.Admin.
 func (r *Registry) admit(ctx context.Context, info Info, c *Call) error {
+	if c.Actor.Kind != Admin && !info.WhileSuspended && r.Suspended != nil {
+		if err := r.Suspended(ctx, c.Tx); err != nil {
+			return err
+		}
+	}
 	switch c.Actor.Kind {
 	case Admin, Service:
 		c.Admin = true

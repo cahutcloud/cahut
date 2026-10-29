@@ -30,9 +30,15 @@ const Lead = 3 * 24 * time.Hour
 // end; to the administrators of the Cahut when a limit is at 90% or
 // reached, once a day; and in an individual Cahut, to a person whose own
 // limit is.
+//
+// A suspended Cahut sends none: it serves nothing until the administrators
+// of its server resume it. See docs/adr/0048-suspending-a-cahut.md.
 func Cahut(ctx context.Context, c *cahut.Cahut, now time.Time) error {
 	if c.Outbox == nil {
 		return nil
+	}
+	if s, err := settings.SuspensionOf(ctx, c.DB.Read); err != nil || s != nil {
+		return err
 	}
 	return errors.Join(accessEnds(ctx, c, now), limits(ctx, c, now))
 }

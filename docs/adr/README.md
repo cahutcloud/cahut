@@ -11,12 +11,12 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [5](0005-preact-console-embedded.md) | The console is a Preact app embedded in the binary | Accepted, superseded in part by 11 |
 | [6](0006-in-house-oauth-server.md) | Cahut runs its own minimal OAuth authorization server | Accepted, extended by 16 |
 | [7](0007-module-path-repository-and-releases.md) | Module path, repository and releases | Accepted, extended by 24 |
-| [8](0008-several-cahuts-per-server.md) | A server holds several Cahuts, each at its own domain | Accepted, extended by 26 and 30 |
+| [8](0008-several-cahuts-per-server.md) | A server holds several Cahuts, each at its own domain | Accepted, extended by 26, 30 and 48 |
 | [9](0009-rooms-and-windows-as-paths.md) | Rooms and Windows are paths of their Cahut's domain | Accepted, extended by 22, 30 and 32, superseded in part by 38 |
 | [10](0010-windows-in-a-csp-sandbox.md) | Windows run in a CSP sandbox | Accepted, extended by 27 |
 | [11](0011-console-on-its-own-port.md) | The console has its own port | Accepted, superseded in part by 13, 17 and 20 |
 | [12](0012-website-and-docs-as-astro-sites.md) | The website and the docs are Astro sites in this repository | Accepted, extended by 18 |
-| [13](0013-people-sessions-and-rights.md) | People sign in to their Cahut, and the registry checks their rights | Accepted, superseded in part by 21, extended by 30, 31 and 43 |
+| [13](0013-people-sessions-and-rights.md) | People sign in to their Cahut, and the registry checks their rights | Accepted, superseded in part by 21, extended by 30, 31, 43 and 48 |
 | [14](0014-console-http-api.md) | The console calls each operation at its own HTTP route | Accepted, superseded in part by 20, extended by 37 |
 | [15](0015-license.md) | AGPL-3.0 for the repository, the name and the logo apart | Accepted |
 | [16](0016-oauth-for-ai-clients.md) | AI clients connect over OAuth, to the Rooms and the scope a person grants | Accepted, superseded in part by 17, 20 and 21 |
@@ -33,7 +33,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [27](0027-previews-of-windows-in-the-console.md) | The console shows each Window in a live preview | Accepted |
 | [28](0028-ip-address-of-a-cahut-is-ipv4.md) | The IP address of a Cahut is an IPv4 address, for now | Accepted |
 | [29](0029-chatgpt-second-ai-client.md) | ChatGPT is the second AI client of the V0, through the same tools as Claude | Accepted |
-| [30](0030-kind-and-limits-of-each-cahut.md) | Each Cahut has a kind and limits, set by the administrators of its server | Accepted, extended by 42 |
+| [30](0030-kind-and-limits-of-each-cahut.md) | Each Cahut has a kind and limits, set by the administrators of its server | Accepted, extended by 42 and 48 |
 | [31](0031-e-mail-through-a-relay.md) | Each Cahut sends e-mail through its own relay or that of its server | Accepted, superseded in part by 34 and 46 |
 | [32](0032-the-page-of-a-room.md) | The page of a Room shows its Windows in previews, or a Window that its owners choose, in the brand of Cahut until the house style | Accepted, extended by 33, superseded in part by 38 |
 | [33](0033-the-brand-of-cahut-until-the-house-style-has-a-look.md) | The pages of Cahut carry its brand until the house style has a look of its own | Accepted |
@@ -51,7 +51,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [45](0045-windows-fetch-the-blob-and-data-urls-they-make.md) | The pages of a Window fetch the blob: and data: URLs they make | Accepted |
 | [46](0046-styled-notes-in-invitations.md) | The note of an invitation carries bold, italics and lists | Accepted |
 | [47](0047-deleting-a-person.md) | The administrators of a Cahut delete a person for good, with the Rooms that are theirs alone | Accepted |
-| [48](0048-suspending-a-cahut.md) | The administrators of the server suspend a Cahut, which keeps everything and serves nothing until they resume it | Proposed |
+| [48](0048-suspending-a-cahut.md) | The administrators of the server suspend a Cahut, which keeps everything and serves nothing until they resume it | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

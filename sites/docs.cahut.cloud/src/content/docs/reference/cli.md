@@ -22,6 +22,8 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut domain add`](#cahut-domain-add) | Declare a domain, which creates its Cahut |
 | [`cahut domain list`](#cahut-domain-list) | List the Cahuts of this server |
 | [`cahut domain rename`](#cahut-domain-rename) | Move a Cahut to another domain, or from the IP address of the server to a domain |
+| [`cahut domain suspend`](#cahut-domain-suspend) | Suspend a Cahut, which keeps everything and serves nothing until it is resumed |
+| [`cahut domain resume`](#cahut-domain-resume) | Resume a suspended Cahut |
 | [`cahut settings show`](#cahut-settings-show) | Print the kind and limits of a Cahut, with what it holds |
 | [`cahut settings set`](#cahut-settings-set) | Change the kind or limits of a Cahut; what you leave out stays as it is |
 | [`cahut settings links`](#cahut-settings-links) | Link the legal pages of a Cahut, or print its links; what you leave out stays as it is |
@@ -121,6 +123,31 @@ Move a Cahut to another domain, or from the IP address of the server to a domain
 
 ```text
 cahut domain rename [--data DIR] <domain> <new domain>
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+
+### `cahut domain suspend`
+
+Suspend a Cahut, which keeps everything and serves nothing until it is resumed.
+
+```text
+cahut domain suspend [--data DIR] --reason TEXT <domain>
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--reason string` |  | why the Cahut is suspended, which its administrators read: an unpaid invoice, a decision of moderation |
+
+### `cahut domain resume`
+
+Resume a suspended Cahut.
+
+```text
+cahut domain resume [--data DIR] <domain>
 ```
 
 | Flag | Default | Description |

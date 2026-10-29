@@ -58,6 +58,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `account_disabled` |  | This account is disabled: an administrator of the Cahut can enable it |
 | `activation_link_gone` |  | This activation link is unknown, used or expired: ask an administrator of the Cahut for a new one |
 | `cahut_needs_an_admin` |  | The Cahut needs an administrator: make another person one first |
+| `cahut_suspended` |  | This Cahut is suspended by the administrators of its server: it keeps everything it holds, and nothing in it can be read or changed until they resume it. Ask the administrators of the Cahut, or, for an AI, tell the person you act for |
 | `email_already_yours` | `email` | {email} is already your e-mail address |
 | `email_link_gone` |  | This link is unknown, used or expired: change your address again from your account |
 | `email_taken` | `email` | {email} is already the e-mail address of another person of this Cahut |
@@ -158,6 +159,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/remove_room_member` | Any person | yes |
 | `POST /api/request_password_link` | Anyone, to sign in | no |
 | `POST /api/restore_window` | Any person | yes |
+| `POST /api/resume_cahut` | Administrators of the server | yes |
 | `POST /api/revoke_invitation` | Any person | yes |
 | `POST /api/revoke_service_token` | Administrators of the server | yes |
 | `POST /api/revoke_token` | Any person | yes |
@@ -178,6 +180,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/sign_in` | Anyone, to sign in | no |
 | `POST /api/sign_in_to_windows` | Any person | yes |
 | `POST /api/sign_out` | Any person | yes |
+| `POST /api/suspend_cahut` | Administrators of the server | yes |
 | `POST /api/trash_window` | Any person | yes |
 | `POST /api/update_room` | Any person | yes |
 | `POST /api/update_window` | Any person | yes |
