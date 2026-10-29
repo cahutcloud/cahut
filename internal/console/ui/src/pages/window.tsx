@@ -1,10 +1,11 @@
 // The page of a Window: its title and its description, where it opens, at
 // its address and at its permanent address, who opens it and until when, its two versions, what its AI
-// declared it does, the menu that shares it, and the trash. See
+// declared it does, the menu that shares it, its share links, and the trash. See
 // docs/adr/0019-window-versions-access-and-declaration.md,
-// docs/adr/0050-window-ids-permanent-addresses-and-names.md and
-// docs/adr/0051-sharing-a-window-and-its-preview.md.
-import { ArrowUpRight, RotateCcw, Send, Undo2 } from "lucide-preact";
+// docs/adr/0050-window-ids-permanent-addresses-and-names.md,
+// docs/adr/0051-sharing-a-window-and-its-preview.md and
+// docs/adr/0052-share-links.md.
+import { ArrowUpRight, Link2, RotateCcw, Send, Undo2 } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import { useId, useState } from "preact/hooks";
 import { explain } from "../api";
@@ -29,7 +30,7 @@ import { de, lang, locale, words } from "../i18n";
 import { useLoad } from "../load";
 import { NoteEditor, noteLength } from "../note";
 import { Link, navigate } from "../router";
-import { ShareMenu } from "../share";
+import { ShareLinkDialog, ShareMenu } from "../share";
 
 /** The most characters of a note, as the server counts them. */
 const maxNote = 500;
@@ -135,6 +136,23 @@ const t = words({
 		personalLink: "Personal link",
 		takeBack: "Take back",
 		takeBackQuestion: (to: string) => `Take back the link of ${to}? It no longer opens the Window.`,
+		linksToo: (n: number) =>
+			n === 1 ? "A share link opens it too, to whoever holds it." : `${n} share links open it too, to whoever holds them.`,
+		links: "Share links",
+		linksHelp:
+			"Each link opens this Window to whoever holds it, without an account or a Key, until it ends, besides its access. Taken back, a link opens nothing more, to those who opened it too.",
+		linksPublic: "This Window is public: anyone opens it at its permanent address. The links that stand open it too, until they end.",
+		createLink: "Create a share link",
+		linkLabel: "Label",
+		noLabel: "No label",
+		ends: "Until",
+		openings: "Openings",
+		openingsOf: (n: number, most?: number) => (most ? `${n} of ${most}` : `${n}`),
+		stands: "Opens",
+		linkEnded: "Ended",
+		spent: "Used up",
+		takenBack: "Taken back",
+		takeBackLink: "Take back this link? It opens nothing more.",
 	},
 	fr: {
 		open: "Ouvrir",
@@ -243,6 +261,24 @@ const t = words({
 		personalLink: "Lien personnel",
 		takeBack: "Retirer",
 		takeBackQuestion: (to) => `Retirer le lien ${de(to)} ? Il n'ouvrira plus la Window.`,
+		linksToo: (n) =>
+			n === 1 ? "Un lien de partage l'ouvre aussi, à qui le détient." : `${n} liens de partage l'ouvrent aussi, à qui les détient.`,
+		links: "Liens de partage",
+		linksHelp:
+			"Chaque lien ouvre cette Window à qui le détient, sans compte ni Key, jusqu'à sa fin, en plus de son accès. Retiré, un lien n'ouvre plus rien, même à ceux qui l'ont ouvert.",
+		linksPublic:
+			"Cette Window est publique : n'importe qui l'ouvre à son adresse permanente. Les liens encore actifs l'ouvrent aussi, jusqu'à leur fin.",
+		createLink: "Créer un lien de partage",
+		linkLabel: "Étiquette",
+		noLabel: "Sans étiquette",
+		ends: "Jusqu'au",
+		openings: "Ouvertures",
+		openingsOf: (n, most) => (most ? `${n} sur ${most}` : `${n}`),
+		stands: "Actif",
+		linkEnded: "Terminé",
+		spent: "Épuisé",
+		takenBack: "Retiré",
+		takeBackLink: "Retirer ce lien ? Il n'ouvrira plus rien.",
 	},
 });
 
@@ -274,7 +310,7 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 				actions={
 					!w.trashed_at && (
 						<>
-							<ShareMenu window={w} />
+							<ShareMenu window={w} onLinks={reload} />
 							<a class="c-btn c-btn--secondary" href={w.url} target="_blank" rel="noopener noreferrer">
 								<ArrowUpRight class="i" size={16} aria-hidden="true" />
 								{t.open}
@@ -336,6 +372,7 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 								reload();
 							}}
 						/>
+						<ShareLinks window={w} onChange={reload} />
 						<Versions window={w} onRollback={() => act(() => api.cahut("rollback_window", { window: `${w.room}/${w.name}` }))} />
 						<Invitations window={w} />
 					</section>
@@ -486,6 +523,7 @@ function AccessPanel(props: { window: WindowDetail; shared: AccessSet | null; on
 						)
 					: "."}
 			</p>
+			{w.share_links > 0 && <p class="c-small c-muted">{t.linksToo(w.share_links)}</p>}
 			{props.shared?.key && (
 				<div class="c-alert c-alert--success share" role="status">
 					<div>
@@ -828,6 +866,86 @@ function Invitations({ window: w }: { window: WindowDetail }) {
 													onConfirm={async () => {
 														await api.cahut("revoke_invitation", { invitation: i.id });
 														reload();
+													}}
+												/>
+											)}
+										</td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
+				</div>
+			)}
+		</div>
+	);
+}
+
+/**
+ * The share links of a Window: the links that stand, then those that ended,
+ * with their label, who made them, their end and their openings, and a
+ * button that takes back each link that still opens the Window to someone.
+ * See docs/adr/0052-share-links.md.
+ */
+function ShareLinks({ window: w, onChange }: { window: WindowDetail; onChange: () => void }) {
+	const api = useConsole();
+	const [making, setMaking] = useState(false);
+	if (w.access === "public" && w.links.length === 0) return null;
+	const now = new Date();
+	const day = (at: string) => new Date(at).toLocaleDateString(lang === "en" ? "en-US" : locale, { month: "short", day: "numeric", year: "numeric" });
+	return (
+		<div class="c-card panel section">
+			<h2 class="c-h4">{t.links}</h2>
+			<p class="c-small c-muted">{w.access === "public" ? t.linksPublic : t.linksHelp}</p>
+			{w.access !== "public" && (
+				<div>
+					<button class="c-btn c-btn--secondary" type="button" onClick={() => setMaking(true)}>
+						<Link2 class="i" size={16} aria-hidden="true" />
+						{t.createLink}
+					</button>
+				</div>
+			)}
+			{making && <ShareLinkDialog window={w} onMade={onChange} onClose={() => setMaking(false)} />}
+			{w.links.length > 0 && (
+				<div class="table-wrap">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>{t.linkLabel}</th>
+								<th>{t.ends}</th>
+								<th>{t.openings}</th>
+								<th>{t.state}</th>
+								<th />
+							</tr>
+						</thead>
+						<tbody>
+							{w.links.map((l) => {
+								const ended = new Date(l.expires_at) <= now;
+								// A link used up still opens the Window to those who opened it.
+								const lasts = !l.revoked_at && !ended;
+								return (
+									<tr key={l.id}>
+										<td class="c-small">
+											<div>{l.label || <span class="c-muted">{t.noLabel}</span>}</div>
+											<div class="c-muted">
+												{ago(l.created_at)}
+												{l.by && t.by(l.by)}
+												{l.ai && t.through(l.ai)}
+											</div>
+										</td>
+										<td class="c-small">{day(l.expires_at)}</td>
+										<td class="c-small">{t.openingsOf(l.openings, l.max_openings)}</td>
+										<td class="c-small">{l.revoked_at ? t.takenBack : ended ? t.linkEnded : l.stands ? t.stands : t.spent}</td>
+										<td class="table__actions">
+											{lasts && (
+												<ConfirmButton
+													label={t.takeBack}
+													question={t.takeBackLink}
+													confirm={t.takeBack}
+													danger
+													onConfirm={async () => {
+														await api.cahut("revoke_share_link", { link: l.id });
+														onChange();
 													}}
 												/>
 											)}

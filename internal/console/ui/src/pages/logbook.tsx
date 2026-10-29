@@ -15,6 +15,7 @@ const t = words({
 		admin: (user: string) => `${user}, administrator of the server`,
 		commandLine: "The command line",
 		withInvitation: "Someone with an invitation",
+		withLink: "Someone with a share link",
 		notSignedIn: "Someone not signed in",
 		done: "Done",
 		knocked: "Knocked",
@@ -43,6 +44,7 @@ const t = words({
 		admin: (user) => `${user}, administrateur du serveur`,
 		commandLine: "La ligne de commande",
 		withInvitation: "Quelqu'un avec une invitation",
+		withLink: "Quelqu'un avec un lien de partage",
 		notSignedIn: "Une personne non connectée",
 		done: "Fait",
 		knocked: "A frappé",
@@ -77,8 +79,9 @@ function who(e: Entry): string {
 	if (e.actor === "admin") return e.user ? t.admin(e.user) : t.commandLine;
 	if (e.user) return e.user;
 	// A call that came without signing in, and names no account: a reader
-	// who opens an invitation, a sign-in with an unknown handle, or a
-	// forgotten password of an unknown account.
+	// who opens an invitation or a share link, a sign-in with an unknown
+	// handle, or a forgotten password of an unknown account.
+	if (e.operation === "open_share_link") return t.withLink;
 	return e.operation === "open_invitation" ? t.withInvitation : t.notSignedIn;
 }
 
