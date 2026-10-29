@@ -1,8 +1,9 @@
 // The page of a Window: its title and its description, where it opens, at
 // its address and at its permanent address, who opens it and until when, its two versions, what its AI
-// declared it does, and the trash. See
-// docs/adr/0019-window-versions-access-and-declaration.md and
-// docs/adr/0050-window-ids-permanent-addresses-and-names.md.
+// declared it does, the menu that shares it, and the trash. See
+// docs/adr/0019-window-versions-access-and-declaration.md,
+// docs/adr/0050-window-ids-permanent-addresses-and-names.md and
+// docs/adr/0051-sharing-a-window-and-its-preview.md.
 import { ArrowUpRight, RotateCcw, Send, Undo2 } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import { useId, useState } from "preact/hooks";
@@ -28,6 +29,7 @@ import { de, lang, locale, words } from "../i18n";
 import { useLoad } from "../load";
 import { NoteEditor, noteLength } from "../note";
 import { Link, navigate } from "../router";
+import { ShareMenu } from "../share";
 
 /** The most characters of a note, as the server counts them. */
 const maxNote = 500;
@@ -271,10 +273,13 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 				lead={w.description}
 				actions={
 					!w.trashed_at && (
-						<a class="c-btn c-btn--secondary" href={w.url} target="_blank" rel="noopener noreferrer">
-							<ArrowUpRight class="i" size={16} aria-hidden="true" />
-							{t.open}
-						</a>
+						<>
+							<ShareMenu window={w} />
+							<a class="c-btn c-btn--secondary" href={w.url} target="_blank" rel="noopener noreferrer">
+								<ArrowUpRight class="i" size={16} aria-hidden="true" />
+								{t.open}
+							</a>
+						</>
 					)
 				}
 			>

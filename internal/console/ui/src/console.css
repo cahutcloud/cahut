@@ -830,6 +830,11 @@ a.cahut-menu__item:hover {
 	justify-content: space-between;
 	gap: var(--space-4);
 }
+.page-head__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2);
+}
 .page-head__text {
 	display: grid;
 	gap: var(--space-2);
@@ -1144,16 +1149,75 @@ a.cahut-menu__item:hover {
 	width: 14px;
 	height: 14px;
 }
-/* The button of a card that opens its Window in a new tab, over its preview. */
+/* The buttons of a card that share its Window and open it in a new tab,
+   over its preview. */
 .window-card {
 	position: relative;
 }
-.window-open {
+.window-actions {
 	position: absolute;
 	top: var(--space-3);
 	right: var(--space-3);
 	z-index: 1;
+	display: flex;
+	gap: var(--space-2);
+}
+.window-actions .c-btn {
 	box-shadow: var(--shadow-sm);
+}
+/* The menu Share of a Window: a popover over the page, under its button,
+   which places it. */
+.share-menu {
+	position: fixed;
+	inset: auto;
+	margin: 0;
+	width: min(320px, calc(100vw - 2 * var(--space-4)));
+	padding: var(--space-2);
+	gap: 2px;
+	color: var(--color-text);
+	box-shadow: var(--shadow-lg);
+}
+.share-menu:popover-open {
+	display: grid;
+}
+.share-menu__note {
+	margin: 0;
+	padding: var(--space-2) var(--space-3);
+	font-size: var(--text-xs);
+	line-height: var(--leading-xs);
+	color: var(--color-text-muted);
+}
+.share-menu__item {
+	display: grid;
+	grid-template-columns: 20px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	min-height: 40px;
+	padding: var(--space-1) var(--space-3);
+	border: 0;
+	border-radius: var(--radius-sm);
+	background: none;
+	color: var(--color-text);
+	font: inherit;
+	font-size: var(--text-sm);
+	text-align: left;
+	text-decoration: none;
+	cursor: pointer;
+}
+.share-menu__item:hover {
+	background: var(--color-surface-muted);
+}
+.share-menu__hint {
+	color: var(--color-text-muted);
+}
+.share-menu__url {
+	margin: var(--space-1) 0 0;
+	padding: var(--space-2) var(--space-3) var(--space-1);
+	border-top: 1px solid var(--color-border);
+	overflow-wrap: anywhere;
+	font-size: var(--text-xs);
+	color: var(--color-text-muted);
 }
 /* The trash, folded under the Windows of a Room. */
 .trash {

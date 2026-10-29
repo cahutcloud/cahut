@@ -10,6 +10,7 @@ import { useLoad } from "./load";
 import { Logo } from "./logo";
 import { Pictogram } from "./pictograms";
 import { href, Link } from "./router";
+import { ShareMenu } from "./share";
 import type { Theme } from "./theme";
 
 export { plural } from "./i18n";
@@ -605,9 +606,9 @@ export function WindowCards({ windows, showRoom, home }: { windows: Window[]; sh
 }
 
 /**
- * A Window, as a card that leads to its page, with a button that opens the
- * Window itself in a new tab; the Window that the address of its Room shows
- * says so.
+ * A Window, as a card that leads to its page, with a button that shares it
+ * and one that opens the Window itself in a new tab; the Window that the
+ * address of its Room shows says so.
  */
 export function WindowCard(props: { window: Window; showRoom?: boolean; home?: boolean; preview?: string }) {
 	const { window: w, showRoom, home, preview } = props;
@@ -625,9 +626,12 @@ export function WindowCard(props: { window: Window; showRoom?: boolean; home?: b
 					</span>
 				)}
 			</Link>
-			<a class="c-btn c-btn--secondary c-btn--sm icon-button window-open" href={w.url} target="_blank" rel="noopener noreferrer" aria-label={t.openWindow(w.title)} title={t.openWindow(w.title)}>
-				<ArrowUpRight class="i" size={16} aria-hidden="true" />
-			</a>
+			<div class="window-actions">
+				<ShareMenu window={w} compact />
+				<a class="c-btn c-btn--secondary c-btn--sm icon-button" href={w.url} target="_blank" rel="noopener noreferrer" aria-label={t.openWindow(w.title)} title={t.openWindow(w.title)}>
+					<ArrowUpRight class="i" size={16} aria-hidden="true" />
+				</a>
+			</div>
 			<div class="c-window__body">
 				<Link class="c-window__title window-title" href={windowPage(w)}>
 					<Icon class="i" size={16} aria-hidden="true" />
