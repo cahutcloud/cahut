@@ -219,7 +219,7 @@ var RenameDomain = &operation.Op[RenameDomainInput, Info]{
 	Name:  "rename_domain",
 	Title: "Move a Cahut to a domain",
 	Description: "Move a Cahut to another domain, or from the IP address of the server to a domain. " +
-		"Its people, Rooms, Windows, house style and Logbook stay; the links that name its old address stop working, " +
+		"Its people, Rooms, Windows and Logbook stay; the links that name its old address stop working, " +
 		"and AIs connect again at the new one.",
 	Level: operation.ServerAdmin,
 	Run: func(ctx context.Context, c *operation.Call, in RenameDomainInput) (Info, error) {

@@ -1,6 +1,6 @@
 # Cahut · Charte graphique
 
-Version 1.7 · 28 octobre 2026 · Olivier Durand
+Version 1.8 · 29 octobre 2026 · Olivier Durand
 
 ![Cahut, la maison ouverte](illustrations/maison-ouverte.png)
 
@@ -23,14 +23,14 @@ Cette charte fixe l'identité visuelle de Cahut : logo, couleurs, typographie, p
 9. [Interface](#9-interface)
 10. [Applications](#10-applications)
 11. [Voix et ton](#11-voix-et-ton)
-12. [Cahut chez les autres](#12-cahut-chez-les-autres)
+12. [Les Windows](#12-les-windows)
 13. [Fichiers](#13-fichiers)
 
 ## 1. La marque
 
 **Le nom.** Cahut vient de « cahute », la petite cabane qu'on se construit soi-même. C'est un abri simple et à soi, posé dans le nuage : *cloud* et *hut* à la fois.
 
-**La promesse.** Vos IA fabriquent, Cahut fait vivre. Tout ce qu'elles produisent est publié, partagé, rangé et protégé au même endroit, à vos couleurs, chez vous, quelle que soit l'IA.
+**La promesse.** Vos IA fabriquent, Cahut fait vivre. Tout ce qu'elles produisent est publié, partagé, rangé et protégé au même endroit, chez vous, quelle que soit l'IA.
 
 **La signature.** *Your home to publish and share what your AIs make.* En français : *Votre maison pour publier et partager ce que fabriquent vos IA.* Elle accompagne le logo sur le site, les visuels de partage et les présentations.
 
@@ -204,7 +204,7 @@ En secours : `ui-sans-serif, system-ui, "Segoe UI", sans-serif` et `ui-monospace
 
 ![Pictogrammes](icones/planche-pictogrammes.png)
 
-**Les pictogrammes** illustrent le vocabulaire de la maison : [Cahut](icones/cahut.svg), [Room](icones/room.svg), [Window](icones/window.svg), [Key](icones/key.svg), [House style](icones/house-style.svg), [Knock first](icones/knock-first.svg), [Logbook](icones/logbook.svg). La planche se refait depuis son gabarit, [`icones/gabarits/planche-pictogrammes.html`](icones/gabarits/planche-pictogrammes.html).
+**Les pictogrammes** illustrent le vocabulaire de la maison : [Cahut](icones/cahut.svg), [Room](icones/room.svg), [Window](icones/window.svg), [Key](icones/key.svg), [Knock first](icones/knock-first.svg), [Logbook](icones/logbook.svg). La planche se refait depuis son gabarit, [`icones/gabarits/planche-pictogrammes.html`](icones/gabarits/planche-pictogrammes.html).
 
 - Grille de 64 px, trait de 3 px, extrémités et angles arrondis.
 - Trait en Ink (`currentColor`, modifiable en CSS), une seule couleur d'accent : Sky 300 pour les surfaces, Sky 400 pour les objets, Soft Yellow pour la lumière ou l'attente.
@@ -213,7 +213,7 @@ En secours : `ui-sans-serif, system-ui, "Segoe UI", sans-serif` et `ui-monospace
 **Les pictogrammes de navigation** ([`icones/navigation/`](icones/navigation/)) redessinent les pictogrammes pour la barre latérale de la console, où ils tiennent en 20 px à côté de leur étiquette.
 
 - Grille de 24 px, trait de 2 px en Ink (`currentColor`), extrémités et angles arrondis.
-- Le même accent en aplat que les pictogrammes : Sky 300 pour les surfaces, Sky 400 pour les objets, Soft Yellow pour la lumière ou l'attente. Le jaune reste à Cahut, à Knock first et à House style.
+- Le même accent en aplat que les pictogrammes : Sky 300 pour les surfaces, Sky 400 pour les objets, Soft Yellow pour la lumière ou l'attente. Le jaune reste à Cahut et à Knock first.
 - Des détails réduits : deux lignes au carnet du Logbook, une onde de moins à Knock first. Les murs de la Room ne passent pas à cette taille ; les Rooms posent leurs personnes sur son sol bleu.
 - Toujours en couleur et toujours avec une étiquette. La couleur d'un pictogramme de navigation ne compte pas dans l'accent unique d'un écran, qui vaut pour son contenu.
 
@@ -229,7 +229,6 @@ En secours : `ui-sans-serif, system-ui, "Segoe UI", sans-serif` et `ui-monospace
 | IA et accès | [`ai-access.svg`](icones/navigation/ai-access.svg) | AIs and access : une prise, jamais un robot |
 | Compte | [`account.svg`](icones/navigation/account.svg) | Account |
 | Personnes | [`people.svg`](icones/navigation/people.svg) | People : une carte de membre |
-| House style | [`house-style.svg`](icones/navigation/house-style.svg) | House style |
 | Type et limites | [`limits.svg`](icones/navigation/limits.svg) | Kind and limits |
 | E-mail | [`email.svg`](icones/navigation/email.svg) | E-mail |
 | Administrateurs du serveur | [`server-admins.svg`](icones/navigation/server-admins.svg) | Server administrators |
@@ -371,7 +370,6 @@ Cahut parle la langue de la maison, en anglais simple. Chaque notion technique a
 | Room | Un espace personnel ou d'équipe | [room](icones/room.svg) |
 | Window | Une page vivante : document, présentation, tableau de bord, appli | [window](icones/window.svg) |
 | Key | Le mot de passe qui ouvre une Window protégée | [key](icones/key.svg) |
-| House style | La charte de l'organisation, appliquée par toutes les IA | [house-style](icones/house-style.svg) |
 | Knock first | L'IA frappe avant toute action irréversible | [knock-first](icones/knock-first.svg) |
 | Logbook | Le registre de toutes les actions | [logbook](icones/logbook.svg) |
 
@@ -393,13 +391,13 @@ Cahut parle la langue de la maison, en anglais simple. Chaque notion technique a
 | Published. The previous version is kept. | Success! Your content has been deployed. |
 | This Window closed yesterday. | Error 403: access forbidden. |
 
-## 12. Cahut chez les autres
+## 12. Les Windows
 
-Cahut porte la charte de chaque organisation (*house style*). Sur les pages publiées, la marque de l'organisation passe toujours en premier ; Cahut reste discrète.
+Une Window porte l'apparence que son IA lui a donnée, dans le style que la personne a demandé, avec sa feuille de style parmi ses propres fichiers. Elle ne porte jamais la marque de Cahut.
 
-- Mention facultative en pied de page avec le badge [`cahut-badge-hosted.svg`](logos/cahut-badge-hosted.svg) (variante [inversée](logos/cahut-badge-hosted-inverse.svg)), 32 px de haut au plus.
-- Jamais le logo Cahut au-dessus ou à côté du logo d'un client.
-- Dans les écrans de Cahut elle-même (console, connexion, e-mails), la charte Cahut s'applique entièrement.
+- La charte Cahut vaut pour les écrans de Cahut elle-même, et pour eux seuls : la console, les pages d'une Cahut que voient les lecteurs (page d'une Room, d'une Key, connexion, page introuvable), ses e-mails et ses sites.
+- Mention facultative en pied de page d'une Window avec le badge [`cahut-badge-hosted.svg`](logos/cahut-badge-hosted.svg) (variante [inversée](logos/cahut-badge-hosted-inverse.svg)), 32 px de haut au plus.
+- Jamais le logo, les couleurs ou la typographie de Cahut pour habiller une Window.
 
 ## 13. Fichiers
 
@@ -437,5 +435,6 @@ charte-graphique/
 | 1.5 | 25 octobre 2026 | Bannière YouTube, 2560 × 1440, avec son texte et son logo dans la zone sûre de 1546 × 423 que montrent tous les écrans |
 | 1.6 | 25 octobre 2026 | Pictogrammes de navigation, sur une grille de 24 px, pour la barre latérale de la console : chaque entrée a le sien, en couleur, la Room personnelle et la Room d'équipe chacune le leur. La planche des pictogrammes les montre, la maquette de la console les emploie |
 | 1.7 | 28 octobre 2026 | Nouvelle signature : *Your home to publish and share what your AIs make.* (en français : *Votre maison pour publier et partager ce que fabriquent vos IA.*), à la place de *Your own cloud for everything your AI makes.* Elle dit ce que fait Cahut. L'image de partage, l'aperçu GitHub, les bannières et la signature e-mail la reprennent, et l'image de partage ne parle plus de *house style* |
+| 1.8 | 29 octobre 2026 | Cahut n'a plus de *house style* ([ADR 49](../adr/0049-no-house-style.md)) : le mot quitte le vocabulaire, avec son pictogramme `house-style.svg` et son pictogramme de navigation. Une Window porte l'apparence que son IA lui a donnée, jamais la marque de Cahut, qui vaut pour ses propres écrans : la console, les pages d'une Cahut, ses e-mails et ses sites (§ 12, *Les Windows*, à la place de *Cahut chez les autres*). La valeur Accueillante prend le pictogramme de la Key. La planche des pictogrammes, la maquette de la console et leurs rendus sont refaits |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.

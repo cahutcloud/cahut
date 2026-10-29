@@ -5,9 +5,9 @@ description: What an AI sends to publish a Window, what it declares, what comes 
 
 An AI publishes a Window with the `publish_window` tool. It sends the title, the kind and the files of the Window, with a declaration of what its pages do, and gets back the address where the Window opens. This page is for people who write prompts, skills or MCP clients. The [MCP tools reference](/reference/mcp-tools/#publish_window) gives the full schema, and [What Cahut can and cannot do](/start/can-and-cannot/) sums up what a Window holds and does.
 
-## In the house style
+## The look of a Window
 
-Before it makes a Window, an AI calls `get_house_style` with its kind: `document`, `deck`, `dashboard` or `site`. It gets the name of the organization, its colors and fonts, what it asks of AIs, a guide to the classes of its style sheet, and a template to start from. The page links the sheet from the root of the domain, `<link rel="stylesheet" href="/-/house-style.css">`, and a deck the engine, `<script src="/-/deck.js" defer></script>`. See [House style](/concepts/house-style/).
+An AI makes each Window in the style the person asks for. Its CSS, fonts, images and scripts are files of the Window, linked by relative paths; a deck carries the script that moves from slide to slide, or loads a library from an origin it declares. Cahut serves no style sheet or script for Windows: a Window published with links to `/-/house-style.css` or `/-/deck.js` loses its look until it is updated with CSS of its own.
 
 ## A publication
 
@@ -62,7 +62,7 @@ The AI gives the `url` to the user. The new Window opens to the members of its R
 - Two paths cannot differ by case alone, and a path cannot be both a file and the folder of another file.
 - Text goes as it is, in UTF-8. Binary files, such as images and fonts, go in base64, with `"encoding": "base64"`.
 - A Window holds at most 500 files and 32 MiB, once decoded.
-- Pages link their files with relative paths, such as `css/deck.css`. A path that starts with `/` points to the root of the Cahut, not to the Window: only the house style and the deck engine are there, under `/-/`.
+- Pages link their files with relative paths, such as `css/deck.css`. A path that starts with `/` points to the root of the Cahut, not to the Window, and finds none of its files there.
 - A folder opens on its own `index.html`, so a site can have pages such as `about/index.html`. Cahut lists no folder.
 
 ## The declaration
@@ -76,7 +76,7 @@ Every publication declares what its pages do, and Cahut lets them do that and no
 | `forms` | The origins that the forms of the pages send to, if any. |
 
 - An origin is `https://` or `wss://`, a host and an optional port, without a path. Each list holds 20 origins at most.
-- The files of the Window, and the house style under `/-/`, need no origin: they come from the Cahut, which the policy always allows. A deck that uses the engine declares `scripts`.
+- The files of the Window need no origin: they come from the Cahut, which the policy always allows. A deck that moves from slide to slide with a script declares `scripts`.
 - The `data:` and `blob:` URLs that the pages make need no origin either: a 3D model whose textures three.js reads from `blob:` URLs, as it does for a `.glb` file, loads as it is.
 - A page that loads from an origin it did not declare does not get it: the browser blocks the request, and the console of the browser says so. Declare every origin, or put the files in the Window.
 - A deck that only shows text and images declares `{"scripts": false}`: it can then call nothing at all.

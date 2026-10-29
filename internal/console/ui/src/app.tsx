@@ -11,7 +11,6 @@ import { Activate } from "./pages/activate";
 import { Admins } from "./pages/admins";
 import { ConfirmEmail } from "./pages/confirm-email";
 import { Consent } from "./pages/consent";
-import { HouseStylePage } from "./pages/house-style";
 import { Invitation } from "./pages/invitation";
 import { KnockPage, Knocks } from "./pages/knocks";
 import { Logbook } from "./pages/logbook";
@@ -316,8 +315,6 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 			return <Knocks />;
 		case "/people":
 			return <People />;
-		case "/house-style":
-			return <HouseStylePage />;
 		case "/settings":
 			return <Settings />;
 		case "/mail":

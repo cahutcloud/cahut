@@ -14,7 +14,6 @@ import (
 
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/credential"
-	"cahut.cloud/internal/housestyle"
 	"cahut.cloud/internal/knock"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/mail"
@@ -102,20 +101,15 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		}
 		return cfg.ConsoleURL + "knocks/" + strconv.FormatInt(id, 10)
 	})
-	housestyle.Register(r, cfg.Domain)
 	operation.Register(r, settings.Set)
 	operation.Register(r, settings.SetLegalLinks)
 	operation.Register(r, settings.Suspend)
 	operation.Register(r, settings.Resume)
 	operation.Register(r, ListLogbook)
-	name := func(ctx context.Context) (string, error) {
-		b, err := housestyle.LoadBrand(ctx, db, cfg.Domain)
-		return b.Name, err
-	}
-	cfg.Mail.RegisterCahut(r, db, cfg.Domain, name)
+	cfg.Mail.RegisterCahut(r, db, cfg.Domain)
 	var outbox *mail.Outbox
 	if cfg.Mail != nil && cfg.ConsoleURL != "" {
-		outbox = &mail.Outbox{Service: cfg.Mail, DB: db, Domain: cfg.Domain, Name: name, Base: cfg.BaseURL, Console: cfg.ConsoleURL}
+		outbox = &mail.Outbox{Service: cfg.Mail, DB: db, Domain: cfg.Domain, Base: cfg.BaseURL, Console: cfg.ConsoleURL}
 		mail.Provide(r, outbox)
 	}
 	about := &operation.Op[GetCahutInput, About]{

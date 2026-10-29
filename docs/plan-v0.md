@@ -6,7 +6,7 @@
 
 La V0 est le MVP de Cahut : un jalon privé, pas une version publique. Le lancement garde son périmètre complet ; la V0 prouve la boucle centrale (installer, brancher une IA, publier, partager, tracer) et pose une architecture sur laquelle le reste du périmètre viendra se greffer sans reprise.
 
-Elle se construit en neuf lots, du lot 0 au lot 8, pour environ 13 à 16 semaines à temps plein. Deux jalons la ponctuent :
+Elle se construit en neuf lots, du lot 0 au lot 8, pour environ 12 à 15 semaines à temps plein. Deux jalons la ponctuent :
 
 - **Jalon PoC**, à la fin du lot 3, vers la sixième semaine : Cahut sur un VPS, une IA qui publie une présentation par MCP, la console. C'est l'étape 4 de la feuille de route du README.
 - **Jalon V0**, à la fin du lot 8 : les cinq critères de réussite du README passent sur le périmètre de la V0.
@@ -21,7 +21,7 @@ Elle se construit en neuf lots, du lot 0 au lot 8, pour environ 13 à 16 semaine
 | Deux versions par Window, retour à la précédente | Export PDF et PowerPoint |
 | Accès de chaque Window : Room seulement, interne, Key, public, avec date de fin | SSO par OpenID Connect pour chaque Cahut |
 | Plusieurs Cahuts par serveur, comptes propres à chaque Cahut, Rooms personnelles et d'équipe | L'envoi d'e-mails |
-| House style par Cahut : couleurs, polices, logo, un gabarit par type de Window | Sauvegardes S3 ou SFTP et restauration |
+| Skill pour Claude, empaquetée en plugin, et consignes du serveur MCP | Sauvegardes S3 ou SFTP et restauration |
 | Knock first et Logbook complets | Autres clients IA (Mistral, Copilot) |
 | Console web sur son propre port | Tâches planifiées, quotas par Cahut |
 | Mises à jour depuis les releases GitHub, avec retour arrière | |
@@ -50,7 +50,7 @@ Elle se construit en neuf lots, du lot 0 au lot 8, pour environ 13 à 16 semaine
 | 3 | Brancher les IA : OAuth | 1,5 à 2 semaines |
 | 4 | Windows complètes : versions et accès | 1,5 semaine |
 | 5 | Knock first | 1 semaine |
-| 6 | House style et skill Claude | 1,5 semaine |
+| 6 | Skill Claude | 0,5 semaine |
 | 7 | Installation, premier démarrage, mises à jour | 2 semaines |
 | 8 | Deuxième client IA et recette | 1,5 à 2 semaines |
 
@@ -104,7 +104,7 @@ Le détail du lot est dans le [plan du lot 4](plan-lot-4.md).
 
 - `update_window` garde la version précédente ; `rollback_window` y revient.
 - Accès de chaque Window : Room seulement (par défaut), interne (les personnes connectées de la Cahut), Key (un mot de passe), public ; date de fin réglable et prolongeable.
-- La Key d'une Window est hachée et s'ouvre par une page d'accès à la house style de la Cahut. Les lecteurs d'une Window interne se connectent sur le port 443 en passant par la connexion de la console (ADR 11).
+- La Key d'une Window est hachée et s'ouvre par une page d'accès servie par la Cahut. Les lecteurs d'une Window interne se connectent sur le port 443 en passant par la connexion de la console (ADR 11).
 - Les Windows protégées sont servies dans un cadre (iframe) en bac à sable, par une adresse à capacité (ADR 10) ; tests sous Chrome, Firefox et Safari.
 - La page d'une Room liste les Windows que son lecteur peut ouvrir ; une Window fermée répond comme une Window absente.
 - La déclaration de l'IA (scripts, appels vers l'extérieur, formulaires) est enregistrée, affichée dans la console et appliquée par une politique CSP : une Window qui déclare ne rien appeler ne peut rien appeler.
@@ -125,23 +125,20 @@ Le détail du lot est dans le [plan du lot 5](plan-lot-5.md).
 
 **Fin de lot** : Claude demande à rendre une Window publique, la demande apparaît dans la console, l'approbation l'exécute, le Logbook montre les deux étapes.
 
-### Lot 6 · House style et skill Claude
+### Lot 6 · Skill Claude
 
 Le détail du lot est dans le [plan du lot 6](plan-lot-6.md).
 
-- House style de chaque Cahut : couleurs, polices, logo, gabarits HTML pour document, présentation et tableau de bord, avec un petit moteur de présentation servi par Cahut.
-- Exposée aux IA par un outil `get_house_style`, car tous les clients ne lisent pas les ressources MCP, et par une feuille CSS à adresse stable, sous `/-/`.
-- Écran House style dans la console. Une house style neutre par défaut, distincte de la marque Cahut.
-- Skill Claude empaquetée en plugin : formats, house style, accès, liens relatifs, bac à sable (pas de `localStorage`), Knock first. Instructions du serveur MCP pour les clients sans skill.
+- Skill Claude empaquetée en plugin : formats, accès, liens relatifs, bac à sable (pas de `localStorage`), Knock first. Instructions du serveur MCP pour les clients sans skill.
 
-**Fin de lot** : un même brief donne une présentation aux couleurs de l'organisation, publiée en une seule demande.
+**Fin de lot** : avec la skill, un brief donne une présentation publiée en une seule demande.
 
 ### Lot 7 · Installation, premier démarrage, mises à jour
 
 Le détail du lot est dans le [plan du lot 7](plan-lot-7.md).
 
 - Une commande sur AlmaLinux et Ubuntu vierges : utilisateur système, service systemd avec `CAP_NET_BIND_SERVICE`, pare-feu (firewalld ou ufw) pour les ports 80 et 443, contextes SELinux sur AlmaLinux, commande `cahut doctor` pour diagnostiquer, rappel d'ouvrir ces ports chez l'hébergeur.
-- Premier démarrage guidé dans le navigateur, ouvert par un lien à usage unique affiché en fin d'installation : administrateur du serveur, première Cahut et son domaine, house style de base, première IA (adresse MCP à copier, pas à pas pour chaque client). Adresse de repli sans domaine à trancher : un certificat d'adresse IP est une piste.
+- Premier démarrage guidé dans le navigateur, ouvert par un lien à usage unique affiché en fin d'installation : administrateur du serveur, première Cahut et son domaine, première IA (adresse MCP à copier, pas à pas pour chaque client). Adresse de repli sans domaine à trancher : un certificat d'adresse IP est une piste.
 - Mises à jour : vérification des releases GitHub signées, remplacement du binaire, contrôle de santé, retour arrière automatique.
 - Test d'installation automatisé sur machines virtuelles vierges (Lima en local).
 

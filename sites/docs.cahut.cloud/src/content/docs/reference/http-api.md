@@ -135,7 +135,6 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/enable_user` | Administrators of the Cahut | yes |
 | `POST /api/get_account` | Any person | yes |
 | `POST /api/get_cahut` | Any person | yes |
-| `POST /api/get_house_style` | Any person | yes |
 | `POST /api/get_invitation` | Anyone, to sign in | no |
 | `POST /api/get_knock` | Any person | yes |
 | `POST /api/get_mail_relay` | Administrators of the Cahut | yes |
@@ -163,12 +162,10 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/revoke_invitation` | Any person | yes |
 | `POST /api/revoke_service_token` | Administrators of the server | yes |
 | `POST /api/revoke_token` | Any person | yes |
-| `POST /api/rollback_house_style` | Administrators of the Cahut | yes |
 | `POST /api/rollback_window` | Any person | yes |
 | `POST /api/send_test_mail` | Administrators of the Cahut | yes |
 | `POST /api/set_ai_reach` | Any person | yes |
 | `POST /api/set_cahut_settings` | Administrators of the server | yes |
-| `POST /api/set_house_style` | Administrators of the Cahut | yes |
 | `POST /api/set_legal_links` | Administrators of the server | yes |
 | `POST /api/set_mail_notices` | Any person | yes |
 | `POST /api/set_mail_relay` | Administrators of the Cahut | yes |

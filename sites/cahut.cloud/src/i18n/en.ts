@@ -73,7 +73,7 @@ export default {
 	statement: {
 		label: 'The idea',
 		title: 'Your AIs make it and publish it. You share it and work on it together.',
-		lead: 'Everything they produce lives in one place, as pages at your address, in your colors, on your server, whatever the AI.',
+		lead: 'Everything they produce lives in one place, as pages at your address, on your server, whatever the AI.',
 		text: 'Cahut does not create content, it hosts it. It does not compete with AIs or creation tools: it is the neutral, self-hosted home where their work lives, and where your team works on it.',
 		layers: [
 			{
@@ -89,10 +89,10 @@ export default {
 				tags: ['Publish', 'Share', 'Rooms', 'Versions', 'Comments', 'Search', 'Export', 'Logbook'],
 			},
 			{
-				layer: 'Look and feel',
-				who: 'The house style, carried by Cahut',
-				what: 'Your colors and formats, given to every AI as templates and skills.',
-				tags: ['Colors', 'Fonts', 'Logos', 'Templates'],
+				layer: 'Read',
+				who: 'The people you share with',
+				what: 'They open a link in their browser, on a phone or a computer. No file to send, nothing to install.',
+				tags: ['Your team', 'Your clients', 'Family and friends', 'The public'],
 			},
 		],
 	},
@@ -261,15 +261,11 @@ export default {
 			},
 			{
 				title: 'Connect',
-				text: 'Every AI, one door, your style.',
+				text: 'Every AI, one door.',
 				features: [
 					{
 						area: 'AI access',
 						text: 'A native MCP server (HTTP, OAuth) and one skill per AI client, packaged as a plugin where the client allows it: Claude first, then ChatGPT, Mistral, Copilot and others. SSH access limited to the same operations, for terminal AIs.',
-					},
-					{
-						area: 'House style',
-						text: "The organization's colors, fonts, logos and templates, given to every AI so everything comes out on brand.",
 					},
 				],
 			},
@@ -349,7 +345,6 @@ export default {
 		],
 		words: [
 			{ word: 'Key', meaning: 'The password that opens a protected Window.' },
-			{ word: 'House style', meaning: "The organization's brand, applied by every AI." },
 			{ word: 'Knock first', meaning: 'The governance rule: the AI knocks before any irreversible action.' },
 			{ word: 'Logbook', meaning: 'The record of every action.' },
 		],
@@ -451,8 +446,8 @@ export default {
 					text: 'An AI asks before anything it cannot undo. The request waits in the console, with a notification and an expiry, until a person approves or declines it.',
 				},
 				{
-					title: 'House style and a skill for Claude',
-					text: "The organization's colors, fonts, logo and templates, given to every AI, and a skill that tells Claude how to publish on Cahut.",
+					title: 'A skill for Claude',
+					text: 'A skill for the Claude apps, and a plugin for Claude Code, that tell Claude how to make a Window and publish it on Cahut.',
 				},
 				{
 					title: 'Installation, first start and updates',
@@ -481,8 +476,7 @@ export default {
 				'Two versions of each Window with a rollback, a trash, and an access: Room only, internal, with a Key or public, until a date.',
 				'Knock first: what an AI cannot undo, or what changes what a person may do, waits for its person, who approves or declines it in the console.',
 				'E-mail through the SMTP relay of each Cahut: links to choose a password, invitations to read a Window, and notices of Knocks, of the account and of limits.',
-				'A house style for each Cahut: its colors, fonts, logo and guidance, templates for documents, decks and dashboards, and a deck engine, which AIs read before they publish.',
-				'A plugin for Claude Code, and a skill for the Claude apps, that teach Claude to make Windows in the house style.',
+				'A plugin for Claude Code, and a skill for the Claude apps, that teach Claude to make Windows and publish them.',
 				'The Logbook of every call, every change and every sign-in.',
 			],
 			caution: 'No backups yet: keep snapshots of your server, and Cahut is not ready for work you cannot lose.',

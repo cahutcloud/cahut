@@ -15,7 +15,7 @@ Le code relu est celui de `main` au commit `52ad20e`, à la fin du lot 7. Chaque
 | Domaine | Ce qui a été lu |
 | --- | --- |
 | OAuth et jetons des IA | `internal/oauth`, l'écran de consentement, la vérification des jetons dans l'adaptateur MCP, les jetons personnels |
-| Bac à sable des Windows | Le service des Windows et de `/-/`, la déclaration et sa politique CSP, les adresses à capacité, la page de la Key, la house style, les aperçus de la console |
+| Bac à sable des Windows | Le service des Windows et de `/-/`, la déclaration et sa politique CSP, les adresses à capacité, la page de la Key, les aperçus de la console |
 | Cloisonnement entre Cahuts | Le choix de la Cahut par l'hôte et par SNI, les certificats, l'API de la console, les administrateurs du serveur, `rename_domain`, le lien du premier démarrage, le programme de mise à jour |
 | Sessions et Knocks | La connexion, les liens d'activation, les sessions de la console et des lecteurs, l'approbation des Knocks, le texte des IA affiché dans la console |
 | Limites de taille et de débit | Les délais du serveur HTTP, les tailles des requêtes, les limiteurs, le coût d'Argon2id, l'enregistrement des clients, la mémoire et le disque à la portée d'un visiteur ou d'une IA |

@@ -1,6 +1,6 @@
 ---
-// The rule of the house style: the pages a Cahut serves for an organization
-// carry the brand of that organization, and Cahut steps aside.
+// Where the brand of Cahut goes: on its own screens, never on a Window, which
+// wears the look that its AI gave it.
 import Download from './Download.astro';
 import Icon from './Icon.astro';
 import Section from './Section.astro';
@@ -12,18 +12,18 @@ const badges = [
 ];
 ---
 
-<Section id="house-style" number="07" label="House style" title="Their brand comes first">
+<Section id="windows" number="07" label="Windows" title="Each Window wears its own look">
 	<Fragment slot="lead">
-		Cahut carries the house style of each organization. The pages a Cahut serves for an organization wear the brand of
-		that organization, not the brand of Cahut. Cahut's own brand is for its own screens: the console, the sign-in, the
-		e-mails it sends, and this site.
+		A Window wears the look its AI gave it, in the style the person asked for, with its own style sheet among its
+		files. It never wears the brand of Cahut. Cahut's own brand is for its own screens: the console, the pages a Cahut
+		shows readers, such as the page of a Room or the sign-in, the e-mails it sends, and its sites, such as this one.
 	</Fragment>
 
-	<div class="b-house">
+	<div class="b-windows">
 		<figure class="c-card b-mock">
 			<div class="b-mock__page" aria-hidden="true">
 				<div class="b-mock__bar">
-					<span class="b-mock__logo">Their logo</span>
+					<span class="b-mock__logo">Its logo</span>
 					<span class="b-mock__line b-mock__line--short"></span>
 				</div>
 				<div class="b-mock__content">
@@ -38,11 +38,11 @@ const badges = [
 				</div>
 			</div>
 			<figcaption class="c-small c-muted">
-				A Window of an organization: its logo and its house style, and the badge in the footer if it wants one.
+				A Window: the logo, colors and type its AI gave it, and the badge in the footer if the person wants one.
 			</figcaption>
 		</figure>
 
-		<div class="b-house__rules">
+		<div class="b-windows__rules">
 			<ul class="b-list b-list--marks" role="list">
 				<li>
 					<Icon name="check" size={20} class="b-yes" />
@@ -52,7 +52,7 @@ const badges = [
 				</li>
 				<li>
 					<Icon name="cross" size={20} class="b-no" />
-					<span>Never put the Cahut logo above or next to the logo of the organization.</span>
+					<span>Never give a Window the logo, colors or type of Cahut: they are for Cahut's own screens.</span>
 				</li>
 			</ul>
 

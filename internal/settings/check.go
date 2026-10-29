@@ -146,9 +146,9 @@ func CheckWindow(ctx context.Context, c *operation.Call, roomID int64, room stri
 }
 
 // CheckDisk returns an error wrapping operation.ErrForbidden when adding
-// added bytes, to a Window of the Room roomID or to the house style when
-// roomID is zero, would take the Cahut past a limit of its disk. A call
-// that adds nothing, or frees bytes, always passes.
+// added bytes to a Window of the Room roomID would take the Cahut past a
+// limit of its disk. A call that adds nothing, or frees bytes, always
+// passes.
 func CheckDisk(ctx context.Context, c *operation.Call, roomID, added int64) error {
 	if added <= 0 {
 		return nil
@@ -169,7 +169,7 @@ func CheckDisk(ctx context.Context, c *operation.Call, roomID, added int64) erro
 				askForMore(c))
 		}
 	}
-	if kind == Individual && l.DiskPerPerson != nil && roomID != 0 {
+	if kind == Individual && l.DiskPerPerson != nil {
 		owner, err := ownerOf(ctx, c, roomID)
 		if err != nil {
 			return err

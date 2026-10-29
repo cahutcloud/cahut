@@ -44,14 +44,14 @@ Publish, share, work together: today, all three are hard.
 - **Scattered**: a Claude link here, a ChatGPT link there, a Gamma deck somewhere else. Each AI keeps what it makes on its own service, so nothing is published in one place.
 - **Converted back**: to share it, the result is turned back into a PowerPoint or a Word file, then attached and forwarded.
 - **Uncontrolled**: who has access, until when, which version is the right one, where the data lives. Nobody really knows.
-- **Inconsistent**: each person works with their own AI, in its own style. The team has no common place, and the organization's brand gets lost.
+- **Alone**: each person works with their own AI. The team has no common place where its work lives and where it works on it together.
 - **Unguarded**: handing a server to an AI means giving it a root shell, or going through a platform built for humans that it can barely use.
 
 <p align="center">
   <img alt="Documents, dashboards, code and images join the cloud house of Cahut" src="docs/charte-graphique/illustrations/maison-ouverte.svg" width="560">
 </p>
 
-**Your AIs make it and publish it. You share it and work on it together.** Everything they produce lives in one place, as pages at your address, in your colors, on your server, whatever the AI.
+**Your AIs make it and publish it. You share it and work on it together.** Everything they produce lives in one place, as pages at your address, on your server, whatever the AI.
 
 Cahut does not create content, it hosts it. It does not compete with AIs or creation tools: it is the neutral, self-hosted home where their work lives, and where your team works on it.
 
@@ -59,7 +59,6 @@ Cahut does not create content, it hosts it. It does not compete with AIs or crea
 | --- | --- | --- |
 | Create | The AIs (Claude, ChatGPT, Mistral, Copilot...) | The content: documents, decks, dashboards, apps |
 | Publish, share, work together | Cahut, on your server | A page at your address, a link opened to the right people, Rooms where the team and its AIs work, versions, comments, search, export, logbook |
-| Look and feel | The house style, carried by Cahut | Your colors, fonts and logo, given to every AI with templates, or your own guidelines instead |
 
 ## How it works
 
@@ -75,7 +74,6 @@ flowchart LR
   end
   subgraph CAHUT["Cahut, on your server"]
     H["Your Cahut: publish, share, permissions, versions, comments, search, PDF and PPTX export, logbook, irreversible actions approved by you"]
-    S["The house style: your colors and formats, followed by every AI"]
   end
   subgraph READ["Read"]
     E[Your team]
@@ -87,7 +85,7 @@ flowchart LR
 ```
 
 1. **Connect.** Add Cahut to your AI (MCP connector and skill) and authorize it once with OAuth, with the scope you choose.
-2. **Create.** Ask your AI for a document, a deck, a dashboard or an app. Cahut gives it your house style and its templates, and the skill for Claude the formats.
+2. **Create.** Ask your AI for a document, a deck, a dashboard or an app, in the style you want. The skill for Claude gives it the formats.
 3. **Publish.** The AI publishes a Window to a Room, declares what it does, and gets its address back, such as `cahut.example.com/marketing/q3-review`. The previous version is kept.
 4. **Share.** You, or the AI within the limits you set, choose who opens each Window: its Room only, everyone in your Cahut, anyone with its Key, or the public. Anything irreversible waits for approval in the console.
 5. **Live.** Readers open the page in a browser and comment on it. The AI updates it on request. Everything goes to the logbook.
@@ -108,7 +106,6 @@ The full scope ships at launch, with no reduced trial version.
 | Comments | Reader feedback directly on the pages |
 | Search | Find any page, deck or dashboard across everything published |
 | Export | PDF and PowerPoint, for recipients still on Office |
-| House style | The organization's colors, fonts, logos and templates, given to every AI so everything comes out on brand |
 | Users and Rooms | The people of each Cahut and its admins, a personal Room for each person, team Rooms with owners and members |
 | Sign-in | Accounts of each Cahut, and single sign-on with OpenID Connect (Google, Microsoft Entra, Okta...) |
 | Web console | See what is published, share, comment, approve irreversible actions, administer the server and its Cahuts, under `/console/` of each Cahut |
@@ -156,7 +153,6 @@ Cahut speaks the language of the house, in plain English.
 | Room | A personal or team space, with its members, at `<domain>/<room>` |
 | Window | A living page: document, deck, dashboard or app, at `<domain>/<room>/<window>` |
 | Key | The password that opens a protected Window |
-| House style | The organization's brand, applied by every AI |
 | Knock first | The governance rule: the AI knocks before any irreversible action |
 | Logbook | The record of every action |
 
@@ -177,14 +173,14 @@ On a fresh AlmaLinux or Ubuntu server, with ports 80 and 443 open and a domain t
 curl -fsSL https://cahut.cloud/install.sh | sudo sh -s -- --domain cahut.example.com
 ```
 
-The script checks the signature of the release and installs Cahut as a systemd service. It opens the firewall, sets up the daily updates and runs `cahut doctor`. It ends with a single-use link: open it to finish in the browser, where you choose your account and the name and color of your organization, and connect your first AI. Without `--domain`, Cahut takes the server's public IPv4 address, with a certificate for that address. You can move it to a domain later, from the console.
+The script checks the signature of the release and installs Cahut as a systemd service. It opens the firewall, sets up the daily updates and runs `cahut doctor`. It ends with a single-use link: open it to finish in the browser, where you choose your account and connect your first AI. Without `--domain`, Cahut takes the server's public IPv4 address, with a certificate for that address. You can move it to a domain later, from the console.
 
 Then give your AI the address of the MCP server, `https://cahut.example.com/mcp`. It sends you to the console to sign in and choose what it may do:
 
 | AI client | Where |
 | --- | --- |
 | claude.ai, Claude Desktop | Settings, Connectors, add a custom connector, on every plan |
-| Claude Code | `/plugin marketplace add getcahut/cahut`, then `/plugin install cahut@cahut`, which also brings the skill for the house style |
+| Claude Code | `/plugin marketplace add getcahut/cahut`, then `/plugin install cahut@cahut`, which also brings the skill for Claude |
 | Mistral Vibe, formerly Le Chat | Connectors, add a custom MCP connector, on every plan |
 | ChatGPT | On the web, Plugins, Add custom MCP server, with OAuth, on the Business, Enterprise and Edu plans only: not on Free, Plus or Pro |
 | Others | Any MCP client over HTTP, with OAuth or a personal token |

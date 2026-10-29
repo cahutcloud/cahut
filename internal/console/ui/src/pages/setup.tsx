@@ -1,8 +1,8 @@
 // The first start of a Cahut, from the single-use link that the
-// installation prints: the first person chooses their account, the house
-// style of the organization, and connects their first AI. See
-// docs/adr/0025-first-start-in-the-browser.md.
-import { ArrowRight, Upload } from "lucide-preact";
+// installation prints: the first person chooses their account, and
+// connects their first AI. See docs/adr/0025-first-start-in-the-browser.md
+// and docs/adr/0049-no-house-style.md.
+import { ArrowRight } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
 import type { Setup as SetupInfo } from "../api.gen";
@@ -14,11 +14,10 @@ import { Logo } from "../logo";
 import { Link, navigate } from "../router";
 import type { Session } from "../session";
 import { minPassword } from "./activate";
-import { base64 } from "./house-style";
 
 const t = words({
 	en: {
-		steps: ["You", "Your Cahut", "Your first AI"],
+		steps: ["You", "Your first AI"],
 		noCode: "This link has no code. Open the whole link that the installation printed.",
 		gone: "This link does not open the first start",
 		newLink: "On the server, this command gives a new link, valid for 24 hours, as long as the Cahut has nobody:",
@@ -43,7 +42,6 @@ const t = words({
 		passwordHelp: (min: number) => `At least ${min} characters. A short sentence works well.`,
 		again: "The same password again",
 		create: "Create my account",
-		yourCahut: "Your Cahut",
 		answers: (origin: string) => (
 			<>
 				It answers at <strong>{origin}/</strong>, where each Room and each Window has its own address.
@@ -55,23 +53,13 @@ const t = words({
 				administrator of the server or with <code class="c-mono">cahut domain rename</code>. The links shared before then stop working.
 			</>
 		),
-		houseStyle:
-			"The house style gives every Window that AIs make the look of your organization. Change it later, fonts included, in House style.",
-		organization: "Name of the organization",
-		color: "Main color",
-		logo: "Logo",
-		replace: "Replace",
-		upload: "Upload",
-		logoHelp: "SVG, PNG or WebP, 512 KB at most.",
-		save: "Save and continue",
-		neutral: "Keep the neutral style",
 		firstAI: "Your first AI",
 		connects: "Your AI connects to this Cahut over MCP. You choose the Rooms it reaches, and everything it does goes to the Logbook.",
 		open: "Open the console",
 		skip: "Skip, open the console",
 	},
 	fr: {
-		steps: ["Vous", "Votre Cahut", "Votre première IA"],
+		steps: ["Vous", "Votre première IA"],
 		noCode: "Ce lien n'a pas de code. Ouvrez le lien entier qu'a affiché l'installation.",
 		gone: "Ce lien n'ouvre pas le premier démarrage",
 		newLink: "Sur le serveur, cette commande donne un nouveau lien, valable 24 heures, tant que la Cahut n'a personne :",
@@ -96,7 +84,6 @@ const t = words({
 		passwordHelp: (min) => `Au moins ${min} caractères. Une courte phrase convient bien.`,
 		again: "Le même mot de passe, une seconde fois",
 		create: "Créer mon compte",
-		yourCahut: "Votre Cahut",
 		answers: (origin) => (
 			<>
 				Elle répond à <strong>{origin}/</strong>, où chaque Room et chaque Window a sa propre adresse.
@@ -109,16 +96,6 @@ const t = words({
 				alors de fonctionner.
 			</>
 		),
-		houseStyle:
-			"La house style donne à chaque Window que font les IA l'apparence de votre organisation. Vous la modifierez plus tard, polices comprises, dans House style.",
-		organization: "Nom de l'organisation",
-		color: "Couleur principale",
-		logo: "Logo",
-		replace: "Remplacer",
-		upload: "Importer",
-		logoHelp: "SVG, PNG ou WebP, 512 ko au plus.",
-		save: "Enregistrer et continuer",
-		neutral: "Garder le style neutre",
 		firstAI: "Votre première IA",
 		connects: "Votre IA se connecte à cette Cahut par MCP. Vous choisissez les Rooms qu'elle atteint, et tout ce qu'elle fait va au Logbook.",
 		open: "Ouvrir la console",
@@ -162,8 +139,6 @@ export function Setup({ onSession }: { onSession: (s: Session) => void }) {
 						<Gone message={error} />
 					) : step === 0 ? (
 						info && <You info={info} onDone={signedIn} onServer={onSession} />
-					) : step === 1 && session ? (
-						<YourCahut session={session} onDone={() => setStep(2)} />
 					) : (
 						session && <FirstAI session={session} />
 					)}
@@ -309,99 +284,6 @@ function You({ info, onDone, onServer }: { info: SetupInfo; onDone: (s: Session)
 	);
 }
 
-function YourCahut({ session, onDone }: { session: Session; onDone: () => void }) {
-	const [name, setName] = useState("");
-	const [primary, setPrimary] = useState("#2563eb");
-	const [logo, setLogo] = useState<{ content: string; preview: string } | null>(null);
-	const [error, setError] = useState("");
-	const [busy, setBusy] = useState(false);
-	useEffect(() => {
-		cahut("get_house_style", {}, session.token).then(
-			(h) => setPrimary(h.colors.primary),
-			() => undefined,
-		);
-	}, []);
-
-	const pick = async (e: Event) => {
-		const file = (e.currentTarget as HTMLInputElement).files?.[0];
-		if (!file) return;
-		const content = await base64(await file.arrayBuffer());
-		setLogo({ content, preview: `data:${file.type || "image/svg+xml"};base64,${content}` });
-	};
-	const save = async (e: Event) => {
-		e.preventDefault();
-		setBusy(true);
-		setError("");
-		try {
-			await cahut(
-				"set_house_style",
-				{
-					name: name.trim(),
-					colors: { primary },
-					...(logo ? { logo: { content: logo.content, encoding: "base64" } } : {}),
-				},
-				session.token,
-			);
-			onDone();
-		} catch (err) {
-			setError(explain(err));
-			setBusy(false);
-		}
-	};
-	const ip = ipAddress.test(location.hostname);
-	return (
-		<form class="setup__body" onSubmit={save}>
-			<div class="setup__intro">
-				<h1 class="c-h3">{t.yourCahut}</h1>
-				<p class="c-small c-muted">{t.answers(location.origin)}</p>
-			</div>
-			{ip && (
-				<div class="c-alert c-alert--info">{t.noDomain}</div>
-			)}
-			<p class="c-small">{t.houseStyle}</p>
-			<label class="c-field">
-				<span class="c-field__label">{t.organization}</span>
-				<input class="c-input" placeholder={location.hostname} value={name} onInput={(e) => setName(e.currentTarget.value)} />
-			</label>
-			<div class="form__row">
-				<label class="c-field">
-					<span class="c-field__label">{t.color}</span>
-					<span class="setup__color">
-						<input type="color" value={primary} onInput={(e) => setPrimary(e.currentTarget.value)} />
-						<code class="c-mono">{primary}</code>
-					</span>
-				</label>
-				<div class="c-field">
-					<span class="c-field__label">{t.logo}</span>
-					<span class="setup__logo">
-						{logo && <img src={logo.preview} alt="" />}
-						<label class="c-btn c-btn--secondary c-btn--sm">
-							<Upload class="i" size={14} aria-hidden="true" />
-							{logo ? t.replace : t.upload}
-							<input class="house__file" type="file" accept=".svg,.png,.webp,image/svg+xml,image/png,image/webp" onChange={pick} />
-						</label>
-					</span>
-					<span class="c-field__help">{t.logoHelp}</span>
-				</div>
-			</div>
-			{error && (
-				<div class="c-alert c-alert--danger" role="alert">
-					{error}
-				</div>
-			)}
-			<div class="setup__actions">
-				<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
-					{t.save}
-					<ArrowRight class="i" size={16} aria-hidden="true" />
-				</button>
-				<button class="c-btn c-btn--ghost" type="button" onClick={onDone}>
-					{t.neutral}
-				</button>
-			</div>
-		</form>
-	);
-}
-
 function FirstAI({ session }: { session: Session }) {
 	const mcp = `${location.origin}/mcp`;
 	const connected = useConnectedAI(async () => {
@@ -415,8 +297,10 @@ function FirstAI({ session }: { session: Session }) {
 		<div class="setup__body">
 			<div class="setup__intro">
 				<h1 class="c-h3">{t.firstAI}</h1>
+				<p class="c-small c-muted">{t.answers(location.origin)}</p>
 				<p class="c-small c-muted">{t.connects}</p>
 			</div>
+			{ipAddress.test(location.hostname) && <div class="c-alert c-alert--info">{t.noDomain}</div>}
 			<ConnectSteps mcp={mcp} />
 			<ConnectedStatus name={connected} />
 			<div class="setup__actions">

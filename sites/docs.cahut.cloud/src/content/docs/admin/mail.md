@@ -26,7 +26,7 @@ In the console, the page **E-mail** asks for what your provider of e-mail gives:
 | Security | STARTTLS or TLS |
 | User name and password | Those of the account at the relay; empty when it takes no authentication |
 | From | An address that the relay accepts, such as `cahut@example.com` |
-| Name | The name messages come from; the name of the Cahut when empty |
+| Name | The name messages come from; the domain of the Cahut when empty |
 
 On the command line, the password comes on the standard input, never as an argument:
 

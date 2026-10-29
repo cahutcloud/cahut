@@ -72,7 +72,7 @@ Sur le port 443, en plus de MCP et d'OAuth :
 | `/-/sign-out` | Ferme la session du lecteur (POST) |
 | `/-/cahut.css`, `/-/frame.js` | Le style des pages de Cahut, et le script qui passe le fragment de l'adresse à la Window encadrée |
 
-Les pages de Cahut sur le port 443 sont rendues côté serveur, sans script en ligne, sous une CSP stricte avec `frame-ancestors 'none'`. Elles portent la house style de la Cahut, neutre jusqu'au lot 6.
+Les pages de Cahut sur le port 443 sont rendues côté serveur, sans script en ligne, sous une CSP stricte avec `frame-ancestors 'none'`.
 
 ## Console
 
@@ -116,7 +116,6 @@ Soit environ 7,5 jours. Les pull requests s'enchaînent dans l'ordre.
 ## Hors du lot 4
 
 - Knock first : lot 5. D'ici là, une IA ne rend pas une Window publique, et la purge d'une Window n'existe pas.
-- La house style des pages de Cahut : lot 6. Le lot 4 les sert dans un style neutre.
 - Renommer ou déplacer une Window : après la V0.
 - Plus de deux versions, l'historique complet : après la V0.
 
@@ -157,5 +156,4 @@ Le lot 4 s'est achevé le 22 octobre 2026, en six pull requests :
 **Suites.**
 
 - Rendre une Window publique et la purger, par Knock first : lot 5.
-- La house style sur les pages de Cahut (Key, Room, accueil) : lot 6.
 - Le fragment de l'adresse se perd quand le lecteur passe par la connexion ou par la page de la Key.

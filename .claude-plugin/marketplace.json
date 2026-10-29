@@ -1,6 +1,6 @@
 {
   "name": "cahut",
-  "description": "The plugin of Cahut for Claude: publish documents, decks and dashboards to your own Cahut, in the house style of your organization.",
+  "description": "The plugin of Cahut for Claude: publish documents, decks and dashboards to your own Cahut, and share them by link.",
   "owner": {
     "name": "Olivier Durand",
     "url": "https://cahut.cloud"
@@ -9,7 +9,7 @@
     {
       "name": "cahut",
       "source": "./plugins/cahut",
-      "description": "Publish documents, decks and dashboards to your Cahut, in the house style of your organization, and share them by link.",
+      "description": "Publish documents, decks and dashboards to your Cahut, and share them by link.",
       "category": "productivity"
     }
   ]

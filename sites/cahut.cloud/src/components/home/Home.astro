@@ -11,7 +11,6 @@ import Icon, { type IconName } from '../Icon.astro';
 import Base from '../../layouts/Base.astro';
 import { localize, useTranslations, type Lang } from '../../i18n';
 import cahutPicto from '@charte/icones/cahut.svg?raw';
-import houseStylePicto from '@charte/icones/house-style.svg?raw';
 import keyPicto from '@charte/icones/key.svg?raw';
 import knockFirstPicto from '@charte/icones/knock-first.svg?raw';
 import logbookPicto from '@charte/icones/logbook.svg?raw';
@@ -28,7 +27,7 @@ const layers = t.statement.layers.map((layer, index) => ({ ...layer, home: index
 
 const featureIcons: IconName[][] = [
 	['file-text', 'box', 'history', 'search', 'file-down'],
-	['plug', 'palette'],
+	['plug'],
 	['link', 'mail', 'message-square', 'users', 'log-in'],
 	['terminal', 'monitor-cog', 'globe', 'gauge', 'scroll-text', 'hard-drive-upload', 'refresh-cw'],
 ];
@@ -41,7 +40,7 @@ const featureGroups = t.features.groups.map((group, index) => ({
 const principleIcons: IconName[] = ['box', 'undo-2', 'file-text', 'key-round', 'scroll-text', 'server', 'shield-check'];
 const principles = t.knock.principles.map((principle, index) => ({ ...principle, icon: principleIcons[index] }));
 
-const wordPictos = [keyPicto, houseStylePicto, knockFirstPicto, logbookPicto];
+const wordPictos = [keyPicto, knockFirstPicto, logbookPicto];
 const words = t.vocabulary.words.map((word, index) => ({ ...word, picto: wordPictos[index] }));
 
 const accessBadges = [
@@ -666,7 +665,7 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 	/* Vocabulary */
 	.words {
 		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: var(--space-4);
 		margin-top: var(--space-12);
 	}
@@ -847,7 +846,7 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 		.layer--home .layer__picto :global(path:first-child) {
 			animation: door 3s ease-in-out infinite alternate;
 		}
-		/* A drop of work runs down the line, from the AIs to the house style. */
+		/* A drop of work runs down the line, from the AIs to the people who read it. */
 		.layers:has(.is-visible)::after {
 			content: '';
 			position: absolute;
@@ -904,9 +903,6 @@ const roadmap = t.roadmap.steps.map((step, index) => ({ step, current: index ===
 		}
 		.feature-groups {
 			columns: 1;
-		}
-		.words {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 		.access__list {
 			grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -190,7 +190,7 @@ type From struct {
 	// Domain is the domain of the Cahut.
 	Domain string
 	// Name is the name messages come from when their relay names none: the
-	// name of the Cahut.
+	// domain of the Cahut.
 	Name string
 }
 

@@ -22,7 +22,7 @@ type SetMailRelayInput struct {
 	Username string `json:"username,omitempty" jsonschema:"the user name at the relay; leave it out when the relay takes no authentication"`
 	Password string `json:"password,omitempty" jsonschema:"the password at the relay; when left out, the password kept stays, as long as the host and the user name do not change"`
 	From     string `json:"from,omitempty" jsonschema:"the address that messages come from, one that the relay accepts, such as cahut@example.com"`
-	Name     string `json:"name,omitempty" jsonschema:"the name that messages come from; the name of the Cahut when left out"`
+	Name     string `json:"name,omitempty" jsonschema:"the name that messages come from; the domain of the Cahut when left out"`
 }
 
 // GetMailRelayInput is the input of get_mail_relay.
@@ -49,7 +49,7 @@ type RelayInfo struct {
 	Username string    `json:"username,omitempty"`
 	Password bool      `json:"password" jsonschema:"whether a password is kept; it is never given back"`
 	From     string    `json:"from" jsonschema:"the address that messages come from"`
-	Name     string    `json:"name,omitempty" jsonschema:"the name that messages come from; the name of the Cahut when absent"`
+	Name     string    `json:"name,omitempty" jsonschema:"the name that messages come from; the domain of the Cahut when absent"`
 	SetAt    time.Time `json:"set_at"`
 }
 
@@ -63,7 +63,6 @@ type scope struct {
 	s      *Service
 	db     *store.DB
 	domain string
-	name   func(ctx context.Context) (string, error)
 }
 
 // errNoService means that the Cahut was opened without the e-mail of its
@@ -72,10 +71,10 @@ var errNoService = errors.New("mail: this Cahut was opened without the e-mail of
 
 // RegisterCahut registers, in the registry r of the Cahut at domain whose
 // database is db, the operations that set its relay: set_mail_relay,
-// get_mail_relay and send_test_mail. name returns the name of the Cahut.
-// s may be nil, where the Cahut sends no e-mail.
-func (s *Service) RegisterCahut(r *operation.Registry, db *store.DB, domain string, name func(context.Context) (string, error)) {
-	sc := &scope{s: s, db: db, domain: domain, name: name}
+// get_mail_relay and send_test_mail. s may be nil, where the Cahut sends
+// no e-mail.
+func (s *Service) RegisterCahut(r *operation.Registry, db *store.DB, domain string) {
+	sc := &scope{s: s, db: db, domain: domain}
 	operation.Register(r, &operation.Op[SetMailRelayInput, Delivery]{
 		Name:  "set_mail_relay",
 		Title: "Set the e-mail relay",
@@ -232,10 +231,7 @@ func (sc *scope) prepareTest(ctx context.Context, c *operation.Call, in SendTest
 		return err
 	}
 	c.Log("mail relay", "test to "+to)
-	from := From{DB: sc.db, Domain: sc.domain}
-	if from.Name, err = sc.name(ctx); err != nil {
-		return err
-	}
+	from := From{DB: sc.db, Domain: sc.domain, Name: sc.domain}
 	r, err := sc.s.relayOf(ctx, from)
 	if err != nil {
 		return operation.Invalidf("%v", err)

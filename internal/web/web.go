@@ -23,7 +23,6 @@ import (
 
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/console"
-	"cahut.cloud/internal/housestyle"
 	"cahut.cloud/internal/notice"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
@@ -184,16 +183,9 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	// The icon of Cahut, where browsers look for that of a site. See
 	// docs/adr/0040-the-icon-of-a-cahut.md.
 	for p := range rootIcons {
-		s.mux.HandleFunc("GET "+p, s.serveRootIcon)
+		s.mux.HandleFunc("GET "+p, serveRootIcon)
 	}
-	// The house style of the Cahut, for its Windows and its pages. See
-	// docs/adr/0022-house-style-of-each-cahut.md.
-	s.mux.HandleFunc("GET "+housestyle.SheetPath, s.serveHouseStyle)
-	s.mux.HandleFunc("GET "+housestyle.LogoPath, s.serveLogo(false))
-	s.mux.HandleFunc("GET "+housestyle.LogoInversePath, s.serveLogo(true))
-	s.mux.HandleFunc("GET "+housestyle.FontsPath+"{file}", s.serveFont)
-	s.mux.HandleFunc("GET "+housestyle.DeckPath, serveDeckEngine)
-	s.mux.HandleFunc("GET /-/templates/{kind}", s.serveTemplate)
+	// The skill for Claude. See docs/adr/0022-house-style-of-each-cahut.md.
 	s.mux.HandleFunc("GET "+SkillPath, s.serveSkill)
 	s.mux.HandleFunc("GET /-/sign-in", s.serveSignIn)
 	s.mux.HandleFunc("GET /-/session", s.serveSession)

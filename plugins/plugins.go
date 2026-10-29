@@ -1,7 +1,8 @@
 // Package plugins embeds the files of the plugins of Cahut for AI clients,
 // which live in this directory so that a marketplace can install them as
 // they are: the binary serves the same skill as the plugin. See
-// docs/adr/0022-house-style-of-each-cahut.md.
+// docs/adr/0022-house-style-of-each-cahut.md and
+// docs/adr/0049-no-house-style.md.
 package plugins
 
 import (

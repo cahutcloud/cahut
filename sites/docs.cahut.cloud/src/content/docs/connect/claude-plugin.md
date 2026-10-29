@@ -1,9 +1,9 @@
 ---
 title: The Cahut plugin for Claude
-description: Install the Cahut plugin in Claude Code, which connects your Cahut and gives Claude the skill to make Windows in your house style, or upload the skill in the Claude apps.
+description: Install the Cahut plugin in Claude Code, which connects your Cahut and gives Claude the skill to make Windows there, or upload the skill in the Claude apps.
 ---
 
-The Cahut plugin gives Claude two things: the connection to your Cahut over MCP, and a skill that teaches it to make Windows there. The skill carries the formats of documents, decks, dashboards and sites, the sandbox of Windows, sharing them and Knock first. It leaves the house style to `get_house_style`, so the same skill works with every Cahut. Other AI clients find the same rules, shorter, in the instructions of the MCP server.
+The Cahut plugin gives Claude two things: the connection to your Cahut over MCP, and a skill that teaches it to make Windows there. The skill carries the formats of documents, decks, dashboards and sites, the sandbox of Windows, sharing them and Knock first. Claude makes each Window in the style you ask for, with its CSS among its own files. Other AI clients find the same rules, shorter, in the instructions of the MCP server.
 
 ## In Claude Code
 
@@ -33,10 +33,10 @@ Each Cahut serves the skill as a zip, at `https://<domain>/-/cahut-skill.zip`. T
 With the plugin, one request is enough:
 
 ```text
-Make a deck of six slides on the results of the quarter, and publish it in marketing.
+Make a deck of six slides on the results of the quarter, in navy and white, and publish it in marketing.
 ```
 
-Claude calls `get_house_style` with the kind `deck`, starts from the template in the colors and fonts of your organization, publishes the deck with `publish_window`, and gives you its address. The arrows move from slide to slide.
+Claude makes the deck in navy and white, with its CSS and its script among its files, publishes it with `publish_window`, and gives you its address. The arrows move from slide to slide.
 
 ## What the plugin holds
 

@@ -54,7 +54,6 @@ export default defineConfig({
 						'concepts/cahuts',
 						'concepts/rooms-and-windows',
 						'concepts/access',
-						'concepts/house-style',
 						'concepts/knock-first-and-logbook',
 					],
 				},

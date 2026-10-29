@@ -1,6 +1,6 @@
 ---
 name: cahut
-description: Make documents, decks, dashboards and small sites, and publish them on Cahut, the user's own server, in the house style of their organization; then share them by link, update them or take them back. Use it whenever the user asks to publish, put online, share or update a page, a report, a presentation, a slide deck or a dashboard on Cahut, or to make one in their house style, even when they do not name Cahut but its tools are connected.
+description: Make documents, decks, dashboards and small sites, and publish them on Cahut, the user's own server; then share them by link, update them or take them back. Use it whenever the user asks to publish, put online, share or update a page, a report, a presentation, a slide deck or a dashboard on Cahut, even when they do not name Cahut but its tools are connected.
 ---
 
 # Cahut
@@ -9,22 +9,21 @@ Cahut keeps what you make on the user's own server. Each piece is a Window: a li
 
 ## Make a Window
 
-1. Call `get_house_style` with the kind of Window: `document`, `deck`, `dashboard` or `site`. It gives the name of the organization, its colors and fonts, what it asks of AIs (`guidance`), a guide to the classes of its style sheet (`guide`), and the template of that kind. When it answers that the house style is inactive (`active` is false), the organization keeps its brand elsewhere, often in a skill of its own: make the Window in the style the user asks for, with its own CSS among its files, and skip steps 2 and 3.
-2. Start from the template. Keep its structure and its classes, replace its sample content, and give the page its own `<title>`. Follow the guidance of the organization, and [the formats](references/formats.md).
-3. Keep the links of the template to the house style, from the root of the domain: `<link rel="stylesheet" href="/-/house-style.css">`, and for a deck `<script src="/-/deck.js" defer></script>`. In your own CSS, use its variables, such as `var(--hs-primary)` or `var(--hs-font-heading)`, rather than colors or fonts of your own.
-4. Link the Window's own files with relative paths, such as `img/map.webp`, never `/img/map.webp`: a Window lives under the address of its Room. The house style and the deck engine are the only paths under `/-/`.
-5. Publish with `publish_window`: a title, the kind, the files with `index.html` at the root, the Room (the personal Room of the person when left out), and the declaration.
-6. Give the user the address that it returns.
+1. Make the Window in the style that the user asks for, or that the skills of their organization give, and follow [the formats](references/formats.md). Cahut serves no style sheet, template or script for Windows: the Window carries its own.
+2. Write a complete `index.html` with its own `<title>`. Put its CSS, its fonts, its scripts and its images among its files, such as `css/style.css`, or inline in the page.
+3. Link the Window's own files with relative paths, such as `img/map.webp`, never `/img/map.webp`: a Window lives under the address of its Room.
+4. Publish with `publish_window`: a title, the kind (`document`, `deck`, `dashboard` or `site`), the files with `index.html` at the root, the Room (the personal Room of the person when left out), and the declaration.
+5. Give the user the address that it returns.
 
 ## Declare what the pages do
 
 Cahut serves each Window in a sandbox that lets it load and call only what its version declares:
 
-- `scripts`: true when a page runs JavaScript, the deck engine included.
-- `origins`: every origin that the pages load from or call, such as `https://cdn.jsdelivr.net` for a chart library. The house style needs none.
+- `scripts`: true when a page runs JavaScript, such as the script that moves between the slides of a deck.
+- `origins`: every origin that the pages load from or call, such as `https://cdn.jsdelivr.net` for a chart library. The Window's own files need none.
 - `forms`: the origins that forms send to.
 
-Prefer what needs no origin: inline SVG charts, the bars and legends of the house style, its fonts, images among the files.
+Prefer what needs no origin: inline SVG charts, CSS bars, the fonts of the system or fonts among the files, images among the files.
 
 ## The sandbox
 
@@ -45,7 +44,3 @@ Pages run with an opaque origin. `localStorage`, `sessionStorage`, IndexedDB and
 ## Knock first
 
 Some calls wait for a person: making a Window public, purging a Window from the trash, deleting a Room, adding a person or changing what a person may do, widening the reach of an AI. The tool then returns an error with a link. Give the link to the user, who approves or declines in the console of the Cahut, then call `get_knock` to learn the outcome. Never call again in a loop.
-
-## The house style
-
-The administrators of a Cahut change it with `set_house_style`, giving only what changes: the name of the organization, its colors, its fonts and their files, its logos, its guidance, and whether AIs use it (`active`). `rollback_house_style` goes back to the previous one. A change reaches every Window that links the sheet at once, so ask before you change the brand of an organization, and show the user the result: `/-/templates/deck` shows a deck in the house style.

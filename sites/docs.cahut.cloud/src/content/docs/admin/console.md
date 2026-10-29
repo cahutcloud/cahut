@@ -33,6 +33,8 @@ An administrator creates accounts in the console, under **People**, or on the co
 | AIs and access | The address to give an AI client; your connected AIs, with what they may do and where, Change and Disconnect; your personal tokens: create one, shown once with the command that connects Claude Code, and revoke it in one click |
 | Account | At the foot of the navigation, and behind your name in the top bar: your name and your handle; your e-mail address and notices, when the Cahut sends e-mail; the language of the console; a new password, and signing out |
 
+The **AIs and access** screen also gives the commands that install the [Cahut plugin](/connect/claude-plugin/) in Claude Code, and the skill as a zip for the Claude apps.
+
 A change to what someone may do, such as adding a person to a Room, making a Window public, and deleting anything for good, ask you to confirm first. When your AI asks for one of these changes, it knocks first: the change waits for you under **Knocks**. See [Knock first](/concepts/knock-first-and-logbook/#knock-first).
 
 ## What an administrator of the Cahut finds
@@ -43,16 +45,9 @@ The same screens, and:
 - **Rooms**: every Room of the Cahut, whose people they manage. They open the Windows of the Rooms they are in only.
 - **Logbook**: every entry of the Cahut, from people and from AIs.
 - **AIs and access**: the connected AIs and the tokens of others too, which they can disconnect and revoke.
-- **House style**: see below.
 - **Kind and limits**: whether the Cahut is collaborative or individual, its [limits](/concepts/cahuts/#limits) with what it holds, and the links to its [legal pages](/concepts/cahuts/#legal-pages). The administrators of the server set them.
 
 In an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), the page of a Room no longer adds or removes people, and the access of a Window no longer offers Internal.
-
-### House style
-
-The administrators set the [house style](/concepts/house-style/) of the Cahut here: the name of the organization, its logo and its version for dark backgrounds, its four colors with their contrasts, the colors of its charts, its fonts and their files, and its guidance for AIs. The switch **AIs use this house style** makes it inactive for AIs, for an organization that gives them guidelines of its own. A preview shows the form in its colors and fonts before saving, and the three templates open in the house style that is saved. **Go back to it** restores the previous version, and **Back to neutral** starts again from the neutral house style, both after a confirmation.
-
-The **AIs and access** screen of every person gives the commands that install the [Cahut plugin](/connect/claude-plugin/) in Claude Code, and the skill as a zip for the Claude apps.
 
 ## Administrators of the server
 
@@ -60,7 +55,7 @@ The administrators of the server have accounts of their own, apart from the peop
 
 A person who also administers the server holds both accounts in the same browser. **Sign in to the server**, on the **Account** page of a Cahut administrator, keeps the session of the person, and the pages of the server join their console under **This server**. The pages of the Cahut act as the person, but for its kind, its limits and its legal pages, which act as the administrator of the server. An administrator of the server who signs in alone finds **Sign in as a person** in the top bar and on their **Account** page.
 
-While the browser holds the session of an administrator of the server, the bar of the server sits above the top bar, on every page. It says **Server administration**, names the Cahut of the domain and the administrator, and holds **Sign out of the server**. The name of the Cahut opens the list of the Cahuts of the server: another one opens at its own console, where you sign in to the server again. The top bar below is that of the Cahut, and says who acts in it: the person, with **Sign out**, or, without one, the administrator of the server. Each bar signs out of its own session, and the console stays open with the other one.
+While the browser holds the session of an administrator of the server, the bar of the server sits above the top bar, on every page. It says **Server administration**, names the Cahut of the domain and the administrator, and holds **Sign out of the server**. The domain of the Cahut opens the list of the Cahuts of the server: another one opens at its own console, where you sign in to the server again. The top bar below is that of the Cahut, and says who acts in it: the person, with **Sign out**, or, without one, the administrator of the server. Each bar signs out of its own session, and the console stays open with the other one.
 
 They find:
 

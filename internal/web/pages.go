@@ -2,9 +2,7 @@ package web
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"embed"
-	"encoding/hex"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -17,22 +15,19 @@ import (
 	charte "cahut.cloud/docs/charte-graphique"
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/cahut"
-	"cahut.cloud/internal/housestyle"
 	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/window"
 )
 
 // The pages that a Cahut serves to readers on the port of its Windows: its
 // home, the page of a Room, the frame of a protected Window, the page of a
-// Key and the page of what is not found. They take the components of the
-// brand of Cahut: in its brand while the house style keeps the look of the
-// neutral one, in the house style once it has a look of its own. Their foot
-// links the legal pages of the Cahut, when it has some; the frame of a
-// Window does not. See
+// Key and the page of what is not found. They carry the brand of Cahut.
+// Their foot links the legal pages of the Cahut, when it has some; the
+// frame of a Window does not. See
 // docs/adr/0019-window-versions-access-and-declaration.md,
 // docs/adr/0032-the-page-of-a-room.md,
-// docs/adr/0033-the-brand-of-cahut-until-the-house-style-has-a-look.md and
-// docs/adr/0042-the-legal-pages-of-a-cahut.md.
+// docs/adr/0042-the-legal-pages-of-a-cahut.md and
+// docs/adr/0049-no-house-style.md.
 
 //go:embed pages
 var pageFiles embed.FS
@@ -41,7 +36,7 @@ var pages = template.Must(template.New("pages").Funcs(template.FuncMap{"icon": i
 	ParseFS(pageFiles, "pages/pages.html"))
 
 // pagePolicy lets a page of the Cahut at base load its style sheets, the
-// logos, the fonts and its two scripts, and frame a Window of its own
+// logos and the fonts of the brand and its two scripts, and frame a Window of its own
 // origin, and nothing else. The scripts are named: the Windows at the same
 // origin hold scripts too, and none may run here.
 func pagePolicy(base string) string {
@@ -49,14 +44,10 @@ func pagePolicy(base string) string {
 		"img-src 'self' data:; font-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
 }
 
-// page is what every page shows at its top, and where to sign in. The
-// pages carry the house style of their Cahut, or the brand of Cahut while
-// its house style keeps the look of the neutral one. See
-// docs/adr/0022-house-style-of-each-cahut.md.
+// page is what every page shows at its top, and where to sign in.
 type page struct {
 	Title  string // of the page, as its tab shows it
 	Domain string
-	Brand  housestyle.Brand
 	Reader string      // the handle of the reader signed in; empty when there is none
 	SignIn string      // where to sign in, to come back to this page
 	Legal  []legalLink // the legal pages of the Cahut, which its foot links
@@ -78,12 +69,7 @@ var legalNames = map[string]string{
 
 func (s *Server) page(r *http.Request, reader, title string) page {
 	c := siteOf(r).cahut
-	brand, err := housestyle.LoadBrand(r.Context(), c.DB, c.Domain)
-	if err != nil {
-		s.log.Error("read the house style", "cahut", c.Domain, "error", err)
-		brand = housestyle.Brand{Name: c.Domain, NeutralLook: true}
-	}
-	p := page{Title: title, Domain: c.Domain, Brand: brand, Reader: reader, SignIn: "/-/sign-in?to=" + url.QueryEscape(r.URL.RequestURI())}
+	p := page{Title: title, Domain: c.Domain, Reader: reader, SignIn: "/-/sign-in?to=" + url.QueryEscape(r.URL.RequestURI())}
 	legal, err := settings.Legal(r.Context(), c.DB.Read)
 	if err != nil {
 		s.log.Error("read the legal pages", "cahut", c.Domain, "error", err)
@@ -142,8 +128,8 @@ var brandTypes = map[string]string{
 }
 
 // brandAssets returns the files of the brand by path, with their ETags.
-var brandAssets = sync.OnceValue(func() map[string]housestyle.Asset {
-	assets := map[string]housestyle.Asset{}
+var brandAssets = sync.OnceValue(func() map[string]servedFile {
+	assets := map[string]servedFile{}
 	err := fs.WalkDir(charte.Files, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return err
@@ -152,8 +138,7 @@ var brandAssets = sync.OnceValue(func() map[string]housestyle.Asset {
 		if err != nil {
 			return err
 		}
-		sum := sha256.Sum256(b)
-		assets[p] = housestyle.Asset{Type: brandTypes[path.Ext(p)], ETag: `"` + hex.EncodeToString(sum[:16]) + `"`, Content: b}
+		assets[p] = newServedFile(brandTypes[path.Ext(p)], b)
 		return nil
 	})
 	if err != nil {
@@ -170,7 +155,7 @@ func serveBrand(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	serveHouseAsset(w, r, a)
+	serveFile(w, r, a)
 }
 
 // rootIcons are the icons that browsers, and the services that draw the
@@ -181,24 +166,13 @@ var rootIcons = map[string]string{
 	"/apple-touch-icon.png": "logos/favicon/apple-touch-icon.png",
 }
 
-// serveRootIcon serves the icon of Cahut at the root of the Cahut while its
-// house style keeps the look of the neutral one, as its pages do: the tab
-// of every page of the domain shows it, Windows included, and the logo of
-// Cahut never appears beside an organization. The console names its icons
-// under BrandPath, where they stay whatever the house style. See
-// docs/adr/0040-the-icon-of-a-cahut.md.
-func (s *Server) serveRootIcon(w http.ResponseWriter, r *http.Request) {
-	c := siteOf(r).cahut
-	brand, err := housestyle.LoadBrand(r.Context(), c.DB, c.Domain)
-	if err != nil {
-		s.log.Error("read the house style", "cahut", c.Domain, "error", err)
-		brand.NeutralLook = true
-	}
-	if !brand.NeutralLook {
-		http.NotFound(w, r)
-		return
-	}
-	serveHouseAsset(w, r, brandAssets()[rootIcons[r.URL.Path]])
+// serveRootIcon serves the icon of Cahut at the root of the Cahut, as its
+// pages carry its brand: the tab of every page of the domain shows it,
+// Windows that name no icon included. The console names its icons under
+// BrandPath. See docs/adr/0040-the-icon-of-a-cahut.md and
+// docs/adr/0049-no-house-style.md.
+func serveRootIcon(w http.ResponseWriter, r *http.Request) {
+	serveFile(w, r, brandAssets()[rootIcons[r.URL.Path]])
 }
 
 // brandSVG writes inline the picture of the brand at p, so that its

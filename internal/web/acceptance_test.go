@@ -35,18 +35,16 @@ import (
 // and does not knock first, the operation that undoes it. An AI that calls
 // an operation knocks first, or a person can take it back.
 var undo = map[string]string{
-	"create_room":          "delete_room",
-	"publish_window":       "trash_window",
-	"update_window":        "rollback_window",
-	"rollback_window":      "rollback_window",
-	"trash_window":         "restore_window",
-	"restore_window":       "trash_window",
-	"set_window_access":    "set_window_access", // making a Window public knocks first
-	"update_room":          "update_room",
-	"set_room_home":        "set_room_home",
-	"set_house_style":      "rollback_house_style",
-	"rollback_house_style": "rollback_house_style",
-	"set_ai_reach":         "set_ai_reach", // widening the reach knocks first
+	"create_room":       "delete_room",
+	"publish_window":    "trash_window",
+	"update_window":     "rollback_window",
+	"rollback_window":   "rollback_window",
+	"trash_window":      "restore_window",
+	"restore_window":    "trash_window",
+	"set_window_access": "set_window_access", // making a Window public knocks first
+	"update_room":       "update_room",
+	"set_room_home":     "set_room_home",
+	"set_ai_reach":      "set_ai_reach", // widening the reach knocks first
 	// The e-mail stays sent, and the link it carries opens nothing more.
 	"invite_to_window":  "revoke_invitation",
 	"revoke_invitation": "invite_to_window",
@@ -216,9 +214,9 @@ func useTool(t *testing.T, s *mcp.ClientSession, tool string, args map[string]an
 }
 
 var deckHTML = `<!doctype html><html lang="en"><meta charset="utf-8"><title>Why keep our pages</title>
-<link rel="stylesheet" href="/-/house-style.css"><link rel="stylesheet" href="/-/deck.css">
+<link rel="stylesheet" href="css/deck.css">
 <section class="slide"><h1>Why keep our pages</h1></section>
-<section class="slide"><h2>On our own server</h2></section><script src="/-/deck.js"></script>`
+<section class="slide"><h2>On our own server</h2></section><script src="js/deck.js"></script>`
 
 var acceptanceFrame = regexp.MustCompile(`<iframe src="(/-/w/[^"]+)"`)
 
@@ -236,9 +234,8 @@ func TestV0Acceptance(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Criterion 2. In the browser, the first person chooses their account,
-	// names the organization, and connects an AI: nobody touches the
-	// server.
+	// Criterion 2. In the browser, the first person chooses their account
+	// and connects an AI: nobody touches the server.
 	var up server.SetUp
 	if status := a.api(t, "server/set_up", server.SetUpInput{Code: link.Code, Handle: "ana", Name: "Ana Lima", Password: password}, &up); status != http.StatusOK {
 		t.Fatalf("set_up = %d", status)
@@ -247,9 +244,6 @@ func TestV0Acceptance(t *testing.T) {
 		t.Error("the first person of the first Cahut is not the administrator of the server")
 	}
 	a.session = up.Session.Token
-	if status := a.api(t, "set_house_style", map[string]any{"name": "Acme", "colors": map[string]any{"primary": "#0b5fff"}}, nil); status != http.StatusOK {
-		t.Fatalf("set_house_style = %d", status)
-	}
 
 	// ChatGPT identifies itself with its metadata document, which prefers
 	// private_key_jwt and offers none.
@@ -268,10 +262,6 @@ func TestV0Acceptance(t *testing.T) {
 	st.cahut.OAuth.SetDocumentTransport(docs.Client().Transport)
 	chatgpt := a.connect(t, "openai-mcp", docs.URL+"/oauth/client.json")
 
-	style, msg := useTool(t, chatgpt, "get_house_style", map[string]any{"kind": "deck"})
-	if msg != "" || style["template"] == nil && style["active"] != false {
-		t.Errorf("get_house_style = %v %s", style, msg)
-	}
 	w, msg := useTool(t, chatgpt, "publish_window", map[string]any{
 		"title": "Why keep our pages", "kind": "deck",
 		"files":       []map[string]string{{"path": "index.html", "content": deckHTML}},
@@ -332,12 +322,12 @@ func TestV0Acceptance(t *testing.T) {
 	lechat := a.connect(t, "mistral-le-chat", "")
 	if _, msg := useTool(t, lechat, "update_window", map[string]any{
 		"window":      "ana/why-keep-our-pages",
-		"files":       []map[string]string{{"path": "index.html", "content": strings.Replace(deckHTML, "On our own server", "In our house style", 1)}},
+		"files":       []map[string]string{{"path": "index.html", "content": strings.Replace(deckHTML, "On our own server", "In its own style", 1)}},
 		"declaration": map[string]any{"scripts": true},
 	}); msg != "" {
 		t.Fatalf("update_window: %s", msg)
 	}
-	if _, body := read(src[1]); !strings.Contains(body, "In our house style") {
+	if _, body := read(src[1]); !strings.Contains(body, "In its own style") {
 		t.Errorf("the frame does not show the new version: %q", body)
 	}
 	if _, msg := useTool(t, lechat, "rollback_window", map[string]any{"window": "ana/why-keep-our-pages"}); msg != "" {
@@ -401,7 +391,7 @@ func TestV0Acceptance(t *testing.T) {
 			t.Errorf("an AI call that cannot be undone and was not approved: %+v", e)
 		}
 	}
-	if clients["ChatGPT"] != 2 || clients["Le Chat"] != 4 {
+	if clients["ChatGPT"] != 1 || clients["Le Chat"] != 4 {
 		t.Errorf("calls in the Logbook by client = %v", clients)
 	}
 }
