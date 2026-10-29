@@ -1,13 +1,14 @@
 // The page of an activation link, where a person, or an administrator of the
 // server, chooses their password. The code comes in the fragment of the
-// address, which the server never sees.
+// address, which the server never sees. That of the server takes the theme
+// of the server, as its sign-in does.
 import { useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
-import { Languages, LegalBeforeSignIn } from "../components";
+import { AuthLogo, Languages, LegalBeforeSignIn } from "../components";
 import { fragment as code } from "../fragment";
 import { words } from "../i18n";
-import { Logo } from "../logo";
 import type { Session } from "../session";
+import { useServerTheme } from "../theme";
 
 export const minPassword = 15;
 
@@ -45,6 +46,7 @@ const t = words({
 const reset = new URLSearchParams(location.search).has("reset");
 
 export function Activate({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: (s: Session) => void }) {
+	const theme = useServerTheme(kind === "admin");
 	const [password, setPassword] = useState("");
 	const [again, setAgain] = useState("");
 	const [error, setError] = useState("");
@@ -75,7 +77,7 @@ export function Activate({ kind, onSignIn }: { kind: Session["kind"]; onSignIn: 
 	return (
 		<main class="auth">
 			<div class="c-card auth__card">
-				<Logo height={32} />
+				<AuthLogo server={theme} />
 				<div class="auth__head">
 					<h1 class="c-h3">{reset ? t.chooseNew : t.choose}</h1>
 					<p class="c-small c-muted">
