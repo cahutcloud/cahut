@@ -1,5 +1,6 @@
-// The first screen once signed in: for a person, their latest Windows and
-// their Rooms; for an administrator of the server, the Cahuts of the server.
+// The first screen once signed in: for a person, their latest Windows, their
+// Rooms and what the Cahut holds; for an administrator of the server, the
+// Cahuts of the server.
 import { ArrowUpRight, Plus } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
@@ -11,7 +12,7 @@ import { de, locale, que, words } from "../i18n";
 import { useLoad } from "../load";
 import { href, Link } from "../router";
 import { RoomCards } from "./rooms";
-import { LimitsTable } from "./settings";
+import { Usage } from "./usage";
 
 const t = words({
 	en: {
@@ -27,8 +28,6 @@ const t = words({
 			</>
 		),
 		yourRooms: "Your Rooms",
-		yourLimits: "Your limits",
-		cahutLimits: "Limits of this Cahut",
 		thisServer: "This server",
 		administer: (host: string) =>
 			`You administer this server, and here the Cahut of ${host}. For another Cahut, sign in at its own console.`,
@@ -75,8 +74,6 @@ const t = words({
 			</>
 		),
 		yourRooms: "Vos Rooms",
-		yourLimits: "Vos limites",
-		cahutLimits: "Limites de cette Cahut",
 		thisServer: "Ce serveur",
 		administer: (host) =>
 			`Vous administrez ce serveur, et ici la Cahut ${de(host)}. Pour une autre Cahut, connectez-vous à sa propre console.`,
@@ -157,12 +154,7 @@ function PersonOverview() {
 				<h2 class="c-h4">{t.yourRooms}</h2>
 				<RoomCards rooms={rooms} />
 			</section>
-			{account.role !== "admin" && Object.keys(about.limits).length > 0 && (
-				<section class="section">
-					<h2 class="c-h4">{about.yours ? t.yourLimits : t.cahutLimits}</h2>
-					<LimitsTable settings={about} />
-				</section>
-			)}
+			<Usage settings={about} admin={account.role === "admin"} />
 		</>
 	);
 }
