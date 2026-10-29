@@ -1,5 +1,5 @@
 // Small pieces that the screens share.
-import { AppWindow, ChartColumn, Check, Copy, FileText, Globe, House, KeyRound, Lock, Presentation, Users, X } from "lucide-preact";
+import { AppWindow, ArrowUpRight, ChartColumn, Check, Copy, FileText, Globe, House, KeyRound, Lock, Presentation, Users, X } from "lucide-preact";
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { cahut, explain } from "./api";
@@ -40,6 +40,7 @@ const t = words({
 		publicWho: "anyone with its address",
 		roomPage: "Page of the Room",
 		preview: (title: string) => `Preview of ${title}`,
+		openWindow: (title: string) => `Open ${title} in a new tab`,
 		justNow: "Just now",
 		minutesAgo: (n: number) => `${n} min ago`,
 		hoursAgo: (n: number) => `${n} h ago`,
@@ -83,6 +84,7 @@ const t = words({
 		publicWho: "quiconque a son adresse",
 		roomPage: "Page de la Room",
 		preview: (title) => `Aperçu ${de(title)}`,
+		openWindow: (title) => `Ouvrir ${title} dans un nouvel onglet`,
 		justNow: "À l'instant",
 		minutesAgo: (n) => `il y a ${n} min`,
 		hoursAgo: (n) => `il y a ${n} h`,
@@ -542,13 +544,17 @@ export function WindowCards({ windows, showRoom, home }: { windows: Window[]; sh
 	);
 }
 
-/** A Window, as a card that leads to its page; the Window that the address of its Room shows says so. */
+/**
+ * A Window, as a card that leads to its page, with a button that opens the
+ * Window itself in a new tab; the Window that the address of its Room shows
+ * says so.
+ */
 export function WindowCard(props: { window: Window; showRoom?: boolean; home?: boolean; preview?: string }) {
 	const { window: w, showRoom, home, preview } = props;
 	const kind = kinds[w.kind] ?? kinds.site;
 	const Icon = kind.icon;
 	return (
-		<article class="c-card c-window">
+		<article class="c-card c-window window-card">
 			<Link class="c-window__thumb window-thumb" href={windowPage(w)} aria-label={home ? `${w.title}, ${t.roomPage}` : w.title}>
 				<Icon size={40} aria-hidden="true" />
 				{preview && <WindowPreview src={preview} title={w.title} />}
@@ -559,6 +565,9 @@ export function WindowCard(props: { window: Window; showRoom?: boolean; home?: b
 					</span>
 				)}
 			</Link>
+			<a class="c-btn c-btn--secondary c-btn--sm icon-button window-open" href={w.url} target="_blank" rel="noopener noreferrer" aria-label={t.openWindow(w.title)} title={t.openWindow(w.title)}>
+				<ArrowUpRight class="i" size={16} aria-hidden="true" />
+			</a>
 			<div class="c-window__body">
 				<Link class="c-window__title window-title" href={windowPage(w)}>
 					<Icon class="i" size={16} aria-hidden="true" />
