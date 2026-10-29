@@ -87,7 +87,7 @@ An AI acts through the tools of the Cahut, in the Rooms you granted it, and chan
 
 On its own, an AI does what can be undone:
 
-- publish a Window, update it, go back to its previous version, change its title and its description, put it in the trash and restore it;
+- publish a Window, update it, go back to its previous version, change its title, its description and its name in its address, put it in the trash and restore it;
 - open a Window to the whole Cahut or to the holders of its Key, and close it again;
 - invite people to read a Window by e-mail, and take an invitation back;
 - create a team Room, and change its title, its description and what its address shows;

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"cahut.cloud/internal/address"
+	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/window"
 )
 
@@ -95,4 +96,39 @@ func TestPermanentAddresses(t *testing.T) {
 			t.Errorf("GET %s = %d, want 404", p, resp.StatusCode)
 		}
 	}
+}
+
+// A new name ends the old address at once, and what holds the Window by its
+// id follows it: its permanent address, the passes of its Key and the home
+// of its Room.
+func TestRenameKeepsWhatHoldsTheWindow(t *testing.T) {
+	f := setup(t)
+	olivier := f.person(t, "localhost", "olivier")
+	w := publishDeck(t, f, olivier)
+	key := f.call(t, "localhost", olivier, "set_window_access", `{"window": "`+w.ID+`", "access": "key"}`).(window.AccessSet).Key
+	f.call(t, "localhost", olivier, "set_room_home", `{"room": "olivier", "window": "q3-review"}`)
+	resp, _ := f.do(t, "localhost", http.MethodPost, "/-/key", nil, url.Values{"window": {"olivier/q3-review"}, "key": {key}})
+	if resp.StatusCode != http.StatusSeeOther || len(resp.Cookies()) != 1 {
+		t.Fatalf("the right Key = %d", resp.StatusCode)
+	}
+	pass := &http.Cookie{Name: resp.Cookies()[0].Name, Value: resp.Cookies()[0].Value} //nolint:gosec // a cookie that the test sends back
+
+	renamed := f.call(t, "localhost", olivier, "rename_window", `{"window": "olivier/q3-review", "name": "q3"}`).(window.Window)
+	if renamed.URL != "https://localhost/olivier/q3/" || renamed.PermanentURL != w.PermanentURL {
+		t.Fatalf("rename_window = %+v", renamed)
+	}
+	if resp, body := f.do(t, "localhost", http.MethodGet, "/olivier/q3-review/", []*http.Cookie{pass}, nil); resp.StatusCode != http.StatusNotFound ||
+		strings.Contains(body, "Q3") {
+		t.Errorf("the old address = %d %q, want 404", resp.StatusCode, body)
+	}
+	f.frame(t, "/olivier/q3/", pass)
+	resp, _ = f.do(t, "localhost", http.MethodGet, window.PermanentPrefix+w.ID+"/css/deck.css", []*http.Cookie{pass}, nil)
+	if resp.StatusCode != http.StatusTemporaryRedirect || resp.Header.Get("Location") != "/olivier/q3/css/deck.css" {
+		t.Errorf("the permanent address after a new name = %d %q", resp.StatusCode, resp.Header.Get("Location"))
+	}
+	if d := f.call(t, "localhost", olivier, "get_room", `{"room": "olivier"}`).(room.Detail); d.Home != "q3" {
+		t.Errorf("the home of the Room after a new name = %q", d.Home)
+	}
+	// The address of the Room still shows its home, in a frame.
+	f.frame(t, "/olivier/", pass)
 }

@@ -455,6 +455,11 @@ export type GetCahutInput = Record<string, never>;
 
 export type GetMailRelayInput = Record<string, never>;
 
+export interface GivenName {
+  /** the name */
+  name: string;
+}
+
 export interface Handle {
   /** the handle, as it was given */
   handle: string;
@@ -723,6 +728,13 @@ export interface MovedRoom {
   name: string;
 }
 
+export interface NameInRoom {
+  /** the name */
+  name: string;
+  /** the name of the Room */
+  room: string;
+}
+
 export interface NewAdmin {
   handle: string;
   name: string;
@@ -856,6 +868,8 @@ export interface PublishInput {
   kind: string;
   /** name of the Room to publish in; the personal Room of the person you act for when empty */
   room?: string;
+  /** its name in its address, 1 to 63 lowercase letters, digits and hyphens; from the title when empty */
+  name?: string;
   /** the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css */
   files: File[];
   /** what the pages do: Cahut lets them load and call the origins listed here, and nothing else */
@@ -912,6 +926,13 @@ export interface RenameDomainInput {
   domain: string;
   /** its new domain, such as cahut.example.com, which must point to this server, or the public IPv4 address of the server */
   to: string;
+}
+
+export interface RenameInput {
+  /** the Window's id or address, or its Room and its name as room/name */
+  window: string;
+  /** the new name, 1 to 63 lowercase letters, digits and hyphens */
+  name: string;
 }
 
 export interface Request {
@@ -1534,6 +1555,8 @@ export interface CahutOperations {
   purge_window: { input: RefInput; output: Window };
   /** Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. */
   remove_room_member: { input: RemoveMemberInput; output: RoomDetail };
+  /** Change the name of a Window, the last part of its address, <domain>/<room>/<name>/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it. */
+  rename_window: { input: RenameInput; output: Window };
   /** Send the link where a person chooses a new password to the e-mail address of their account, given its handle or its address. The link works for one hour; the password works until it is used. The answer is the same whether the account exists or not. A Cahut without an e-mail relay sends none: an administrator of the Cahut gives a new link instead. */
   request_password_link: { input: RequestPasswordLinkInput; output: PasswordLinkRequested };
   /** Bring a Window back from the trash, with its versions. */
@@ -1734,6 +1757,10 @@ export interface Refusals {
   too_many_refused_sign_ins: Wait;
   /** too many sign-ins at once: try again in a few seconds */
   too_many_sign_ins_at_once: null;
+  /** name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit */
+  window_name_invalid: GivenName;
+  /** name {name} is taken in the Room {room}, by a Window or one in its trash: choose another */
+  window_name_taken: NameInRoom;
   /** the current password is wrong */
   wrong_current_password: null;
   /** wrong handle or password */

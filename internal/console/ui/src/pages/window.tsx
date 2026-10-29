@@ -67,6 +67,11 @@ const t = words({
 		permanentLabel: "Its permanent address",
 		thePermanentAddress: "the permanent address",
 		permanentHelp: "The permanent address opens this Window to whoever may open it, even once its name has changed. Give it for a link that lasts.",
+		nameLabel: "Name in the address",
+		nameHelp: "1 to 63 lowercase letters, digits and hyphens. The title stays.",
+		changeName: "Change the name",
+		nameQuestion: (old: string) =>
+			`${old} will stop working at once, and its name will be free for another Window. The permanent address will keep working. Change the name?`,
 		whoOpens: "Who opens it",
 		option: (name: string, who: string) => `${name}: ${who}`,
 		key: "Key",
@@ -166,6 +171,11 @@ const t = words({
 		thePermanentAddress: "l'adresse permanente",
 		permanentHelp:
 			"L'adresse permanente ouvre cette Window à qui peut l'ouvrir, même une fois son nom changé. Donnez-la pour un lien qui dure.",
+		nameLabel: "Nom dans l'adresse",
+		nameHelp: "De 1 à 63 lettres minuscules, chiffres et tirets. Le titre ne change pas.",
+		changeName: "Changer le nom",
+		nameQuestion: (old) =>
+			`${old} cessera aussitôt de fonctionner, et son nom pourra servir à une autre Window. L'adresse permanente continuera de fonctionner. Changer le nom ?`,
 		whoOpens: "Qui l'ouvre",
 		option: (name, who) => `${name} : ${who}`,
 		key: "Key",
@@ -325,7 +335,14 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 						<Invitations window={w} />
 					</section>
 					<aside class="aside">
-						<Addresses window={w} />
+						<Addresses
+							window={w}
+							onRename={async (name) => {
+								const out = await api.cahut("rename_window", { window: w.id, name });
+								api.reloadRooms();
+								navigate(`/rooms/${out.room}/${out.name}`);
+							}}
+						/>
 						<DeclarationPanel declaration={w.declaration} />
 						<div class="c-card panel aside">
 							<h2 class="c-h4">{t.trash}</h2>
@@ -577,9 +594,29 @@ function Versions({ window: w, onRollback }: { window: WindowDetail; onRollback:
 
 /**
  * The addresses of a Window: the one of the moment, which its name makes,
- * and the permanent one, which its id makes and which never changes.
+ * and the permanent one, which its id makes and which never changes; and its
+ * name, which changes after a warning: the old address stops working at
+ * once. See docs/adr/0050-window-ids-permanent-addresses-and-names.md.
  */
-function Addresses({ window: w }: { window: WindowDetail }) {
+function Addresses({ window: w, onRename }: { window: WindowDetail; onRename: (name: string) => Promise<void> }) {
+	const id = useId();
+	const [name, setName] = useState(w.name);
+	const [asking, setAsking] = useState(false);
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	const prefix = w.url.slice(0, w.url.length - w.name.length - 1);
+	const rename = async () => {
+		setBusy(true);
+		setError("");
+		try {
+			await onRename(name.trim());
+		} catch (err) {
+			setError(explain(err));
+			setAsking(false);
+		} finally {
+			setBusy(false);
+		}
+	};
 	return (
 		<div class="c-card panel aside">
 			<h2 class="c-h4">{t.addresses}</h2>
@@ -592,6 +629,52 @@ function Addresses({ window: w }: { window: WindowDetail }) {
 				<CopyField label={t.thePermanentAddress} value={w.permanent_url} />
 			</div>
 			<p class="c-small c-muted">{t.permanentHelp}</p>
+			<form
+				class="form"
+				onSubmit={(e) => {
+					e.preventDefault();
+					setAsking(true);
+				}}
+			>
+				<div class="c-field">
+					<label class="c-field__label" for={id}>
+						{t.nameLabel}
+					</label>
+					<span class="window-name">
+						<span class="window-name__prefix c-mono">{prefix.replace(/^https?:\/\//, "")}</span>
+						<input
+							id={id}
+							class="c-input c-mono"
+							required
+							maxLength={63}
+							pattern="[a-z0-9]([a-z0-9\-]*[a-z0-9])?"
+							autocapitalize="none"
+							spellcheck={false}
+							value={name}
+							onInput={(e) => (setName(e.currentTarget.value), setAsking(false), setError(""))}
+						/>
+					</span>
+					<span class="c-field__help">{t.nameHelp}</span>
+				</div>
+				{error && <Failure message={error} />}
+				{asking ? (
+					<span class="confirm" role="group">
+						<span class="c-small">{t.nameQuestion(w.url)}</span>
+						<button class="c-btn c-btn--primary c-btn--sm" type="button" disabled={busy} onClick={rename}>
+							{t.changeName}
+						</button>
+						<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={() => setAsking(false)}>
+							{t.cancel}
+						</button>
+					</span>
+				) : (
+					<div>
+						<button class="c-btn c-btn--secondary" type="submit" disabled={name.trim() === w.name}>
+							{t.changeName}
+						</button>
+					</div>
+				)}
+			</form>
 		</div>
 	);
 }

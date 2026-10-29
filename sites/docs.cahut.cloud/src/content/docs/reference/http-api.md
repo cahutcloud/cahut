@@ -106,6 +106,8 @@ A refusal that people meet in the console gives its code too, which never change
 | `too_many_invitations` | `sent`, `handle`, `limit` | {sent} invitations went out for {handle} in the last 24 hours, and {limit} is the most: send the rest later |
 | `too_many_refused_sign_ins` | `minutes` | Too many refused sign-ins for this handle: try again in {minutes} minutes |
 | `too_many_sign_ins_at_once` |  | Too many sign-ins at once: try again in a few seconds |
+| `window_name_invalid` | `name` | Name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit |
+| `window_name_taken` | `name`, `room` | Name {name} is taken in the Room {room}, by a Window or one in its trash: choose another |
 | `wrong_current_password` |  | The current password is wrong |
 | `wrong_handle_or_password` |  | Wrong handle or password |
 
@@ -160,6 +162,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/publish_window` | Any person | yes |
 | `POST /api/purge_window` | Any person | yes |
 | `POST /api/remove_room_member` | Any person | yes |
+| `POST /api/rename_window` | Any person | yes |
 | `POST /api/request_password_link` | Anyone, to sign in | no |
 | `POST /api/restore_window` | Any person | yes |
 | `POST /api/resume_cahut` | Administrators of the server | yes |

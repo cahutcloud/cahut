@@ -105,6 +105,9 @@ const said = words<Sentences>({
 		too_many_refused_sign_ins: (v) =>
 			`Too many refused sign-ins for this handle: try again in ${plural(v.minutes, "minute", "minutes")}.`,
 		too_many_sign_ins_at_once: "Too many sign-ins at once: try again in a few seconds.",
+		window_name_invalid: (v) =>
+			`"${v.name}" cannot be the name of a Window: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit.`,
+		window_name_taken: (v) => `The name "${v.name}" is taken in the Room ${v.room}, by a Window or one in its trash: choose another.`,
 		wrong_current_password: "The current password is wrong.",
 		wrong_handle_or_password: "Wrong handle or password.",
 	},
@@ -175,6 +178,9 @@ const said = words<Sentences>({
 		too_many_refused_sign_ins: (v) =>
 			`Trop de connexions refusées pour cet identifiant : réessayez dans ${plural(v.minutes, "minute", "minutes")}.`,
 		too_many_sign_ins_at_once: "Trop de connexions en même temps : réessayez dans quelques secondes.",
+		window_name_invalid: (v) =>
+			`« ${v.name} » ne peut pas être le nom d'une Window : utilisez de 1 à 63 lettres minuscules, chiffres et tirets, en commençant et en finissant par une lettre ou un chiffre.`,
+		window_name_taken: (v) => `Le nom « ${v.name} » est déjà pris dans la Room ${v.room}, par une Window ou une Window à la corbeille : choisissez-en un autre.`,
 		wrong_current_password: "Le mot de passe actuel est incorrect.",
 		wrong_handle_or_password: "Identifiant ou mot de passe incorrect.",
 	},

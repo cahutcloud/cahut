@@ -32,6 +32,7 @@ The arguments of `publish_window`:
 | `description` | Optional: what the Window is, in a sentence or two of plain text, 300 characters at most. Readers see it on the page of its Room, and AIs read it to find the Window. |
 | `kind` | `document`, `deck`, `dashboard` or `site`. |
 | `room` | Optional: the name of a Room of the person the AI acts for. Without it, the Window goes to their personal Room. |
+| `name` | Optional: the name of the Window in its address, 1 to 63 lowercase letters, digits and hyphens. Without it, the name comes from the title. A name that the Room holds already is refused. |
 | `files` | The files, with `index.html` at the root: it is the page that opens. |
 | `declaration` | What the pages do: see [The declaration](#the-declaration). |
 
@@ -132,6 +133,16 @@ The version it replaces is kept. `rollback_window`, with the Window alone, goes 
 ```
 
 The Logbook records the new texts. To undo the change, an AI calls `retitle_window` again with the old ones, which `get_window` gave before. In the console, the page of each Window changes them under **Title and description**.
+
+### Rename a Window in its address
+
+`rename_window` changes the name of a Window, the last part of its address, and nothing else:
+
+```json
+{ "window": "3f9k2m7q8x4r1t6v0b5n8c2d4g", "name": "q3-review-final" }
+```
+
+The old address stops working at once, and the permanent address keeps working. `rename_window` with the old name undoes it while no other Window has taken it. See [A new name for a Window](/concepts/rooms-and-windows/#a-new-name-for-a-window).
 
 ### Share a Window
 
