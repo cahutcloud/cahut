@@ -183,10 +183,10 @@ Then give your AI the address of the MCP server, `https://cahut.example.com/mcp`
 
 | AI client | Where |
 | --- | --- |
-| claude.ai, Claude Desktop | Settings, Connectors, add a custom connector |
+| claude.ai, Claude Desktop | Settings, Connectors, add a custom connector, on every plan |
 | Claude Code | `/plugin marketplace add getcahut/cahut`, then `/plugin install cahut@cahut`, which also brings the skill for the house style |
-| ChatGPT | On the web, Plugins, Add custom MCP server, with OAuth (Business, Enterprise and Edu plans) |
-| Le Chat | Connectors, add a custom MCP connector |
+| Mistral Vibe, formerly Le Chat | Connectors, add a custom MCP connector, on every plan |
+| ChatGPT | On the web, Plugins, Add custom MCP server, with OAuth, on the Business, Enterprise and Edu plans only: not on Free, Plus or Pro |
 | Others | Any MCP client over HTTP, with OAuth or a personal token |
 
 Ask it for a deck: it publishes a Window and gives you its address. You choose who opens it in the console.

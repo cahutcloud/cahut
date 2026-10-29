@@ -58,7 +58,7 @@ export default {
 		stage: {
 			label: 'An AI publishes a page in a Cahut, then makes it public once a person approves',
 			ai: 'Your AI',
-			clients: 'Claude, ChatGPT, Le Chat…',
+			clients: 'Claude, Mistral Vibe, ChatGPT…',
 			publishing: 'Publishing the Window in your Cahut…',
 			online: "It's online, in the Room",
 			access: 'Access',
@@ -103,7 +103,7 @@ export default {
 		steps: [
 			{
 				title: 'You ask',
-				text: 'You write to your AI, as usual. Claude, ChatGPT or another: they all connect to your Cahut, and you keep your habits.',
+				text: 'You write to your AI, as usual: Claude or Mistral Vibe, formerly Le Chat, even on their free plans. ChatGPT publishes on its Business, Enterprise and Edu plans only, not on Free, Plus or Pro.',
 			},
 			{ title: 'Your AI publishes', text: 'It makes a Window: a living page at its own address, in one of your Rooms.' },
 			{
@@ -476,7 +476,7 @@ export default {
 				'Collaborative Cahuts, or individual ones where each person works alone, and limits on people, Rooms, Windows and disk, set by the administrators of the server.',
 				'People who sign in, administrators of the Cahut and of the server, and team Rooms with owners and members. The page of each Room lists its Windows, or shows the one its owners choose.',
 				'A web console, in English and French: Knocks, Rooms, Windows, the Logbook, people, connected AIs, personal tokens, e-mail and the server.',
-				'AI clients that connect over OAuth, such as claude.ai, Claude Code, ChatGPT and Le Chat, to the Rooms and the scope a person grants, or with a personal token.',
+				'AI clients that connect over OAuth, such as claude.ai, Claude Code, Mistral Vibe and ChatGPT, to the Rooms and the scope a person grants, or with a personal token.',
 				'Windows published over MCP: documents, decks, dashboards and static sites, served in a sandbox that holds them to what their AI declares they load and call.',
 				'Two versions of each Window with a rollback, a trash, and an access: Room only, internal, with a Key or public, until a date.',
 				'Knock first: what an AI cannot undo, or what changes what a person may do, waits for its person, who approves or declines it in the console.',
@@ -503,7 +503,7 @@ export default {
 		lead: 'Cahut is free and open source. Try it without a server, or install it on yours.',
 		hosted: {
 			title: 'Try it without a server',
-			text: 'Create your Cahut on My Cahut and connect your AI in two minutes.',
+			text: 'Create your Cahut on My Cahut and connect your AI in two minutes: Claude or Mistral Vibe, even on their free plans, or ChatGPT on a Business, Enterprise or Edu plan.',
 			// Around the link to Tetra7.
 			fine: ['Free, limited seats. My Cahut is offered by ', ', which hosts it in France to support the project.'],
 			more: 'All about My Cahut',

@@ -1,11 +1,23 @@
 ---
 title: Connect an AI client
-description: Give an AI client the address of your Cahut, sign in, and choose the Rooms it reaches and whether it may publish. For claude.ai, Claude Desktop, ChatGPT, Le Chat and other MCP clients with OAuth.
+description: Give an AI client the address of your Cahut, sign in, and choose the Rooms it reaches and whether it may publish. For claude.ai, Claude Desktop, Mistral Vibe, ChatGPT and other MCP clients with OAuth.
 ---
 
 An AI client connects to a Cahut with its address alone: `https://cahut.example.com/mcp`. The client sends you to the console of the Cahut, where you sign in and choose what it may do. Then it acts for you, within what you granted, and every call it makes goes to the Logbook.
 
-This works with the MCP clients that sign in with OAuth: claude.ai, Claude Desktop, Claude Code, ChatGPT, Le Chat and others. For a client that cannot, such as a script, use a [personal token](/connect/tokens/).
+This works with the MCP clients that sign in with OAuth: claude.ai, Claude Desktop, Claude Code, Mistral Vibe, ChatGPT and others. For a client that cannot, such as a script, use a [personal token](/connect/tokens/).
+
+## Which plans work
+
+An AI client publishes to a Cahut when its plan lets it add an MCP server of your choice and call the tools that change something. Claude and Mistral Vibe do on their free plans. ChatGPT does on its Business, Enterprise and Edu plans only.
+
+| Client | Plans |
+| --- | --- |
+| Claude | Every plan, Free included. The Free plan holds one custom connector |
+| Mistral Vibe, formerly Le Chat | Every plan, Free included. Only an administrator of the account adds a connector: on the Free, Pro and Student plans, its owner |
+| ChatGPT | Business, Enterprise and Edu, on the web. Pro adds an MCP server for reading only, so it cannot publish. Free, Go and Plus do not add one |
+
+With ChatGPT Free, Plus or Pro, connect Claude or Mistral Vibe instead. This table follows the help of [Anthropic](https://support.claude.com/en/articles/11175166), [Mistral](https://docs.mistral.ai/le-chat/knowledge-integrations/connectors/mcp-connectors) and [OpenAI](https://help.openai.com/en/articles/12584461) on 29 October 2026. Plans change: the help of each client has the last word.
 
 ## Add the Cahut to your client
 
@@ -15,8 +27,8 @@ The address to give is on the **AIs and access** screen of [the console](/admin/
 | --- | --- |
 | claude.ai, Claude Desktop | Settings, Connectors, Add custom connector: the address of the Cahut, nothing else |
 | Claude Code | `claude mcp add --transport http cahut https://cahut.example.com/mcp`, then `/mcp` and Authenticate. See [Connect Claude Code](/connect/claude-code/) |
-| ChatGPT | On the web, Plugins, the plus button, Add custom MCP server: the address of the Cahut, and OAuth as its authentication. Custom MCP servers need a Business, Enterprise or Edu plan |
-| Le Chat | Connectors, add a custom MCP connector with the address of the Cahut. Le Chat finds OAuth by itself |
+| Mistral Vibe | Connectors, Add Connector, the Custom MCP Connector tab: a name without spaces, such as `cahut`, and the address of the Cahut. Vibe finds OAuth by itself |
+| ChatGPT | On the web, Plugins, the plus button, Add custom MCP server: the address of the Cahut, and OAuth as its authentication. On a Business, Enterprise or Edu plan only |
 | Others | The address of the Cahut. The client finds the rest by itself |
 
 A Cahut on my.cahut.cloud needs no address in claude.ai and Claude Desktop: [My Cahut](https://claude.ai/directory/my-cahut) is in the directory of connectors of Claude. Search for it, then select **Connect**. See [Try Cahut on My Cahut](/start/my-cahut/).
@@ -25,7 +37,7 @@ The client opens a page of the console in your browser, at `https://<domain>/con
 
 ChatGPT does not connect to a Cahut at the IP address of its server: its servers never call the Cahut, and ChatGPT says that it cannot find the OAuth settings. [Move the Cahut to a domain](/install/server/#without-a-domain) first, then add it to ChatGPT at its new address.
 
-Every client gets the same tools. Each tool has a title, such as *Publish a Window*, and says whether it only reads: ChatGPT shows the title when it asks you to confirm a call that changes something, and Le Chat lets you allow each tool always or ask each time. That confirmation comes on top of [Knock first](/concepts/knock-first-and-logbook/#knock-first), which no client can skip.
+Every client gets the same tools. Each tool has a title, such as *Publish a Window*, and says whether it only reads: ChatGPT shows the title when it asks you to confirm a call that changes something, and Mistral Vibe lets you allow each tool always or ask each time. That confirmation comes on top of [Knock first](/concepts/knock-first-and-logbook/#knock-first), which no client can skip.
 
 ## Consent
 
