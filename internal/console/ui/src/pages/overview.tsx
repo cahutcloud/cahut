@@ -8,6 +8,7 @@ import { CopyField, Domain, Failure, Notice, PageHead, plural, WindowCards } fro
 import { ConnectSteps, ipAddress } from "../connect";
 import { useConsole } from "../context";
 import { de, locale, que, words } from "../i18n";
+import { LimitBanner } from "../limit-banner";
 import { useLoad } from "../load";
 import { href, Link } from "../router";
 import { RoomCards } from "./rooms";
@@ -138,6 +139,7 @@ function PersonOverview() {
 			<PageHead label={t.overview} title={<Domain name={location.hostname} />}>
 				{t.signedInAs(account.name, account.role === "admin", api.serverSession !== null)}
 			</PageHead>
+			<LimitBanner settings={about} />
 			{noAI && (
 				<section class="section c-card panel">
 					<h2 class="c-h4">{t.connectFirst}</h2>

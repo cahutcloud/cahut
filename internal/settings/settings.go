@@ -40,6 +40,18 @@ type Limits struct {
 	DiskPerPerson    *int64 `json:"disk_per_person,omitempty" jsonschema:"in an individual Cahut, how many bytes the Windows of each person may keep, every version included"`
 }
 
+// NearPercent is the share of a limit, in percent, from which a Cahut warns
+// that it is close: by e-mail to its administrators, and on the overview of
+// the console, whose TypeScript types hold it as nearLimit.
+const NearPercent = 90
+
+// Near reports whether use is at NearPercent of limit, or beyond. A limit
+// of zero allows none, and is not one to come near. The console computes
+// it the same way.
+func Near(use, limit int64) bool {
+	return limit > 0 && float64(use)*100 >= float64(limit)*NearPercent
+}
+
 // perPerson keeps of l the limits that bound each person.
 func (l Limits) perPerson() Limits {
 	return Limits{RoomsPerPerson: l.RoomsPerPerson, WindowsPerPerson: l.WindowsPerPerson, DiskPerPerson: l.DiskPerPerson}

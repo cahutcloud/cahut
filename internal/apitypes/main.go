@@ -5,6 +5,8 @@
 // docs/adr/0014-console-http-api.md. It writes the codes of the refusals
 // too, with the values of each, which the console says in the language of
 // its person: see docs/adr/0037-refusals-with-a-code-for-the-console.md.
+// And it writes the values that the console shares with the server, such as
+// the share of a limit from which both warn that a Cahut is close to it.
 //
 //	go run ./internal/apitypes internal/console/ui/src/api.gen.ts
 //
@@ -24,6 +26,7 @@ import (
 
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
+	"cahut.cloud/internal/settings"
 	_ "cahut.cloud/internal/web" // it declares refusals of the API itself
 )
 
@@ -81,7 +84,7 @@ func registries(ctx context.Context) (cahutOps, serverOps []operation.Info, err 
 // generate returns the TypeScript file: an interface for each Go struct
 // that the operations take or return, or that fills a refusal, then the
 // operations of a Cahut and of the server, each with its input and output,
-// and the refusals, each with its values.
+// the refusals, each with its values, and the values shared with the server.
 func generate(cahutOps, serverOps []operation.Info, refusals []operation.RefusalInfo) string {
 	g := &generator{names: map[reflect.Type]string{}}
 	for _, op := range slices.Concat(cahutOps, serverOps) {
@@ -109,7 +112,14 @@ func generate(cahutOps, serverOps []operation.Info, refusals []operation.Refusal
 	g.operations(&b, "CahutOperations", "The operations of a Cahut, at POST /console/api/<operation> of its domain.", cahutOps)
 	g.operations(&b, "ServerOperations", "The operations of the server, at POST /console/api/server/<operation>, for its administrators.", serverOps)
 	g.refusals(&b, refusals)
+	constants(&b)
 	return b.String()
+}
+
+// constants writes the values that the console shares with the server.
+func constants(b *strings.Builder) {
+	fmt.Fprintf(b, "\n/** The share of a limit, in percent, from which the console warns that it is close, as the e-mails of the Cahut do. */\n"+
+		"export const nearLimit = %d;\n", settings.NearPercent)
 }
 
 type generator struct {
