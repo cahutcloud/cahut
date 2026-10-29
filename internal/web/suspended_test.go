@@ -14,6 +14,7 @@ import (
 	"cahut.cloud/internal/server"
 	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/update"
+	"cahut.cloud/internal/window"
 )
 
 // A suspended Cahut keeps everything, and serves nothing of what it holds
@@ -56,7 +57,7 @@ func TestSuspendedCahut(t *testing.T) {
 
 	// Readers meet the page of a suspended Cahut, which names nothing that
 	// it holds, wherever they look.
-	for _, path := range []string{"/olivier/q3-review/", "/olivier/q3-review/css/deck.css", "/olivier/", SkillPath, "/-/sign-in"} {
+	for _, path := range []string{"/olivier/q3-review/", "/olivier/q3-review/css/deck.css", "/olivier/", SkillPath, "/-/sign-in", window.LinkPrefix + strings.Repeat("a", 52)} {
 		resp, body := f.get(t, "localhost", http.MethodGet, path)
 		if resp.StatusCode != http.StatusServiceUnavailable || !strings.Contains(body, "This Cahut is suspended") ||
 			strings.Contains(body, "Q3") || strings.Contains(body, "Unpaid") || strings.Contains(body, "Sign in") {
@@ -66,8 +67,10 @@ func TestSuspendedCahut(t *testing.T) {
 			t.Errorf("GET %s has the policy %q", path, csp)
 		}
 	}
-	if resp, _ := f.get(t, "localhost", http.MethodPost, "/-/key"); resp.StatusCode != http.StatusServiceUnavailable {
-		t.Errorf("POST /-/key = %d", resp.StatusCode)
+	for _, path := range []string{"/-/key", window.LinkPrefix + strings.Repeat("a", 52)} {
+		if resp, _ := f.get(t, "localhost", http.MethodPost, path); resp.StatusCode != http.StatusServiceUnavailable {
+			t.Errorf("POST %s = %d", path, resp.StatusCode)
+		}
 	}
 	// What Cahut serves of its own still answers: its health, its brand,
 	// its icon, its console and the endpoints of OAuth.

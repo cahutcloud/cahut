@@ -1,6 +1,6 @@
 # 51. People share a Window by its permanent address, which shows the robots of previews a card of Cahut
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 52](0052-share-links.md) (the menu Share makes share links, and the page of a link gives its preview)
 - Date: 2026-10-29
 
 ## Context

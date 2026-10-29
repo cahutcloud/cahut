@@ -21,13 +21,13 @@ import (
 
 // The pages that a Cahut serves to readers on the port of its Windows: its
 // home, the page of a Room, the frame of a protected Window, the page of a
-// Key and the page of what is not found. They carry the brand of Cahut.
+// Key, the page of a share link and the page of what is not found. They carry the brand of Cahut.
 // Their foot links the legal pages of the Cahut, when it has some; the
 // frame of a Window does not. See
 // docs/adr/0019-window-versions-access-and-declaration.md,
 // docs/adr/0032-the-page-of-a-room.md,
-// docs/adr/0042-the-legal-pages-of-a-cahut.md and
-// docs/adr/0049-no-house-style.md.
+// docs/adr/0042-the-legal-pages-of-a-cahut.md,
+// docs/adr/0049-no-house-style.md and docs/adr/0052-share-links.md.
 
 //go:embed pages
 var pageFiles embed.FS
@@ -82,6 +82,8 @@ func (s *Server) page(r *http.Request, reader, title string) page {
 
 // render writes the page called name with data, and the headers of every
 // page of Cahut. The pages depend on who reads them: no cache keeps them.
+// They send their address as a referrer within the Cahut only, unless the
+// handler sends none.
 func (s *Server) render(w http.ResponseWriter, r *http.Request, status int, name string, data any) {
 	var b bytes.Buffer
 	if err := pages.ExecuteTemplate(&b, name, data); err != nil {
@@ -93,7 +95,9 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, status int, name
 	h.Set("Content-Type", "text/html; charset=utf-8")
 	h.Set("Content-Security-Policy", pagePolicy(s.cfg.BaseURL(siteOf(r).cahut.Domain)))
 	h.Set("X-Content-Type-Options", "nosniff")
-	h.Set("Referrer-Policy", "same-origin")
+	if h.Get("Referrer-Policy") == "" {
+		h.Set("Referrer-Policy", "same-origin")
+	}
 	// Another site that opens a page of Cahut cannot count its frames,
 	// which would tell whether its visitor may open a Window.
 	h.Set("Cross-Origin-Opener-Policy", "same-origin")

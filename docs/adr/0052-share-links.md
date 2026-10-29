@@ -1,6 +1,6 @@
 # 52. A share link opens a Window to whoever holds it, without an account or a Key, until it ends
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-29
 
 ## Context

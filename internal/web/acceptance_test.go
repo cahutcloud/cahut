@@ -50,6 +50,9 @@ var undo = map[string]string{
 	// The e-mail stays sent, and the link it carries opens nothing more.
 	"invite_to_window":  "revoke_invitation",
 	"revoke_invitation": "invite_to_window",
+	// The link given stays where it went, and opens nothing more.
+	"create_share_link": "revoke_share_link",
+	"revoke_share_link": "create_share_link",
 }
 
 // TestEveryAIOperationIsReversibleOrApproved checks the rule of

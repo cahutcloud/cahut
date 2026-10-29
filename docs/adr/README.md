@@ -22,7 +22,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [16](0016-oauth-for-ai-clients.md) | AI clients connect over OAuth, to the Rooms and the scope a person grants | Accepted, superseded in part by 17, 20 and 21 |
 | [17](0017-oauth-endpoints-on-port-443.md) | The OAuth endpoints that clients' servers call are on port 443 | Accepted, superseded in part by 20 |
 | [18](0018-project-pages-from-community-files.md) | The project pages are built from the community files of the repository | Accepted |
-| [19](0019-window-versions-access-and-declaration.md) | Windows keep two versions, open to an access, and declare what they call | Accepted, extended by 21, 22, 27, 30 and 31, superseded in part by 45, 49 and 50 |
+| [19](0019-window-versions-access-and-declaration.md) | Windows keep two versions, open to an access, and declare what they call | Accepted, extended by 21, 22, 27, 30, 31, 32 and 52, superseded in part by 45, 49 and 50 |
 | [20](0020-console-under-a-path-of-port-443.md) | The console is served under `/console/` on port 443 | Accepted, extended by 43 |
 | [21](0021-ais-knock-first.md) | An AI knocks first, and the person it acts for answers | Accepted, extended by 31 |
 | [22](0022-house-style-of-each-cahut.md) | Each Cahut has a house style, served to its Windows and given to AIs | Superseded by 49, but for the skill for Claude |
@@ -53,9 +53,9 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [47](0047-deleting-a-person.md) | The administrators of a Cahut delete a person for good, with the Rooms that are theirs alone | Accepted |
 | [48](0048-suspending-a-cahut.md) | The administrators of the server suspend a Cahut, which keeps everything and serves nothing until they resume it | Accepted |
 | [49](0049-no-house-style.md) | Cahut has no house style, until a module of skills brings the brand of an organization | Accepted |
-| [50](0050-window-ids-permanent-addresses-and-names.md) | Each Window has an id that never changes and a permanent address, and its people change its name, its title and its description | Accepted |
-| [51](0051-sharing-a-window-and-its-preview.md) | People share a Window by its permanent address, which shows the robots of previews a card of Cahut | Accepted |
-| [52](0052-share-links.md) | A share link opens a Window to whoever holds it, without an account or a Key, until it ends | Proposed |
+| [50](0050-window-ids-permanent-addresses-and-names.md) | Each Window has an id that never changes and a permanent address, and its people change its name, its title and its description | Accepted, extended by 52 |
+| [51](0051-sharing-a-window-and-its-preview.md) | People share a Window by its permanent address, which shows the robots of previews a card of Cahut | Accepted, extended by 52 |
+| [52](0052-share-links.md) | A share link opens a Window to whoever holds it, without an account or a Key, until it ends | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

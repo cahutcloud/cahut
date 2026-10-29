@@ -100,11 +100,19 @@ A refusal that people meet in the console gives its code too, which never change
 | `session_ended` |  | Invalid or ended session |
 | `setup_done` | `domain` | The Cahut of {domain} has people already: sign in at its console |
 | `setup_link_gone` |  | This link to the first start does not work any more: it was used, it expired, or it is for another address; cahut setup, on the server, gives a new one |
+| `share_link_end_past` | `ends_at`, `latest` | Ends_at {ends_at} is past, and a share link ends between now and {latest}: give an end in between, or none for 7 days |
+| `share_link_ended` | `link` | Share link {link} has ended already: it opens nothing more |
+| `share_link_label` | `limit` | Label: write it on one line, in {limit} characters at most |
+| `share_link_openings` | `given`, `limit` | Max_openings {given}: give a number from 1 to {limit}, or none for a link that opens to any number of readers |
+| `share_link_public` | `room`, `window` | {room}/{window} is public: its permanent address opens it to anyone, so share that address rather than a link |
+| `share_link_too_long` | `ends_at`, `latest` | Ends_at {ends_at}: a share link lasts 30 days at most, until {latest}: give an end before it, or none for 7 days |
 | `title_empty` |  | Title is empty: give one |
 | `title_too_long` |  | Title is longer than 200 bytes: shorten it |
 | `too_many_attempts_from_address` |  | Too many attempts from this address: wait a minute |
 | `too_many_invitations` | `sent`, `handle`, `limit` | {sent} invitations went out for {handle} in the last 24 hours, and {limit} is the most: send the rest later |
 | `too_many_refused_sign_ins` | `minutes` | Too many refused sign-ins for this handle: try again in {minutes} minutes |
+| `too_many_share_links` | `room`, `window`, `limit` | {room}/{window} has {limit} share links that stand, the most: take one back before you make another |
+| `too_many_share_links_today` | `made`, `handle`, `limit` | {made} share links were made for {handle} in the last 24 hours, and {limit} is the most: make the rest later |
 | `too_many_sign_ins_at_once` |  | Too many sign-ins at once: try again in a few seconds |
 | `window_name_invalid` | `name` | Name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit |
 | `window_name_taken` | `name`, `room` | Name {name} is taken in the Room {room}, by a Window or one in its trash: choose another |
@@ -128,6 +136,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/create_activation_link` | Administrators of the Cahut | yes |
 | `POST /api/create_room` | Any person | yes |
 | `POST /api/create_service_token` | Administrators of the server | yes |
+| `POST /api/create_share_link` | Any person | yes |
 | `POST /api/create_token` | Any person | yes |
 | `POST /api/create_user` | Administrators of the Cahut | yes |
 | `POST /api/delete_room` | Any person | yes |
@@ -158,6 +167,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/list_users` | Any person | yes |
 | `POST /api/list_windows` | Any person | yes |
 | `POST /api/open_invitation` | Anyone, to sign in | no |
+| `POST /api/open_share_link` | Anyone, to sign in | no |
 | `POST /api/preview_windows` | Any person | yes |
 | `POST /api/publish_window` | Any person | yes |
 | `POST /api/purge_window` | Any person | yes |
@@ -169,6 +179,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/retitle_window` | Any person | yes |
 | `POST /api/revoke_invitation` | Any person | yes |
 | `POST /api/revoke_service_token` | Administrators of the server | yes |
+| `POST /api/revoke_share_link` | Any person | yes |
 | `POST /api/revoke_token` | Any person | yes |
 | `POST /api/rollback_window` | Any person | yes |
 | `POST /api/send_test_mail` | Administrators of the Cahut | yes |

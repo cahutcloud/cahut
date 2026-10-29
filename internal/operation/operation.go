@@ -233,6 +233,7 @@ type Call struct {
 	target, detail string
 	room           int64     // the Room the call concerns
 	as             ActorKind // what a Visitor's call is logged as
+	anonymous      bool      // the Logbook keeps no address of the Visitor
 	afterCommit    []func()
 	onFailure      []func()
 
@@ -266,6 +267,14 @@ func (c *Call) Identify(kind ActorKind, userID int64, handle string) {
 	if c.Actor.Kind == Visitor {
 		c.as, c.Actor.UserID, c.Actor.Handle = kind, userID, handle
 	}
+}
+
+// Anonymize keeps the Logbook entry of a Visitor's call from recording the
+// address it came from, for the readers that a call serves who are not
+// people of the Cahut, such as those who open a share link. See
+// docs/adr/0052-share-links.md.
+func (c *Call) Anonymize() {
+	c.anonymous = true
 }
 
 // Read runs fn in a read-only transaction of its own, for Prepare, which runs
@@ -645,7 +654,7 @@ func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
 		KnockID:    c.knock,
 		Outcome:    logbook.OK,
 	}
-	if c.Actor.Kind == Visitor {
+	if c.Actor.Kind == Visitor && !c.anonymous {
 		// Where a sign-in came from, which limits count.
 		e.Address = c.Actor.Address
 	}

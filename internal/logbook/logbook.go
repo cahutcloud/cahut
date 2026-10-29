@@ -35,7 +35,7 @@ type Entry struct {
 	TokenID    int64     `json:"token_id,omitempty" jsonschema:"the personal token the AI presented"`
 	Connection int64     `json:"connection_id,omitempty" jsonschema:"the connection of the AI, when it connected over OAuth"`
 	Client     string    `json:"client,omitempty" jsonschema:"the AI, as its token or its connection, and its software, name it"`
-	Via        string    `json:"via" jsonschema:"the adapter the call came through: cli, api, mcp or oauth"`
+	Via        string    `json:"via" jsonschema:"the adapter the call came through: cli, api, mcp, oauth, or web for the page of a share link"`
 	Target     string    `json:"target,omitempty" jsonschema:"what the operation acted on"`
 	Detail     string    `json:"detail,omitempty"`
 	Outcome    Outcome   `json:"outcome" jsonschema:"ok, knocked (waiting for a person's approval), refused or failed"`
