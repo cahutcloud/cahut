@@ -97,7 +97,7 @@ type Outsider struct {
 type InviteInput struct {
 	Window string   `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
 	To     []string `json:"to" jsonschema:"who to invite, 20 at most: handles of people of the Cahut, who sign in to read it, or e-mail addresses of anyone else, for a Window with a Key or public"`
-	Note   string   `json:"note,omitempty" jsonschema:"a few words for them, in plain text, 500 characters at most"`
+	Note   string   `json:"note,omitempty" jsonschema:"a few words for them, 500 characters at most, in plain text with **bold**, *italics*, and lists whose lines start with - or 1."`
 }
 
 // Invitation is an invitation to read a Window.
@@ -296,7 +296,7 @@ func cleanNote(note string) (string, error) {
 	}
 	for _, r := range note {
 		if unicode.IsControl(r) && r != '\n' || r == utf8.RuneError {
-			return "", operation.Invalidf("note: write it in plain text, without control characters")
+			return "", operation.Invalidf("note: write it without control characters")
 		}
 	}
 	return note, nil
@@ -480,12 +480,13 @@ type InvitationCodeInput struct {
 // InvitationPage is the output of get_invitation: what the page of an
 // invitation shows.
 type InvitationPage struct {
-	Window    string    `json:"window" jsonschema:"the Window, as room/name"`
-	Title     string    `json:"title"`
-	By        string    `json:"by" jsonschema:"the name of the person who invites"`
-	AI        string    `json:"ai,omitempty" jsonschema:"the AI that sent the invitation for them"`
-	Note      string    `json:"note,omitempty"`
-	ExpiresAt time.Time `json:"expires_at"`
+	Window     string           `json:"window" jsonschema:"the Window, as room/name"`
+	Title      string           `json:"title"`
+	By         string           `json:"by" jsonschema:"the name of the person who invites"`
+	AI         string           `json:"ai,omitempty" jsonschema:"the AI that sent the invitation for them"`
+	Note       string           `json:"note,omitempty"`
+	NoteBlocks []mail.NoteBlock `json:"note_blocks,omitempty" jsonschema:"the note in paragraphs and lists, as the page shows it"`
+	ExpiresAt  time.Time        `json:"expires_at"`
 }
 
 // open is an invitation that a personal link still opens.
@@ -530,6 +531,7 @@ func findOpen(ctx context.Context, q interface {
 
 func getInvitation(ctx context.Context, c *operation.Call, in InvitationCodeInput) (InvitationPage, error) {
 	o, err := findOpen(ctx, c.Tx, in.Code, c.Now)
+	o.page.NoteBlocks = mail.ParseNote(o.page.Note)
 	return o.page, err
 }
 

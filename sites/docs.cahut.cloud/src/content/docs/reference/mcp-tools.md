@@ -2193,7 +2193,7 @@ Title: Invite people to read a Window. Annotations: `readOnlyHint: false`, `dest
 | --- | --- | --- | --- |
 | `to` | array of strings or null | yes | who to invite, 20 at most: handles of people of the Cahut, who sign in to read it, or e-mail addresses of anyone else, for a Window with a Key or public |
 | `window` | string | yes | the Window's address, or its Room and its name as room/name |
-| `note` | string | no | a few words for them, in plain text, 500 characters at most |
+| `note` | string | no | a few words for them, 500 characters at most, in plain text with \*\*bold\*\*, \*italics\*, and lists whose lines start with - or 1. |
 
 <details>
 <summary>JSON Schema</summary>
@@ -2203,7 +2203,7 @@ Title: Invite people to read a Window. Annotations: `readOnlyHint: false`, `dest
   "additionalProperties": false,
   "properties": {
     "note": {
-      "description": "a few words for them, in plain text, 500 characters at most",
+      "description": "a few words for them, 500 characters at most, in plain text with **bold**, *italics*, and lists whose lines start with - or 1.",
       "type": "string"
     },
     "to": {

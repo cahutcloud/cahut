@@ -21,7 +21,8 @@ import (
 )
 
 // Letter is what a message says. The layout of Cahut sets it in plain text
-// and in HTML: its words are plain text, never markup.
+// and in HTML: its words are plain text, never markup, but for the few marks
+// of the note of its Quote.
 type Letter struct {
 	To      string
 	Subject string
@@ -38,7 +39,9 @@ type Letter struct {
 	After []string
 }
 
-// Quote is words that someone wrote, and who.
+// Quote is words that someone wrote, and who. Text is a note, whose bold,
+// italics and lists the HTML shows, and the plain text quotes with their
+// marks: see ParseNote.
 type Quote struct {
 	By   string
 	Text string
@@ -72,7 +75,7 @@ const logoID = "logo@cahut"
 
 // The layout of a message, in HTML: tables and inline styles, 600 pixels
 // wide at most, as mail clients read it.
-var htmlLayout = htmltemplate.Must(htmltemplate.New("html").Funcs(htmltemplate.FuncMap{"lines": paragraphs}).Parse(colors(`<!doctype html>
+var htmlLayout = htmltemplate.Must(htmltemplate.New("html").Funcs(htmltemplate.FuncMap{"note": ParseNote}).Parse(colors(`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -92,7 +95,15 @@ var htmlLayout = htmltemplate.Must(htmltemplate.New("html").Funcs(htmltemplate.F
 {{- with .Quote}}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px 0;border-collapse:collapse"><tr><td style="border-left:3px solid {rule};padding:4px 0 4px 16px">
 <p style="margin:0 0 4px 0;font-size:14px;line-height:20px;color:{muted}">{{.By}} wrote:</p>
-<p style="margin:0;font-size:16px;line-height:24px">{{range $i, $l := lines .Text}}{{if $i}}<br>{{end}}{{$l}}{{end}}</p>
+{{- range $i, $b := note .Text}}
+{{- if eq .List "bullets"}}
+<ul style="margin:{{if $i}}8px{{else}}0{{end}} 0 0 0;padding:0 0 0 24px;font-size:16px;line-height:24px">{{range .Lines}}<li>{{template "runs" .}}</li>{{end}}</ul>
+{{- else if eq .List "numbers"}}
+<ol{{if ne .Start 1}} start="{{.Start}}"{{end}} style="margin:{{if $i}}8px{{else}}0{{end}} 0 0 0;padding:0 0 0 24px;font-size:16px;line-height:24px">{{range .Lines}}<li>{{template "runs" .}}</li>{{end}}</ol>
+{{- else}}
+<p style="margin:{{if $i}}8px{{else}}0{{end}} 0 0 0;font-size:16px;line-height:24px">{{range $j, $l := .Lines}}{{if $j}}<br>{{end}}{{template "runs" $l}}{{end}}</p>
+{{- end}}
+{{- end}}
 </td></tr></table>
 {{- end}}
 {{- with .Action}}
@@ -111,16 +122,17 @@ var htmlLayout = htmltemplate.Must(htmltemplate.New("html").Funcs(htmltemplate.F
 </table>
 </body>
 </html>
+{{- define "runs"}}{{range .}}{{if .Bold}}<strong>{{end}}{{if .Italic}}<em>{{end}}{{.Text}}{{if .Italic}}</em>{{end}}{{if .Bold}}</strong>{{end}}{{end}}{{end}}
 `)))
 
 // The layout of a message, in plain text.
-var textLayout = template.Must(template.New("text").Funcs(template.FuncMap{"lines": paragraphs}).Parse(`
+var textLayout = template.Must(template.New("text").Funcs(template.FuncMap{"quoted": quoted}).Parse(`
 {{- range .Lines}}{{.}}
 
 {{end}}
 {{- with .Quote}}{{.By}} wrote:
 
-{{range lines .Text}}> {{.}}
+{{range quoted .Text}}{{.}}
 {{end}}
 {{end}}
 {{- with .Action}}{{.Label}}: {{.URL}}
@@ -142,9 +154,14 @@ func colors(layout string) string {
 	return strings.NewReplacer(pairs...).Replace(layout)
 }
 
-// paragraphs splits text into its lines.
-func paragraphs(text string) []string {
-	return strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n")
+// quoted returns the lines of a note as the plain text of a message quotes
+// them.
+func quoted(text string) []string {
+	lines := noteLines(text)
+	for i, l := range lines {
+		lines[i] = strings.TrimRight("> "+l, " ")
+	}
+	return lines
 }
 
 // page is what the layouts read.

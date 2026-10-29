@@ -611,6 +611,8 @@ export interface InvitationPage {
   /** the AI that sent the invitation for them */
   ai?: string;
   note?: string;
+  /** the note in paragraphs and lists, as the page shows it */
+  note_blocks?: NoteBlock[];
   expires_at: string;
 }
 
@@ -619,7 +621,7 @@ export interface InviteInput {
   window: string;
   /** who to invite, 20 at most: handles of people of the Cahut, who sign in to read it, or e-mail addresses of anyone else, for a Window with a Key or public */
   to: string[];
-  /** a few words for them, in plain text, 500 characters at most */
+  /** a few words for them, 500 characters at most, in plain text with **bold**, *italics*, and lists whose lines start with - or 1. */
   note?: string;
 }
 
@@ -869,6 +871,21 @@ export interface NewUser {
 export interface NoOwner {
   /** the name of the Room */
   room: string;
+}
+
+export interface NoteBlock {
+  /** bullets or numbers for a list, empty for a paragraph */
+  list?: string;
+  /** the number of the first item of a numbered list */
+  start?: number;
+  /** the lines of a paragraph, or the items of a list */
+  lines: NoteRun[][];
+}
+
+export interface NoteRun {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
 }
 
 export interface Outsider {
