@@ -80,7 +80,7 @@ func TestInvitations(t *testing.T) {
 	}
 
 	key := f.call(t, "localhost", olivier, "set_window_access", `{"window": "olivier/q3-review", "access": "key"}`).(window.AccessSet).Key
-	out, err := invite(olivier, `{"window": "https://localhost/olivier/q3-review/", "to": ["Ana@Example.org", "camille", "bob", "ana@example.org"], "note": "Have a look\nbefore Friday."}`)
+	out, err := invite(olivier, `{"window": "https://localhost/olivier/q3-review/", "to": ["Ana@Example.org", "camille", "bob", "ana@example.org"], "note": "Have a look\nbefore **Friday**."}`)
 	if err != nil {
 		t.Fatalf("invite_to_window: %v", err)
 	}
@@ -94,7 +94,7 @@ func TestInvitations(t *testing.T) {
 		b := body(m)
 		link := invitationLink.FindStringSubmatch(b)
 		if link == nil || !strings.Contains(b, "Subject: Olivier Durand invites you to read Q3 review") ||
-			!strings.Contains(b, "> before Friday.") || strings.Contains(b, key) {
+			!strings.Contains(b, "> before **Friday**.") || !strings.Contains(b, "<strong>Friday</strong>") || strings.Contains(b, key) {
 			t.Errorf("the invitation to %v:\n%s", m.To, b)
 			continue
 		}
@@ -108,7 +108,8 @@ func TestInvitations(t *testing.T) {
 	// Window on a click: a code for /-/invitation, which gives a pass.
 	visitor := operation.Actor{Kind: operation.Visitor, Via: "api", Domain: "localhost"}
 	page, err := c.Registry.Invoke(ctx, "get_invitation", visitor, []byte(`{"code": "`+codes["Ana@example.org"]+`"}`))
-	if p, _ := page.(window.InvitationPage); err != nil || p.Title != "Q3 review" || p.By != "Olivier Durand" || p.Note != "Have a look\nbefore Friday." {
+	if p, _ := page.(window.InvitationPage); err != nil || p.Title != "Q3 review" || p.By != "Olivier Durand" || p.Note != "Have a look\nbefore **Friday**." ||
+		len(p.NoteBlocks) != 1 || len(p.NoteBlocks[0].Lines) != 2 || !p.NoteBlocks[0].Lines[1][1].Bold {
 		t.Fatalf("get_invitation = %+v %v", page, err)
 	}
 	pass := func(code string) (*http.Cookie, response) {

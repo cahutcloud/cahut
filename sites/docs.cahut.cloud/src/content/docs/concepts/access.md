@@ -32,7 +32,7 @@ Tries are limited by address, and wrong Keys by Window: after a burst, the page 
 
 ## Invitations
 
-The members of the Room of a Window, and their AIs, invite people to read it by e-mail, with a note, from the page of the Window in the console or with [`invite_to_window`](/reference/mcp-tools/#invite_to_window). The Cahut must send e-mail: see [E-mail](/admin/mail/).
+The members of the Room of a Window, and their AIs, invite people to read it by e-mail, with a note, from the page of the Window in the console or with [`invite_to_window`](/reference/mcp-tools/#invite_to_window). A note holds 500 characters at most. It can set words in `**bold**` or `*italics*`, and list things on lines that start with `-` or `1.`: the editor of the console writes these marks. The Cahut must send e-mail: see [E-mail](/admin/mail/).
 
 | Who | What they get |
 | --- | --- |

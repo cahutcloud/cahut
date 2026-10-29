@@ -1668,8 +1668,107 @@ page of an invitation. */
 	border-left: 3px solid var(--color-border);
 }
 .note {
+	display: grid;
+	gap: var(--space-2);
+	overflow-wrap: anywhere;
+}
+.note p,
+.note ul,
+.note ol {
 	margin: 0;
-	white-space: pre-wrap;
+}
+.note ul,
+.note ol {
+	padding-left: var(--space-6);
+}
+
+/* The editor of a note: a toolbar for bold, italics and lists over the text,
+in one frame that reads as a field. See src/note.tsx. */
+.editor {
+	border: 1px solid var(--color-border-strong);
+	border-radius: var(--radius-md);
+	background: var(--color-surface);
+	transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+}
+.editor:focus-within {
+	border-color: var(--color-focus);
+	box-shadow: var(--ring);
+}
+.editor__bar {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	padding: var(--space-1);
+	border-bottom: 1px solid var(--color-border);
+}
+.editor__tool {
+	display: inline-grid;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--color-text-muted);
+	cursor: pointer;
+	transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+.editor__tool:hover {
+	background: var(--color-surface-muted);
+	color: var(--color-text);
+}
+.editor__tool[aria-pressed="true"] {
+	background: var(--color-accent-soft);
+	color: var(--color-text);
+}
+.editor__tool:focus-visible {
+	outline: none;
+	box-shadow: var(--ring);
+}
+.editor__rule {
+	width: 1px;
+	height: 20px;
+	margin: 0 var(--space-1);
+	background: var(--color-border);
+}
+.editor__count {
+	margin-left: auto;
+	padding: 0 var(--space-2);
+	font-size: var(--text-xs);
+	line-height: var(--leading-xs);
+	font-variant-numeric: tabular-nums;
+	color: var(--color-text-muted);
+}
+.editor__count--over,
+.editor__over {
+	color: var(--color-danger);
+}
+.editor__text {
+	position: relative;
+	min-height: 120px;
+	max-height: 320px;
+	overflow-y: auto;
+	padding: var(--space-3);
+	font-size: var(--text-sm);
+	line-height: var(--leading-sm);
+	overflow-wrap: anywhere;
+	outline: none;
+}
+.editor__text p,
+.editor__text ul,
+.editor__text ol {
+	margin: 0;
+}
+.editor__text ul,
+.editor__text ol {
+	padding-left: var(--space-6);
+}
+.editor__text[data-empty="true"]::before {
+	content: attr(data-placeholder);
+	position: absolute;
+	color: var(--color-text-disabled);
+	pointer-events: none;
 }
 
 /* A button that reads as a link, for what stays on the page. */

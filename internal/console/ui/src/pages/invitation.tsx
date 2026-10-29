@@ -1,9 +1,10 @@
 // The page of a personal link of an invitation to read a Window: who invites,
-// to which Window, with what note. A click opens the Window: the console asks
-// for a code valid a minute, which /-/invitation turns into a pass, as the
-// right Key does. Opening the link does nothing until the click, so that the
-// mail filters that open links use nothing up. See
-// docs/adr/0031-e-mail-through-a-relay.md.
+// to which Window, with what note, in its paragraphs and lists. A click opens
+// the Window: the console asks for a code valid a minute, which /-/invitation
+// turns into a pass, as the right Key does. Opening the link does nothing
+// until the click, so that the mail filters that open links use nothing up.
+// See docs/adr/0031-e-mail-through-a-relay.md and
+// docs/adr/0046-styled-notes-in-invitations.md.
 import { ArrowUpRight } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { cahut, explain } from "../api";
@@ -12,6 +13,7 @@ import { fragment as code } from "../fragment";
 import { locale, words } from "../i18n";
 import { useLoad } from "../load";
 import { Logo } from "../logo";
+import { Note } from "../note";
 
 const t = words({
 	en: {
@@ -72,7 +74,7 @@ export function Invitation() {
 							{data.note && (
 								<blockquote class="quote">
 									<p class="c-small c-muted">{t.wrote(data.by, data.ai)}</p>
-									<p class="note">{data.note}</p>
+									<Note blocks={data.note_blocks ?? []} />
 								</blockquote>
 							)}
 							{failure && (

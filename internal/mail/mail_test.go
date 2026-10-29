@@ -352,7 +352,7 @@ func TestLetterLayout(t *testing.T) {
 		To:      "jane@example.org",
 		Subject: "Olivier invites you\r\nBcc: evil@example.net",
 		Lines:   []string{"Olivier Durand invites you to read Q3 review."},
-		Quote:   &cmail.Quote{By: "Olivier Durand", Text: "Have a look <script>alert(1)</script>\nbefore Friday."},
+		Quote:   &cmail.Quote{By: "Olivier Durand", Text: "Have a look <script>alert(1)</script>\nbefore **Friday**, at \\*noon\\*.\n\n- the *deck*\n- the notes"},
 		Action:  &cmail.Action{Label: "Open Q3 review", URL: "https://example.com/console/invitation#abc"},
 		After:   []string{"This link works for 30 days."},
 	}
@@ -402,13 +402,14 @@ func TestLetterLayout(t *testing.T) {
 			html = string(b)
 		}
 	}
-	for _, want := range []string{"Olivier Durand invites you", "Olivier Durand wrote:", "> before Friday.",
+	for _, want := range []string{"Olivier Durand invites you", "Olivier Durand wrote:", "> before **Friday**, at *noon*.", "> - the *deck*",
 		"Open Q3 review: https://example.com/console/invitation#abc", "This link works for 30 days.", "Sent by the Cahut at example.com."} {
 		if !strings.Contains(text, want) {
 			t.Errorf("the text lacks %q:\n%s", want, text)
 		}
 	}
-	for _, want := range []string{`href="https://example.com/console/invitation#abc"`, "&lt;script&gt;", "<br>before Friday.", "cid:logo@cahut", "#1F2A33"} {
+	for _, want := range []string{`href="https://example.com/console/invitation#abc"`, "&lt;script&gt;", "<br>before <strong>Friday</strong>, at *noon*.",
+		"<li>the <em>deck</em></li><li>the notes</li></ul>", "cid:logo@cahut", "#1F2A33"} {
 		if !strings.Contains(html, want) {
 			t.Errorf("the HTML lacks %q", want)
 		}

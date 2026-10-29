@@ -10,7 +10,11 @@ import { AccessBadge, accesses, ago, agoInText, bytes, ConfirmButton, CopyField,
 import { useConsole } from "../context";
 import { de, lang, locale, words } from "../i18n";
 import { useLoad } from "../load";
+import { NoteEditor, noteLength } from "../note";
 import { Link, navigate } from "../router";
+
+/** The most characters of a note, as the server counts them. */
+const maxNote = 500;
 
 const t = words({
 	en: {
@@ -83,7 +87,7 @@ const t = words({
 		to: "To",
 		toHelp: "Handles or e-mail addresses, 20 at most, separated by commas.",
 		note: "Note",
-		noteHelp: "Optional, in plain text. The message shows it as yours.",
+		noteHelp: "Optional. The message shows it as yours, with its bold, italics and lists.",
 		send: "Send the invitation",
 		sentAt: "Sent",
 		sent: "Sent",
@@ -172,7 +176,7 @@ const t = words({
 		to: "À",
 		toHelp: "Des identifiants ou des adresses e-mail, 20 au plus, séparés par des virgules.",
 		note: "Note",
-		noteHelp: "Facultative, en texte brut. Le message l'affiche comme venant de vous.",
+		noteHelp: "Facultative. Le message l'affiche comme venant de vous, avec son gras, son italique et ses listes.",
 		send: "Envoyer l'invitation",
 		sentAt: "Envoi",
 		sent: "Envoyée",
@@ -500,6 +504,7 @@ function Invitations({ window: w }: { window: WindowDetail }) {
 	const { data, reload } = useLoad(() => api.cahut("list_invitations", { window: ref }), [ref]);
 	const [to, setTo] = useState("");
 	const [note, setNote] = useState("");
+	const [sent, setSent] = useState(0);
 	const [said, setSaid] = useState("");
 	const [error, setError] = useState("");
 	const [busy, setBusy] = useState(false);
@@ -517,6 +522,7 @@ function Invitations({ window: w }: { window: WindowDetail }) {
 			setSaid(msg.trim());
 			setTo("");
 			setNote("");
+			setSent((n) => n + 1);
 			reload();
 		} catch (err) {
 			setError(explain(err));
@@ -524,6 +530,7 @@ function Invitations({ window: w }: { window: WindowDetail }) {
 		setBusy(false);
 	};
 	const how = t.how;
+	const tooLong = noteLength(note) > maxNote;
 	if (!api.sendsMail && !data?.invitations.length) return null;
 	return (
 		<div class="c-card panel section">
@@ -547,11 +554,13 @@ function Invitations({ window: w }: { window: WindowDetail }) {
 						/>
 						<span class="c-field__help">{t.toHelp}</span>
 					</label>
-					<label class="c-field">
-						<span class="c-field__label">{t.note}</span>
-						<textarea class="c-input" rows={3} maxLength={500} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
-						<span class="c-field__help">{t.noteHelp}</span>
-					</label>
+					<NoteEditor
+						key={sent}
+						label={t.note}
+						max={maxNote}
+						help={t.noteHelp}
+						onChange={setNote}
+					/>
 					{error && <Failure message={error} />}
 					{said && (
 						<div class="c-alert c-alert--success" role="status">
@@ -559,7 +568,7 @@ function Invitations({ window: w }: { window: WindowDetail }) {
 						</div>
 					)}
 					<div>
-						<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
+						<button class="c-btn c-btn--primary" type="submit" disabled={busy || tooLong}>
 							<Send class="i" size={16} aria-hidden="true" />
 							{t.send}
 						</button>
