@@ -1034,6 +1034,9 @@ This tool takes no arguments.
 | `limits.windows_per_room` | integer or null | no | how many Windows out of the trash each Room may hold, personal Rooms included |
 | `sends_mail` | boolean | yes | whether this Cahut sends e-mail, through the relay that its administrators set; without one, nothing that would send e-mail works, such as invitations |
 | `mcp` | string | no | the address of its MCP endpoint, where AI clients connect |
+| `suspension` | object or null | no | since when and why the administrators of the server suspended the Cahut; absent while it is active |
+| `suspension.reason` | string | yes | why the administrators of the server suspended the Cahut; its administrators read it, and readers, people and AIs never do |
+| `suspension.since` | string | yes | when the administrators of the server suspended the Cahut |
 | `url` | string | no | the address of the Cahut, under which its Rooms and Windows open |
 | `usage` | object or null | no | what the Cahut holds, as its limits count it; absent for a member of an individual Cahut |
 | `usage.admins` | integer | yes | administrators who are not disabled |
@@ -1186,6 +1189,28 @@ This tool takes no arguments.
     "sends_mail": {
       "description": "whether this Cahut sends e-mail, through the relay that its administrators set; without one, nothing that would send e-mail works, such as invitations",
       "type": "boolean"
+    },
+    "suspension": {
+      "additionalProperties": false,
+      "description": "since when and why the administrators of the server suspended the Cahut; absent while it is active",
+      "properties": {
+        "reason": {
+          "description": "why the administrators of the server suspended the Cahut; its administrators read it, and readers, people and AIs never do",
+          "type": "string"
+        },
+        "since": {
+          "description": "when the administrators of the server suspended the Cahut",
+          "type": "string"
+        }
+      },
+      "required": [
+        "since",
+        "reason"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "url": {
       "description": "the address of the Cahut, under which its Rooms and Windows open",

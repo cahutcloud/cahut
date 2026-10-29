@@ -153,6 +153,8 @@ curl http://127.0.0.1/-/healthz
 {"version":"0.9.5","ok":true,"cahuts":[{"domain":"cahut.example.com","ok":true}]}
 ```
 
+A [suspended Cahut](/concepts/cahuts/#suspension) still answers `ok` at `/-/healthz`, and opens as any other: the health of the server adds `"suspended":true` to it, and does not fail an update.
+
 ## Back up
 
 Cahut has no backups of its own yet: they come later, to S3 or SFTP storage. Until then, take snapshots of the server at your provider, or copy the data folder while the service is stopped:

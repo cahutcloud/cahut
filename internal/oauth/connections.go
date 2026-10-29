@@ -226,6 +226,9 @@ type endInput struct {
 var endConnection = &operation.Op[endInput, struct{}]{
 	Name:  "end_connection",
 	Title: "End a connection",
+	// It takes an access away, and its client may give a refresh token back
+	// while the Cahut is suspended. See docs/adr/0048-suspending-a-cahut.md.
+	WhileSuspended: true,
 	Run: func(ctx context.Context, c *operation.Call, in endInput) (struct{}, error) {
 		c.Log(fmt.Sprintf("connection %d of %s", in.Connection, c.Actor.Handle), in.Reason)
 		return struct{}{}, endIn(ctx, c.Tx, in.Connection, c.Now, in.Reason)

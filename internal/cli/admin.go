@@ -16,6 +16,7 @@ import (
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/web"
 )
 
@@ -27,6 +28,8 @@ var domainCommands = []command{
 	{name: "add", summary: "Declare a domain, which creates its Cahut", run: runDomainAdd},
 	{name: "list", summary: "List the Cahuts of this server", run: runDomainList},
 	{name: "rename", summary: "Move a Cahut to another domain, or from the IP address of the server to a domain", run: runDomainRename},
+	{name: "suspend", summary: "Suspend a Cahut, which keeps everything and serves nothing until it is resumed", run: runDomainSuspend},
+	{name: "resume", summary: "Resume a suspended Cahut", run: runDomainResume},
 }
 
 var adminCommands = []command{
@@ -335,20 +338,70 @@ func consoleDomain(ctx context.Context, srv *server.Server, domain string) (stri
 	return domains[0], nil
 }
 
+// runDomainSuspend suspends a Cahut. See
+// docs/adr/0048-suspending-a-cahut.md.
+func runDomainSuspend(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("domain suspend", stderr)
+	data := dataFlag(fs)
+	reason := fs.String("reason", "", "why the Cahut is suspended, which its administrators read: an unpaid invoice, a decision of moderation")
+	fs.Usage = func() {
+		fmt.Fprintln(stderr, "Usage: cahut domain suspend [--data DIR] --reason TEXT <domain>")
+		fs.PrintDefaults()
+	}
+	rest, code, ok := parseWithArgs(fs, args, 1)
+	if !ok {
+		return code
+	}
+	s, at, ok := inCahut(*data, rest[0], settings.Suspend, settings.SuspendCahutInput{Reason: *reason}, stderr)
+	if !ok {
+		return exitError
+	}
+	fmt.Fprintf(stdout, "The Cahut of %s is suspended since %s: it keeps everything, and serves nothing but to the administrators of the server.\n",
+		at, minute(s.Suspension.Since))
+	fmt.Fprintf(stdout, "Its administrators hear of it by e-mail when it has a relay. Resume it with cahut domain resume %s.\n", at)
+	return exitOK
+}
+
+// runDomainResume resumes a suspended Cahut.
+func runDomainResume(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("domain resume", stderr)
+	data := dataFlag(fs)
+	fs.Usage = func() {
+		fmt.Fprintln(stderr, "Usage: cahut domain resume [--data DIR] <domain>")
+		fs.PrintDefaults()
+	}
+	rest, code, ok := parseWithArgs(fs, args, 1)
+	if !ok {
+		return code
+	}
+	_, at, ok := inCahut(*data, rest[0], settings.Resume, settings.ResumeCahutInput{}, stderr)
+	if !ok {
+		return exitError
+	}
+	fmt.Fprintf(stdout, "The Cahut of %s is open again: its Windows, its people and their AIs find everything as it was.\n", at)
+	return exitOK
+}
+
 func runDomainList(args []string, stdout, stderr io.Writer) int {
 	fs := newFlags("domain list", stderr)
 	data := dataFlag(fs)
 	if code, ok := parse(fs, args); !ok {
 		return code
 	}
-	list, ok := onServer(*data, server.ListDomains, server.ListDomainsInput{}, stderr)
+	list, ok := withServer(*data, stderr, func(ctx context.Context, srv *server.Server) (server.DomainList, error) {
+		return operation.Do(ctx, srv.Registry, srv.ListDomains, admin, server.ListDomainsInput{})
+	})
 	if !ok {
 		return exitError
 	}
 	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
-	fmt.Fprintln(tw, "ID\tDOMAIN\tCREATED")
+	fmt.Fprintln(tw, "ID\tDOMAIN\tCREATED\tSTATE")
 	for _, c := range list.Cahuts {
-		fmt.Fprintf(tw, "%d\t%s\t%s\n", c.ID, c.Domain, day(c.CreatedAt))
+		state := "active"
+		if s := c.Suspension; s != nil {
+			state = "suspended since " + day(s.Since) + ": " + s.Reason
+		}
+		fmt.Fprintf(tw, "%d\t%s\t%s\t%s\n", c.ID, c.Domain, day(c.CreatedAt), state)
 	}
 	if err := tw.Flush(); err != nil {
 		return exitError

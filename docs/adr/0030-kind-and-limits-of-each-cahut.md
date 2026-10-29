@@ -1,6 +1,6 @@
 # 30. Each Cahut has a kind and limits, set by the administrators of its server
 
-- Status: Accepted, extended by [ADR 42](0042-the-legal-pages-of-a-cahut.md) (the links to the legal pages of each Cahut)
+- Status: Accepted, extended by [ADR 42](0042-the-legal-pages-of-a-cahut.md) (the links to the legal pages of each Cahut) and by [ADR 48](0048-suspending-a-cahut.md) (the state of a suspended Cahut, kept with its settings)
 - Date: 2026-10-24
 
 ## Context

@@ -40,7 +40,7 @@ func TestAddDomain(t *testing.T) {
 		}
 	}
 
-	list, err := operation.Do(ctx, s.Registry, ListDomains, admin, ListDomainsInput{})
+	list, err := operation.Do(ctx, s.Registry, s.ListDomains, admin, ListDomainsInput{})
 	if err != nil {
 		t.Fatal(err)
 	}

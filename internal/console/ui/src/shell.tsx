@@ -4,13 +4,24 @@
 // the account and the languages of the console at its foot. The screens of
 // the console fill its main area, at whose foot the legal pages of the Cahut
 // are linked.
-import { ArrowUpRight, Check, ChevronsUpDown, Languages as LanguagesIcon, LayoutGrid, LogIn, LogOut, Menu, X } from "lucide-preact";
+import {
+	ArrowUpRight,
+	Check,
+	ChevronsUpDown,
+	Languages as LanguagesIcon,
+	LayoutGrid,
+	LogIn,
+	LogOut,
+	Menu,
+	PauseCircle,
+	X,
+} from "lucide-preact";
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { Room } from "./api.gen";
 import { initials, Languages, Legal } from "./components";
 import { useConsole } from "./context";
-import { words } from "./i18n";
+import { locale, words } from "./i18n";
 import { Logo } from "./logo";
 import { originOf } from "./pages/overview";
 import { roomPictogram } from "./pages/rooms";
@@ -58,6 +69,14 @@ const t = words({
 			</>
 		),
 		signInAsPerson: "Sign in as a person",
+		suspended: (since: string) => `This Cahut is suspended since ${since}`,
+		suspendedText:
+			"Its people, their AIs and the readers of its Windows meet a notice, and nobody but the administrators of the server acts in it.",
+		resumeIt: () => (
+			<>
+				Resume it on the <Link class="c-link" href="/settings">Kind and limits</Link> page.
+			</>
+		),
 	},
 	fr: {
 		waiting: " en attente",
@@ -98,11 +117,19 @@ const t = words({
 			</>
 		),
 		signInAsPerson: "Se connecter en tant que personne",
+		suspended: (since) => `Cette Cahut est suspendue depuis le ${since}`,
+		suspendedText:
+			"Ses personnes, leurs IA et les lecteurs de ses Windows trouvent un avis, et seuls les administrateurs du serveur y agissent.",
+		resumeIt: () => (
+			<>
+				Réactivez-la depuis la page <Link class="c-link" href="/settings">Type et limites</Link>.
+			</>
+		),
 	},
 });
 
 export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => void; children: ComponentChildren }) {
-	const { session, serverSession, isAdmin, individual, knocks, legal } = useConsole();
+	const { session, serverSession, isAdmin, individual, knocks, legal, suspension } = useConsole();
 	const [open, setOpen] = useState(false);
 	useEffect(() => setOpen(false), [props.path]);
 
@@ -211,6 +238,15 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 				</div>
 			</nav>
 			<main class="c-main">
+				{suspension && (
+					<div class="c-alert c-alert--warning suspended-banner" role="status">
+						<PauseCircle class="i" size={18} aria-hidden="true" />
+						<div>
+							<strong>{t.suspended(new Date(suspension.since).toLocaleDateString(locale, { dateStyle: "long" }))}</strong>
+							{t.suspendedText} {props.path !== "/settings" && t.resumeIt()}
+						</div>
+					</div>
+				)}
 				{props.children}
 				<Legal links={legal} />
 			</main>

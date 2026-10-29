@@ -33,6 +33,8 @@ const t = words({
 		administer: (host: string) =>
 			`You administer this server, and here the Cahut of ${host}. For another Cahut, sign in at its own console.`,
 		declaredOn: (date: string) => `Declared on ${date}`,
+		suspended: "Suspended",
+		suspendedOn: (date: string, reason: string) => `Since ${date}: ${reason}`,
 		atConsole: "You are at its console.",
 		openConsole: "Open its console",
 		moveToDomain: "Move to a domain",
@@ -79,6 +81,8 @@ const t = words({
 		administer: (host) =>
 			`Vous administrez ce serveur, et ici la Cahut ${de(host)}. Pour une autre Cahut, connectez-vous à sa propre console.`,
 		declaredOn: (date) => `Déclarée le ${date}`,
+		suspended: "Suspendue",
+		suspendedOn: (date, reason) => `Depuis le ${date} : ${reason}`,
 		atConsole: "Vous êtes sur sa console.",
 		openConsole: "Ouvrir sa console",
 		moveToDomain: "Passer à un domaine",
@@ -183,6 +187,15 @@ export function ServerOverview() {
 					<article key={c.domain} class="c-card card">
 						<div class="c-window__title c-mono">{c.domain}</div>
 						<span class="c-small c-muted">{t.declaredOn(new Date(c.created_at).toLocaleDateString(locale, { dateStyle: "medium" }))}</span>
+						{/* A suspended Cahut serves nothing but to the administrators of the
+						    server, who resume it at its console. See
+						    docs/adr/0048-suspending-a-cahut.md. */}
+						{c.suspension && (
+							<span class="c-small">
+								<span class="c-badge c-badge--warning">{t.suspended}</span>{" "}
+								{t.suspendedOn(new Date(c.suspension.since).toLocaleDateString(locale, { dateStyle: "medium" }), c.suspension.reason)}
+							</span>
+						)}
 						{c.domain === location.hostname ? (
 							<span class="c-small">{t.atConsole}</span>
 						) : (

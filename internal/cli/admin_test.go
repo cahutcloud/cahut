@@ -140,6 +140,43 @@ func TestSeveralCahuts(t *testing.T) {
 	}
 }
 
+// The administrators of the server suspend a Cahut from the command line,
+// list it as suspended, and resume it. See
+// docs/adr/0048-suspending-a-cahut.md.
+func TestDomainSuspend(t *testing.T) {
+	data := t.TempDir()
+	for _, domain := range []string{"a.example.com", "b.example.com"} {
+		if code, _, errOut := run(t, data, "domain", "add", domain); code != exitOK {
+			t.Fatalf("domain add %s: %d %q", domain, code, errOut)
+		}
+	}
+	if code, _, errOut := run(t, data, "domain", "suspend", "a.example.com"); code != exitError || !strings.Contains(errOut, "give the reason") {
+		t.Errorf("domain suspend without a reason: %d %q", code, errOut)
+	}
+	if code, _, errOut := run(t, data, "domain", "suspend", "--reason", "Unpaid invoice"); code != exitUsage || !strings.Contains(errOut, "Usage: cahut domain suspend") {
+		t.Errorf("domain suspend without a domain: %d %q", code, errOut)
+	}
+	code, out, errOut := run(t, data, "domain", "suspend", "--reason", "Unpaid invoice", "A.example.com")
+	if code != exitOK || !strings.Contains(out, "The Cahut of a.example.com is suspended since") {
+		t.Errorf("domain suspend: %d %q %q", code, out, errOut)
+	}
+	code, out, _ = run(t, data, "domain", "list")
+	if code != exitOK || !regexp.MustCompile(`a\.example\.com\s+\S+\s+suspended since \S+: Unpaid invoice\n`).MatchString(out) ||
+		!regexp.MustCompile(`b\.example\.com\s+\S+\s+active\n`).MatchString(out) {
+		t.Errorf("domain list: %d %q", code, out)
+	}
+	if code, out, errOut := run(t, data, "domain", "resume", "a.example.com"); code != exitOK || !strings.Contains(out, "is open again") {
+		t.Errorf("domain resume: %d %q %q", code, out, errOut)
+	}
+	if code, _, errOut := run(t, data, "domain", "resume", "a.example.com"); code != exitError || !strings.Contains(errOut, "not suspended") {
+		t.Errorf("domain resume of an active Cahut: %d %q", code, errOut)
+	}
+	if code, out, _ := run(t, data, "logbook", "--domain", "a.example.com"); code != exitOK ||
+		!strings.Contains(out, "suspend_cahut") || !strings.Contains(out, "resume_cahut") {
+		t.Errorf("logbook: %d %q", code, out)
+	}
+}
+
 func TestServerAdminCommands(t *testing.T) {
 	data := t.TempDir()
 	code, out, errOut := run(t, data, "admin", "create", "--handle", "olivier", "--name", "Olivier Durand")

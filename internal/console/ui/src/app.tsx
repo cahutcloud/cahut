@@ -1,7 +1,7 @@
 // Routes the pages of the console, and keeps the session.
 import { useEffect, useState } from "preact/hooks";
 import { cahut, server } from "./api";
-import type { LegalLinks, Room } from "./api.gen";
+import type { LegalLinks, Room, Suspension } from "./api.gen";
 import { PageHead } from "./components";
 import { bind, ConsoleProvider, useConsole } from "./context";
 import { words } from "./i18n";
@@ -23,6 +23,7 @@ import { RoomPage, RoomsPage } from "./pages/rooms";
 import { Setup } from "./pages/setup";
 import { Settings } from "./pages/settings";
 import { SignIn } from "./pages/sign-in";
+import { Suspended } from "./pages/suspended";
 import { Updates } from "./pages/updates";
 import { WindowPage } from "./pages/window";
 import { navigate, Redirect, usePath } from "./router";
@@ -62,10 +63,15 @@ function end(s: Session): Promise<unknown> {
 export function App() {
 	const path = usePath();
 	const [held, setHeld] = useState(load);
+	// Whether this Cahut refused a call of the person because it is
+	// suspended: the console then acts with the session of the server, or
+	// shows the notice of a suspended Cahut. See
+	// docs/adr/0048-suspending-a-cahut.md.
+	const [suspended, setSuspended] = useState(false);
 	// The console acts as the person when the browser holds their session,
 	// and as the administrator of the server when it holds theirs alone. See
 	// docs/adr/0043-the-console-holds-two-sessions.md.
-	const session = held.person ?? held.admin;
+	const session = (suspended ? null : held.person) ?? held.admin;
 
 	// Keeps a session in its own place, beside the other, and ends the one
 	// it replaces.
@@ -153,6 +159,9 @@ export function App() {
 	if (!held.person && path.startsWith("/knocks/")) {
 		return <SignIn kind="person" purpose={t.toKnock} onSignIn={stay} />;
 	}
+	if (!session && suspended && held.person) {
+		return <Suspended onSignOut={() => signOutOf("person")} />;
+	}
 	if (!session) {
 		return <Redirect to="/sign-in" />;
 	}
@@ -164,6 +173,7 @@ export function App() {
 			path={path}
 			onSession={hold}
 			onExpired={expired}
+			onSuspended={setSuspended}
 			onSignOut={signOut}
 			onLeaveServer={leaveServer}
 		/>
@@ -176,21 +186,23 @@ function SignedIn(props: {
 	path: string;
 	onSession: (s: Session) => void;
 	onExpired: (kind: Session["kind"]) => void;
+	onSuspended: (suspended: boolean) => void;
 	onSignOut: () => void;
 	onLeaveServer: () => void;
 }) {
 	const { session, path } = props;
-	const api = bind(session, props.serverSession, props.onExpired);
+	const api = bind(session, props.serverSession, props.onExpired, () => props.onSuspended(true));
 	const [rooms, setRooms] = useState<Room[]>([]);
 	const [roomsVersion, setRoomsVersion] = useState(0);
 	const [isAdmin, setAdmin] = useState(session.kind === "admin");
 	const [individual, setIndividual] = useState(false);
 	const [sendsMail, setSendsMail] = useState(false);
 	const [legal, setLegal] = useState<LegalLinks>();
+	const [suspension, setSuspension] = useState<Suspension>();
 	const [cahutVersion, setCahutVersion] = useState(0);
 	useEffect(() => {
 		api.cahut("get_cahut", {}).then(
-			(a) => (setIndividual(a.kind === "individual"), setSendsMail(a.sends_mail), setLegal(a.legal)),
+			(a) => (setIndividual(a.kind === "individual"), setSendsMail(a.sends_mail), setLegal(a.legal), setSuspension(a.suspension)),
 			() => undefined,
 		);
 	}, [cahutVersion]);
@@ -219,6 +231,11 @@ function SignedIn(props: {
 		individual,
 		sendsMail,
 		legal,
+		suspension,
+		setSuspended: (on: boolean) => {
+			props.onSuspended(on);
+			setCahutVersion((n) => n + 1);
+		},
 		reloadCahut: () => setCahutVersion((n) => n + 1),
 		roomsVersion,
 		reloadRooms: () => setRoomsVersion((n) => n + 1),

@@ -429,27 +429,36 @@ type DescribeSignInInput struct{}
 type SignInPage struct {
 	SendsMail bool                `json:"sends_mail" jsonschema:"whether this Cahut sends e-mail, and so a link to a person who forgot their password"`
 	Legal     settings.LegalLinks `json:"legal" jsonschema:"the links to the legal pages of the Cahut, which the pages before sign-in show at their foot"`
+	Suspended bool                `json:"suspended,omitempty" jsonschema:"whether the administrators of the server suspended this Cahut: nobody but them signs in until they resume it"`
 }
 
 // DescribeSignIn says what the page of sign-in offers, before anyone signs
 // in: a Cahut without a relay offers no link for a forgotten password. It
 // gives the links to the legal pages of the Cahut too, which every page
-// before sign-in shows. See docs/adr/0042-the-legal-pages-of-a-cahut.md.
+// before sign-in shows, and says whether the Cahut is suspended, the only
+// call of a suspended Cahut that answers people. See
+// docs/adr/0042-the-legal-pages-of-a-cahut.md and
+// docs/adr/0048-suspending-a-cahut.md.
 var DescribeSignIn = &operation.Op[DescribeSignInInput, SignInPage]{
 	Name:  "describe_sign_in",
 	Title: "Describe the sign-in page",
 	Description: "Say what the page of sign-in of this Cahut offers, before anyone signs in: whether it sends e-mail, and so a link to a person who forgot their password, " +
-		"and the links to the legal pages of the Cahut.",
-	PeopleOnly: true,
-	Visitors:   true,
-	ReadOnly:   true,
+		"the links to the legal pages of the Cahut, and whether the Cahut is suspended.",
+	PeopleOnly:     true,
+	Visitors:       true,
+	ReadOnly:       true,
+	WhileSuspended: true,
 	Run: func(ctx context.Context, c *operation.Call, _ DescribeSignInInput) (SignInPage, error) {
 		sends, err := mail.OutboxOf(c).Sends(ctx, c.Tx)
 		if err != nil {
 			return SignInPage{}, err
 		}
 		legal, err := settings.Legal(ctx, c.Tx)
-		return SignInPage{SendsMail: sends, Legal: legal}, err
+		if err != nil {
+			return SignInPage{}, err
+		}
+		suspension, err := settings.SuspensionOf(ctx, c.Tx)
+		return SignInPage{SendsMail: sends, Legal: legal, Suspended: suspension != nil}, err
 	},
 }
 

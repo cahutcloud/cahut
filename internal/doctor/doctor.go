@@ -330,6 +330,10 @@ func (d *doctor) cahuts() {
 			d.add(Fail, topic, "Does not open: %s. journalctl -u cahut says more.", c.Error)
 			continue
 		}
+		if c.Suspended {
+			d.add(Info, topic, "Suspended: it serves nothing but to the administrators of the server, until sudo -u cahut %s domain resume %s",
+				d.cfg.BinPath, c.Domain)
+		}
 		if c.Domain == "localhost" || strings.HasSuffix(c.Domain, ".localhost") {
 			d.add(Info, topic, "A Cahut for development, served by cahut serve --dev only.")
 			continue
