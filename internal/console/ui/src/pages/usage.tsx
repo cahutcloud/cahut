@@ -3,7 +3,7 @@
 // Cahut sees what they hold and their own limits, never what the others
 // hold. See docs/adr/0030-kind-and-limits-of-each-cahut.md.
 import type { ComponentChildren } from "preact";
-import type { Settings } from "../api.gen";
+import { nearLimit, type Settings } from "../api.gen";
 import { bytes } from "../components";
 import { locale, words } from "../i18n";
 import { Link } from "../router";
@@ -63,8 +63,8 @@ const t = words({
 	},
 });
 
-/** Where a gauge turns to say that its limit is near. */
-const near = 0.9;
+/** Where a gauge turns to say that its limit is near: where the banner of the overview and the e-mails warn too. */
+const near = nearLimit / 100;
 
 /** A thing that the limits count: what is held, and its limit if it has one. */
 type Count = { key: string; name: string; help: string; now: number; limit?: number; disk?: boolean };
