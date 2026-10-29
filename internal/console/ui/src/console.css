@@ -1247,6 +1247,59 @@ a.cahut-menu__item:hover {
 .limit__value {
 	white-space: nowrap;
 }
+/* What the Cahut holds, on the overview: a tile for each thing that its
+   limits count, with a gauge where it has a limit. */
+.usage__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-3);
+}
+.usage__head .c-h4 {
+	margin: 0;
+}
+.usage {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 176px), 1fr));
+	gap: var(--space-4);
+}
+.usage__tile {
+	padding: var(--space-4);
+	display: grid;
+	gap: var(--space-2);
+	align-content: start;
+}
+.usage__count {
+	margin: 0;
+}
+.usage__state {
+	justify-self: start;
+}
+.usage__now {
+	font-size: var(--text-2xl);
+	line-height: var(--leading-2xl);
+	font-weight: var(--weight-bold);
+	font-variant-numeric: tabular-nums;
+}
+.gauge {
+	height: 8px;
+	border-radius: var(--radius-pill);
+	background: var(--color-surface-muted);
+	overflow: hidden;
+}
+.gauge__fill {
+	display: block;
+	height: 100%;
+	border-radius: inherit;
+	background: var(--color-accent);
+}
+.gauge[data-level="near"] .gauge__fill {
+	background: var(--color-highlight);
+}
+.gauge[data-level="full"] .gauge__fill {
+	background: var(--color-warning);
+}
 .table__actions {
 	text-align: right;
 }

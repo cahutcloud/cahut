@@ -37,8 +37,8 @@ The address of the MCP server of the Cahut, `https://cahut.example.com/mcp`, and
 | --- | --- |
 | Claude Code | The [Cahut plugin](/connect/claude-plugin/), which also teaches Claude the house style, or `claude mcp add` then `claude mcp login`. See [Claude Code](/connect/claude-code/) |
 | Claude apps | A custom connector with the address, in the settings of claude.ai or of the Claude app, and the skill for Claude to upload beside it |
-| ChatGPT | On the web, Plugins, then Add custom MCP server, with the address and OAuth |
-| Le Chat | Connectors, then a custom MCP connector with the address |
+| Mistral Vibe | Connectors, then a custom MCP connector with the address |
+| ChatGPT | On the web, Plugins, then Add custom MCP server, with the address and OAuth, on a Business, Enterprise or Edu plan. See [Which plans work](/connect/ai-clients/#which-plans-work) |
 | Others | The address, with OAuth, or a [personal token](/connect/tokens/) |
 
 The AI sends you to the console to sign in and choose the Rooms it reaches. The first start sees it as soon as it connects. Then ask it to publish something: [Publish a Window](/connect/publish/).

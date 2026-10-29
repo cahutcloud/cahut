@@ -333,7 +333,7 @@ function LegalForm({ legal, onSaved }: { legal: LegalLinks; onSaved: () => void 
 }
 
 /** The limits of a Cahut with what it holds, as its reader may read them. */
-export function LimitsTable({ settings: s }: { settings: CahutSettings }) {
+function LimitsTable({ settings: s }: { settings: CahutSettings }) {
 	const rows = limits.filter((l) => (l.perPerson ? s.kind === "individual" : s.usage !== undefined || s.limits[l.key] !== undefined));
 	if (rows.length === 0) return <Notice>{t.noLimit}</Notice>;
 	const show = (n: number | undefined, disk?: boolean) => (n === undefined ? "" : disk ? bytes(n) : String(n));
