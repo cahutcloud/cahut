@@ -90,8 +90,11 @@ func (s *Server) serveWindow(w http.ResponseWriter, r *http.Request) {
 // /-/w/<id>, to its address of the moment, with what follows the id and
 // the query, when they may open it there. A reader who may not gets what
 // that address would give them, without learning it: the page of what is
-// not found, or the page of its Key, which names the Window by its id. See
-// docs/adr/0050-window-ids-permanent-addresses-and-names.md.
+// not found, or the page of its Key, which names the Window by its id. The
+// robots that draw the preview of a link to it get a page of Cahut that
+// tells them what its address tells a stranger. See
+// docs/adr/0050-window-ids-permanent-addresses-and-names.md and
+// docs/adr/0051-sharing-a-window-and-its-preview.md.
 func (s *Server) servePermanent(w http.ResponseWriter, r *http.Request) {
 	c := siteOf(r).cahut
 	now := time.Now()
@@ -99,6 +102,12 @@ func (s *Server) servePermanent(w http.ResponseWriter, r *http.Request) {
 	win, err := window.LookupUID(r.Context(), c.DB, id, now)
 	if err != nil && !isNotFound(err) {
 		s.internal(w, "find a Window", err)
+		return
+	}
+	// The robots of previews get a page of their own, people the Window.
+	w.Header().Add("Vary", "User-Agent")
+	if err == nil && r.PathValue("file") == "" && previewRobot(r) {
+		s.servePreview(w, r, c, win)
 		return
 	}
 	if err != nil || win.Access != window.AccessPublic {

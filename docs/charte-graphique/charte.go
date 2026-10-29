@@ -17,3 +17,12 @@ import "embed"
 //go:embed logos/cahut-icone-app.svg logos/favicon/favicon.ico logos/favicon/apple-touch-icon.png logos/favicon/icon-512.png
 //go:embed icones/room.svg illustrations/etat-vide.svg illustrations/motif-nuages-sky.svg
 var Files embed.FS
+
+// CardFiles are the fonts and the pictures that the card of a Window is
+// drawn with, for the previews of its links: the server draws it without a
+// browser, from TrueType fonts and PNG renders, and never redraws the logo.
+// They are not served. See docs/adr/0051-sharing-a-window-and-its-preview.md.
+//
+//go:embed typographie/polices/ttf/PlusJakartaSans-ExtraBold.ttf typographie/polices/ttf/IBMPlexMono-Regular.ttf
+//go:embed logos/png/cahut-logo-horizontal-1600px.png illustrations/maison-ouverte.png
+var CardFiles embed.FS
