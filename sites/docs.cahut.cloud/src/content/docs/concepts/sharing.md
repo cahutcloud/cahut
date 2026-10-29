@@ -1,11 +1,26 @@
 ---
 title: Share a Window
-description: The link to share is the permanent address of a Window. Pasted in Slack, Teams, iMessage, X or LinkedIn, it shows a preview with a card that the Cahut draws, and that says no more than the address says to a stranger.
+description: The menu Share of the console gives the permanent address of a Window, to copy, to send by e-mail or to post on X, LinkedIn or Facebook. Pasted in Slack, Teams, iMessage or elsewhere, it shows a preview with a card that the Cahut draws, and that says no more than the address says to a stranger.
 sidebar:
   label: Sharing
 ---
 
 People share a Window, not the Cahut. The link to give is its permanent address, `https://cahut.example.com/-/w/<id>`: it opens the Window to whoever may open it, and keeps working when the Window changes its name or its author changes their handle. See [The id and the permanent address](/concepts/rooms-and-windows/#the-id-and-the-permanent-address).
+
+## The menu Share
+
+In the console, **Share**, at the head of the page of a Window and on each card of a Window, opens a menu:
+
+| Entry | What it does |
+| --- | --- |
+| Copy the link | Copies the permanent address |
+| E-mail | Opens your mail app with a message: the title of the Window as its subject, its description and the link |
+| X, LinkedIn, Facebook | Open their own page of sharing in a new tab, with the link; for a public Window or a Window with a Key only |
+| Share… | The share sheet of your system, where the browser has one, as on phones |
+
+The menu says who opens the link: anyone, anyone with its Key, the people of the Cahut once signed in, or the members of its Room. X, LinkedIn and Facebook do not show for a Window open to its Room or its Cahut: their readers could not open it.
+
+Its entries are plain links. The console loads no script of X, LinkedIn or Facebook, and they learn of the Window only when you post it. The link of a Window with a Key does not carry its Key: give it apart, or [invite people by e-mail](/concepts/access/#invitations), each with a personal link. Sharing goes to no Logbook: it changes nothing in the Cahut.
 
 ## The preview of a link
 
