@@ -37,7 +37,13 @@ The names of Rooms and Windows take 1 to 63 lowercase ASCII letters, digits and 
 
 - A personal Room takes the handle of its person, from 2 to 32 characters, starting with a letter.
 - No Room can take the names `mcp`, `api`, `admin`, `console` or `help`.
-- A Window takes its name from its title: up to 40 characters, with accents folded, and `-2`, `-3` added when the name is taken. "Q3 review: Été" becomes `q3-review-ete`.
+- A Window takes its name from its title: up to 40 characters, with accents folded, and `-2`, `-3` added when the name is taken. "Q3 review: Été" becomes `q3-review-ete`. An AI can choose it instead, with `name` in `publish_window`.
+
+### A new name for a Window
+
+The members of its Room, and their AIs, change the name of a Window with `rename_window`, or under **Addresses** on its page in the console. The new name has the form above and is free in the Room, Windows in the trash included; a Window in the trash keeps its name. The title, the id, the permanent address, the versions, the access, the Key and its passes, the invitations and the place of the Window as the home of its Room stay.
+
+The old address stops working at once, without a redirect, and its name is free for another Window: the permanent address is the link that lasts. Renaming the Window back undoes the change while no other Window has taken the old name, so an AI does it alone. The console says it before the change, and asks again. A Knock that waits and names the Window by its old address finds it no more: an AI that names Windows by their id avoids it.
 
 A Window's name holds no random part, so its address can be guessed. Access levels are meant to protect Windows, not hard-to-guess addresses: see [Who can open a Window](/concepts/access/).
 

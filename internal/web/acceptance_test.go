@@ -39,6 +39,7 @@ var undo = map[string]string{
 	"publish_window":    "trash_window",
 	"update_window":     "rollback_window",
 	"retitle_window":    "retitle_window",
+	"rename_window":     "rename_window",
 	"rollback_window":   "rollback_window",
 	"trash_window":      "restore_window",
 	"restore_window":    "trash_window",

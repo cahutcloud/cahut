@@ -679,3 +679,99 @@ func TestRetitleAndDescribe(t *testing.T) {
 		t.Errorf("the Logbook of retitle_window = %q, want %q", logged, want)
 	}
 }
+
+func TestRename(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	publish := func(args string) (Window, error) {
+		t.Helper()
+		out, err := f.invoke(t, f.olivier, "publish_window", args)
+		if err != nil {
+			return Window{}, err
+		}
+		return out.(Window), nil
+	}
+	const files = `"kind": "deck", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "<h1>Q3</h1>"}]`
+
+	// A name chosen at publication, rather than from the title; a taken one
+	// is refused rather than numbered.
+	w, err := publish(`{"title": "Revue du 3e trimestre", "name": "q3", ` + files + `}`)
+	if err != nil || w.Name != "q3" || w.URL != "https://cahut.test/olivier/q3/" {
+		t.Fatalf("publish_window with a name = %+v, %v", w, err)
+	}
+	for name, args := range map[string]string{
+		"taken":     `{"title": "Another", "name": "q3", ` + files + `}`,
+		"malformed": `{"title": "Another", "name": "Q3 Review", ` + files + `}`,
+	} {
+		if _, err := publish(args); !errors.Is(err, operation.ErrInvalid) {
+			t.Errorf("publish_window with a name %s: err = %v, want ErrInvalid", name, err)
+		}
+	}
+	other, err := publish(`{"title": "Budget", ` + files + `}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The name changes, and nothing else: the id, the title, the version and
+	// the files stay, and the old name is free.
+	out, err := f.invoke(t, f.olivier, "rename_window", `{"window": "`+w.ID+`", "name": "q3-review"}`)
+	if err != nil {
+		t.Fatalf("rename_window: %v", err)
+	}
+	renamed := out.(Window)
+	if renamed.Name != "q3-review" || renamed.URL != "https://cahut.test/olivier/q3-review/" || renamed.ID != w.ID ||
+		renamed.PermanentURL != w.PermanentURL || renamed.Title != w.Title || renamed.Version != 1 || !renamed.UpdatedAt.Equal(w.UpdatedAt) {
+		t.Errorf("rename_window = %+v", renamed)
+	}
+	if _, err := f.invoke(t, f.olivier, "get_window", `{"window": "olivier/q3"}`); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("get_window at the old name: err = %v, want ErrNotFound", err)
+	}
+	if d, err := f.invoke(t, f.olivier, "get_window", `{"window": "olivier/q3-review", "include_content": true}`); err != nil ||
+		d.(Detail).Files[0].Content != "<h1>Q3</h1>" {
+		t.Errorf("get_window at the new name = %+v, %v", d, err)
+	}
+
+	// Undone by itself while the old name is free; refused once it is taken,
+	// or not a name, or the same, or by someone outside the Room.
+	if out, err := f.invoke(t, f.olivier, "rename_window", `{"window": "olivier/q3-review", "name": "q3"}`); err != nil || out.(Window).Name != "q3" {
+		t.Errorf("rename_window back = %+v, %v", out, err)
+	}
+	for name, args := range map[string]string{
+		"taken by another": `{"window": "olivier/q3", "name": "` + other.Name + `"}`,
+		"the same":         `{"window": "olivier/q3", "name": "q3"}`,
+		"malformed":        `{"window": "olivier/q3", "name": "-q3"}`,
+		"too long":         `{"window": "olivier/q3", "name": "` + strings.Repeat("a", 64) + `"}`,
+	} {
+		if _, err := f.invoke(t, f.olivier, "rename_window", args); !errors.Is(err, operation.ErrInvalid) {
+			t.Errorf("rename_window %s: err = %v, want ErrInvalid", name, err)
+		}
+	}
+	if _, err := f.invoke(t, f.camille, "rename_window", `{"window": "`+w.ID+`", "name": "ours"}`); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("rename_window by someone outside the Room: err = %v, want ErrNotFound", err)
+	}
+
+	// A Window in the trash keeps its name, which no other takes.
+	if _, err := f.invoke(t, f.olivier, "trash_window", `{"window": "`+other.ID+`"}`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.invoke(t, f.olivier, "rename_window", `{"window": "`+other.ID+`", "name": "budget-2027"}`); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("rename_window in the trash: err = %v, want ErrInvalid", err)
+	}
+	if _, err := f.invoke(t, f.olivier, "rename_window", `{"window": "olivier/q3", "name": "`+other.Name+`"}`); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("rename_window to the name of a Window in the trash: err = %v, want ErrInvalid", err)
+	}
+
+	entries, err := logbook.List(ctx, f.db.Read, 30)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var logged []string
+	for _, e := range entries {
+		if e.Operation == "rename_window" && e.Outcome == logbook.OK {
+			logged = append(logged, e.Target+" "+e.Detail)
+		}
+	}
+	if want := "olivier/q3-review to olivier/q3, id " + w.ID + "; olivier/q3 to olivier/q3-review, id " + w.ID; strings.Join(logged, "; ") != want {
+		t.Errorf("the Logbook of rename_window = %q, want %q", logged, want)
+	}
+}

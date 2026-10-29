@@ -96,6 +96,13 @@ func (s *Service) Register(r *operation.Registry) {
 			"Its address stays. Give the old title and description again to undo it.",
 		Run: s.retitle,
 	})
+	operation.Register(r, &operation.Op[RenameInput, Window]{
+		Name:  "rename_window",
+		Title: "Rename a Window in its address",
+		Description: "Change the name of a Window, the last part of its address, <domain>/<room>/<name>/. Its title, its id and its permanent address stay. " +
+			"The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it.",
+		Run: s.rename,
+	})
 	operation.Register(r, &operation.Op[RefInput, Window]{
 		Name:  "rollback_window",
 		Title: "Roll back a Window",
@@ -253,6 +260,7 @@ type PublishInput struct {
 	Description string       `json:"description,omitempty" jsonschema:"what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window"`
 	Kind        string       `json:"kind" jsonschema:"one of document, deck, dashboard or site"`
 	Room        string       `json:"room,omitempty" jsonschema:"name of the Room to publish in; the personal Room of the person you act for when empty"`
+	Name        string       `json:"name,omitempty" jsonschema:"its name in its address, 1 to 63 lowercase letters, digits and hyphens; from the title when empty"`
 	Files       []File       `json:"files" jsonschema:"the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css"`
 	Declaration *Declaration `json:"declaration" jsonschema:"what the pages do: Cahut lets them load and call the origins listed here, and nothing else"`
 }
@@ -314,7 +322,12 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	}
 	w := Window{ID: address.NewID(), Title: title, Description: description, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: AccessRoom,
 		CreatedBy: c.Actor.Handle, CreatedAt: c.Now, UpdatedAt: c.Now, Declaration: declared}
-	if w.Name, err = freeName(ctx, c.Tx, roomID, title); err != nil {
+	if in.Name != "" {
+		w.Name = strings.TrimSpace(in.Name)
+		if err := checkName(ctx, c.Tx, roomID, r.Name, w.Name); err != nil {
+			return Window{}, err
+		}
+	} else if w.Name, err = freeName(ctx, c.Tx, roomID, title); err != nil {
 		return Window{}, err
 	}
 	w.URL, w.PermanentURL = s.url(w.Room, w.Name), s.permanentURL(w.ID)
@@ -477,6 +490,40 @@ func (s *Service) retitle(ctx context.Context, c *operation.Call, in RetitleInpu
 		return Window{}, err
 	}
 	c.Log(w.Room+"/"+w.Name, strings.Join(changes, "; "))
+	return w.Window, nil
+}
+
+// RenameInput is the input of rename_window.
+type RenameInput struct {
+	Window string `json:"window" jsonschema:"the Window's id or address, or its Room and its name as room/name"`
+	Name   string `json:"name" jsonschema:"the new name, 1 to 63 lowercase letters, digits and hyphens"`
+}
+
+// rename changes the name of a Window in its address, and nothing else:
+// the files, the passes, the frames, the invitations and the home of its
+// Room hold it by its id. The old address stops working, without a
+// redirect, and its name is free. See
+// docs/adr/0050-window-ids-permanent-addresses-and-names.md.
+func (s *Service) rename(ctx context.Context, c *operation.Call, in RenameInput) (Window, error) {
+	w, err := s.target(ctx, c, in.Window)
+	if err != nil {
+		return Window{}, err
+	}
+	if err := w.outOfTrash(); err != nil {
+		return Window{}, err
+	}
+	name := strings.TrimSpace(in.Name)
+	if name == w.Name {
+		return Window{}, operation.Invalidf("%s/%s already has this name", w.Room, w.Name)
+	}
+	if err := checkName(ctx, c.Tx, w.roomID, w.Room, name); err != nil {
+		return Window{}, err
+	}
+	if _, err := c.Tx.ExecContext(ctx, "UPDATE windows SET name = ? WHERE id = ?", name, w.id); err != nil {
+		return Window{}, err
+	}
+	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("to %s/%s, id %s", w.Room, name, w.ID))
+	w.Name, w.URL = name, s.url(w.Room, name)
 	return w.Window, nil
 }
 
@@ -771,6 +818,43 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		windows = append(windows, w)
 	}
 	return windows, rows.Err()
+}
+
+// The refusals of a name that a person chooses for a Window.
+var (
+	badName = operation.NewRefusalOf[GivenName]("window_name_invalid", operation.ErrInvalid,
+		"name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit")
+	nameTaken = operation.NewRefusalOf[NameInRoom]("window_name_taken", operation.ErrInvalid,
+		"name {name} is taken in the Room {room}, by a Window or one in its trash: choose another")
+)
+
+// GivenName fills the refusal of a name that has not the form of one.
+type GivenName struct {
+	Name operation.Quoted `json:"name" jsonschema:"the name"`
+}
+
+// NameInRoom fills the refusal of a name that a Window of the Room has.
+type NameInRoom struct {
+	Name operation.Quoted `json:"name" jsonschema:"the name"`
+	Room string           `json:"room" jsonschema:"the name of the Room"`
+}
+
+// checkName returns an error wrapping operation.ErrInvalid when name cannot
+// be the name of a Window in the Room roomID, called room: when it has not
+// the form of a name, or when a Window of that Room, in the trash or not,
+// has it.
+func checkName(ctx context.Context, tx *sql.Tx, roomID int64, room, name string) error {
+	if !address.ValidName(name) {
+		return badName(GivenName{Name: operation.Quoted(name)})
+	}
+	var taken bool
+	if err := tx.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM windows WHERE room_id = ? AND name = ?)", roomID, name).Scan(&taken); err != nil {
+		return err
+	}
+	if taken {
+		return nameTaken(NameInRoom{Name: operation.Quoted(name), Room: room})
+	}
+	return nil
 }
 
 // freeName returns a name for a new Window in the Room roomID: its title as

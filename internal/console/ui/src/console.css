@@ -903,6 +903,16 @@ a.cahut-menu__item:hover {
 	font-size: var(--text-xs);
 	line-height: var(--leading-xs);
 }
+/* The name of a Window, after the address of its Room. */
+.window-name {
+	display: grid;
+	gap: var(--space-1);
+}
+.window-name__prefix {
+	color: var(--color-text-muted);
+	font-size: var(--text-xs);
+	overflow-wrap: anywhere;
+}
 .description-field {
 	min-height: 5rem;
 	resize: vertical;

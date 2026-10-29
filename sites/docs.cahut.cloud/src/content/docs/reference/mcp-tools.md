@@ -60,6 +60,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`publish_window`](#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. |
 | [`purge_window`](#purge_window) | Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs. |
 | [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
+| [`rename_window`](#rename_window) | Change the name of a Window, the last part of its address, &lt;domain&gt;/&lt;room&gt;/&lt;name&gt;/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it. |
 | [`restore_window`](#restore_window) | Bring a Window back from the trash, with its versions. |
 | [`retitle_window`](#retitle_window) | Change the title of a Window, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it. |
 | [`revoke_invitation`](#revoke_invitation) | Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. |
@@ -2899,6 +2900,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `kind` | string | yes | one of document, deck, dashboard or site |
 | `title` | string | yes | title of the Window, also used in its address |
 | `description` | string | no | what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window |
+| `name` | string | no | its name in its address, 1 to 63 lowercase letters, digits and hyphens; from the title when empty |
 | `room` | string | no | name of the Room to publish in; the personal Room of the person you act for when empty |
 
 <details>
@@ -2979,6 +2981,10 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     },
     "kind": {
       "description": "one of document, deck, dashboard or site",
+      "type": "string"
+    },
+    "name": {
+      "description": "its name in its address, 1 to 63 lowercase letters, digits and hyphens; from the title when empty",
       "type": "string"
     },
     "room": {
@@ -3510,6 +3516,212 @@ Title: Remove a member from a Room. Annotations: `readOnlyHint: false`, `destruc
     "windows",
     "created_at",
     "people"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `rename_window`
+
+Change the name of a Window, the last part of its address, &lt;domain&gt;/&lt;room&gt;/&lt;name&gt;/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it.
+
+Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | string | yes | the new name, 1 to 63 lowercase letters, digits and hyphens |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "description": "the new name, 1 to 63 lowercase letters, digits and hyphens",
+      "type": "string"
+    },
+    "window": {
+      "description": "the Window's id or address, or its Room and its name as room/name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "window",
+    "name"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `created_at` | string | yes |  |
+| `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
+| `file_count` | integer | yes |  |
+| `id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
+| `kind` | string | yes |  |
+| `name` | string | yes | the Window's name, last part of its address |
+| `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
+| `room` | string | yes | the name of its Room, the part of its address before its name |
+| `size` | integer | yes | total size of the files of the current version, in bytes |
+| `title` | string | yes |  |
+| `updated_at` | string | yes |  |
+| `url` | string | yes | where the Window opens |
+| `version` | integer | yes | the number of the version that readers see |
+| `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
+| `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
+| `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "access": {
+      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "type": "string"
+    },
+    "access_ends_at": {
+      "description": "when the access ends, after which the Window opens to its Room only; absent when it does not end",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "created_by": {
+      "description": "handle of the person it was first published for, empty once that person is deleted",
+      "type": "string"
+    },
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "description": {
+      "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "file_count": {
+      "type": "integer"
+    },
+    "id": {
+      "description": "the Window's id, which never changes: name the Window by it to find it whatever its name",
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "name": {
+      "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "permanent_url": {
+      "description": "the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts",
+      "type": "string"
+    },
+    "previous_version": {
+      "description": "the number of the version that rollback_window goes back to; absent when there is none",
+      "type": "integer"
+    },
+    "room": {
+      "description": "the name of its Room, the part of its address before its name",
+      "type": "string"
+    },
+    "size": {
+      "description": "total size of the files of the current version, in bytes",
+      "type": "integer"
+    },
+    "title": {
+      "type": "string"
+    },
+    "trashed_at": {
+      "description": "when the Window went to the trash; absent when it is not in it",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "url": {
+      "description": "where the Window opens",
+      "type": "string"
+    },
+    "version": {
+      "description": "the number of the version that readers see",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "title",
+    "kind",
+    "url",
+    "permanent_url",
+    "room",
+    "version",
+    "size",
+    "file_count",
+    "created_by",
+    "created_at",
+    "updated_at",
+    "access"
   ],
   "type": "object"
 }
