@@ -25,7 +25,7 @@ const t = words({
 		addCahut: "the command that adds the Cahut",
 		login: "the command that signs Claude Code in",
 		claudeConnector:
-			"In claude.ai or the Claude app, open Settings, then Connectors, and add a custom connector with this address. Connect it: Claude sends you here to sign in, and you choose the Rooms it reaches.",
+			"In claude.ai or the Claude app, open Settings, then Connectors, and add a custom connector with this address. Connect it: Claude sends you here to sign in, and you choose the Rooms it reaches. Every plan of Claude adds custom connectors; the Free plan holds one.",
 		address: "the address",
 		uploadSkill: "Then upload the skill for Claude in the settings of Claude, beside the connector.",
 		downloadSkill: "Download the skill",
@@ -38,9 +38,11 @@ const t = words({
 		),
 		chatgpt:
 			"In ChatGPT on the web, open Plugins, select the plus button, then Add custom MCP server. Give it a name, this address, and OAuth as its authentication, then create it. ChatGPT sends you here to sign in, and you choose the Rooms it reaches. It asks you to confirm the calls that change something.",
-		chatgptPlans: "Custom MCP servers need a Business, Enterprise or Edu plan of ChatGPT.",
-		leChat:
-			"In Le Chat, open Connectors and add a custom MCP connector with this address. Le Chat finds that the Cahut signs in with OAuth and sends you here to sign in.",
+		chatgptPlans:
+			"ChatGPT publishes to a Cahut on its Business, Enterprise and Edu plans only. With Free, Plus or Pro, it cannot: connect Claude or Mistral Vibe, which work on their free plans too.",
+		vibe: "In Mistral Vibe, formerly Le Chat, open Connectors, select Add Connector, then the Custom MCP Connector tab. Give it a name without spaces, such as cahut, and this address. Vibe finds that the Cahut signs in with OAuth and sends you here to sign in.",
+		vibePlans:
+			"Every plan of Mistral Vibe adds custom MCP connectors, Free included. Only an administrator of the account adds one: on the Free and Pro plans, its owner.",
 		other: (
 			<>
 				Give any MCP client this address, over HTTP. A client that signs in with OAuth sends you here; one that does not takes a
@@ -70,7 +72,7 @@ const t = words({
 		addCahut: "la commande qui ajoute la Cahut",
 		login: "la commande qui connecte Claude Code",
 		claudeConnector:
-			"Dans claude.ai ou l'appli Claude, ouvrez les paramètres, puis les connecteurs, et ajoutez un connecteur personnalisé avec cette adresse. Connectez-le : Claude vous envoie ici pour vous connecter, et vous choisissez les Rooms qu'il atteint.",
+			"Dans claude.ai ou l'appli Claude, ouvrez les paramètres, puis les connecteurs, et ajoutez un connecteur personnalisé avec cette adresse. Connectez-le : Claude vous envoie ici pour vous connecter, et vous choisissez les Rooms qu'il atteint. Toutes les offres de Claude ajoutent des connecteurs personnalisés ; l'offre Free en accepte un.",
 		address: "l'adresse",
 		uploadSkill: "Puis importez la skill pour Claude dans les paramètres de Claude, à côté du connecteur.",
 		downloadSkill: "Télécharger la skill",
@@ -83,9 +85,11 @@ const t = words({
 		),
 		chatgpt:
 			"Dans ChatGPT sur le web, ouvrez les plugins, choisissez le bouton plus, puis l'ajout d'un serveur MCP personnalisé. Donnez-lui un nom, cette adresse, et OAuth comme authentification, puis créez-le. ChatGPT vous envoie ici pour vous connecter, et vous choisissez les Rooms qu'il atteint. Il vous demande de confirmer les appels qui changent quelque chose.",
-		chatgptPlans: "Les serveurs MCP personnalisés demandent un abonnement Business, Enterprise ou Edu à ChatGPT.",
-		leChat:
-			"Dans Le Chat, ouvrez les connecteurs et ajoutez un connecteur MCP personnalisé avec cette adresse. Le Chat voit que la Cahut se connecte par OAuth et vous envoie ici pour vous connecter.",
+		chatgptPlans:
+			"ChatGPT ne publie dans une Cahut qu'avec ses offres Business, Enterprise et Edu. Avec Free, Plus ou Pro, il ne le peut pas : connectez Claude ou Mistral Vibe, qui marchent aussi avec leur offre gratuite.",
+		vibe: "Dans Mistral Vibe, l'ancien Le Chat, ouvrez les connecteurs, choisissez l'ajout d'un connecteur, puis l'onglet du connecteur MCP personnalisé. Donnez-lui un nom sans espace, comme cahut, et cette adresse. Vibe voit que la Cahut se connecte par OAuth et vous envoie ici pour vous connecter.",
+		vibePlans:
+			"Toutes les offres de Mistral Vibe ajoutent des connecteurs MCP personnalisés, Free comprise. Seul un administrateur du compte en ajoute un : avec les offres Free et Pro, son titulaire.",
 		other: (
 			<>
 				Donnez cette adresse à tout client MCP, en HTTP. Un client qui se connecte par OAuth vous envoie ici ; un autre prend un
@@ -107,8 +111,8 @@ export const ipAddress = /^\d{1,3}(\.\d{1,3}){3}$/;
 const clients = [
 	{ id: "claude-code", name: "Claude Code" },
 	{ id: "claude", name: t.claudeApps },
+	{ id: "vibe", name: "Mistral Vibe" },
 	{ id: "chatgpt", name: "ChatGPT" },
-	{ id: "le-chat", name: "Le Chat" },
 	{ id: "other", name: t.others },
 ] as const;
 
@@ -138,8 +142,8 @@ export function ConnectSteps({ mcp }: { mcp: string }) {
 			<div class="connect__panel" role="tabpanel" id="connect-panel" aria-labelledby={`connect-${client}`}>
 				{client === "claude-code" && <ClaudeCode mcp={mcp} />}
 				{client === "claude" && <ClaudeApps mcp={mcp} />}
+				{client === "vibe" && <Vibe mcp={mcp} />}
 				{client === "chatgpt" && <ChatGPT mcp={mcp} />}
-				{client === "le-chat" && <LeChat mcp={mcp} />}
 				{client === "other" && <Other mcp={mcp} />}
 			</div>
 		</div>
@@ -183,20 +187,22 @@ function ChatGPT({ mcp }: { mcp: string }) {
 			<Notice>{t.chatgptIP}</Notice>
 		);
 	}
+	// Its plans for people, from Free to Pro, cannot publish: say so first.
 	return (
 		<>
+			<Notice>{t.chatgptPlans}</Notice>
 			<p class="c-small">{t.chatgpt}</p>
 			<CopyField label={t.address} value={mcp} />
-			<p class="c-small">{t.chatgptPlans}</p>
 		</>
 	);
 }
 
-function LeChat({ mcp }: { mcp: string }) {
+function Vibe({ mcp }: { mcp: string }) {
 	return (
 		<>
-			<p class="c-small">{t.leChat}</p>
+			<p class="c-small">{t.vibe}</p>
 			<CopyField label={t.address} value={mcp} />
+			<p class="c-small">{t.vibePlans}</p>
 		</>
 	);
 }

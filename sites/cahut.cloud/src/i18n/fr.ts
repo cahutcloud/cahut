@@ -55,7 +55,7 @@ const fr: Dictionary = {
 		stage: {
 			label: "Une IA publie une page dans une Cahut, puis la rend publique quand une personne l'approuve",
 			ai: 'Votre IA',
-			clients: 'Claude, ChatGPT, Le Chat…',
+			clients: 'Claude, Mistral Vibe, ChatGPT…',
 			publishing: 'Je publie la Window dans votre Cahut…',
 			online: "C'est en ligne, dans la Room",
 			access: 'Accès',
@@ -100,7 +100,7 @@ const fr: Dictionary = {
 		steps: [
 			{
 				title: 'Vous demandez',
-				text: "Vous écrivez à votre IA, comme d'habitude. Claude, ChatGPT ou une autre : elles se branchent toutes à votre Cahut, et vous gardez vos habitudes.",
+				text: "Vous écrivez à votre IA, comme d'habitude : Claude ou Mistral Vibe, l'ancien Le Chat, même avec leur offre gratuite. ChatGPT ne publie qu'avec ses offres Business, Enterprise et Edu, pas avec Free, Plus ou Pro.",
 			},
 			{
 				title: 'Votre IA publie',
@@ -505,7 +505,7 @@ const fr: Dictionary = {
 				'Des Cahuts collaboratives, ou individuelles où chacun travaille seul, et des limites sur les personnes, les Rooms, les Windows et le disque, que fixent les administrateurs du serveur.',
 				"Des personnes qui se connectent, des administrateurs de la Cahut et du serveur, et des Rooms d'équipe avec propriétaires et membres. La page de chaque Room liste ses Windows, ou montre celle que ses propriétaires choisissent.",
 				'Une console web, en anglais et en français : Knocks, Rooms, Windows, Logbook, personnes, IA connectées, jetons personnels, e-mail et serveur.',
-				"Des clients d'IA qui se connectent par OAuth, comme claude.ai, Claude Code, ChatGPT et Le Chat, aux Rooms et dans la portée qu'une personne accorde, ou avec un jeton personnel.",
+				"Des clients d'IA qui se connectent par OAuth, comme claude.ai, Claude Code, Mistral Vibe et ChatGPT, aux Rooms et dans la portée qu'une personne accorde, ou avec un jeton personnel.",
 				"Des Windows publiées par MCP : documents, présentations, tableaux de bord et sites statiques, servis dans un bac à sable qui les tient à ce que leur IA déclare charger et appeler.",
 				"Deux versions de chaque Window avec retour en arrière, une corbeille, et un accès : Room seulement, interne, avec une Key ou public, jusqu'à une date.",
 				"Knock first : ce qu'une IA ne peut pas défaire, ou ce qui change ce qu'une personne peut faire, attend sa personne, qui l'approuve ou le refuse dans la console.",
@@ -533,7 +533,7 @@ const fr: Dictionary = {
 		lead: 'Cahut est libre et open source. Essayez-la sans serveur, ou installez-la sur le vôtre.',
 		hosted: {
 			title: 'Essayer sans serveur',
-			text: 'Créez votre Cahut sur My Cahut et connectez votre IA en deux minutes.',
+			text: 'Créez votre Cahut sur My Cahut et connectez votre IA en deux minutes : Claude ou Mistral Vibe, même avec leur offre gratuite, ou ChatGPT avec une offre Business, Enterprise ou Edu.',
 			fine: ['Gratuit, places limitées. My Cahut est offerte par ', ", qui l'héberge en France pour soutenir le projet."],
 			more: 'Tout sur My Cahut',
 		},
