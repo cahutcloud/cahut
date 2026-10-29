@@ -42,6 +42,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`create_room`](#create_room) | Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. In an individual Cahut, you stay its only member, and its name starts with your handle and a hyphen. |
 | [`create_user`](#create_user) | Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. Knock first: a person approves the call before it runs. |
 | [`delete_room`](#delete_room) | Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. Knock first: a person approves the call before it runs. |
+| [`delete_user`](#delete_user) | Delete a person for good: their account, their tokens and the AIs they connected, their personal Room and the team Rooms they are the only owner of, with the Windows of these Rooms and their files. This cannot be undone. The Windows they published in other Rooms stay, without an author. Their handle becomes free. No one deletes themself, nor the last administrator of the Cahut; disable_user stops a person and keeps what is theirs. Knock first: a person approves the call before it runs. |
 | [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. Knock first: a person approves the call before it runs. |
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
@@ -546,6 +547,93 @@ Title: Delete a team Room. Annotations: `readOnlyHint: false`, `destructiveHint:
   "required": [
     "room",
     "title",
+    "windows"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `delete_user`
+
+Delete a person for good: their account, their tokens and the AIs they connected, their personal Room and the team Rooms they are the only owner of, with the Windows of these Rooms and their files. This cannot be undone. The Windows they published in other Rooms stay, without an author. Their handle becomes free. No one deletes themself, nor the last administrator of the Cahut; disable_user stops a person and keeps what is theirs. Knock first: a person approves the call before it runs.
+
+Offered to the AIs of administrators of the Cahut only.
+
+Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
+
+Title: Delete a person for good. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `user` | string | yes | handle of the person |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "user": {
+      "description": "handle of the person",
+      "type": "string"
+    }
+  },
+  "required": [
+    "user"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `name` | string | yes |  |
+| `rooms` | array of strings or null | yes | the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of |
+| `user` | string | yes | the handle of the person, now free |
+| `windows` | integer | yes | how many Windows were deleted with these Rooms, those in their trash included |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "rooms": {
+      "description": "the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "user": {
+      "description": "the handle of the person, now free",
+      "type": "string"
+    },
+    "windows": {
+      "description": "how many Windows were deleted with these Rooms, those in their trash included",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "user",
+    "name",
+    "rooms",
     "windows"
   ],
   "type": "object"
@@ -1945,7 +2033,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 | --- | --- | --- | --- |
 | `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
-| `created_by` | string | yes | handle of the person it was first published for |
+| `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
 | `files` | array of objects or null | yes | the files of the current version |
 | `files[].path` | string | yes |  |
@@ -1966,7 +2054,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 | `versions[].file_count` | integer | yes |  |
 | `versions[].number` | integer | yes |  |
 | `versions[].published_at` | string | yes |  |
-| `versions[].published_by` | string | yes | handle of the person it was published for |
+| `versions[].published_by` | string | yes | handle of the person it was published for, empty once that person is deleted |
 | `versions[].size` | integer | yes | total size of its files, in bytes |
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
@@ -1998,7 +2086,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
       "type": "string"
     },
     "created_by": {
-      "description": "handle of the person it was first published for",
+      "description": "handle of the person it was first published for, empty once that person is deleted",
       "type": "string"
     },
     "declaration": {
@@ -2135,7 +2223,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
             "type": "string"
           },
           "published_by": {
-            "description": "handle of the person it was published for",
+            "description": "handle of the person it was published for, empty once that person is deleted",
             "type": "string"
           },
           "size": {
@@ -3006,7 +3094,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
 | `windows` | array of objects or null | yes |  |
 | `windows[].access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `windows[].created_at` | string | yes |  |
-| `windows[].created_by` | string | yes | handle of the person it was first published for |
+| `windows[].created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `windows[].file_count` | integer | yes |  |
 | `windows[].kind` | string | yes |  |
 | `windows[].name` | string | yes | the Window's name, last part of its address |
@@ -3050,7 +3138,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
             "type": "string"
           },
           "created_by": {
-            "description": "handle of the person it was first published for",
+            "description": "handle of the person it was first published for, empty once that person is deleted",
             "type": "string"
           },
           "declaration": {
@@ -3290,7 +3378,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | --- | --- | --- | --- |
 | `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
-| `created_by` | string | yes | handle of the person it was first published for |
+| `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
@@ -3330,7 +3418,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
       "type": "string"
     },
     "created_by": {
-      "description": "handle of the person it was first published for",
+      "description": "handle of the person it was first published for, empty once that person is deleted",
       "type": "string"
     },
     "declaration": {
@@ -3475,7 +3563,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
 | --- | --- | --- | --- |
 | `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
-| `created_by` | string | yes | handle of the person it was first published for |
+| `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
@@ -3515,7 +3603,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
       "type": "string"
     },
     "created_by": {
-      "description": "handle of the person it was first published for",
+      "description": "handle of the person it was first published for, empty once that person is deleted",
       "type": "string"
     },
     "declaration": {
@@ -3799,7 +3887,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | --- | --- | --- | --- |
 | `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
-| `created_by` | string | yes | handle of the person it was first published for |
+| `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
@@ -3839,7 +3927,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
       "type": "string"
     },
     "created_by": {
-      "description": "handle of the person it was first published for",
+      "description": "handle of the person it was first published for, empty once that person is deleted",
       "type": "string"
     },
     "declaration": {
@@ -4535,7 +4623,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
 | --- | --- | --- | --- |
 | `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
-| `created_by` | string | yes | handle of the person it was first published for |
+| `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
@@ -4575,7 +4663,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
       "type": "string"
     },
     "created_by": {
-      "description": "handle of the person it was first published for",
+      "description": "handle of the person it was first published for, empty once that person is deleted",
       "type": "string"
     },
     "declaration": {
@@ -6083,7 +6171,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 | --- | --- | --- | --- |
 | `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
-| `created_by` | string | yes | handle of the person it was first published for |
+| `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
@@ -6124,7 +6212,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
       "type": "string"
     },
     "created_by": {
-      "description": "handle of the person it was first published for",
+      "description": "handle of the person it was first published for, empty once that person is deleted",
       "type": "string"
     },
     "declaration": {
@@ -6271,7 +6359,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 | --- | --- | --- | --- |
 | `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
-| `created_by` | string | yes | handle of the person it was first published for |
+| `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
@@ -6311,7 +6399,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
       "type": "string"
     },
     "created_by": {
-      "description": "handle of the person it was first published for",
+      "description": "handle of the person it was first published for, empty once that person is deleted",
       "type": "string"
     },
     "declaration": {
@@ -6671,7 +6759,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | --- | --- | --- | --- |
 | `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
-| `created_by` | string | yes | handle of the person it was first published for |
+| `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
@@ -6711,7 +6799,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
       "type": "string"
     },
     "created_by": {
-      "description": "handle of the person it was first published for",
+      "description": "handle of the person it was first published for, empty once that person is deleted",
       "type": "string"
     },
     "declaration": {

@@ -50,6 +50,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [44](0044-two-bars-for-the-server-and-the-cahut.md) | The console shows the server and the Cahut in two bars, and each signs out of its own session | Accepted |
 | [45](0045-windows-fetch-the-blob-and-data-urls-they-make.md) | The pages of a Window fetch the blob: and data: URLs they make | Accepted |
 | [46](0046-styled-notes-in-invitations.md) | The note of an invitation carries bold, italics and lists | Accepted |
+| [47](0047-deleting-a-person.md) | The administrators of a Cahut delete a person for good, with the Rooms that are theirs alone | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

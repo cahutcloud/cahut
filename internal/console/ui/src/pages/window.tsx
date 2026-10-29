@@ -58,7 +58,8 @@ const t = words({
 		versionsHelp: "Cahut keeps the current version and the one before. Going back can be undone: the version you leave becomes the previous one.",
 		version: (n: number) => `Version ${n}`,
 		current: "Current",
-		versionMeta: (ago: string, by: string, files: string, size: string) => `${ago} · for ${by} · ${files}, ${size}`,
+		// by is empty once the person it was published for is deleted.
+		versionMeta: (ago: string, by: string, files: string, size: string) => `${ago}${by ? ` · for ${by}` : ""} · ${files}, ${size}`,
 		file: "file",
 		files: "files",
 		goBack: "Go back to it",
@@ -143,7 +144,7 @@ const t = words({
 			"Cahut garde la version actuelle et celle d'avant. Revenir en arrière s'annule : la version que vous quittez devient la précédente.",
 		version: (n) => `Version ${n}`,
 		current: "Actuelle",
-		versionMeta: (ago, by, files, size) => `${ago} · pour ${by} · ${files}, ${size}`,
+		versionMeta: (ago, by, files, size) => `${ago}${by ? ` · pour ${by}` : ""} · ${files}, ${size}`,
 		file: "fichier",
 		files: "fichiers",
 		goBack: "Y revenir",

@@ -124,6 +124,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/create_token` | Any person | yes |
 | `POST /api/create_user` | Administrators of the Cahut | yes |
 | `POST /api/delete_room` | Any person | yes |
+| `POST /api/delete_user` | Administrators of the Cahut | yes |
 | `POST /api/deny_authorization` | Any person | yes |
 | `POST /api/deny_knock` | Any person | yes |
 | `POST /api/describe_authorization` | Any person | yes |

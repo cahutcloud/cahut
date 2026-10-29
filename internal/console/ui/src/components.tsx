@@ -575,7 +575,7 @@ export function WindowCard(props: { window: Window; showRoom?: boolean; home?: b
 				</Link>
 				<div class="c-window__meta">
 					<span>
-						{kind.name} · {ago(w.updated_at)} · {showRoom ? w.room : w.created_by}
+						{[kind.name, ago(w.updated_at), showRoom ? w.room : w.created_by].filter(Boolean).join(" · ")}
 					</span>
 					<AccessBadge access={w.access} />
 				</div>

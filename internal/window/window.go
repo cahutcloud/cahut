@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
@@ -99,6 +100,17 @@ func (s *Service) Register(r *operation.Registry) {
 			"a personal Room is never deleted.",
 		KnockFirst: true,
 		Run:        s.deleteRoom,
+	})
+	operation.Register(r, &operation.Op[account.UserInput, DeletedUser]{
+		Name:  "delete_user",
+		Title: "Delete a person for good",
+		Description: "Delete a person for good: their account, their tokens and the AIs they connected, their personal Room " +
+			"and the team Rooms they are the only owner of, with the Windows of these Rooms and their files. This cannot be undone. " +
+			"The Windows they published in other Rooms stay, without an author. Their handle becomes free. " +
+			"No one deletes themself, nor the last administrator of the Cahut; disable_user stops a person and keeps what is theirs.",
+		Level:      operation.CahutAdmin,
+		KnockFirst: true,
+		Run:        s.deleteUser,
 	})
 	operation.Register(r, &operation.Op[AccessInput, AccessSet]{
 		Name:  "set_window_access",
@@ -190,7 +202,7 @@ type Window struct {
 	Previous  int       `json:"previous_version,omitempty" jsonschema:"the number of the version that rollback_window goes back to; absent when there is none"`
 	Size      int64     `json:"size" jsonschema:"total size of the files of the current version, in bytes"`
 	FileCount int       `json:"file_count"`
-	CreatedBy string    `json:"created_by" jsonschema:"handle of the person it was first published for"`
+	CreatedBy string    `json:"created_by" jsonschema:"handle of the person it was first published for, empty once that person is deleted"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Access    string    `json:"access" jsonschema:"who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public"`
@@ -509,7 +521,7 @@ type Version struct {
 	Current     bool      `json:"current" jsonschema:"whether readers see this version"`
 	Size        int64     `json:"size" jsonschema:"total size of its files, in bytes"`
 	FileCount   int       `json:"file_count"`
-	PublishedBy string    `json:"published_by" jsonschema:"handle of the person it was published for"`
+	PublishedBy string    `json:"published_by" jsonschema:"handle of the person it was published for, empty once that person is deleted"`
 	PublishedAt time.Time `json:"published_at"`
 }
 
@@ -551,8 +563,8 @@ func (s *Service) get(ctx context.Context, c *operation.Call, in GetInput) (Deta
 // versionsOf returns the versions of the Window w, the current one first.
 func versionsOf(ctx context.Context, tx *sql.Tx, w found) ([]Version, error) {
 	rows, err := tx.QueryContext(ctx, `
-		SELECT v.number, v.size, v.file_count, u.handle, v.published_at
-		FROM window_versions v JOIN users u ON u.id = v.published_by
+		SELECT v.number, v.size, v.file_count, coalesce(u.handle, ''), v.published_at
+		FROM window_versions v LEFT JOIN users u ON u.id = v.published_by
 		WHERE v.window_id = ? ORDER BY v.number = ? DESC`, w.id, w.Version)
 	if err != nil {
 		return nil, err
@@ -626,8 +638,8 @@ type found struct {
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
 	q := `
 		SELECT w.id, w.room_id, w.name, w.title, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
-			u.handle, w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL, v.declaration
-		FROM windows w JOIN rooms r ON r.id = w.room_id JOIN users u ON u.id = w.created_by
+			coalesce(u.handle, ''), w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL, v.declaration
+		FROM windows w JOIN rooms r ON r.id = w.room_id LEFT JOIN users u ON u.id = w.created_by
 		JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
 		WHERE ` + where
 	if !c.Actor.CommandLine() {

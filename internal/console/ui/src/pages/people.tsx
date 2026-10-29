@@ -1,7 +1,7 @@
 // People, for the administrators of the Cahut: who is in it, and two
 // dialogs. One adds a person and gives the link where they choose their
 // password; the other manages a person: their e-mail address, their role, a
-// new link, disabling.
+// new link, disabling, and deleting them for good.
 import { Check, Plus } from "lucide-preact";
 import { useId, useState } from "preact/hooks";
 import { explain } from "../api";
@@ -79,6 +79,16 @@ const t = words({
 			"Their sessions end, and neither they nor their AIs can act until an administrator enables them again. Their Rooms and Windows stay.",
 		askDisable: (name: string) => `Disable ${name}? Their sessions end now.`,
 		disabled: (name: string) => `${name} is disabled.`,
+		deletePerson: "Delete for good",
+		deleteHelp: (name: string) =>
+			`${name}, their tokens and their AIs, their personal Room and the team Rooms they are the only owner of, with the Windows of these Rooms and their files. The Windows they published in other Rooms stay. It cannot be undone.`,
+		deleteAsk: "Delete…",
+		typeToConfirm: (handle: string) => (
+			<>
+				Type <span class="c-mono">{handle}</span> to confirm
+			</>
+		),
+		deleteForGood: "Delete for good",
 		selfNote: () => (
 			<>
 				Your password changes in{" "}
@@ -158,6 +168,16 @@ const t = words({
 			"Ses sessions prennent fin, et ni cette personne ni ses IA ne peuvent agir tant qu'un administrateur ne réactive pas son compte. Ses Rooms et ses Windows restent.",
 		askDisable: (name) => `Désactiver ${name} ? Ses sessions prennent fin tout de suite.`,
 		disabled: (name) => `Le compte ${de(name)} est désactivé.`,
+		deletePerson: "Supprimer définitivement",
+		deleteHelp: (name) =>
+			`Le compte ${de(name)}, ses jetons et ses IA, sa Room personnelle et les Rooms d'équipe dont cette personne est la seule propriétaire, avec leurs Windows et leurs fichiers. Les Windows publiées dans d'autres Rooms restent. Cela ne s'annule pas.`,
+		deleteAsk: "Supprimer…",
+		typeToConfirm: (handle) => (
+			<>
+				Tapez <span class="c-mono">{handle}</span> pour confirmer
+			</>
+		),
+		deleteForGood: "Supprimer définitivement",
 		selfNote: () => (
 			<>
 				Votre mot de passe se change dans{" "}
@@ -480,11 +500,80 @@ function ManagePerson(props: { user: User; self: boolean; onChanged: () => void;
 							}}
 						/>
 					))}
+				{!props.self && (
+					<DeleteSetting
+						user={u}
+						onDeleted={() => {
+							props.onChanged();
+							props.onClose();
+						}}
+					/>
+				)}
 			</div>
 			{props.self && (
 				<p class="c-small c-muted dialog__note">{t.selfNote()}</p>
 			)}
 		</Dialog>
+	);
+}
+
+/** Deletes a person for good, once their handle is typed. */
+function DeleteSetting({ user, onDeleted }: { user: User; onDeleted: () => void }) {
+	const api = useConsole();
+	const [asking, setAsking] = useState(false);
+	const [typed, setTyped] = useState("");
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	const remove = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		try {
+			await api.cahut("delete_user", { user: user.handle });
+			onDeleted();
+		} catch (err) {
+			setError(explain(err));
+			setBusy(false);
+		}
+	};
+	return (
+		<div class="setting">
+			<div class="setting__text">
+				<span class="setting__title">{t.deletePerson}</span>
+				<p class="c-small c-muted">{t.deleteHelp(user.name)}</p>
+			</div>
+			{!asking && (
+				<div class="setting__action">
+					<button class="c-btn c-btn--danger" type="button" onClick={() => setAsking(true)}>
+						{t.deleteAsk}
+					</button>
+				</div>
+			)}
+			{asking && (
+				<form class="setting__more setting__confirm" onSubmit={remove}>
+					<label class="c-field">
+						<span class="c-field__label">{t.typeToConfirm(user.handle)}</span>
+						<input
+							class="c-input c-mono"
+							autoComplete="off"
+							autocapitalize="none"
+							spellcheck={false}
+							value={typed}
+							onInput={(e) => setTyped(e.currentTarget.value)}
+						/>
+					</label>
+					{error && <Failure message={error} />}
+					<div class="actions">
+						<button class="c-btn c-btn--danger c-btn--sm" type="submit" disabled={busy || typed.trim() !== user.handle}>
+							{t.deleteForGood}
+						</button>
+						<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => (setAsking(false), setTyped(""))}>
+							{t.cancel}
+						</button>
+					</div>
+				</form>
+			)}
+		</div>
 	);
 }
 
