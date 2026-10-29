@@ -5,7 +5,7 @@
 // sentence in both languages here, or the build fails. See
 // docs/adr/0037-refusals-with-a-code-for-the-console.md.
 import type { Refusals } from "./api.gen";
-import { de, plural, words } from "./i18n";
+import { de, locale, plural, words } from "./i18n";
 
 /** A sentence for each code: a string, or a function of its values. */
 type Sentences = { [C in keyof Refusals]: Refusals[C] extends null ? string : (v: Refusals[C]) => string };
@@ -37,6 +37,11 @@ function field(link: string): string {
 	const names: Record<string, string> = { legal_notice: fields.legal_notice, terms: fields.terms, privacy: fields.privacy, support: fields.support };
 	const name = names[page] ?? page;
 	return french ? fields.inFrench(name) : name;
+}
+
+/** The day and the time of an instant that the server gives, as people read it. */
+function when(at: string): string {
+	return new Date(at).toLocaleString(locale, { dateStyle: "long", timeStyle: "short" });
 }
 
 const said = words<Sentences>({
@@ -97,6 +102,12 @@ const said = words<Sentences>({
 		session_ended: "Your session has ended: sign in again.",
 		setup_done: (v) => `The Cahut of ${v.domain} has people already: sign in at its console.`,
 		setup_link_gone: "This link to the first start does not work any more: it was used, it expired, or it is for another address.",
+		share_link_end_past: (v) => `This end is past: a share link ends between now and ${when(v.latest)}.`,
+		share_link_ended: () => "This share link has ended already: it opens nothing more.",
+		share_link_label: (v) => `Write the label on one line, in ${plural(v.limit, "character", "characters")} at most.`,
+		share_link_openings: (v) => `Give a number of readers from 1 to ${v.limit}, or none for any number.`,
+		share_link_public: () => "This Window is public: its permanent address opens it to anyone. Copy that link instead.",
+		share_link_too_long: (v) => `A share link lasts 30 days at most: give an end before ${when(v.latest)}.`,
 		title_empty: "The title is empty: give one.",
 		title_too_long: "The title is too long: shorten it.",
 		too_many_attempts_from_address: "Too many attempts from this address: wait a minute.",
@@ -104,6 +115,10 @@ const said = words<Sentences>({
 			`You and your AIs sent ${plural(v.sent, "invitation", "invitations")} in the last 24 hours, and ${v.limit} is the most: send the rest later.`,
 		too_many_refused_sign_ins: (v) =>
 			`Too many refused sign-ins for this handle: try again in ${plural(v.minutes, "minute", "minutes")}.`,
+		too_many_share_links: (v) =>
+			`This Window has ${v.limit} share links that stand, the most: take one back before you make another.`,
+		too_many_share_links_today: (v) =>
+			`You and your AIs made ${plural(v.made, "share link", "share links")} in the last 24 hours, and ${v.limit} is the most: make the rest later.`,
 		too_many_sign_ins_at_once: "Too many sign-ins at once: try again in a few seconds.",
 		window_name_invalid: (v) =>
 			`"${v.name}" cannot be the name of a Window: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit.`,
@@ -170,6 +185,12 @@ const said = words<Sentences>({
 		session_ended: "Votre session a pris fin : reconnectez-vous.",
 		setup_done: (v) => `La Cahut ${de(v.domain)} a déjà des personnes : connectez-vous à sa console.`,
 		setup_link_gone: "Ce lien de premier démarrage ne fonctionne plus : il a servi, il a expiré, ou il est pour une autre adresse.",
+		share_link_end_past: (v) => `Cette fin est passée : un lien de partage finit entre maintenant et le ${when(v.latest)}.`,
+		share_link_ended: () => "Ce lien de partage a déjà pris fin : il n'ouvre plus rien.",
+		share_link_label: (v) => `Écrivez l'étiquette sur une ligne, en ${plural(v.limit, "caractère", "caractères")} au plus.`,
+		share_link_openings: (v) => `Donnez un nombre de lecteurs de 1 à ${v.limit}, ou aucun pour un nombre sans limite.`,
+		share_link_public: () => "Cette Window est publique : son adresse permanente l'ouvre à tous. Copiez plutôt ce lien.",
+		share_link_too_long: (v) => `Un lien de partage dure 30 jours au plus : donnez une fin avant le ${when(v.latest)}.`,
 		title_empty: "Le titre est vide : donnez-en un.",
 		title_too_long: "Le titre est trop long : raccourcissez-le.",
 		too_many_attempts_from_address: "Trop de tentatives depuis cette adresse : patientez une minute.",
@@ -177,6 +198,10 @@ const said = words<Sentences>({
 			`Vous et vos IA avez envoyé ${plural(v.sent, "invitation", "invitations")} ces dernières 24 heures, et ${v.limit} est le maximum : envoyez les autres plus tard.`,
 		too_many_refused_sign_ins: (v) =>
 			`Trop de connexions refusées pour cet identifiant : réessayez dans ${plural(v.minutes, "minute", "minutes")}.`,
+		too_many_share_links: (v) =>
+			`Cette Window a ${v.limit} liens de partage actifs, le maximum : retirez-en un avant d'en créer un autre.`,
+		too_many_share_links_today: (v) =>
+			`Vous et vos IA avez créé ${plural(v.made, "lien de partage", "liens de partage")} ces dernières 24 heures, et ${v.limit} est le maximum : créez les autres plus tard.`,
 		too_many_sign_ins_at_once: "Trop de connexions en même temps : réessayez dans quelques secondes.",
 		window_name_invalid: (v) =>
 			`« ${v.name} » ne peut pas être le nom d'une Window : utilisez de 1 à 63 lettres minuscules, chiffres et tirets, en commençant et en finissant par une lettre ou un chiffre.`,

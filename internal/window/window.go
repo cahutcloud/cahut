@@ -187,6 +187,30 @@ func (s *Service) Register(r *operation.Registry) {
 		Destructive: true,
 		Run:         s.revokeInvitation,
 	})
+	operation.Register(r, &operation.Op[ShareLinkInput, ShareLinkMade]{
+		Name:  "create_share_link",
+		Title: "Share a Window with a link",
+		Description: "Make a share link: whoever holds it opens the Window, without an account or a Key, until it ends, besides its access. " +
+			"It ends in 7 days unless you give an end, 30 days at most, and may open to a number of readers only. " +
+			"It is returned this once: give it to the person. revoke_share_link takes it back. Not for a public Window.",
+		OpenWorld: true,
+		Run:       s.createLink,
+	})
+	operation.Register(r, &operation.Op[RevokeShareLinkInput, ShareLink]{
+		Name:        "revoke_share_link",
+		Title:       "Take back a share link",
+		Description: "Take back a share link: it no longer opens its Window, to those who opened it too.",
+		Destructive: true,
+		Run:         s.revokeLink,
+	})
+	operation.Register(r, &operation.Op[OpenShareLinkInput, ShareLinkOpening]{
+		Name:        "open_share_link",
+		Title:       "Open a share link",
+		Description: "Open the Window of a share link, from the page of the link: spend one of its openings, and give a pass.",
+		PeopleOnly:  true,
+		Visitors:    true,
+		Run:         openLink,
+	})
 	operation.Register(r, &operation.Op[InvitationCodeInput, InvitationPage]{
 		Name:        "get_invitation",
 		Title:       "Describe an invitation",
@@ -644,6 +668,10 @@ type Detail struct {
 	Window
 	Versions []Version  `json:"versions" jsonschema:"the current version, then the previous one if there is one"`
 	Files    []FileInfo `json:"files" jsonschema:"the files of the current version"`
+	// Share links open the Window besides its access. See
+	// docs/adr/0052-share-links.md.
+	ShareLinks int         `json:"share_links" jsonschema:"how many share links open the Window to someone new, besides its access"`
+	Links      []ShareLink `json:"links" jsonschema:"its share links, the latest first, without the links themselves"`
 }
 
 // Version describes a version of a Window.
@@ -686,7 +714,11 @@ func (s *Service) get(ctx context.Context, c *operation.Call, in GetInput) (Deta
 	if err != nil {
 		return Detail{}, err
 	}
-	return Detail{Window: w[0].Window, Versions: versions, Files: files}, nil
+	links, standing, err := linksOf(ctx, c.Tx, w[0].id, c.Now)
+	if err != nil {
+		return Detail{}, err
+	}
+	return Detail{Window: w[0].Window, Versions: versions, Files: files, ShareLinks: standing, Links: links}, nil
 }
 
 // versionsOf returns the versions of the Window w, the current one first.

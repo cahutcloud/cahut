@@ -171,10 +171,11 @@ func (s *Service) deleteUser(ctx context.Context, c *operation.Call, in account.
 	}
 	// What the person did elsewhere stays, without their name: the Windows
 	// and versions they published lose their author with the foreign keys,
-	// and their invitations lose it here. The rest of what is theirs goes
+	// and their invitations and share links lose it here. The rest of what is theirs goes
 	// with them.
 	for _, q := range []string{
 		"UPDATE invitations SET invited_by = NULL WHERE invited_by = ?",
+		"UPDATE share_links SET created_by = NULL WHERE created_by = ?",
 		"DELETE FROM users WHERE id = ?",
 	} {
 		if _, err := c.Tx.ExecContext(ctx, q, u.ID); err != nil {

@@ -130,9 +130,9 @@ func (s *Service) setAccess(ctx context.Context, c *operation.Call, in AccessInp
 		set += ", key_hash = NULL"
 	}
 	// A new Key, or no Key at all, ends the passes of the old one, and the
-	// invitations that stood for it.
+	// invitations that stood for it. The passes of share links stand.
 	if key != "" || in.Access != AccessKey {
-		if _, err := c.Tx.ExecContext(ctx, "DELETE FROM window_passes WHERE window_id = ?", w.id); err != nil {
+		if _, err := c.Tx.ExecContext(ctx, "DELETE FROM window_passes WHERE window_id = ? AND link_id IS NULL", w.id); err != nil {
 			return AccessSet{}, err
 		}
 		if err := endKeyInvitations(ctx, c, w.id); err != nil {
@@ -241,7 +241,8 @@ const (
 
 // Opens says how a reader opens the Window w: userID is the person of their
 // reader session, or zero, and pass the id of a pass of theirs for w, or
-// zero.
+// zero. The pass of a Key opens it while its access is key, and the pass of
+// a share link whatever its access.
 func (w Served) Opens(ctx context.Context, db *store.DB, userID, pass int64) (Opening, error) {
 	if w.Access == AccessPublic {
 		return ByAddress, nil
@@ -262,6 +263,17 @@ func (w Served) Opens(ctx context.Context, db *store.DB, userID, pass int64) (Op
 	}
 	if pass != 0 && w.Access == AccessKey {
 		return ByPass, nil
+	}
+	if pass != 0 {
+		var link bool
+		err := db.Read.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM window_passes WHERE id = ? AND window_id = ? AND link_id IS NOT NULL)",
+			pass, w.ID).Scan(&link)
+		if err != nil {
+			return Closed, err
+		}
+		if link {
+			return ByPass, nil
+		}
 	}
 	return Closed, nil
 }
@@ -308,11 +320,17 @@ func OpenWithKey(ctx context.Context, db *store.DB, w Served, key string, now ti
 // Pass returns the id of the pass token for the Window id, while it lasts,
 // or zero.
 func Pass(ctx context.Context, db *store.DB, windowID int64, token string, now time.Time) (int64, error) {
+	return pass(ctx, db, windowID, token, now, "")
+}
+
+// pass returns the id of the pass token for the Window id, while it lasts
+// and its row matches the clause and, or zero.
+func pass(ctx context.Context, db *store.DB, windowID int64, token string, now time.Time, and string) (int64, error) {
 	if !strings.HasPrefix(token, PassPrefix) {
 		return 0, nil
 	}
 	var id int64
-	err := db.Read.QueryRowContext(ctx, "SELECT id FROM window_passes WHERE hash = ? AND window_id = ? AND expires_at > ?",
+	err := db.Read.QueryRowContext(ctx, "SELECT id FROM window_passes WHERE hash = ? AND window_id = ? AND expires_at > ?"+and, /* #nosec G202 -- and is a constant clause */
 		credential.Hash(token), windowID, store.FormatTime(now)).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return 0, nil
@@ -389,7 +407,8 @@ func ViewRoom(ctx context.Context, db *store.DB, name string, userID int64, pass
 		case userID != 0 && (v.Member || w.Access == AccessInternal):
 			o.How = BySession
 		case w.Access == AccessKey && passes[w.ID] != "":
-			if o.Pass, err = Pass(ctx, db, w.ID, passes[w.ID], now); err != nil {
+			// A share link opens its Window, not the page of its Room.
+			if o.Pass, err = pass(ctx, db, w.ID, passes[w.ID], now, " AND link_id IS NULL"); err != nil {
 				return RoomView{}, err
 			}
 			if o.Pass != 0 {

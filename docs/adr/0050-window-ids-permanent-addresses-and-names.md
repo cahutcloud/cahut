@@ -1,6 +1,6 @@
 # 50. Each Window has an id that never changes and a permanent address, and its people change its name, its title and its description
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 52](0052-share-links.md) (a share link opens a Window at a second address under `/-/`)
 - Date: 2026-10-29
 
 ## Context

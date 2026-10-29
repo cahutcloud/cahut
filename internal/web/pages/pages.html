@@ -112,6 +112,50 @@ docs/adr/0051-sharing-a-window-and-its-preview.md. */}}
 </html>
 {{end}}
 
+{{define "link"}}{{template "head" .}}<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{.Domain}}">
+<meta property="og:title" content="{{.Title}}">
+<meta property="og:description" content="{{.Description}}">
+<meta property="og:url" content="{{.URL}}">
+<meta property="og:image" content="{{.Image}}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{.ImageAlt}}">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+{{template "top" .}}
+<main class="page page--narrow">
+<section class="c-card panel">
+<p class="c-label">{{icon "link" 14}} Share link</p>
+<h1 class="c-h3">{{.Title}}</h1>
+<p>This link opens it until {{.Until}}{{if .Limited}}, for {{if eq .Left 1}}one more reader{{else}}{{.Left}} more readers{{end}}{{end}}.</p>
+<form method="post">
+<p><button class="c-btn c-btn--primary" type="submit">{{icon "arrow-up-right" 16}}Open {{.Title}}</button></p>
+</form>
+<p class="c-small c-muted">Whoever has this link opens the Window. Keep it to the people it is meant for.</p>
+</section>
+</main>
+{{template "legal" .}}</body>
+</html>
+{{end}}
+
+{{define "linkgone"}}{{template "head" .}}</head>
+<body>
+{{template "top" .}}
+<main class="page page--narrow">
+<section class="c-card panel">
+<p class="c-label">{{icon "link" 14}} Share link</p>
+<h1 class="c-h3">This link opens nothing</h1>
+<p>It ended, was taken back, or was opened as many times as it could.</p>
+<p class="c-small c-muted">Ask whoever gave it to you for a new one.</p>
+</section>
+</main>
+{{template "legal" .}}</body>
+</html>
+{{end}}
+
 {{define "key"}}{{template "head" .}}</head>
 <body>
 {{template "top" .}}

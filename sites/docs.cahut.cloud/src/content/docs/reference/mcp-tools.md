@@ -21,7 +21,7 @@ The Cahut gives these instructions to the AI when it connects:
 
 > Cahut keeps what you make on the user's own server, as Windows. To publish a document, deck, dashboard or site: call publish_window with a complete index.html and all its files, linked by relative paths (css/deck.css, never /css/deck.css), and a declaration of its scripts and of every origin it loads from or calls. Give the user the address it returns. A call that cannot be undone makes a Knock: give the user its link to approve it.
 >
-> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. Give each Window a description of a sentence or two; retitle_window changes its title and description without a new version. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
+> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. Give each Window a description of a sentence or two; retitle_window changes its title and description without a new version. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. create_share_link gives a link that opens a Window to whoever holds it, without an account or a Key, for 30 days at most: give it to the user, who passes it on; revoke_share_link takes it back. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -40,6 +40,7 @@ The Cahut gives these instructions to the AI when it connects:
 | --- | --- |
 | [`add_room_member`](#add_room_member) | Add a person to a team Room, as a member or an owner. They can then open and publish its Windows. Knock first: a person approves the call before it runs. |
 | [`create_room`](#create_room) | Create a team Room, at &lt;domain&gt;/&lt;name&gt;/. You become its owner, and can then add members. Windows published in it are for its members. In an individual Cahut, you stay its only member, and its name starts with your handle and a hyphen. |
+| [`create_share_link`](#create_share_link) | Make a share link: whoever holds it opens the Window, without an account or a Key, until it ends, besides its access. It ends in 7 days unless you give an end, 30 days at most, and may open to a number of readers only. It is returned this once: give it to the person. revoke_share_link takes it back. Not for a public Window. |
 | [`create_user`](#create_user) | Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. Knock first: a person approves the call before it runs. |
 | [`delete_room`](#delete_room) | Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. Knock first: a person approves the call before it runs. |
 | [`delete_user`](#delete_user) | Delete a person for good: their account, their tokens and the AIs they connected, their personal Room and the team Rooms they are the only owner of, with the Windows of these Rooms and their files. This cannot be undone. The Windows they published in other Rooms stay, without an author. Their handle becomes free. No one deletes themself, nor the last administrator of the Cahut; disable_user stops a person and keeps what is theirs. Knock first: a person approves the call before it runs. |
@@ -64,6 +65,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`restore_window`](#restore_window) | Bring a Window back from the trash, with its versions. |
 | [`retitle_window`](#retitle_window) | Change the title of a Window, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it. |
 | [`revoke_invitation`](#revoke_invitation) | Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. |
+| [`revoke_share_link`](#revoke_share_link) | Take back a share link: it no longer opens its Window, to those who opened it too. |
 | [`rollback_window`](#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
 | [`set_ai_reach`](#set_ai_reach) | Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs. |
 | [`set_room_home`](#set_room_home) | Show a Window of a Room at the Room's address, &lt;domain&gt;/&lt;room&gt;/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access. |
@@ -337,6 +339,153 @@ Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint:
     "members",
     "windows",
     "created_at"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `create_share_link`
+
+Make a share link: whoever holds it opens the Window, without an account or a Key, until it ends, besides its access. It ends in 7 days unless you give an end, 30 days at most, and may open to a number of readers only. It is returned this once: give it to the person. revoke_share_link takes it back. Not for a public Window.
+
+Title: Share a Window with a link. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: true`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
+| `ends_at` | string or null | no | when the link stops opening the Window, within 30 days, such as 2026-11-05T18:00:00Z; 7 days from now when absent |
+| `label` | string | no | a few words that tell the links of the Window apart, such as For Acme, 100 characters at most, which only the members of its Room see |
+| `max_openings` | integer | no | how many readers may open it, from 1 to 1000; any number when absent |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "ends_at": {
+      "description": "when the link stops opening the Window, within 30 days, such as 2026-11-05T18:00:00Z; 7 days from now when absent",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "label": {
+      "description": "a few words that tell the links of the Window apart, such as For Acme, 100 characters at most, which only the members of its Room see",
+      "type": "string"
+    },
+    "max_openings": {
+      "description": "how many readers may open it, from 1 to 1000; any number when absent",
+      "type": "integer"
+    },
+    "window": {
+      "description": "the Window's id or address, or its Room and its name as room/name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "window"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `expires_at` | string | yes | when it stops opening the Window, to those who opened it too |
+| `id` | integer | yes |  |
+| `link` | string | yes | the share link, returned this once: give it to the person, who passes it on. Whoever holds it opens the Window |
+| `openings` | integer | yes | how many readers opened it |
+| `stands` | boolean | yes | whether it opens the Window to someone new: neither ended nor taken back, with openings left |
+| `window` | string | yes | the Window, as room/name |
+| `ai` | string | no | the AI that made it for them |
+| `by` | string | no | the handle of the person who made it |
+| `label` | string | no |  |
+| `max_openings` | integer | no | how many readers may open it; absent when any number may |
+| `opened_at` | string or null | no | when it was last opened |
+| `revoked_at` | string or null | no | when it was taken back |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "ai": {
+      "description": "the AI that made it for them",
+      "type": "string"
+    },
+    "by": {
+      "description": "the handle of the person who made it",
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "expires_at": {
+      "description": "when it stops opening the Window, to those who opened it too",
+      "type": "string"
+    },
+    "id": {
+      "type": "integer"
+    },
+    "label": {
+      "type": "string"
+    },
+    "link": {
+      "description": "the share link, returned this once: give it to the person, who passes it on. Whoever holds it opens the Window",
+      "type": "string"
+    },
+    "max_openings": {
+      "description": "how many readers may open it; absent when any number may",
+      "type": "integer"
+    },
+    "opened_at": {
+      "description": "when it was last opened",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "openings": {
+      "description": "how many readers opened it",
+      "type": "integer"
+    },
+    "revoked_at": {
+      "description": "when it was taken back",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "stands": {
+      "description": "whether it opens the Window to someone new: neither ended nor taken back, with openings left",
+      "type": "boolean"
+    },
+    "window": {
+      "description": "the Window, as room/name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "expires_at",
+    "openings",
+    "stands",
+    "window",
+    "link"
   ],
   "type": "object"
 }
@@ -1630,9 +1779,22 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 | `files[].encoding` | string | no | utf-8 or base64 |
 | `id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
 | `kind` | string | yes |  |
+| `links` | array of objects or null | yes | its share links, the latest first, without the links themselves |
+| `links[].created_at` | string | yes |  |
+| `links[].expires_at` | string | yes | when it stops opening the Window, to those who opened it too |
+| `links[].id` | integer | yes |  |
+| `links[].openings` | integer | yes | how many readers opened it |
+| `links[].stands` | boolean | yes | whether it opens the Window to someone new: neither ended nor taken back, with openings left |
+| `links[].ai` | string | no | the AI that made it for them |
+| `links[].by` | string | no | the handle of the person who made it |
+| `links[].label` | string | no |  |
+| `links[].max_openings` | integer | no | how many readers may open it; absent when any number may |
+| `links[].opened_at` | string or null | no | when it was last opened |
+| `links[].revoked_at` | string or null | no | when it was taken back |
 | `name` | string | yes | the Window's name, last part of its address |
 | `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
+| `share_links` | integer | yes | how many share links open the Window to someone new, besides its access |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
@@ -1765,6 +1927,73 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
     "kind": {
       "type": "string"
     },
+    "links": {
+      "description": "its share links, the latest first, without the links themselves",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "ai": {
+            "description": "the AI that made it for them",
+            "type": "string"
+          },
+          "by": {
+            "description": "the handle of the person who made it",
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "expires_at": {
+            "description": "when it stops opening the Window, to those who opened it too",
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "label": {
+            "type": "string"
+          },
+          "max_openings": {
+            "description": "how many readers may open it; absent when any number may",
+            "type": "integer"
+          },
+          "opened_at": {
+            "description": "when it was last opened",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "openings": {
+            "description": "how many readers opened it",
+            "type": "integer"
+          },
+          "revoked_at": {
+            "description": "when it was taken back",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stands": {
+            "description": "whether it opens the Window to someone new: neither ended nor taken back, with openings left",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "expires_at",
+          "openings",
+          "stands"
+        ],
+        "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "name": {
       "description": "the Window's name, last part of its address",
       "type": "string"
@@ -1780,6 +2009,10 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
     "room": {
       "description": "the name of its Room, the part of its address before its name",
       "type": "string"
+    },
+    "share_links": {
+      "description": "how many share links open the Window to someone new, besides its access",
+      "type": "integer"
     },
     "size": {
       "description": "total size of the files of the current version, in bytes",
@@ -1865,7 +2098,9 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
     "updated_at",
     "access",
     "versions",
-    "files"
+    "files",
+    "share_links",
+    "links"
   ],
   "type": "object"
 }
@@ -2339,7 +2574,7 @@ Title: Read the Logbook. Annotations: `readOnlyHint: true`, `destructiveHint: fa
 | `entries[].id` | integer | yes |  |
 | `entries[].operation` | string | yes |  |
 | `entries[].outcome` | string | yes | ok, knocked (waiting for a person's approval), refused or failed |
-| `entries[].via` | string | yes | the adapter the call came through: cli, api, mcp or oauth |
+| `entries[].via` | string | yes | the adapter the call came through: cli, api, mcp, oauth, or web for the page of a share link |
 | `entries[].address` | string | no | where a call that signs in came from: an IPv4 address, or the /64 of an IPv6 one |
 | `entries[].client` | string | no | the AI, as its token or its connection, and its software, name it |
 | `entries[].connection_id` | integer | no | the connection of the AI, when it connected over OAuth |
@@ -2417,7 +2652,7 @@ Title: Read the Logbook. Annotations: `readOnlyHint: true`, `destructiveHint: fa
             "type": "integer"
           },
           "via": {
-            "description": "the adapter the call came through: cli, api, mcp or oauth",
+            "description": "the adapter the call came through: cli, api, mcp, oauth, or web for the page of a share link",
             "type": "string"
           }
         },
@@ -4237,6 +4472,123 @@ Title: Take back an invitation. Annotations: `readOnlyHint: false`, `destructive
     "to",
     "link",
     "created_at"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `revoke_share_link`
+
+Take back a share link: it no longer opens its Window, to those who opened it too.
+
+Title: Take back a share link. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `link` | integer | yes | the id of the share link, which get_window gives |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "link": {
+      "description": "the id of the share link, which get_window gives",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "link"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `created_at` | string | yes |  |
+| `expires_at` | string | yes | when it stops opening the Window, to those who opened it too |
+| `id` | integer | yes |  |
+| `openings` | integer | yes | how many readers opened it |
+| `stands` | boolean | yes | whether it opens the Window to someone new: neither ended nor taken back, with openings left |
+| `ai` | string | no | the AI that made it for them |
+| `by` | string | no | the handle of the person who made it |
+| `label` | string | no |  |
+| `max_openings` | integer | no | how many readers may open it; absent when any number may |
+| `opened_at` | string or null | no | when it was last opened |
+| `revoked_at` | string or null | no | when it was taken back |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "ai": {
+      "description": "the AI that made it for them",
+      "type": "string"
+    },
+    "by": {
+      "description": "the handle of the person who made it",
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "expires_at": {
+      "description": "when it stops opening the Window, to those who opened it too",
+      "type": "string"
+    },
+    "id": {
+      "type": "integer"
+    },
+    "label": {
+      "type": "string"
+    },
+    "max_openings": {
+      "description": "how many readers may open it; absent when any number may",
+      "type": "integer"
+    },
+    "opened_at": {
+      "description": "when it was last opened",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "openings": {
+      "description": "how many readers opened it",
+      "type": "integer"
+    },
+    "revoked_at": {
+      "description": "when it was taken back",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "stands": {
+      "description": "whether it opens the Window to someone new: neither ended nor taken back, with openings left",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "expires_at",
+    "openings",
+    "stands"
   ],
   "type": "object"
 }

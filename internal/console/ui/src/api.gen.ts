@@ -412,7 +412,7 @@ export interface Entry {
   connection_id?: number;
   /** the AI, as its token or its connection, and its software, name it */
   client?: string;
-  /** the adapter the call came through: cli, api, mcp or oauth */
+  /** the adapter the call came through: cli, api, mcp, oauth, or web for the page of a share link */
   via: string;
   /** what the operation acted on */
   target?: string;
@@ -655,9 +655,49 @@ export interface Limits {
   disk_per_person?: number;
 }
 
+export interface LinkEnd {
+  /** the end given, in RFC 3339 */
+  ends_at: string;
+  /** the latest end that a link made now may have, in RFC 3339 */
+  latest: string;
+}
+
 export interface LinkInFrenchOnly {
   link: string;
   page: string;
+}
+
+export interface LinkLabel {
+  /** the most characters of a label */
+  limit: number;
+}
+
+export interface LinkOpenings {
+  given: number;
+  limit: number;
+}
+
+export interface LinkRef {
+  /** the id of the link */
+  link: number;
+}
+
+export interface LinksMade {
+  /** how many share links were made in the last 24 hours */
+  made: number;
+  /** the person who makes them, or whom the AI acts for */
+  handle: string;
+  /** the most links of one person in 24 hours */
+  limit: number;
+}
+
+export interface LinksOn {
+  /** the Room of the Window */
+  room: string;
+  /** the name of the Window */
+  window: string;
+  /** the most links that stand on a Window */
+  limit: number;
 }
 
 export type ListAdminsInput = Record<string, never>;
@@ -807,6 +847,11 @@ export interface NoteRun {
   text: string;
   bold?: boolean;
   italic?: boolean;
+}
+
+export interface OpenShareLinkInput {
+  /** the token of the share link, the last part of its address */
+  token: string;
 }
 
 export interface Outsider {
@@ -979,6 +1024,11 @@ export interface RevokeInvitationInput {
 
 export interface RevokeServiceTokenInput {
   id: number;
+}
+
+export interface RevokeShareLinkInput {
+  /** the id of the share link, which get_window gives */
+  link: number;
 }
 
 export interface RevokeTokenInput {
@@ -1217,6 +1267,72 @@ export interface SetupLink {
   server_admin: boolean;
 }
 
+export interface ShareLink {
+  id: number;
+  label?: string;
+  /** the handle of the person who made it */
+  by?: string;
+  /** the AI that made it for them */
+  ai?: string;
+  created_at: string;
+  /** when it stops opening the Window, to those who opened it too */
+  expires_at: string;
+  /** how many readers may open it; absent when any number may */
+  max_openings?: number;
+  /** how many readers opened it */
+  openings: number;
+  /** when it was last opened */
+  opened_at?: string;
+  /** when it was taken back */
+  revoked_at?: string;
+  /** whether it opens the Window to someone new: neither ended nor taken back, with openings left */
+  stands: boolean;
+}
+
+export interface ShareLinkInput {
+  /** the Window's id or address, or its Room and its name as room/name */
+  window: string;
+  /** when the link stops opening the Window, within 30 days, such as 2026-11-05T18:00:00Z; 7 days from now when absent */
+  ends_at?: string;
+  /** how many readers may open it, from 1 to 1000; any number when absent */
+  max_openings?: number;
+  /** a few words that tell the links of the Window apart, such as For Acme, 100 characters at most, which only the members of its Room see */
+  label?: string;
+}
+
+export interface ShareLinkMade {
+  id: number;
+  label?: string;
+  /** the handle of the person who made it */
+  by?: string;
+  /** the AI that made it for them */
+  ai?: string;
+  created_at: string;
+  /** when it stops opening the Window, to those who opened it too */
+  expires_at: string;
+  /** how many readers may open it; absent when any number may */
+  max_openings?: number;
+  /** how many readers opened it */
+  openings: number;
+  /** when it was last opened */
+  opened_at?: string;
+  /** when it was taken back */
+  revoked_at?: string;
+  /** whether it opens the Window to someone new: neither ended nor taken back, with openings left */
+  stands: boolean;
+  /** the Window, as room/name */
+  window: string;
+  /** the share link, returned this once: give it to the person, who passes it on. Whoever holds it opens the Window */
+  link: string;
+}
+
+export interface ShareLinkOpening {
+  /** the Window, as room/name */
+  window: string;
+  /** when the pass ends, with the link */
+  expires_at: string;
+}
+
 export interface SignInInput {
   handle: string;
   password: string;
@@ -1439,6 +1555,10 @@ export interface WindowDetail {
   versions: Version[];
   /** the files of the current version */
   files: FileInfo[];
+  /** how many share links open the Window to someone new, besides its access */
+  share_links: number;
+  /** its share links, the latest first, without the links themselves */
+  links: ShareLink[];
 }
 
 export interface WindowGetInput {
@@ -1487,6 +1607,8 @@ export interface CahutOperations {
   create_room: { input: CreateRoomInput; output: Room };
   /** Create a service token, with which a program on this server manages the people of the Cahut through the admin API, without a Knock: it creates them, gives them their activation link, and disables them. */
   create_service_token: { input: CreateServiceTokenInput; output: NewServiceToken };
+  /** Make a share link: whoever holds it opens the Window, without an account or a Key, until it ends, besides its access. It ends in 7 days unless you give an end, 30 days at most, and may open to a number of readers only. It is returned this once: give it to the person. revoke_share_link takes it back. Not for a public Window. */
+  create_share_link: { input: ShareLinkInput; output: ShareLinkMade };
   /** Create a personal token that lets an AI act on behalf of a person. */
   create_token: { input: CreateTokenInput; output: NewToken };
   /** Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. */
@@ -1547,6 +1669,8 @@ export interface CahutOperations {
   list_windows: { input: WindowListInput; output: WindowList };
   /** Open the Window of the invitation of a personal link: a code, valid a minute, for /-/invitation, which gives a pass. */
   open_invitation: { input: InvitationCodeInput; output: InvitationOpening };
+  /** Open the Window of a share link, from the page of the link: spend one of its openings, and give a pass. */
+  open_share_link: { input: OpenShareLinkInput; output: ShareLinkOpening };
   /** Get the frames that show Windows of your Rooms in the console, as previews: each opens one Window, while your session lasts and four hours at most. */
   preview_windows: { input: PreviewInput; output: Previews };
   /** Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. */
@@ -1569,6 +1693,8 @@ export interface CahutOperations {
   revoke_invitation: { input: RevokeInvitationInput; output: Invitation };
   /** Revoke a service token. The program that used it loses access to the admin API at once. */
   revoke_service_token: { input: RevokeServiceTokenInput; output: ServiceTokenInfo };
+  /** Take back a share link: it no longer opens its Window, to those who opened it too. */
+  revoke_share_link: { input: RevokeShareLinkInput; output: ShareLink };
   /** Revoke a personal token. The AI that used it loses access at once. */
   revoke_token: { input: RevokeTokenInput; output: TokenInfo };
   /** Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. */
@@ -1745,6 +1871,18 @@ export interface Refusals {
   setup_done: Started;
   /** this link to the first start does not work any more: it was used, it expired, or it is for another address; cahut setup, on the server, gives a new one */
   setup_link_gone: null;
+  /** ends_at {ends_at} is past, and a share link ends between now and {latest}: give an end in between, or none for 7 days */
+  share_link_end_past: LinkEnd;
+  /** share link {link} has ended already: it opens nothing more */
+  share_link_ended: LinkRef;
+  /** label: write it on one line, in {limit} characters at most */
+  share_link_label: LinkLabel;
+  /** max_openings {given}: give a number from 1 to {limit}, or none for a link that opens to any number of readers */
+  share_link_openings: LinkOpenings;
+  /** {room}/{window} is public: its permanent address opens it to anyone, so share that address rather than a link */
+  share_link_public: At;
+  /** ends_at {ends_at}: a share link lasts 30 days at most, until {latest}: give an end before it, or none for 7 days */
+  share_link_too_long: LinkEnd;
   /** title is empty: give one */
   title_empty: null;
   /** title is longer than 200 bytes: shorten it */
@@ -1755,6 +1893,10 @@ export interface Refusals {
   too_many_invitations: Sent;
   /** too many refused sign-ins for this handle: try again in {minutes} minutes */
   too_many_refused_sign_ins: Wait;
+  /** {room}/{window} has {limit} share links that stand, the most: take one back before you make another */
+  too_many_share_links: LinksOn;
+  /** {made} share links were made for {handle} in the last 24 hours, and {limit} is the most: make the rest later */
+  too_many_share_links_today: LinksMade;
   /** too many sign-ins at once: try again in a few seconds */
   too_many_sign_ins_at_once: null;
   /** name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit */
