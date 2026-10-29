@@ -21,7 +21,7 @@ The Cahut gives these instructions to the AI when it connects:
 
 > Cahut keeps what you make on the user's own server, as Windows. To publish a document, deck, dashboard or site: call publish_window with a complete index.html and all its files, linked by relative paths (css/deck.css, never /css/deck.css), and a declaration of its scripts and of every origin it loads from or calls. Give the user the address it returns. A call that cannot be undone makes a Knock: give the user its link to approve it.
 >
-> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
+> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -1564,7 +1564,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 | `include_content` | boolean | no | also return the content of each file |
 
 <details>
@@ -1579,7 +1579,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
       "type": "boolean"
     },
     "window": {
-      "description": "the Window's address, or its Room and its name as room/name",
+      "description": "the Window's id or address, or its Room and its name as room/name",
       "type": "string"
     }
   },
@@ -1606,8 +1606,10 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 | `files[].type` | string | yes | media type |
 | `files[].content` | string | no |  |
 | `files[].encoding` | string | no | utf-8 or base64 |
+| `id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
+| `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
 | `title` | string | yes |  |
@@ -1729,11 +1731,19 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
         "array"
       ]
     },
+    "id": {
+      "description": "the Window's id, which never changes: name the Window by it to find it whatever its name",
+      "type": "string"
+    },
     "kind": {
       "type": "string"
     },
     "name": {
       "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "permanent_url": {
+      "description": "the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts",
       "type": "string"
     },
     "previous_version": {
@@ -1813,10 +1823,12 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
     }
   },
   "required": [
+    "id",
     "name",
     "title",
     "kind",
     "url",
+    "permanent_url",
     "room",
     "version",
     "size",
@@ -1845,7 +1857,7 @@ Title: Invite people to read a Window. Annotations: `readOnlyHint: false`, `dest
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `to` | array of strings or null | yes | who to invite, 20 at most: handles of people of the Cahut, who sign in to read it, or e-mail addresses of anyone else, for a Window with a Key or public |
-| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 | `note` | string | no | a few words for them, 500 characters at most, in plain text with \*\*bold\*\*, \*italics\*, and lists whose lines start with - or 1. |
 
 <details>
@@ -1870,7 +1882,7 @@ Title: Invite people to read a Window. Annotations: `readOnlyHint: false`, `dest
       ]
     },
     "window": {
-      "description": "the Window's address, or its Room and its name as room/name",
+      "description": "the Window's id or address, or its Room and its name as room/name",
       "type": "string"
     }
   },
@@ -1995,7 +2007,7 @@ Title: List the invitations to a Window. Annotations: `readOnlyHint: true`, `des
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 
 <details>
 <summary>JSON Schema</summary>
@@ -2005,7 +2017,7 @@ Title: List the invitations to a Window. Annotations: `readOnlyHint: true`, `des
   "additionalProperties": false,
   "properties": {
     "window": {
-      "description": "the Window's address, or its Room and its name as room/name",
+      "description": "the Window's id or address, or its Room and its name as room/name",
       "type": "string"
     }
   },
@@ -2661,8 +2673,10 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
 | `windows[].created_at` | string | yes |  |
 | `windows[].created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `windows[].file_count` | integer | yes |  |
+| `windows[].id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
 | `windows[].kind` | string | yes |  |
 | `windows[].name` | string | yes | the Window's name, last part of its address |
+| `windows[].permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `windows[].room` | string | yes | the name of its Room, the part of its address before its name |
 | `windows[].size` | integer | yes | total size of the files of the current version, in bytes |
 | `windows[].title` | string | yes |  |
@@ -2746,11 +2760,19 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
           "file_count": {
             "type": "integer"
           },
+          "id": {
+            "description": "the Window's id, which never changes: name the Window by it to find it whatever its name",
+            "type": "string"
+          },
           "kind": {
             "type": "string"
           },
           "name": {
             "description": "the Window's name, last part of its address",
+            "type": "string"
+          },
+          "permanent_url": {
+            "description": "the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts",
             "type": "string"
           },
           "previous_version": {
@@ -2788,10 +2810,12 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
           }
         },
         "required": [
+          "id",
           "name",
           "title",
           "kind",
           "url",
+          "permanent_url",
           "room",
           "version",
           "size",
@@ -2945,8 +2969,10 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
+| `id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
+| `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
 | `title` | string | yes |  |
@@ -3026,11 +3052,19 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     "file_count": {
       "type": "integer"
     },
+    "id": {
+      "description": "the Window's id, which never changes: name the Window by it to find it whatever its name",
+      "type": "string"
+    },
     "kind": {
       "type": "string"
     },
     "name": {
       "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "permanent_url": {
+      "description": "the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts",
       "type": "string"
     },
     "previous_version": {
@@ -3068,10 +3102,12 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     }
   },
   "required": [
+    "id",
     "name",
     "title",
     "kind",
     "url",
+    "permanent_url",
     "room",
     "version",
     "size",
@@ -3099,7 +3135,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 
 <details>
 <summary>JSON Schema</summary>
@@ -3109,7 +3145,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
   "additionalProperties": false,
   "properties": {
     "window": {
-      "description": "the Window's address, or its Room and its name as room/name",
+      "description": "the Window's id or address, or its Room and its name as room/name",
       "type": "string"
     }
   },
@@ -3130,8 +3166,10 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
+| `id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
+| `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
 | `title` | string | yes |  |
@@ -3211,11 +3249,19 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
     "file_count": {
       "type": "integer"
     },
+    "id": {
+      "description": "the Window's id, which never changes: name the Window by it to find it whatever its name",
+      "type": "string"
+    },
     "kind": {
       "type": "string"
     },
     "name": {
       "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "permanent_url": {
+      "description": "the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts",
       "type": "string"
     },
     "previous_version": {
@@ -3253,10 +3299,12 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
     }
   },
   "required": [
+    "id",
     "name",
     "title",
     "kind",
     "url",
+    "permanent_url",
     "room",
     "version",
     "size",
@@ -3423,7 +3471,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 
 <details>
 <summary>JSON Schema</summary>
@@ -3433,7 +3481,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
   "additionalProperties": false,
   "properties": {
     "window": {
-      "description": "the Window's address, or its Room and its name as room/name",
+      "description": "the Window's id or address, or its Room and its name as room/name",
       "type": "string"
     }
   },
@@ -3454,8 +3502,10 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
+| `id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
+| `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
 | `title` | string | yes |  |
@@ -3535,11 +3585,19 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     "file_count": {
       "type": "integer"
     },
+    "id": {
+      "description": "the Window's id, which never changes: name the Window by it to find it whatever its name",
+      "type": "string"
+    },
     "kind": {
       "type": "string"
     },
     "name": {
       "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "permanent_url": {
+      "description": "the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts",
       "type": "string"
     },
     "previous_version": {
@@ -3577,10 +3635,12 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     }
   },
   "required": [
+    "id",
     "name",
     "title",
     "kind",
     "url",
+    "permanent_url",
     "room",
     "version",
     "size",
@@ -3708,7 +3768,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 
 <details>
 <summary>JSON Schema</summary>
@@ -3718,7 +3778,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
   "additionalProperties": false,
   "properties": {
     "window": {
-      "description": "the Window's address, or its Room and its name as room/name",
+      "description": "the Window's id or address, or its Room and its name as room/name",
       "type": "string"
     }
   },
@@ -3739,8 +3799,10 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
+| `id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
+| `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
 | `title` | string | yes |  |
@@ -3820,11 +3882,19 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
     "file_count": {
       "type": "integer"
     },
+    "id": {
+      "description": "the Window's id, which never changes: name the Window by it to find it whatever its name",
+      "type": "string"
+    },
     "kind": {
       "type": "string"
     },
     "name": {
       "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "permanent_url": {
+      "description": "the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts",
       "type": "string"
     },
     "previous_version": {
@@ -3862,10 +3932,12 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
     }
   },
   "required": [
+    "id",
     "name",
     "title",
     "kind",
     "url",
+    "permanent_url",
     "room",
     "version",
     "size",
@@ -4540,7 +4612,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `access` | string | yes | room, internal, key or public |
-| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 | `ends_at` | string or null | no | when the access ends, such as 2026-12-31T18:00:00Z; after it, the Window opens to its Room only. It does not end when absent |
 | `key` | string | no | for key: the Key to set, of 10 to 256 characters. When empty, the Window keeps its Key, or Cahut draws one |
 | `new_key` | boolean | no | for key: draw a new Key; the old one no longer opens the Window |
@@ -4572,7 +4644,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
       "type": "boolean"
     },
     "window": {
-      "description": "the Window's address, or its Room and its name as room/name",
+      "description": "the Window's id or address, or its Room and its name as room/name",
       "type": "string"
     }
   },
@@ -4594,8 +4666,10 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
+| `id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
+| `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
 | `title` | string | yes |  |
@@ -4676,6 +4750,10 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
     "file_count": {
       "type": "integer"
     },
+    "id": {
+      "description": "the Window's id, which never changes: name the Window by it to find it whatever its name",
+      "type": "string"
+    },
     "key": {
       "description": "the new Key, returned this once: give it to the person, who passes it on with the address",
       "type": "string"
@@ -4685,6 +4763,10 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
     },
     "name": {
       "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "permanent_url": {
+      "description": "the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts",
       "type": "string"
     },
     "previous_version": {
@@ -4722,10 +4804,12 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
     }
   },
   "required": [
+    "id",
     "name",
     "title",
     "kind",
     "url",
+    "permanent_url",
     "room",
     "version",
     "size",
@@ -4751,7 +4835,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 
 <details>
 <summary>JSON Schema</summary>
@@ -4761,7 +4845,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
   "additionalProperties": false,
   "properties": {
     "window": {
-      "description": "the Window's address, or its Room and its name as room/name",
+      "description": "the Window's id or address, or its Room and its name as room/name",
       "type": "string"
     }
   },
@@ -4782,8 +4866,10 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
+| `id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
+| `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
 | `title` | string | yes |  |
@@ -4863,11 +4949,19 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
     "file_count": {
       "type": "integer"
     },
+    "id": {
+      "description": "the Window's id, which never changes: name the Window by it to find it whatever its name",
+      "type": "string"
+    },
     "kind": {
       "type": "string"
     },
     "name": {
       "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "permanent_url": {
+      "description": "the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts",
       "type": "string"
     },
     "previous_version": {
@@ -4905,10 +4999,12 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
     }
   },
   "required": [
+    "id",
     "name",
     "title",
     "kind",
     "url",
+    "permanent_url",
     "room",
     "version",
     "size",
@@ -5079,7 +5175,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `files[].content` | string | yes |  |
 | `files[].path` | string | yes | relative path with / as separator, such as index.html or img/logo.svg |
 | `files[].encoding` | string | no | utf-8 (the default) or base64, for binary files |
-| `window` | string | yes | the Window's address, or its Room and its name as room/name |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 | `title` | string | no | a new title; the title stays when empty. The address does not change |
 
 <details>
@@ -5159,7 +5255,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
       "type": "string"
     },
     "window": {
-      "description": "the Window's address, or its Room and its name as room/name",
+      "description": "the Window's id or address, or its Room and its name as room/name",
       "type": "string"
     }
   },
@@ -5182,8 +5278,10 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
+| `id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
 | `kind` | string | yes |  |
 | `name` | string | yes | the Window's name, last part of its address |
+| `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
 | `title` | string | yes |  |
@@ -5263,11 +5361,19 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
     "file_count": {
       "type": "integer"
     },
+    "id": {
+      "description": "the Window's id, which never changes: name the Window by it to find it whatever its name",
+      "type": "string"
+    },
     "kind": {
       "type": "string"
     },
     "name": {
       "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "permanent_url": {
+      "description": "the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts",
       "type": "string"
     },
     "previous_version": {
@@ -5305,10 +5411,12 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
     }
   },
   "required": [
+    "id",
     "name",
     "title",
     "kind",
     "url",
+    "permanent_url",
     "room",
     "version",
     "size",

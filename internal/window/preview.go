@@ -24,7 +24,7 @@ type Previews struct {
 // Preview is the frame that shows a Window in the console.
 type Preview struct {
 	Window    string    `json:"window" jsonschema:"the Window, as room/name"`
-	Frame     string    `json:"frame" jsonschema:"the path of the frame that shows the Window, on the domain of the Cahut, such as /-/w/<capability>/"`
+	Frame     string    `json:"frame" jsonschema:"the path of the frame that shows the Window, on the domain of the Cahut, such as /-/frame/<capability>/"`
 	ExpiresAt time.Time `json:"expires_at" jsonschema:"when the frame stops showing the Window, if the session has not ended before"`
 }
 
@@ -43,11 +43,15 @@ func (s *Service) preview(ctx context.Context, c *operation.Call, in PreviewInpu
 	expires := c.Now.Add(FrameTTL).Truncate(time.Second)
 	out := Previews{Previews: []Preview{}}
 	for _, ref := range in.Windows {
-		room, name, ok := locate(ref)
+		r, ok := parseRef(ref)
 		if !ok {
-			return Previews{}, operation.Invalidf("window %q: give the Window's address, or its Room and its name as room/name", ref)
+			return Previews{}, operation.Invalidf("window %q: give the Window's id or address, or its Room and its name as room/name", ref)
 		}
-		found, err := s.query(ctx, c, "w.trashed_at IS NULL AND r.name = ? AND w.name = ?", room, name)
+		where, args := "r.name = ? AND w.name = ?", []any{r.room, r.name}
+		if r.id != "" {
+			where, args = "w.uid = ?", []any{r.id}
+		}
+		found, err := s.query(ctx, c, "w.trashed_at IS NULL AND "+where, args...)
 		if err != nil {
 			return Previews{}, err
 		}
@@ -56,7 +60,7 @@ func (s *Service) preview(ctx context.Context, c *operation.Call, in PreviewInpu
 		}
 		f := Frame{Window: found[0].id, Kind: FrameByConsole, ID: c.Actor.Session, Expires: expires.Unix()}
 		out.Previews = append(out.Previews, Preview{
-			Window:    room + "/" + name,
+			Window:    found[0].Room + "/" + found[0].Name,
 			Frame:     FramePrefix + f.Sign(s.frameKey) + "/",
 			ExpiresAt: expires,
 		})

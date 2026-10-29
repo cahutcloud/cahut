@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/fs"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -100,21 +101,7 @@ func TestTimeRoundTrip(t *testing.T) {
 func TestRemadeTablesKeepTheirRows(t *testing.T) {
 	ctx := context.Background()
 	path := filepath.Join(t.TempDir(), "cahut.db")
-	before := fstest.MapFS{}
-	names, err := fs.Glob(CahutSchema, "*.sql")
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, name := range names {
-		if name < "0010" {
-			data, err := fs.ReadFile(CahutSchema, name)
-			if err != nil {
-				t.Fatal(err)
-			}
-			before[name] = &fstest.MapFile{Data: data}
-		}
-	}
-	db, err := Open(ctx, path, before)
+	db, err := Open(ctx, path, schemaBefore(t, "0010"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -174,6 +161,80 @@ func TestRemadeTablesKeepTheirRows(t *testing.T) {
 	err = db.Write.QueryRowContext(ctx, "INSERT INTO rooms (name, kind, title, created_at) VALUES ('sales', 'team', 'Sales', 'now') RETURNING id").Scan(&id)
 	if err != nil || id != 3 {
 		t.Errorf("a new Room takes id %d, %v, want 3", id, err)
+	}
+}
+
+// schemaBefore returns the migrations of a Cahut whose numbers come before
+// number.
+func schemaBefore(t *testing.T, number string) fstest.MapFS {
+	t.Helper()
+	before := fstest.MapFS{}
+	names, err := fs.Glob(CahutSchema, "*.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range names {
+		if name < number {
+			data, err := fs.ReadFile(CahutSchema, name)
+			if err != nil {
+				t.Fatal(err)
+			}
+			before[name] = &fstest.MapFile{Data: data}
+		}
+	}
+	return before
+}
+
+func TestWindowsGetTheirIDs(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "cahut.db")
+	db, err := Open(ctx, path, schemaBefore(t, "0026"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range []string{
+		"INSERT INTO users (id, handle, name, role, created_at) VALUES (1, 'olivier', 'Olivier', 'admin', 'now')",
+		"INSERT INTO rooms (id, name, kind, title, created_at) VALUES (1, 'olivier', 'personal', 'Olivier', 'now')",
+		`INSERT INTO windows (room_id, name, title, kind, version, size, file_count, created_by, created_at, updated_at)
+			VALUES (1, 'q3', 'Q3', 'deck', 1, 10, 1, 1, 'now', 'now'), (1, 'q4', 'Q4', 'deck', 1, 10, 1, 1, 'now', 'now'),
+			(1, 'q1', 'Q1', 'deck', 1, 10, 1, 1, 'now', 'now')`,
+	} {
+		if _, err := db.Write.ExecContext(ctx, q); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	db, err = Open(ctx, path, CahutSchema)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer db.Close()
+	rows, err := db.Read.QueryContext(ctx, "SELECT uid FROM windows")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rows.Close()
+	// As address.ValidID has it: 25 characters of 5 bits, then one of 3.
+	anID := regexp.MustCompile(`^[0-9a-hjkmnp-tv-z]{25}[048cgmrw]$`)
+	seen := map[string]bool{}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			t.Fatal(err)
+		}
+		if !anID.MatchString(id) || seen[id] {
+			t.Errorf("a Window has the id %q, after %v", id, seen)
+		}
+		seen[id] = true
+	}
+	if err := rows.Err(); err != nil || len(seen) != 3 {
+		t.Errorf("%d Windows have an id, %v; want 3", len(seen), err)
+	}
+	if _, err := db.Write.ExecContext(ctx, "UPDATE windows SET uid = (SELECT uid FROM windows WHERE name = 'q3') WHERE name = 'q4'"); err == nil {
+		t.Error("two Windows took the same id")
 	}
 }
 

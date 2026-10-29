@@ -76,18 +76,12 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		db.Close()
 		return nil, fmt.Errorf("read the secrets of %s: %w", cfg.Domain, err)
 	}
-	url := func(room, name string) string {
-		if cfg.BaseURL == "" {
-			return ""
-		}
-		return cfg.BaseURL + room + "/" + name + "/"
-	}
 	r := operation.NewRegistry(db)
 	r.Individual = func(ctx context.Context, tx *sql.Tx) (bool, error) { return settings.IsIndividual(ctx, tx) }
 	r.Suspended = settings.CheckActive
 	account.Register(r)
 	room.Register(r)
-	w := window.NewService(filepath.Join(cfg.Dir, "windows"), url, frameKey)
+	w := window.NewService(filepath.Join(cfg.Dir, "windows"), cfg.BaseURL, frameKey)
 	w.Register(r)
 	auth := oauth.New(db, r, oauth.Config{
 		Issuer:    strings.TrimSuffix(cfg.BaseURL, "/"),

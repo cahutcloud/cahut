@@ -1,6 +1,6 @@
 # 39. People change their name and their handle, and their personal Room follows
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 50](0050-window-ids-permanent-addresses-and-names.md) (the Windows of a person who changes their handle keep their permanent addresses)
 - Date: 2026-10-25
 
 ## Context

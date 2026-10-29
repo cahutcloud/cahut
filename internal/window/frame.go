@@ -11,8 +11,10 @@ import (
 // FrameTTL is how long the address of the frame of a Window lasts.
 const FrameTTL = 4 * time.Hour
 
-// FramePrefix starts the path of every frame, such as /-/w/<capability>/.
-const FramePrefix = "/-/w/"
+// FramePrefix starts the path of every frame, such as
+// /-/frame/<capability>/. See
+// docs/adr/0050-window-ids-permanent-addresses-and-names.md.
+const FramePrefix = "/-/frame/"
 
 // What opened the frame of a Window.
 const (

@@ -95,7 +95,7 @@ type Outsider struct {
 
 // InviteInput is the input of invite_to_window.
 type InviteInput struct {
-	Window string   `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
+	Window string   `json:"window" jsonschema:"the Window's id or address, or its Room and its name as room/name"`
 	To     []string `json:"to" jsonschema:"who to invite, 20 at most: handles of people of the Cahut, who sign in to read it, or e-mail addresses of anyone else, for a Window with a Key or public"`
 	Note   string   `json:"note,omitempty" jsonschema:"a few words for them, 500 characters at most, in plain text with **bold**, *italics*, and lists whose lines start with - or 1."`
 }
@@ -196,7 +196,8 @@ func (s *Service) invite(ctx context.Context, c *operation.Call, in InviteInput)
 		inv := Invitation{To: r.to, By: c.Actor.Handle, Link: r.link, CreatedAt: c.Now}
 		var hash []byte
 		var ends sql.NullString
-		link := w.URL
+		// The permanent address still opens the Window after a new name.
+		link := w.PermanentURL
 		if r.link {
 			code := credential.Token("")
 			hash, ends = credential.Hash(code), sql.NullString{String: store.FormatTime(expires), Valid: true}
@@ -361,7 +362,7 @@ func nullString(s string) sql.NullString {
 
 // ListInvitationsInput is the input of list_invitations.
 type ListInvitationsInput struct {
-	Window string `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
+	Window string `json:"window" jsonschema:"the Window's id or address, or its Room and its name as room/name"`
 }
 
 // InvitationList is the output of list_invitations.

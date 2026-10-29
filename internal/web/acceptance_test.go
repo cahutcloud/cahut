@@ -218,7 +218,7 @@ var deckHTML = `<!doctype html><html lang="en"><meta charset="utf-8"><title>Why 
 <section class="slide"><h1>Why keep our pages</h1></section>
 <section class="slide"><h2>On our own server</h2></section><script src="js/deck.js"></script>`
 
-var acceptanceFrame = regexp.MustCompile(`<iframe src="(/-/w/[^"]+)"`)
+var acceptanceFrame = regexp.MustCompile(`<iframe src="(/-/frame/[^"]+)"`)
 
 // TestV0Acceptance replays the criteria of the V0 that a test can: the
 // first start without a terminal, the first publication by an AI, sharing

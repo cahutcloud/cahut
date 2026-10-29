@@ -23,7 +23,7 @@ func TestPreviews(t *testing.T) {
 		t.Fatalf("preview_windows: %d %s", r.status, r.raw)
 	}
 	frame := previews[0].(map[string]any)["frame"].(string)
-	if !strings.HasPrefix(frame, "/-/w/") || !strings.HasSuffix(frame, "/") {
+	if !strings.HasPrefix(frame, "/-/frame/") || !strings.HasSuffix(frame, "/") {
 		t.Fatalf("frame = %q", frame)
 	}
 

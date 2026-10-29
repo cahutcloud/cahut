@@ -30,7 +30,7 @@ func TestSandboxByDefault(t *testing.T) {
 		{"localhost", http.MethodGet, "/olivier"},
 		{"localhost", http.MethodPost, "/olivier/q3-review/"},
 		{"localhost", http.MethodGet, "/-/nope"},
-		{"localhost", http.MethodGet, "/-/w/garbage/index.html"},
+		{"localhost", http.MethodGet, "/-/frame/garbage/index.html"},
 		{"localhost", http.MethodGet, "/"},
 		{"localhost", http.MethodGet, "/-/sign-in?to=%2F"},
 		{"localhost", http.MethodGet, "/-/healthz"},

@@ -98,9 +98,11 @@ Every file of a Window is served with the header `Content-Security-Policy: sandb
 
 Cahut names the Window after its title: up to 40 lowercase ASCII letters, digits and hyphens, with accents folded. "Q3 review: Été" becomes `q3-review-ete`. When the Room already holds a Window of that name, Cahut adds `-2`, then `-3`, and so on. The Window opens at `https://<domain>/<room>/<name>/`.
 
+The answer also gives the Window's `id`, which never changes, and its `permanent_url`, `https://<domain>/-/w/<id>`, which sends whoever may open the Window to its address, whatever its name. An AI keeps the id to name the Window in later calls, and gives the permanent address for a link that lasts. See [The id and the permanent address](/concepts/rooms-and-windows/#the-id-and-the-permanent-address).
+
 ## After publishing
 
-`get_window` describes a Window, given its address or `room/name`: its access, its two versions, its declaration, and its files, with their contents when asked. `list_windows` lists the Windows of the person's Rooms, or of one of them with `room`, most recently updated first; with `trashed`, it lists the trash.
+`get_window` describes a Window, given its id, its address or `room/name`: its access, its two versions, its declaration, and its files, with their contents when asked. `list_windows` lists the Windows of the person's Rooms, or of one of them with `room`, most recently updated first; with `trashed`, it lists the trash.
 
 ### Update a Window
 

@@ -201,10 +201,17 @@ type keyPage struct {
 	Window, Error string
 }
 
-func (s *Server) askKey(w http.ResponseWriter, r *http.Request, win window.Served, reader, msg string, status int) {
+// askKey answers with the page that asks for the Key of the Window win,
+// which ref names as the reader reached it: by room/name at its address,
+// or by its id at its permanent address, which does not tell its address.
+func (s *Server) askKey(w http.ResponseWriter, r *http.Request, win window.Served, ref, reader, msg string, status int) {
 	p := s.page(r, reader, win.Title)
-	p.SignIn = "/-/sign-in?to=" + url.QueryEscape("/"+win.Room+"/"+win.Name+"/")
-	s.render(w, r, status, "key", keyPage{page: p, Window: win.Room + "/" + win.Name, Error: msg})
+	back := "/" + ref + "/"
+	if ref == win.UID {
+		back = window.PermanentPrefix + ref
+	}
+	p.SignIn = "/-/sign-in?to=" + url.QueryEscape(back)
+	s.render(w, r, status, "key", keyPage{page: p, Window: ref, Error: msg})
 }
 
 // serveKey checks the Key that a reader typed, and gives them a pass for
@@ -218,12 +225,21 @@ func (s *Server) serveKey(w http.ResponseWriter, r *http.Request) {
 	c := siteOf(r).cahut
 	now := time.Now()
 	reader, _ := s.readerOf(r, now)
-	roomName, name, _ := strings.Cut(r.PostForm.Get("window"), "/")
-	if !address.ValidName(roomName) || !address.ValidName(name) {
+	// The page of the Key names its Window by room/name, or by its id at its
+	// permanent address.
+	ref := r.PostForm.Get("window")
+	roomName, name, _ := strings.Cut(ref, "/")
+	var win window.Served
+	var err error
+	switch {
+	case address.ValidID(ref):
+		win, err = window.LookupUID(r.Context(), c.DB, ref, now)
+	case address.ValidName(roomName) && address.ValidName(name):
+		win, err = window.Lookup(r.Context(), c.DB, roomName, name, now)
+	default:
 		s.notFound(w, r, reader.Handle)
 		return
 	}
-	win, err := window.Lookup(r.Context(), c.DB, roomName, name, now)
 	if err != nil && !isNotFound(err) {
 		s.internal(w, "find a Window", err)
 		return
@@ -236,7 +252,7 @@ func (s *Server) serveKey(w http.ResponseWriter, r *http.Request) {
 	here := byWindow + " " + clientKey(r)
 	if !s.keyTries.allow(clientKey(r)) || s.keyFailuresHere.spent(here) ||
 		s.keyFailures.spent(byWindow) && !s.keyFailuresHere.full(here) {
-		s.askKey(w, r, win, reader.Handle, "Too many tries: wait a minute, then try again.", http.StatusTooManyRequests)
+		s.askKey(w, r, win, ref, reader.Handle, "Too many tries: wait a minute, then try again.", http.StatusTooManyRequests)
 		return
 	}
 	key := r.PostForm.Get("key")
@@ -247,7 +263,7 @@ func (s *Server) serveKey(w http.ResponseWriter, r *http.Request) {
 	if errors.Is(err, window.ErrWrongKey) {
 		s.keyFailures.allow(byWindow)
 		s.keyFailuresHere.allow(here)
-		s.askKey(w, r, win, reader.Handle, "This Key does not open this Window.", http.StatusForbidden)
+		s.askKey(w, r, win, ref, reader.Handle, "This Key does not open this Window.", http.StatusForbidden)
 		return
 	}
 	if err != nil {
