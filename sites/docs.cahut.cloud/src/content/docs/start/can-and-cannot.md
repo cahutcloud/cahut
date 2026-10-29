@@ -104,7 +104,7 @@ The AI gets the link of a Knock, which waits 24 hours for you in the console, wh
 
 An AI never does these, even with your approval:
 
-- approve a Knock, its own or another;
+- approve a Knock, its own or another's;
 - sign in, connect another AI, or create a token;
 - manage the server: its Cahuts and their domains, the kind and limits of a Cahut, its e-mail relay, its updates.
 
