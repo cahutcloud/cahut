@@ -58,7 +58,7 @@ The owners of a Room, personal Rooms included, can show one of its Windows at it
 
 A Window has a kind: `document`, `deck`, `dashboard` or `site`. The kind says what the Window is; Cahut serves every kind the same way. Apps that run on the server, in containers, come later.
 
-A Window is static: HTML, styles, scripts, images, fonts and data files, served as they are, each with the media type of its extension. Readers' browsers check for a newer copy on every visit. A folder opens on its `index.html`; Cahut lists no folder, and a folder without `index.html` answers `404 Not Found`.
+A Window is static: HTML, styles, scripts, images, fonts and data files, served as they are, each with the media type of its extension. Readers' browsers check for a newer copy on every visit. A folder opens on its `index.html`; Cahut lists no folder, and a folder without `index.html` answers `404 Not Found`. [What Cahut can and cannot do](/start/can-and-cannot/) sums up what a Window holds and does.
 
 ## Versions and the trash
 

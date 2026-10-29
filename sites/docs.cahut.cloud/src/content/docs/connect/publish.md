@@ -3,7 +3,7 @@ title: Publish a Window
 description: What an AI sends to publish a Window, what it declares, what comes back, and how it updates, shares and rolls back a Window.
 ---
 
-An AI publishes a Window with the `publish_window` tool. It sends the title, the kind and the files of the Window, with a declaration of what its pages do, and gets back the address where the Window opens. This page is for people who write prompts, skills or MCP clients. The [MCP tools reference](/reference/mcp-tools/#publish_window) gives the full schema.
+An AI publishes a Window with the `publish_window` tool. It sends the title, the kind and the files of the Window, with a declaration of what its pages do, and gets back the address where the Window opens. This page is for people who write prompts, skills or MCP clients. The [MCP tools reference](/reference/mcp-tools/#publish_window) gives the full schema, and [What Cahut can and cannot do](/start/can-and-cannot/) sums up what a Window holds and does.
 
 ## In the house style
 

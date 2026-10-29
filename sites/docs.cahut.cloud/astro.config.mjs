@@ -31,7 +31,13 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: 'Start here',
-					items: [{ label: 'Overview', slug: 'index' }, 'start/how-it-works', 'start/my-cahut', 'start/status'],
+					items: [
+						{ label: 'Overview', slug: 'index' },
+						'start/how-it-works',
+						'start/can-and-cannot',
+						'start/my-cahut',
+						'start/status',
+					],
 				},
 				{
 					label: 'Install',
