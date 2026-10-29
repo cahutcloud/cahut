@@ -392,7 +392,7 @@ Environ quatre heures par semaine en dehors du développement, et pas plus penda
 
 - [x] Choisir la licence et écrire LICENSE, avec la mention sur le nom et le logo : fait le 22 octobre 2026 ([ADR 15](adr/0015-license.md)).
 - [ ] Déposer la marque « Cahut » à l'INPI.
-- [x] Réserver `getcahut` sur Mastodon, Bluesky, LinkedIn et X : fait le 24 octobre 2026.
+- [x] Réserver `getcahut` sur Mastodon, Bluesky, LinkedIn et X : fait le 24 octobre 2026. Le compte X a pris le nom `@CahutCloud` le 29 octobre 2026, comme la chaîne YouTube : `cahut` quand il est libre, `cahutcloud` sinon.
 - [x] Écrire GOVERNANCE.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, SUPPORT.md, TRADEMARK.md, les gabarits et FUNDING.yml ; compléter le README : fait le 22 octobre 2026.
 - [x] Régler le dépôt autant que GitHub le permet à un dépôt privé du plan gratuit : Discussions et leurs catégories, étiquettes, jalons par lot, signature des commits faits sur le web : fait le 22 octobre 2026 ; fusion par squash seule, branches supprimées après fusion, alertes et correctifs de sécurité de Dependabot, actions épinglées par empreinte obligatoires, environnement `sites` réservé à `main`, CODEOWNERS et réglages de l'application DCO : fait le 23 octobre 2026.
 - [x] Dans l'interface, par Olivier : la double authentification obligatoire sur l'organisation et l'application DCO (<https://github.com/apps/dco>) installée sur le dépôt : fait, constaté le 24 octobre 2026.
@@ -416,7 +416,7 @@ Environ quatre heures par semaine en dehors du développement, et pas plus penda
 | Moment de l'ouverture du dépôt | Au jalon V0 ou au lancement public | Au jalon V0 ; ouvert le 24 octobre 2026, à la fin du dernier lot, avant la recette sur des VPS vierges |
 | Chat communautaire | Aucun, Discord, Zulip, Matrix | Aucun en phase 1 ; à choisir en phase 2 |
 | Lettre d'information | Flux RSS seul, Buttondown, listmonk auto-hébergé | Flux RSS dès l'ouverture, une lettre au lancement |
-| Réseaux | Mastodon, LinkedIn, Bluesky, X | Mastodon et LinkedIn ; identifiant `getcahut` réservé partout |
+| Réseaux | Mastodon, LinkedIn, Bluesky, X | Mastodon et LinkedIn ; identifiant `getcahut` réservé partout, sauf sur X, où le compte s'appelle `@CahutCloud` depuis le 29 octobre 2026 |
 | Dons | GitHub Sponsors, Liberapay, Open Collective | GitHub Sponsors et Liberapay dès l'ouverture ; Open Source Europe en phase 3 si besoin |
 | Marque | INPI, EUIPO, rien | INPI avant l'ouverture, EUIPO avec la traction |
 | Pages du site | Section `/project/` ou sous-domaine | Section `/project/`, construite à partir des fichiers du dépôt |
