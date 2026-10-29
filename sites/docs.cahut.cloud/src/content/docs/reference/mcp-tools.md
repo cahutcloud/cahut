@@ -21,7 +21,7 @@ The Cahut gives these instructions to the AI when it connects:
 
 > Cahut keeps what you make on the user's own server, as Windows. To publish a document, deck, dashboard or site: call publish_window with a complete index.html and all its files, linked by relative paths (css/deck.css, never /css/deck.css), and a declaration of its scripts and of every origin it loads from or calls. Give the user the address it returns. A call that cannot be undone makes a Knock: give the user its link to approve it.
 >
-> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
+> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. Give each Window a description of a sentence or two; retitle_window changes its title and description without a new version. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -61,6 +61,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`purge_window`](#purge_window) | Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs. |
 | [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`restore_window`](#restore_window) | Bring a Window back from the trash, with its versions. |
+| [`retitle_window`](#retitle_window) | Change the title of a Window, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it. |
 | [`revoke_invitation`](#revoke_invitation) | Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. |
 | [`rollback_window`](#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
 | [`set_ai_reach`](#set_ai_reach) | Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs. |
@@ -70,7 +71,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs. |
 | [`set_window_access`](#set_window_access) | Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
 | [`trash_window`](#trash_window) | Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. |
-| [`update_room`](#update_room) | Change the title of a Room. Its name, and so its address, stays. |
+| [`update_room`](#update_room) | Change the title of a Room, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it. |
 | [`update_window`](#update_window) | Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. |
 
 ## `add_room_member`
@@ -135,6 +136,7 @@ Title: Add a member to a Room. Annotations: `readOnlyHint: false`, `destructiveH
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
@@ -146,6 +148,10 @@ Title: Add a member to a Room. Annotations: `readOnlyHint: false`, `destructiveH
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "description": {
+      "description": "what the Room is, in a sentence or two; absent when it has none",
       "type": "string"
     },
     "home": {
@@ -230,6 +236,7 @@ Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint:
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `title` | string | yes | title of the Room, such as Marketing |
+| `description` | string | no | what the Room is, in a sentence or two of plain text, 300 characters at most |
 | `name` | string | no | name of the Room, the first part of its address; from the title when empty |
 | `owner` | string | no | handle of its first owner; you when empty. Only administrators of the Cahut name someone else |
 
@@ -240,6 +247,10 @@ Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint:
 {
   "additionalProperties": false,
   "properties": {
+    "description": {
+      "description": "what the Room is, in a sentence or two of plain text, 300 characters at most",
+      "type": "string"
+    },
     "name": {
       "description": "name of the Room, the first part of its address; from the title when empty",
       "type": "string"
@@ -272,6 +283,7 @@ Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint:
 | `name` | string | yes | the Room's name, first part of its address |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
@@ -283,6 +295,10 @@ Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint:
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "description": {
+      "description": "what the Room is, in a sentence or two; absent when it has none",
       "type": "string"
     },
     "home": {
@@ -1470,6 +1486,7 @@ Title: Describe a Room. Annotations: `readOnlyHint: true`, `destructiveHint: fal
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
@@ -1481,6 +1498,10 @@ Title: Describe a Room. Annotations: `readOnlyHint: true`, `destructiveHint: fal
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "description": {
+      "description": "what the Room is, in a sentence or two; absent when it has none",
       "type": "string"
     },
     "home": {
@@ -1628,6 +1649,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
+| `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -1692,6 +1714,10 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
         "null",
         "object"
       ]
+    },
+    "description": {
+      "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
     },
     "file_count": {
       "type": "integer"
@@ -2460,6 +2486,7 @@ Title: List Rooms. Annotations: `readOnlyHint: true`, `destructiveHint: false`, 
 | `rooms[].name` | string | yes | the Room's name, first part of its address |
 | `rooms[].title` | string | yes |  |
 | `rooms[].windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `rooms[].description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `rooms[].home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `rooms[].role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
@@ -2475,6 +2502,10 @@ Title: List Rooms. Annotations: `readOnlyHint: true`, `destructiveHint: false`, 
         "additionalProperties": false,
         "properties": {
           "created_at": {
+            "type": "string"
+          },
+          "description": {
+            "description": "what the Room is, in a sentence or two; absent when it has none",
             "type": "string"
           },
           "home": {
@@ -2688,6 +2719,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
 | `windows[].declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `windows[].declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `windows[].declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
+| `windows[].description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `windows[].previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `windows[].trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -2756,6 +2788,10 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
               "null",
               "object"
             ]
+          },
+          "description": {
+            "description": "what the Window is, in a sentence or two; absent when it has none",
+            "type": "string"
           },
           "file_count": {
             "type": "integer"
@@ -2862,6 +2898,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `files[].encoding` | string | no | utf-8 (the default) or base64, for binary files |
 | `kind` | string | yes | one of document, deck, dashboard or site |
 | `title` | string | yes | title of the Window, also used in its address |
+| `description` | string | no | what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window |
 | `room` | string | no | name of the Room to publish in; the personal Room of the person you act for when empty |
 
 <details>
@@ -2907,6 +2944,10 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
         "null",
         "object"
       ]
+    },
+    "description": {
+      "description": "what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window",
+      "type": "string"
     },
     "files": {
       "description": "the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css",
@@ -2984,6 +3025,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
+| `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -3048,6 +3090,10 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
         "null",
         "object"
       ]
+    },
+    "description": {
+      "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
     },
     "file_count": {
       "type": "integer"
@@ -3181,6 +3227,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
+| `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -3245,6 +3292,10 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
         "null",
         "object"
       ]
+    },
+    "description": {
+      "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
     },
     "file_count": {
       "type": "integer"
@@ -3377,6 +3428,7 @@ Title: Remove a member from a Room. Annotations: `readOnlyHint: false`, `destruc
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
@@ -3388,6 +3440,10 @@ Title: Remove a member from a Room. Annotations: `readOnlyHint: false`, `destruc
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "description": {
+      "description": "what the Room is, in a sentence or two; absent when it has none",
       "type": "string"
     },
     "home": {
@@ -3517,6 +3573,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
+| `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -3581,6 +3638,223 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
         "null",
         "object"
       ]
+    },
+    "description": {
+      "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "file_count": {
+      "type": "integer"
+    },
+    "id": {
+      "description": "the Window's id, which never changes: name the Window by it to find it whatever its name",
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "name": {
+      "description": "the Window's name, last part of its address",
+      "type": "string"
+    },
+    "permanent_url": {
+      "description": "the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts",
+      "type": "string"
+    },
+    "previous_version": {
+      "description": "the number of the version that rollback_window goes back to; absent when there is none",
+      "type": "integer"
+    },
+    "room": {
+      "description": "the name of its Room, the part of its address before its name",
+      "type": "string"
+    },
+    "size": {
+      "description": "total size of the files of the current version, in bytes",
+      "type": "integer"
+    },
+    "title": {
+      "type": "string"
+    },
+    "trashed_at": {
+      "description": "when the Window went to the trash; absent when it is not in it",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "url": {
+      "description": "where the Window opens",
+      "type": "string"
+    },
+    "version": {
+      "description": "the number of the version that readers see",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "title",
+    "kind",
+    "url",
+    "permanent_url",
+    "room",
+    "version",
+    "size",
+    "file_count",
+    "created_by",
+    "created_at",
+    "updated_at",
+    "access"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+## `retitle_window`
+
+Change the title of a Window, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it.
+
+Title: Retitle and describe a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+
+### Arguments
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
+| `description` | string or null | no | the new description, a sentence or two of plain text, 300 characters at most; empty to remove it, and it stays when absent |
+| `title` | string | no | the new title; the title stays when empty. The address does not change |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "description": {
+      "description": "the new description, a sentence or two of plain text, 300 characters at most; empty to remove it, and it stays when absent",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "title": {
+      "description": "the new title; the title stays when empty. The address does not change",
+      "type": "string"
+    },
+    "window": {
+      "description": "the Window's id or address, or its Room and its name as room/name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "window"
+  ],
+  "type": "object"
+}
+```
+
+</details>
+
+### Result
+
+| Field | Type | Always present | Description |
+| --- | --- | --- | --- |
+| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `created_at` | string | yes |  |
+| `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
+| `file_count` | integer | yes |  |
+| `id` | string | yes | the Window's id, which never changes: name the Window by it to find it whatever its name |
+| `kind` | string | yes |  |
+| `name` | string | yes | the Window's name, last part of its address |
+| `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
+| `room` | string | yes | the name of its Room, the part of its address before its name |
+| `size` | integer | yes | total size of the files of the current version, in bytes |
+| `title` | string | yes |  |
+| `updated_at` | string | yes |  |
+| `url` | string | yes | where the Window opens |
+| `version` | integer | yes | the number of the version that readers see |
+| `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
+| `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
+| `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
+| `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+
+<details>
+<summary>JSON Schema</summary>
+
+```json
+{
+  "additionalProperties": false,
+  "properties": {
+    "access": {
+      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "type": "string"
+    },
+    "access_ends_at": {
+      "description": "when the access ends, after which the Window opens to its Room only; absent when it does not end",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "created_by": {
+      "description": "handle of the person it was first published for, empty once that person is deleted",
+      "type": "string"
+    },
+    "declaration": {
+      "additionalProperties": false,
+      "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
+      "properties": {
+        "forms": {
+          "description": "the origins that the forms of the pages send to, if any",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "origins": {
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "scripts": {
+          "description": "whether the pages run scripts, inline or in files",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scripts"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "description": {
+      "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
     },
     "file_count": {
       "type": "integer"
@@ -3814,6 +4088,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
+| `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -3878,6 +4153,10 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
         "null",
         "object"
       ]
+    },
+    "description": {
+      "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
     },
     "file_count": {
       "type": "integer"
@@ -4165,6 +4444,7 @@ Title: Choose the home page of a Room. Annotations: `readOnlyHint: false`, `dest
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
@@ -4176,6 +4456,10 @@ Title: Choose the home page of a Room. Annotations: `readOnlyHint: false`, `dest
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "description": {
+      "description": "what the Room is, in a sentence or two; absent when it has none",
       "type": "string"
     },
     "home": {
@@ -4311,6 +4595,7 @@ Title: Change a role in a Room. Annotations: `readOnlyHint: false`, `destructive
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
@@ -4322,6 +4607,10 @@ Title: Change a role in a Room. Annotations: `readOnlyHint: false`, `destructive
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "description": {
+      "description": "what the Room is, in a sentence or two; absent when it has none",
       "type": "string"
     },
     "home": {
@@ -4681,6 +4970,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
+| `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `key` | string | no | the new Key, returned this once: give it to the person, who passes it on with the address |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
@@ -4746,6 +5036,10 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
         "null",
         "object"
       ]
+    },
+    "description": {
+      "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
     },
     "file_count": {
       "type": "integer"
@@ -4881,6 +5175,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
+| `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -4945,6 +5240,10 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
         "null",
         "object"
       ]
+    },
+    "description": {
+      "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
     },
     "file_count": {
       "type": "integer"
@@ -5022,16 +5321,17 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 
 ## `update_room`
 
-Change the title of a Room. Its name, and so its address, stays.
+Change the title of a Room, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it.
 
-Title: Retitle a Room. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Retitle and describe a Room. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `room` | string | yes | the Room's name |
-| `title` | string | yes | the new title |
+| `description` | string or null | no | the new description, a sentence or two of plain text, 300 characters at most; empty to remove it, and it stays when absent |
+| `title` | string | no | the new title; the title stays when empty |
 
 <details>
 <summary>JSON Schema</summary>
@@ -5040,18 +5340,24 @@ Title: Retitle a Room. Annotations: `readOnlyHint: false`, `destructiveHint: fal
 {
   "additionalProperties": false,
   "properties": {
+    "description": {
+      "description": "the new description, a sentence or two of plain text, 300 characters at most; empty to remove it, and it stays when absent",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "room": {
       "description": "the Room's name",
       "type": "string"
     },
     "title": {
-      "description": "the new title",
+      "description": "the new title; the title stays when empty",
       "type": "string"
     }
   },
   "required": [
-    "room",
-    "title"
+    "room"
   ],
   "type": "object"
 }
@@ -5073,6 +5379,7 @@ Title: Retitle a Room. Annotations: `readOnlyHint: false`, `destructiveHint: fal
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
 
@@ -5084,6 +5391,10 @@ Title: Retitle a Room. Annotations: `readOnlyHint: false`, `destructiveHint: fal
   "additionalProperties": false,
   "properties": {
     "created_at": {
+      "type": "string"
+    },
+    "description": {
+      "description": "what the Room is, in a sentence or two; absent when it has none",
       "type": "string"
     },
     "home": {
@@ -5176,6 +5487,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `files[].path` | string | yes | relative path with / as separator, such as index.html or img/logo.svg |
 | `files[].encoding` | string | no | utf-8 (the default) or base64, for binary files |
 | `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
+| `description` | string or null | no | a new description, a sentence or two of plain text; empty to remove it, and it stays when absent |
 | `title` | string | no | a new title; the title stays when empty. The address does not change |
 
 <details>
@@ -5220,6 +5532,13 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
       "type": [
         "null",
         "object"
+      ]
+    },
+    "description": {
+      "description": "a new description, a sentence or two of plain text; empty to remove it, and it stays when absent",
+      "type": [
+        "null",
+        "string"
       ]
     },
     "files": {
@@ -5293,6 +5612,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
+| `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -5357,6 +5677,10 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
         "null",
         "object"
       ]
+    },
+    "description": {
+      "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
     },
     "file_count": {
       "type": "integer"

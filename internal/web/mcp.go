@@ -40,6 +40,7 @@ const instructions = `Cahut keeps what you make on the user's own server, as Win
 	`keep state in memory or in the address. ` +
 	`To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. ` +
 	`Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. ` +
+	`Give each Window a description of a sentence or two; retitle_window changes its title and description without a new version. ` +
 	`A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; ` +
 	`making it public waits for a person. ` +
 	`invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. ` +

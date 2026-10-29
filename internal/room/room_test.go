@@ -5,6 +5,7 @@ import (
 	"errors"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"cahut.cloud/internal/account"
@@ -149,6 +150,69 @@ func TestListAndGetRooms(t *testing.T) {
 	if err != nil || d.Title != "Marketing and sales" || d.Name != "marketing" {
 		t.Errorf("update_room by an administrator = %+v, %v", d, err)
 	}
+}
+
+func TestDescribeRooms(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	text := func(s string) *string { return &s }
+	r, err := operation.Do(ctx, f.r, CreateRoom, ai(f.camille), CreateRoomInput{Title: "Marketing", Description: " What we tell\n the world. "})
+	if err != nil || r.Description != "What we tell the world." {
+		t.Fatalf("create_room with a description = %+v, %v", r, err)
+	}
+
+	// The title alone keeps the description, the description alone keeps the
+	// title, and an empty description removes it.
+	d, err := operation.Do(ctx, f.r, UpdateRoom, ai(f.camille), UpdateRoomInput{Room: "marketing", Title: "Marketing and sales"})
+	if err != nil || d.Title != "Marketing and sales" || d.Description != "What we tell the world." {
+		t.Errorf("update_room of its title = %+v, %v", d, err)
+	}
+	d, err = operation.Do(ctx, f.r, UpdateRoom, ai(f.camille), UpdateRoomInput{Room: "marketing", Description: text("What we sell.")})
+	if err != nil || d.Title != "Marketing and sales" || d.Description != "What we sell." {
+		t.Errorf("update_room of its description = %+v, %v", d, err)
+	}
+	list, err := operation.Do(ctx, f.r, ListRooms, f.camille, ListRoomsInput{})
+	if err != nil || len(list.Rooms) != 2 || list.Rooms[1].Description != "What we sell." {
+		t.Errorf("list_rooms = %+v, %v", list, err)
+	}
+	if d, err := operation.Do(ctx, f.r, UpdateRoom, ai(f.camille), UpdateRoomInput{Room: "marketing", Description: text("")}); err != nil || d.Description != "" {
+		t.Errorf("update_room with an empty description = %+v, %v", d, err)
+	}
+
+	// A person describes their personal Room, which they own.
+	if d, err := operation.Do(ctx, f.r, UpdateRoom, f.bruno, UpdateRoomInput{Room: "bruno", Description: text("My notes.")}); err != nil || d.Description != "My notes." {
+		t.Errorf("update_room of a personal Room = %+v, %v", d, err)
+	}
+
+	for name, in := range map[string]UpdateRoomInput{
+		"nothing":      {Room: "marketing"},
+		"spaces":       {Room: "marketing", Title: "  "},
+		"a long title": {Room: "marketing", Title: strings.Repeat("a", MaxTitle+1)},
+		"too long":     {Room: "marketing", Description: text(strings.Repeat("é", MaxDescription+1))},
+		"a control":    {Room: "marketing", Description: text("A bell\a.")},
+	} {
+		if _, err := operation.Do(ctx, f.r, UpdateRoom, f.camille, in); !errors.Is(err, operation.ErrInvalid) {
+			t.Errorf("update_room with %s: err = %v, want ErrInvalid", name, err)
+		}
+	}
+	if d, err := operation.Do(ctx, f.r, UpdateRoom, f.camille, UpdateRoomInput{Room: "marketing", Description: text(strings.Repeat("é", MaxDescription))}); err != nil ||
+		d.Description != strings.Repeat("é", MaxDescription) {
+		t.Errorf("update_room with 300 characters: %v", err)
+	}
+	if _, err := operation.Do(ctx, f.r, UpdateRoom, f.bruno, UpdateRoomInput{Room: "marketing", Description: text("Ours.")}); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("update_room by someone outside: err = %v, want ErrNotFound", err)
+	}
+
+	entries, err := logbook.List(ctx, f.db.Read, 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range entries {
+		if e.Operation == "update_room" && e.Outcome == logbook.OK && e.Target == "marketing" && e.Detail == `description "What we sell."` {
+			return
+		}
+	}
+	t.Errorf("the Logbook has no change of description: %+v", entries)
 }
 
 func TestMembers(t *testing.T) {

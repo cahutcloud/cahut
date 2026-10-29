@@ -59,7 +59,8 @@ See [What a Window declares](/concepts/rooms-and-windows/#what-a-window-declares
 | Files in a Window | 500 |
 | Size of a Window, its files decoded | 32 MiB |
 | Path of a file | 255 bytes |
-| Title of a Window | 200 bytes |
+| Title of a Window or a Room | 200 bytes |
+| Description of a Window or a Room | 300 characters |
 | Name of a Window in its address, taken from its title | 40 characters |
 | Origins in each list of a declaration | 20 |
 | Versions of a Window | 2: the current one and the one before |
@@ -86,10 +87,10 @@ An AI acts through the tools of the Cahut, in the Rooms you granted it, and chan
 
 On its own, an AI does what can be undone:
 
-- publish a Window, update it, go back to its previous version, put it in the trash and restore it;
+- publish a Window, update it, go back to its previous version, change its title and its description, put it in the trash and restore it;
 - open a Window to the whole Cahut or to the holders of its Key, and close it again;
 - invite people to read a Window by e-mail, and take an invitation back;
-- create a team Room, and change its title and what its address shows;
+- create a team Room, and change its title, its description and what its address shows;
 - narrow what it reaches.
 
 What cannot be undone, and what changes what a person may do, knocks first:

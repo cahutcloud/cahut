@@ -50,8 +50,8 @@ A team Room gathers its owners and members. Any person, or their AI, creates one
 | Who | What they do in a team Room |
 | --- | --- |
 | Its members | Publish in it, open its Windows, and read in the Logbook what happens in it |
-| Its owners | The same, and change its title and what its address shows, add and remove people, and make them owners or members |
-| The administrators of the Cahut | Change its title and its people, but open its Windows only if they are in it |
+| Its owners | The same, and change its title, its description and what its address shows, add and remove people, and make them owners or members |
+| The administrators of the Cahut | Change its title, its description and its people, but open its Windows only if they are in it |
 
 A Room keeps at least one owner, and anyone can leave a team Room. Adding or removing a person, and changing their role, [knock first](/concepts/knock-first-and-logbook/#knock-first): when an AI asks, its person approves in the console. A Room's name, and so its address, does not change, but when a person [changes their handle](/admin/console/#name-and-handle): their personal Room, and in an individual Cahut each of their Rooms, takes the new one, and the old addresses stop working.
 
@@ -71,6 +71,12 @@ A Window has a kind: `document`, `deck`, `dashboard` or `site`. The kind says wh
 
 A Window is static: HTML, styles, scripts, images, fonts and data files, served as they are, each with the media type of its extension. Readers' browsers check for a newer copy on every visit. A folder opens on its `index.html`; Cahut lists no folder, and a folder without `index.html` answers `404 Not Found`. [What Cahut can and cannot do](/start/can-and-cannot/) sums up what a Window holds and does.
 
+
+### Title and description
+
+A Window has a title, of 200 bytes at most, and a description: a sentence or two of plain text, 300 characters at most, which says what it is. A Room has them too. The page of a Room shows its description under its title, and the description of each Window on its card; AIs read them in `list_windows` and `list_rooms` to find what they are asked to update.
+
+`publish_window` and `create_room` take a description. `retitle_window` changes the title of a Window, its description or both, without a new version, and `update_room` those of a Room; their addresses stay. Changing them is undone by changing them back, so an AI does it alone, and the Logbook records the new texts. In the console, the page of a Window changes them under **Title and description**, and **Manage the Room** changes those of a Room.
 ## Versions and the trash
 
 A Window keeps two versions: the current one, which readers see, and the one before.

@@ -29,6 +29,7 @@ The arguments of `publish_window`:
 | Field | What it holds |
 | --- | --- |
 | `title` | The title of the Window, at most 200 bytes. The name in its address comes from it. |
+| `description` | Optional: what the Window is, in a sentence or two of plain text, 300 characters at most. Readers see it on the page of its Room, and AIs read it to find the Window. |
 | `kind` | `document`, `deck`, `dashboard` or `site`. |
 | `room` | Optional: the name of a Room of the person the AI acts for. Without it, the Window goes to their personal Room. |
 | `files` | The files, with `index.html` at the root: it is the page that opens. |
@@ -116,7 +117,21 @@ The answer also gives the Window's `id`, which never changes, and its `permanent
 }
 ```
 
-The version it replaces is kept. `rollback_window`, with the Window alone, goes back to it, and a second rollback returns. Publishing again with `publish_window` creates another Window, such as `q3-review-2`: to change a Window, update it.
+The version it replaces is kept. `rollback_window`, with the Window alone, goes back to it, and a second rollback returns. Publishing again with `publish_window` creates another Window, such as `q3-review-2`: to change a Window, update it. `update_window` also takes a new `description`, which an empty one removes.
+
+### Retitle and describe a Window
+
+`retitle_window` changes the title of a Window, its description, or both, without a new version: its address stays, and so do its versions. An empty description removes it, and an absent one stays:
+
+```json
+{
+  "window": "3f9k2m7q8x4r1t6v0b5n8c2d4g",
+  "title": "Q3 review, final",
+  "description": "The figures of the third quarter, and what we decided."
+}
+```
+
+The Logbook records the new texts. To undo the change, an AI calls `retitle_window` again with the old ones, which `get_window` gave before. In the console, the page of each Window changes them under **Title and description**.
 
 ### Share a Window
 

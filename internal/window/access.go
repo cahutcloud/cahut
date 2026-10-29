@@ -162,6 +162,7 @@ type Served struct {
 	ID, RoomID        int64
 	UID               string // the id that people and AIs see, which never changes
 	Room, Name, Title string
+	Description       string
 	Kind              string
 	Version           int
 	Access            string // as it is now: an access that has ended is room
@@ -172,7 +173,7 @@ type Served struct {
 }
 
 const served = `
-	SELECT w.id, w.room_id, w.uid, r.name, w.name, w.title, w.kind, w.version, w.access, w.access_ends_at, w.updated_at, w.key_hash, v.declaration
+	SELECT w.id, w.room_id, w.uid, r.name, w.name, w.title, w.description, w.kind, w.version, w.access, w.access_ends_at, w.updated_at, w.key_hash, v.declaration
 	FROM windows w JOIN rooms r ON r.id = w.room_id JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
 	WHERE w.trashed_at IS NULL AND `
 
@@ -212,7 +213,7 @@ func scanServed(row scanner, now time.Time) (Served, error) {
 	var ends, keyHash sql.NullString
 	var updated string
 	var declared *string
-	err := row.Scan(&w.ID, &w.RoomID, &w.UID, &w.Room, &w.Name, &w.Title, &w.Kind, &w.Version, &w.Access, &ends, &updated, &keyHash, &declared)
+	err := row.Scan(&w.ID, &w.RoomID, &w.UID, &w.Room, &w.Name, &w.Title, &w.Description, &w.Kind, &w.Version, &w.Access, &ends, &updated, &keyHash, &declared)
 	if err != nil {
 		return Served{}, err
 	}
@@ -330,9 +331,9 @@ func PassLasts(ctx context.Context, db *store.DB, windowID, id int64, now time.T
 
 // RoomView is a Room as a reader sees it, with the Windows they open.
 type RoomView struct {
-	Name, Title string
-	Member      bool
-	Windows     []Opened
+	Name, Title, Description string
+	Member                   bool
+	Windows                  []Opened
 	// Home is the Window that the Room shows at its address, when it has
 	// one and the reader opens it; nil otherwise, and the address lists
 	// Windows. See docs/adr/0032-the-page-of-a-room.md.
@@ -354,8 +355,8 @@ func ViewRoom(ctx context.Context, db *store.DB, name string, userID int64, pass
 	var roomID int64
 	var home sql.NullInt64
 	err := db.Read.QueryRowContext(ctx, `
-		SELECT r.id, r.title, r.home_window_id, EXISTS (SELECT 1 FROM room_members WHERE room_id = r.id AND user_id = ?)
-		FROM rooms r WHERE r.name = ?`, userID, name).Scan(&roomID, &v.Title, &home, &v.Member)
+		SELECT r.id, r.title, r.description, r.home_window_id, EXISTS (SELECT 1 FROM room_members WHERE room_id = r.id AND user_id = ?)
+		FROM rooms r WHERE r.name = ?`, userID, name).Scan(&roomID, &v.Title, &v.Description, &home, &v.Member)
 	if errors.Is(err, sql.ErrNoRows) {
 		return RoomView{}, operation.NotFoundf("no Room %s", name)
 	}

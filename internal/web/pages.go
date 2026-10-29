@@ -198,17 +198,19 @@ func (s *Server) serveRoot(w http.ResponseWriter, r *http.Request) {
 // roomPage is the page that lists the Windows of a Room.
 type roomPage struct {
 	page
-	Name    string
-	Count   string
-	Member  bool
-	MCP     string
-	Windows []windowCard
+	Name        string
+	Description string
+	Count       string
+	Member      bool
+	MCP         string
+	Windows     []windowCard
 }
 
 // windowCard is a Window on the page of its Room, with the address of its
 // preview.
 type windowCard struct {
 	URL, Title         string
+	Description        string
 	Kind, KindIcon     string
 	Access, AccessIcon string
 	AccessClass        string
@@ -243,11 +245,12 @@ func (s *Server) serveRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data := roomPage{
-		page:   s.page(r, reader.Handle, v.Title),
-		Name:   v.Name,
-		Count:  plural(len(v.Windows), "Window", "Windows"),
-		Member: v.Member,
-		MCP:    s.cfg.BaseURL(c.Domain) + "mcp",
+		page:        s.page(r, reader.Handle, v.Title),
+		Name:        v.Name,
+		Description: v.Description,
+		Count:       plural(len(v.Windows), "Window", "Windows"),
+		Member:      v.Member,
+		MCP:         s.cfg.BaseURL(c.Domain) + "mcp",
 	}
 	for _, o := range v.Windows {
 		kind, ok := kinds[o.Kind]
@@ -256,7 +259,7 @@ func (s *Server) serveRoom(w http.ResponseWriter, r *http.Request) {
 		}
 		access := accesses[o.Access]
 		data.Windows = append(data.Windows, windowCard{
-			URL: "/" + o.Room + "/" + o.Name + "/", Title: o.Title,
+			URL: "/" + o.Room + "/" + o.Name + "/", Title: o.Title, Description: o.Description,
 			Kind: kind.Name, KindIcon: kind.Icon,
 			Access: access.Name, AccessIcon: access.Icon, AccessClass: o.Access,
 			Updated: ago(o.UpdatedAt, now),
