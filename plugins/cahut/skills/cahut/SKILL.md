@@ -38,6 +38,7 @@ Pages run with an opaque origin. `localStorage`, `sessionStorage`, IndexedDB and
 ## Change, share, undo
 
 - Each Window has an `id` that never changes. Name the Window by its id in later calls, as `window`, to find it whatever its name. Its `permanent_url`, `https://<domain>/-/w/<id>`, sends whoever may open it to its address: give it for a link that lasts.
+- Give each Window a `description` when you publish it: a sentence or two, 300 characters at most, that say what it is. `retitle_window` changes its title, its description or both, without a new version.
 - `update_window` publishes a new version at the same address: give all its files again. `rollback_window` goes back to the previous one. `trash_window` and `restore_window` take a Window away and bring it back.
 - A Window opens to the members of its Room. `set_window_access` opens it to everyone signed in to the Cahut (`internal`), to anyone with its Key (`key`: Cahut draws one and returns it once, give it to the user), or to anyone (`public`), until an optional date.
 - The address of a Room, `https://<domain>/<room>/`, shows each reader the Windows they may open. `set_room_home` shows one of its Windows there instead, such as a page that presents the Room, to the readers who may open it; without a Window, it goes back to the list.

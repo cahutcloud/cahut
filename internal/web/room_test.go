@@ -183,3 +183,19 @@ func TestHandleMovesWindows(t *testing.T) {
 		}
 	}
 }
+
+// The page of a Room shows its description, and that of each Window, as
+// text.
+func TestRoomPageDescriptions(t *testing.T) {
+	f := setup(t)
+	olivier := f.person(t, "localhost", "olivier")
+	f.call(t, "localhost", olivier, "publish_window", `{"title": "Launch", "description": "The <b>launch</b> plan.", "kind": "document",
+		"declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "<h1>Launch</h1>"}]}`)
+	f.call(t, "localhost", olivier, "set_window_access", `{"window": "olivier/launch", "access": "public"}`)
+	f.call(t, "localhost", olivier, "update_room", `{"room": "olivier", "description": "What Olivier makes."}`)
+	body, _ := f.previews(t, "/olivier/")
+	if !strings.Contains(body, `<p class="hero__description">What Olivier makes.</p>`) ||
+		!strings.Contains(body, `<p class="card__description">The &lt;b&gt;launch&lt;/b&gt; plan.</p>`) {
+		t.Errorf("the page of a described Room = %q", body)
+	}
+}

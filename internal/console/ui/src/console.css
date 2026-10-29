@@ -837,6 +837,12 @@ a.cahut-menu__item:hover {
 }
 /* A title longer than the screen, the domain of a Cahut or a long name,
    goes on several lines rather than widen the page. */
+/* The description of a Window, under its title. */
+.page-head__lead {
+	max-width: 70ch;
+	font-size: var(--text-lg);
+	line-height: var(--leading-lg);
+}
 .page-head__text .c-h1,
 .page-head__text p {
 	overflow-wrap: anywhere;
@@ -884,6 +890,22 @@ a.cahut-menu__item:hover {
 .window-title {
 	color: var(--color-text);
 	text-decoration: none;
+}
+/* The description of a Window, on two lines at most. */
+.window-description {
+	display: -webkit-box;
+	margin: 0;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	color: var(--color-text-muted);
+	font-size: var(--text-xs);
+	line-height: var(--leading-xs);
+}
+.description-field {
+	min-height: 5rem;
+	resize: vertical;
 }
 .window-title:hover {
 	text-decoration: underline;

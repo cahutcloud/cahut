@@ -42,6 +42,8 @@ export interface AccessSet {
   /** the Window's name, last part of its address */
   name: string;
   title: string;
+  /** what the Window is, in a sentence or two; absent when it has none */
+  description?: string;
   kind: string;
   /** where the Window opens */
   url: string;
@@ -276,6 +278,8 @@ export interface CreateAdminInput {
 export interface CreateRoomInput {
   /** title of the Room, such as Marketing */
   title: string;
+  /** what the Room is, in a sentence or two of plain text, 300 characters at most */
+  description?: string;
   /** name of the Room, the first part of its address; from the title when empty */
   name?: string;
   /** handle of its first owner; you when empty. Only administrators of the Cahut name someone else */
@@ -363,6 +367,13 @@ export interface DescribeInput {
 }
 
 export type DescribeSignInInput = Record<string, never>;
+
+export interface DescriptionLength {
+  /** how many characters it has */
+  length: number;
+  /** the most it may have */
+  limit: number;
+}
 
 export interface DisconnectAIInput {
   /** the connection, from list_connected_ais */
@@ -839,6 +850,8 @@ export interface Previews {
 export interface PublishInput {
   /** title of the Window, also used in its address */
   title: string;
+  /** what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window */
+  description?: string;
   /** one of document, deck, dashboard or site */
   kind: string;
   /** name of the Room to publish in; the personal Room of the person you act for when empty */
@@ -929,6 +942,15 @@ export interface RequestedUpdate {
 
 export type ResumeCahutInput = Record<string, never>;
 
+export interface RetitleInput {
+  /** the Window's id or address, or its Room and its name as room/name */
+  window: string;
+  /** the new title; the title stays when empty. The address does not change */
+  title?: string;
+  /** the new description, a sentence or two of plain text, 300 characters at most; empty to remove it, and it stays when absent */
+  description?: string;
+}
+
 export interface RevokeInvitationInput {
   /** the id of the invitation, which list_invitations gives */
   invitation: number;
@@ -946,6 +968,8 @@ export interface Room {
   /** the Room's name, first part of its address */
   name: string;
   title: string;
+  /** what the Room is, in a sentence or two; absent when it has none */
+  description?: string;
   /** personal or team */
   kind: string;
   /** your role in the Room, owner or member; empty when you are not in it */
@@ -970,6 +994,8 @@ export interface RoomDetail {
   /** the Room's name, first part of its address */
   name: string;
   title: string;
+  /** what the Room is, in a sentence or two; absent when it has none */
+  description?: string;
   /** personal or team */
   kind: string;
   /** your role in the Room, owner or member; empty when you are not in it */
@@ -1233,6 +1259,8 @@ export interface UpdateInput {
   window: string;
   /** a new title; the title stays when empty. The address does not change */
   title?: string;
+  /** a new description, a sentence or two of plain text; empty to remove it, and it stays when absent */
+  description?: string;
   /** every file of the new version, as for publish_window; files left out are not in it */
   files: File[];
   /** what the pages do: Cahut lets them load and call the origins listed here, and nothing else */
@@ -1242,8 +1270,10 @@ export interface UpdateInput {
 export interface UpdateRoomInput {
   /** the Room's name */
   room: string;
-  /** the new title */
-  title: string;
+  /** the new title; the title stays when empty */
+  title?: string;
+  /** the new description, a sentence or two of plain text, 300 characters at most; empty to remove it, and it stays when absent */
+  description?: string;
 }
 
 export interface Updates {
@@ -1320,6 +1350,8 @@ export interface Window {
   /** the Window's name, last part of its address */
   name: string;
   title: string;
+  /** what the Window is, in a sentence or two; absent when it has none */
+  description?: string;
   kind: string;
   /** where the Window opens */
   url: string;
@@ -1354,6 +1386,8 @@ export interface WindowDetail {
   /** the Window's name, last part of its address */
   name: string;
   title: string;
+  /** what the Window is, in a sentence or two; absent when it has none */
+  description?: string;
   kind: string;
   /** where the Window opens */
   url: string;
@@ -1506,6 +1540,8 @@ export interface CahutOperations {
   restore_window: { input: RefInput; output: Window };
   /** Resume this Cahut, which suspend_cahut suspended: its Windows open again, its people sign in, and their AIs act in it as before, without connecting again. Its administrators hear of it by e-mail when it sends e-mail. For the administrators of the server. */
   resume_cahut: { input: ResumeCahutInput; output: Settings };
+  /** Change the title of a Window, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it. */
+  retitle_window: { input: RetitleInput; output: Window };
   /** Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. */
   revoke_invitation: { input: RevokeInvitationInput; output: Invitation };
   /** Revoke a service token. The program that used it loses access to the admin API at once. */
@@ -1546,7 +1582,7 @@ export interface CahutOperations {
   suspend_cahut: { input: SuspendCahutInput; output: Settings };
   /** Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. */
   trash_window: { input: RefInput; output: Window };
-  /** Change the title of a Room. Its name, and so its address, stays. */
+  /** Change the title of a Room, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it. */
   update_room: { input: UpdateRoomInput; output: RoomDetail };
   /** Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. */
   update_window: { input: UpdateInput; output: Window };
@@ -1604,6 +1640,10 @@ export interface Refusals {
   cahut_needs_an_admin: null;
   /** this Cahut is suspended by the administrators of its server: it keeps everything it holds, and nothing in it can be read or changed until they resume it. Ask the administrators of the Cahut, or, for an AI, tell the person you act for */
   cahut_suspended: null;
+  /** the description holds a control character: write it in plain text */
+  description_control: null;
+  /** the description has {length} characters: use at most {limit}, a sentence or two */
+  description_too_long: DescriptionLength;
   /** {email} is already your e-mail address */
   email_already_yours: TakenEmail;
   /** this link is unknown, used or expired: change your address again from your account */
@@ -1682,6 +1722,10 @@ export interface Refusals {
   setup_done: Started;
   /** this link to the first start does not work any more: it was used, it expired, or it is for another address; cahut setup, on the server, gives a new one */
   setup_link_gone: null;
+  /** title is empty: give one */
+  title_empty: null;
+  /** title is longer than 200 bytes: shorten it */
+  title_too_long: null;
   /** too many attempts from this address: wait a minute */
   too_many_attempts_from_address: null;
   /** {sent} invitations went out for {handle} in the last 24 hours, and {limit} is the most: send the rest later */

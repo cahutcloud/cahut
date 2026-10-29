@@ -89,6 +89,13 @@ func (s *Service) Register(r *operation.Registry) {
 		Destructive: true,
 		Run:         s.update,
 	})
+	operation.Register(r, &operation.Op[RetitleInput, Window]{
+		Name:  "retitle_window",
+		Title: "Retitle and describe a Window",
+		Description: "Change the title of a Window, its description, or both, without publishing a new version. " +
+			"Its address stays. Give the old title and description again to undo it.",
+		Run: s.retitle,
+	})
 	operation.Register(r, &operation.Op[RefInput, Window]{
 		Name:  "rollback_window",
 		Title: "Roll back a Window",
@@ -220,6 +227,7 @@ type Window struct {
 	ID           string    `json:"id" jsonschema:"the Window's id, which never changes: name the Window by it to find it whatever its name"`
 	Name         string    `json:"name" jsonschema:"the Window's name, last part of its address"`
 	Title        string    `json:"title"`
+	Description  string    `json:"description,omitempty" jsonschema:"what the Window is, in a sentence or two; absent when it has none"`
 	Kind         string    `json:"kind"`
 	URL          string    `json:"url" jsonschema:"where the Window opens"`
 	PermanentURL string    `json:"permanent_url" jsonschema:"the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts"`
@@ -242,6 +250,7 @@ type Window struct {
 // PublishInput is the input of publish_window.
 type PublishInput struct {
 	Title       string       `json:"title" jsonschema:"title of the Window, also used in its address"`
+	Description string       `json:"description,omitempty" jsonschema:"what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window"`
 	Kind        string       `json:"kind" jsonschema:"one of document, deck, dashboard or site"`
 	Room        string       `json:"room,omitempty" jsonschema:"name of the Room to publish in; the personal Room of the person you act for when empty"`
 	Files       []File       `json:"files" jsonschema:"the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css"`
@@ -256,13 +265,14 @@ type File struct {
 }
 
 func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInput) (Window, error) {
-	title := strings.TrimSpace(in.Title)
-	c.Log(title, "")
-	if title == "" {
-		return Window{}, operation.Invalidf("title is empty")
+	c.Log(strings.TrimSpace(in.Title), "")
+	title, err := room.CheckTitle(in.Title)
+	if err != nil {
+		return Window{}, err
 	}
-	if len(title) > 200 {
-		return Window{}, operation.Invalidf("title is longer than 200 bytes")
+	description, err := room.CheckDescription(in.Description)
+	if err != nil {
+		return Window{}, err
 	}
 	switch in.Kind {
 	case Document, Deck, Dashboard, Site:
@@ -302,7 +312,7 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err := settings.CheckDisk(ctx, c, roomID, size); err != nil {
 		return Window{}, err
 	}
-	w := Window{ID: address.NewID(), Title: title, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: AccessRoom,
+	w := Window{ID: address.NewID(), Title: title, Description: description, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: AccessRoom,
 		CreatedBy: c.Actor.Handle, CreatedAt: c.Now, UpdatedAt: c.Now, Declaration: declared}
 	if w.Name, err = freeName(ctx, c.Tx, roomID, title); err != nil {
 		return Window{}, err
@@ -311,9 +321,9 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	now := store.FormatTime(c.Now)
 	var id int64
 	err = c.Tx.QueryRowContext(ctx, `
-		INSERT INTO windows (uid, room_id, name, title, kind, version, size, file_count, created_by, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
-		w.ID, roomID, w.Name, w.Title, w.Kind, w.Version, w.Size, w.FileCount, c.Actor.UserID, now, now).Scan(&id)
+		INSERT INTO windows (uid, room_id, name, title, description, kind, version, size, file_count, created_by, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+		w.ID, roomID, w.Name, w.Title, w.Description, w.Kind, w.Version, w.Size, w.FileCount, c.Actor.UserID, now, now).Scan(&id)
 	if err != nil {
 		return Window{}, err
 	}
@@ -331,8 +341,11 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 
 // UpdateInput is the input of update_window.
 type UpdateInput struct {
-	Window      string       `json:"window" jsonschema:"the Window's id or address, or its Room and its name as room/name"`
-	Title       string       `json:"title,omitempty" jsonschema:"a new title; the title stays when empty. The address does not change"`
+	Window string `json:"window" jsonschema:"the Window's id or address, or its Room and its name as room/name"`
+	Title  string `json:"title,omitempty" jsonschema:"a new title; the title stays when empty. The address does not change"`
+	// A pointer, so that an empty description removes it and an absent one
+	// keeps it.
+	Description *string      `json:"description,omitempty" jsonschema:"a new description, a sentence or two of plain text; empty to remove it, and it stays when absent"`
 	Files       []File       `json:"files" jsonschema:"every file of the new version, as for publish_window; files left out are not in it"`
 	Declaration *Declaration `json:"declaration" jsonschema:"what the pages do: Cahut lets them load and call the origins listed here, and nothing else"`
 }
@@ -345,11 +358,15 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 	if err := w.outOfTrash(); err != nil {
 		return Window{}, err
 	}
-	if title := strings.TrimSpace(in.Title); title != "" {
-		if len(title) > 200 {
-			return Window{}, operation.Invalidf("title is longer than 200 bytes")
+	if strings.TrimSpace(in.Title) != "" {
+		if w.Title, err = room.CheckTitle(in.Title); err != nil {
+			return Window{}, err
 		}
-		w.Title = title
+	}
+	if in.Description != nil {
+		if w.Description, err = room.CheckDescription(*in.Description); err != nil {
+			return Window{}, err
+		}
 	}
 	files, size, err := decode(in.Files)
 	if err != nil {
@@ -385,8 +402,8 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 		return Window{}, err
 	}
 	_, err = c.Tx.ExecContext(ctx, `
-		UPDATE windows SET title = ?, version = ?, previous = ?, size = ?, file_count = ?, updated_at = ? WHERE id = ?`,
-		w.Title, w.Version, w.Previous, w.Size, w.FileCount, now, w.id)
+		UPDATE windows SET title = ?, description = ?, version = ?, previous = ?, size = ?, file_count = ?, updated_at = ? WHERE id = ?`,
+		w.Title, w.Description, w.Version, w.Previous, w.Size, w.FileCount, now, w.id)
 	if err != nil {
 		return Window{}, err
 	}
@@ -418,6 +435,49 @@ func insertVersion(ctx context.Context, c *operation.Call, id int64, w Window) e
 		INSERT INTO window_versions (window_id, number, size, file_count, published_by, published_at, declaration)
 		VALUES (?, ?, ?, ?, ?, ?, ?)`, id, w.Version, w.Size, w.FileCount, c.Actor.UserID, store.FormatTime(c.Now), declared)
 	return err
+}
+
+// RetitleInput is the input of retitle_window.
+type RetitleInput struct {
+	Window string `json:"window" jsonschema:"the Window's id or address, or its Room and its name as room/name"`
+	Title  string `json:"title,omitempty" jsonschema:"the new title; the title stays when empty. The address does not change"`
+	// A pointer, so that an empty description removes it and an absent one
+	// keeps it.
+	Description *string `json:"description,omitempty" jsonschema:"the new description, a sentence or two of plain text, 300 characters at most; empty to remove it, and it stays when absent"`
+}
+
+// retitle changes the title of a Window, its description, or both, in
+// place: no new version, and the time of its last version stays.
+func (s *Service) retitle(ctx context.Context, c *operation.Call, in RetitleInput) (Window, error) {
+	if strings.TrimSpace(in.Title) == "" && in.Description == nil {
+		c.Log(in.Window, "")
+		return Window{}, operation.Invalidf("give a new title, a new description, or both")
+	}
+	w, err := s.target(ctx, c, in.Window)
+	if err != nil {
+		return Window{}, err
+	}
+	if err := w.outOfTrash(); err != nil {
+		return Window{}, err
+	}
+	var changes []string
+	if strings.TrimSpace(in.Title) != "" {
+		if w.Title, err = room.CheckTitle(in.Title); err != nil {
+			return Window{}, err
+		}
+		changes = append(changes, fmt.Sprintf("title %q", w.Title))
+	}
+	if in.Description != nil {
+		if w.Description, err = room.CheckDescription(*in.Description); err != nil {
+			return Window{}, err
+		}
+		changes = append(changes, fmt.Sprintf("description %q", w.Description))
+	}
+	if _, err := c.Tx.ExecContext(ctx, "UPDATE windows SET title = ?, description = ? WHERE id = ?", w.Title, w.Description, w.id); err != nil {
+		return Window{}, err
+	}
+	c.Log(w.Room+"/"+w.Name, strings.Join(changes, "; "))
+	return w.Window, nil
 }
 
 // RefInput names a Window, for the operations that act on one.
@@ -659,7 +719,7 @@ type found struct {
 // the server, who belongs to no Room, sees none.
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
 	q := `
-		SELECT w.id, w.uid, w.room_id, w.name, w.title, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
+		SELECT w.id, w.uid, w.room_id, w.name, w.title, w.description, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
 			coalesce(u.handle, ''), w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL, v.declaration
 		FROM windows w JOIN rooms r ON r.id = w.room_id LEFT JOIN users u ON u.id = w.created_by
 		JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
@@ -680,7 +740,7 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		var created, updated string
 		var trashed, ends sql.NullString
 		var declared *string
-		if err := rows.Scan(&w.id, &w.ID, &w.roomID, &w.Name, &w.Title, &w.Kind, &w.Room, &w.Version, &previous, &w.Size, &w.FileCount,
+		if err := rows.Scan(&w.id, &w.ID, &w.roomID, &w.Name, &w.Title, &w.Description, &w.Kind, &w.Room, &w.Version, &previous, &w.Size, &w.FileCount,
 			&w.CreatedBy, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey, &declared); err != nil {
 			return nil, err
 		}

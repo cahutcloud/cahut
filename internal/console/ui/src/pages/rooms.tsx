@@ -7,7 +7,21 @@ import type { ComponentChildren } from "preact";
 import { useId, useState } from "preact/hooks";
 import { ApiError, explain } from "../api";
 import type { Person, Room, RoomDetail, Window } from "../api.gen";
-import { agoInText, ConfirmButton, Dialog, Failure, initials, Notice, Outcome, PageHead, plural, Setting, WindowCards, windowPage } from "../components";
+import {
+	agoInText,
+	ConfirmButton,
+	DescriptionField,
+	Dialog,
+	Failure,
+	initials,
+	Notice,
+	Outcome,
+	PageHead,
+	plural,
+	Setting,
+	WindowCards,
+	windowPage,
+} from "../components";
 import { useConsole } from "../context";
 import { de, words } from "../i18n";
 import { useLoad } from "../load";
@@ -96,6 +110,10 @@ const t = words({
 		addressStays: "The address of the Room stays.",
 		rename: "Rename",
 		renamed: "Renamed.",
+		description: "Description",
+		descriptionHelp: "A sentence or two that say what the Room is. Readers see it on its page, and AIs read it.",
+		saveDescription: "Save",
+		described: "Saved.",
 		pageOfRoom: "Page of the Room",
 		homeHelp: (address: string) => (
 			<>
@@ -202,6 +220,10 @@ const t = words({
 		addressStays: "L'adresse de la Room ne change pas.",
 		rename: "Renommer",
 		renamed: "Renommée.",
+		description: "Description",
+		descriptionHelp: "Une phrase ou deux qui disent ce qu'est la Room. Les lecteurs la voient sur sa page, et les IA la lisent.",
+		saveDescription: "Enregistrer",
+		described: "Enregistrée.",
 		pageOfRoom: "Page de la Room",
 		homeHelp: (address) => (
 			<>
@@ -389,6 +411,8 @@ export function RoomPage({ name }: { name: string }) {
 	// What the address shows is set by those who own the Room, from its Windows.
 	const home = (r.role === "owner" || api.isAdmin) && list !== undefined;
 	const leave = team && members && r.role === "owner" && owners > 1;
+	// Its owners, personal Rooms included, and the administrators describe it.
+	const describe = r.role === "owner" || api.isAdmin;
 	const reload = () => {
 		api.reloadRooms();
 		room.reload();
@@ -400,7 +424,7 @@ export function RoomPage({ name }: { name: string }) {
 				room={r}
 				windows={list}
 				onPeople={team && members ? () => document.getElementById("people")?.scrollIntoView({ behavior: "smooth" }) : undefined}
-				onManage={manage || home || leave ? () => setDialog("manage") : undefined}
+				onManage={manage || home || leave || describe ? () => setDialog("manage") : undefined}
 			/>
 			<section class="room-section">
 				<div class="room-section__head">
@@ -463,6 +487,7 @@ export function RoomPage({ name }: { name: string }) {
 					room={r}
 					windows={home ? list : undefined}
 					manage={manage}
+					describe={describe}
 					leave={leave}
 					onChanged={reload}
 					onClose={() => setDialog(null)}
@@ -489,6 +514,7 @@ function RoomHead(props: { room: RoomDetail; windows?: Window[]; onPeople?: () =
 			<div class="room-head__text">
 				<span class="c-label">{label}</span>
 				<h1 class="c-h1">{r.title}</h1>
+				{r.description && <p class="page-head__lead">{r.description}</p>}
 				<p class="c-muted">
 					{plural(r.windows, "Window", "Windows")}
 					{r.kind === "team" && !individual && ` · ${role}`}
@@ -670,12 +696,13 @@ function roleWord(p: Pick<Person, "role">): string {
 	return p.role === "owner" ? t.owner : t.memberRole;
 }
 
-/** The dialog that manages the Room itself: its title, what its address shows, leaving it, deleting it. */
+/** The dialog that manages the Room itself: its title, its description, what its address shows, leaving it, deleting it. */
 function ManageRoom(props: {
 	room: RoomDetail;
 	/** The Windows to choose from for the page of the Room; none when the person may not set it. */
 	windows?: Window[];
 	manage: boolean;
+	describe: boolean;
 	leave: boolean;
 	onChanged: () => void;
 	onClose: () => void;
@@ -704,6 +731,15 @@ function ManageRoom(props: {
 						room={r}
 						onSave={async (title) => {
 							await api.cahut("update_room", { room: r.name, title });
+							props.onChanged();
+						}}
+					/>
+				)}
+				{props.describe && (
+					<DescriptionSetting
+						room={r}
+						onSave={async (description) => {
+							await api.cahut("update_room", { room: r.name, description });
 							props.onChanged();
 						}}
 					/>
@@ -771,6 +807,53 @@ function TitleSetting({ room, onSave }: { room: RoomDetail; onSave: (title: stri
 				<input id={id} class="c-input" required value={title} onInput={(e) => (setTitle(e.currentTarget.value), setSaid(""))} />
 				<button class="c-btn c-btn--secondary" type="submit" disabled={busy || title.trim() === room.title}>
 					{t.rename}
+				</button>
+			</div>
+			{said && <Outcome>{said}</Outcome>}
+			{error && (
+				<div class="setting__more">
+					<Failure message={error} />
+				</div>
+			)}
+		</form>
+	);
+}
+
+/** The description of a Room: a sentence or two, on its page and for AIs. */
+function DescriptionSetting({ room, onSave }: { room: RoomDetail; onSave: (description: string) => Promise<void> }) {
+	const id = useId();
+	const [description, setDescription] = useState(room.description ?? "");
+	const [busy, setBusy] = useState(false);
+	const [said, setSaid] = useState("");
+	const [error, setError] = useState("");
+	const save = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		setSaid("");
+		try {
+			await onSave(description);
+			setSaid(t.described);
+		} catch (err) {
+			setError(explain(err));
+		} finally {
+			setBusy(false);
+		}
+	};
+	return (
+		<form class="setting" onSubmit={save}>
+			<div class="setting__text">
+				<label class="setting__title" for={id}>
+					{t.description}
+				</label>
+				<p class="c-small c-muted">{t.descriptionHelp}</p>
+			</div>
+			<div class="setting__more c-field">
+				<DescriptionField id={id} value={description} onInput={(v) => (setDescription(v), setSaid(""))} />
+			</div>
+			<div class="setting__more">
+				<button class="c-btn c-btn--secondary" type="submit" disabled={busy || description.trim() === (room.description ?? "")}>
+					{t.saveDescription}
 				</button>
 			</div>
 			{said && <Outcome>{said}</Outcome>}

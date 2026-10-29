@@ -586,3 +586,96 @@ func TestFullDiskRefusesPublications(t *testing.T) {
 		t.Errorf("publish on a full disk: err = %v", err)
 	}
 }
+
+func TestRetitleAndDescribe(t *testing.T) {
+	f := setup(t)
+	out, err := f.invoke(t, f.olivier, "publish_window", `{"title": "Q3", "description": "  The figures\n of the third quarter. ", "kind": "deck",
+		"declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "<h1>Q3</h1>"}]}`)
+	if err != nil {
+		t.Fatalf("publish_window: %v", err)
+	}
+	w := out.(Window)
+	if w.Description != "The figures of the third quarter." {
+		t.Errorf("publish_window with a description = %+v", w)
+	}
+	retitle := func(as operation.Actor, args string) (Window, error) {
+		t.Helper()
+		out, err := f.invoke(t, as, "retitle_window", args)
+		if err != nil {
+			return Window{}, err
+		}
+		return out.(Window), nil
+	}
+
+	// The title changes in place: same name, same version, same time of its
+	// last version, and the description stays.
+	got, err := retitle(f.olivier, `{"window": "`+w.ID+`", "title": " Q3 review "}`)
+	if err != nil || got.Title != "Q3 review" || got.Name != "q3" || got.Version != 1 || !got.UpdatedAt.Equal(w.UpdatedAt) ||
+		got.Description != w.Description || got.URL != w.URL {
+		t.Errorf("retitle_window of its title = %+v, %v", got, err)
+	}
+	got, err = retitle(f.olivier, `{"window": "olivier/q3", "description": "What we sold."}`)
+	if err != nil || got.Title != "Q3 review" || got.Description != "What we sold." {
+		t.Errorf("retitle_window of its description = %+v, %v", got, err)
+	}
+	if out, err := f.invoke(t, f.olivier, "list_windows", `{}`); err != nil || out.(List).Windows[0].Description != "What we sold." {
+		t.Errorf("list_windows = %+v, %v", out, err)
+	}
+	if got, err := retitle(f.olivier, `{"window": "olivier/q3", "description": ""}`); err != nil || got.Description != "" {
+		t.Errorf("retitle_window with an empty description = %+v, %v", got, err)
+	}
+
+	for name, args := range map[string]string{
+		"nothing":      `{"window": "olivier/q3"}`,
+		"spaces":       `{"window": "olivier/q3", "title": "  "}`,
+		"a long title": `{"window": "olivier/q3", "title": "` + strings.Repeat("a", 201) + `"}`,
+		"too long":     `{"window": "olivier/q3", "description": "` + strings.Repeat("é", 301) + `"}`,
+		"a control":    `{"window": "olivier/q3", "description": "A bell\u0007."}`,
+	} {
+		if _, err := retitle(f.olivier, args); !errors.Is(err, operation.ErrInvalid) {
+			t.Errorf("retitle_window with %s: err = %v, want ErrInvalid", name, err)
+		}
+	}
+	if _, err := retitle(f.camille, `{"window": "`+w.ID+`", "title": "Ours"}`); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("retitle_window by someone outside the Room: err = %v, want ErrNotFound", err)
+	}
+
+	// update_window keeps the description unless it gives one.
+	update := func(extra string) Window {
+		t.Helper()
+		out, err := f.invoke(t, f.olivier, "update_window", `{"window": "olivier/q3", `+extra+`"declaration": {"scripts": false},
+			"files": [{"path": "index.html", "content": "<h1>Q3</h1>"}]}`)
+		if err != nil {
+			t.Fatalf("update_window: %v", err)
+		}
+		return out.(Window)
+	}
+	if got := update(`"description": "Version two.", `); got.Description != "Version two." {
+		t.Errorf("update_window with a description = %+v", got)
+	}
+	if got := update(""); got.Description != "Version two." || got.Title != "Q3 review" {
+		t.Errorf("update_window without a description = %+v", got)
+	}
+
+	// In the trash, a Window keeps its texts.
+	if _, err := f.invoke(t, f.olivier, "trash_window", `{"window": "olivier/q3"}`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := retitle(f.olivier, `{"window": "olivier/q3", "title": "Gone"}`); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("retitle_window in the trash: err = %v, want ErrInvalid", err)
+	}
+
+	entries, err := logbook.List(context.Background(), f.db.Read, 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var logged []string
+	for _, e := range entries {
+		if e.Operation == "retitle_window" && e.Outcome == logbook.OK {
+			logged = append(logged, e.Target+" "+e.Detail)
+		}
+	}
+	if want := `olivier/q3 description ""; olivier/q3 description "What we sold."; olivier/q3 title "Q3 review"`; strings.Join(logged, "; ") != want {
+		t.Errorf("the Logbook of retitle_window = %q, want %q", logged, want)
+	}
+}

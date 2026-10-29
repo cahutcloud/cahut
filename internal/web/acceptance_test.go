@@ -38,6 +38,7 @@ var undo = map[string]string{
 	"create_room":       "delete_room",
 	"publish_window":    "trash_window",
 	"update_window":     "rollback_window",
+	"retitle_window":    "retitle_window",
 	"rollback_window":   "rollback_window",
 	"trash_window":      "restore_window",
 	"restore_window":    "trash_window",

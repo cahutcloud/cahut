@@ -1,14 +1,28 @@
-// The page of a Window: where it opens, at its address and at its permanent
-// address, who opens it and until when, its two versions, what its AI
+// The page of a Window: its title and its description, where it opens, at
+// its address and at its permanent address, who opens it and until when, its two versions, what its AI
 // declared it does, and the trash. See
 // docs/adr/0019-window-versions-access-and-declaration.md and
 // docs/adr/0050-window-ids-permanent-addresses-and-names.md.
 import { ArrowUpRight, RotateCcw, Send, Undo2 } from "lucide-preact";
 import type { ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
+import { useId, useState } from "preact/hooks";
 import { explain } from "../api";
 import type { AccessSet, Declaration, WindowDetail } from "../api.gen";
-import { AccessBadge, accesses, ago, agoInText, bytes, ConfirmButton, CopyField, Failure, kindName, Notice, PageHead, plural } from "../components";
+import {
+	AccessBadge,
+	accesses,
+	ago,
+	agoInText,
+	bytes,
+	ConfirmButton,
+	CopyField,
+	DescriptionField,
+	Failure,
+	kindName,
+	Notice,
+	PageHead,
+	plural,
+} from "../components";
 import { useConsole } from "../context";
 import { de, lang, locale, words } from "../i18n";
 import { useLoad } from "../load";
@@ -30,6 +44,13 @@ const t = words({
 		restore: "Restore",
 		deleteForGood: "Delete for good",
 		deleteQuestion: "Delete it with its versions and its files? This cannot be undone.",
+		text: "Title and description",
+		textHelp: "They change without a new version, and the address stays. Readers see the description on the page of the Room, and AIs read it to find the Window.",
+		titleLabel: "Title",
+		descriptionLabel: "Description",
+		descriptionHelp: "A sentence or two that say what the Window is.",
+		saveText: "Save",
+		textSaved: "Saved.",
 		trash: "Trash",
 		trashHelp: "A Window in the trash no longer opens, and keeps its versions and its access until you restore it.",
 		putInTrash: "Put in the trash",
@@ -120,6 +141,14 @@ const t = words({
 		restore: "Restaurer",
 		deleteForGood: "Supprimer définitivement",
 		deleteQuestion: "La supprimer avec ses versions et ses fichiers ? Cela ne s'annule pas.",
+		text: "Titre et description",
+		textHelp:
+			"Ils changent sans nouvelle version, et l'adresse reste la même. Les lecteurs voient la description sur la page de la Room, et les IA la lisent pour retrouver la Window.",
+		titleLabel: "Titre",
+		descriptionLabel: "Description",
+		descriptionHelp: "Une phrase ou deux qui disent ce qu'est la Window.",
+		saveText: "Enregistrer",
+		textSaved: "Enregistré.",
 		trash: "Corbeille",
 		trashHelp: "Une Window à la corbeille ne s'ouvre plus, et garde ses versions et son accès jusqu'à ce que vous la restauriez.",
 		putInTrash: "Mettre à la corbeille",
@@ -229,6 +258,7 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 			<PageHead
 				label={kindName(w.kind)}
 				title={w.title}
+				lead={w.description}
 				actions={
 					!w.trashed_at && (
 						<a class="c-btn c-btn--secondary" href={w.url} target="_blank" rel="noopener noreferrer">
@@ -273,6 +303,14 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 			) : (
 				<div class="layout">
 					<section>
+						<TextPanel
+							window={w}
+							onSave={async (input) => {
+								await api.cahut("retitle_window", { window: w.id, ...input });
+								api.reloadRooms();
+								reload();
+							}}
+						/>
 						<AccessPanel
 							window={w}
 							shared={shared}
@@ -306,6 +344,62 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 				</div>
 			)}
 		</>
+	);
+}
+
+/** The title and the description of a Window, which change in place, without a new version. */
+function TextPanel(props: { window: WindowDetail; onSave: (input: { title?: string; description?: string }) => Promise<void> }) {
+	const w = props.window;
+	const id = useId();
+	const [title, setTitle] = useState(w.title);
+	const [description, setDescription] = useState(w.description ?? "");
+	const [busy, setBusy] = useState(false);
+	const [said, setSaid] = useState("");
+	const [error, setError] = useState("");
+	const newTitle = title.trim() !== w.title;
+	const newDescription = description.trim() !== (w.description ?? "");
+	const save = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		setSaid("");
+		try {
+			await props.onSave({ ...(newTitle && { title }), ...(newDescription && { description }) });
+			setSaid(t.textSaved);
+		} catch (err) {
+			setError(explain(err));
+		} finally {
+			setBusy(false);
+		}
+	};
+	return (
+		<div class="c-card panel aside">
+			<h2 class="c-h4">{t.text}</h2>
+			<p class="c-small c-muted">{t.textHelp}</p>
+			<form class="form" onSubmit={save}>
+				<label class="c-field">
+					<span class="c-field__label">{t.titleLabel}</span>
+					<input class="c-input" required value={title} onInput={(e) => (setTitle(e.currentTarget.value), setSaid(""))} />
+				</label>
+				<div class="c-field">
+					<label class="c-field__label" for={id}>
+						{t.descriptionLabel}
+					</label>
+					<DescriptionField id={id} value={description} help={t.descriptionHelp} onInput={(v) => (setDescription(v), setSaid(""))} />
+				</div>
+				{error && <Failure message={error} />}
+				{said && (
+					<div class="c-alert c-alert--success" role="status">
+						{said}
+					</div>
+				)}
+				<div>
+					<button class="c-btn c-btn--secondary" type="submit" disabled={busy || (!newTitle && !newDescription)}>
+						{t.saveText}
+					</button>
+				</div>
+			</form>
+		</div>
 	);
 }
 

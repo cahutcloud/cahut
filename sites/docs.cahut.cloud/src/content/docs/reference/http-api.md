@@ -59,6 +59,8 @@ A refusal that people meet in the console gives its code too, which never change
 | `activation_link_gone` |  | This activation link is unknown, used or expired: ask an administrator of the Cahut for a new one |
 | `cahut_needs_an_admin` |  | The Cahut needs an administrator: make another person one first |
 | `cahut_suspended` |  | This Cahut is suspended by the administrators of its server: it keeps everything it holds, and nothing in it can be read or changed until they resume it. Ask the administrators of the Cahut, or, for an AI, tell the person you act for |
+| `description_control` |  | The description holds a control character: write it in plain text |
+| `description_too_long` | `length`, `limit` | The description has {length} characters: use at most {limit}, a sentence or two |
 | `email_already_yours` | `email` | {email} is already your e-mail address |
 | `email_link_gone` |  | This link is unknown, used or expired: change your address again from your account |
 | `email_taken` | `email` | {email} is already the e-mail address of another person of this Cahut |
@@ -98,6 +100,8 @@ A refusal that people meet in the console gives its code too, which never change
 | `session_ended` |  | Invalid or ended session |
 | `setup_done` | `domain` | The Cahut of {domain} has people already: sign in at its console |
 | `setup_link_gone` |  | This link to the first start does not work any more: it was used, it expired, or it is for another address; cahut setup, on the server, gives a new one |
+| `title_empty` |  | Title is empty: give one |
+| `title_too_long` |  | Title is longer than 200 bytes: shorten it |
 | `too_many_attempts_from_address` |  | Too many attempts from this address: wait a minute |
 | `too_many_invitations` | `sent`, `handle`, `limit` | {sent} invitations went out for {handle} in the last 24 hours, and {limit} is the most: send the rest later |
 | `too_many_refused_sign_ins` | `minutes` | Too many refused sign-ins for this handle: try again in {minutes} minutes |
@@ -159,6 +163,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/request_password_link` | Anyone, to sign in | no |
 | `POST /api/restore_window` | Any person | yes |
 | `POST /api/resume_cahut` | Administrators of the server | yes |
+| `POST /api/retitle_window` | Any person | yes |
 | `POST /api/revoke_invitation` | Any person | yes |
 | `POST /api/revoke_service_token` | Administrators of the server | yes |
 | `POST /api/revoke_token` | Any person | yes |

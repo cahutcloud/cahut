@@ -46,6 +46,8 @@ const said = words<Sentences>({
 		cahut_needs_an_admin: "The Cahut needs an administrator: make another person one first.",
 		cahut_suspended:
 			"This Cahut is suspended by the administrators of its server. It keeps everything it holds, and opens again once they resume it: ask its administrators.",
+		description_control: "The description holds a control character: write it in plain text.",
+		description_too_long: (v) => `The description has ${v.length} characters: use at most ${v.limit}, a sentence or two.`,
 		email_already_yours: (v) => `${v.email} is already your e-mail address.`,
 		email_link_gone: "This link is unknown, used or expired: change your address again from your account.",
 		email_taken: (v) => `${v.email} is already the e-mail address of another person of this Cahut.`,
@@ -95,6 +97,8 @@ const said = words<Sentences>({
 		session_ended: "Your session has ended: sign in again.",
 		setup_done: (v) => `The Cahut of ${v.domain} has people already: sign in at its console.`,
 		setup_link_gone: "This link to the first start does not work any more: it was used, it expired, or it is for another address.",
+		title_empty: "The title is empty: give one.",
+		title_too_long: "The title is too long: shorten it.",
 		too_many_attempts_from_address: "Too many attempts from this address: wait a minute.",
 		too_many_invitations: (v) =>
 			`You and your AIs sent ${plural(v.sent, "invitation", "invitations")} in the last 24 hours, and ${v.limit} is the most: send the rest later.`,
@@ -111,6 +115,8 @@ const said = words<Sentences>({
 		cahut_needs_an_admin: "La Cahut a besoin d'un administrateur : faites d'abord d'une autre personne un administrateur.",
 		cahut_suspended:
 			"Cette Cahut est suspendue par les administrateurs de son serveur. Elle garde tout ce qu'elle contient, et rouvre dès qu'ils la réactivent : demandez à ses administrateurs.",
+		description_control: "La description contient un caractère de contrôle : écrivez-la en texte simple.",
+		description_too_long: (v) => `La description fait ${v.length} caractères : ${v.limit} au plus, une phrase ou deux.`,
 		email_already_yours: (v) => `${v.email} est déjà votre adresse e-mail.`,
 		email_link_gone: "Ce lien est inconnu, déjà utilisé ou expiré : changez à nouveau votre adresse depuis votre compte.",
 		email_taken: (v) => `${v.email} est déjà l'adresse e-mail d'une autre personne de cette Cahut.`,
@@ -161,6 +167,8 @@ const said = words<Sentences>({
 		session_ended: "Votre session a pris fin : reconnectez-vous.",
 		setup_done: (v) => `La Cahut ${de(v.domain)} a déjà des personnes : connectez-vous à sa console.`,
 		setup_link_gone: "Ce lien de premier démarrage ne fonctionne plus : il a servi, il a expiré, ou il est pour une autre adresse.",
+		title_empty: "Le titre est vide : donnez-en un.",
+		title_too_long: "Le titre est trop long : raccourcissez-le.",
 		too_many_attempts_from_address: "Trop de tentatives depuis cette adresse : patientez une minute.",
 		too_many_invitations: (v) =>
 			`Vous et vos IA avez envoyé ${plural(v.sent, "invitation", "invitations")} ces dernières 24 heures, et ${v.limit} est le maximum : envoyez les autres plus tard.`,

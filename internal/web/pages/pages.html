@@ -57,14 +57,16 @@ docs/adr/0049-no-house-style.md. */}}
 <span class="hero__picto" aria-hidden="true">{{brand "icones/room.svg"}}</span>
 <p class="c-label">Room</p>
 <h1 class="hero__title">{{.Title}}</h1>
-<p class="hero__meta"><span class="c-mono">{{.Domain}}/{{.Name}}/</span><span aria-hidden="true">·</span><span>{{.Count}}</span></p>
+{{if .Description}}<p class="hero__description">{{.Description}}</p>
+{{end}}<p class="hero__meta"><span class="c-mono">{{.Domain}}/{{.Name}}/</span><span aria-hidden="true">·</span><span>{{.Count}}</span></p>
 </header>
 {{if .Windows}}<ul class="cards" aria-label="Windows">
 {{range .Windows}}<li class="c-card c-window card">
 <div class="c-window__thumb card__thumb" aria-hidden="true">{{icon .KindIcon 40}}{{if .Preview}}<iframe class="card__preview" data-src="{{.Preview}}" title="Preview of {{.Title}}" sandbox="allow-scripts" loading="lazy" referrerpolicy="no-referrer" tabindex="-1" aria-hidden="true"></iframe>{{end}}</div>
 <div class="c-window__body">
 <a class="c-window__title card__title" href="{{.URL}}">{{icon .KindIcon 16}}<span>{{.Title}}</span></a>
-<div class="c-window__meta"><span>{{.Kind}} · {{.Updated}}</span><span class="c-badge c-badge--{{.AccessClass}}">{{icon .AccessIcon 14}}{{.Access}}</span></div>
+{{if .Description}}<p class="card__description">{{.Description}}</p>
+{{end}}<div class="c-window__meta"><span>{{.Kind}} · {{.Updated}}</span><span class="c-badge c-badge--{{.AccessClass}}">{{icon .AccessIcon 14}}{{.Access}}</span></div>
 </div>
 </li>
 {{end}}</ul>

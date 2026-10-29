@@ -19,6 +19,8 @@ const t = words({
 		copy: "Copy",
 		copied: "Copied",
 		copyLabel: (label: string) => `Copy ${label}`,
+		descriptionCount: (n: number, max: number) => `${n} of ${max} characters.`,
+		descriptionTooLong: (n: number, max: number) => `${n} characters, and a description holds ${max} at most: shorten it.`,
 		close: "Close",
 		cancel: "Cancel",
 		active: "Active",
@@ -64,6 +66,8 @@ const t = words({
 		copy: "Copier",
 		copied: "Copié",
 		copyLabel: (label) => `Copier ${label}`,
+		descriptionCount: (n, max) => `${n} caractères sur ${max}.`,
+		descriptionTooLong: (n, max) => `${n} caractères, et une description en tient ${max} au plus : raccourcissez-la.`,
 		close: "Fermer",
 		cancel: "Annuler",
 		active: "Actif",
@@ -108,12 +112,13 @@ const t = words({
 });
 
 /** The head of a screen: a label, a title and a line under it. */
-export function PageHead(props: { label: string; title: ComponentChildren; children?: ComponentChildren; actions?: ComponentChildren }) {
+export function PageHead(props: { label: string; title: ComponentChildren; lead?: string; children?: ComponentChildren; actions?: ComponentChildren }) {
 	return (
 		<div class="page-head">
 			<div class="page-head__text">
 				<span class="c-label">{props.label}</span>
 				<h1 class="c-h1">{props.title}</h1>
+				{props.lead && <p class="page-head__lead">{props.lead}</p>}
 				{props.children && <p class="c-muted">{props.children}</p>}
 			</div>
 			{props.actions && <div class="page-head__actions">{props.actions}</div>}
@@ -385,6 +390,38 @@ export function ActivationResult(props: { name: string; email?: string; activati
 	);
 }
 
+/**
+ * The most characters of the description of a Window or a Room, as the
+ * server counts them. See
+ * docs/adr/0050-window-ids-permanent-addresses-and-names.md.
+ */
+export const maxDescription = 300;
+
+/**
+ * The description of a Window or a Room: a sentence or two, with how many
+ * characters it has. The server folds its line breaks into spaces.
+ */
+export function DescriptionField(props: { id: string; value: string; help?: string; onInput: (value: string) => void }) {
+	const length = [...props.value.trim()].length;
+	const over = length > maxDescription;
+	return (
+		<>
+			<textarea
+				id={props.id}
+				class="c-input description-field"
+				rows={3}
+				value={props.value}
+				aria-invalid={over}
+				aria-describedby={`${props.id}-help`}
+				onInput={(e) => props.onInput(e.currentTarget.value)}
+			/>
+			<span class={`c-field__help${over ? " editor__over" : ""}`} id={`${props.id}-help`} aria-live="polite">
+				{over ? t.descriptionTooLong(length, maxDescription) : [props.help, t.descriptionCount(length, maxDescription)].filter(Boolean).join(" ")}
+			</span>
+		</>
+	);
+}
+
 /** What came of a change: a line, or more, such as a link. */
 export function Outcome({ children }: { children: ComponentChildren }) {
 	if (typeof children !== "string") return <div class="setting__more">{children}</div>;
@@ -596,6 +633,7 @@ export function WindowCard(props: { window: Window; showRoom?: boolean; home?: b
 					<Icon class="i" size={16} aria-hidden="true" />
 					{w.title}
 				</Link>
+				{w.description && <p class="window-description">{w.description}</p>}
 				<div class="c-window__meta">
 					<span>
 						{[kind.name, ago(w.updated_at), showRoom ? w.room : w.created_by].filter(Boolean).join(" · ")}

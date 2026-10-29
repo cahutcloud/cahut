@@ -95,14 +95,15 @@ func Require(ctx context.Context, c *operation.Call, name, role string) (Access,
 
 // Room describes a Room.
 type Room struct {
-	Name      string    `json:"name" jsonschema:"the Room's name, first part of its address"`
-	Title     string    `json:"title"`
-	Kind      string    `json:"kind" jsonschema:"personal or team"`
-	Role      string    `json:"role,omitempty" jsonschema:"your role in the Room, owner or member; empty when you are not in it"`
-	Members   int       `json:"members" jsonschema:"how many people are in the Room"`
-	Windows   int       `json:"windows" jsonschema:"how many Windows the Room holds, out of the trash"`
-	Home      string    `json:"home,omitempty" jsonschema:"the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them"`
-	CreatedAt time.Time `json:"created_at"`
+	Name        string    `json:"name" jsonschema:"the Room's name, first part of its address"`
+	Title       string    `json:"title"`
+	Description string    `json:"description,omitempty" jsonschema:"what the Room is, in a sentence or two; absent when it has none"`
+	Kind        string    `json:"kind" jsonschema:"personal or team"`
+	Role        string    `json:"role,omitempty" jsonschema:"your role in the Room, owner or member; empty when you are not in it"`
+	Members     int       `json:"members" jsonschema:"how many people are in the Room"`
+	Windows     int       `json:"windows" jsonschema:"how many Windows the Room holds, out of the trash"`
+	Home        string    `json:"home,omitempty" jsonschema:"the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 // homeName is the name of the home Window of the Room r, out of the trash,
@@ -111,9 +112,10 @@ const homeName = "(SELECT name FROM windows WHERE id = r.home_window_id AND tras
 
 // CreateRoomInput is the input of create_room.
 type CreateRoomInput struct {
-	Title string `json:"title" jsonschema:"title of the Room, such as Marketing"`
-	Name  string `json:"name,omitempty" jsonschema:"name of the Room, the first part of its address; from the title when empty"`
-	Owner string `json:"owner,omitempty" jsonschema:"handle of its first owner; you when empty. Only administrators of the Cahut name someone else"`
+	Title       string `json:"title" jsonschema:"title of the Room, such as Marketing"`
+	Description string `json:"description,omitempty" jsonschema:"what the Room is, in a sentence or two of plain text, 300 characters at most"`
+	Name        string `json:"name,omitempty" jsonschema:"name of the Room, the first part of its address; from the title when empty"`
+	Owner       string `json:"owner,omitempty" jsonschema:"handle of its first owner; you when empty. Only administrators of the Cahut name someone else"`
 }
 
 // The refusals of the name of a new Room, which the console says in the
@@ -145,12 +147,13 @@ var CreateRoom = &operation.Op[CreateRoomInput, Room]{
 		"Windows published in it are for its members. In an individual Cahut, you stay its only member, " +
 		"and its name starts with your handle and a hyphen.",
 	Run: func(ctx context.Context, c *operation.Call, in CreateRoomInput) (Room, error) {
-		title := strings.TrimSpace(in.Title)
-		if title == "" {
-			return Room{}, operation.Invalidf("title is empty")
+		title, err := CheckTitle(in.Title)
+		if err != nil {
+			return Room{}, err
 		}
-		if len(title) > 200 {
-			return Room{}, operation.Invalidf("title is longer than 200 bytes")
+		description, err := CheckDescription(in.Description)
+		if err != nil {
+			return Room{}, err
 		}
 		name := in.Name
 		if name == "" {
@@ -199,10 +202,10 @@ var CreateRoom = &operation.Op[CreateRoomInput, Room]{
 		if err := settings.CheckRoom(ctx, c, owner); err != nil {
 			return Room{}, err
 		}
-		r := Room{Name: name, Title: title, Kind: Team, Members: 1, CreatedAt: c.Now}
+		r := Room{Name: name, Title: title, Description: description, Kind: Team, Members: 1, CreatedAt: c.Now}
 		var id int64
-		err = c.Tx.QueryRowContext(ctx, "INSERT INTO rooms (name, kind, title, created_at) VALUES (?, 'team', ?, ?) RETURNING id",
-			r.Name, r.Title, store.FormatTime(c.Now)).Scan(&id)
+		err = c.Tx.QueryRowContext(ctx, "INSERT INTO rooms (name, kind, title, description, created_at) VALUES (?, 'team', ?, ?, ?) RETURNING id",
+			r.Name, r.Title, r.Description, store.FormatTime(c.Now)).Scan(&id)
 		if err != nil {
 			return Room{}, err
 		}
@@ -290,7 +293,7 @@ var ListRooms = &operation.Op[ListRoomsInput, List]{
 			where = "1 = 1"
 		}
 		rows, err := c.Tx.QueryContext(ctx, `
-			SELECT r.id, r.name, r.title, r.kind, m.role, r.created_at,
+			SELECT r.id, r.name, r.title, r.description, r.kind, m.role, r.created_at,
 				(SELECT count(*) FROM room_members WHERE room_id = r.id),
 				(SELECT count(*) FROM windows WHERE room_id = r.id AND trashed_at IS NULL), `+homeName+`
 			FROM rooms r LEFT JOIN room_members m ON m.room_id = r.id AND m.user_id = ?
@@ -306,7 +309,7 @@ var ListRooms = &operation.Op[ListRoomsInput, List]{
 			var id int64
 			var role, home sql.NullString
 			var created string
-			if err := rows.Scan(&id, &r.Name, &r.Title, &r.Kind, &role, &created, &r.Members, &r.Windows, &home); err != nil {
+			if err := rows.Scan(&id, &r.Name, &r.Title, &r.Description, &r.Kind, &role, &created, &r.Members, &r.Windows, &home); err != nil {
 				return List{}, err
 			}
 			if !c.Actor.Reaches(id) {
@@ -364,8 +367,8 @@ func detail(ctx context.Context, c *operation.Call, a Access) (Detail, error) {
 	var created string
 	var home sql.NullString
 	err := c.Tx.QueryRowContext(ctx, `
-		SELECT r.created_at, (SELECT count(*) FROM windows WHERE room_id = r.id AND trashed_at IS NULL), `+homeName+`
-		FROM rooms r WHERE r.id = ?`, a.ID).Scan(&created, &d.Windows, &home)
+		SELECT r.description, r.created_at, (SELECT count(*) FROM windows WHERE room_id = r.id AND trashed_at IS NULL), `+homeName+`
+		FROM rooms r WHERE r.id = ?`, a.ID).Scan(&d.Description, &created, &d.Windows, &home)
 	if err != nil {
 		return Detail{}, err
 	}
@@ -394,32 +397,49 @@ func detail(ctx context.Context, c *operation.Call, a Access) (Detail, error) {
 // UpdateRoomInput is the input of update_room.
 type UpdateRoomInput struct {
 	Room  string `json:"room" jsonschema:"the Room's name"`
-	Title string `json:"title" jsonschema:"the new title"`
+	Title string `json:"title,omitempty" jsonschema:"the new title; the title stays when empty"`
+	// A pointer, so that an empty description removes it and an absent one
+	// keeps it.
+	Description *string `json:"description,omitempty" jsonschema:"the new description, a sentence or two of plain text, 300 characters at most; empty to remove it, and it stays when absent"`
 }
 
-// UpdateRoom changes the title of a Room.
+// UpdateRoom changes the title of a Room, its description, or both.
 var UpdateRoom = &operation.Op[UpdateRoomInput, Detail]{
-	Name:        "update_room",
-	Title:       "Retitle a Room",
-	Description: "Change the title of a Room. Its name, and so its address, stays.",
+	Name:  "update_room",
+	Title: "Retitle and describe a Room",
+	Description: "Change the title of a Room, its description, or both. Its name, and so its address, stays. " +
+		"Give the old title and description again to undo it.",
 	Run: func(ctx context.Context, c *operation.Call, in UpdateRoomInput) (Detail, error) {
-		title := strings.TrimSpace(in.Title)
-		c.Log(in.Room, title)
-		if title == "" {
-			return Detail{}, operation.Invalidf("title is empty")
-		}
-		if len(title) > 200 {
-			return Detail{}, operation.Invalidf("title is longer than 200 bytes")
+		c.Log(in.Room, "")
+		if strings.TrimSpace(in.Title) == "" && in.Description == nil {
+			return Detail{}, operation.Invalidf("give a new title, a new description, or both")
 		}
 		a, err := Require(ctx, c, in.Room, Owner)
 		if err != nil {
 			return Detail{}, err
 		}
 		c.InRoom(a.ID)
-		if _, err := c.Tx.ExecContext(ctx, "UPDATE rooms SET title = ? WHERE id = ?", title, a.ID); err != nil {
-			return Detail{}, err
+		var changes []string
+		if strings.TrimSpace(in.Title) != "" {
+			if a.Title, err = CheckTitle(in.Title); err != nil {
+				return Detail{}, err
+			}
+			if _, err := c.Tx.ExecContext(ctx, "UPDATE rooms SET title = ? WHERE id = ?", a.Title, a.ID); err != nil {
+				return Detail{}, err
+			}
+			changes = append(changes, fmt.Sprintf("title %q", a.Title))
 		}
-		a.Title = title
+		if in.Description != nil {
+			description, err := CheckDescription(*in.Description)
+			if err != nil {
+				return Detail{}, err
+			}
+			if _, err := c.Tx.ExecContext(ctx, "UPDATE rooms SET description = ? WHERE id = ?", description, a.ID); err != nil {
+				return Detail{}, err
+			}
+			changes = append(changes, fmt.Sprintf("description %q", description))
+		}
+		c.Log(a.Name, strings.Join(changes, "; "))
 		return detail(ctx, c, a)
 	},
 }

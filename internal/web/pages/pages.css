@@ -86,6 +86,12 @@ h1, h2, h3 { font-family: var(--font-heading); }
 	font-size: var(--text-sm);
 }
 .hero__meta .c-mono { overflow-wrap: anywhere; }
+.hero__description {
+	margin: 0 0 var(--space-4);
+	max-width: 60ch;
+	font-size: var(--text-lg);
+	line-height: var(--leading-lg);
+}
 
 /* The Windows of a Room, as cards with a preview of each. */
 .cards {
@@ -121,6 +127,18 @@ h1, h2, h3 { font-family: var(--font-heading); }
 .card__preview--shown { opacity: 1; }
 .card__title { color: var(--color-text); text-decoration: none; }
 .card__title span { min-width: 0; overflow-wrap: anywhere; }
+/* The description of a Window, on two lines at most. */
+.card__description {
+	display: -webkit-box;
+	margin: 0;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	color: var(--color-text-muted);
+	font-size: var(--text-sm);
+	line-height: var(--leading-sm);
+}
 .card__title::after {
 	/* The whole card leads to the Window. */
 	content: "";
