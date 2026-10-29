@@ -31,6 +31,7 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | `create_token` | Create a personal token that lets an AI act on behalf of a person. | Any person | yes | no, people only |
 | [`create_user`](/reference/mcp-tools/#create_user) | Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. | Administrators of the Cahut | yes | to the AIs of administrators |
 | [`delete_room`](/reference/mcp-tools/#delete_room) | Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. | Any person | yes | yes |
+| [`delete_user`](/reference/mcp-tools/#delete_user) | Delete a person for good: their account, their tokens and the AIs they connected, their personal Room and the team Rooms they are the only owner of, with the Windows of these Rooms and their files. This cannot be undone. The Windows they published in other Rooms stay, without an author. Their handle becomes free. No one deletes themself, nor the last administrator of the Cahut; disable_user stops a person and keeps what is theirs. | Administrators of the Cahut | yes | to the AIs of administrators |
 | `deny_authorization` | Refuse the request of an AI client to connect to this Cahut. Returns the address that tells the client so. | Any person | yes | no, people only |
 | `deny_knock` | Deny a Knock of one of your AIs: the call never runs. The AI learns it from get_knock. | Any person | yes | no, people only |
 | `describe_authorization` | Check the request of an AI client to connect to this Cahut, and describe it to the person who consents: the client, where it will be sent back, the scope it asks for, and the Rooms the person may grant. | Any person | no | no, people only |
@@ -118,7 +119,7 @@ They are not offered over MCP.
 
 An operation that cannot be undone, or that changes what a person may do, knocks first. When an AI calls it, the call does not run: Cahut checks it, then makes a Knock, which waits 24 hours for the person the AI acts for to approve or deny it in the console. Approving runs the call, as the AI. A person who calls the operation in the console acts at once, after a confirmation.
 
-These operations knock first: `add_room_member`, `create_user`, `delete_room`, `disable_user`, `enable_user`, `purge_window`, `remove_room_member`, `set_room_member_role`, `set_user_email`, `set_user_role`.
+These operations knock first: `add_room_member`, `create_user`, `delete_room`, `delete_user`, `disable_user`, `enable_user`, `purge_window`, `remove_room_member`, `set_room_member_role`, `set_user_email`, `set_user_role`.
 
 These knock first for some calls only: `set_ai_reach`, when it widens the reach of an AI; `set_window_access`, when it makes a Window public.
 

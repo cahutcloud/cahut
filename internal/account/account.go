@@ -596,6 +596,25 @@ var DisableUser = &operation.Op[UserInput, User]{
 	},
 }
 
+// Deletable returns the person handle, whom the actor of c may delete: not
+// themself, nor the last administrator of the Cahut. delete_user lives with
+// the Windows, whose files it deletes.
+func Deletable(ctx context.Context, c *operation.Call, handle string) (User, error) {
+	p, err := findUser(ctx, c.Tx, handle)
+	if err != nil {
+		return User{}, err
+	}
+	if p.ID == c.Actor.UserID {
+		return User{}, operation.Invalidf("you cannot delete yourself")
+	}
+	if p.Role == Admin && p.Status != Disabled {
+		if err := keepAnAdmin(ctx, c.Tx, p.ID); err != nil {
+			return User{}, err
+		}
+	}
+	return p.User, nil
+}
+
 // EnableUser enables a disabled person again.
 var EnableUser = &operation.Op[UserInput, User]{
 	Name:        "enable_user",

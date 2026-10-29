@@ -6,12 +6,14 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
+	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
 )
 
-// Purging a Window and deleting a Room cannot be undone: an AI that calls
+// Purging a Window, deleting a Room and deleting a person cannot be undone: an AI that calls
 // them knocks first. Their files go once the call commits, never before, so
 // that a call that only knocks leaves them. See
 // docs/adr/0021-ais-knock-first.md.
@@ -101,4 +103,91 @@ func (s *Service) deleteRoom(ctx context.Context, c *operation.Call, in DeleteRo
 		}
 	})
 	return DeletedRoom{Room: a.Name, Title: a.Title, Windows: len(ids)}, nil
+}
+
+// DeletedUser is the output of delete_user.
+type DeletedUser struct {
+	User    string   `json:"user" jsonschema:"the handle of the person, now free"`
+	Name    string   `json:"name"`
+	Rooms   []string `json:"rooms" jsonschema:"the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of"`
+	Windows int      `json:"windows" jsonschema:"how many Windows were deleted with these Rooms, those in their trash included"`
+}
+
+// deleteUser deletes a person, their personal Room and the team Rooms they
+// are the only owner of, with the Windows of these Rooms. The Windows they
+// published in the Rooms that stay keep no author. See
+// docs/adr/0047-deleting-a-person.md.
+func (s *Service) deleteUser(ctx context.Context, c *operation.Call, in account.UserInput) (DeletedUser, error) {
+	c.Log(in.User, "")
+	u, err := account.Deletable(ctx, c, in.User)
+	if err != nil {
+		return DeletedUser{}, err
+	}
+	rows, err := c.Tx.QueryContext(ctx, `
+		SELECT r.id, r.name FROM rooms r JOIN room_members m ON m.room_id = r.id AND m.user_id = ?
+		WHERE r.kind = 'personal' OR m.role = 'owner' AND NOT EXISTS (
+			SELECT 1 FROM room_members o WHERE o.room_id = r.id AND o.role = 'owner' AND o.user_id != m.user_id)
+		ORDER BY r.kind = 'personal' DESC, r.name`, u.ID)
+	if err != nil {
+		return DeletedUser{}, err
+	}
+	out := DeletedUser{User: u.Handle, Name: u.Name, Rooms: []string{}}
+	var roomIDs []int64
+	for rows.Next() {
+		var id int64
+		var name string
+		if err := rows.Scan(&id, &name); err != nil {
+			rows.Close()
+			return DeletedUser{}, err
+		}
+		roomIDs = append(roomIDs, id)
+		out.Rooms = append(out.Rooms, name)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return DeletedUser{}, err
+	}
+	var ids []int64
+	for _, room := range roomIDs {
+		rows, err := c.Tx.QueryContext(ctx, "DELETE FROM windows WHERE room_id = ? RETURNING id", room)
+		if err != nil {
+			return DeletedUser{}, err
+		}
+		for rows.Next() {
+			var id int64
+			if err := rows.Scan(&id); err != nil {
+				rows.Close()
+				return DeletedUser{}, err
+			}
+			ids = append(ids, id)
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			return DeletedUser{}, err
+		}
+		if _, err := c.Tx.ExecContext(ctx, "DELETE FROM rooms WHERE id = ?", room); err != nil {
+			return DeletedUser{}, err
+		}
+	}
+	// What the person did elsewhere stays, without their name: the Windows
+	// and versions they published lose their author with the foreign keys,
+	// and their invitations and the house styles they set lose it here. The
+	// rest of what is theirs goes with them.
+	for _, q := range []string{
+		"UPDATE invitations SET invited_by = NULL WHERE invited_by = ?",
+		"UPDATE house_styles SET set_by = NULL WHERE set_by = ?",
+		"DELETE FROM users WHERE id = ?",
+	} {
+		if _, err := c.Tx.ExecContext(ctx, q, u.ID); err != nil {
+			return DeletedUser{}, err
+		}
+	}
+	out.Windows = len(ids)
+	c.Log(u.Handle, fmt.Sprintf("%q, Rooms %s, %d Windows", u.Name, strings.Join(out.Rooms, " "), len(ids)))
+	c.AfterCommit(func() {
+		for _, id := range ids {
+			s.remove(id)
+		}
+	})
+	return out, nil
 }

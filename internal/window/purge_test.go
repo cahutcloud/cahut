@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/operation"
 )
@@ -163,5 +164,111 @@ func TestDeleteRoom(t *testing.T) {
 	var again int64
 	if err := f.db.Read.QueryRowContext(ctx, "SELECT id FROM rooms WHERE name = 'marketing'").Scan(&again); err != nil || again <= room {
 		t.Errorf("the new Room has id %d, after %d: %v", again, room, err)
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	cli := operation.Actor{Kind: operation.Admin, Via: "cli"}
+	if _, err := f.invoke(t, cli, "set_user_role", `{"user": "olivier", "role": "admin"}`); err != nil {
+		t.Fatal(err)
+	}
+	olivier, camille := person(f.olivier), person(f.camille)
+	// Camille is the only owner of marketing, and an owner of design with
+	// Olivier: marketing goes with her, design stays.
+	for _, step := range []struct {
+		actor      operation.Actor
+		name, args string
+	}{
+		{camille, "create_room", `{"title": "Marketing"}`},
+		{camille, "add_room_member", `{"room": "marketing", "user": "olivier"}`},
+		{olivier, "create_room", `{"title": "Design"}`},
+		{olivier, "add_room_member", `{"room": "design", "user": "camille", "role": "owner"}`},
+	} {
+		if _, err := f.invoke(t, step.actor, step.name, step.args); err != nil {
+			t.Fatalf("%s: %v", step.name, err)
+		}
+	}
+	var gone []int64
+	for _, room := range []string{"camille", "marketing", "design"} {
+		out, err := f.invoke(t, f.camille, "publish_window", `{"title": "Q3", "kind": "deck", "room": "`+room+`",
+			"declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "<h1>Q3</h1>"}]}`)
+		if err != nil {
+			t.Fatal(err)
+		}
+		id, _, err := current(ctx, f.db, room, out.(Window).Name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if room != "design" {
+			gone = append(gone, id)
+		}
+	}
+	if _, err := f.invoke(t, f.camille, "trash_window", `{"window": "camille/q3"}`); err != nil {
+		t.Fatal(err)
+	}
+	var id int64
+	if err := f.db.Read.QueryRowContext(ctx, "SELECT id FROM users WHERE handle = 'camille'").Scan(&id); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, tt := range []struct {
+		name  string
+		actor operation.Actor
+		user  string
+		want  error
+	}{
+		{name: "themself", actor: olivier, user: "olivier", want: operation.ErrInvalid},
+		{name: "the last administrator", actor: cli, user: "olivier", want: operation.ErrInvalid},
+		{name: "by a member", actor: camille, user: "olivier", want: operation.ErrForbidden},
+		{name: "by an AI", actor: f.olivier, user: "camille", want: operation.ErrApprovalRequired},
+		{name: "no such person", actor: olivier, user: "ana", want: operation.ErrNotFound},
+	} {
+		if _, err := f.invoke(t, tt.actor, "delete_user", `{"user": "`+tt.user+`"}`); !errors.Is(err, tt.want) {
+			t.Errorf("%s: err = %v, want %v", tt.name, err, tt.want)
+		}
+	}
+	if f.count(t, "SELECT count(*) FROM users WHERE id = ?", id) != 1 || !f.files(gone[0]) {
+		t.Fatal("a refused delete_user deleted something")
+	}
+
+	out, err := f.invoke(t, olivier, "delete_user", `{"user": "camille"}`)
+	if err != nil {
+		t.Fatalf("delete_user: %v", err)
+	}
+	if d := out.(DeletedUser); d.User != "camille" || len(d.Rooms) != 2 || d.Rooms[0] != "camille" || d.Rooms[1] != "marketing" || d.Windows != 2 {
+		t.Fatalf("delete_user = %+v", d)
+	}
+	for _, q := range []string{"SELECT count(*) FROM users WHERE id = ?", "SELECT count(*) FROM tokens WHERE user_id = ?",
+		"SELECT count(*) FROM room_members WHERE user_id = ?"} {
+		if n := f.count(t, q, id); n != 0 {
+			t.Errorf("%s = %d after delete_user", q, n)
+		}
+	}
+	if n := f.count(t, "SELECT count(*) FROM rooms WHERE name IN ('camille', 'marketing')"); n != 0 {
+		t.Errorf("%d Rooms of Camille stay", n)
+	}
+	for _, w := range gone {
+		if f.files(w) || f.count(t, "SELECT count(*) FROM windows WHERE id = ?", w) != 0 {
+			t.Errorf("Window %d stays", w)
+		}
+	}
+	// The Window she published in design stays, without an author.
+	got, err := f.invoke(t, olivier, "get_window", `{"window": "design/q3"}`)
+	if err != nil {
+		t.Fatalf("get_window: %v", err)
+	}
+	if d := got.(Detail); d.CreatedBy != "" || len(d.Versions) != 1 || d.Versions[0].PublishedBy != "" {
+		t.Errorf("design/q3 = %+v", d)
+	}
+	// The Logbook keeps her entries; her handle is free, and her id is not
+	// given again.
+	if n := f.count(t, "SELECT count(*) FROM logbook WHERE user_id = ?", id); n < 4 {
+		t.Errorf("the Logbook keeps %d entries of Camille", n)
+	}
+	u, err := operation.Do(ctx, f.r, account.CreateUser, cli, account.CreateUserInput{Handle: "camille", Name: "Camille"})
+	if err != nil || u.ID <= id {
+		t.Errorf("the new Camille has id %d, after %d: %v", u.ID, id, err)
 	}
 }

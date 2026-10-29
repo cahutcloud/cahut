@@ -39,6 +39,7 @@ These operations knock first when an AI calls them:
 | `set_window_access`, to make a Window public | Once a public Window is read, that cannot be taken back |
 | `purge_window` | It deletes a Window in the trash for good |
 | `delete_room` | It deletes a team Room for good, with its Windows |
+| `delete_user` | It deletes a person for good, with their personal Room, the team Rooms they alone own, and the Windows of these Rooms |
 | `create_user`, `set_user_role`, `disable_user`, `enable_user` | They change who acts in the Cahut |
 | `set_user_email` | It decides where the links of a person go |
 | `add_room_member`, `set_room_member_role`, `remove_room_member` | They change who opens and publishes in a Room |

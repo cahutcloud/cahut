@@ -28,6 +28,7 @@ const t = words({
 				`add ${name} (${handle}) to this Cahut${admin ? ", as an administrator" : ""}`,
 			setUserRole: (user: string, admin: boolean) => `make ${user} ${admin ? "an administrator" : "a member"} of this Cahut`,
 			disableUser: (user: string) => `disable ${user}: their sessions end, and their AIs stop`,
+			deleteUser: (user: string) => `delete ${user} for good, with their personal Room, the team Rooms they alone own, and the Windows of these Rooms`,
 			enableUser: (user: string) => `enable ${user} again`,
 			addRoomMember: (user: string, room: string, owner: boolean) => `add ${user} to the Room ${room}${owner ? ", as an owner" : ""}`,
 			setRoomMemberRole: (user: string, room: string, owner: boolean) =>
@@ -79,6 +80,8 @@ const t = words({
 			createUser: (name, handle, admin) => `ajouter ${name} (${handle}) à cette Cahut${admin ? ", comme administrateur" : ""}`,
 			setUserRole: (user, admin) => `faire ${de(user)} ${admin ? "un administrateur" : "un membre"} de cette Cahut`,
 			disableUser: (user) => `désactiver ${user} : ses sessions se terminent, et ses IA s'arrêtent`,
+			deleteUser: (user) =>
+				`supprimer définitivement ${user}, avec sa Room personnelle, les Rooms d'équipe dont cette personne est la seule propriétaire, et les Windows de ces Rooms`,
 			enableUser: (user) => `réactiver ${user}`,
 			addRoomMember: (user, room, owner) => `ajouter ${user} à la Room ${room}${owner ? ", comme propriétaire" : ""}`,
 			setRoomMemberRole: (user, room, owner) => `faire ${de(user)} ${owner ? "un propriétaire" : "un membre"} de la Room ${room}`,
@@ -150,6 +153,8 @@ export function asks(k: Knock): string {
 			return t.asks.setUserRole(user, i.role === "admin");
 		case "disable_user":
 			return t.asks.disableUser(user);
+		case "delete_user":
+			return t.asks.deleteUser(user);
 		case "enable_user":
 			return t.asks.enableUser(user);
 		case "add_room_member":

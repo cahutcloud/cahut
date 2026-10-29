@@ -50,7 +50,7 @@ export interface AccessSet {
   /** total size of the files of the current version, in bytes */
   size: number;
   file_count: number;
-  /** handle of the person it was first published for */
+  /** handle of the person it was first published for, empty once that person is deleted */
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -333,6 +333,16 @@ export interface DeletedRoom {
   room: string;
   title: string;
   /** how many Windows were deleted with it, those in its trash included */
+  windows: number;
+}
+
+export interface DeletedUser {
+  /** the handle of the person, now free */
+  user: string;
+  name: string;
+  /** the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of */
+  rooms: string[];
+  /** how many Windows were deleted with these Rooms, those in their trash included */
   windows: number;
 }
 
@@ -1450,7 +1460,7 @@ export interface Version {
   /** total size of its files, in bytes */
   size: number;
   file_count: number;
-  /** handle of the person it was published for */
+  /** handle of the person it was published for, empty once that person is deleted */
   published_by: string;
   published_at: string;
 }
@@ -1476,7 +1486,7 @@ export interface Window {
   /** total size of the files of the current version, in bytes */
   size: number;
   file_count: number;
-  /** handle of the person it was first published for */
+  /** handle of the person it was first published for, empty once that person is deleted */
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -1506,7 +1516,7 @@ export interface WindowDetail {
   /** total size of the files of the current version, in bytes */
   size: number;
   file_count: number;
-  /** handle of the person it was first published for */
+  /** handle of the person it was first published for, empty once that person is deleted */
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -1576,6 +1586,8 @@ export interface CahutOperations {
   create_user: { input: CreateUserInput; output: NewUser };
   /** Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. */
   delete_room: { input: DeleteRoomInput; output: DeletedRoom };
+  /** Delete a person for good: their account, their tokens and the AIs they connected, their personal Room and the team Rooms they are the only owner of, with the Windows of these Rooms and their files. This cannot be undone. The Windows they published in other Rooms stay, without an author. Their handle becomes free. No one deletes themself, nor the last administrator of the Cahut; disable_user stops a person and keeps what is theirs. */
+  delete_user: { input: UserInput; output: DeletedUser };
   /** Refuse the request of an AI client to connect to this Cahut. Returns the address that tells the client so. */
   deny_authorization: { input: DenyInput; output: Redirect };
   /** Deny a Knock of one of your AIs: the call never runs. The AI learns it from get_knock. */
