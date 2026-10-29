@@ -7,7 +7,10 @@ import type { Activation, LegalLinks, LegalPages, SignInPage, Window } from "./a
 import { useConsole } from "./context";
 import { de, lang, langs, locale, setLang, words } from "./i18n";
 import { useLoad } from "./load";
+import { Logo } from "./logo";
+import { Pictogram } from "./pictograms";
 import { href, Link } from "./router";
+import type { Theme } from "./theme";
 
 export { plural } from "./i18n";
 
@@ -55,6 +58,7 @@ const t = words({
 		terms: "Terms",
 		privacy: "Privacy",
 		support: "Support",
+		server: "Server",
 	},
 	fr: {
 		copy: "Copier",
@@ -99,6 +103,7 @@ const t = words({
 		terms: "Conditions d'utilisation",
 		privacy: "Confidentialité",
 		support: "Assistance",
+		server: "Serveur",
 	},
 });
 
@@ -218,6 +223,24 @@ export function describeSignIn(): Promise<SignInPage> {
 		throw err;
 	});
 	return signInPage;
+}
+
+/**
+ * The logo at the top of the card of a page before sign-in. On a page of the
+ * server, which has the theme of the server, the logo is drawn for it, and
+ * the mark of the server stands beside it.
+ */
+export function AuthLogo({ server }: { server?: Theme }) {
+	if (!server) return <Logo height={32} />;
+	return (
+		<div class="auth__brand">
+			<Logo height={32} theme={server} />
+			<span class="auth__server">
+				<Pictogram name="serverAdmins" />
+				<span class="c-label">{t.server}</span>
+			</span>
+		</div>
+	);
 }
 
 /** The links to the legal pages of the Cahut, at the foot of a page that opens before sign-in. */

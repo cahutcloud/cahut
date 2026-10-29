@@ -21,6 +21,19 @@
 .auth__card img {
 	display: block;
 }
+/* On a page of the server, its mark beside the logo. */
+.auth__brand {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+}
+.auth__server {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+}
 .auth__head {
 	display: grid;
 	gap: var(--space-2);
@@ -124,8 +137,23 @@
 	pointer-events: none;
 	opacity: 0;
 }
+/* Dark as the page is: by the system, or by the theme of the page, which the
+   sign-in of the server sets (theme.ts). */
+[data-theme="dark"] .scene {
+	--scene-card: var(--cahut-ink-900);
+	--scene-ink: var(--cahut-ink-200);
+	--scene-grey: var(--cahut-ink-600);
+	--scene-bar: var(--cahut-sky-800);
+	--scene-accent: var(--cahut-sky-300);
+	--scene-photo: var(--cahut-sky-950);
+	--scene-photo-hill-1: var(--cahut-ink-800);
+	--scene-photo-hill-2: var(--cahut-ink-700);
+	--scene-hill-back: var(--cahut-ink-900);
+	--scene-hill-front: var(--cahut-ink-800);
+	--scene-clouds: 0.06;
+}
 @media (prefers-color-scheme: dark) {
-	.scene {
+	:root:not([data-theme="light"]) .scene {
 		--scene-card: var(--cahut-ink-900);
 		--scene-ink: var(--cahut-ink-200);
 		--scene-grey: var(--cahut-ink-600);

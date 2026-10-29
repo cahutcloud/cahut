@@ -3,17 +3,20 @@
 // other session that the browser holds. See
 // docs/adr/0043-the-console-holds-two-sessions.md. The sign-in of a person
 // does not show the way to that of the server, which its administrators
-// reach at /server/sign-in, or from the page of their account. Behind the
-// card, the Windows of the open house come out, and go back in once signed in.
+// reach at /server/sign-in, or from the page of their account; that of the
+// server takes the theme of the server, the inverse of that of a person.
+// Behind the card, the Windows of the open house come out, and go back in
+// once signed in.
 import { useEffect, useRef, useState } from "preact/hooks";
 import { cahut, explain, server } from "../api";
 import type { LegalLinks } from "../api.gen";
-import { describeSignIn, Languages, Legal, LegalBeforeSignIn } from "../components";
+import { AuthLogo, describeSignIn, Languages, Legal, LegalBeforeSignIn } from "../components";
 import { words } from "../i18n";
 import { Logo } from "../logo";
 import { Link } from "../router";
 import { type SceneMotion, SignInScene } from "../sign-in-scene";
 import type { Session } from "../session";
+import { useServerTheme } from "../theme";
 
 const t = words({
 	en: {
@@ -82,6 +85,7 @@ export function SignIn(props: {
 	onSignIn: (s: Session) => void;
 }) {
 	const { kind, purpose, beside, onSignIn } = props;
+	const theme = useServerTheme(kind === "admin");
 	const [forgot, setForgot] = useState(false);
 	// A person who forgot their password gets a link by e-mail only where
 	// this Cahut sends e-mail. See
@@ -128,7 +132,7 @@ export function SignIn(props: {
 		<main class="auth auth--scene">
 			<SignInScene card={card} motion={scene} />
 			<div class="c-card auth__card" ref={card}>
-				<Logo height={32} />
+				<AuthLogo server={theme} />
 				<div class="auth__head">
 					<h1 class="c-h3">{kind === "admin" ? t.administer : t.signIn}</h1>
 					<p class="c-small c-muted">
