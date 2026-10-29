@@ -22,7 +22,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [16](0016-oauth-for-ai-clients.md) | AI clients connect over OAuth, to the Rooms and the scope a person grants | Accepted, superseded in part by 17, 20 and 21 |
 | [17](0017-oauth-endpoints-on-port-443.md) | The OAuth endpoints that clients' servers call are on port 443 | Accepted, superseded in part by 20 |
 | [18](0018-project-pages-from-community-files.md) | The project pages are built from the community files of the repository | Accepted |
-| [19](0019-window-versions-access-and-declaration.md) | Windows keep two versions, open to an access, and declare what they call | Accepted, extended by 21, 22, 27, 30 and 31 |
+| [19](0019-window-versions-access-and-declaration.md) | Windows keep two versions, open to an access, and declare what they call | Accepted, extended by 21, 22, 27, 30 and 31, superseded in part by 45 |
 | [20](0020-console-under-a-path-of-port-443.md) | The console is served under `/console/` on port 443 | Accepted, extended by 43 |
 | [21](0021-ais-knock-first.md) | An AI knocks first, and the person it acts for answers | Accepted, extended by 31 |
 | [22](0022-house-style-of-each-cahut.md) | Each Cahut has a house style, served to its Windows and given to AIs | Accepted, extended by 23 |
@@ -48,6 +48,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [42](0042-the-legal-pages-of-a-cahut.md) | The pages of a Cahut link its legal pages, which the administrators of its server give | Accepted |
 | [43](0043-the-console-holds-two-sessions.md) | The console holds the session of a person and that of an administrator of the server together | Accepted, superseded in part by 44 |
 | [44](0044-two-bars-for-the-server-and-the-cahut.md) | The console shows the server and the Cahut in two bars, and each signs out of its own session | Accepted |
+| [45](0045-windows-fetch-the-blob-and-data-urls-they-make.md) | The pages of a Window fetch the blob: and data: URLs they make | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

@@ -77,7 +77,7 @@ func TestPolicy(t *testing.T) {
 		t.Errorf("undeclared policy = %q, want %q", got, want)
 	}
 	none := (&Declaration{}).Policy(self)
-	for _, want := range []string{"sandbox allow-forms ", "default-src 'none'", "connect-src https://cahut.example.com;", "form-action 'none'", "base-uri 'none'"} {
+	for _, want := range []string{"sandbox allow-forms ", "default-src 'none'", "connect-src https://cahut.example.com data: blob:;", "form-action 'none'", "base-uri 'none'"} {
 		if !strings.Contains(none, want) {
 			t.Errorf("policy without calls = %q, want %q in it", none, want)
 		}
@@ -90,7 +90,7 @@ func TestPolicy(t *testing.T) {
 	for _, want := range []string{
 		"sandbox allow-scripts ",
 		"script-src https://cahut.example.com 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
-		"connect-src https://cahut.example.com https://cdn.jsdelivr.net",
+		"connect-src https://cahut.example.com data: blob: https://cdn.jsdelivr.net",
 		"img-src https://cahut.example.com data: blob: https://cdn.jsdelivr.net",
 		"form-action https://forms.example.com",
 	} {

@@ -15,7 +15,7 @@ import (
 // docs/adr/0019-window-versions-access-and-declaration.md.
 type Declaration struct {
 	Scripts bool     `json:"scripts" jsonschema:"whether the pages run scripts, inline or in files"`
-	Origins []string `json:"origins,omitempty" jsonschema:"every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none"`
+	Origins []string `json:"origins,omitempty" jsonschema:"every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make"`
 	Forms   []string `json:"forms,omitempty" jsonschema:"the origins that the forms of the pages send to, if any"`
 }
 
@@ -110,7 +110,10 @@ func (d *Declaration) Sandbox() string {
 
 // Policy returns the Content Security Policy of the files of a Window that
 // d declares, served at the origin self, such as https://cahut.example.com.
-// A Window published before declarations keeps the sandbox alone.
+// A Window published before declarations keeps the sandbox alone. Pages may
+// fetch the blob: and data: URLs they make: these hold what the page already
+// has, and the browser resolves a blob: URL only for the opaque origin that
+// made it. See docs/adr/0045-windows-fetch-the-blob-and-data-urls-they-make.md.
 func (d *Declaration) Policy(self string) string {
 	sandbox := "sandbox " + d.Sandbox()
 	if d == nil {
@@ -132,7 +135,7 @@ func (d *Declaration) Policy(self string) string {
 		"img-src "+from("data:", "blob:"),
 		"font-src "+from("data:"),
 		"media-src "+from("data:", "blob:"),
-		"connect-src "+from(),
+		"connect-src "+from("data:", "blob:"),
 		"frame-src "+from(),
 		"worker-src "+self+" blob:",
 		"form-action "+forms,

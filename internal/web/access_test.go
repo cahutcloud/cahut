@@ -351,7 +351,7 @@ func TestDeclaredPolicy(t *testing.T) {
 	src := f.frame(t, "/olivier/q3-review/", reader)
 	resp, _ := f.do(t, "localhost", http.MethodGet, src, nil, nil)
 	if csp := resp.Header.Get("Content-Security-Policy"); !strings.HasPrefix(csp, "sandbox allow-forms ") ||
-		!strings.Contains(csp, "connect-src https://localhost;") || strings.Contains(csp, "script-src") {
+		!strings.Contains(csp, "connect-src https://localhost data: blob:;") || strings.Contains(csp, "script-src") {
 		t.Errorf("the policy of a Window without scripts = %q", csp)
 	}
 
