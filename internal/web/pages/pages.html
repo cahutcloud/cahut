@@ -1,9 +1,12 @@
 {{/* The pages that a Cahut serves to readers on the port of its Windows.
 They carry the brand of Cahut, light or dark as the reader's system is.
 They run no inline script. Their foot links the legal pages of the Cahut,
-when it has some. See docs/adr/0032-the-page-of-a-room.md,
-docs/adr/0042-the-legal-pages-of-a-cahut.md and
-docs/adr/0049-no-house-style.md. */}}
+when it has some. The robots that draw the preview of a link to a Window
+get a page of their own, with the tags of Open Graph. See
+docs/adr/0032-the-page-of-a-room.md,
+docs/adr/0042-the-legal-pages-of-a-cahut.md,
+docs/adr/0049-no-house-style.md and
+docs/adr/0051-sharing-a-window-and-its-preview.md. */}}
 
 {{define "head"}}<!doctype html>
 <html lang="en">
@@ -76,6 +79,34 @@ docs/adr/0049-no-house-style.md. */}}
 <p class="c-muted">Ask your AI to publish one in the Room <span class="c-mono">{{.Name}}</span>. It connects to this Cahut at <span class="c-mono">{{.MCP}}</span>.</p>
 </section>{{end}}
 {{if not .Reader}}<p class="c-small c-muted foot">Members of this Room <a class="c-link" href="{{.SignIn}}">sign in</a> to open all its Windows.</p>{{end}}
+</main>
+{{template "legal" .}}</body>
+</html>
+{{end}}
+
+{{define "preview"}}{{template "head" .}}{{with .Description}}<meta name="description" content="{{.}}">
+{{end}}<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{.Domain}}">
+<meta property="og:title" content="{{.Title}}">
+{{with .Description}}<meta property="og:description" content="{{.}}">
+{{end}}<meta property="og:url" content="{{.URL}}">
+<meta property="og:image" content="{{.Image}}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{.ImageAlt}}">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="{{.URL}}">
+</head>
+<body>
+{{template "top" .}}
+<main class="page page--narrow">
+<section class="c-card panel">
+<p class="c-label">Window</p>
+<h1 class="c-h3">{{.Title}}</h1>
+{{with .Description}}<p>{{.}}</p>
+{{end}}<p><a class="c-btn c-btn--primary" href="{{.URL}}">Open</a></p>
+</section>
 </main>
 {{template "legal" .}}</body>
 </html>

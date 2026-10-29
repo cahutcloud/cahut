@@ -19,7 +19,7 @@ A Room is a space for a person or a team. A Window is a living page in a Room: a
 
 An address without its final slash, such as `https://cahut.example.com/marketing/q3-review`, redirects to the one with it, so that the relative links of the page resolve under the Window.
 
-Paths under `/-/` belong to Cahut itself: the permanent addresses of Windows, the sign-in of readers, the page of a Key, the frames of protected Windows. Who may open what is in [Who can open a Window](/concepts/access/).
+Paths under `/-/` belong to Cahut itself: the permanent addresses of Windows and their cards, the sign-in of readers, the page of a Key, the frames of protected Windows. Who may open what is in [Who can open a Window](/concepts/access/).
 
 ## The id and the permanent address
 
@@ -29,7 +29,7 @@ The id gives the Window a permanent address, `https://cahut.example.com/-/w/<id>
 
 The id opens nothing by itself, and the permanent address follows the access of the Window. A reader who may not open the Window there finds nothing, as at an address that does not exist, or the page of its Key, without learning its address. In the trash, a Window is not found at its permanent address either.
 
-The console shows both addresses on the page of each Window. AIs get the id as `id` and the permanent address as `permanent_url`, and name a Window by either, as by its address or `room/name`. The invitations that a Cahut sends by e-mail give the permanent address. The decision is [ADR 50](https://github.com/getcahut/cahut/blob/main/docs/adr/0050-window-ids-permanent-addresses-and-names.md).
+The console shows both addresses on the page of each Window. AIs get the id as `id` and the permanent address as `permanent_url`, and name a Window by either, as by its address or `room/name`. The invitations that a Cahut sends by e-mail give the permanent address. It is the link to share: robots of previews read there a preview in the brand of Cahut, which says no more than the address says to a stranger. See [Share a Window](/concepts/sharing/). The decision is [ADR 50](https://github.com/getcahut/cahut/blob/main/docs/adr/0050-window-ids-permanent-addresses-and-names.md).
 
 ## Names
 

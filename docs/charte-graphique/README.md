@@ -1,6 +1,6 @@
 # Cahut · Charte graphique
 
-Version 1.8 · 29 octobre 2026 · Olivier Durand
+Version 1.9 · 29 octobre 2026 · Olivier Durand
 
 ![Cahut, la maison ouverte](illustrations/maison-ouverte.png)
 
@@ -324,6 +324,7 @@ Chaque visuel a son gabarit HTML modifiable dans [`applications/gabarits/`](appl
 | Visuel | Format | Fichier |
 | --- | --- | --- |
 | Image de partage (Open Graph) | 1200 × 630 | [`og-image.png`](applications/og-image.png) |
+| Carte d'une Window (aperçu d'un lien) | 1200 × 630 | [`carte-window.png`](applications/carte-window.png), dessinée par le serveur |
 | Aperçu du dépôt GitHub | 1280 × 640 | [`github-social-preview.png`](applications/github-social-preview.png) |
 | Couverture de la page LinkedIn | 1512 × 256 | [`banniere-linkedin-page.png`](applications/banniere-linkedin-page.png) |
 | Bannière du profil LinkedIn | 1584 × 396 | [`banniere-linkedin-profil.png`](applications/banniere-linkedin-profil.png) |
@@ -342,6 +343,10 @@ Chaque visuel a son gabarit HTML modifiable dans [`applications/gabarits/`](appl
 <img src="applications/diapo-section.png" alt="Diapositive de section" width="32%">
 <img src="applications/diapo-contenu.png" alt="Diapositive de contenu" width="32%">
 </p>
+
+**Carte d'une Window.** Le lien d'une Window, collé dans Slack, Teams, iMessage, X ou LinkedIn, s'affiche avec une carte que chaque Cahut dessine elle-même, sans navigateur ([ADR 51](../adr/0051-sharing-a-window-and-its-preview.md)). Elle reprend l'image de partage : Paper, le logo horizontal en haut à gauche, le titre de la Window en Plus Jakarta Sans ExtraBold à la place de la signature, le domaine de la Cahut en IBM Plex Mono Sky 700 en bas à gauche, et la maison ouverte à droite. Un titre long passe de 64 à 40 px et finit par des points de suspension ; une Window qui n'est ni publique ni à Key, ou dont le titre est dans une écriture que la police n'a pas, a sa carte sans titre. Le code de [`internal/card`](../../internal/card/card.go) en est le gabarit : il prend les polices TTF, le PNG du logo et celui de la maison ouverte tels quels, et les couleurs dans les jetons.
+
+![Carte d'une Window](applications/carte-window.png)
 
 **Réseaux.** L'avatar est le même sur GitHub, LinkedIn, X et ailleurs : [`avatar-reseaux.png`](applications/avatar-reseaux.png), un carré Paper plein avec le symbole Ink et sa porte éclairée (section 2). Il n'a pas de coins arrondis, car chaque réseau pose son propre masque : un cercle sur X et les profils GitHub, un carré arrondi sur les organisations GitHub et les pages LinkedIn. Le symbole tient dans le cercle. L'icône d'application ne convient pas, ses coins arrondis laisseraient des angles vides, ni le symbole seul, transparent.
 
@@ -436,5 +441,6 @@ charte-graphique/
 | 1.6 | 25 octobre 2026 | Pictogrammes de navigation, sur une grille de 24 px, pour la barre latérale de la console : chaque entrée a le sien, en couleur, la Room personnelle et la Room d'équipe chacune le leur. La planche des pictogrammes les montre, la maquette de la console les emploie |
 | 1.7 | 28 octobre 2026 | Nouvelle signature : *Your home to publish and share what your AIs make.* (en français : *Votre maison pour publier et partager ce que fabriquent vos IA.*), à la place de *Your own cloud for everything your AI makes.* Elle dit ce que fait Cahut. L'image de partage, l'aperçu GitHub, les bannières et la signature e-mail la reprennent, et l'image de partage ne parle plus de *house style* |
 | 1.8 | 29 octobre 2026 | Cahut n'a plus de *house style* ([ADR 49](../adr/0049-no-house-style.md)) : le mot quitte le vocabulaire, avec son pictogramme `house-style.svg` et son pictogramme de navigation. Une Window porte l'apparence que son IA lui a donnée, jamais la marque de Cahut, qui vaut pour ses propres écrans : la console, les pages d'une Cahut, ses e-mails et ses sites (§ 12, *Les Windows*, à la place de *Cahut chez les autres*). La valeur Accueillante prend le pictogramme de la Key. La planche des pictogrammes, la maquette de la console et leurs rendus sont refaits |
+| 1.9 | 29 octobre 2026 | La carte d'une Window, que chaque Cahut dessine pour les aperçus de ses liens ([ADR 51](../adr/0051-sharing-a-window-and-its-preview.md)), rejoint les applications (§ 10), avec son rendu `carte-window.png` |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.

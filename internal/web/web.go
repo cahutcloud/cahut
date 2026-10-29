@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"cahut.cloud/internal/cahut"
+	"cahut.cloud/internal/card"
 	"cahut.cloud/internal/console"
 	"cahut.cloud/internal/notice"
 	"cahut.cloud/internal/operation"
@@ -126,6 +127,10 @@ type Server struct {
 	// wrong Keys, by Window and address
 	keyFailuresHere *limiter
 
+	// cards are the cards of Windows drawn last, for the previews of their
+	// links.
+	cards *card.Cache
+
 	// streams is canceled when the server shuts down, to end the
 	// standalone streams of MCP sessions.
 	streams    context.Context
@@ -145,7 +150,7 @@ type site struct {
 
 // New returns a web server for the Cahuts of srv.
 func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
-	s := &Server{srv: srv, cfg: cfg, log: log, sites: map[string]*site{}}
+	s := &Server{srv: srv, cfg: cfg, log: log, sites: map[string]*site{}, cards: card.NewCache(64)}
 	// The operations of the server read the Cahuts that this server holds
 	// open, rather than open them again.
 	srv.Opened = func(ctx context.Context, domain string) (*cahut.Cahut, error) {
@@ -195,6 +200,7 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.mux.HandleFunc("GET /-/frame/{capability}/{file...}", s.serveFrame)
 	s.mux.HandleFunc("GET "+window.PermanentPrefix+"{id}", s.servePermanent)
 	s.mux.HandleFunc("GET "+window.PermanentPrefix+"{id}/{file...}", s.servePermanent)
+	s.mux.HandleFunc("GET "+CardPath+"{file}", s.serveCard)
 	s.mux.HandleFunc("/{room}", s.redirectToRoom)
 	s.mux.HandleFunc("GET /{room}/{$}", s.serveRoom)
 	s.mux.HandleFunc("GET /{room}/{window}", redirectToWindow)
