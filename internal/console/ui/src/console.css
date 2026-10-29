@@ -1098,6 +1098,17 @@ a.cahut-menu__item:hover {
 	width: 14px;
 	height: 14px;
 }
+/* The button of a card that opens its Window in a new tab, over its preview. */
+.window-card {
+	position: relative;
+}
+.window-open {
+	position: absolute;
+	top: var(--space-3);
+	right: var(--space-3);
+	z-index: 1;
+	box-shadow: var(--shadow-sm);
+}
 /* The trash, folded under the Windows of a Room. */
 .trash {
 	padding-top: var(--space-4);
