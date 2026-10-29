@@ -32,3 +32,5 @@ What can be undone, the AI does on its own. What cannot waits for the person the
 - Run an AI model on the server.
 - Depend on one AI vendor, or keep work in a proprietary format: a Window is HTML and its files.
 - Give an AI a shell on the server.
+
+What a Window holds and does, and what waits for your approval, is in [What Cahut can and cannot do](/start/can-and-cannot/).
