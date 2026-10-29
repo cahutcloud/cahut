@@ -1,6 +1,6 @@
 # 25. The first start is guided in the browser, from a single-use link
 
-- Status: Accepted, extended by [ADR 31](0031-e-mail-through-a-relay.md) (the first start asks for the address of the first person) and by [ADR 43](0043-the-console-holds-two-sessions.md) (the first start opens the sessions of both accounts)
+- Status: Accepted, extended by [ADR 31](0031-e-mail-through-a-relay.md) (the first start asks for the address of the first person) and by [ADR 43](0043-the-console-holds-two-sessions.md) (the first start opens the sessions of both accounts), and superseded in part by [ADR 49](0049-no-house-style.md) (the first start has no step for the house style)
 - Date: 2026-10-23
 
 ## Context

@@ -7,7 +7,6 @@ import account from "@charte/icones/navigation/account.svg?raw";
 import aiAccess from "@charte/icones/navigation/ai-access.svg?raw";
 import cahut from "@charte/icones/navigation/cahut.svg?raw";
 import email from "@charte/icones/navigation/email.svg?raw";
-import houseStyle from "@charte/icones/navigation/house-style.svg?raw";
 import knockFirst from "@charte/icones/navigation/knock-first.svg?raw";
 import limits from "@charte/icones/navigation/limits.svg?raw";
 import logbook from "@charte/icones/navigation/logbook.svg?raw";
@@ -25,7 +24,6 @@ const files = {
 	aiAccess,
 	cahut,
 	email,
-	houseStyle,
 	knockFirst,
 	limits,
 	logbook,

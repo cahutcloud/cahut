@@ -55,10 +55,7 @@ func (o *Outbox) Prepare(ctx context.Context, q querier, userID int64, kind Noti
 		return nil, err
 	}
 	p.Email = email.String
-	name, where, err := o.Where(ctx)
-	if err != nil {
-		return nil, err
-	}
+	name, where := o.Where()
 	l := write(p, name, where)
 	l.To = p.Email
 	return &l, nil

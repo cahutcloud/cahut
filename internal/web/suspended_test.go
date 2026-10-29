@@ -56,7 +56,7 @@ func TestSuspendedCahut(t *testing.T) {
 
 	// Readers meet the page of a suspended Cahut, which names nothing that
 	// it holds, wherever they look.
-	for _, path := range []string{"/olivier/q3-review/", "/olivier/q3-review/css/deck.css", "/olivier/", "/-/house-style.css", "/-/sign-in"} {
+	for _, path := range []string{"/olivier/q3-review/", "/olivier/q3-review/css/deck.css", "/olivier/", SkillPath, "/-/sign-in"} {
 		resp, body := f.get(t, "localhost", http.MethodGet, path)
 		if resp.StatusCode != http.StatusServiceUnavailable || !strings.Contains(body, "This Cahut is suspended") ||
 			strings.Contains(body, "Q3") || strings.Contains(body, "Unpaid") || strings.Contains(body, "Sign in") {

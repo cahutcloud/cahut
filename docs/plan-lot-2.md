@@ -119,7 +119,7 @@ Ils suivent la maquette [`ui/console.html`](charte-graphique/ui/console.html) de
 | Écran | Contenu |
 | --- | --- |
 | Connexion et activation | Identifiant et mot de passe ; choix du mot de passe depuis un lien ; un accès séparé pour les administrateurs du serveur |
-| Coquille | Barre latérale : Overview, Logbook, Rooms, This Cahut (People, AIs and access), Server. Menu du compte : mot de passe, déconnexion. Knock first et House style n'apparaissent qu'avec leurs lots |
+| Coquille | Barre latérale : Overview, Logbook, Rooms, This Cahut (People, AIs and access), Server. Menu du compte : mot de passe, déconnexion. Knock first n'apparaît qu'avec son lot |
 | Overview | Les dernières Windows de ses Rooms |
 | Room | Les Windows en cartes, avec un pictogramme par type, qui s'ouvrent sur le port 443 ; les membres ; leur gestion pour les propriétaires ; la création d'une Room d'équipe |
 | Logbook | Qui, par quel accès, sur quoi et avec quel résultat ; filtres par personne et par opération |

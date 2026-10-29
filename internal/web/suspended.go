@@ -4,14 +4,12 @@ import (
 	"net/http"
 	"strings"
 
-	"cahut.cloud/internal/housestyle"
 	"cahut.cloud/internal/settings"
 )
 
 // A suspended Cahut keeps everything, and serves nothing of what it holds:
-// its Windows, the pages of its Rooms, their frames, its Keys, its
-// invitations and its house style answer with a page that says it is
-// suspended. Its console still loads, for the administrators of its server,
+// its Windows, the pages of its Rooms, their frames, its Keys and its
+// invitations answer with a page that says it is suspended. Its console still loads, for the administrators of its server,
 // whose calls alone the registry runs; its MCP endpoint and its OAuth
 // endpoints still answer, so that AIs stay connected while the registry
 // refuses their calls. See docs/adr/0048-suspending-a-cahut.md.
@@ -43,9 +41,8 @@ func servedWhileSuspended(p string) bool {
 
 // serveSuspended answers the request with the page of a suspended Cahut
 // when the Cahut of the request is suspended, and reports whether it did.
-// The page carries the brand of Cahut whatever the house style: the host
-// speaks, not the organization. It names nothing that the Cahut holds,
-// and offers no sign-in.
+// The page carries the brand of Cahut, as every page of a Cahut does. It
+// names nothing that the Cahut holds, and offers no sign-in.
 func (s *Server) serveSuspended(w http.ResponseWriter, r *http.Request) bool {
 	c := siteOf(r).cahut
 	suspension, err := settings.SuspensionOf(r.Context(), c.DB.Read)
@@ -57,7 +54,6 @@ func (s *Server) serveSuspended(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 	p := s.page(r, "", "Suspended")
-	p.Brand = housestyle.Brand{Name: c.Domain, NeutralLook: true}
 	p.SignIn = ""
 	s.render(w, r, http.StatusServiceUnavailable, "suspended", p)
 	return true

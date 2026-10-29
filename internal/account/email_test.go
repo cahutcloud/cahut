@@ -35,7 +35,6 @@ func (f *fixture) mailer(t *testing.T) *mailtest.Relay {
 	}
 	cmail.Provide(f.r, &cmail.Outbox{
 		Service: svc, DB: f.db, Domain: "example.com", Console: console,
-		Name: func(context.Context) (string, error) { return "Example", nil },
 	})
 	return relay
 }
@@ -90,7 +89,7 @@ func TestCreateUserWithEmail(t *testing.T) {
 		t.Fatalf("create_user: %+v %v", u, err)
 	}
 	m := read(t, relay, 1)
-	if m.to != "Olivier@example.org" || m.subject != "Choose your password for Example" ||
+	if m.to != "Olivier@example.org" || m.subject != "Choose your password for example.com" ||
 		m.link(t) != console+"activate#"+u.Activation.Code || !strings.Contains(m.body, "Your handle is olivier.") {
 		t.Errorf("the activation: %+v", m)
 	}
@@ -267,7 +266,7 @@ func TestRequestPasswordLink(t *testing.T) {
 	}
 	ask("OLIVIER@example.org")
 	m := read(t, relay, 1)
-	if m.to != "olivier@example.org" || m.subject != "Choose a new password for Example" || !strings.HasPrefix(m.link(t), console+"activate?reset#") {
+	if m.to != "olivier@example.org" || m.subject != "Choose a new password for example.com" || !strings.HasPrefix(m.link(t), console+"activate?reset#") {
 		t.Fatalf("the link of a forgotten password: %+v", m)
 	}
 
@@ -382,13 +381,13 @@ func TestSecurityNotices(t *testing.T) {
 	if _, err := operation.Do(ctx, f.r, SetUserRole, chloe, SetUserRoleInput{User: "ana", Role: Admin}); err != nil {
 		t.Fatal(err)
 	}
-	if m := read(t, relay, 3); m.subject != "You are now an administrator of Example" {
+	if m := read(t, relay, 3); m.subject != "You are now an administrator of example.com" {
 		t.Errorf("the notice of a role: %+v", m)
 	}
 	if _, err := operation.Do(ctx, f.r, SetUserRole, chloe, SetUserRoleInput{User: "ana", Role: Member}); err != nil {
 		t.Fatal(err)
 	}
-	if m := read(t, relay, 4); m.subject != "You are no longer an administrator of Example" {
+	if m := read(t, relay, 4); m.subject != "You are no longer an administrator of example.com" {
 		t.Errorf("the notice of a role taken back: %+v", m)
 	}
 	// An AI does not turn notices off.

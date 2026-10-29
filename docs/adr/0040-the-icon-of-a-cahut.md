@@ -1,6 +1,6 @@
 # 40. The icon of a Cahut
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 49](0049-no-house-style.md) (the root of a Cahut serves the icon of Cahut, always)
 - Date: 2026-10-25
 
 ## Context

@@ -1,7 +1,7 @@
 // Package charte embeds the files of the brand of Cahut that the binary
-// serves, as they are in the brand guidelines: the pages that a Cahut shows
-// readers carry the brand of Cahut until it has a house style of its own.
-// See docs/adr/0032-the-page-of-a-room.md.
+// serves, as they are in the brand guidelines: the console and the pages that
+// a Cahut shows readers carry the brand of Cahut, and a Window carries the
+// look that its AI gave it. See docs/adr/0049-no-house-style.md.
 package charte
 
 import "embed"

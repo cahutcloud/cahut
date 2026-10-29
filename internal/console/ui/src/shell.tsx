@@ -48,7 +48,6 @@ const t = words({
 		updates: "Updates",
 		thisCahut: "This Cahut",
 		people: "People",
-		houseStyle: "House style",
 		kindAndLimits: "Kind and limits",
 		email: "E-mail",
 		access: "AIs and access",
@@ -96,7 +95,6 @@ const t = words({
 		updates: "Mises à jour",
 		thisCahut: "Cette Cahut",
 		people: "Personnes",
-		houseStyle: "House style",
 		kindAndLimits: "Type et limites",
 		email: "E-mail",
 		access: "IA et accès",
@@ -222,7 +220,6 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 				{!person && serverPages(false)}
 				<div class="c-label">{t.thisCahut}</div>
 				{isAdmin && nav("/people", <Pictogram name="people" />, t.people)}
-				{isAdmin && nav("/house-style", <Pictogram name="houseStyle" />, t.houseStyle)}
 				{(isAdmin || serverSession) && nav("/settings", <Pictogram name="limits" />, t.kindAndLimits)}
 				{isAdmin && nav("/mail", <Pictogram name="email" />, t.email)}
 				{!person && nav("/rooms", <Pictogram name="room" />, t.rooms, false)}

@@ -1,6 +1,6 @@
 # The Cahut plugin for Claude
 
-It connects Claude to your Cahut over MCP, and gives it the skill to make and publish Windows there: documents, decks, dashboards and small sites, in the house style of your organization. See [ADR 22](../../docs/adr/0022-house-style-of-each-cahut.md).
+It connects Claude to your Cahut over MCP, and gives it the skill to make and publish Windows there: documents, decks, dashboards and small sites, each in the style you ask for. See [ADR 22](../../docs/adr/0022-house-style-of-each-cahut.md) and [ADR 49](../../docs/adr/0049-no-house-style.md).
 
 ## Install it
 
@@ -17,7 +17,7 @@ In the Claude apps, where skills are uploaded, each Cahut serves the skill alone
 
 ## What it holds
 
-- `skills/cahut/`: the skill, which Claude loads when you ask it to make or publish a Window. It leaves the house style to the `get_house_style` tool of each Cahut.
+- `skills/cahut/`: the skill, which Claude loads when you ask it to make or publish a Window: the formats, the declaration, the sandbox and Knock first.
 - `.mcp.json`: the MCP server of your Cahut, at the domain you give.
 
 ## License

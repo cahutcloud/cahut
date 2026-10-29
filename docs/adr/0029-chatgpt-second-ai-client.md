@@ -1,6 +1,6 @@
 # 29. ChatGPT is the second AI client of the V0, through the same tools as Claude
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 49](0049-no-house-style.md) (the instructions of the server name no house style)
 - Date: 2026-10-23
 
 ## Context

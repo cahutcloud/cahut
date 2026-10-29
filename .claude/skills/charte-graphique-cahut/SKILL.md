@@ -1,11 +1,11 @@
 ---
 name: charte-graphique-cahut
-description: Charte graphique et ton de Cahut, la maison auto-hébergée de ce que fabriquent les IA. Logo SVG et ses versions, palette Ink, Paper, Sky, Light Grey et Soft Yellow avec échelles et règles de contraste, polices Plus Jakarta Sans et IBM Plex Mono, jetons CSS (thèmes clair et sombre), kit d'interface de la console (classes c-), pictogrammes du vocabulaire (Cahut, Room, Window, Key, House style, Knock first, Logbook), icônes Lucide, illustrations, photos Unsplash, gabarits HTML de diapositives et de visuels de réseaux avec un script de rendu en PNG ; voix calme et précise en anglais simple pour les textes du produit. À utiliser dès qu'il faut créer, habiller ou relire un support de Cahut (site cahut.cloud, landing page, écran ou composant de la console, maquette, présentation, diapositive, image de partage, bannière, e-mail, signature, illustration, documentation) ou écrire un texte du produit (interface, message d'erreur, site, annonce), même si le mot « charte » n'est pas prononcé.
+description: Charte graphique et ton de Cahut, la maison auto-hébergée de ce que fabriquent les IA. Logo SVG et ses versions, palette Ink, Paper, Sky, Light Grey et Soft Yellow avec échelles et règles de contraste, polices Plus Jakarta Sans et IBM Plex Mono, jetons CSS (thèmes clair et sombre), kit d'interface de la console (classes c-), pictogrammes du vocabulaire (Cahut, Room, Window, Key, Knock first, Logbook), icônes Lucide, illustrations, photos Unsplash, gabarits HTML de diapositives et de visuels de réseaux avec un script de rendu en PNG ; voix calme et précise en anglais simple pour les textes du produit. À utiliser dès qu'il faut créer, habiller ou relire un support de Cahut (site cahut.cloud, landing page, écran ou composant de la console, maquette, présentation, diapositive, image de partage, bannière, e-mail, signature, illustration, documentation) ou écrire un texte du produit (interface, message d'erreur, site, annonce), même si le mot « charte » n'est pas prononcé.
 ---
 
 # Charte graphique Cahut
 
-Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.7 du 28 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
+Cette skill sert à produire des supports **fidèles à Cahut** et à les relire. Elle résume la charte et dit par quels fichiers commencer ; la référence complète reste [`docs/charte-graphique/README.md`](../../../docs/charte-graphique/README.md) (version 1.8 du 29 octobre 2026), dont tous les fichiers sources sont rangés dans `docs/charte-graphique/`.
 
 Dans ce document, les chemins partent de la racine du dépôt et **`charte/`** désigne `docs/charte-graphique/`.
 
@@ -13,10 +13,10 @@ Dans ce document, les chemins partent de la racine du dépôt et **`charte/`** d
 
 Un abri simple et à soi, posé dans le nuage : **papier chaud, encre bleu-gris, une touche de ciel et un rayon de soleil rare**, des formes arrondies et beaucoup d'air, et une voix **calme, précise et accueillante** qui parle la langue de la maison en anglais simple. Cahut accueille le travail des IA, elle ne le crée pas : rien dans l'image ne doit faire « IA magique ».
 
-## Périmètre : la charte Cahut, ou celle du client
+## Périmètre : les écrans de Cahut, pas les Windows
 
-- **Charte Cahut** : tout ce qui est à Cahut elle-même (site, documentation, console, écran de connexion, e-mails envoyés par une Cahut, présentations, réseaux sociaux).
-- **Charte de l'organisation (*house style*)** : les pages que Cahut publie pour ses utilisateurs. La marque de l'organisation passe en premier ; Cahut s'efface. Mention facultative en pied de page avec `charte/logos/cahut-badge-hosted.svg` (ou `-inverse`), 32 px de haut au plus. Jamais le logo Cahut au-dessus ou à côté de celui d'un client.
+- **Charte Cahut** : tout ce qui est à Cahut elle-même, et seulement cela : la console, les pages d'une Cahut que voient les lecteurs (page d'une Room, d'une Key, connexion, page introuvable), les e-mails envoyés par une Cahut, les sites cahut.cloud et docs.cahut.cloud, les présentations et les réseaux sociaux.
+- **Une Window** porte l'apparence que son IA lui a donnée, dans le style que la personne a demandé, avec sa feuille de style parmi ses propres fichiers ; jamais la marque de Cahut. Mention facultative en pied de page avec `charte/logos/cahut-badge-hosted.svg` (ou `-inverse`), 32 px de haut au plus.
 
 ## Comment travailler
 
@@ -107,7 +107,6 @@ Les textes du produit, du site et des visuels sont **en anglais**, langue du lan
 | Room | Un espace personnel ou d'équipe, à l'adresse `<domaine>/<room>` |
 | Window | Une page vivante : document, présentation, tableau de bord, appli, à l'adresse `<domaine>/<room>/<window>` |
 | Key | Le mot de passe qui ouvre une Window protégée |
-| House style | La charte de l'organisation, appliquée par toutes les IA |
 | Knock first | L'IA frappe avant toute action irréversible |
 | Logbook | Le registre de toutes les actions |
 
@@ -137,7 +136,7 @@ Les textes du produit, du site et des visuels sont **en anglais**, langue du lan
 - [ ] Logo issu du bon fichier pour son fond, intact, avec sa zone de protection et au-dessus de sa taille minimale.
 - [ ] Aucune ombre lourde, lueur, dégradé décoratif, robot ou étincelle.
 - [ ] Interface lisible au clavier (focus visible), correcte en clair et en sombre, lisible à 375 px de large.
-- [ ] Sur une page publiée pour un client : sa marque d'abord, Cahut au plus en badge de pied de page.
+- [ ] Sur une Window : l'apparence que son IA lui a donnée, jamais la marque de Cahut ; au plus le badge *Hosted on Cahut* en pied de page.
 
 **Texte**
 - [ ] En anglais simple, phrases courtes, casse de phrase, chiffres en chiffres.

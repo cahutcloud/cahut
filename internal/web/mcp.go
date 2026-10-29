@@ -27,15 +27,14 @@ import (
 // comes first, within the 512 characters that some clients, such as Codex,
 // are sure to keep (docs/adr/0029-chatgpt-second-ai-client.md).
 const instructions = `Cahut keeps what you make on the user's own server, as Windows. ` +
-	`To publish a document, deck, dashboard or site: call get_house_style with its kind, then publish_window ` +
-	`with a complete index.html, its files linked by relative paths (css/deck.css, never /css/deck.css), ` +
+	`To publish a document, deck, dashboard or site: call publish_window ` +
+	`with a complete index.html and all its files, linked by relative paths (css/deck.css, never /css/deck.css), ` +
 	`and a declaration of its scripts and of every origin it loads from or calls. Give the user the address it returns. ` +
 	`A call that cannot be undone makes a Knock: give the user its link to approve it.
 
 ` +
-	`House style: when it is active, start from its template, link the style sheet of the organization, /-/house-style.css, ` +
-	`use its classes and variables, and follow its guidance; when it is inactive, make the Window in the style the user asks for. ` +
-	`Only the house style and the deck engine are under /-/: a Window is served under the address of its Room. ` +
+	`Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: ` +
+	`Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. ` +
 	`Pages can load and call nothing that their declaration does not list, and send forms only where it says. ` +
 	`They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: ` +
 	`keep state in memory or in the address. ` +

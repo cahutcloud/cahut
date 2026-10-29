@@ -16,8 +16,6 @@ type Outbox struct {
 	Service *Service
 	DB      *store.DB // of the Cahut
 	Domain  string
-	// Name returns the name of the Cahut, which its messages come from.
-	Name func(ctx context.Context) (string, error)
 	// Base is the address of the Cahut, such as https://example.com/, under
 	// which its Rooms and Windows open.
 	Base string
@@ -76,27 +74,17 @@ func (o *Outbox) Send(l Letter) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	name, err := o.Name(ctx)
-	if err == nil {
-		err = o.Service.Post(ctx, From{DB: o.DB, Domain: o.Domain, Name: name}, l)
-	}
+	err := o.Service.Post(ctx, From{DB: o.DB, Domain: o.Domain, Name: o.Domain}, l)
 	if err != nil && !errors.Is(err, ErrNoRelay) {
 		o.Service.log.Warn("post e-mail", "for", o.Domain, "error", err)
 	}
 }
 
-// Where returns how a message names the Cahut of the outbox: its name, and
-// where it is, such as "Acme, at cahut.acme.com", or "the Cahut at
-// cahut.acme.com" when it has no name of its own.
-func (o *Outbox) Where(ctx context.Context) (name, where string, err error) {
-	name, err = o.Name(ctx)
-	if err != nil {
-		return "", "", err
-	}
-	if name == o.Domain {
-		return name, "the Cahut at " + o.Domain, nil
-	}
-	return name, name + ", at " + o.Domain, nil
+// Where returns how a message names the Cahut of the outbox: its domain,
+// such as "cahut.acme.com", and where it is, "the Cahut at cahut.acme.com".
+// See docs/adr/0049-no-house-style.md.
+func (o *Outbox) Where() (name, where string) {
+	return o.Domain, "the Cahut at " + o.Domain
 }
 
 // Link returns the address of the page path of the console, such as

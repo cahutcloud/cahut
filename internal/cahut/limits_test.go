@@ -283,14 +283,6 @@ func TestLimitOfDisk(t *testing.T) {
 	l.ok(err, "purge_window")
 	l.ok(l.publish(olivier, "", "Notes", 100), "publish once Report is purged")
 
-	// The files of the house style count too.
-	l.set(settings.Limits{Disk: n(150)})
-	logo := `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10"/></svg>`
-	_, err = l.invoke(olivier, "set_house_style", map[string]any{"logo": map[string]string{"content": logo}})
-	l.refused(err, "keeps 100 bytes, and")
-	_, err = l.invoke(olivier, "set_house_style", map[string]any{"name": "Example Co"})
-	l.ok(err, "set_house_style without files")
-
 	// Lowering the limit below what the Cahut keeps deletes nothing, and a
 	// call that frees bytes still runs.
 	l.ok(l.update(olivier, "olivier/notes", 40), "update Notes to 40 bytes")

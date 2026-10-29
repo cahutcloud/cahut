@@ -1,6 +1,6 @@
 // The words of cahut.cloud in French. The words of the house (Cahut, Room,
-// Window, Key, House style, Knock first, Logbook) stay in English, as in the
-// brand guidelines. Spaces before French punctuation come from ./index.ts.
+// Window, Key, Knock first, Logbook) stay in English, as in the brand
+// guidelines. Spaces before French punctuation come from ./index.ts.
 import type { Dictionary } from './index';
 
 const fr: Dictionary = {
@@ -70,7 +70,7 @@ const fr: Dictionary = {
 	statement: {
 		label: "L'idée",
 		title: 'Vos IA le fabriquent et le publient. Vous le partagez et y travaillez ensemble.',
-		lead: "Tout ce qu'elles produisent vit au même endroit, en pages à votre adresse, à vos couleurs, sur votre serveur, quelle que soit l'IA.",
+		lead: "Tout ce qu'elles produisent vit au même endroit, en pages à votre adresse, sur votre serveur, quelle que soit l'IA.",
 		text: "Cahut ne crée pas de contenu, elle l'héberge. Elle ne concurrence ni les IA ni les outils de création : c'est la maison neutre et auto-hébergée où leur travail vit, et où votre équipe travaille dessus.",
 		layers: [
 			{
@@ -86,10 +86,10 @@ const fr: Dictionary = {
 				tags: ['Publier', 'Partager', 'Rooms', 'Versions', 'Commentaires', 'Recherche', 'Export', 'Logbook'],
 			},
 			{
-				layer: 'Apparence',
-				who: 'La house style, portée par Cahut',
-				what: 'Vos couleurs et vos formats, donnés à chaque IA sous forme de modèles et de skills.',
-				tags: ['Couleurs', 'Polices', 'Logos', 'Modèles'],
+				layer: 'Lire',
+				who: 'Les personnes avec qui vous partagez',
+				what: 'Elles ouvrent un lien dans leur navigateur, sur un téléphone ou un ordinateur. Aucun fichier à envoyer, rien à installer.',
+				tags: ['Votre équipe', 'Vos clients', 'Famille et amis', 'Le public'],
 			},
 		],
 	},
@@ -272,15 +272,11 @@ const fr: Dictionary = {
 			},
 			{
 				title: 'Connecter',
-				text: 'Toutes les IA, une seule porte, votre style.',
+				text: 'Toutes les IA, une seule porte.',
 				features: [
 					{
 						area: 'Accès des IA',
 						text: "Un serveur MCP natif (HTTP, OAuth) et une skill par client d'IA, en plugin quand le client le permet : Claude d'abord, puis ChatGPT, Mistral, Copilot et d'autres. Un accès SSH limité aux mêmes opérations, pour les IA en terminal.",
-					},
-					{
-						area: 'House style',
-						text: "Les couleurs, polices, logos et modèles de l'organisation, donnés à chaque IA pour que tout sorte à la charte.",
 					},
 				],
 			},
@@ -373,7 +369,6 @@ const fr: Dictionary = {
 		],
 		words: [
 			{ word: 'Key', meaning: 'Le mot de passe qui ouvre une Window protégée.' },
-			{ word: 'House style', meaning: "La charte de l'organisation, appliquée par toutes les IA." },
 			{ word: 'Knock first', meaning: "La règle de gouvernance : l'IA frappe avant toute action irréversible." },
 			{ word: 'Logbook', meaning: 'Le registre de toutes les actions.' },
 		],
@@ -480,8 +475,8 @@ const fr: Dictionary = {
 					text: "L'IA demande avant tout ce qu'elle ne peut pas annuler. La demande attend dans la console, avec une notification et une échéance, jusqu'à ce qu'une personne l'approuve ou la refuse.",
 				},
 				{
-					title: 'House style et skill Claude',
-					text: "Les couleurs, polices, logo et modèles de l'organisation, donnés à chaque IA, et une skill qui dit à Claude comment publier sur Cahut.",
+					title: 'Une skill pour Claude',
+					text: 'Une skill pour les applications Claude, et un plugin pour Claude Code, qui disent à Claude comment faire une Window et la publier sur Cahut.',
 				},
 				{
 					title: 'Installation, premier démarrage et mises à jour',
@@ -510,8 +505,7 @@ const fr: Dictionary = {
 				"Deux versions de chaque Window avec retour en arrière, une corbeille, et un accès : Room seulement, interne, avec une Key ou public, jusqu'à une date.",
 				"Knock first : ce qu'une IA ne peut pas défaire, ou ce qui change ce qu'une personne peut faire, attend sa personne, qui l'approuve ou le refuse dans la console.",
 				'Les e-mails, par le relais SMTP de chaque Cahut : des liens pour choisir un mot de passe, des invitations à lire une Window, et les notifications des Knocks, du compte et des limites.',
-				"Une house style pour chaque Cahut : ses couleurs, ses polices, son logo et ses consignes, des gabarits de documents, de présentations et de tableaux de bord, et un moteur de présentation, que les IA lisent avant de publier.",
-				"Un plugin pour Claude Code, et une skill pour les applications Claude, qui apprennent à Claude à faire des Windows dans la house style.",
+				'Un plugin pour Claude Code, et une skill pour les applications Claude, qui apprennent à Claude à faire des Windows et à les publier.',
 				'Le Logbook de chaque appel, de chaque changement et de chaque connexion.',
 			],
 			caution:

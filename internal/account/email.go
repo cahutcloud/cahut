@@ -123,10 +123,7 @@ func sendLink(ctx context.Context, c *operation.Call, p person, a Activation, pa
 	if ok, err := o.Sends(ctx, c.Tx); err != nil || !ok {
 		return false, err
 	}
-	name, where, err := o.Where(ctx)
-	if err != nil {
-		return false, err
-	}
+	name, where := o.Where()
 	l := write(name, where, p, o.Link(page+a.Code), a.ExpiresAt)
 	l.To = p.email
 	o.Post(c, l)
@@ -143,10 +140,7 @@ func noticeChange(ctx context.Context, c *operation.Call, p person, old, email s
 	if ok, err := o.Sends(ctx, c.Tx); err != nil || !ok {
 		return err
 	}
-	name, where, err := o.Where(ctx)
-	if err != nil {
-		return err
-	}
+	name, where := o.Where()
 	now := "The e-mail address of your account " + p.Handle + " on " + where + " is now " + email + "."
 	if email == "" {
 		now = "The e-mail address of your account " + p.Handle + " on " + where + " was removed: links no longer come to this address."
@@ -275,10 +269,7 @@ var ChangeEmail = &operation.Op[ChangeEmailInput, EmailChanged]{
 			return EmailChanged{}, err
 		}
 		c.Log(p.Handle, "confirmation sent")
-		name, where, err := o.Where(ctx)
-		if err != nil {
-			return EmailChanged{}, err
-		}
+		name, where := o.Where()
 		l := confirmLetter(name, where, p, o.Link("confirm-email#"+code), w.ExpiresAt)
 		l.To = email
 		o.Post(c, l)

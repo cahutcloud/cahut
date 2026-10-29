@@ -1,6 +1,6 @@
 # 33. The pages of Cahut carry its brand until the house style has a look of its own
 
-- Status: Accepted
+- Status: Superseded by [ADR 49](0049-no-house-style.md)
 - Date: 2026-10-24
 
 ## Context

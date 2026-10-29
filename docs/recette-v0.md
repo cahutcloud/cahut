@@ -20,8 +20,8 @@ La V0 est acquise quand les cinq critères du README passent sur deux VPS vierge
 
 - **Critère 1.** Le job *Install* lance [test/install/run.sh](../test/install/run.sh) sur l'Ubuntu vierge de GitHub : `install.sh`, `cahut doctor`, une mise à jour et un retour arrière. `make install-test` fait de même sous Lima, sur AlmaLinux 10 et Ubuntu 24.04. Ni l'un ni l'autre n'obtient de certificat : ils n'ont pas de domaine public.
 - **Critères 2 à 5.** `TestV0Acceptance` ([internal/web/acceptance_test.go](../internal/web/acceptance_test.go)) rejoue sur une Cahut de test :
-  - le premier démarrage par son lien et la house style ;
-  - un client qui s'identifie par son document, comme ChatGPT, lit la house style et publie une présentation ;
+  - le premier démarrage par son lien ;
+  - un client qui s'identifie par son document, comme ChatGPT, publie une présentation ;
   - la personne lui donne une Key par l'API de la console, et un lecteur l'ouvre avec la Key ;
   - un second client, qui s'enregistre comme Le Chat, met la présentation à jour puis revient à la version précédente ;
   - la demande de la rendre publique frappe, la personne approuve, la présentation s'ouvre à tous ;
@@ -57,11 +57,10 @@ curl -fsSL https://cahut.cloud/install.sh | sudo sh -s -- --domain <domaine>
 Démarrer un second chronomètre et ouvrir le lien.
 
 1. **Vous** : nom, handle, mot de passe de 15 caractères au moins.
-2. **Votre Cahut** : le nom de l'organisation et une couleur.
-3. **Votre première IA** : dans claude.ai, Settings, Connectors, ajouter un connecteur personnalisé à l'adresse MCP affichée ; se connecter quand claude.ai renvoie vers la console, garder « Read and publish » et toutes les Rooms. L'écran du premier démarrage dit que Claude est branché.
-4. Demander à Claude, avec des chiffres, car il refuse d'inventer des résultats : « Fais une présentation de trois diapositives sur nos résultats du trimestre, à la house style de Cahut, et publie-la. Ce sont des données de démonstration : chiffre d'affaires du T3, 1,24 M€, +12 % sur le T2 ; 38 nouveaux clients ; marge brute, 64 % ; par offre, abonnements 720 k€, services 380 k€, formation 140 k€ ; à retenir, faire passer la mise en route des nouveaux clients de 21 à 10 jours. »
+2. **Votre première IA** : dans claude.ai, Settings, Connectors, ajouter un connecteur personnalisé à l'adresse MCP affichée ; se connecter quand claude.ai renvoie vers la console, garder « Read and publish » et toutes les Rooms. L'écran du premier démarrage dit que Claude est branché.
+3. Demander à Claude, avec des chiffres, car il refuse d'inventer des résultats : « Fais une présentation de trois diapositives sur nos résultats du trimestre et publie-la. Ce sont des données de démonstration : chiffre d'affaires du T3, 1,24 M€, +12 % sur le T2 ; 38 nouveaux clients ; marge brute, 64 % ; par offre, abonnements 720 k€, services 380 k€, formation 140 k€ ; à retenir, faire passer la mise en route des nouveaux clients de 21 à 10 jours. »
 
-**On doit voir** Claude appeler `get_house_style` puis `publish_window`, et rendre une adresse `https://<domaine>/<handle>/<window>/`. Arrêter le chronomètre quand la présentation s'ouvre dans la console : **moins de 5 minutes**, sans commande sur le serveur.
+**On doit voir** Claude appeler `publish_window` et rendre une adresse `https://<domaine>/<handle>/<window>/`. Arrêter le chronomètre quand la présentation s'ouvre dans la console : **moins de 5 minutes**, sans commande sur le serveur.
 
 ### 3. Partage par une personne non technique
 
@@ -71,16 +70,16 @@ Sans terminal, dans la console :
 2. Copier l'adresse et la Key.
 3. Dans une fenêtre de navigation privée, ouvrir l'adresse, taper la Key.
 
-**On doit voir** la présentation, à la house style, et pouvoir passer les diapositives. Le tout prend **quelques minutes**.
+**On doit voir** la présentation et pouvoir passer les diapositives. Le tout prend **quelques minutes**.
 
 ### 4. Deuxième client : ChatGPT
 
 1. Dans ChatGPT sur le web, Plugins, le bouton plus, puis « Add custom MCP server » : un nom, l'adresse MCP de la Cahut, OAuth ; accepter l'avertissement, créer le plugin.
 2. Se connecter quand ChatGPT renvoie vers la console, garder « Read and publish » et toutes les Rooms.
-3. Dans une conversation, choisir le plugin et demander : « Mets à jour la présentation des résultats du trimestre : ajoute une diapositive de conclusion, à la house style. »
+3. Dans une conversation, choisir le plugin et demander : « Mets à jour la présentation des résultats du trimestre : ajoute une diapositive de conclusion. »
 4. Puis : « Reviens à la version précédente de cette présentation. »
 
-**On doit voir** ChatGPT demander une confirmation avant chaque appel qui change quelque chose, lire la house style, publier la nouvelle version, puis revenir à la précédente. Le lien avec la Key montre chaque fois la version en place. Le Logbook dit si ChatGPT a vraiment agi : une ligne `update_window`, puis une ligne `rollback_window`.
+**On doit voir** ChatGPT demander une confirmation avant chaque appel qui change quelque chose, publier la nouvelle version, puis revenir à la précédente. Le lien avec la Key montre chaque fois la version en place. Le Logbook dit si ChatGPT a vraiment agi : une ligne `update_window`, puis une ligne `rollback_window`.
 
 ### 5. Gouvernance
 
@@ -105,7 +104,7 @@ Sans terminal, dans la console :
 | 23/10/2026 | Ubuntu 24.04 amd64, CI | lot 8 | 49 s | | | | | Job *Install*, à chaque pull request |
 | 23/10/2026 | Cahut de test, CI | lot 8 | | passe | passe | passe (CIMD et DCR) | passe | `TestV0Acceptance` |
 | 23/10/2026 | AlmaLinux 10.2 amd64, staging, Cahut à `51.83.68.4` | lot 8 | | | passe, avec la Key | Codex et Vibe, par Internet, jetons personnels | passe : accès public en Knock | Certificat d'adresse IP de Let's Encrypt, `shortlived` ; pas un VPS vierge |
-| 27/10/2026 | Ubuntu 26.04 LTS amd64, VPS vierge chez OVH, `demo.cahut.cloud` | 0.9.4 | 20 s | 3 min, claude.ai | 30 s, depuis la console | Claude et ChatGPT, par OAuth : ChatGPT lit la house style, met à jour, revient à la version précédente | passe : accès public en Knock, approuvé ; chaque appel au Logbook avec son client | Certificat obtenu pendant l'installation ; `cahut doctor` : un avertissement, Ubuntu 26.04 non testé. Claude a refusé d'inventer les chiffres de la consigne : un aller-retour, compté dans les 3 min, et la consigne donne maintenant des chiffres. ChatGPT a d'abord répondu sans appeler `rollback_window`, absent du Logbook ; il l'a appelé à la seconde demande |
+| 27/10/2026 | Ubuntu 26.04 LTS amd64, VPS vierge chez OVH, `demo.cahut.cloud` | 0.9.4 | 20 s | 3 min, claude.ai | 30 s, depuis la console | Claude et ChatGPT, par OAuth : ChatGPT met à jour, revient à la version précédente | passe : accès public en Knock, approuvé ; chaque appel au Logbook avec son client | Certificat obtenu pendant l'installation ; `cahut doctor` : un avertissement, Ubuntu 26.04 non testé. Claude a refusé d'inventer les chiffres de la consigne : un aller-retour, compté dans les 3 min, et la consigne donne maintenant des chiffres. ChatGPT a d'abord répondu sans appeler `rollback_window`, absent du Logbook ; il l'a appelé à la seconde demande |
 | 27/10/2026 | AlmaLinux 10.2 arm64, Lima, SELinux en mode enforcing | `main` après 0.9.4 (cda2ec3) | 58 s | | | | | Test d'installation entier en 151 s : refus d'un compte `cahut` de personne, `install.sh`, `cahut doctor`, mise à jour, retour arrière ; sans domaine public ni certificat. Depuis #99, le test s'arrêtait à la création de ce compte : `useradd` ne trouvait plus d'UID subordonnés dans la machine de Lima |
 
 ## Bilan

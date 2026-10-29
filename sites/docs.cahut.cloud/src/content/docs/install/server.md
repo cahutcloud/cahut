@@ -50,8 +50,8 @@ Open this link to start your Cahut. It works once, until 2026-10-25, and is show
 
   https://cahut.example.com/console/setup#k7n3…
 
-It creates your account, sets the house style of your organization, and
-connects your first AI. For a new link: sudo -u cahut /usr/local/bin/cahut setup
+It creates your account and connects your first AI.
+For a new link: sudo -u cahut /usr/local/bin/cahut setup
 ```
 
 Open the link in your browser: [The first start](/install/first-start/) walks through it.

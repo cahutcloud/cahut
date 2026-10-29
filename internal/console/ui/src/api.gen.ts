@@ -232,17 +232,6 @@ export interface CheckHandleInput {
   handle: string;
 }
 
-export interface ColorsInput {
-  /** body text, as #rrggbb */
-  text?: string;
-  /** the background of pages, as #rrggbb; body text must contrast 4.5:1 at least on it */
-  background?: string;
-  /** the main color of the brand, as #rrggbb */
-  primary?: string;
-  /** the second color of the brand, as #rrggbb */
-  secondary?: string;
-}
-
 export interface ConfirmEmailInput {
   /** the code of the link sent to the new address */
   code: string;
@@ -445,62 +434,6 @@ export interface FirstAdmin {
   name: string;
 }
 
-export interface Font {
-  /** its family; absent for the font of the system */
-  family?: string;
-  /** the generic family it falls back on: sans-serif, serif or monospace */
-  fallback: string;
-  /** the CSS font-family of the font, its family first */
-  stack: string;
-  /** the files that readers' browsers load; none for a family that their systems have */
-  files?: FontFile[];
-}
-
-export interface FontFile {
-  /** the name of the file, which set_house_style keeps when given in keep */
-  name: string;
-  /** its path, from the root of the domain */
-  url: string;
-  weight: number;
-  /** for a variable font, the heaviest weight it covers */
-  max_weight?: number;
-  /** normal or italic */
-  style: string;
-  /** in bytes */
-  size: number;
-}
-
-export interface FontFileInput {
-  /** the file in base64: WOFF2, WOFF, TrueType or OpenType */
-  content?: string;
-  /** instead of content, the name of a file of the current house style to keep, as get_house_style lists it */
-  keep?: string;
-  /** its weight, from 100 to 900, 400 by default; for a variable font, the lightest weight it covers */
-  weight?: number;
-  /** for a variable font, the heaviest weight it covers */
-  max_weight?: number;
-  /** normal (the default) or italic */
-  style?: string;
-}
-
-export interface FontInput {
-  /** the family, such as Inter or Georgia; empty for the default */
-  family?: string;
-  /** the generic family to fall back on: sans-serif (the default), serif or monospace */
-  fallback?: string;
-  /** the files of the family, which readers' browsers load; none for a family that their systems have, such as Georgia */
-  files?: FontFileInput[];
-}
-
-export interface Fonts {
-  /** the font of headings, --hs-font-heading */
-  heading: Font;
-  /** the font of body text, --hs-font-body */
-  body: Font;
-  /** the CSS stack of code and figures in columns, --hs-font-mono */
-  mono: string;
-}
-
 export type GetAccountInput = Record<string, never>;
 
 export type GetCahutInput = Record<string, never>;
@@ -518,61 +451,6 @@ export interface HandleCheck {
   available: boolean;
   /** why it cannot: invalid, reserved or taken */
   reason?: string;
-}
-
-export interface HouseStyle {
-  /** the name of the organization; the domain of the Cahut until an administrator sets one */
-  name: string;
-  /** whether AIs use the house style; when it is inactive, make the Window in the style the user asks for */
-  active: boolean;
-  /** what to do when the house style is inactive */
-  message?: string;
-  /** whether the Cahut has the neutral house style, which no administrator has changed */
-  neutral: boolean;
-  /** the style sheet of the house style, at this path from the root of the domain: link it with <link rel="stylesheet" href="/-/house-style.css">. The Window declares nothing for it */
-  stylesheet: string;
-  /** the path of the logo, from the root of the domain; without a logo, it shows the name of the organization */
-  logo: string;
-  /** the path of the logo for dark backgrounds, such as the primary color; without such a version, it shows the name of the organization in light letters */
-  logo_inverse: string;
-  /** whether the house style has a logo */
-  has_logo: boolean;
-  /** whether it has a version of its logo for dark backgrounds */
-  has_logo_inverse: boolean;
-  /** the path of the deck engine, from the root of the domain: <script src="/-/deck.js" defer></script> in the head of a deck, which then declares that it runs scripts */
-  deck_engine: string;
-  colors: Palette;
-  /** whether the house style sets the colors of its charts, rather than Cahut deriving them from its primary and secondary colors */
-  own_chart_colors: boolean;
-  /** the colors of the series of charts, in their order, as --hs-chart-1 to --hs-chart-8 in the style sheet: give them to series in this order, never cycled */
-  chart_colors: string[];
-  fonts: Fonts;
-  /** what the organization asks of AIs, such as its tone of voice or rules for charts: follow it */
-  guidance?: string;
-  /** when the house style was set; absent for the neutral house style */
-  set_at?: string;
-  /** the handle of the person who set it, or for whom an AI set it */
-  set_by?: string;
-  /** the previous house style, which rollback_house_style restores; absent when there is none */
-  previous?: Previous;
-  /** what may not read well, and what to change */
-  warnings?: string[];
-  /** how to use the style sheet, its variables and its classes, in Markdown */
-  guide?: string;
-  /** the template of the kind asked for */
-  template?: Template;
-}
-
-export interface HousestyleGetInput {
-  /** the kind of Window you make, to get its template: document, deck, dashboard or site */
-  kind?: string;
-}
-
-export interface ImageInput {
-  /** the image: SVG as text, or PNG or WebP in base64; empty to remove the logo */
-  content: string;
-  /** utf-8 (the default, for SVG) or base64 */
-  encoding?: string;
 }
 
 export interface Info {
@@ -747,7 +625,7 @@ export interface Limits {
   windows?: number;
   /** how many Windows out of the trash each Room may hold, personal Rooms included */
   windows_per_room?: number;
-  /** how many bytes the Cahut may keep: every version of every Window, those in the trash included, and the files of the house style */
+  /** how many bytes the Cahut may keep: every version of every Window, those in the trash included */
   disk?: number;
   /** in an individual Cahut, how many Rooms each person may have beside their personal Room */
   rooms_per_person?: number;
@@ -913,27 +791,6 @@ export interface Outsider {
   window: string;
 }
 
-export interface Palette {
-  /** body text, --hs-text */
-  text: string;
-  /** the background of pages, --hs-background */
-  background: string;
-  /** the main color of the brand, for headings, links, buttons and slides, --hs-primary */
-  primary: string;
-  /** text on the primary color, --hs-on-primary */
-  on_primary: string;
-  /** the second color of the brand, for accents, --hs-secondary */
-  secondary: string;
-  /** text on the secondary color, --hs-on-secondary */
-  on_secondary: string;
-  /** secondary text, such as captions, --hs-muted */
-  muted: string;
-  /** borders and rules, --hs-line */
-  line: string;
-  /** the background of cards and panels, --hs-surface */
-  surface: string;
-}
-
 export type PasswordChanged = Record<string, never>;
 
 export interface PasswordLinkRequested {
@@ -975,13 +832,6 @@ export interface Previews {
   previews: Preview[];
 }
 
-export interface Previous {
-  /** whether it is the neutral house style */
-  neutral: boolean;
-  set_at: string;
-  set_by?: string;
-}
-
 export interface PublishInput {
   /** title of the Window, also used in its address */
   title: string;
@@ -1021,7 +871,7 @@ export interface RelayInfo {
   password: boolean;
   /** the address that messages come from */
   from: string;
-  /** the name that messages come from; the name of the Cahut when absent */
+  /** the name that messages come from; the domain of the Cahut when absent */
   name?: string;
   set_at: string;
 }
@@ -1087,8 +937,6 @@ export interface RevokeServiceTokenInput {
 export interface RevokeTokenInput {
   id: number;
 }
-
-export type RollbackInput = Record<string, never>;
 
 export interface Room {
   /** the Room's name, first part of its address */
@@ -1217,29 +1065,6 @@ export interface SetHomeInput {
   window?: string;
 }
 
-export interface SetInput {
-  /** start again from the neutral house style, then apply the other fields */
-  neutral?: boolean;
-  /** whether AIs use the house style: false makes it inactive, and get_house_style then gives them nothing of it; the pages of Cahut and the Windows that link its sheet keep it */
-  active?: boolean;
-  /** the name of the organization; empty for the domain of the Cahut */
-  name?: string;
-  /** the colors to change; those left out stay */
-  colors?: ColorsInput;
-  /** up to 8 colors for the series of charts, in order, each as #rrggbb; an empty list goes back to those that Cahut derives from the primary and secondary colors */
-  chart_colors?: string[];
-  /** the font of headings, which replaces the current one with its files; with no family, headings take the body font */
-  heading_font?: FontInput;
-  /** the font of body text, which replaces the current one with its files; with no family, the font of the system */
-  body_font?: FontInput;
-  /** the logo of the organization, for light backgrounds */
-  logo?: ImageInput;
-  /** the version of the logo for dark backgrounds, such as slides in the primary color */
-  logo_inverse?: ImageInput;
-  /** what the organization asks of AIs, at most 4000 characters: its tone of voice, its rules for titles or charts. Readers never see it */
-  guidance?: string;
-}
-
 export interface SetLegalLinksInput {
   /** the address of the legal notice: who publishes the service and who hosts it */
   legal_notice?: string;
@@ -1271,7 +1096,7 @@ export interface SetMailRelayInput {
   password?: string;
   /** the address that messages come from, one that the relay accepts, such as cahut@example.com */
   from?: string;
-  /** the name that messages come from; the name of the Cahut when left out */
+  /** the name that messages come from; the domain of the Cahut when left out */
   name?: string;
 }
 
@@ -1382,15 +1207,6 @@ export interface TakenEmail {
   email: string;
 }
 
-export interface Template {
-  /** the kind of Window it makes */
-  kind: string;
-  /** index.html of a Window of this kind: keep its structure and its classes, replace its sample content, and give it its own title */
-  html: string;
-  /** whether it runs scripts, which the Window then declares */
-  scripts: boolean;
-}
-
 export interface TestSent {
   to: string;
 }
@@ -1450,7 +1266,7 @@ export interface Usage {
   rooms: number;
   /** Windows out of the trash */
   windows: number;
-  /** bytes of every version of every Window, those in the trash included, and of the files of the house style */
+  /** bytes of every version of every Window, those in the trash included */
   disk: number;
 }
 
@@ -1630,8 +1446,6 @@ export interface CahutOperations {
   get_account: { input: GetAccountInput; output: Account };
   /** Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. */
   get_cahut: { input: GetCahutInput; output: About };
-  /** Get the house style of this Cahut before making a Window: the name of the organization, its colors, fonts and logo, what it asks of AIs, the path of its style sheet, which a Window links from the root of the domain, a guide to its classes, and the template of the kind of Window you make. When it is inactive, it says so, and the Window takes the style the user asks for. */
-  get_house_style: { input: HousestyleGetInput; output: HouseStyle };
   /** Describe the invitation of a personal link: the Window, who invites, and their note. */
   get_invitation: { input: InvitationCodeInput; output: InvitationPage };
   /** Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
@@ -1686,8 +1500,6 @@ export interface CahutOperations {
   revoke_service_token: { input: RevokeServiceTokenInput; output: ServiceTokenInfo };
   /** Revoke a personal token. The AI that used it loses access at once. */
   revoke_token: { input: RevokeTokenInput; output: TokenInfo };
-  /** Go back to the previous house style of this Cahut. The house style you leave becomes the previous one, so calling rollback_house_style again returns to it. For the administrators of the Cahut. */
-  rollback_house_style: { input: RollbackInput; output: HouseStyle };
   /** Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. */
   rollback_window: { input: RefInput; output: Window };
   /** Send a test message through the relay of this Cahut, and say whether the relay took it. For the administrators of the Cahut. */
@@ -1696,8 +1508,6 @@ export interface CahutOperations {
   set_ai_reach: { input: SetAIReachInput; output: Connection };
   /** Set the kind of this Cahut, collaborative or individual, and its limits: how many people, administrators, Rooms and Windows it may have, how many Windows each Room may hold, how many bytes it may keep, and, in an individual Cahut, how many Rooms, Windows and bytes each person may have. Give every limit: a limit left out is lifted. Lowering a limit deletes nothing: the Cahut keeps what it holds and refuses what would add to it. For the administrators of the server. */
   set_cahut_settings: { input: SetCahutSettingsInput; output: Settings };
-  /** Change the house style of this Cahut: the name of the organization, its colors, its fonts and their files, its logo, what it asks of AIs, and whether AIs use it. Give only what changes: the rest stays. Every Window that links the style sheet takes the change at once. The house style before becomes the previous one, which rollback_house_style restores. For the administrators of the Cahut. */
-  set_house_style: { input: SetInput; output: HouseStyle };
   /** Set the links to the legal pages of this Cahut, which its host publishes elsewhere: its legal notice, terms, privacy policy and support. Each is the address of a page, which starts with https://; fr gives another address for a page in French, where it differs, which the console links when it speaks French. The console and the pages for readers link them at their foot. Give every link: a link left out is removed. For the administrators of the server. */
   set_legal_links: { input: SetLegalLinksInput; output: LegalLinks };
   /** Turn off, or on again, the e-mail notices that are neither about your account nor about a Knock, such as being added to a Room or the end of the access of a Window. */
@@ -1760,7 +1570,7 @@ export interface ServerOperations {
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
   /** Change the name of an administrator of the server, yours or another's. Their handle, with which they sign in, stays. */
   rename_admin: { input: RenameAdminInput; output: Admin };
-  /** Move a Cahut to another domain, or from the IP address of the server to a domain. Its people, Rooms, Windows, house style and Logbook stay; the links that name its old address stop working, and AIs connect again at the new one. */
+  /** Move a Cahut to another domain, or from the IP address of the server to a domain. Its people, Rooms, Windows and Logbook stay; the links that name its old address stop working, and AIs connect again at the new one. */
   rename_domain: { input: RenameDomainInput; output: Info };
   /** Ask the updater of the server to check for new releases, or to install a release newer than the one running. It runs as root within a minute, checks the signature, and goes back to the version running if the new one fails. */
   request_update: { input: RequestUpdateInput; output: RequestedUpdate };

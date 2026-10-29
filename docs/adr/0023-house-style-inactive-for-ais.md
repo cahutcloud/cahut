@@ -1,6 +1,6 @@
 # 23. The house style can be inactive for AIs
 
-- Status: Accepted
+- Status: Superseded by [ADR 49](0049-no-house-style.md)
 - Date: 2026-10-23
 
 ## Context

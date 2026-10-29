@@ -165,7 +165,7 @@ func TestPublishOverMCP(t *testing.T) {
 	for _, tool := range tools.Tools {
 		names = append(names, tool.Name)
 	}
-	if want := []string{"add_room_member", "create_room", "delete_room", "get_account", "get_cahut", "get_house_style", "get_knock", "get_room", "get_window",
+	if want := []string{"add_room_member", "create_room", "delete_room", "get_account", "get_cahut", "get_knock", "get_room", "get_window",
 		"invite_to_window", "list_invitations", "list_knocks", "list_logbook", "list_rooms", "list_users", "list_windows", "publish_window",
 		"purge_window", "remove_room_member", "restore_window", "revoke_invitation", "rollback_window", "set_ai_reach", "set_room_home",
 		"set_room_member_role", "set_window_access", "trash_window", "update_room", "update_window"}; !slices.Equal(names, want) {
@@ -374,7 +374,7 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 		names = append(names, tool.Name)
 		// disable_user knocks first; the others replace or take away
 		// something without knocking.
-		destructive := []string{"disable_user", "revoke_invitation", "set_ai_reach", "set_house_style", "set_window_access", "update_window"}
+		destructive := []string{"disable_user", "revoke_invitation", "set_ai_reach", "set_window_access", "update_window"}
 		if slices.Contains(destructive, tool.Name) && (tool.Annotations.DestructiveHint == nil || !*tool.Annotations.DestructiveHint) {
 			t.Errorf("%s is not marked destructive: %+v", tool.Name, tool.Annotations)
 		}
@@ -388,9 +388,9 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 		}
 	}
 	want := []string{"add_room_member", "create_room", "create_user", "delete_room", "delete_user", "disable_user", "enable_user", "get_account", "get_cahut",
-		"get_house_style", "get_knock", "get_room", "get_window", "invite_to_window", "list_invitations", "list_knocks", "list_logbook", "list_rooms",
+		"get_knock", "get_room", "get_window", "invite_to_window", "list_invitations", "list_knocks", "list_logbook", "list_rooms",
 		"list_users", "list_windows", "publish_window", "purge_window", "remove_room_member", "restore_window", "revoke_invitation",
-		"rollback_house_style", "rollback_window", "set_ai_reach", "set_house_style", "set_room_home", "set_room_member_role", "set_user_email",
+		"rollback_window", "set_ai_reach", "set_room_home", "set_room_member_role", "set_user_email",
 		"set_user_role", "set_window_access", "trash_window", "update_room", "update_window"}
 	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)
@@ -768,7 +768,7 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 // how to publish (ADR 29).
 func TestInstructionsStartWithWhatToPublish(t *testing.T) {
 	head := instructions[:512]
-	for _, want := range []string{"get_house_style", "publish_window", "relative paths", "declaration", "address", "Knock"} {
+	for _, want := range []string{"publish_window", "relative paths", "declaration", "address", "Knock"} {
 		if !strings.Contains(head, want) {
 			t.Errorf("the first 512 characters of the instructions do not say %q: %q", want, head)
 		}

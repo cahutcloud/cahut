@@ -1,30 +1,26 @@
 {{/* The pages that a Cahut serves to readers on the port of its Windows.
-They take the components of the brand of Cahut, in its brand while the
-house style keeps the look of the neutral one, in the house style once it
-has a name, colors, fonts or a logo, and
-never show the logo of Cahut beside that of an organization. They run no
-inline script. Their foot links the legal pages of the Cahut, when it has
-some. See docs/adr/0022-house-style-of-each-cahut.md,
-docs/adr/0032-the-page-of-a-room.md and
-docs/adr/0042-the-legal-pages-of-a-cahut.md. */}}
+They carry the brand of Cahut, light or dark as the reader's system is.
+They run no inline script. Their foot links the legal pages of the Cahut,
+when it has some. See docs/adr/0032-the-page-of-a-room.md,
+docs/adr/0042-the-legal-pages-of-a-cahut.md and
+docs/adr/0049-no-house-style.md. */}}
 
 {{define "head"}}<!doctype html>
-<html lang="en"{{if not .Brand.NeutralLook}} data-theme="light" data-house-style{{end}}>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>{{.Title}}</title>
-{{if .Brand.NeutralLook}}<link rel="icon" href="/-/brand/logos/cahut-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/-/brand/logos/cahut-favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/-/brand/tokens/cahut-fonts.css">
-{{else}}<link rel="stylesheet" href="/-/house-style.css">
-{{end}}<link rel="stylesheet" href="/-/brand/tokens/cahut-tokens.css">
+<link rel="stylesheet" href="/-/brand/tokens/cahut-tokens.css">
 <link rel="stylesheet" href="/-/brand/ui/cahut-ui.css">
 <link rel="stylesheet" href="/-/pages.css">
 {{end}}
 
 {{define "top"}}<header class="top">
-<a class="top__home" href="/">{{if .Brand.NeutralLook}}<picture><source srcset="/-/brand/logos/cahut-logo-horizontal-inverse.svg" media="(prefers-color-scheme: dark)"><img class="top__cahut" src="/-/brand/logos/cahut-logo-horizontal.svg" alt="Cahut" width="100" height="26"></picture><span class="top__domain">{{.Domain}}</span>{{else if .Brand.Logo}}<img class="top__logo" src="/-/house-style/logo" alt="{{.Brand.Name}}">{{else}}<span class="top__name">{{.Brand.Name}}</span>{{end}}</a>
+<a class="top__home" href="/"><picture><source srcset="/-/brand/logos/cahut-logo-horizontal-inverse.svg" media="(prefers-color-scheme: dark)"><img class="top__cahut" src="/-/brand/logos/cahut-logo-horizontal.svg" alt="Cahut" width="100" height="26"></picture><span class="top__domain">{{.Domain}}</span></a>
 {{if .Reader}}<form class="top__reader" method="post" action="/-/sign-out"><span class="top__handle">{{.Reader}}</span><button class="c-btn c-btn--ghost c-btn--sm" type="submit">{{icon "log-out" 16}}Sign out</button></form>
 {{else if .SignIn}}<a class="c-btn c-btn--secondary c-btn--sm" href="{{.SignIn}}">{{icon "log-in" 16}}Sign in</a>
 {{end}}</header>
@@ -57,9 +53,9 @@ docs/adr/0042-the-legal-pages-of-a-cahut.md. */}}
 <body>
 {{template "top" .}}
 <main class="page">
-<header class="hero{{if .Brand.NeutralLook}} hero--cahut{{end}}">
-{{if .Brand.NeutralLook}}<span class="hero__picto" aria-hidden="true">{{brand "icones/room.svg"}}</span>
-{{end}}<p class="c-label">Room</p>
+<header class="hero">
+<span class="hero__picto" aria-hidden="true">{{brand "icones/room.svg"}}</span>
+<p class="c-label">Room</p>
 <h1 class="hero__title">{{.Title}}</h1>
 <p class="hero__meta"><span class="c-mono">{{.Domain}}/{{.Name}}/</span><span aria-hidden="true">·</span><span>{{.Count}}</span></p>
 </header>
@@ -73,8 +69,8 @@ docs/adr/0042-the-legal-pages-of-a-cahut.md. */}}
 </li>
 {{end}}</ul>
 {{else}}<section class="empty">
-{{if .Brand.NeutralLook}}<img class="empty__picture" src="/-/brand/illustrations/etat-vide.svg" alt="" width="240" height="160">
-{{end}}<h2 class="c-h4">No Window here yet</h2>
+<img class="empty__picture" src="/-/brand/illustrations/etat-vide.svg" alt="" width="240" height="160">
+<h2 class="c-h4">No Window here yet</h2>
 <p class="c-muted">Ask your AI to publish one in the Room <span class="c-mono">{{.Name}}</span>. It connects to this Cahut at <span class="c-mono">{{.MCP}}</span>.</p>
 </section>{{end}}
 {{if not .Reader}}<p class="c-small c-muted foot">Members of this Room <a class="c-link" href="{{.SignIn}}">sign in</a> to open all its Windows.</p>{{end}}

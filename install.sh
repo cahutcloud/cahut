@@ -420,8 +420,8 @@ people=$(as_cahut user list --domain "$domain" 2>/dev/null | awk 'NR > 1' | wc -
 if [ "$people" -eq 0 ] && link=$(as_cahut setup --domain "$domain" 2>/dev/null); then
 	printf '%s\n\n' "$link"
 	cat <<EOF
-It creates your account, sets the house style of your organization, and
-connects your first AI. For a new link: sudo -u cahut $bin_path setup
+It creates your account and connects your first AI.
+For a new link: sudo -u cahut $bin_path setup
 EOF
 else
 	echo "The Cahut of $domain has people already: sign in at https://$domain/console/"

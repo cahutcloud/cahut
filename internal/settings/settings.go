@@ -34,7 +34,7 @@ type Limits struct {
 	Rooms            *int64 `json:"rooms,omitempty" jsonschema:"how many team Rooms the Cahut may have, or in an individual Cahut how many Rooms beside the personal ones; personal Rooms come with their person and do not count"`
 	Windows          *int64 `json:"windows,omitempty" jsonschema:"how many Windows out of the trash the Cahut may hold"`
 	WindowsPerRoom   *int64 `json:"windows_per_room,omitempty" jsonschema:"how many Windows out of the trash each Room may hold, personal Rooms included"`
-	Disk             *int64 `json:"disk,omitempty" jsonschema:"how many bytes the Cahut may keep: every version of every Window, those in the trash included, and the files of the house style"`
+	Disk             *int64 `json:"disk,omitempty" jsonschema:"how many bytes the Cahut may keep: every version of every Window, those in the trash included"`
 	RoomsPerPerson   *int64 `json:"rooms_per_person,omitempty" jsonschema:"in an individual Cahut, how many Rooms each person may have beside their personal Room"`
 	WindowsPerPerson *int64 `json:"windows_per_person,omitempty" jsonschema:"in an individual Cahut, how many Windows out of the trash each person may hold, over their Rooms"`
 	DiskPerPerson    *int64 `json:"disk_per_person,omitempty" jsonschema:"in an individual Cahut, how many bytes the Windows of each person may keep, every version included"`
@@ -63,7 +63,7 @@ type Usage struct {
 	Admins  int64 `json:"admins" jsonschema:"administrators who are not disabled"`
 	Rooms   int64 `json:"rooms" jsonschema:"team Rooms, or in an individual Cahut the Rooms beside the personal ones"`
 	Windows int64 `json:"windows" jsonschema:"Windows out of the trash"`
-	Disk    int64 `json:"disk" jsonschema:"bytes of every version of every Window, those in the trash included, and of the files of the house style"`
+	Disk    int64 `json:"disk" jsonschema:"bytes of every version of every Window, those in the trash included"`
 }
 
 // PersonUsage is what a person of an individual Cahut holds, as the limits
@@ -194,11 +194,10 @@ func Read(ctx context.Context, tx *sql.Tx, userID int64, admin bool) (Settings, 
 
 // disk returns the bytes that the Cahut keeps, as the limit of its disk
 // counts them: the sizes that the database records for each version of a
-// Window and each file of the house style.
+// Window.
 func disk(ctx context.Context, tx *sql.Tx) (int64, error) {
 	var n int64
-	err := tx.QueryRowContext(ctx, `
-		SELECT (SELECT coalesce(sum(size), 0) FROM window_versions) + (SELECT coalesce(sum(size), 0) FROM house_style_files)`).Scan(&n)
+	err := tx.QueryRowContext(ctx, "SELECT coalesce(sum(size), 0) FROM window_versions").Scan(&n)
 	return n, err
 }
 

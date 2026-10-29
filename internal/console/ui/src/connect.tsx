@@ -15,7 +15,7 @@ const t = words({
 		clients: "AI clients",
 		plugin: (host: string) => (
 			<>
-				The Cahut plugin connects this Cahut and teaches Claude its house style. It asks for the domain of this Cahut,{" "}
+				The Cahut plugin connects this Cahut and teaches Claude to make and publish Windows. It asks for the domain of this Cahut,{" "}
 				<code class="c-mono">{host}</code>.
 			</>
 		),
@@ -62,7 +62,7 @@ const t = words({
 		clients: "Clients d'IA",
 		plugin: (host) => (
 			<>
-				Le plugin Cahut connecte cette Cahut et apprend sa house style à Claude. Il demande le domaine de cette Cahut,{" "}
+				Le plugin Cahut connecte cette Cahut et apprend à Claude à faire et publier des Windows. Il demande le domaine de cette Cahut,{" "}
 				<code class="c-mono">{host}</code>.
 			</>
 		),

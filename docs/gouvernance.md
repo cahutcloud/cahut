@@ -256,11 +256,11 @@ C'est la première décision, et elle conditionne les autres. Les deux options d
 | Entreprises frileuses | Aucune réserve | Certaines refusent l'AGPL pour des bibliothèques ; Cahut est un serveur installé, pas une bibliothèque |
 | Contributeurs | Indifférent | Indifférent |
 
-Recommandation : **AGPL-3.0 pour le serveur**, c'est la licence des projets auto-hébergés dont Cahut se réclame, et la seule qui protège la promesse « le même code pour tous ». À côté, **Apache-2.0 ou MIT pour ce que les gens copient chez eux** : les skills et les gabarits destinés aux IA, les exemples ; et **CC BY-SA 4.0 pour la documentation**. Le nom et le logo ne sont couverts par aucune de ces licences, et le fichier LICENSE le dit.
+Recommandation : **AGPL-3.0 pour le serveur**, c'est la licence des projets auto-hébergés dont Cahut se réclame, et la seule qui protège la promesse « le même code pour tous ». À côté, **Apache-2.0 ou MIT pour ce que les gens copient chez eux** : les skills destinées aux IA, les exemples ; et **CC BY-SA 4.0 pour la documentation**. Le nom et le logo ne sont couverts par aucune de ces licences, et le fichier LICENSE le dit.
 
 Le choix se tient dans les deux sens : avec l'Apache-2.0, le projet garderait la liberté d'une version fermée ou d'un partenariat exclusif ; avec l'AGPL et sans CLA, il y renonce pour toujours, et c'est ce qui rend la promesse crédible. La question à Olivier n'est donc pas seulement « quelle licence », c'est « est-ce que je ferme cette porte ».
 
-**Décision.** Le 22 octobre 2026, Olivier a retenu l'AGPL-3.0, version 3 seule, pour tout le dépôt, sans CLA ([ADR 15](adr/0015-license.md)) : la porte d'une version fermée est fermée. Les skills et les gabarits porteront l'Apache-2.0 quand ils arriveront ; une licence Creative Commons pour la documentation se décidera à l'ouverture du dépôt.
+**Décision.** Le 22 octobre 2026, Olivier a retenu l'AGPL-3.0, version 3 seule, pour tout le dépôt, sans CLA ([ADR 15](adr/0015-license.md)) : la porte d'une version fermée est fermée. Les skills porteront l'Apache-2.0 quand elles arriveront ; une licence Creative Commons pour la documentation se décidera à l'ouverture du dépôt.
 
 ### Le nom
 
@@ -410,7 +410,7 @@ Environ quatre heures par semaine en dehors du développement, et pas plus penda
 
 | Sujet | Options | Recommandation |
 | --- | --- | --- |
-| Licence du serveur | Apache-2.0 ou AGPL-3.0 | **Tranché le 22 octobre 2026 : AGPL-3.0** ([ADR 15](adr/0015-license.md)) ; Apache-2.0 pour les skills et les gabarits quand ils arriveront ; CC BY-SA 4.0 pour la documentation, à confirmer à l'ouverture |
+| Licence du serveur | Apache-2.0 ou AGPL-3.0 | **Tranché le 22 octobre 2026 : AGPL-3.0** ([ADR 15](adr/0015-license.md)) ; Apache-2.0 pour les skills quand elles arriveront ; CC BY-SA 4.0 pour la documentation, à confirmer à l'ouverture |
 | Fermer la porte d'une version fermée | Garder l'option ou y renoncer par écrit | **Tranché avec la licence** : la porte est fermée, sans CLA ; la promesse publique s'écrira dans GOVERNANCE.md |
 | Certification des contributions | DCO, CLA ou rien | DCO, avec l'application GitHub |
 | Moment de l'ouverture du dépôt | Au jalon V0 ou au lancement public | Au jalon V0 ; ouvert le 24 octobre 2026, à la fin du dernier lot, avant la recette sur des VPS vierges |

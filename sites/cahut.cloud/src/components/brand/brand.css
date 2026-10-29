@@ -1003,21 +1003,21 @@
 	margin: var(--space-8) 0 0;
 }
 
-/* House style */
+/* Windows */
 
-.b-house {
+.b-windows {
 	display: grid;
 	grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
 	align-items: start;
 	gap: var(--space-8);
 }
 
-.b-house__rules {
+.b-windows__rules {
 	display: grid;
 	gap: var(--space-6);
 }
 
-.b-house__rules .b-list {
+.b-windows__rules .b-list {
 	margin: 0;
 }
 
@@ -1143,7 +1143,7 @@
 
 @media (max-width: 860px) {
 	.b-hero,
-	.b-house {
+	.b-windows {
 		grid-template-columns: minmax(0, 1fr);
 	}
 

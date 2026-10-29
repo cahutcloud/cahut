@@ -62,7 +62,7 @@ func run(ctx context.Context, dir string) error {
 	if err != nil {
 		return err
 	}
-	return write(dir, []page{tools, cliPage(tagline, cmds), operationsPage(s), apiPage(s), houseStylePage()})
+	return write(dir, []page{tools, cliPage(tagline, cmds), operationsPage(s), apiPage(s)})
 }
 
 // page is a page of the reference.

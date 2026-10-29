@@ -186,10 +186,7 @@ func (s *Service) invite(ctx context.Context, c *operation.Call, in InviteInput)
 	if err != nil {
 		return Invited{}, err
 	}
-	_, where, err := o.Where(ctx)
-	if err != nil {
-		return Invited{}, err
-	}
+	_, where := o.Where()
 	expires := c.Now.Add(InvitationTTL)
 	if w.AccessEndsAt != nil && w.AccessEndsAt.Before(expires) {
 		expires = *w.AccessEndsAt

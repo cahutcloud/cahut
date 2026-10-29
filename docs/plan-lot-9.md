@@ -52,7 +52,7 @@ Ce que la V0 et l'ADR 30 ont laissé :
 L'[ADR 31](adr/0031-e-mail-through-a-relay.md), « Each Cahut sends e-mail through its own relay or that of its server », est fusionné (#104) et fixe ce que fait ce lot. Olivier y a tranché quatre points :
 
 - **Deux relais.** Celui du serveur sert au serveur et aux Cahuts qui n'ont pas de relais à elles. Celui d'une Cahut passe en priorité pour cette Cahut, et doit être à une adresse publique.
-- **La charte de Cahut** dans les e-mails, pour l'instant. La house style viendra avec une autre décision.
+- **La charte de Cahut** dans les e-mails de chaque Cahut.
 - **Une IA invite sans frapper**, dans des limites : 20 destinataires par appel, 100 invitations par jour et par personne.
 - **L'anglais**, comme la console.
 
@@ -97,7 +97,7 @@ Le mot de passe d'un relais est scellé en AES-256-GCM, sous une clé de 32 octe
     - les couleurs et les polices viennent de `cahut-tokens.json`, recopiées dans un fichier Go qu'un test compare aux jetons ;
     - le logo horizontal, en PNG de la charte, voyage avec le message (`multipart/related`).
   - Les en-têtes portent `Message-ID`, `Date` et `Auto-Submitted: auto-generated`.
-  - Quand le relais ne donne pas de nom d'expéditeur, le message prend le nom de la Cahut, celui de sa house style.
+  - Quand le relais ne donne pas de nom d'expéditeur, le message prend le domaine de la Cahut.
 - **File.**
   - `Call.AfterCommit` remplit une file en mémoire du serveur.
   - Elle envoie un message à la fois par relais, réessaie au bout d'une, cinq et dix minutes, puis abandonne.
@@ -279,7 +279,6 @@ Soit environ 11,5 jours. Les pull requests s'enchaînent dans l'ordre. Chacune r
 
 ## Hors du lot 9
 
-- La house style dans les e-mails : une décision à venir, après l'ADR 31.
 - Les e-mails dans d'autres langues, avec une console traduite.
 - Les retours des messages non distribués, le désabonnement par lien, et les API HTTP des fournisseurs d'e-mails.
 - Une limite d'e-mails par Cahut parmi celles de l'ADR 30, si les hébergeurs la demandent.
@@ -352,5 +351,4 @@ Le code du lot 9 est fusionné le 24 octobre 2026, en huit pull requests. Il res
 
 **Suites.**
 
-- La house style dans les e-mails, avec une décision à venir.
 - Les retours des messages non distribués, si les relais des hébergeurs en ont besoin.

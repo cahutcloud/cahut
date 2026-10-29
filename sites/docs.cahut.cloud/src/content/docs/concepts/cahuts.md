@@ -76,7 +76,7 @@ The administrators of the server can bound what each Cahut holds, such as when a
 | Team Rooms | Team Rooms. A personal Room comes with its person, and the limit of people already bounds them. |
 | Windows | The Windows out of the trash, in the whole Cahut. |
 | Windows per Room | The Windows out of the trash in one Room, personal Rooms included. |
-| Disk | Every version of every Window, those in the trash included, and the files of the house style, in units of 1000 bytes: 10 GB is 10 billion bytes. |
+| Disk | Every version of every Window, those in the trash included, in units of 1000 bytes: 10 GB is 10 billion bytes. |
 
 In an individual Cahut, three more limits bound each person, the same for everyone: their Rooms beside the personal one, their Windows out of the trash, and the disk that their Windows keep. No person can then take what the Cahut gives to all, and a refusal speaks of the person's own use. A member of an individual Cahut reads the limits per person and their own use, not what the whole Cahut holds.
 

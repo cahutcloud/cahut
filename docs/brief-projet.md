@@ -1,10 +1,10 @@
 # Cahut · Brief projet
 
-20 octobre 2026, mis à jour le 27 octobre 2026 · Olivier Durand
+20 octobre 2026, mis à jour le 29 octobre 2026 · Olivier Durand
 
 ## En bref
 
-Cahut est une maison pour publier et partager ce que fabriquent vos IA : documents, présentations, tableaux de bord et petites applis, en pages à votre adresse, à vos couleurs, sur votre propre serveur, quelle que soit l'IA qui les a faits.
+Cahut est une maison pour publier et partager ce que fabriquent vos IA : documents, présentations, tableaux de bord et petites applis, en pages à votre adresse, sur votre propre serveur, quelle que soit l'IA qui les a faits.
 
 On l'installe d'une commande sur un VPS. Claude, ChatGPT, Mistral ou Copilot y publient par MCP, et l'on partage un lien au lieu d'envoyer un fichier. L'équipe lit la page, la commente et demande à l'IA la version suivante, dans des Rooms où les personnes et leurs IA travaillent sur les mêmes Windows. L'IA fait seule ce qui s'annule, un humain valide le reste, et tout est tracé.
 
@@ -30,15 +30,16 @@ Ce n'est pas une hypothèse : mises devant une plateforme de ce type, des person
 - **Incohérent** : chacun travaille avec sa propre IA, dans son propre style ; l'équipe n'a pas d'endroit commun, et la marque de l'organisation se perd.
 - **Sans garde-fou** : confier un serveur à une IA, c'est lui donner un shell root, ou passer par une plateforme faite pour des humains, qu'elle sait à peine utiliser.
 
-**La promesse.** Vos IA le fabriquent et le publient. Vous le partagez et y travaillez ensemble. Tout ce qu'elles produisent vit au même endroit, en pages à votre adresse, à vos couleurs, chez vous, quelle que soit l'IA.
+**La promesse.** Vos IA le fabriquent et le publient. Vous le partagez et y travaillez ensemble. Tout ce qu'elles produisent vit au même endroit, en pages à votre adresse, chez vous, quelle que soit l'IA.
 
-**Le positionnement.** Cahut ne crée pas le contenu, elle l'accueille. Elle ne concurrence pas les IA ni les outils de création : elle est la maison neutre et souveraine où leur travail vit, et où votre équipe travaille dessus, avec trois couches bien séparées.
+**Le positionnement.** Cahut ne crée pas le contenu, elle l'accueille. Elle ne concurrence pas les IA ni les outils de création : elle est la maison neutre et souveraine où leur travail vit, et où votre équipe travaille dessus, avec deux couches bien séparées.
 
 | Couche | Qui s'en charge | Ce qu'elle apporte |
 | --- | --- | --- |
 | Créer | Les IA (Claude, ChatGPT, Mistral, Copilot…) | Le contenu : documents, présentations, tableaux de bord, applis |
 | Publier, partager, travailler ensemble | Cahut, sur votre serveur | Une page à votre adresse, un lien ouvert aux bonnes personnes, des Rooms où l'équipe et ses IA travaillent, versions, commentaires, recherche, export, journal |
-| À quoi ça ressemble | La charte, portée par Cahut | Vos couleurs et vos formats, fournis à toutes les IA sous forme de modèles et de skills |
+
+La marque de l'organisation viendra plus tard, par un module de skills que ses IA liront avant de faire une Window.
 
 ## Pour qui
 
@@ -46,7 +47,7 @@ Le grand public visé, ce sont tous ceux qui travaillent avec des documents et d
 
 | Qui | Rôle | Ce qu'il y gagne |
 | --- | --- | --- |
-| Consultants, commerciaux, chefs de projet | Premiers utilisateurs : ils fabriquent aujourd'hui des PowerPoint et des Word pour leurs clients | Un livrable à leurs couleurs en quelques minutes, un lien à envoyer, des retours en commentaires |
+| Consultants, commerciaux, chefs de projet | Premiers utilisateurs : ils fabriquent aujourd'hui des PowerPoint et des Word pour leurs clients | Un livrable en quelques minutes, un lien à envoyer, des retours en commentaires |
 | Équipes et services (marketing, RH, direction) | Utilisateurs, membres de Rooms d'équipe | Un espace commun, des droits clairs, tout au même endroit |
 | Dirigeant ou IT d'une PME | Administrateur et acheteur | La maîtrise : données chez soi, accès, durée de vie, journal, indépendance vis-à-vis des fournisseurs d'IA |
 | Particuliers un peu geek | Administrateurs de leur propre Cahut, communauté open source | Un serveur à soi pour publier ce que fait leur IA |
@@ -69,7 +70,6 @@ Tout le périmètre ci-dessous est livré dès le lancement : pas de version ré
 | Commentaires | Retours des lecteurs directement sur les pages |
 | Recherche | Retrouver une page, une présentation ou un tableau de bord dans tout ce qui est publié |
 | Export | PDF et PowerPoint, pour les destinataires restés sous Office |
-| Charte (*house style*) | Couleurs, polices, logos et modèles de l'organisation, fournis à toutes les IA pour que tout sorte à ses couleurs |
 | Utilisateurs et Rooms | Personnes et administrateurs de chaque Cahut, une Room personnelle par personne, Rooms d'équipe avec propriétaires et membres |
 | Connexion | Comptes propres à chaque Cahut, authentification unique (SSO) par OpenID Connect : Google, Microsoft Entra, Okta… |
 | Console web | Voir ce qui est publié, partager, commenter, valider l'irréversible, administrer le serveur et ses Cahuts, sur son propre port HTTPS |
@@ -124,7 +124,6 @@ flowchart LR
   end
   subgraph CAHUT["Cahut, sur votre serveur"]
     H["Votre Cahut : publier, partager, droits, versions, commentaires, recherche, export PDF et PPTX, journal, l'irréversible validé par vous"]
-    S["La charte : vos couleurs, vos formats, suivis par toutes les IA"]
   end
   subgraph LIRE["Lire"]
     E[Votre équipe]
@@ -135,10 +134,10 @@ flowchart LR
   CAHUT -- un lien --> LIRE
 ```
 
-Cahut reçoit le travail des IA par MCP, l'habille de la charte de l'organisation, le garde sur votre serveur et le partage par un simple lien, sans fichier à envoyer.
+Cahut reçoit le travail des IA par MCP, le garde sur votre serveur et le partage par un simple lien, sans fichier à envoyer.
 
 1. **Connexion.** L'utilisateur ajoute Cahut à son IA (connecteur MCP et skill) et l'autorise une fois (OAuth), avec la portée qu'il choisit.
-2. **Création.** Il demande à son IA un document, une présentation, un tableau de bord ou une appli ; la skill lui fournit les formats et la charte de l'organisation.
+2. **Création.** Il demande à son IA un document, une présentation, un tableau de bord ou une appli ; la skill lui fournit les formats et les règles de Cahut.
 3. **Publication.** L'IA publie une Window dans une Room, déclare ce qu'elle fait et reçoit son adresse, comme `cahut.exemple.fr/marketing/q3-review` ; la version précédente est gardée.
 4. **Partage.** L'utilisateur, ou l'IA dans les limites autorisées, choisit qui ouvre chaque Window : sa Room seulement, toute la Cahut, qui a sa Key, ou le public. Ce qui est irréversible attend une validation dans la console.
 5. **Vie de la page.** Les lecteurs l'ouvrent dans un navigateur, la commentent ; l'IA la met à jour à la demande ; tout est au registre.
@@ -174,7 +173,6 @@ Le produit parle le langage de la maison, en anglais simple : chaque notion tech
 | Room | Un espace personnel ou d'équipe, avec ses membres, à l'adresse `<domaine>/<room>` |
 | Window | Une page vivante : document, présentation, tableau de bord ou appli, à l'adresse `<domaine>/<room>/<window>` |
 | Key | Le mot de passe qui ouvre une Window protégée |
-| House style | La charte de l'organisation, appliquée par toutes les IA |
 | Knock first | La règle de gouvernance : l'IA frappe avant toute action irréversible |
 | Logbook | Le registre de toutes les actions |
 
@@ -188,7 +186,7 @@ La création est occupée par des géants ; personne ne propose une maison neutr
 | --- | --- | --- |
 | [Microsoft 365 Copilot](https://pasqualepillitteri.it/en/news/1401/microsoft-copilot-agent-mode-word-excel-powerpoint-april-2026) | Depuis avril 2026, l'IA agit directement dans Word, Excel et PowerPoint ; le fichier reste au centre | Pas de fichier, toutes les IA et pas seulement Copilot, hors de l'écosystème Microsoft |
 | [Gamma](https://sacra.com/c/gamma/) | Présentations, documents et sites générés par IA ; environ 70 millions d'utilisateurs, valorisé 2,1 milliards de dollars en novembre 2025 | Gamma crée et héberge chez lui ; Cahut accueille le travail de toutes les IA, chez vous |
-| [ChatGPT](https://help.openai.com/en/articles/20001339), Claude | Créent et publient des pages et des documents partageables, chacun dans son propre service | Neutre : un seul endroit pour ce que produisent toutes les IA, avec votre charte et vos règles |
+| [ChatGPT](https://help.openai.com/en/articles/20001339), Claude | Créent et publient des pages et des documents partageables, chacun dans son propre service | Neutre : un seul endroit pour ce que produisent toutes les IA, avec vos règles |
 | [Nextcloud](https://itdaily.com/blogs/software/nextcloud-review-european-and-open-source-alternative-to-microsoft-365/) | Alternative européenne et open source à Microsoft 365 : fichiers, bureautique, collaboration, sur son serveur ou chez un hébergeur | Le modèle à suivre (open source, souverain, hébergeurs partenaires), mais pensé pour les fichiers ; Cahut l'est pour les pages vivantes produites par l'IA |
 | PaaS auto-hébergés (Coolify, Dokploy, CapRover, Dokku) | Déploient des applis sur son serveur, pilotés par des développeurs depuis une interface web | Conçue pour que l'IA opère et que des non-techniciens publient, avec opérations bornées, validation de l'irréversible et documents vivants |
 
