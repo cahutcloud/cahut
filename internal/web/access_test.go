@@ -100,7 +100,7 @@ func (f *fixture) signIn(t *testing.T, domain, handle string) *http.Cookie {
 	return nil
 }
 
-var frameSrc = regexp.MustCompile(`<iframe src="(/-/w/[^"]+)"`)
+var frameSrc = regexp.MustCompile(`<iframe src="(/-/frame/[^"]+)"`)
 
 // frame opens the Window at path as a reader with cookies, and returns the
 // address of its frame, or fails.
@@ -183,7 +183,7 @@ func TestProtectedWindows(t *testing.T) {
 	expired := window.Frame{Window: 1, Kind: window.FrameBySession, ID: 1, Expires: time.Now().Add(-time.Minute).Unix()}.Sign(c.FrameKey)
 	other := window.Frame{Window: 2, Kind: window.FrameBySession, ID: 1, Expires: time.Now().Add(time.Hour).Unix()}.Sign(c.FrameKey)
 	for name, capa := range map[string]string{"tampered": string(tampered), "expired": expired, "of a missing Window": other, "garbage": "abc"} {
-		if resp, _ := f.do(t, "localhost", http.MethodGet, "/-/w/"+capa+"/", nil, nil); resp.StatusCode != http.StatusNotFound {
+		if resp, _ := f.do(t, "localhost", http.MethodGet, "/-/frame/"+capa+"/", nil, nil); resp.StatusCode != http.StatusNotFound {
 			t.Errorf("a capability %s = %d, want 404", name, resp.StatusCode)
 		}
 	}

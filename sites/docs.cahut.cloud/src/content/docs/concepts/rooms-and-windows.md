@@ -13,12 +13,23 @@ A Room is a space for a person or a team. A Window is a living page in a Room: a
 | A Room, with the Windows its reader may open, or the Window it shows | `https://cahut.example.com/<room>/` |
 | A Window | `https://cahut.example.com/<room>/<window>/` |
 | A file of a Window | `https://cahut.example.com/<room>/<window>/img/logo.svg` |
+| The permanent address of a Window | `https://cahut.example.com/-/w/<id>` |
 | The MCP endpoint | `https://cahut.example.com/mcp` |
 | The health check | `https://cahut.example.com/-/healthz` |
 
 An address without its final slash, such as `https://cahut.example.com/marketing/q3-review`, redirects to the one with it, so that the relative links of the page resolve under the Window.
 
-Paths under `/-/` belong to Cahut itself: the sign-in of readers, the page of a Key, the frames of protected Windows. Who may open what is in [Who can open a Window](/concepts/access/).
+Paths under `/-/` belong to Cahut itself: the permanent addresses of Windows, the sign-in of readers, the page of a Key, the frames of protected Windows. Who may open what is in [Who can open a Window](/concepts/access/).
+
+## The id and the permanent address
+
+Each Window gets an id when it is published: 26 characters drawn at random, such as `3f9k2m7q8x4r1t6v0b5n8c2d4g`, unique in the world. The id never changes, whatever happens to the Window's title, name or versions, and it is never given to another Window, even after a purge.
+
+The id gives the Window a permanent address, `https://cahut.example.com/-/w/<id>`. It sends whoever may open the Window to its address of the moment, with the rest of its path and its query: `/-/w/<id>/img/logo.svg` goes to `/<room>/<window>/img/logo.svg`. It survives a new name of the Window, and a new handle of the person whose Room holds it. A new domain for the Cahut breaks it, as it breaks every address.
+
+The id opens nothing by itself, and the permanent address follows the access of the Window. A reader who may not open the Window there finds nothing, as at an address that does not exist, or the page of its Key, without learning its address. In the trash, a Window is not found at its permanent address either.
+
+The console shows both addresses on the page of each Window. AIs get the id as `id` and the permanent address as `permanent_url`, and name a Window by either, as by its address or `room/name`. The invitations that a Cahut sends by e-mail give the permanent address. The decision is [ADR 50](https://github.com/getcahut/cahut/blob/main/docs/adr/0050-window-ids-permanent-addresses-and-names.md).
 
 ## Names
 

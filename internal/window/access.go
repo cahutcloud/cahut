@@ -47,7 +47,7 @@ func effective(access string, ends sql.NullString, now time.Time) (string, *time
 
 // AccessInput is the input of set_window_access.
 type AccessInput struct {
-	Window string     `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
+	Window string     `json:"window" jsonschema:"the Window's id or address, or its Room and its name as room/name"`
 	Access string     `json:"access" jsonschema:"room, internal, key or public"`
 	EndsAt *time.Time `json:"ends_at,omitempty" jsonschema:"when the access ends, such as 2026-12-31T18:00:00Z; after it, the Window opens to its Room only. It does not end when absent"`
 	Key    string     `json:"key,omitempty" jsonschema:"for key: the Key to set, of 10 to 256 characters. When empty, the Window keeps its Key, or Cahut draws one"`
@@ -160,6 +160,7 @@ func (s *Service) setAccess(ctx context.Context, c *operation.Call, in AccessInp
 // not logged.
 type Served struct {
 	ID, RoomID        int64
+	UID               string // the id that people and AIs see, which never changes
 	Room, Name, Title string
 	Kind              string
 	Version           int
@@ -171,7 +172,7 @@ type Served struct {
 }
 
 const served = `
-	SELECT w.id, w.room_id, r.name, w.name, w.title, w.kind, w.version, w.access, w.access_ends_at, w.updated_at, w.key_hash, v.declaration
+	SELECT w.id, w.room_id, w.uid, r.name, w.name, w.title, w.kind, w.version, w.access, w.access_ends_at, w.updated_at, w.key_hash, v.declaration
 	FROM windows w JOIN rooms r ON r.id = w.room_id JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
 	WHERE w.trashed_at IS NULL AND `
 
@@ -193,6 +194,15 @@ func LookupID(ctx context.Context, db *store.DB, id int64, now time.Time) (Serve
 	return w, err
 }
 
+// LookupUID returns the Window whose id, as people and AIs see it, is uid.
+func LookupUID(ctx context.Context, db *store.DB, uid string, now time.Time) (Served, error) {
+	w, err := scanServed(db.Read.QueryRowContext(ctx, served+"w.uid = ?", uid), now)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Served{}, operation.NotFoundf("no Window %s", uid)
+	}
+	return w, err
+}
+
 type scanner interface {
 	Scan(dest ...any) error
 }
@@ -202,7 +212,7 @@ func scanServed(row scanner, now time.Time) (Served, error) {
 	var ends, keyHash sql.NullString
 	var updated string
 	var declared *string
-	err := row.Scan(&w.ID, &w.RoomID, &w.Room, &w.Name, &w.Title, &w.Kind, &w.Version, &w.Access, &ends, &updated, &keyHash, &declared)
+	err := row.Scan(&w.ID, &w.RoomID, &w.UID, &w.Room, &w.Name, &w.Title, &w.Kind, &w.Version, &w.Access, &ends, &updated, &keyHash, &declared)
 	if err != nil {
 		return Served{}, err
 	}

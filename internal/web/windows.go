@@ -71,7 +71,7 @@ func (s *Server) serveWindow(w http.ResponseWriter, r *http.Request) {
 	}
 	if how != window.BySession && how != window.ByPass {
 		if win.Access == window.AccessKey {
-			s.askKey(w, r, win, reader.Handle, "", http.StatusUnauthorized)
+			s.askKey(w, r, win, room+"/"+name, reader.Handle, "", http.StatusUnauthorized)
 		} else {
 			s.notFound(w, r, reader.Handle)
 		}
@@ -84,6 +84,50 @@ func (s *Server) serveWindow(w http.ResponseWriter, r *http.Request) {
 	}
 	// The frame has the sandbox of the Window's files.
 	s.render(w, r, http.StatusOK, "frame", struct{ Title, Src, Sandbox string }{win.Title, src, win.Declaration.Sandbox()})
+}
+
+// servePermanent sends the reader of the permanent address of a Window,
+// /-/w/<id>, to its address of the moment, with what follows the id and
+// the query, when they may open it there. A reader who may not gets what
+// that address would give them, without learning it: the page of what is
+// not found, or the page of its Key, which names the Window by its id. See
+// docs/adr/0050-window-ids-permanent-addresses-and-names.md.
+func (s *Server) servePermanent(w http.ResponseWriter, r *http.Request) {
+	c := siteOf(r).cahut
+	now := time.Now()
+	id := r.PathValue("id")
+	win, err := window.LookupUID(r.Context(), c.DB, id, now)
+	if err != nil && !isNotFound(err) {
+		s.internal(w, "find a Window", err)
+		return
+	}
+	if err != nil || win.Access != window.AccessPublic {
+		reader, _ := s.readerOf(r, now)
+		if err != nil {
+			s.notFound(w, r, reader.Handle)
+			return
+		}
+		how, err := win.Opens(r.Context(), c.DB, reader.UserID, s.passOf(r, win.ID, now))
+		if err != nil {
+			s.internal(w, "check the access of a Window", err)
+			return
+		}
+		if how == window.Closed {
+			if win.Access == window.AccessKey {
+				s.askKey(w, r, win, win.UID, reader.Handle, "", http.StatusUnauthorized)
+			} else {
+				s.notFound(w, r, reader.Handle)
+			}
+			return
+		}
+	}
+	target := "/" + win.Room + "/" + win.Name + "/" +
+		strings.TrimPrefix(strings.TrimPrefix(r.URL.EscapedPath(), window.PermanentPrefix+id), "/")
+	if r.URL.RawQuery != "" {
+		target += "?" + r.URL.RawQuery
+	}
+	// Not a permanent redirect: the name of the Window may change.
+	http.Redirect(w, r, target, http.StatusTemporaryRedirect) //nolint:gosec // a path of this host, from the names of a Window
 }
 
 // serveFrame serves the files of a Window in its frame, under the

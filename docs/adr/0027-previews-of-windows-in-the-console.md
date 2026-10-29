@@ -1,6 +1,6 @@
 # 27. The console shows each Window in a live preview
 
-- Status: Accepted, extended by [ADR 32](0032-the-page-of-a-room.md) (the page of a Room shows its readers the previews of the Windows they open)
+- Status: Accepted, extended by [ADR 32](0032-the-page-of-a-room.md) (the page of a Room shows its readers the previews of the Windows they open), and superseded in part by [ADR 50](0050-window-ids-permanent-addresses-and-names.md) (the frames are at `/-/frame/<capability>/`)
 - Date: 2026-10-23
 
 ## Context

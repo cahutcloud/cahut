@@ -12,7 +12,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [6](0006-in-house-oauth-server.md) | Cahut runs its own minimal OAuth authorization server | Accepted, extended by 16 |
 | [7](0007-module-path-repository-and-releases.md) | Module path, repository and releases | Accepted, extended by 24 |
 | [8](0008-several-cahuts-per-server.md) | A server holds several Cahuts, each at its own domain | Accepted, extended by 26, 30 and 48 |
-| [9](0009-rooms-and-windows-as-paths.md) | Rooms and Windows are paths of their Cahut's domain | Accepted, extended by 22, 30 and 32, superseded in part by 38 |
+| [9](0009-rooms-and-windows-as-paths.md) | Rooms and Windows are paths of their Cahut's domain | Accepted, extended by 22, 30, 32 and 50, superseded in part by 38 |
 | [10](0010-windows-in-a-csp-sandbox.md) | Windows run in a CSP sandbox | Accepted, extended by 27 |
 | [11](0011-console-on-its-own-port.md) | The console has its own port | Accepted, superseded in part by 13, 17 and 20 |
 | [12](0012-website-and-docs-as-astro-sites.md) | The website and the docs are Astro sites in this repository | Accepted, extended by 18 |
@@ -22,7 +22,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [16](0016-oauth-for-ai-clients.md) | AI clients connect over OAuth, to the Rooms and the scope a person grants | Accepted, superseded in part by 17, 20 and 21 |
 | [17](0017-oauth-endpoints-on-port-443.md) | The OAuth endpoints that clients' servers call are on port 443 | Accepted, superseded in part by 20 |
 | [18](0018-project-pages-from-community-files.md) | The project pages are built from the community files of the repository | Accepted |
-| [19](0019-window-versions-access-and-declaration.md) | Windows keep two versions, open to an access, and declare what they call | Accepted, extended by 21, 22, 27, 30 and 31, superseded in part by 45 and 49 |
+| [19](0019-window-versions-access-and-declaration.md) | Windows keep two versions, open to an access, and declare what they call | Accepted, extended by 21, 22, 27, 30 and 31, superseded in part by 45, 49 and 50 |
 | [20](0020-console-under-a-path-of-port-443.md) | The console is served under `/console/` on port 443 | Accepted, extended by 43 |
 | [21](0021-ais-knock-first.md) | An AI knocks first, and the person it acts for answers | Accepted, extended by 31 |
 | [22](0022-house-style-of-each-cahut.md) | Each Cahut has a house style, served to its Windows and given to AIs | Superseded by 49, but for the skill for Claude |
@@ -30,7 +30,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [24](0024-signed-releases-and-updates.md) | Releases are signed, and servers update themselves with a rollback | Accepted |
 | [25](0025-first-start-in-the-browser.md) | The first start is guided in the browser, from a single-use link | Accepted, extended by 31 and 43, superseded in part by 49 |
 | [26](0026-cahut-at-an-ip-address.md) | A Cahut can live at the IP address of its server until it has a domain | Accepted, superseded in part by 28 |
-| [27](0027-previews-of-windows-in-the-console.md) | The console shows each Window in a live preview | Accepted |
+| [27](0027-previews-of-windows-in-the-console.md) | The console shows each Window in a live preview | Accepted, extended by 32, superseded in part by 50 |
 | [28](0028-ip-address-of-a-cahut-is-ipv4.md) | The IP address of a Cahut is an IPv4 address, for now | Accepted |
 | [29](0029-chatgpt-second-ai-client.md) | ChatGPT is the second AI client of the V0, through the same tools as Claude | Accepted, superseded in part by 49 |
 | [30](0030-kind-and-limits-of-each-cahut.md) | Each Cahut has a kind and limits, set by the administrators of its server | Accepted, extended by 42 and 48, superseded in part by 49 |
@@ -42,7 +42,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [36](0036-console-in-english-and-french.md) | The console speaks English and French, in the language of each browser | Accepted, superseded in part by 37 |
 | [37](0037-refusals-with-a-code-for-the-console.md) | The refusals that people meet carry a code, which the console says in its language | Accepted |
 | [38](0038-the-root-of-a-cahut-opens-its-console.md) | The root of a Cahut opens its console | Accepted |
-| [39](0039-people-change-their-name-and-handle.md) | People change their name and their handle, and their personal Room follows | Accepted |
+| [39](0039-people-change-their-name-and-handle.md) | People change their name and their handle, and their personal Room follows | Accepted, extended by 50 |
 | [40](0040-the-icon-of-a-cahut.md) | Each Cahut gives its icon to browsers, favicon services and AI clients | Accepted, superseded in part by 49 |
 | [41](0041-the-proxy-protocol-from-trusted-proxies.md) | Cahut reads the PROXY protocol from the proxies it trusts | Accepted |
 | [42](0042-the-legal-pages-of-a-cahut.md) | The pages of a Cahut link its legal pages, which the administrators of its server give | Accepted |
@@ -53,6 +53,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [47](0047-deleting-a-person.md) | The administrators of a Cahut delete a person for good, with the Rooms that are theirs alone | Accepted |
 | [48](0048-suspending-a-cahut.md) | The administrators of the server suspend a Cahut, which keeps everything and serves nothing until they resume it | Accepted |
 | [49](0049-no-house-style.md) | Cahut has no house style, until a module of skills brings the brand of an organization | Accepted |
+| [50](0050-window-ids-permanent-addresses-and-names.md) | Each Window has an id that never changes and a permanent address, and its people change its name, its title and its description | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

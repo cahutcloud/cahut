@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"cahut.cloud/internal/account"
+	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
@@ -37,7 +38,7 @@ func setup(t *testing.T) *fixture {
 	r := operation.NewRegistry(db)
 	account.Register(r)
 	room.Register(r)
-	s := NewService(filepath.Join(dir, "windows"), func(room, name string) string { return "https://cahut.test/" + room + "/" + name + "/" }, frameKey)
+	s := NewService(filepath.Join(dir, "windows"), "https://cahut.test/", frameKey)
 	s.Register(r)
 
 	f := &fixture{r: r, db: db, s: s}
@@ -305,23 +306,88 @@ func TestPublishRemovesFilesWhenItFails(t *testing.T) {
 	}
 }
 
-func TestLocate(t *testing.T) {
-	tests := map[string][2]string{
-		"olivier/q3-review":                                     {"olivier", "q3-review"},
-		"/olivier/q3-review/":                                   {"olivier", "q3-review"},
-		"https://cahut.example.com/olivier/q3-review/":          {"olivier", "q3-review"},
-		"https://cahut.example.com/olivier/q3-review/css/a.css": {"olivier", "q3-review"},
-		"http://localhost:8080/marketing/q3-review":             {"marketing", "q3-review"},
-		" marketing/q3-review ":                                 {"marketing", "q3-review"},
+func TestParseRef(t *testing.T) {
+	const id = "3f9k2m7q8x4r1t6v0b5n8c2d4g"
+	tests := map[string]reference{
+		"olivier/q3-review":                                     {room: "olivier", name: "q3-review"},
+		"/olivier/q3-review/":                                   {room: "olivier", name: "q3-review"},
+		"https://cahut.example.com/olivier/q3-review/":          {room: "olivier", name: "q3-review"},
+		"https://cahut.example.com/olivier/q3-review/css/a.css": {room: "olivier", name: "q3-review"},
+		"http://localhost:8080/marketing/q3-review":             {room: "marketing", name: "q3-review"},
+		" marketing/q3-review ":                                 {room: "marketing", name: "q3-review"},
+		id:                                                      {id: id},
+		" 3F9K2M7Q8X4R1T6V0B5N8C2D4G ":                          {id: id},
+		"/-/w/" + id:                                            {id: id},
+		"https://cahut.example.com/-/w/" + id:                   {id: id},
+		"https://cahut.example.com/-/w/" + id + "/img/logo.svg": {id: id},
 	}
 	for in, want := range tests {
-		if room, name, ok := locate(in); !ok || room != want[0] || name != want[1] {
-			t.Errorf("locate(%q) = %q, %q, %v; want %q, %q", in, room, name, ok, want[0], want[1])
+		if got, ok := parseRef(in); !ok || got != want {
+			t.Errorf("parseRef(%q) = %+v, %v; want %+v", in, got, ok, want)
 		}
 	}
-	for _, in := range []string{"q3-review", "Q3 Review", "https://cahut.example.com/", "olivier/Q3", "-/healthz"} {
-		if room, name, ok := locate(in); ok {
-			t.Errorf("locate(%q) = %q, %q, true; want false", in, room, name)
+	for _, in := range []string{"q3-review", "Q3 Review", "https://cahut.example.com/", "olivier/Q3", "-/healthz",
+		"/-/w/q3-review", "https://cahut.example.com/-/w/" + id[:25], "/-/frame/" + id + "/"} {
+		if got, ok := parseRef(in); ok {
+			t.Errorf("parseRef(%q) = %+v, true; want false", in, got)
+		}
+	}
+}
+
+func TestWindowsHaveIDs(t *testing.T) {
+	f := setup(t)
+	out, err := f.invoke(t, f.olivier, "publish_window", deck)
+	if err != nil {
+		t.Fatalf("publish_window: %v", err)
+	}
+	w := out.(Window)
+	if !address.ValidID(w.ID) || w.PermanentURL != "https://cahut.test/-/w/"+w.ID {
+		t.Errorf("window = %+v", w)
+	}
+	again, err := f.invoke(t, f.olivier, "publish_window", deck)
+	if err != nil || again.(Window).ID == w.ID {
+		t.Errorf("a second Window takes the id %+v, %v", again, err)
+	}
+
+	// The id and the permanent address name the Window, as its address does.
+	for _, ref := range []string{w.ID, w.PermanentURL, w.PermanentURL + "/index.html"} {
+		out, err := f.invoke(t, f.olivier, "get_window", `{"window": "`+ref+`"}`)
+		if err != nil || out.(Detail).ID != w.ID || out.(Detail).Name != w.Name {
+			t.Errorf("get_window %s = %+v, %v", ref, out, err)
+		}
+	}
+	if _, err := f.invoke(t, f.olivier, "trash_window", `{"window": "`+w.ID+`"}`); err != nil {
+		t.Errorf("trash_window by id: %v", err)
+	}
+	out, err = f.invoke(t, f.olivier, "list_windows", `{"trashed": true}`)
+	if err != nil || len(out.(List).Windows) != 1 || out.(List).Windows[0].ID != w.ID {
+		t.Errorf("list_windows in the trash = %+v, %v", out, err)
+	}
+
+	// Outside the Rooms of the actor, an id finds nothing, and says nothing
+	// of the Window.
+	_, err = f.invoke(t, f.camille, "get_window", `{"window": "`+w.ID+`"}`)
+	if !errors.Is(err, operation.ErrNotFound) || strings.Contains(err.Error(), "olivier") {
+		t.Errorf("get_window of another's Window by id: %v", err)
+	}
+	_, err = f.invoke(t, f.camille, "rollback_window", `{"window": "`+w.ID+`"}`)
+	if !errors.Is(err, operation.ErrNotFound) || strings.Contains(err.Error(), "olivier") {
+		t.Errorf("rollback_window of another's Window by id: %v", err)
+	}
+	if _, err := f.invoke(t, f.olivier, "get_window", `{"window": "`+address.NewID()+`"}`); !errors.Is(err, operation.ErrNotFound) {
+		t.Errorf("get_window of an id that names no Window: %v", err)
+	}
+
+	entries, err := logbook.List(context.Background(), f.db.Read, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range entries {
+		switch {
+		case e.Operation == "publish_window" && e.Target == "olivier/"+w.Name && !strings.Contains(e.Detail, "id "+w.ID):
+			t.Errorf("the Logbook does not keep the id of the Window: %+v", e)
+		case e.Operation == "trash_window" && e.Target != "olivier/"+w.Name:
+			t.Errorf("the Logbook names a Window by its id, not its address: %+v", e)
 		}
 	}
 }

@@ -1,6 +1,8 @@
-// The page of a Window: where it opens, who opens it and until when, its
-// two versions, what its AI declared it does, and the trash. See
-// docs/adr/0019-window-versions-access-and-declaration.md.
+// The page of a Window: where it opens, at its address and at its permanent
+// address, who opens it and until when, its two versions, what its AI
+// declared it does, and the trash. See
+// docs/adr/0019-window-versions-access-and-declaration.md and
+// docs/adr/0050-window-ids-permanent-addresses-and-names.md.
 import { ArrowUpRight, RotateCcw, Send, Undo2 } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
@@ -39,6 +41,11 @@ const t = words({
 		shareHelp: "Copy the Key now: Cahut keeps only a trace of it, and shows it this once.",
 		theAddress: "the address",
 		theKey: "the Key",
+		addresses: "Addresses",
+		addressLabel: "Its address",
+		permanentLabel: "Its permanent address",
+		thePermanentAddress: "the permanent address",
+		permanentHelp: "The permanent address opens this Window to whoever may open it, even once its name has changed. Give it for a link that lasts.",
 		whoOpens: "Who opens it",
 		option: (name: string, who: string) => `${name}: ${who}`,
 		key: "Key",
@@ -124,6 +131,12 @@ const t = words({
 		shareHelp: "Copiez la Key maintenant : Cahut n'en garde qu'une empreinte, et ne la montre que cette fois.",
 		theAddress: "l'adresse",
 		theKey: "la Key",
+		addresses: "Adresses",
+		addressLabel: "Son adresse",
+		permanentLabel: "Son adresse permanente",
+		thePermanentAddress: "l'adresse permanente",
+		permanentHelp:
+			"L'adresse permanente ouvre cette Window à qui peut l'ouvrir, même une fois son nom changé. Donnez-la pour un lien qui dure.",
 		whoOpens: "Qui l'ouvre",
 		option: (name, who) => `${name} : ${who}`,
 		key: "Key",
@@ -274,6 +287,7 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 						<Invitations window={w} />
 					</section>
 					<aside class="aside">
+						<Addresses window={w} />
 						<DeclarationPanel declaration={w.declaration} />
 						<div class="c-card panel aside">
 							<h2 class="c-h4">{t.trash}</h2>
@@ -463,6 +477,27 @@ function Versions({ window: w, onRollback }: { window: WindowDetail; onRollback:
 					</li>
 				))}
 			</ul>
+		</div>
+	);
+}
+
+/**
+ * The addresses of a Window: the one of the moment, which its name makes,
+ * and the permanent one, which its id makes and which never changes.
+ */
+function Addresses({ window: w }: { window: WindowDetail }) {
+	return (
+		<div class="c-card panel aside">
+			<h2 class="c-h4">{t.addresses}</h2>
+			<div class="c-field">
+				<span class="c-field__label">{t.addressLabel}</span>
+				<CopyField label={t.theAddress} value={w.url} />
+			</div>
+			<div class="c-field">
+				<span class="c-field__label">{t.permanentLabel}</span>
+				<CopyField label={t.thePermanentAddress} value={w.permanent_url} />
+			</div>
+			<p class="c-small c-muted">{t.permanentHelp}</p>
 		</div>
 	);
 }

@@ -24,7 +24,7 @@ export interface About {
 }
 
 export interface AccessInput {
-  /** the Window's address, or its Room and its name as room/name */
+  /** the Window's id or address, or its Room and its name as room/name */
   window: string;
   /** room, internal, key or public */
   access: string;
@@ -37,12 +37,16 @@ export interface AccessInput {
 }
 
 export interface AccessSet {
+  /** the Window's id, which never changes: name the Window by it to find it whatever its name */
+  id: string;
   /** the Window's name, last part of its address */
   name: string;
   title: string;
   kind: string;
   /** where the Window opens */
   url: string;
+  /** the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts */
+  permanent_url: string;
   /** the name of its Room, the part of its address before its name */
   room: string;
   /** the number of the version that readers see */
@@ -509,7 +513,7 @@ export interface InvitationPage {
 }
 
 export interface InviteInput {
-  /** the Window's address, or its Room and its name as room/name */
+  /** the Window's id or address, or its Room and its name as room/name */
   window: string;
   /** who to invite, 20 at most: handles of people of the Cahut, who sign in to read it, or e-mail addresses of anyone else, for a Window with a Key or public */
   to: string[];
@@ -650,7 +654,7 @@ export interface ListConnectedAIsInput {
 export type ListDomainsInput = Record<string, never>;
 
 export interface ListInvitationsInput {
-  /** the Window's address, or its Room and its name as room/name */
+  /** the Window's id or address, or its Room and its name as room/name */
   window: string;
 }
 
@@ -816,7 +820,7 @@ export interface PersonUsage {
 export interface Preview {
   /** the Window, as room/name */
   window: string;
-  /** the path of the frame that shows the Window, on the domain of the Cahut, such as /-/w/<capability>/ */
+  /** the path of the frame that shows the Window, on the domain of the Cahut, such as /-/frame/<capability>/ */
   frame: string;
   /** when the frame stops showing the Window, if the session has not ended before */
   expires_at: string;
@@ -857,7 +861,7 @@ export interface Redirect {
 }
 
 export interface RefInput {
-  /** the Window's address, or its Room and its name as room/name */
+  /** the Window's id or address, or its Room and its name as room/name */
   window: string;
 }
 
@@ -1225,7 +1229,7 @@ export interface TokenList {
 }
 
 export interface UpdateInput {
-  /** the Window's address, or its Room and its name as room/name */
+  /** the Window's id or address, or its Room and its name as room/name */
   window: string;
   /** a new title; the title stays when empty. The address does not change */
   title?: string;
@@ -1311,12 +1315,16 @@ export interface Wait {
 }
 
 export interface Window {
+  /** the Window's id, which never changes: name the Window by it to find it whatever its name */
+  id: string;
   /** the Window's name, last part of its address */
   name: string;
   title: string;
   kind: string;
   /** where the Window opens */
   url: string;
+  /** the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts */
+  permanent_url: string;
   /** the name of its Room, the part of its address before its name */
   room: string;
   /** the number of the version that readers see */
@@ -1341,12 +1349,16 @@ export interface Window {
 }
 
 export interface WindowDetail {
+  /** the Window's id, which never changes: name the Window by it to find it whatever its name */
+  id: string;
   /** the Window's name, last part of its address */
   name: string;
   title: string;
   kind: string;
   /** where the Window opens */
   url: string;
+  /** the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts */
+  permanent_url: string;
   /** the name of its Room, the part of its address before its name */
   room: string;
   /** the number of the version that readers see */
@@ -1375,7 +1387,7 @@ export interface WindowDetail {
 }
 
 export interface WindowGetInput {
-  /** the Window's address, or its Room and its name as room/name */
+  /** the Window's id or address, or its Room and its name as room/name */
   window: string;
   /** also return the content of each file */
   include_content?: boolean;

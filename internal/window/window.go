@@ -1,9 +1,11 @@
 // Package window publishes Windows, the living pages that AIs make, and
 // keeps their files on disk. A Window is at <domain>/<room>/<window>/, under
-// the domain of its Cahut. It keeps its current version and the one before,
+// the domain of its Cahut, and at its permanent address, <domain>/-/w/<id>,
+// whose id never changes. It keeps its current version and the one before,
 // and can go to the trash and come back. See
-// docs/adr/0009-rooms-and-windows-as-paths.md and
-// docs/adr/0019-window-versions-access-and-declaration.md.
+// docs/adr/0009-rooms-and-windows-as-paths.md,
+// docs/adr/0019-window-versions-access-and-declaration.md and
+// docs/adr/0050-window-ids-permanent-addresses-and-names.md.
 package window
 
 import (
@@ -36,15 +38,37 @@ const (
 // Service runs the Window operations and knows where their files live.
 type Service struct {
 	dir      string
-	url      func(room, name string) string
+	base     string
 	frameKey []byte
 }
 
 // NewService returns a service that keeps Window files under dir, gives
-// Window addresses with url, and signs the frames of previews with
+// Window addresses under base, the address of the Cahut with its final
+// slash, or none when base is empty, and signs the frames of previews with
 // frameKey.
-func NewService(dir string, url func(room, name string) string, frameKey []byte) *Service {
-	return &Service{dir: dir, url: url, frameKey: frameKey}
+func NewService(dir, base string, frameKey []byte) *Service {
+	return &Service{dir: dir, base: base, frameKey: frameKey}
+}
+
+// PermanentPrefix starts the path of the permanent address of every
+// Window, /-/w/<id>.
+const PermanentPrefix = "/-/w/"
+
+// url returns the address of the Window called name in the Room room.
+func (s *Service) url(room, name string) string {
+	if s.base == "" {
+		return ""
+	}
+	return s.base + room + "/" + name + "/"
+}
+
+// permanentURL returns the permanent address of the Window with the given
+// id.
+func (s *Service) permanentURL(id string) string {
+	if s.base == "" {
+		return ""
+	}
+	return s.base + strings.TrimPrefix(PermanentPrefix, "/") + id
 }
 
 // Register adds the Window operations to r.
@@ -193,19 +217,21 @@ func (s *Service) Register(r *operation.Registry) {
 
 // Window describes a published Window.
 type Window struct {
-	Name      string    `json:"name" jsonschema:"the Window's name, last part of its address"`
-	Title     string    `json:"title"`
-	Kind      string    `json:"kind"`
-	URL       string    `json:"url" jsonschema:"where the Window opens"`
-	Room      string    `json:"room" jsonschema:"the name of its Room, the part of its address before its name"`
-	Version   int       `json:"version" jsonschema:"the number of the version that readers see"`
-	Previous  int       `json:"previous_version,omitempty" jsonschema:"the number of the version that rollback_window goes back to; absent when there is none"`
-	Size      int64     `json:"size" jsonschema:"total size of the files of the current version, in bytes"`
-	FileCount int       `json:"file_count"`
-	CreatedBy string    `json:"created_by" jsonschema:"handle of the person it was first published for, empty once that person is deleted"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Access    string    `json:"access" jsonschema:"who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public"`
+	ID           string    `json:"id" jsonschema:"the Window's id, which never changes: name the Window by it to find it whatever its name"`
+	Name         string    `json:"name" jsonschema:"the Window's name, last part of its address"`
+	Title        string    `json:"title"`
+	Kind         string    `json:"kind"`
+	URL          string    `json:"url" jsonschema:"where the Window opens"`
+	PermanentURL string    `json:"permanent_url" jsonschema:"the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts"`
+	Room         string    `json:"room" jsonschema:"the name of its Room, the part of its address before its name"`
+	Version      int       `json:"version" jsonschema:"the number of the version that readers see"`
+	Previous     int       `json:"previous_version,omitempty" jsonschema:"the number of the version that rollback_window goes back to; absent when there is none"`
+	Size         int64     `json:"size" jsonschema:"total size of the files of the current version, in bytes"`
+	FileCount    int       `json:"file_count"`
+	CreatedBy    string    `json:"created_by" jsonschema:"handle of the person it was first published for, empty once that person is deleted"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Access       string    `json:"access" jsonschema:"who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public"`
 	// The times below are pointers, so that a Window without them omits
 	// them.
 	AccessEndsAt *time.Time   `json:"access_ends_at,omitempty" jsonschema:"when the access ends, after which the Window opens to its Room only; absent when it does not end"`
@@ -276,25 +302,25 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err := settings.CheckDisk(ctx, c, roomID, size); err != nil {
 		return Window{}, err
 	}
-	w := Window{Title: title, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: AccessRoom,
+	w := Window{ID: address.NewID(), Title: title, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: AccessRoom,
 		CreatedBy: c.Actor.Handle, CreatedAt: c.Now, UpdatedAt: c.Now, Declaration: declared}
 	if w.Name, err = freeName(ctx, c.Tx, roomID, title); err != nil {
 		return Window{}, err
 	}
-	w.URL = s.url(w.Room, w.Name)
+	w.URL, w.PermanentURL = s.url(w.Room, w.Name), s.permanentURL(w.ID)
 	now := store.FormatTime(c.Now)
 	var id int64
 	err = c.Tx.QueryRowContext(ctx, `
-		INSERT INTO windows (room_id, name, title, kind, version, size, file_count, created_by, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
-		roomID, w.Name, w.Title, w.Kind, w.Version, w.Size, w.FileCount, c.Actor.UserID, now, now).Scan(&id)
+		INSERT INTO windows (uid, room_id, name, title, kind, version, size, file_count, created_by, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+		w.ID, roomID, w.Name, w.Title, w.Kind, w.Version, w.Size, w.FileCount, c.Actor.UserID, now, now).Scan(&id)
 	if err != nil {
 		return Window{}, err
 	}
 	if err := insertVersion(ctx, c, id, w); err != nil {
 		return Window{}, err
 	}
-	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("%s %q, %d files, %d bytes; %s", w.Kind, w.Title, w.FileCount, w.Size, w.Declaration))
+	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("%s %q, id %s, %d files, %d bytes; %s", w.Kind, w.Title, w.ID, w.FileCount, w.Size, w.Declaration))
 
 	c.OnFailure(func() { os.RemoveAll(filepath.Join(s.dir, strconv.FormatInt(id, 10))) })
 	if err := writeFiles(s.Dir(id, w.Version), files); err != nil {
@@ -305,7 +331,7 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 
 // UpdateInput is the input of update_window.
 type UpdateInput struct {
-	Window      string       `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
+	Window      string       `json:"window" jsonschema:"the Window's id or address, or its Room and its name as room/name"`
 	Title       string       `json:"title,omitempty" jsonschema:"a new title; the title stays when empty. The address does not change"`
 	Files       []File       `json:"files" jsonschema:"every file of the new version, as for publish_window; files left out are not in it"`
 	Declaration *Declaration `json:"declaration" jsonschema:"what the pages do: Cahut lets them load and call the origins listed here, and nothing else"`
@@ -396,7 +422,7 @@ func insertVersion(ctx context.Context, c *operation.Call, id int64, w Window) e
 
 // RefInput names a Window, for the operations that act on one.
 type RefInput struct {
-	Window string `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
+	Window string `json:"window" jsonschema:"the Window's id or address, or its Room and its name as room/name"`
 }
 
 func (s *Service) rollback(ctx context.Context, c *operation.Call, in RefInput) (Window, error) {
@@ -466,12 +492,10 @@ func (s *Service) restore(ctx context.Context, c *operation.Call, in RefInput) (
 // target returns the Window that ref names, for a call that changes it: the
 // caller must publish in its Room.
 func (s *Service) target(ctx context.Context, c *operation.Call, ref string) (found, error) {
-	roomName, name, ok := locate(ref)
-	if !ok {
-		c.Log(ref, "")
-		return found{}, operation.Invalidf("window %q: give the Window's address, or its Room and its name as room/name", ref)
+	roomName, name, err := s.locate(ctx, c, ref)
+	if err != nil {
+		return found{}, err
 	}
-	c.Log(roomName+"/"+name, "")
 	r, err := room.Require(ctx, c, roomName, room.Member)
 	if err != nil {
 		return found{}, err
@@ -504,7 +528,7 @@ func (s *Service) Dir(id int64, version int) string {
 
 // GetInput is the input of get_window.
 type GetInput struct {
-	Window         string `json:"window" jsonschema:"the Window's address, or its Room and its name as room/name"`
+	Window         string `json:"window" jsonschema:"the Window's id or address, or its Room and its name as room/name"`
 	IncludeContent bool   `json:"include_content,omitempty" jsonschema:"also return the content of each file"`
 }
 
@@ -535,12 +559,10 @@ type FileInfo struct {
 }
 
 func (s *Service) get(ctx context.Context, c *operation.Call, in GetInput) (Detail, error) {
-	room, name, ok := locate(in.Window)
-	if !ok {
-		c.Log(in.Window, "")
-		return Detail{}, operation.Invalidf("window %q: give the Window's address, or its Room and its name as room/name", in.Window)
+	room, name, err := s.locate(ctx, c, in.Window)
+	if err != nil {
+		return Detail{}, err
 	}
-	c.Log(room+"/"+name, "")
 	w, err := s.query(ctx, c, "r.name = ? AND w.name = ?", room, name)
 	if err != nil {
 		return Detail{}, err
@@ -637,7 +659,7 @@ type found struct {
 // the server, who belongs to no Room, sees none.
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
 	q := `
-		SELECT w.id, w.room_id, w.name, w.title, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
+		SELECT w.id, w.uid, w.room_id, w.name, w.title, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
 			coalesce(u.handle, ''), w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL, v.declaration
 		FROM windows w JOIN rooms r ON r.id = w.room_id LEFT JOIN users u ON u.id = w.created_by
 		JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
@@ -658,7 +680,7 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		var created, updated string
 		var trashed, ends sql.NullString
 		var declared *string
-		if err := rows.Scan(&w.id, &w.roomID, &w.Name, &w.Title, &w.Kind, &w.Room, &w.Version, &previous, &w.Size, &w.FileCount,
+		if err := rows.Scan(&w.id, &w.ID, &w.roomID, &w.Name, &w.Title, &w.Kind, &w.Room, &w.Version, &previous, &w.Size, &w.FileCount,
 			&w.CreatedBy, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey, &declared); err != nil {
 			return nil, err
 		}
@@ -685,7 +707,7 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		if !c.Actor.Reaches(w.roomID) {
 			continue
 		}
-		w.URL = s.url(w.Room, w.Name)
+		w.URL, w.PermanentURL = s.url(w.Room, w.Name), s.permanentURL(w.ID)
 		windows = append(windows, w)
 	}
 	return windows, rows.Err()
@@ -713,21 +735,60 @@ func freeName(ctx context.Context, tx *sql.Tx, roomID int64, title string) (stri
 	return "", operation.Invalidf("the Room has too many Windows called %q: choose another title", title)
 }
 
-// locate reads the Room and the name of a Window from its address, such as
-// https://cahut.example.com/marketing/q3-review/index.html, or from
-// room/name. It reports false when s is neither.
-func locate(s string) (room, name string, ok bool) {
+// reference is a Window as a call names it: by its id, or by its Room and
+// its name.
+type reference struct {
+	id, room, name string
+}
+
+// parseRef reads a Window from its id; from its permanent address, such as
+// https://cahut.example.com/-/w/<id>; from its address, such as
+// https://cahut.example.com/marketing/q3-review/index.html; or from
+// room/name. It reports false when s is none of them.
+func parseRef(s string) (reference, bool) {
 	p := strings.TrimSpace(s)
+	if id := strings.ToLower(p); address.ValidID(id) {
+		return reference{id: id}, true
+	}
 	if strings.Contains(p, "://") {
 		u, err := url.Parse(p)
 		if err != nil {
-			return "", "", false
+			return reference{}, false
 		}
 		p = u.Path
 	}
 	parts := strings.Split(strings.Trim(p, "/"), "/")
-	if len(parts) < 2 || !address.ValidName(parts[0]) || !address.ValidName(parts[1]) {
-		return "", "", false
+	if len(parts) >= 3 && "/"+parts[0]+"/"+parts[1]+"/" == PermanentPrefix {
+		id := strings.ToLower(parts[2])
+		return reference{id: id}, address.ValidID(id)
 	}
-	return parts[0], parts[1], true
+	if len(parts) < 2 || !address.ValidName(parts[0]) || !address.ValidName(parts[1]) {
+		return reference{}, false
+	}
+	return reference{room: parts[0], name: parts[1]}, true
+}
+
+// locate returns the Room and the name of the Window that ref names, and
+// logs it as room/name. A Window named by its id is found in the Rooms
+// that the actor reaches only, as get_window finds it.
+func (s *Service) locate(ctx context.Context, c *operation.Call, ref string) (room, name string, err error) {
+	r, ok := parseRef(ref)
+	if !ok {
+		c.Log(ref, "")
+		return "", "", operation.Invalidf("window %q: give the Window's id or address, or its Room and its name as room/name", ref)
+	}
+	if r.id == "" {
+		c.Log(r.room+"/"+r.name, "")
+		return r.room, r.name, nil
+	}
+	w, err := s.query(ctx, c, "w.uid = ?", r.id)
+	if err != nil {
+		return "", "", err
+	}
+	if len(w) == 0 {
+		c.Log(r.id, "")
+		return "", "", operation.NotFoundf("no Window %s in your Rooms", r.id)
+	}
+	c.Log(w[0].Room+"/"+w[0].Name, "")
+	return w[0].Room, w[0].Name, nil
 }
