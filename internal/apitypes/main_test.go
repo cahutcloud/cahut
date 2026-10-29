@@ -33,6 +33,7 @@ func TestRun(t *testing.T) {
 		"  password_too_short: Length;\n",
 		"  session_ended: null;\n",
 		"  too_many_attempts_from_address: null;\n",
+		"export const nearLimit = 90;\n",
 	} {
 		if !strings.Contains(string(got), want) {
 			t.Errorf("the types lack %q", want)

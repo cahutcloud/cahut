@@ -309,3 +309,19 @@ func TestBytes(t *testing.T) {
 		}
 	}
 }
+
+func TestNear(t *testing.T) {
+	for _, c := range []struct {
+		use, limit int64
+		want       bool
+	}{
+		{89, 100, false}, {90, 100, true}, {100, 100, true}, {120, 100, true},
+		{8, 10, false}, {9, 10, true}, {13, 15, false}, {14, 15, true},
+		{0, 1, false}, {1, 1, true}, {0, 0, false}, {3, 0, false},
+		{8_999_999_999, 10_000_000_000, false}, {9_000_000_000, 10_000_000_000, true},
+	} {
+		if got := settings.Near(c.use, c.limit); got != c.want {
+			t.Errorf("Near(%d, %d) = %v, want %v", c.use, c.limit, got, c.want)
+		}
+	}
+}

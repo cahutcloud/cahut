@@ -1843,3 +1843,6 @@ export interface Refusals {
   /** wrong handle or password */
   wrong_handle_or_password: null;
 }
+
+/** The share of a limit, in percent, from which the console warns that it is close, as the e-mails of the Cahut do. */
+export const nearLimit = 90;

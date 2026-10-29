@@ -111,15 +111,18 @@ func accessEnds(ctx context.Context, c *cahut.Cahut, now time.Time) error {
 	return errors.Join(errs...)
 }
 
-// level says how close a use is to its limit: "reached", "90%", or empty.
+// near names the share of a limit from which the Cahut warns, such as 90%.
+var near = strconv.Itoa(settings.NearPercent) + "%"
+
+// level says how close a use is to its limit: "reached", near, or empty.
 func level(use, limit int64) string {
 	switch {
+	case !settings.Near(use, limit):
+		return ""
 	case use >= limit:
 		return "reached"
-	case use*10 >= limit*9:
-		return "90%"
 	}
-	return ""
+	return near
 }
 
 // limit is a limit of a Cahut, as a notice names it.
@@ -139,10 +142,10 @@ func (l limit) show(n int64) string {
 // limitLetter writes the notice of the limit l at level, to someone called
 // hello, about the Cahut called where.
 func limitLetter(l limit, lvl, hello, name, where string, own bool) mail.Letter {
-	subject := name + " is at 90% of its limit of " + l.what
+	subject := name + " is at " + near + " of its limit of " + l.what
 	state := where + " holds " + l.show(l.use) + " of the " + l.show(l.limit) + " " + l.what + " it may have."
 	if own {
-		subject = "You are at 90% of your limit of " + l.what + " on " + name
+		subject = "You are at " + near + " of your limit of " + l.what + " on " + name
 		state = "You hold " + l.show(l.use) + " of the " + l.show(l.limit) + " " + l.what + " you may have on " + where + "."
 	}
 	if lvl == "reached" {
