@@ -317,7 +317,7 @@ export interface CreateUserInput {
 export interface Declaration {
   /** whether the pages run scripts, inline or in files */
   scripts: boolean;
-  /** every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none */
+  /** every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make */
   origins?: string[];
   /** the origins that the forms of the pages send to, if any */
   forms?: string[];

@@ -1972,7 +1972,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
-| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -2016,7 +2016,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
           ]
         },
         "origins": {
-          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
           "items": {
             "type": "string"
           },
@@ -3020,7 +3020,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
 | `windows[].declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `windows[].declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `windows[].declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
-| `windows[].declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `windows[].declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `windows[].previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `windows[].trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -3068,7 +3068,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
                 ]
               },
               "origins": {
-                "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+                "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
                 "items": {
                   "type": "string"
                 },
@@ -3178,7 +3178,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `declaration` | object or null | yes | what the pages do: Cahut lets them load and call the origins listed here, and nothing else |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
-| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `files` | array of objects or null | yes | the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css |
 | `files[].content` | string | yes |  |
 | `files[].path` | string | yes | relative path with / as separator, such as index.html or img/logo.svg |
@@ -3209,7 +3209,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
           ]
         },
         "origins": {
-          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
           "items": {
             "type": "string"
           },
@@ -3304,7 +3304,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
-| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -3348,7 +3348,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
           ]
         },
         "origins": {
-          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
           "items": {
             "type": "string"
           },
@@ -3489,7 +3489,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
-| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -3533,7 +3533,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
           ]
         },
         "origins": {
-          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
           "items": {
             "type": "string"
           },
@@ -3813,7 +3813,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
-| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -3857,7 +3857,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
           ]
         },
         "origins": {
-          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
           "items": {
             "type": "string"
           },
@@ -4549,7 +4549,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
-| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -4593,7 +4593,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
           ]
         },
         "origins": {
-          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
           "items": {
             "type": "string"
           },
@@ -6097,7 +6097,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
-| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `key` | string | no | the new Key, returned this once: give it to the person, who passes it on with the address |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
@@ -6142,7 +6142,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
           ]
         },
         "origins": {
-          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
           "items": {
             "type": "string"
           },
@@ -6285,7 +6285,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
-| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -6329,7 +6329,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
           ]
         },
         "origins": {
-          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
           "items": {
             "type": "string"
           },
@@ -6565,7 +6565,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `declaration` | object or null | yes | what the pages do: Cahut lets them load and call the origins listed here, and nothing else |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
-| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `files` | array of objects or null | yes | every file of the new version, as for publish_window; files left out are not in it |
 | `files[].content` | string | yes |  |
 | `files[].path` | string | yes | relative path with / as separator, such as index.html or img/logo.svg |
@@ -6595,7 +6595,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
           ]
         },
         "origins": {
-          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
           "items": {
             "type": "string"
           },
@@ -6685,7 +6685,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
-| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none |
+| `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 
@@ -6729,7 +6729,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
           ]
         },
         "origins": {
-          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none",
+          "description": "every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make",
           "items": {
             "type": "string"
           },

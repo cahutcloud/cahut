@@ -7,8 +7,8 @@
 
 <h3>A home to publish and share what your AIs make.</h3>
 
-Documents, slide decks, dashboards and small apps, as pages at your address,<br>
-in your house style, on your own server, whichever AI made them.
+Documents, slide decks, dashboards and small apps, as pages at your address<br>
+on your own server, where your team works on them, whichever AI made them.
 
 <p>
   <a href="https://github.com/getcahut/cahut/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/getcahut/cahut?label=release&color=B9E1FB&labelColor=1F2A33"></a>

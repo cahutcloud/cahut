@@ -103,13 +103,13 @@ style-src <cahut> 'unsafe-inline' <origins>;
 img-src <cahut> data: blob: <origins>;
 font-src <cahut> data: <origins>;
 media-src <cahut> data: blob: <origins>;
-connect-src <cahut> <origins>;
+connect-src <cahut> data: blob: <origins>;
 frame-src <cahut> <origins>;
 worker-src <cahut> blob:;
 form-action <forms>, or 'none';
 base-uri 'none'
 ```
 
-`<cahut>` is the address of the Cahut, such as `https://cahut.example.com`, where the files of the Window come from. A Window without scripts loses `allow-scripts` from its sandbox as well. The console shows the declaration on the page of each Window, and the Logbook records it with each publication.
+`<cahut>` is the address of the Cahut, such as `https://cahut.example.com`, where the files of the Window come from. `data:` and `blob:` URLs hold what the page already has, and make no request: its scripts may read them with `fetch`, as three.js does for the textures of a 3D model. A Window without scripts loses `allow-scripts` from its sandbox as well. The console shows the declaration on the page of each Window, and the Logbook records it with each publication.
 
 The declaration limits what pages load and call, not where their reader goes: a link that the reader follows still leaves. The versions published before declarations keep the sandbox alone, and the console says they are not declared. See [Publish a Window](/connect/publish/#the-declaration).

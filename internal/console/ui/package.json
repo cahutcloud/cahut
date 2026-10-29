@@ -12,12 +12,12 @@
 		"node": ">=24"
 	},
 	"dependencies": {
-		"lucide-preact": "1.57.0",
+		"lucide-preact": "1.61.0",
 		"preact": "11.0.1"
 	},
 	"devDependencies": {
 		"@preact/preset-vite": "2.10.6",
 		"typescript": "7.0.2",
-		"vite": "8.3.4"
+		"vite": "8.3.5"
 	}
 }

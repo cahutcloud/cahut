@@ -271,7 +271,7 @@ func TestDeckEngineAndTemplates(t *testing.T) {
 		resp, page := f.get(t, "localhost", http.MethodGet, "/-/templates/"+kind)
 		csp := resp.Header.Get("Content-Security-Policy")
 		if resp.StatusCode != http.StatusOK || !strings.Contains(page, `class="hs-`+kind+`"`) || !strings.Contains(page, "Example Co") ||
-			!strings.HasPrefix(csp, "sandbox allow-scripts ") || !strings.Contains(csp, "connect-src https://localhost;") {
+			!strings.HasPrefix(csp, "sandbox allow-scripts ") || !strings.Contains(csp, "connect-src https://localhost data: blob:;") {
 			t.Errorf("GET /-/templates/%s = %d, policy %q", kind, resp.StatusCode, csp)
 		}
 	}
