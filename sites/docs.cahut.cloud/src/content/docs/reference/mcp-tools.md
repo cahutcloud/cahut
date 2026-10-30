@@ -21,7 +21,7 @@ The Cahut gives these instructions to the AI when it connects:
 
 > Cahut keeps what you make on the user's own server, as Windows. To publish a document, deck, dashboard or site: call publish_window with a complete index.html and all its files, linked by relative paths (css/deck.css, never /css/deck.css), and a declaration of its scripts and of every origin it loads from or calls. Give the user the address it returns. A call that cannot be undone makes a Knock: give the user its link to approve it.
 >
-> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. Give each Window a description of a sentence or two, and a few tags, reusing those of the Windows that list_windows gives; retitle_window changes its title, description and tags without a new version, and list_windows finds the Windows with a tag. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. publish_window with access author keeps a Window for the person you act for alone, such as a draft in a team Room; set_window_access to room shares it with the Room. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. create_share_link gives a link that opens a Window to whoever holds it, without an account or a Key, for 30 days at most: give it to the user, who passes it on; revoke_share_link takes it back. For a Window that one reader opens once, publish it with access author, then make a share link with max_openings 1. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
+> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. Give each Window a description of a sentence or two, and a few tags, reusing those of the Windows that list_windows gives; retitle_window changes its title, description and tags without a new version. list_windows finds the Windows with a tag, and with query those whose titles, descriptions, tags or pages hold some words: search before you publish anew a Window that may be there already. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. publish_window with access author keeps a Window for the person you act for alone, such as a draft in a team Room; set_window_access to room shares it with the Room. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. create_share_link gives a link that opens a Window to whoever holds it, without an account or a Key, for 30 days at most: give it to the user, who passes it on; revoke_share_link takes it back. For a Window that one reader opens once, publish it with access author, then make a share link with max_openings 1. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -57,7 +57,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`list_logbook`](#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. |
 | [`list_rooms`](#list_rooms) | List your Rooms in this Cahut, your personal Room first, with your role and how many members and Windows each has. |
 | [`list_users`](#list_users) | List the people of the Cahut, with their handles, names, roles and states. In an individual Cahut, for its administrators only. |
-| [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first. |
+| [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first; with query, those whose title, description, tags or pages hold its words, the best first. |
 | [`publish_window`](#publish_window) | Publish a new Window in this Cahut: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. |
 | [`purge_window`](#purge_window) | Delete a Window of this Cahut that is in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs. |
 | [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
@@ -1829,6 +1829,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `excerpt` | string | no | for a search, a few words of its pages around the words found; absent when its pages hold none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 | `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
@@ -1900,6 +1901,10 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
     },
     "description": {
       "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "excerpt": {
+      "description": "for a search, a few words of its pages around the words found; absent when its pages hold none",
       "type": "string"
     },
     "file_count": {
@@ -2954,14 +2959,15 @@ This tool takes no arguments.
 
 ## `list_windows`
 
-List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first.
+List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first; with query, those whose title, description, tags or pages hold its words, the best first.
 
-Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
+Title: List and search Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
+| `query` | string | no | words to search, such as q3 sales; accents and case do not count |
 | `room` | string | no | only the Windows of this Room, by its name |
 | `tag` | string | no | only the Windows with this tag |
 | `trashed` | boolean | no | list the Windows in the trash instead |
@@ -2973,6 +2979,10 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
 {
   "additionalProperties": false,
   "properties": {
+    "query": {
+      "description": "words to search, such as q3 sales; accents and case do not count",
+      "type": "string"
+    },
     "room": {
       "description": "only the Windows of this Room, by its name",
       "type": "string"
@@ -3018,6 +3028,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
 | `windows[].declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `windows[].declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `windows[].description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `windows[].excerpt` | string | no | for a search, a few words of its pages around the words found; absent when its pages hold none |
 | `windows[].previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `windows[].trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 | `windows[].withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
@@ -3093,6 +3104,10 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
           },
           "description": {
             "description": "what the Window is, in a sentence or two; absent when it has none",
+            "type": "string"
+          },
+          "excerpt": {
+            "description": "for a search, a few words of its pages around the words found; absent when its pages hold none",
             "type": "string"
           },
           "file_count": {
@@ -3386,6 +3401,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `excerpt` | string | no | for a search, a few words of its pages around the words found; absent when its pages hold none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 | `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
@@ -3457,6 +3473,10 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     },
     "description": {
       "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "excerpt": {
+      "description": "for a search, a few words of its pages around the words found; absent when its pages hold none",
       "type": "string"
     },
     "file_count": {
@@ -3629,6 +3649,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `excerpt` | string | no | for a search, a few words of its pages around the words found; absent when its pages hold none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 | `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
@@ -3700,6 +3721,10 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
     },
     "description": {
       "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "excerpt": {
+      "description": "for a search, a few words of its pages around the words found; absent when its pages hold none",
       "type": "string"
     },
     "file_count": {
@@ -4027,6 +4052,7 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `excerpt` | string | no | for a search, a few words of its pages around the words found; absent when its pages hold none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 | `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
@@ -4098,6 +4124,10 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
     },
     "description": {
       "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "excerpt": {
+      "description": "for a search, a few words of its pages around the words found; absent when its pages hold none",
       "type": "string"
     },
     "file_count": {
@@ -4268,6 +4298,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `excerpt` | string | no | for a search, a few words of its pages around the words found; absent when its pages hold none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 | `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
@@ -4339,6 +4370,10 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     },
     "description": {
       "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "excerpt": {
+      "description": "for a search, a few words of its pages around the words found; absent when its pages hold none",
       "type": "string"
     },
     "file_count": {
@@ -4533,6 +4568,7 @@ Title: Retitle, describe and tag a Window. Annotations: `readOnlyHint: false`, `
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `excerpt` | string | no | for a search, a few words of its pages around the words found; absent when its pages hold none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 | `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
@@ -4604,6 +4640,10 @@ Title: Retitle, describe and tag a Window. Annotations: `readOnlyHint: false`, `
     },
     "description": {
       "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "excerpt": {
+      "description": "for a search, a few words of its pages around the words found; absent when its pages hold none",
       "type": "string"
     },
     "file_count": {
@@ -4993,6 +5033,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `excerpt` | string | no | for a search, a few words of its pages around the words found; absent when its pages hold none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 | `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
@@ -5064,6 +5105,10 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
     },
     "description": {
       "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "excerpt": {
+      "description": "for a search, a few words of its pages around the words found; absent when its pages hold none",
       "type": "string"
     },
     "file_count": {
@@ -5926,6 +5971,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `excerpt` | string | no | for a search, a few words of its pages around the words found; absent when its pages hold none |
 | `key` | string | no | the new Key, returned this once: give it to the person, who passes it on with the address |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
@@ -5998,6 +6044,10 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
     },
     "description": {
       "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "excerpt": {
+      "description": "for a search, a few words of its pages around the words found; absent when its pages hold none",
       "type": "string"
     },
     "file_count": {
@@ -6172,6 +6222,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `excerpt` | string | no | for a search, a few words of its pages around the words found; absent when its pages hold none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 | `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
@@ -6243,6 +6294,10 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
     },
     "description": {
       "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "excerpt": {
+      "description": "for a search, a few words of its pages around the words found; absent when its pages hold none",
       "type": "string"
     },
     "file_count": {
@@ -6655,6 +6710,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
+| `excerpt` | string | no | for a search, a few words of its pages around the words found; absent when its pages hold none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
 | `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
@@ -6726,6 +6782,10 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
     },
     "description": {
       "description": "what the Window is, in a sentence or two; absent when it has none",
+      "type": "string"
+    },
+    "excerpt": {
+      "description": "for a search, a few words of its pages around the words found; absent when its pages hold none",
       "type": "string"
     },
     "file_count": {

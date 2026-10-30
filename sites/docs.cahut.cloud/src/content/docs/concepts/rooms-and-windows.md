@@ -94,6 +94,19 @@ A Window carries tags, which help its people and their AIs find it among many: 1
 - Only the people of the Room, and their AIs, see the tags: the page of the Room that readers see, and the Windows themselves, show none.
 
 In the console, the page of a Room shows the tags of its Windows over their cards: a click shows only the Windows with that tag. The page of a Window changes them under **Title, description and tags**, where the field suggests the tags of the other Windows of the person.
+
+### Search
+
+People and their AIs search their Windows by their words: `list_windows` with `query` gives the Windows whose title, description, tags or pages hold each word, the best first.
+
+- A word matches at the start of a word, whatever its case and accents: `ete bret` finds a Window titled *Été en Bretagne*. Punctuation does not count, and a search takes 10 words at most.
+- A word weighs most in the title, then in the tags, the description and the pages.
+- Each Window found comes with an `excerpt`, a few words of its pages around the words found, when its pages hold them.
+- The search finds what `list_windows` lists: the Windows of the Rooms of the person, and of the Rooms granted to their AI, but those that others keep for themselves. It goes with `room`, `tag` and `trashed`, and finds a Window in the trash only with `trashed`.
+- The pages are the HTML files of the current version, `.html` and `.htm`, read without their markup, scripts and styles, up to 100 KB of text. Cahut reads them when a version is published, and keeps their text with it, so a rollback finds it again. The text that a script writes once a page has loaded is not there: a deck drawn by its scripts is found by its title, its description and its tags.
+- Each Cahut keeps its index in its own database, and the Logbook records the words of each search with the number of Windows found.
+
+In the console, the field at the head of every page searches, and opens the Windows found with their excerpts and their tags, which narrow them; on a narrow screen, the field is at the head of the menu. The Windows published before the search came get their text a minute after the service first starts with it.
 ## Versions and the trash
 
 A Window keeps two versions: the current one, which readers see, and the one before.

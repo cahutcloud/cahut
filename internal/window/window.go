@@ -237,11 +237,12 @@ func (s *Service) Register(r *operation.Registry) {
 		Run:         s.get,
 	})
 	operation.Register(r, &operation.Op[ListInput, List]{
-		Name:        "list_windows",
-		Title:       "List Windows",
-		Description: "List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first.",
-		ReadOnly:    true,
-		Run:         s.list,
+		Name:  "list_windows",
+		Title: "List and search Windows",
+		Description: "List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first; " +
+			"with query, those whose title, description, tags or pages hold its words, the best first.",
+		ReadOnly: true,
+		Run:      s.list,
 	})
 	operation.Register(r, &operation.Op[PreviewInput, Previews]{
 		Name:  "preview_windows",
@@ -279,6 +280,7 @@ type Window struct {
 	TrashedAt    *time.Time   `json:"trashed_at,omitempty" jsonschema:"when the Window went to the trash; absent when it is not in it"`
 	Declaration  *Declaration `json:"declaration,omitempty" jsonschema:"what the pages of the current version do, as declared when it was published; absent for a Window published before declarations"`
 	Withdrawn    *Withdrawal  `json:"withdrawn,omitempty" jsonschema:"when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn"`
+	Excerpt      string       `json:"excerpt,omitempty" jsonschema:"for a search, a few words of its pages around the words found; absent when its pages hold none"`
 }
 
 // Withdrawal says when and why the moderators of a Cahut withdrew a
@@ -388,10 +390,13 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err != nil {
 		return Window{}, err
 	}
-	if err := insertVersion(ctx, c, id, w); err != nil {
+	if err := insertVersion(ctx, c, id, w, textOf(pagesOf(files))); err != nil {
 		return Window{}, err
 	}
 	if err := setTags(ctx, c.Tx, id, w.Tags); err != nil {
+		return Window{}, err
+	}
+	if err := reindex(ctx, c.Tx, id); err != nil {
 		return Window{}, err
 	}
 	detail := fmt.Sprintf("%s %q, id %s, %d files, %d bytes; %s", w.Kind, w.Title, w.ID, w.FileCount, w.Size, w.Declaration)
@@ -466,7 +471,7 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 	w.Previous, w.Version = w.Version, max(w.Version, w.Previous)+1
 	w.Size, w.FileCount, w.UpdatedAt = size, len(files), c.Now
 	now := store.FormatTime(c.Now)
-	if err := insertVersion(ctx, c, w.id, w.Window); err != nil {
+	if err := insertVersion(ctx, c, w.id, w.Window, textOf(pagesOf(files))); err != nil {
 		return Window{}, err
 	}
 	if _, err := c.Tx.ExecContext(ctx, "DELETE FROM window_versions WHERE window_id = ? AND number = ?", w.id, dropped); err != nil {
@@ -476,6 +481,9 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 		UPDATE windows SET title = ?, description = ?, version = ?, previous = ?, size = ?, file_count = ?, updated_at = ? WHERE id = ?`,
 		w.Title, w.Description, w.Version, w.Previous, w.Size, w.FileCount, now, w.id)
 	if err != nil {
+		return Window{}, err
+	}
+	if err := reindex(ctx, c.Tx, w.id); err != nil {
 		return Window{}, err
 	}
 	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("version %d, %q, %d files, %d bytes; %s", w.Version, w.Title, w.FileCount, w.Size, w.Declaration))
@@ -496,15 +504,15 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 }
 
 // insertVersion records the current version of the Window w, whose id is
-// id, as the call publishes it.
-func insertVersion(ctx context.Context, c *operation.Call, id int64, w Window) error {
+// id, as the call publishes it, with the text of its pages.
+func insertVersion(ctx context.Context, c *operation.Call, id int64, w Window, text string) error {
 	declared, err := w.Declaration.encode()
 	if err != nil {
 		return err
 	}
 	_, err = c.Tx.ExecContext(ctx, `
-		INSERT INTO window_versions (window_id, number, size, file_count, published_by, published_at, declaration)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`, id, w.Version, w.Size, w.FileCount, c.Actor.UserID, store.FormatTime(c.Now), declared)
+		INSERT INTO window_versions (window_id, number, size, file_count, published_by, published_at, declaration, text)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, id, w.Version, w.Size, w.FileCount, c.Actor.UserID, store.FormatTime(c.Now), declared, text)
 	return err
 }
 
@@ -558,6 +566,9 @@ func (s *Service) retitle(ctx context.Context, c *operation.Call, in RetitleInpu
 		changes = append(changes, tagsDetail(w.Tags))
 	}
 	if _, err := c.Tx.ExecContext(ctx, "UPDATE windows SET title = ?, description = ? WHERE id = ?", w.Title, w.Description, w.id); err != nil {
+		return Window{}, err
+	}
+	if err := reindex(ctx, c.Tx, w.id); err != nil {
 		return Window{}, err
 	}
 	c.Log(w.Room+"/"+w.Name, strings.Join(changes, "; "))
@@ -628,6 +639,9 @@ func (s *Service) rollback(ctx context.Context, c *operation.Call, in RefInput) 
 	_, err = c.Tx.ExecContext(ctx, "UPDATE windows SET version = ?, previous = ?, size = ?, file_count = ?, updated_at = ? WHERE id = ?",
 		w.Version, w.Previous, w.Size, w.FileCount, store.FormatTime(c.Now), w.id)
 	if err != nil {
+		return Window{}, err
+	}
+	if err := reindex(ctx, c.Tx, w.id); err != nil {
 		return Window{}, err
 	}
 	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("version %d, from version %d", w.Version, w.Previous))
@@ -822,6 +836,7 @@ func versionsOf(ctx context.Context, tx *sql.Tx, w found) ([]Version, error) {
 type ListInput struct {
 	Room    string `json:"room,omitempty" jsonschema:"only the Windows of this Room, by its name"`
 	Tag     string `json:"tag,omitempty" jsonschema:"only the Windows with this tag"`
+	Query   string `json:"query,omitempty" jsonschema:"words to search, such as q3 sales; accents and case do not count"`
 	Trashed bool   `json:"trashed,omitempty" jsonschema:"list the Windows in the trash instead"`
 }
 
@@ -852,7 +867,14 @@ func (s *Service) list(ctx context.Context, c *operation.Call, in ListInput) (Li
 		where, args = where+" AND w.id IN (SELECT window_id FROM window_tags WHERE tag = ?)", append(args, tag)
 		detail = "tag " + tag + "; "
 	}
-	found, err := s.query(ctx, c, where, args...)
+	match := ""
+	if q := strings.TrimSpace(in.Query); q != "" {
+		if match = matchOf(q); match == "" {
+			return List{}, operation.Invalidf("query %q holds no word: give letters or digits", q)
+		}
+		detail += fmt.Sprintf("query %q; ", q)
+	}
+	found, err := s.find(ctx, c, match, where, args...)
 	if err != nil {
 		return List{}, err
 	}
@@ -879,19 +901,38 @@ type found struct {
 // Administrators manage people and Rooms, not content: an administrator of
 // the server, who belongs to no Room, sees none.
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
+	return s.find(ctx, c, "", where, args...)
+}
+
+// find returns the Windows that query returns, and, given match, a query of
+// FTS5, those of them that the index of the search matches, the best first,
+// each with its excerpt.
+func (s *Service) find(ctx context.Context, c *operation.Call, match, where string, args ...any) ([]found, error) {
 	q := `
 		SELECT w.id, w.uid, w.room_id, w.name, w.title, w.description, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
 			coalesce(u.handle, ''), coalesce(w.created_by, 0), w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL, v.declaration,
 			w.withdrawn_at, coalesce(w.withdrawn_reason, ''), w.withdrawn_by_server,
-			coalesce((SELECT group_concat(tag, ' ' ORDER BY tag) FROM window_tags WHERE window_id = w.id), '')
-		FROM windows w JOIN rooms r ON r.id = w.room_id LEFT JOIN users u ON u.id = w.created_by
+			coalesce((SELECT group_concat(tag, ' ' ORDER BY tag) FROM window_tags WHERE window_id = w.id), ''), `
+	order := " ORDER BY w.updated_at DESC, w.id DESC"
+	if match == "" {
+		q += `''
+		FROM windows w`
+	} else {
+		// A word weighs most in the title, then in the tags, the description
+		// and the text.
+		q += `snippet(window_search, 3, '` + markStart + `', '` + markEnd + `', '…', 16)
+		FROM window_search JOIN windows w ON w.id = window_search.rowid`
+		where, args = "window_search MATCH ? AND "+where, append([]any{match}, args...)
+		order = " ORDER BY bm25(window_search, 10, 3, 6, 1), w.updated_at DESC, w.id DESC"
+	}
+	q += ` JOIN rooms r ON r.id = w.room_id LEFT JOIN users u ON u.id = w.created_by
 		JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
 		WHERE ` + where
 	if !c.Actor.CommandLine() {
 		q += " AND w.room_id IN (SELECT room_id FROM room_members WHERE user_id = ?) AND (w.access != 'author' OR w.created_by = ?)"
 		args = append(args, c.Actor.UserID, c.Actor.UserID)
 	}
-	rows, err := c.Tx.QueryContext(ctx, q+" ORDER BY w.updated_at DESC, w.id DESC", args...)
+	rows, err := c.Tx.QueryContext(ctx, q+order, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -903,11 +944,11 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		var created, updated string
 		var trashed, ends, withdrawn sql.NullString
 		var declared *string
-		var tags string
+		var tags, excerpt string
 		var why Withdrawal
 		if err := rows.Scan(&w.id, &w.ID, &w.roomID, &w.Name, &w.Title, &w.Description, &w.Kind, &w.Room, &w.Version, &previous, &w.Size, &w.FileCount,
 			&w.CreatedBy, &w.authorID, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey, &declared,
-			&withdrawn, &why.Reason, &why.ByServer, &tags); err != nil {
+			&withdrawn, &why.Reason, &why.ByServer, &tags, &excerpt); err != nil {
 			return nil, err
 		}
 		if withdrawn.Valid {
@@ -918,6 +959,7 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		}
 		// A tag holds no space.
 		w.Tags = append([]string{}, strings.Fields(tags)...)
+		w.Excerpt = excerptOf(excerpt)
 		if w.Declaration, err = decodeDeclaration(declared); err != nil {
 			return nil, err
 		}

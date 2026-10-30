@@ -908,6 +908,47 @@ a.cahut-menu__item:hover {
 	font-size: var(--text-xs);
 	line-height: var(--leading-xs);
 }
+/* The words of its pages around those that a search found, which stand out
+   in bold, without a color. */
+.window-excerpt {
+	display: -webkit-box;
+	margin: 0;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	line-clamp: 3;
+	color: var(--color-text-muted);
+	font-size: var(--text-xs);
+	line-height: var(--leading-xs);
+}
+.window-excerpt__found {
+	background: none;
+	color: var(--color-text);
+	font-weight: 700;
+}
+/* The search, in the top bar of a person; on a narrow screen, where the top
+   bar has no room for it, at the head of the menu and on its page. */
+.console-search {
+	flex: 1;
+	min-width: 0;
+	max-width: 520px;
+}
+.sidebar-search,
+.search-page__field {
+	display: none;
+}
+.sidebar-search {
+	margin-bottom: var(--space-3);
+}
+@media (max-width: 560px) {
+	.console-search {
+		display: none;
+	}
+	.sidebar-search,
+	.search-page__field {
+		display: block;
+	}
+}
 /* The tags of a Window, typed words, in mono. */
 .window-tags {
 	display: flex;

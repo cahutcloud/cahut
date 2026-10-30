@@ -52,6 +52,25 @@ export function usePath(): string {
 	return path;
 }
 
+/**
+ * Returns the query of the current address, such as ?q=q3, and follows it:
+ * a page whose path stays, such as a search, changes with it.
+ */
+export function useQuery(): URLSearchParams {
+	const [search, setSearch] = useState(location.search);
+	useEffect(() => {
+		const update = () => setSearch(location.search);
+		addEventListener("popstate", update);
+		addEventListener(changed, update);
+		update();
+		return () => {
+			removeEventListener("popstate", update);
+			removeEventListener(changed, update);
+		};
+	}, []);
+	return new URLSearchParams(search);
+}
+
 /** A link to a page of the console, which opens without reloading it. */
 export function Link(props: AccessibleAnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
 	const onClick = (e: TargetedMouseEvent<HTMLAnchorElement>) => {
