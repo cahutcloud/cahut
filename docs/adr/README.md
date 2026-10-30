@@ -58,6 +58,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [52](0052-share-links.md) | A share link opens a Window to whoever holds it, without an account or a Key, until it ends | Accepted, extended by 53 and 54 |
 | [53](0053-windows-for-their-author-alone.md) | A Window can open to its author alone, and a share link that opens once gives it a single reader | Accepted |
 | [54](0054-reporting-and-withdrawing-a-window.md) | Anyone reports a Window, and the moderators of its Cahut open it and withdraw it | Accepted |
+| [55](0055-tags-and-search-of-windows.md) | Windows carry tags, and people and AIs search them | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

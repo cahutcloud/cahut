@@ -44,6 +44,8 @@ export interface AccessSet {
   title: string;
   /** what the Window is, in a sentence or two; absent when it has none */
   description?: string;
+  /** its tags, in order, which help find it among many */
+  tags: string[];
   kind: string;
   /** where the Window opens */
   url: string;
@@ -467,6 +469,11 @@ export type GetMailRelayInput = Record<string, never>;
 export interface GivenName {
   /** the name */
   name: string;
+}
+
+export interface GivenTag {
+  /** the tag, as it was given */
+  tag: string;
 }
 
 export interface Handle {
@@ -920,6 +927,8 @@ export interface PublishInput {
   title: string;
   /** what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window */
   description?: string;
+  /** 10 at most, such as q3 or sales, which help find it among many: reuse those that list_windows gives */
+  tags?: string[];
   /** one of document, deck, dashboard or site */
   kind: string;
   /** name of the Room to publish in; the personal Room of the person you act for when empty */
@@ -1028,6 +1037,8 @@ export interface RetitleInput {
   title?: string;
   /** the new description, a sentence or two of plain text, 300 characters at most; empty to remove it, and it stays when absent */
   description?: string;
+  /** the new tags, in place of the old ones, 10 at most; an empty list removes them, and they stay when absent */
+  tags?: string[];
 }
 
 export interface RevokeInvitationInput {
@@ -1383,6 +1394,13 @@ export interface Suspension {
   reason: string;
 }
 
+export interface TagCount {
+  /** how many tags were given */
+  count: number;
+  /** the most a Window carries */
+  limit: number;
+}
+
 export interface TakenEmail {
   email: string;
 }
@@ -1502,6 +1520,8 @@ export interface Window {
   title: string;
   /** what the Window is, in a sentence or two; absent when it has none */
   description?: string;
+  /** its tags, in order, which help find it among many */
+  tags: string[];
   kind: string;
   /** where the Window opens */
   url: string;
@@ -1538,6 +1558,8 @@ export interface WindowDetail {
   title: string;
   /** what the Window is, in a sentence or two; absent when it has none */
   description?: string;
+  /** its tags, in order, which help find it among many */
+  tags: string[];
   kind: string;
   /** where the Window opens */
   url: string;
@@ -1588,6 +1610,8 @@ export interface WindowList {
 export interface WindowListInput {
   /** only the Windows of this Room, by its name */
   room?: string;
+  /** only the Windows with this tag */
+  tag?: string;
   /** list the Windows in the trash instead */
   trashed?: boolean;
 }
@@ -1678,7 +1702,7 @@ export interface CahutOperations {
   list_tokens: { input: ListTokensInput; output: TokenList };
   /** List the people of the Cahut, with their handles, names, roles and states. In an individual Cahut, for its administrators only. */
   list_users: { input: ListUsersInput; output: UserList };
-  /** List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, most recently updated first. */
+  /** List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first. */
   list_windows: { input: WindowListInput; output: WindowList };
   /** Open the Window of the invitation of a personal link: a code, valid a minute, for /-/invitation, which gives a pass. */
   open_invitation: { input: InvitationCodeInput; output: InvitationOpening };
@@ -1700,7 +1724,7 @@ export interface CahutOperations {
   restore_window: { input: RefInput; output: Window };
   /** Resume this Cahut, which suspend_cahut suspended: its Windows open again, its people sign in, and their AIs act in it as before, without connecting again. Its administrators hear of it by e-mail when it sends e-mail. For the administrators of the server. */
   resume_cahut: { input: ResumeCahutInput; output: Settings };
-  /** Change the title of a Window of this Cahut, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it. */
+  /** Change the title of a Window of this Cahut, its description, its tags, or several, without publishing a new version. Its address stays. Give the old ones again to undo it. */
   retitle_window: { input: RetitleInput; output: Window };
   /** Take back an invitation to a Window of this Cahut: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. */
   revoke_invitation: { input: RevokeInvitationInput; output: Invitation };
@@ -1898,6 +1922,10 @@ export interface Refusals {
   share_link_public: At;
   /** ends_at {ends_at}: a share link lasts 30 days at most, until {latest}: give an end before it, or none for 7 days */
   share_link_too_long: LinkEnd;
+  /** tag {tag}: use 1 to 32 letters, digits and hyphens, such as q3-review */
+  tag_invalid: GivenTag;
+  /** {count} tags: give a Window {limit} at most */
+  tags_too_many: TagCount;
   /** title is empty: give one */
   title_empty: null;
   /** title is longer than 200 bytes: shorten it */

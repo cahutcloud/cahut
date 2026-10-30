@@ -30,6 +30,7 @@ The arguments of `publish_window`:
 | --- | --- |
 | `title` | The title of the Window, at most 200 bytes. The name in its address comes from it. |
 | `description` | Optional: what the Window is, in a sentence or two of plain text, 300 characters at most. Readers see it on the page of its Room, and AIs read it to find the Window. |
+| `tags` | Optional: up to 10 [tags](/concepts/rooms-and-windows/#tags), such as `q3` or `sales`, which help find the Window among many. Reuse those that `list_windows` gives. |
 | `kind` | `document`, `deck`, `dashboard` or `site`. |
 | `room` | Optional: the name of a Room of the person the AI acts for. Without it, the Window goes to their personal Room. |
 | `name` | Optional: the name of the Window in its address, 1 to 63 lowercase letters, digits and hyphens. Without it, the name comes from the title. A name that the Room holds already is refused. |
@@ -120,19 +121,22 @@ The answer also gives the Window's `id`, which never changes, and its `permanent
 
 The version it replaces is kept. `rollback_window`, with the Window alone, goes back to it, and a second rollback returns. Publishing again with `publish_window` creates another Window, such as `q3-review-2`: to change a Window, update it. `update_window` also takes a new `description`, which an empty one removes.
 
-### Retitle and describe a Window
+### Retitle, describe and tag a Window
 
-`retitle_window` changes the title of a Window, its description, or both, without a new version: its address stays, and so do its versions. An empty description removes it, and an absent one stays:
+`retitle_window` changes the title of a Window, its description, its tags, or several, without a new version: its address stays, and so do its versions. An empty description removes it, an empty list of tags removes them, and what is absent stays:
 
 ```json
 {
   "window": "3f9k2m7q8x4r1t6v0b5n8c2d4g",
   "title": "Q3 review, final",
-  "description": "The figures of the third quarter, and what we decided."
+  "description": "The figures of the third quarter, and what we decided.",
+  "tags": ["q3", "sales", "board-meeting"]
 }
 ```
 
-The Logbook records the new texts. To undo the change, an AI calls `retitle_window` again with the old ones, which `get_window` gave before. In the console, the page of each Window changes them under **Title and description**.
+The tags given replace the old ones. The Logbook records the new texts and tags. To undo the change, an AI calls `retitle_window` again with the old ones, which `get_window` gave before. In the console, the page of each Window changes them under **Title, description and tags**.
+
+`list_windows` with `tag` lists the Windows with that tag, in the Rooms that the AI reaches.
 
 ### Rename a Window in its address
 

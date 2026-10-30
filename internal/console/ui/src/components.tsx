@@ -49,6 +49,9 @@ const t = words({
 		roomPage: "Page of the Room",
 		preview: (title: string) => `Preview of ${title}`,
 		openWindow: (title: string) => `Open ${title} in a new tab`,
+		tags: "Tags",
+		removeTag: (tag: string) => `Remove the tag ${tag}`,
+		tagsCount: (n: number, max: number) => `${n} of ${max} tags.`,
 		justNow: "Just now",
 		minutesAgo: (n: number) => `${n} min ago`,
 		hoursAgo: (n: number) => `${n} h ago`,
@@ -98,6 +101,9 @@ const t = words({
 		roomPage: "Page de la Room",
 		preview: (title) => `Aperçu ${de(title)}`,
 		openWindow: (title) => `Ouvrir ${title} dans un nouvel onglet`,
+		tags: "Tags",
+		removeTag: (tag) => `Retirer le tag ${tag}`,
+		tagsCount: (n, max) => `${n} tags sur ${max}.`,
 		justNow: "À l'instant",
 		minutesAgo: (n) => `il y a ${n} min`,
 		hoursAgo: (n) => `il y a ${n} h`,
@@ -427,6 +433,145 @@ export function DescriptionField(props: { id: string; value: string; help?: stri
 	);
 }
 
+/** The most tags of a Window, as the server counts them. */
+export const maxTags = 10;
+
+/**
+ * Returns the tag s as Cahut keeps it: in lower case, without a leading #,
+ * its words joined by hyphens. The server checks the rest.
+ */
+export function tagOf(s: string): string {
+	return s
+		.normalize("NFC")
+		.trim()
+		.replace(/^#/, "")
+		.toLowerCase()
+		.split(/[\s_-]+/)
+		.filter(Boolean)
+		.join("-");
+}
+
+/**
+ * The tags of a Window, which a person types one after the other: Enter or
+ * a comma adds the one typed, and Backspace in an empty field removes the
+ * last. The field suggests the tags of other Windows.
+ */
+export function TagsField(props: { id: string; value: string[]; suggestions: string[]; help?: string; onChange: (tags: string[]) => void }) {
+	const [draft, setDraft] = useState("");
+	const list = useId();
+	const full = props.value.length >= maxTags;
+	const add = (s: string) => {
+		const tags = s.split(",").map(tagOf).filter((tag) => tag && !props.value.includes(tag));
+		if (tags.length > 0) props.onChange([...props.value, ...new Set(tags)].slice(0, maxTags));
+		setDraft("");
+	};
+	const remove = (tag: string) => props.onChange(props.value.filter((other) => other !== tag));
+	return (
+		<>
+			<div class="c-input tags-field">
+				{props.value.map((tag) => (
+					<span key={tag} class="c-badge c-badge--neutral window-tag">
+						{tag}
+						<button class="tags-field__remove" type="button" aria-label={t.removeTag(tag)} title={t.removeTag(tag)} onClick={() => remove(tag)}>
+							<X class="i" size={12} aria-hidden="true" />
+						</button>
+					</span>
+				))}
+				<input
+					id={props.id}
+					class="tags-field__input"
+					list={list}
+					value={draft}
+					disabled={full}
+					autocomplete="off"
+					aria-describedby={`${props.id}-help`}
+					onInput={(e) => {
+						const v = e.currentTarget.value;
+						if (v.includes(",")) add(v);
+						else setDraft(v);
+					}}
+					onKeyDown={(e) => {
+						if (e.key === "Enter") {
+							e.preventDefault();
+							add(draft);
+						} else if (e.key === "Backspace" && draft === "" && props.value.length > 0) {
+							remove(props.value[props.value.length - 1]);
+						}
+					}}
+					onBlur={() => add(draft)}
+				/>
+				<datalist id={list}>
+					{props.suggestions
+						.filter((tag) => !props.value.includes(tag))
+						.map((tag) => (
+							<option key={tag} value={tag} />
+						))}
+				</datalist>
+			</div>
+			<span class="c-field__help" id={`${props.id}-help`} aria-live="polite">
+				{[props.help, t.tagsCount(props.value.length, maxTags)].filter(Boolean).join(" ")}
+			</span>
+		</>
+	);
+}
+
+/**
+ * The tags of a Window, under its title. Given onTag, each is a button that
+ * shows only the Windows with it, pressed while it does.
+ */
+export function WindowTags(props: { tags: string[]; selected?: string; onTag?: (tag: string) => void }) {
+	if (props.tags.length === 0) return null;
+	return (
+		<ul class="window-tags" aria-label={t.tags}>
+			{props.tags.map((tag) => (
+				<li key={tag}>
+					{props.onTag ? (
+						<button
+							class="c-badge c-badge--neutral window-tag window-tag--button"
+							type="button"
+							aria-pressed={tag === props.selected}
+							onClick={() => props.onTag?.(tag)}
+						>
+							{tag}
+						</button>
+					) : (
+						<span class="c-badge c-badge--neutral window-tag">{tag}</span>
+					)}
+				</li>
+			))}
+		</ul>
+	);
+}
+
+/** The tags of the Windows, each with how many carry it, the most common first. */
+export function tagsOf(windows: Window[]): [string, number][] {
+	const counts = new Map<string, number>();
+	for (const w of windows) for (const tag of w.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+	return [...counts].sort(([a, m], [b, n]) => n - m || a.localeCompare(b, locale));
+}
+
+/** The tags of a list of Windows, as buttons that show only the Windows with one of them. */
+export function TagFilter(props: { tags: [string, number][]; selected: string; label: string; all: string; onTag: (tag: string) => void }) {
+	return (
+		<div class="tag-filter" role="group" aria-label={props.label}>
+			<button class="c-badge c-badge--neutral window-tag--button" type="button" aria-pressed={props.selected === ""} onClick={() => props.onTag("")}>
+				{props.all}
+			</button>
+			{props.tags.map(([tag, count]) => (
+				<button
+					key={tag}
+					class="c-badge c-badge--neutral window-tag window-tag--button"
+					type="button"
+					aria-pressed={tag === props.selected}
+					onClick={() => props.onTag(tag)}
+				>
+					{tag} <span class="window-tag__count">{count.toLocaleString(locale)}</span>
+				</button>
+			))}
+		</div>
+	);
+}
+
 /** What came of a change: a line, or more, such as a link. */
 export function Outcome({ children }: { children: ComponentChildren }) {
 	if (typeof children !== "string") return <div class="setting__more">{children}</div>;
@@ -601,8 +746,10 @@ export function WindowCards({
 	windows,
 	showRoom,
 	home,
+	tag,
+	onTag,
 	onChanged,
-}: { windows: Window[]; showRoom?: boolean; home?: string; onChanged?: () => void }) {
+}: { windows: Window[]; showRoom?: boolean; home?: string; tag?: string; onTag?: (tag: string) => void; onChanged?: () => void }) {
 	const api = useConsole();
 	const names = windows.slice(0, maxPreviews).map((w) => `${w.room}/${w.name}`);
 	// Without previews, the cards keep the icon of their kind.
@@ -617,6 +764,8 @@ export function WindowCards({
 					showRoom={showRoom}
 					home={w.name === home}
 					preview={frames.get(`${w.room}/${w.name}`)}
+					tag={tag}
+					onTag={onTag}
 					onChanged={onChanged}
 				/>
 			))}
@@ -626,10 +775,18 @@ export function WindowCards({
 
 /**
  * A Window, as a card that leads to its page, with a button that shares it
- * and one that opens the Window itself in a new tab; the Window that the
- * address of its Room shows says so.
+ * and one that opens the Window itself in a new tab, and its tags; the
+ * Window that the address of its Room shows says so.
  */
-export function WindowCard(props: { window: Window; showRoom?: boolean; home?: boolean; preview?: string; onChanged?: () => void }) {
+export function WindowCard(props: {
+	window: Window;
+	showRoom?: boolean;
+	home?: boolean;
+	preview?: string;
+	tag?: string;
+	onTag?: (tag: string) => void;
+	onChanged?: () => void;
+}) {
 	const { window: w, showRoom, home, preview } = props;
 	const kind = kinds[w.kind] ?? kinds.site;
 	const Icon = kind.icon;
@@ -657,6 +814,7 @@ export function WindowCard(props: { window: Window; showRoom?: boolean; home?: b
 					{w.title}
 				</Link>
 				{w.description && <p class="window-description">{w.description}</p>}
+				<WindowTags tags={w.tags} selected={props.tag} onTag={props.onTag} />
 				<div class="c-window__meta">
 					<span>
 						{[kind.name, ago(w.updated_at), showRoom ? w.room : w.created_by].filter(Boolean).join(" · ")}

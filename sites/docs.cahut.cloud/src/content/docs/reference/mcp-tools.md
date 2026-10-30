@@ -21,7 +21,7 @@ The Cahut gives these instructions to the AI when it connects:
 
 > Cahut keeps what you make on the user's own server, as Windows. To publish a document, deck, dashboard or site: call publish_window with a complete index.html and all its files, linked by relative paths (css/deck.css, never /css/deck.css), and a declaration of its scripts and of every origin it loads from or calls. Give the user the address it returns. A call that cannot be undone makes a Knock: give the user its link to approve it.
 >
-> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. Give each Window a description of a sentence or two; retitle_window changes its title and description without a new version. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. publish_window with access author keeps a Window for the person you act for alone, such as a draft in a team Room; set_window_access to room shares it with the Room. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. create_share_link gives a link that opens a Window to whoever holds it, without an account or a Key, for 30 days at most: give it to the user, who passes it on; revoke_share_link takes it back. For a Window that one reader opens once, publish it with access author, then make a share link with max_openings 1. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
+> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. Give each Window a description of a sentence or two, and a few tags, reusing those of the Windows that list_windows gives; retitle_window changes its title, description and tags without a new version, and list_windows finds the Windows with a tag. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. publish_window with access author keeps a Window for the person you act for alone, such as a draft in a team Room; set_window_access to room shares it with the Room. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. create_share_link gives a link that opens a Window to whoever holds it, without an account or a Key, for 30 days at most: give it to the user, who passes it on; revoke_share_link takes it back. For a Window that one reader opens once, publish it with access author, then make a share link with max_openings 1. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -57,13 +57,13 @@ The Cahut gives these instructions to the AI when it connects:
 | [`list_logbook`](#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. |
 | [`list_rooms`](#list_rooms) | List your Rooms in this Cahut, your personal Room first, with your role and how many members and Windows each has. |
 | [`list_users`](#list_users) | List the people of the Cahut, with their handles, names, roles and states. In an individual Cahut, for its administrators only. |
-| [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, most recently updated first. |
+| [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first. |
 | [`publish_window`](#publish_window) | Publish a new Window in this Cahut: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. |
 | [`purge_window`](#purge_window) | Delete a Window of this Cahut that is in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs. |
 | [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`rename_window`](#rename_window) | Change the name of a Window of this Cahut, the last part of its address, &lt;domain&gt;/&lt;room&gt;/&lt;name&gt;/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it. |
 | [`restore_window`](#restore_window) | Bring a Window of this Cahut back from the trash, with its versions. |
-| [`retitle_window`](#retitle_window) | Change the title of a Window of this Cahut, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it. |
+| [`retitle_window`](#retitle_window) | Change the title of a Window of this Cahut, its description, its tags, or several, without publishing a new version. Its address stays. Give the old ones again to undo it. |
 | [`revoke_invitation`](#revoke_invitation) | Take back an invitation to a Window of this Cahut: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. |
 | [`revoke_share_link`](#revoke_share_link) | Take back a share link to a Window of this Cahut: it no longer opens the Window, to those who opened it too. |
 | [`rollback_window`](#rollback_window) | Go back to the previous version of a Window of this Cahut. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
@@ -1806,6 +1806,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `share_links` | integer | yes | how many share links open the Window to someone new, besides its access |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
+| `tags` | array of strings or null | yes | its tags, in order, which help find it among many |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
@@ -2028,6 +2029,16 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
       "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
+    "tags": {
+      "description": "its tags, in order, which help find it among many",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "title": {
       "type": "string"
     },
@@ -2096,6 +2107,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
     "id",
     "name",
     "title",
+    "tags",
     "kind",
     "url",
     "permanent_url",
@@ -2908,7 +2920,7 @@ This tool takes no arguments.
 
 ## `list_windows`
 
-List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, most recently updated first.
+List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first.
 
 Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -2917,6 +2929,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `room` | string | no | only the Windows of this Room, by its name |
+| `tag` | string | no | only the Windows with this tag |
 | `trashed` | boolean | no | list the Windows in the trash instead |
 
 <details>
@@ -2928,6 +2941,10 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
   "properties": {
     "room": {
       "description": "only the Windows of this Room, by its name",
+      "type": "string"
+    },
+    "tag": {
+      "description": "only the Windows with this tag",
       "type": "string"
     },
     "trashed": {
@@ -2956,6 +2973,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
 | `windows[].permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `windows[].room` | string | yes | the name of its Room, the part of its address before its name |
 | `windows[].size` | integer | yes | total size of the files of the current version, in bytes |
+| `windows[].tags` | array of strings or null | yes | its tags, in order, which help find it among many |
 | `windows[].title` | string | yes |  |
 | `windows[].updated_at` | string | yes |  |
 | `windows[].url` | string | yes | where the Window opens |
@@ -3069,6 +3087,16 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
             "description": "total size of the files of the current version, in bytes",
             "type": "integer"
           },
+          "tags": {
+            "description": "its tags, in order, which help find it among many",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
           "title": {
             "type": "string"
           },
@@ -3095,6 +3123,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
           "id",
           "name",
           "title",
+          "tags",
           "kind",
           "url",
           "permanent_url",
@@ -3148,6 +3177,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `description` | string | no | what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window |
 | `name` | string | no | its name in its address, 1 to 63 lowercase letters, digits and hyphens; from the title when empty |
 | `room` | string | no | name of the Room to publish in; the personal Room of the person you act for when empty |
+| `tags` | array of strings or null | no | 10 at most, such as q3 or sales, which help find it among many: reuse those that list_windows gives |
 
 <details>
 <summary>JSON Schema</summary>
@@ -3241,6 +3271,16 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
       "description": "name of the Room to publish in; the personal Room of the person you act for when empty",
       "type": "string"
     },
+    "tags": {
+      "description": "10 at most, such as q3 or sales, which help find it among many: reuse those that list_windows gives",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "title": {
       "description": "title of the Window, also used in its address",
       "type": "string"
@@ -3272,6 +3312,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
+| `tags` | array of strings or null | yes | its tags, in order, which help find it among many |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
@@ -3381,6 +3422,16 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
       "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
+    "tags": {
+      "description": "its tags, in order, which help find it among many",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "title": {
       "type": "string"
     },
@@ -3407,6 +3458,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     "id",
     "name",
     "title",
+    "tags",
     "kind",
     "url",
     "permanent_url",
@@ -3474,6 +3526,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
 | `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
+| `tags` | array of strings or null | yes | its tags, in order, which help find it among many |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
@@ -3583,6 +3636,16 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
       "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
+    "tags": {
+      "description": "its tags, in order, which help find it among many",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "title": {
       "type": "string"
     },
@@ -3609,6 +3672,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
     "id",
     "name",
     "title",
+    "tags",
     "kind",
     "url",
     "permanent_url",
@@ -3831,6 +3895,7 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
 | `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
+| `tags` | array of strings or null | yes | its tags, in order, which help find it among many |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
@@ -3940,6 +4005,16 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
       "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
+    "tags": {
+      "description": "its tags, in order, which help find it among many",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "title": {
       "type": "string"
     },
@@ -3966,6 +4041,7 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
     "id",
     "name",
     "title",
+    "tags",
     "kind",
     "url",
     "permanent_url",
@@ -4031,6 +4107,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
+| `tags` | array of strings or null | yes | its tags, in order, which help find it among many |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
@@ -4140,6 +4217,16 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
       "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
+    "tags": {
+      "description": "its tags, in order, which help find it among many",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "title": {
       "type": "string"
     },
@@ -4166,6 +4253,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     "id",
     "name",
     "title",
+    "tags",
     "kind",
     "url",
     "permanent_url",
@@ -4186,9 +4274,9 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 
 ## `retitle_window`
 
-Change the title of a Window of this Cahut, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it.
+Change the title of a Window of this Cahut, its description, its tags, or several, without publishing a new version. Its address stays. Give the old ones again to undo it.
 
-Title: Retitle and describe a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
+Title: Retitle, describe and tag a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
 ### Arguments
 
@@ -4196,6 +4284,7 @@ Title: Retitle and describe a Window. Annotations: `readOnlyHint: false`, `destr
 | --- | --- | --- | --- |
 | `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 | `description` | string or null | no | the new description, a sentence or two of plain text, 300 characters at most; empty to remove it, and it stays when absent |
+| `tags` | array of strings or null | no | the new tags, in place of the old ones, 10 at most; an empty list removes them, and they stay when absent |
 | `title` | string | no | the new title; the title stays when empty. The address does not change |
 
 <details>
@@ -4210,6 +4299,16 @@ Title: Retitle and describe a Window. Annotations: `readOnlyHint: false`, `destr
       "type": [
         "null",
         "string"
+      ]
+    },
+    "tags": {
+      "description": "the new tags, in place of the old ones, 10 at most; an empty list removes them, and they stay when absent",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
       ]
     },
     "title": {
@@ -4244,6 +4343,7 @@ Title: Retitle and describe a Window. Annotations: `readOnlyHint: false`, `destr
 | `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
+| `tags` | array of strings or null | yes | its tags, in order, which help find it among many |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
@@ -4353,6 +4453,16 @@ Title: Retitle and describe a Window. Annotations: `readOnlyHint: false`, `destr
       "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
+    "tags": {
+      "description": "its tags, in order, which help find it among many",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "title": {
       "type": "string"
     },
@@ -4379,6 +4489,7 @@ Title: Retitle and describe a Window. Annotations: `readOnlyHint: false`, `destr
     "id",
     "name",
     "title",
+    "tags",
     "kind",
     "url",
     "permanent_url",
@@ -4663,6 +4774,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
 | `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
+| `tags` | array of strings or null | yes | its tags, in order, which help find it among many |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
@@ -4772,6 +4884,16 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
       "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
+    "tags": {
+      "description": "its tags, in order, which help find it among many",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "title": {
       "type": "string"
     },
@@ -4798,6 +4920,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
     "id",
     "name",
     "title",
+    "tags",
     "kind",
     "url",
     "permanent_url",
@@ -5555,6 +5678,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 | `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
+| `tags` | array of strings or null | yes | its tags, in order, which help find it among many |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
@@ -5669,6 +5793,16 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
       "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
+    "tags": {
+      "description": "its tags, in order, which help find it among many",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "title": {
       "type": "string"
     },
@@ -5695,6 +5829,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
     "id",
     "name",
     "title",
+    "tags",
     "kind",
     "url",
     "permanent_url",
@@ -5760,6 +5895,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 | `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
+| `tags` | array of strings or null | yes | its tags, in order, which help find it among many |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
@@ -5869,6 +6005,16 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
       "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
+    "tags": {
+      "description": "its tags, in order, which help find it among many",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "title": {
       "type": "string"
     },
@@ -5895,6 +6041,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
     "id",
     "name",
     "title",
+    "tags",
     "kind",
     "url",
     "permanent_url",
@@ -6202,6 +6349,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `permanent_url` | string | yes | the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts |
 | `room` | string | yes | the name of its Room, the part of its address before its name |
 | `size` | integer | yes | total size of the files of the current version, in bytes |
+| `tags` | array of strings or null | yes | its tags, in order, which help find it among many |
 | `title` | string | yes |  |
 | `updated_at` | string | yes |  |
 | `url` | string | yes | where the Window opens |
@@ -6311,6 +6459,16 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
       "description": "total size of the files of the current version, in bytes",
       "type": "integer"
     },
+    "tags": {
+      "description": "its tags, in order, which help find it among many",
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
     "title": {
       "type": "string"
     },
@@ -6337,6 +6495,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
     "id",
     "name",
     "title",
+    "tags",
     "kind",
     "url",
     "permanent_url",

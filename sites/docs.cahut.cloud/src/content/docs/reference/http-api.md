@@ -107,6 +107,8 @@ A refusal that people meet in the console gives its code too, which never change
 | `share_link_openings` | `given`, `limit` | Max_openings {given}: give a number from 1 to {limit}, or none for a link that opens to any number of readers |
 | `share_link_public` | `room`, `window` | {room}/{window} is public: its permanent address opens it to anyone, so share that address rather than a link |
 | `share_link_too_long` | `ends_at`, `latest` | Ends_at {ends_at}: a share link lasts 30 days at most, until {latest}: give an end before it, or none for 7 days |
+| `tag_invalid` | `tag` | Tag {tag}: use 1 to 32 letters, digits and hyphens, such as q3-review |
+| `tags_too_many` | `count`, `limit` | {count} tags: give a Window {limit} at most |
 | `title_empty` |  | Title is empty: give one |
 | `title_too_long` |  | Title is longer than 200 bytes: shorten it |
 | `too_many_attempts_from_address` |  | Too many attempts from this address: wait a minute |
