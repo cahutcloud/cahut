@@ -16,13 +16,13 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [10](0010-windows-in-a-csp-sandbox.md) | Windows run in a CSP sandbox | Accepted, extended by 27 |
 | [11](0011-console-on-its-own-port.md) | The console has its own port | Accepted, superseded in part by 13, 17 and 20 |
 | [12](0012-website-and-docs-as-astro-sites.md) | The website and the docs are Astro sites in this repository | Accepted, extended by 18 |
-| [13](0013-people-sessions-and-rights.md) | People sign in to their Cahut, and the registry checks their rights | Accepted, superseded in part by 21, extended by 30, 31, 43 and 48 |
+| [13](0013-people-sessions-and-rights.md) | People sign in to their Cahut, and the registry checks their rights | Accepted, superseded in part by 21 and 54, extended by 30, 31, 43 and 48 |
 | [14](0014-console-http-api.md) | The console calls each operation at its own HTTP route | Accepted, superseded in part by 20, extended by 37 |
 | [15](0015-license.md) | AGPL-3.0 for the repository, the name and the logo apart | Accepted |
 | [16](0016-oauth-for-ai-clients.md) | AI clients connect over OAuth, to the Rooms and the scope a person grants | Accepted, superseded in part by 17, 20 and 21 |
 | [17](0017-oauth-endpoints-on-port-443.md) | The OAuth endpoints that clients' servers call are on port 443 | Accepted, superseded in part by 20 |
 | [18](0018-project-pages-from-community-files.md) | The project pages are built from the community files of the repository | Accepted |
-| [19](0019-window-versions-access-and-declaration.md) | Windows keep two versions, open to an access, and declare what they call | Accepted, extended by 21, 22, 27, 30, 31, 32, 52 and 53, superseded in part by 45, 49 and 50 |
+| [19](0019-window-versions-access-and-declaration.md) | Windows keep two versions, open to an access, and declare what they call | Accepted, extended by 21, 22, 27, 30, 31, 32, 52, 53 and 54, superseded in part by 45, 49 and 50 |
 | [20](0020-console-under-a-path-of-port-443.md) | The console is served under `/console/` on port 443 | Accepted, extended by 43 |
 | [21](0021-ais-knock-first.md) | An AI knocks first, and the person it acts for answers | Accepted, extended by 31 |
 | [22](0022-house-style-of-each-cahut.md) | Each Cahut has a house style, served to its Windows and given to AIs | Superseded by 49, but for the skill for Claude |
@@ -45,7 +45,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [39](0039-people-change-their-name-and-handle.md) | People change their name and their handle, and their personal Room follows | Accepted, extended by 50 |
 | [40](0040-the-icon-of-a-cahut.md) | Each Cahut gives its icon to browsers, favicon services and AI clients | Accepted, superseded in part by 49 |
 | [41](0041-the-proxy-protocol-from-trusted-proxies.md) | Cahut reads the PROXY protocol from the proxies it trusts | Accepted |
-| [42](0042-the-legal-pages-of-a-cahut.md) | The pages of a Cahut link its legal pages, which the administrators of its server give | Accepted |
+| [42](0042-the-legal-pages-of-a-cahut.md) | The pages of a Cahut link its legal pages, which the administrators of its server give | Accepted, extended by 54 |
 | [43](0043-the-console-holds-two-sessions.md) | The console holds the session of a person and that of an administrator of the server together | Accepted, superseded in part by 44 |
 | [44](0044-two-bars-for-the-server-and-the-cahut.md) | The console shows the server and the Cahut in two bars, and each signs out of its own session | Accepted |
 | [45](0045-windows-fetch-the-blob-and-data-urls-they-make.md) | The pages of a Window fetch the blob: and data: URLs they make | Accepted |
@@ -55,8 +55,9 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [49](0049-no-house-style.md) | Cahut has no house style, until a module of skills brings the brand of an organization | Accepted |
 | [50](0050-window-ids-permanent-addresses-and-names.md) | Each Window has an id that never changes and a permanent address, and its people change its name, its title and its description | Accepted, extended by 52 |
 | [51](0051-sharing-a-window-and-its-preview.md) | People share a Window by its permanent address, which shows the robots of previews a card of Cahut | Accepted, extended by 52 |
-| [52](0052-share-links.md) | A share link opens a Window to whoever holds it, without an account or a Key, until it ends | Accepted, extended by 53 |
+| [52](0052-share-links.md) | A share link opens a Window to whoever holds it, without an account or a Key, until it ends | Accepted, extended by 53 and 54 |
 | [53](0053-windows-for-their-author-alone.md) | A Window can open to its author alone, and a share link that opens once gives it a single reader | Accepted |
+| [54](0054-reporting-and-withdrawing-a-window.md) | Anyone reports a Window, and the moderators of its Cahut open it and withdraw it | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 
