@@ -232,6 +232,7 @@ type Call struct {
 
 	target, detail string
 	room           int64     // the Room the call concerns
+	reader         int64     // the one person who reads the entry in place of the members of the Room
 	as             ActorKind // what a Visitor's call is logged as
 	anonymous      bool      // the Logbook keeps no address of the Visitor
 	afterCommit    []func()
@@ -257,6 +258,14 @@ func (c *Call) Log(target, detail string) {
 // Room read its Logbook entry.
 func (c *Call) InRoom(id int64) {
 	c.room = id
+}
+
+// ReadBy names the one person who reads the Logbook entry of the call in
+// place of the members of its Room, such as the author of a Window for its
+// author alone; zero gives the entry back to the Room. The administrators
+// of the Cahut read it all the same.
+func (c *Call) ReadBy(userID int64) {
+	c.reader = userID
 }
 
 // Identify names who a Visitor's call concerns, such as the person who
@@ -651,6 +660,7 @@ func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
 		Target:     c.target,
 		Detail:     c.detail,
 		RoomID:     c.room,
+		ReaderID:   c.reader,
 		KnockID:    c.knock,
 		Outcome:    logbook.OK,
 	}

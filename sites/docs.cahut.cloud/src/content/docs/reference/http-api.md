@@ -69,6 +69,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `handle_reserved` | `handle` | Handle {handle} is reserved: it names a page of every Cahut |
 | `handle_room_cannot_move` | `room`, `name` | Your Room {room} would be named {name}, which another Room holds or which is too long: choose another handle |
 | `handle_taken` | `handle` | Handle {handle} is taken, by a person or a Room |
+| `invitation_author_only` | `room`, `window` | {room}/{window} opens to its author alone, so nobody else signs in to read it, and it has no Key: make a share link instead, with create_share_link, and max_openings 1 for a single reader |
 | `invitation_gone` |  | This invitation does not open the Window any more: it was taken back, it expired, or the Window changed its Key or its access. Ask the person who invited you for a new one |
 | `invite_address_internal` | `room`, `window` | {room}/{window} opens to the people of the Cahut only: invite people of the Cahut by handle, or set its access to key first, so that each address gets a personal link |
 | `invite_address_room_only` | `room`, `window` | {room}/{window} opens to its Room only: invite people of the Cahut by handle, or set its access to key first, so that each address gets a personal link |
@@ -114,8 +115,10 @@ A refusal that people meet in the console gives its code too, which never change
 | `too_many_share_links` | `room`, `window`, `limit` | {room}/{window} has {limit} share links that stand, the most: take one back before you make another |
 | `too_many_share_links_today` | `made`, `handle`, `limit` | {made} share links were made for {handle} in the last 24 hours, and {limit} is the most: make the rest later |
 | `too_many_sign_ins_at_once` |  | Too many sign-ins at once: try again in a few seconds |
+| `window_author_only` | `room`, `window`, `author` | Only the author of {room}/{window}, {author}, keeps it for themself |
 | `window_name_invalid` | `name` | Name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit |
 | `window_name_taken` | `name`, `room` | Name {name} is taken in the Room {room}, by a Window or one in its trash: choose another |
+| `window_without_author` | `room`, `window` | {room}/{window} has no author since the person it was published for was deleted: it opens to its Room, its Cahut, a Key or the public, and to no author alone |
 | `wrong_current_password` |  | The current password is wrong |
 | `wrong_handle_or_password` |  | Wrong handle or password |
 

@@ -9,6 +9,7 @@
 package window
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"fmt"
@@ -153,7 +154,7 @@ func (s *Service) Register(r *operation.Registry) {
 	operation.Register(r, &operation.Op[AccessInput, AccessSet]{
 		Name:  "set_window_access",
 		Title: "Set who opens a Window",
-		Description: "Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; " +
+		Description: "Set who opens a Window: author, its author alone, for themself; room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; " +
 			"key, anyone who types its Key; or public, anyone with its address. The access may end at a date, " +
 			"after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, " +
 			"and returns it once: give it to the person. Making a Window public waits for the approval of a person.",
@@ -270,7 +271,7 @@ type Window struct {
 	CreatedBy    string    `json:"created_by" jsonschema:"handle of the person it was first published for, empty once that person is deleted"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
-	Access       string    `json:"access" jsonschema:"who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public"`
+	Access       string    `json:"access" jsonschema:"who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public"`
 	// The times below are pointers, so that a Window without them omits
 	// them.
 	AccessEndsAt *time.Time   `json:"access_ends_at,omitempty" jsonschema:"when the access ends, after which the Window opens to its Room only; absent when it does not end"`
@@ -285,6 +286,7 @@ type PublishInput struct {
 	Kind        string       `json:"kind" jsonschema:"one of document, deck, dashboard or site"`
 	Room        string       `json:"room,omitempty" jsonschema:"name of the Room to publish in; the personal Room of the person you act for when empty"`
 	Name        string       `json:"name,omitempty" jsonschema:"its name in its address, 1 to 63 lowercase letters, digits and hyphens; from the title when empty"`
+	Access      string       `json:"access,omitempty" jsonschema:"room, the members of its Room (the default), or author, the person you act for alone: a draft, or a Window that one reader opens once with create_share_link and max_openings 1"`
 	Files       []File       `json:"files" jsonschema:"the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css"`
 	Declaration *Declaration `json:"declaration" jsonschema:"what the pages do: Cahut lets them load and call the origins listed here, and nothing else"`
 }
@@ -310,6 +312,10 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	case Document, Deck, Dashboard, Site:
 	default:
 		return Window{}, operation.Invalidf("kind %q: use document, deck, dashboard or site", in.Kind)
+	}
+	access := cmp.Or(in.Access, AccessRoom)
+	if access != AccessRoom && access != AccessAuthor {
+		return Window{}, operation.Invalidf("access %q: publish for the Room, room, or for yourself alone, author; set_window_access opens the Window to more", in.Access)
 	}
 	files, size, err := decode(in.Files)
 	if err != nil {
@@ -337,6 +343,9 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 		return Window{}, err
 	}
 	c.InRoom(r.ID)
+	if access == AccessAuthor {
+		c.ReadBy(c.Actor.UserID)
+	}
 	roomID := r.ID
 	if err := settings.CheckWindow(ctx, c, roomID, r.Name); err != nil {
 		return Window{}, err
@@ -344,7 +353,7 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err := settings.CheckDisk(ctx, c, roomID, size); err != nil {
 		return Window{}, err
 	}
-	w := Window{ID: address.NewID(), Title: title, Description: description, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: AccessRoom,
+	w := Window{ID: address.NewID(), Title: title, Description: description, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: access,
 		CreatedBy: c.Actor.Handle, CreatedAt: c.Now, UpdatedAt: c.Now, Declaration: declared}
 	if in.Name != "" {
 		w.Name = strings.TrimSpace(in.Name)
@@ -358,16 +367,20 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	now := store.FormatTime(c.Now)
 	var id int64
 	err = c.Tx.QueryRowContext(ctx, `
-		INSERT INTO windows (uid, room_id, name, title, description, kind, version, size, file_count, created_by, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
-		w.ID, roomID, w.Name, w.Title, w.Description, w.Kind, w.Version, w.Size, w.FileCount, c.Actor.UserID, now, now).Scan(&id)
+		INSERT INTO windows (uid, room_id, name, title, description, kind, version, size, file_count, created_by, created_at, updated_at, access)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+		w.ID, roomID, w.Name, w.Title, w.Description, w.Kind, w.Version, w.Size, w.FileCount, c.Actor.UserID, now, now, w.Access).Scan(&id)
 	if err != nil {
 		return Window{}, err
 	}
 	if err := insertVersion(ctx, c, id, w); err != nil {
 		return Window{}, err
 	}
-	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("%s %q, id %s, %d files, %d bytes; %s", w.Kind, w.Title, w.ID, w.FileCount, w.Size, w.Declaration))
+	detail := fmt.Sprintf("%s %q, id %s, %d files, %d bytes; %s", w.Kind, w.Title, w.ID, w.FileCount, w.Size, w.Declaration)
+	if w.Access == AccessAuthor {
+		detail += "; for its author alone"
+	}
+	c.Log(w.Room+"/"+w.Name, detail)
 
 	c.OnFailure(func() { os.RemoveAll(filepath.Join(s.dir, strconv.FormatInt(id, 10))) })
 	if err := writeFiles(s.Dir(id, w.Version), files); err != nil {
@@ -639,7 +652,17 @@ func (s *Service) target(ctx context.Context, c *operation.Call, ref string) (fo
 	if len(w) == 0 {
 		return found{}, operation.NotFoundf("no Window %s/%s", roomName, name)
 	}
+	w[0].readBy(c)
 	return w[0], nil
+}
+
+// readBy gives the Logbook entry of a call about the Window w to its author
+// alone, when it opens to them alone. See
+// docs/adr/0053-windows-for-their-author-alone.md.
+func (w found) readBy(c *operation.Call) {
+	if w.Access == AccessAuthor {
+		c.ReadBy(w.authorID)
+	}
 }
 
 // outOfTrash returns an error wrapping operation.ErrInvalid when the Window
@@ -706,6 +729,7 @@ func (s *Service) get(ctx context.Context, c *operation.Call, in GetInput) (Deta
 		return Detail{}, operation.NotFoundf("no Window %s/%s in your Rooms", room, name)
 	}
 	c.InRoom(w[0].roomID)
+	w[0].readBy(c)
 	versions, err := versionsOf(ctx, c.Tx, w[0])
 	if err != nil {
 		return Detail{}, err
@@ -783,29 +807,30 @@ func (s *Service) list(ctx context.Context, c *operation.Call, in ListInput) (Li
 	return list, nil
 }
 
-// found is a Window that query found, with its id and that of its Room,
-// and whether it has a Key.
+// found is a Window that query found, with its id, that of its Room and
+// that of its author, and whether it has a Key.
 type found struct {
 	Window
-	id, roomID int64
-	hasKey     bool
+	id, roomID, authorID int64
+	hasKey               bool
 }
 
 // query returns the Windows matching where that the actor may see: all of
 // them for the command line, those of their Rooms for anyone else, and of
-// the Rooms it was granted for an AI.
+// the Rooms it was granted for an AI, but the Windows that others keep for
+// themselves.
 // Administrators manage people and Rooms, not content: an administrator of
 // the server, who belongs to no Room, sees none.
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
 	q := `
 		SELECT w.id, w.uid, w.room_id, w.name, w.title, w.description, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
-			coalesce(u.handle, ''), w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL, v.declaration
+			coalesce(u.handle, ''), coalesce(w.created_by, 0), w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL, v.declaration
 		FROM windows w JOIN rooms r ON r.id = w.room_id LEFT JOIN users u ON u.id = w.created_by
 		JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
 		WHERE ` + where
 	if !c.Actor.CommandLine() {
-		q += " AND w.room_id IN (SELECT room_id FROM room_members WHERE user_id = ?)"
-		args = append(args, c.Actor.UserID)
+		q += " AND w.room_id IN (SELECT room_id FROM room_members WHERE user_id = ?) AND (w.access != 'author' OR w.created_by = ?)"
+		args = append(args, c.Actor.UserID, c.Actor.UserID)
 	}
 	rows, err := c.Tx.QueryContext(ctx, q+" ORDER BY w.updated_at DESC, w.id DESC", args...)
 	if err != nil {
@@ -820,7 +845,7 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		var trashed, ends sql.NullString
 		var declared *string
 		if err := rows.Scan(&w.id, &w.ID, &w.roomID, &w.Name, &w.Title, &w.Description, &w.Kind, &w.Room, &w.Version, &previous, &w.Size, &w.FileCount,
-			&w.CreatedBy, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey, &declared); err != nil {
+			&w.CreatedBy, &w.authorID, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey, &declared); err != nil {
 			return nil, err
 		}
 		if w.Declaration, err = decodeDeclaration(declared); err != nil {

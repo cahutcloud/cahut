@@ -171,9 +171,12 @@ func (s *Service) deleteUser(ctx context.Context, c *operation.Call, in account.
 	}
 	// What the person did elsewhere stays, without their name: the Windows
 	// and versions they published lose their author with the foreign keys,
-	// and their invitations and share links lose it here. The rest of what is theirs goes
-	// with them.
+	// and their invitations and share links lose it here. The Windows they
+	// kept for themselves open to their Room, which no author holds any
+	// more. The rest of what is theirs goes with them. See
+	// docs/adr/0053-windows-for-their-author-alone.md.
 	for _, q := range []string{
+		"UPDATE windows SET access = 'room' WHERE created_by = ? AND access = 'author'",
 		"UPDATE invitations SET invited_by = NULL WHERE invited_by = ?",
 		"UPDATE share_links SET created_by = NULL WHERE created_by = ?",
 		"DELETE FROM users WHERE id = ?",

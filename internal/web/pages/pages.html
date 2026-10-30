@@ -130,11 +130,16 @@ docs/adr/0051-sharing-a-window-and-its-preview.md. */}}
 <section class="c-card panel">
 <p class="c-label">{{icon "link" 14}} Share link</p>
 <h1 class="c-h3">{{.Title}}</h1>
-<p>This link opens it until {{.Until}}{{if .Limited}}, for {{if eq .Left 1}}one more reader{{else}}{{.Left}} more readers{{end}}{{end}}.</p>
+{{if .Once}}<p>This link opens it once, until {{.Until}}. Once you open it, you read it in this browser for {{.Hours}} hours, and nobody else can open it.</p>
 <form method="post">
 <p><button class="c-btn c-btn--primary" type="submit">{{icon "arrow-up-right" 16}}Open {{.Title}}</button></p>
 </form>
-<p class="c-small c-muted">Whoever has this link opens the Window. Keep it to the people it is meant for.</p>
+<p class="c-small c-muted">Open it when you are ready to read it.</p>
+{{- else}}<p>This link opens it until {{.Until}}{{if .Limited}}, for {{if eq .Left 1}}one more reader{{else}}{{.Left}} more readers{{end}}{{end}}.</p>
+<form method="post">
+<p><button class="c-btn c-btn--primary" type="submit">{{icon "arrow-up-right" 16}}Open {{.Title}}</button></p>
+</form>
+<p class="c-small c-muted">Whoever has this link opens the Window. Keep it to the people it is meant for.</p>{{end}}
 </section>
 </main>
 {{template "legal" .}}</body>

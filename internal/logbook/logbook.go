@@ -43,6 +43,10 @@ type Entry struct {
 	KnockID    int64     `json:"knock_id,omitempty" jsonschema:"the Knock that the call made, answered or ran for"`
 	Address    string    `json:"address,omitempty" jsonschema:"where a call that signs in came from: an IPv4 address, or the /64 of an IPv6 one"`
 	RoomID     int64     `json:"-"` // the Room the entry concerns, whose members read it
+	// ReaderID is the one person who reads the entry in place of the
+	// members of its Room: the author of a Window for its author alone.
+	// See docs/adr/0053-windows-for-their-author-alone.md.
+	ReaderID int64 `json:"-"`
 }
 
 // Execer is satisfied by *sql.DB and *sql.Tx.
@@ -71,12 +75,12 @@ const (
 func Write(ctx context.Context, db Execer, e Entry) error {
 	_, err := db.ExecContext(ctx, `
 		INSERT INTO logbook (at, operation, actor, user_id, user_handle, token_id,
-			client, via, target, detail, outcome, error, room_id, connection_id, knock_id, address)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			client, via, target, detail, outcome, error, room_id, connection_id, knock_id, address, reader_id)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		store.FormatTime(e.At), e.Operation, e.Actor, nullInt(e.UserID), nullString(Clip(e.UserHandle, MaxTarget)),
 		nullInt(e.TokenID), nullString(Clip(e.Client, MaxClient)), e.Via, nullString(Clip(e.Target, MaxTarget)),
 		nullString(Clip(e.Detail, MaxDetail)), string(e.Outcome), nullString(Clip(e.Error, MaxError)), nullInt(e.RoomID),
-		nullInt(e.Connection), nullInt(e.KnockID), nullString(e.Address))
+		nullInt(e.Connection), nullInt(e.KnockID), nullString(e.Address), nullInt(e.ReaderID))
 	if err != nil {
 		return fmt.Errorf("write logbook: %w", err)
 	}
@@ -104,14 +108,16 @@ func List(ctx context.Context, db Queryer, limit int) ([]Entry, error) {
 
 // ListOf returns the latest entries that the person userID reads, newest
 // first: what they did, what AIs did on their behalf, and what happened in
-// their Rooms. Only the Logbook of a Cahut has Rooms.
+// their Rooms, but to the Windows that others keep for themselves. Only the
+// Logbook of a Cahut has Rooms.
 func ListOf(ctx context.Context, db Queryer, userID int64, limit int) ([]Entry, error) {
-	return list(ctx, db, "user_id = ? OR room_id IN (SELECT room_id FROM room_members WHERE user_id = ?)", userID, userID, limit)
+	return list(ctx, db, "user_id = ? OR reader_id = ? OR reader_id IS NULL AND room_id IN (SELECT room_id FROM room_members WHERE user_id = ?)",
+		userID, userID, userID, limit)
 }
 
 // ListIn returns the latest entries about the Rooms rooms, newest first.
 // When member is not zero, only the Rooms that the person member is in
-// count.
+// count, without the entries that another person reads in their place.
 func ListIn(ctx context.Context, db Queryer, rooms []int64, member int64, limit int) ([]Entry, error) {
 	if len(rooms) == 0 {
 		return nil, nil
@@ -122,8 +128,8 @@ func ListIn(ctx context.Context, db Queryer, rooms []int64, member int64, limit 
 	}
 	where := "room_id IN (" + strings.Repeat("?, ", len(rooms)-1) + "?)"
 	if member != 0 {
-		where += " AND room_id IN (SELECT room_id FROM room_members WHERE user_id = ?)"
-		args = append(args, member)
+		where += " AND room_id IN (SELECT room_id FROM room_members WHERE user_id = ?) AND (reader_id IS NULL OR reader_id = ?)"
+		args = append(args, member, member)
 	}
 	return list(ctx, db, where, append(args, limit)...)
 }

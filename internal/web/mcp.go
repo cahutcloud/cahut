@@ -43,9 +43,12 @@ const instructions = `Cahut keeps what you make on the user's own server, as Win
 	`Give each Window a description of a sentence or two; retitle_window changes its title and description without a new version. ` +
 	`A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; ` +
 	`making it public waits for a person. ` +
+	`publish_window with access author keeps a Window for the person you act for alone, such as a draft in a team Room; ` +
+	`set_window_access to room shares it with the Room. ` +
 	`invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. ` +
 	`create_share_link gives a link that opens a Window to whoever holds it, without an account or a Key, for 30 days at most: ` +
 	`give it to the user, who passes it on; revoke_share_link takes it back. ` +
+	`For a Window that one reader opens once, publish it with access author, then make a share link with max_openings 1. ` +
 	`Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; ` +
 	`once the person has answered its Knock, get_knock gives the outcome. ` +
 	`Every call is recorded in the Logbook of the Cahut.`

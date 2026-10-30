@@ -26,7 +26,7 @@ export interface About {
 export interface AccessInput {
   /** the Window's id or address, or its Room and its name as room/name */
   window: string;
-  /** room, internal, key or public */
+  /** author, room, internal, key or public */
   access: string;
   /** when the access ends, such as 2026-12-31T18:00:00Z; after it, the Window opens to its Room only. It does not end when absent */
   ends_at?: string;
@@ -62,7 +62,7 @@ export interface AccessSet {
   created_by: string;
   created_at: string;
   updated_at: string;
-  /** who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public */
+  /** who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public */
   access: string;
   /** when the access ends, after which the Window opens to its Room only; absent when it does not end */
   access_ends_at?: string;
@@ -200,6 +200,15 @@ export interface Authorization {
   redirect?: string;
   /** why the request is invalid, when it is */
   error?: string;
+}
+
+export interface ByAuthor {
+  /** the Room of the Window */
+  room: string;
+  /** the name of the Window */
+  window: string;
+  /** the handle of its author */
+  author: string;
 }
 
 export interface ChangeEmailInput {
@@ -915,6 +924,8 @@ export interface PublishInput {
   room?: string;
   /** its name in its address, 1 to 63 lowercase letters, digits and hyphens; from the title when empty */
   name?: string;
+  /** room, the members of its Room (the default), or author, the person you act for alone: a draft, or a Window that one reader opens once with create_share_link and max_openings 1 */
+  access?: string;
   /** the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css */
   files: File[];
   /** what the pages do: Cahut lets them load and call the origins listed here, and nothing else */
@@ -1047,7 +1058,7 @@ export interface Room {
   role?: string;
   /** how many people are in the Room */
   members: number;
-  /** how many Windows the Room holds, out of the trash */
+  /** how many Windows of the Room you see, out of the trash: all but those that others keep for themselves */
   windows: number;
   /** the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them */
   home?: string;
@@ -1073,7 +1084,7 @@ export interface RoomDetail {
   role?: string;
   /** how many people are in the Room */
   members: number;
-  /** how many Windows the Room holds, out of the trash */
+  /** how many Windows of the Room you see, out of the trash: all but those that others keep for themselves */
   windows: number;
   /** the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them */
   home?: string;
@@ -1329,7 +1340,7 @@ export interface ShareLinkMade {
 export interface ShareLinkOpening {
   /** the Window, as room/name */
   window: string;
-  /** when the pass ends, with the link */
+  /** when the pass ends: with the link, or 4 hours after the opening of a link that opens once */
   expires_at: string;
 }
 
@@ -1507,7 +1518,7 @@ export interface Window {
   created_by: string;
   created_at: string;
   updated_at: string;
-  /** who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public */
+  /** who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public */
   access: string;
   /** when the access ends, after which the Window opens to its Room only; absent when it does not end */
   access_ends_at?: string;
@@ -1543,7 +1554,7 @@ export interface WindowDetail {
   created_by: string;
   created_at: string;
   updated_at: string;
-  /** who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public */
+  /** who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public */
   access: string;
   /** when the access ends, after which the Window opens to its Room only; absent when it does not end */
   access_ends_at?: string;
@@ -1719,7 +1730,7 @@ export interface CahutOperations {
   set_user_email: { input: SetUserEmailInput; output: User };
   /** Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. */
   set_user_role: { input: SetUserRoleInput; output: User };
-  /** Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. */
+  /** Set who opens a Window: author, its author alone, for themself; room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. */
   set_window_access: { input: AccessInput; output: AccessSet };
   /** Sign in with a handle and a password, and open a session. */
   sign_in: { input: SignInInput; output: AccountSession };
@@ -1809,6 +1820,8 @@ export interface Refusals {
   handle_room_cannot_move: MovedRoom;
   /** handle {handle} is taken, by a person or a Room */
   handle_taken: Handle;
+  /** {room}/{window} opens to its author alone, so nobody else signs in to read it, and it has no Key: make a share link instead, with create_share_link, and max_openings 1 for a single reader */
+  invitation_author_only: At;
   /** this invitation does not open the Window any more: it was taken back, it expired, or the Window changed its Key or its access. Ask the person who invited you for a new one */
   invitation_gone: null;
   /** {room}/{window} opens to the people of the Cahut only: invite people of the Cahut by handle, or set its access to key first, so that each address gets a personal link */
@@ -1899,10 +1912,14 @@ export interface Refusals {
   too_many_share_links_today: LinksMade;
   /** too many sign-ins at once: try again in a few seconds */
   too_many_sign_ins_at_once: null;
+  /** only the author of {room}/{window}, {author}, keeps it for themself */
+  window_author_only: ByAuthor;
   /** name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit */
   window_name_invalid: GivenName;
   /** name {name} is taken in the Room {room}, by a Window or one in its trash: choose another */
   window_name_taken: NameInRoom;
+  /** {room}/{window} has no author since the person it was published for was deleted: it opens to its Room, its Cahut, a Key or the public, and to no author alone */
+  window_without_author: At;
   /** the current password is wrong */
   wrong_current_password: null;
   /** wrong handle or password */

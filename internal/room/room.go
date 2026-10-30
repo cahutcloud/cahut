@@ -101,14 +101,24 @@ type Room struct {
 	Kind        string    `json:"kind" jsonschema:"personal or team"`
 	Role        string    `json:"role,omitempty" jsonschema:"your role in the Room, owner or member; empty when you are not in it"`
 	Members     int       `json:"members" jsonschema:"how many people are in the Room"`
-	Windows     int       `json:"windows" jsonschema:"how many Windows the Room holds, out of the trash"`
+	Windows     int       `json:"windows" jsonschema:"how many Windows of the Room you see, out of the trash: all but those that others keep for themselves"`
 	Home        string    `json:"home,omitempty" jsonschema:"the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+// seen keeps, among the Windows of a Room, those that the person ?1 sees: all
+// but those that others keep for themselves. The command line, and the
+// administrators of the server, count them all. See
+// docs/adr/0053-windows-for-their-author-alone.md.
+const seen = "(access != 'author' OR created_by = ?1 OR ?1 = 0)"
+
 // homeName is the name of the home Window of the Room r, out of the trash,
-// for the queries that describe Rooms.
-const homeName = "(SELECT name FROM windows WHERE id = r.home_window_id AND trashed_at IS NULL)"
+// when the person ?1 sees it, and windowCount the number of the Windows of
+// r that they see, for the queries that describe Rooms.
+const (
+	homeName    = "(SELECT name FROM windows WHERE id = r.home_window_id AND trashed_at IS NULL AND " + seen + ")"
+	windowCount = "(SELECT count(*) FROM windows WHERE room_id = r.id AND trashed_at IS NULL AND " + seen + ")"
+)
 
 // CreateRoomInput is the input of create_room.
 type CreateRoomInput struct {
@@ -294,9 +304,8 @@ var ListRooms = &operation.Op[ListRoomsInput, List]{
 		}
 		rows, err := c.Tx.QueryContext(ctx, `
 			SELECT r.id, r.name, r.title, r.description, r.kind, m.role, r.created_at,
-				(SELECT count(*) FROM room_members WHERE room_id = r.id),
-				(SELECT count(*) FROM windows WHERE room_id = r.id AND trashed_at IS NULL), `+homeName+`
-			FROM rooms r LEFT JOIN room_members m ON m.room_id = r.id AND m.user_id = ?
+				(SELECT count(*) FROM room_members WHERE room_id = r.id), `+windowCount+`, `+homeName+`
+			FROM rooms r LEFT JOIN room_members m ON m.room_id = r.id AND m.user_id = ?1
 			WHERE `+where+`
 			ORDER BY r.kind = 'team', m.role IS NULL, r.name`, c.Actor.UserID)
 		if err != nil {
@@ -367,8 +376,8 @@ func detail(ctx context.Context, c *operation.Call, a Access) (Detail, error) {
 	var created string
 	var home sql.NullString
 	err := c.Tx.QueryRowContext(ctx, `
-		SELECT r.description, r.created_at, (SELECT count(*) FROM windows WHERE room_id = r.id AND trashed_at IS NULL), `+homeName+`
-		FROM rooms r WHERE r.id = ?`, a.ID).Scan(&d.Description, &created, &d.Windows, &home)
+		SELECT r.description, r.created_at, `+windowCount+`, `+homeName+`
+		FROM rooms r WHERE r.id = ?2`, c.Actor.UserID, a.ID).Scan(&d.Description, &created, &d.Windows, &home)
 	if err != nil {
 		return Detail{}, err
 	}
@@ -469,8 +478,8 @@ var SetHome = &operation.Op[SetHomeInput, Detail]{
 		c.InRoom(a.ID)
 		var home sql.NullInt64
 		if in.Window != "" {
-			err := c.Tx.QueryRowContext(ctx, "SELECT id FROM windows WHERE room_id = ? AND name = ? AND trashed_at IS NULL",
-				a.ID, in.Window).Scan(&home)
+			err := c.Tx.QueryRowContext(ctx, "SELECT id FROM windows WHERE room_id = ?2 AND name = ?3 AND trashed_at IS NULL AND "+seen,
+				c.Actor.UserID, a.ID, in.Window).Scan(&home)
 			if errors.Is(err, sql.ErrNoRows) {
 				return Detail{}, operation.NotFoundf("no Window %q in the Room %s, out of the trash: list_windows gives the names of its Windows", in.Window, a.Name)
 			}
@@ -597,6 +606,18 @@ var RemoveMember = &operation.Op[RemoveMemberInput, Detail]{
 		}
 		if _, err := c.Tx.ExecContext(ctx, "DELETE FROM room_members WHERE room_id = ? AND user_id = ?", a.ID, id); err != nil {
 			return Detail{}, err
+		}
+		// What is published in a team Room belongs to the Room: the Windows
+		// that the person kept for themself open to it again. See
+		// docs/adr/0053-windows-for-their-author-alone.md.
+		res, err := c.Tx.ExecContext(ctx, "UPDATE windows SET access = 'room' WHERE room_id = ? AND created_by = ? AND access = 'author'", a.ID, id)
+		if err != nil {
+			return Detail{}, err
+		}
+		if n, err := res.RowsAffected(); err != nil {
+			return Detail{}, err
+		} else if n > 0 {
+			c.Log(in.Room, fmt.Sprintf("%s; %d of their Windows for themself open to the Room", in.User, n))
 		}
 		if id == c.Actor.UserID && !c.Admin {
 			a.Role = ""
