@@ -1,6 +1,6 @@
 ---
 title: Moderation
-description: How anyone reports a Window of a Cahut, and how its moderators read the reports and decide.
+description: How anyone reports a Window of a Cahut, and how its moderators read the reports, open the Window, withdraw it and reinstate it.
 ---
 
 Anyone reports a Window of a Cahut to its moderators, without an account. The moderators of a Cahut are its administrators and the administrators of its server. They read the reports in its console, and decide.
@@ -33,12 +33,22 @@ Each opening goes to the Logbook in the Room of the Window, under the moderator 
 
 ## Deciding
 
-**Leave it as it is** decides a report and leaves its Window as it is, with a note for the moderators if they want one. Cahut then forgets the name and the address of whoever reported. Decided reports stay on the page, under **Decided**, with who decided and when.
+**Leave it as it is** decides a report and leaves its Window as it is, with a note for the moderators if they want one.
 
-Moderation is for people: no AI and no service is offered its operations, [`report_window`, `list_reports`, `preview_reported_window` and `dismiss_report`](/reference/operations/).
+**Withdraw** withdraws its Window, with a reason of 500 characters at most, which the members of its Room read. The Window keeps everything, and serves nothing to its readers until it is reinstated: see [A withdrawn Window](/concepts/rooms-and-windows/#a-withdrawn-window). Withdrawing decides every report that waits about the Window. A moderator also withdraws a public Window that nobody reported, with `withdraw_window`; withdrawing a withdrawn Window changes its reason.
+
+Cahut then forgets the name and the address of whoever reported. Decided reports stay on the page, under **Decided**, with who decided and when.
+
+## Reinstating
+
+**Reinstate**, on a decided report whose Window is still withdrawn, gives the Window back as it was: its access, its Key, its share links until their end. A Window that the administrators of the server withdrew is theirs: only they change its reason or reinstate it, and the administrators of the Cahut are refused with the code `window_withdrawn_by_host`.
+
+For a person who publishes abuse again and again, disable them or delete them for good under **People**, or have the administrators of the server [suspend the Cahut](/concepts/cahuts/#suspension). Disabling a person leaves their public Windows open: withdraw them too.
+
+Moderation is for people: no AI and no service is offered its operations, [`report_window`, `list_reports`, `preview_reported_window`, `dismiss_report`, `withdraw_window` and `reinstate_window`](/reference/operations/).
 
 ## What the Logbook keeps
 
-Each report goes to the Logbook of the Cahut, under someone who reports a Window, with its number, what is wrong and the Window it names. Only the administrators of the Cahut read it: the members of the Room of the Window do not. The entry holds neither the explanation, nor the name, nor the address of whoever reported, nor their address on the network. Each opening of a reported Window goes to the Logbook of its Room, and each decision to the Logbook too, under the moderator who made it.
+Each report goes to the Logbook of the Cahut, under someone who reports a Window, with its number, what is wrong and the Window it names. Only the administrators of the Cahut read it: the members of the Room of the Window do not. The entry holds neither the explanation, nor the name, nor the address of whoever reported, nor their address on the network. Each opening of a reported Window, each withdrawal with its reason and each reinstatement go to the Logbook of its Room, so that its members read them, under the moderator who made them. A report left as it is goes to the Logbook of the Cahut.
 
 The record of these decisions is [ADR 54](https://github.com/cahutcloud/cahut/blob/main/docs/adr/0054-reporting-and-withdrawing-a-window.md).

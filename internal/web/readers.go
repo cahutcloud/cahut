@@ -255,6 +255,9 @@ func (s *Server) serveKey(w http.ResponseWriter, r *http.Request) {
 		s.internal(w, "find a Window", err)
 		return
 	}
+	if s.withdrawn(w, r, err, reader, false) {
+		return
+	}
 	if err != nil || win.Access != window.AccessKey {
 		s.notFound(w, r, reader.Handle)
 		return

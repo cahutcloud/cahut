@@ -49,6 +49,7 @@ const t = words({
 		roomPage: "Page of the Room",
 		preview: (title: string) => `Preview of ${title}`,
 		openWindow: (title: string) => `Open ${title} in a new tab`,
+		withdrawn: "Withdrawn",
 		tags: "Tags",
 		removeTag: (tag: string) => `Remove the tag ${tag}`,
 		tagsCount: (n: number, max: number) => `${n} of ${max} tags.`,
@@ -101,6 +102,7 @@ const t = words({
 		roomPage: "Page de la Room",
 		preview: (title) => `Aperçu ${de(title)}`,
 		openWindow: (title) => `Ouvrir ${title} dans un nouvel onglet`,
+		withdrawn: "Retirée",
 		tags: "Tags",
 		removeTag: (tag) => `Retirer le tag ${tag}`,
 		tagsCount: (n, max) => `${n} tags sur ${max}.`,
@@ -803,7 +805,7 @@ export function WindowCard(props: {
 				)}
 			</Link>
 			<div class="window-actions">
-				<ShareMenu window={w} compact onLinks={props.onChanged} />
+				{!w.withdrawn && <ShareMenu window={w} compact onLinks={props.onChanged} />}
 				<a class="c-btn c-btn--secondary c-btn--sm icon-button" href={w.url} target="_blank" rel="noopener noreferrer" aria-label={t.openWindow(w.title)} title={t.openWindow(w.title)}>
 					<ArrowUpRight class="i" size={16} aria-hidden="true" />
 				</a>
@@ -819,7 +821,7 @@ export function WindowCard(props: {
 					<span>
 						{[kind.name, ago(w.updated_at), showRoom ? w.room : w.created_by].filter(Boolean).join(" · ")}
 					</span>
-					<AccessBadge access={w.access} />
+					{w.withdrawn ? <span class="c-badge c-badge--danger">{t.withdrawn}</span> : <AccessBadge access={w.access} />}
 				</div>
 			</div>
 		</article>

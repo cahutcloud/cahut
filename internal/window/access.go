@@ -98,7 +98,7 @@ func (s *Service) setAccess(ctx context.Context, c *operation.Call, in AccessInp
 	if err != nil {
 		return AccessSet{}, err
 	}
-	if err := w.outOfTrash(); err != nil {
+	if err := w.changeable(); err != nil {
 		return AccessSet{}, err
 	}
 	switch in.Access {
@@ -216,38 +216,64 @@ type Served struct {
 	UpdatedAt         time.Time
 	Declaration       *Declaration // of the current version; nil when it was published before declarations
 	keyHash           string
+	withdrawn         bool
 }
 
-const served = `
-	SELECT w.id, w.room_id, w.uid, r.name, w.name, w.title, w.description, w.kind, w.version, w.access, coalesce(w.created_by, 0), w.access_ends_at, w.updated_at, w.key_hash, v.declaration
+// servedAll selects the Windows out of the trash, as readers reach them, and
+// served those among them that the moderators have not withdrawn.
+const (
+	servedAll = `
+	SELECT w.id, w.room_id, w.uid, r.name, w.name, w.title, w.description, w.kind, w.version, w.access, coalesce(w.created_by, 0), w.access_ends_at, w.updated_at, w.key_hash, v.declaration,
+		w.withdrawn_at IS NOT NULL
 	FROM windows w JOIN rooms r ON r.id = w.room_id JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
 	WHERE w.trashed_at IS NULL AND `
+	served = servedAll + "w.withdrawn_at IS NULL AND "
+)
+
+// Withdrawn is the error of a lookup that finds a Window that the
+// moderators of its Cahut withdrew: it serves nothing to its readers until
+// they reinstate it. It is an ErrNotFound, so that a reader who may not
+// learn of it meets what is not found; the pages that may say it was
+// withdrawn find the Window in it, and the console still previews it for
+// the members of its Room. See
+// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+type Withdrawn struct {
+	Window Served
+}
+
+func (e *Withdrawn) Error() string {
+	return "not found: " + e.Window.Room + "/" + e.Window.Name + " was withdrawn by the moderators of its Cahut"
+}
+
+func (e *Withdrawn) Unwrap() error { return operation.ErrNotFound }
+
+// lookup returns the Window that where finds with args, or a Withdrawn
+// error when the moderators withdrew it, or what is not found, which
+// missing says.
+func lookup(ctx context.Context, db *store.DB, now time.Time, missing error, where string, args ...any) (Served, error) {
+	w, err := scanServed(db.Read.QueryRowContext(ctx, servedAll+where, args...), now)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Served{}, missing
+	}
+	if err == nil && w.withdrawn {
+		return Served{}, &Withdrawn{Window: w}
+	}
+	return w, err
+}
 
 // Lookup returns the Window called name in the Room called room.
 func Lookup(ctx context.Context, db *store.DB, room, name string, now time.Time) (Served, error) {
-	w, err := scanServed(db.Read.QueryRowContext(ctx, served+"r.name = ? AND w.name = ?", room, name), now)
-	if errors.Is(err, sql.ErrNoRows) {
-		return Served{}, operation.NotFoundf("no Window %s/%s", room, name)
-	}
-	return w, err
+	return lookup(ctx, db, now, operation.NotFoundf("no Window %s/%s", room, name), "r.name = ? AND w.name = ?", room, name)
 }
 
 // LookupID returns the Window with the given id.
 func LookupID(ctx context.Context, db *store.DB, id int64, now time.Time) (Served, error) {
-	w, err := scanServed(db.Read.QueryRowContext(ctx, served+"w.id = ?", id), now)
-	if errors.Is(err, sql.ErrNoRows) {
-		return Served{}, operation.NotFoundf("no Window %d", id)
-	}
-	return w, err
+	return lookup(ctx, db, now, operation.NotFoundf("no Window %d", id), "w.id = ?", id)
 }
 
 // LookupUID returns the Window whose id, as people and AIs see it, is uid.
 func LookupUID(ctx context.Context, db *store.DB, uid string, now time.Time) (Served, error) {
-	w, err := scanServed(db.Read.QueryRowContext(ctx, served+"w.uid = ?", uid), now)
-	if errors.Is(err, sql.ErrNoRows) {
-		return Served{}, operation.NotFoundf("no Window %s", uid)
-	}
-	return w, err
+	return lookup(ctx, db, now, operation.NotFoundf("no Window %s", uid), "w.uid = ?", uid)
 }
 
 type scanner interface {
@@ -259,7 +285,8 @@ func scanServed(row scanner, now time.Time) (Served, error) {
 	var ends, keyHash sql.NullString
 	var updated string
 	var declared *string
-	err := row.Scan(&w.ID, &w.RoomID, &w.UID, &w.Room, &w.Name, &w.Title, &w.Description, &w.Kind, &w.Version, &w.Access, &w.AuthorID, &ends, &updated, &keyHash, &declared)
+	err := row.Scan(&w.ID, &w.RoomID, &w.UID, &w.Room, &w.Name, &w.Title, &w.Description, &w.Kind, &w.Version, &w.Access, &w.AuthorID, &ends, &updated, &keyHash, &declared,
+		&w.withdrawn)
 	if err != nil {
 		return Served{}, err
 	}

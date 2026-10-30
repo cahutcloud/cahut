@@ -106,6 +106,16 @@ The members of the Room, and their AIs, do all three, and the console offers the
 
 `purge_window` deletes a Window in the trash for good, with its versions and its files, and frees its name. It cannot be undone: a Window goes to the trash first, and an AI that purges one [knocks first](/concepts/knock-first-and-logbook/#knock-first). In the console, the page of a Window in the trash deletes it for good, after a confirmation.
 
+## A withdrawn Window
+
+The [moderators](/admin/moderation/) of a Cahut, its administrators and those of its server, withdraw a Window that someone reported, or a public Window, with a reason. A withdrawn Window keeps everything: its versions, its access, its Key, its share links and its invitations. Until they reinstate it:
+
+- Its address, its permanent address, its share links and the page of its Key answer with a page that says it was withdrawn, with the status `410 Gone`, to whoever would open it otherwise; anyone else meets what is not found. The page of its Room no longer lists it, nor shows it at its address.
+- Its members find it in the console, marked **Withdrawn**, with the date, the reason, and whether the moderators of the Cahut or the administrators of the server withdrew it. They preview it there, put it in the trash, restore it, which keeps it withdrawn, and delete it for good.
+- Nothing changes it, nor opens it to someone new: a new version, a rollback, its access, its Key, its name, its title and description, a share link, an invitation and the home of its Room are refused with the code `window_withdrawn`. Its AIs read its state and its reason in `get_window` and `list_windows`.
+
+Reinstated, it opens as it did, its share links until their end. Only the administrators of the server reinstate a Window that they withdrew.
+
 ## The sandbox
 
 The pages of every Window come from the domain of their Cahut, and a browser would let them read each other. So every file of a Window is served with these headers:

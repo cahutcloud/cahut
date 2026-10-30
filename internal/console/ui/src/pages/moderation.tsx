@@ -7,7 +7,7 @@ import { ArrowUpRight, Eye, Flag } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Report, ReportedPreview } from "../api.gen";
-import { AccessBadge, Dialog, Failure, Notice, PageHead } from "../components";
+import { AccessBadge, ConfirmButton, Dialog, Failure, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
 import { locale, plural, words } from "../i18n";
 import { useLoad } from "../load";
@@ -37,6 +37,13 @@ const t = words({
 		open: "Open",
 		preview: (title: string) => `The Window ${title}`,
 		openedNotice: "The members of its Room read in the Logbook that you opened it, with this report. It runs in its sandbox, without its forms.",
+		withdraw: "Withdraw",
+		reason: "Reason, for the members of its Room",
+		reasonHelp: (left: number) => `They read it in the console. ${plural(left, "character", "characters")} left.`,
+		confirmWithdraw: "Withdraw the Window",
+		withdrawnNow: "Withdrawn: it serves nothing to its readers until it is reinstated.",
+		reinstate: "Reinstate",
+		reinstateQuestion: "Give the Window back as it was?",
 		dismiss: "Leave it as it is",
 		note: "Note for the moderators",
 		noteHelp: (left: number) => `Optional. ${plural(left, "character", "characters")} left.`,
@@ -71,6 +78,13 @@ const t = words({
 		open: "Ouvrir",
 		preview: (title) => `La Window ${title}`,
 		openedNotice: "Les membres de sa Room lisent dans le Logbook que vous l'avez ouverte, avec ce signalement. Elle s'exécute dans son bac à sable, sans ses formulaires.",
+		withdraw: "Retirer",
+		reason: "Raison, pour les membres de sa Room",
+		reasonHelp: (left) => `Ils la lisent dans la console. ${plural(left, "caractère restant", "caractères restants")}.`,
+		confirmWithdraw: "Retirer la Window",
+		withdrawnNow: "Retirée : ses lecteurs n'y ont plus accès jusqu'à ce qu'elle soit remise en ligne.",
+		reinstate: "Remettre en ligne",
+		reinstateQuestion: "Rendre la Window telle qu'elle était ?",
 		dismiss: "La laisser telle quelle",
 		note: "Note pour les modérateurs",
 		noteHelp: (left) => `Facultative. ${plural(left, "caractère restant", "caractères restants")}.`,
@@ -83,7 +97,7 @@ const t = words({
 	},
 });
 
-/** The most characters of the note of a decision. */
+/** The most characters of the note of a decision, and of the reason of a withdrawal. */
 const maxNote = 500;
 
 function when(at: string): string {
@@ -113,7 +127,8 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 	const { call } = useModerator();
 	const api = useConsole();
 	const p = props.report;
-	const [asking, setAsking] = useState(false);
+	// The decision being made: leave the Window as it is, or withdraw it.
+	const [asking, setAsking] = useState<"dismiss" | "withdraw" | null>(null);
 	const [note, setNote] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
@@ -128,18 +143,25 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 		}
 	};
 	const address = `${location.origin}/${w.room}/${w.name}/`;
-	const dismiss = async (e: Event) => {
-		e.preventDefault();
+	const run = async (act: () => Promise<unknown>) => {
 		setBusy(true);
 		setError("");
 		try {
-			await call("dismiss_report", { report: p.id, note });
+			await act();
 			api.reloadReports();
 			props.onDecided();
 		} catch (err) {
 			setError(explain(err));
 		}
 		setBusy(false);
+	};
+	const decide = (e: Event) => {
+		e.preventDefault();
+		run(() =>
+			asking === "withdraw"
+				? call("withdraw_window", { window: w.id, reason: note })
+				: call("dismiss_report", { report: p.id, note }),
+		);
 	};
 	const contact = [p.name, p.email].filter(Boolean).join(", ");
 	return (
@@ -165,6 +187,17 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 					{p.note && ` ${p.note}`}
 				</p>
 			)}
+			{p.decision && w.withdrawn && (
+				<div class="actions">
+					<span class="c-badge c-badge--danger">{t.withdrawnNow}</span>
+					<ConfirmButton
+						label={t.reinstate}
+						question={t.reinstateQuestion}
+						confirm={t.reinstate}
+						onConfirm={() => run(() => call("reinstate_window", { window: w.id }))}
+					/>
+				</div>
+			)}
 			{error && <Failure message={error} />}
 			{!p.decision && !asking && (
 				<div class="actions">
@@ -180,7 +213,10 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 							{t.openAtAddress}
 						</a>
 					)}
-					<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={() => setAsking(true)}>
+					<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={() => setAsking("withdraw")}>
+						{t.withdraw}
+					</button>
+					<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={() => setAsking("dismiss")}>
 						{t.dismiss}
 					</button>
 				</div>
@@ -196,17 +232,30 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 				</Dialog>
 			)}
 			{!p.decision && asking && (
-				<form class="report__decide" onSubmit={dismiss}>
+				<form class="report__decide" onSubmit={decide}>
 					<label class="c-field">
-						<span class="c-field__label">{t.note}</span>
-						<textarea class="c-input" maxLength={maxNote} rows={2} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
-						<span class="c-field__help">{t.noteHelp(maxNote - note.length)}</span>
+						<span class="c-field__label">{asking === "withdraw" ? t.reason : t.note}</span>
+						<textarea
+							class="c-input"
+							required={asking === "withdraw"}
+							maxLength={maxNote}
+							rows={2}
+							value={note}
+							onInput={(e) => setNote(e.currentTarget.value)}
+						/>
+						<span class="c-field__help">{(asking === "withdraw" ? t.reasonHelp : t.noteHelp)(maxNote - note.length)}</span>
 					</label>
 					<div class="actions">
-						<button class="c-btn c-btn--primary c-btn--sm" type="submit" disabled={busy}>
-							{t.confirmDismiss}
-						</button>
-						<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => (setAsking(false), setNote(""), setError(""))}>
+						{asking === "withdraw" ? (
+							<button class="c-btn c-btn--danger c-btn--sm" type="submit" disabled={busy || note.trim() === ""}>
+								{t.confirmWithdraw}
+							</button>
+						) : (
+							<button class="c-btn c-btn--primary c-btn--sm" type="submit" disabled={busy}>
+								{t.confirmDismiss}
+							</button>
+						)}
+						<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => (setAsking(null), setNote(""), setError(""))}>
 							{t.cancel}
 						</button>
 					</div>

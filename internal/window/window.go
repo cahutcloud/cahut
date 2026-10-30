@@ -278,6 +278,15 @@ type Window struct {
 	AccessEndsAt *time.Time   `json:"access_ends_at,omitempty" jsonschema:"when the access ends, after which the Window opens to its Room only; absent when it does not end"`
 	TrashedAt    *time.Time   `json:"trashed_at,omitempty" jsonschema:"when the Window went to the trash; absent when it is not in it"`
 	Declaration  *Declaration `json:"declaration,omitempty" jsonschema:"what the pages of the current version do, as declared when it was published; absent for a Window published before declarations"`
+	Withdrawn    *Withdrawal  `json:"withdrawn,omitempty" jsonschema:"when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn"`
+}
+
+// Withdrawal says when and why the moderators of a Cahut withdrew a
+// Window. See docs/adr/0054-reporting-and-withdrawing-a-window.md.
+type Withdrawal struct {
+	At       time.Time `json:"at"`
+	Reason   string    `json:"reason" jsonschema:"why the moderators withdrew it, for the members of its Room"`
+	ByServer bool      `json:"by_server,omitempty" jsonschema:"the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did"`
 }
 
 // PublishInput is the input of publish_window.
@@ -417,7 +426,7 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 	if err != nil {
 		return Window{}, err
 	}
-	if err := w.outOfTrash(); err != nil {
+	if err := w.changeable(); err != nil {
 		return Window{}, err
 	}
 	if strings.TrimSpace(in.Title) != "" {
@@ -523,7 +532,7 @@ func (s *Service) retitle(ctx context.Context, c *operation.Call, in RetitleInpu
 	if err != nil {
 		return Window{}, err
 	}
-	if err := w.outOfTrash(); err != nil {
+	if err := w.changeable(); err != nil {
 		return Window{}, err
 	}
 	var changes []string
@@ -571,7 +580,7 @@ func (s *Service) rename(ctx context.Context, c *operation.Call, in RenameInput)
 	if err != nil {
 		return Window{}, err
 	}
-	if err := w.outOfTrash(); err != nil {
+	if err := w.changeable(); err != nil {
 		return Window{}, err
 	}
 	name := strings.TrimSpace(in.Name)
@@ -599,7 +608,7 @@ func (s *Service) rollback(ctx context.Context, c *operation.Call, in RefInput) 
 	if err != nil {
 		return Window{}, err
 	}
-	if err := w.outOfTrash(); err != nil {
+	if err := w.changeable(); err != nil {
 		return Window{}, err
 	}
 	if w.Previous == 0 {
@@ -695,6 +704,19 @@ func (w found) readBy(c *operation.Call) {
 func (w found) outOfTrash() error {
 	if w.TrashedAt != nil {
 		return operation.Invalidf("%s/%s is in the trash: bring it back with restore_window first", w.Room, w.Name)
+	}
+	return nil
+}
+
+// changeable returns an error when the Window w may not change, nor open
+// to someone new: it is in the trash, or its moderators withdrew it. See
+// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+func (w found) changeable() error {
+	if err := w.outOfTrash(); err != nil {
+		return err
+	}
+	if w.Withdrawn != nil {
+		return room.WindowWithdrawn(room.WithdrawnWindow{Room: w.Room, Window: w.Name, Reason: w.Withdrawn.Reason})
 	}
 	return nil
 }
@@ -860,6 +882,7 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 	q := `
 		SELECT w.id, w.uid, w.room_id, w.name, w.title, w.description, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
 			coalesce(u.handle, ''), coalesce(w.created_by, 0), w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL, v.declaration,
+			w.withdrawn_at, coalesce(w.withdrawn_reason, ''), w.withdrawn_by_server,
 			coalesce((SELECT group_concat(tag, ' ' ORDER BY tag) FROM window_tags WHERE window_id = w.id), '')
 		FROM windows w JOIN rooms r ON r.id = w.room_id LEFT JOIN users u ON u.id = w.created_by
 		JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
@@ -878,12 +901,20 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		var w found
 		var previous sql.NullInt64
 		var created, updated string
-		var trashed, ends sql.NullString
+		var trashed, ends, withdrawn sql.NullString
 		var declared *string
 		var tags string
+		var why Withdrawal
 		if err := rows.Scan(&w.id, &w.ID, &w.roomID, &w.Name, &w.Title, &w.Description, &w.Kind, &w.Room, &w.Version, &previous, &w.Size, &w.FileCount,
-			&w.CreatedBy, &w.authorID, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey, &declared, &tags); err != nil {
+			&w.CreatedBy, &w.authorID, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey, &declared,
+			&withdrawn, &why.Reason, &why.ByServer, &tags); err != nil {
 			return nil, err
+		}
+		if withdrawn.Valid {
+			if why.At, err = store.ParseTime(withdrawn.String); err != nil {
+				return nil, err
+			}
+			w.Withdrawn = &why
 		}
 		// A tag holds no space.
 		w.Tags = append([]string{}, strings.Fields(tags)...)

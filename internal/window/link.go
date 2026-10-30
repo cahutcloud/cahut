@@ -144,7 +144,7 @@ func (s *Service) createLink(ctx context.Context, c *operation.Call, in ShareLin
 	if err != nil {
 		return ShareLinkMade{}, err
 	}
-	if err := w.outOfTrash(); err != nil {
+	if err := w.changeable(); err != nil {
 		return ShareLinkMade{}, err
 	}
 	at := w.Room + "/" + w.Name
@@ -350,7 +350,7 @@ func openLink(ctx context.Context, c *operation.Call, in OpenShareLinkInput) (Sh
 	err := c.Tx.QueryRowContext(ctx, `
 		SELECT l.id, w.id, w.room_id, r.name || '/' || w.name, w.access, coalesce(w.created_by, 0), l.expires_at, coalesce(l.max_openings, 0), l.openings
 		FROM share_links l JOIN windows w ON w.id = l.window_id JOIN rooms r ON r.id = w.room_id
-		WHERE l.hash = ? AND w.trashed_at IS NULL AND `+stands,
+		WHERE l.hash = ? AND w.trashed_at IS NULL AND w.withdrawn_at IS NULL AND `+stands,
 		credential.Hash(strings.TrimSpace(in.Token)), store.FormatTime(c.Now)).
 		Scan(&id, &o.WindowID, &roomID, &o.Window, &access, &author, &expires, &limit, &openings)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -401,7 +401,8 @@ type Link struct {
 }
 
 // ErrNoLink means that a token names no share link, or the Window of the
-// link is in the trash.
+// link is in the trash. A link to a withdrawn Window gives its Withdrawn
+// error.
 var ErrNoLink = errors.New("no share link")
 
 // FindLink returns the share link whose token is token, with its Window,
@@ -426,7 +427,7 @@ func FindLink(ctx context.Context, db *store.DB, token string, now time.Time) (L
 	}
 	l.Limited, l.Left, l.Once = limit != 0, limit-openings, limit == 1
 	l.Window, err = LookupID(ctx, db, windowID, now)
-	if errors.Is(err, operation.ErrNotFound) {
+	if _, withdrawn := errors.AsType[*Withdrawn](err); !withdrawn && errors.Is(err, operation.ErrNotFound) {
 		return Link{}, ErrNoLink
 	}
 	return l, err

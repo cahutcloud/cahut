@@ -25,7 +25,7 @@ Cahut is built in slices, each one working from the AI to the reader. Nine slice
 | Access | Room only by default, internal, with a Key, or public, until a date; readers sign in through the console; an AI makes a Window public once its person approves. See [Who can open a Window](/concepts/access/) |
 | E-mail | Through the SMTP relay of each Cahut, set by its administrators: activation links, forgotten passwords, invitations to read a Window with a personal link, and notices of Knocks, of the account and of limits. Without a relay, a Cahut sends none and shows no feature of e-mail. See [E-mail](/admin/mail/) |
 | Claude | A plugin for Claude Code that connects a Cahut and gives Claude the skill to make Windows, and the skill as a zip for the Claude apps. See [The Cahut plugin for Claude](/connect/claude-plugin/) |
-| Moderation | Anyone reports a Window, without an account, on a page that the foot of the pages for readers links; the administrators of the Cahut and of its server read the reports in the console. See [Moderation](/admin/moderation/) |
+| Moderation | Anyone reports a Window, without an account, on a page that the foot of the pages for readers links; the administrators of the Cahut and of its server read the reports in the console, open the Window whatever its access, and withdraw it with a reason until they reinstate it. See [Moderation](/admin/moderation/) |
 | Knock first | What an AI cannot undo, or what changes what a person may do, waits 24 hours for its person, who approves or declines it in the console. See [Knock first and the Logbook](/concepts/knock-first-and-logbook/#knock-first) |
 | Logbook | Every call of an AI, every change and every sign-in, read in the console or on the command line |
 

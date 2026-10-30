@@ -302,3 +302,17 @@ docs/adr/0054-reporting-and-withdrawing-a-window.md. */}}
 {{template "legal" .}}</body>
 </html>
 {{end}}
+
+{{define "withdrawn"}}{{template "head" .}}</head>
+<body>
+{{template "top" .}}
+<main class="page page--narrow">
+<section class="c-card panel">
+<p class="c-label">Withdrawn</p>
+<h1 class="c-h3">This Window was withdrawn</h1>
+<p>The moderators of this Cahut withdrew it. It opens to nobody until they reinstate it.</p>
+</section>
+</main>
+{{template "legal" .}}</body>
+</html>
+{{end}}

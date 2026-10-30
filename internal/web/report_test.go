@@ -266,3 +266,178 @@ func TestOpenAReportedWindow(t *testing.T) {
 		t.Errorf("preview_reported_window of a decided report: %d %s", r.status, r.raw)
 	}
 }
+
+// The moderators withdraw a Window that a report names, or a public
+// Window, with a reason: it keeps everything, and serves nothing to its
+// readers, who learn that it was withdrawn when they would open it; its
+// members still preview it in the console, and change nothing in it until
+// it is reinstated, which only the administrators of the server do for a
+// Window that they withdrew. See
+// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+func TestWithdrawAWindow(t *testing.T) {
+	f := setup(t)
+	console := f.ts
+	token, olivier := f.consoleSession(t, "olivier")
+	publishPage(t, f, "Phish", "public")
+	publishPage(t, f, "Draft", "room")
+	publishPage(t, f, "Review", "key")
+	publishPage(t, f, "Notes", "room")
+	link := f.share(t, olivier, "olivier/draft", "")
+	uid := f.call(t, "localhost", olivier, "get_window", `{"window": "olivier/phish"}`).(window.Detail).ID
+	for _, address := range []string{link.Link, "https://localhost/olivier/review/"} {
+		if status, _ := f.sendReport(t, address, "phishing", "It asks for the password of my bank.", ""); status != http.StatusOK {
+			t.Fatalf("report %s = %d", address, status)
+		}
+	}
+	ana := activate(t, f, console, "ana", true)
+	root := serverAdmin(t, f, "root")
+	moderate := func(token, op, window, reason string) apiResponse {
+		t.Helper()
+		body := `{"window": "` + window + `"}`
+		if reason != "" {
+			body = `{"window": "` + window + `", "reason": "` + reason + `"}`
+		}
+		return call(t, f, console, http.MethodPost, "localhost", "/console/api/"+op, token, body)
+	}
+
+	// The moderators withdraw a Window that a report names, or a public
+	// one, and not another, nor without a reason.
+	if r := moderate(ana, "withdraw_window", "olivier/notes", "Spam"); r.status != http.StatusForbidden {
+		t.Errorf("withdraw a Window open to its Room, unreported: %d %s", r.status, r.raw)
+	}
+	if r := moderate(ana, "withdraw_window", "olivier/draft", " "); r.status != http.StatusBadRequest || r.body["code"] != "withdrawal_reason_invalid" {
+		t.Errorf("withdraw without a reason: %d %s", r.status, r.raw)
+	}
+	r := moderate(ana, "withdraw_window", "olivier/draft", "It imitates the sign-in page of a bank.")
+	if decided, _ := r.body["decided"].([]any); r.status != http.StatusOK || len(decided) != 1 || r.body["withdrawn"] == nil {
+		t.Fatalf("withdraw_window: %d %s", r.status, r.raw)
+	}
+	for _, w := range []string{"olivier/review", uid} {
+		if r := moderate(ana, "withdraw_window", w, "Phishing."); r.status != http.StatusOK {
+			t.Fatalf("withdraw_window %s: %d %s", w, r.status, r.raw)
+		}
+	}
+	r = call(t, f, console, http.MethodPost, "localhost", "/console/api/list_reports", ana, `{}`)
+	if reports, _ := r.body["reports"].([]any); r.body["waiting"] != float64(0) || len(reports) != 2 ||
+		reports[0].(map[string]any)["decision"] != moderation.Withdrawn || reports[0].(map[string]any)["window"].(map[string]any)["withdrawn"] != true {
+		t.Errorf("list_reports after the withdrawals: %s", r.raw)
+	}
+
+	// Readers who would open them learn that they were withdrawn, at every
+	// address: the address, the permanent address, a share link, the page
+	// of a Key and the form of its Key. Others meet what is not found.
+	reader := f.signIn(t, "localhost", "olivier")
+	for _, tt := range []struct {
+		method, path string
+		cookies      []*http.Cookie
+		form         url.Values
+		want         int
+	}{
+		{http.MethodGet, "/olivier/phish/", nil, nil, http.StatusGone},
+		{http.MethodGet, "/olivier/phish/style.css", nil, nil, http.StatusGone},
+		{http.MethodGet, "/-/w/" + uid, nil, nil, http.StatusGone},
+		{http.MethodGet, strings.TrimPrefix(link.Link, "https://localhost"), nil, nil, http.StatusGone},
+		{http.MethodPost, strings.TrimPrefix(link.Link, "https://localhost"), nil, nil, http.StatusGone},
+		{http.MethodGet, "/olivier/review/", nil, nil, http.StatusGone},
+		{http.MethodPost, "/-/key", nil, url.Values{"window": {"olivier/review"}, "key": {"anything"}}, http.StatusGone},
+		{http.MethodGet, "/olivier/draft/", nil, nil, http.StatusNotFound},
+		{http.MethodGet, "/olivier/draft/", []*http.Cookie{reader}, nil, http.StatusGone},
+	} {
+		resp, body := f.do(t, "localhost", tt.method, tt.path, tt.cookies, tt.form)
+		if resp.StatusCode != tt.want || resp.StatusCode == http.StatusGone && !strings.Contains(body, "This Window was withdrawn") ||
+			strings.Contains(body, "imitates") || strings.Contains(body, "<h1>") {
+			t.Errorf("%s %s = %d %q", tt.method, tt.path, resp.StatusCode, body)
+		}
+	}
+	// The page of the Room no longer lists them.
+	if _, body := f.do(t, "localhost", http.MethodGet, "/olivier/", []*http.Cookie{reader}, nil); !strings.Contains(body, "Notes") ||
+		strings.Contains(body, "Phish") || strings.Contains(body, "Draft") {
+		t.Errorf("the page of the Room lists withdrawn Windows: %q", body)
+	}
+
+	// Its members read why, change nothing in it, and still preview it.
+	d := f.call(t, "localhost", olivier, "get_window", `{"window": "olivier/draft"}`).(window.Detail)
+	if d.Withdrawn == nil || d.Withdrawn.Reason != "It imitates the sign-in page of a bank." || d.Withdrawn.ByServer {
+		t.Errorf("get_window gives %+v", d.Withdrawn)
+	}
+	for op, args := range map[string]string{
+		"update_window":     `{"window": "olivier/draft", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "<p>new</p>"}]}`,
+		"set_window_access": `{"window": "olivier/draft", "access": "public"}`,
+		"create_share_link": `{"window": "olivier/draft"}`,
+		"retitle_window":    `{"window": "olivier/draft", "title": "Other"}`,
+		"rename_window":     `{"window": "olivier/draft", "name": "other"}`,
+		"rollback_window":   `{"window": "olivier/draft"}`,
+		"set_room_home":     `{"room": "olivier", "window": "draft"}`,
+	} {
+		_, err := f.open(t, "localhost").Registry.Invoke(context.Background(), op, olivier, []byte(args))
+		if !errors.Is(err, operation.ErrForbidden) || !strings.Contains(err.Error(), "olivier/draft was withdrawn by the moderators of this Cahut: It imitates") {
+			t.Errorf("%s of a withdrawn Window: %v", op, err)
+		}
+	}
+	r = call(t, f, console, http.MethodPost, "localhost", "/console/api/update_window", token,
+		`{"window": "olivier/draft", "declaration": {"scripts": false}, "files": [{"path": "index.html", "content": "x"}]}`)
+	if r.status != http.StatusForbidden || r.body["code"] != "window_withdrawn" {
+		t.Errorf("update_window in the console: %d %s", r.status, r.raw)
+	}
+	previews := call(t, f, console, http.MethodPost, "localhost", "/console/api/preview_windows", token, `{"windows": ["olivier/draft"]}`)
+	list, _ := previews.body["previews"].([]any)
+	if len(list) != 1 {
+		t.Fatalf("preview_windows: %s", previews.raw)
+	}
+	if resp, body := f.do(t, "localhost", http.MethodGet, list[0].(map[string]any)["frame"].(string), nil, nil); resp.StatusCode != http.StatusOK || !strings.Contains(body, "<h1>Draft</h1>") {
+		t.Errorf("the preview of a withdrawn Window = %d %q", resp.StatusCode, body)
+	}
+	// It goes to the trash and comes back, still withdrawn.
+	f.call(t, "localhost", olivier, "trash_window", `{"window": "olivier/draft"}`)
+	f.call(t, "localhost", olivier, "restore_window", `{"window": "olivier/draft"}`)
+	if resp, _ := f.do(t, "localhost", http.MethodGet, strings.TrimPrefix(link.Link, "https://localhost"), nil, nil); resp.StatusCode != http.StatusGone {
+		t.Errorf("a withdrawn Window back from the trash = %d", resp.StatusCode)
+	}
+
+	// Reinstated, it opens as it did, its share link with it.
+	if r := moderate(ana, "reinstate_window", "olivier/draft", ""); r.status != http.StatusOK || r.body["withdrawn"] != nil {
+		t.Fatalf("reinstate_window: %d %s", r.status, r.raw)
+	}
+	if resp, _ := f.do(t, "localhost", http.MethodGet, strings.TrimPrefix(link.Link, "https://localhost"), nil, nil); resp.StatusCode != http.StatusOK {
+		t.Errorf("the share link of a reinstated Window = %d", resp.StatusCode)
+	}
+
+	// A Window that the administrators of the server withdrew is theirs to
+	// reinstate, or to withdraw again with another reason.
+	if r := moderate(root, "withdraw_window", "olivier/phish", "Phishing, reported by the bank."); r.status != http.StatusOK ||
+		r.body["withdrawn"].(map[string]any)["by_server"] != true {
+		t.Fatalf("withdraw_window again as an administrator of the server: %d %s", r.status, r.raw)
+	}
+	for op, reason := range map[string]string{"reinstate_window": "", "withdraw_window": "Not phishing."} {
+		r := moderate(ana, op, "olivier/phish", reason)
+		if r.status != http.StatusForbidden || r.body["code"] != "window_withdrawn_by_host" {
+			t.Errorf("%s as an administrator of the Cahut: %d %s", op, r.status, r.raw)
+		}
+	}
+	if r := moderate(root, "reinstate_window", "olivier/phish", ""); r.status != http.StatusOK {
+		t.Errorf("reinstate_window as an administrator of the server: %d %s", r.status, r.raw)
+	}
+	if resp, body := f.do(t, "localhost", http.MethodGet, "/olivier/phish/", nil, nil); resp.StatusCode != http.StatusOK || !strings.Contains(body, "<h1>Phish</h1>") {
+		t.Errorf("a reinstated public Window = %d %q", resp.StatusCode, body)
+	}
+
+	// Olivier reads in the Logbook of his Room who withdrew and why.
+	var read []string
+	for _, e := range f.call(t, "localhost", olivier, "list_logbook", `{}`).(cahut.LogbookPage).Entries {
+		if (e.Operation == "withdraw_window" || e.Operation == "reinstate_window") && e.Outcome == logbook.OK {
+			read = append(read, e.UserHandle+" "+e.Operation+" "+e.Target+": "+e.Detail)
+		}
+	}
+	if !slices.Contains(read, "ana withdraw_window olivier/draft: reports 1: It imitates the sign-in page of a bank.") ||
+		!slices.Contains(read, "root withdraw_window olivier/phish: Phishing, reported by the bank.") {
+		t.Errorf("olivier reads %q", read)
+	}
+
+	// No AI is offered them.
+	for _, name := range []string{"withdraw_window", "reinstate_window", "preview_reported_window"} {
+		info, _ := f.open(t, "localhost").Registry.Lookup(name)
+		if info.ForAIs(true, false) || info.Services {
+			t.Errorf("%s is offered to AIs or services", name)
+		}
+	}
+}

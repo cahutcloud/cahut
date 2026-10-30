@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/card"
 	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
@@ -128,6 +129,9 @@ func (s *Server) findLink(w http.ResponseWriter, r *http.Request) (window.Link, 
 	c := siteOf(r).cahut
 	now := time.Now()
 	l, err := window.FindLink(r.Context(), c.DB, r.PathValue("token"), now)
+	if s.withdrawn(w, r, err, account.SessionOwner{}, true) {
+		return window.Link{}, false
+	}
 	if errors.Is(err, window.ErrNoLink) {
 		s.linkGone(w, r)
 		return window.Link{}, false
