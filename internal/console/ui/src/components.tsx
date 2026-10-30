@@ -1,5 +1,5 @@
 // Small pieces that the screens share.
-import { AppWindow, ArrowUpRight, ChartColumn, Check, Copy, FileText, Globe, House, KeyRound, Lock, Presentation, Users, X } from "lucide-preact";
+import { AppWindow, ArrowUpRight, ChartColumn, Check, Copy, FileText, Globe, House, KeyRound, Lock, Presentation, UserLock, Users, X } from "lucide-preact";
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { cahut, explain } from "./api";
@@ -36,6 +36,8 @@ const t = words({
 		deck: "Deck",
 		dashboard: "Dashboard",
 		site: "Site",
+		authorOnly: "Only you",
+		authorWho: "you, and not the other members of its Room",
 		roomOnly: "Room only",
 		roomWho: "the members of its Room",
 		internal: "Internal",
@@ -83,6 +85,8 @@ const t = words({
 		deck: "Présentation",
 		dashboard: "Tableau de bord",
 		site: "Site",
+		authorOnly: "Vous seulement",
+		authorWho: "vous, et pas les autres membres de sa Room",
 		roomOnly: "Room seulement",
 		roomWho: "les membres de sa Room",
 		internal: "Interne",
@@ -556,6 +560,9 @@ const kinds: Record<string, { icon: typeof FileText; name: string }> = {
 
 /** The access levels of a Window, with their badge. */
 export const accesses: Record<string, { icon: typeof Lock; name: string; who: string }> = {
+	// A Window for its author alone shows to them alone, who read Only you.
+	// See docs/adr/0053-windows-for-their-author-alone.md.
+	author: { icon: UserLock, name: t.authorOnly, who: t.authorWho },
 	room: { icon: Lock, name: t.roomOnly, who: t.roomWho },
 	internal: { icon: Users, name: t.internal, who: t.internalWho },
 	key: { icon: KeyRound, name: t.key, who: t.keyWho },
@@ -567,7 +574,7 @@ export function AccessBadge({ access }: { access: string }) {
 	const a = accesses[access] ?? accesses.room;
 	const Icon = a.icon;
 	return (
-		<span class={`c-badge c-badge--${access in accesses ? access : "room"}`}>
+		<span class={`c-badge c-badge--${access in accesses && access !== "author" ? access : "room"}`}>
 			<Icon class="i" size={14} aria-hidden="true" />
 			{a.name}
 		</span>

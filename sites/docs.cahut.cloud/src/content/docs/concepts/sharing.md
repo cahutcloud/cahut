@@ -15,6 +15,7 @@ In the console, **Share**, at the head of the page of a Window and on each card 
 | --- | --- |
 | Copy the link | Copies the permanent address |
 | Create a share link… | Makes a [share link](#share-links), which opens the Window without an account or a Key; not for a public Window |
+| Share once… | Makes a link that opens the Window [once](#share-once), and keeps it for you alone; for its author, and not for a public Window |
 | E-mail | Opens your mail app with a message: the title of the Window as its subject, its description and the link |
 | X, LinkedIn, Facebook | Open their own page of sharing in a new tab, with the link; for a public Window or a Window with a Key only |
 | Share… | The share sheet of your system, where the browser has one, as on phones |
@@ -47,6 +48,20 @@ The console then shows the link, once: Cahut keeps only a trace of it, as of a K
 
 An AI makes a link with `create_share_link` without [knocking first](/concepts/knock-first-and-logbook/#knock-first), as it sets a Key: it gets the link once, to give to you. `get_window` lists the links of a Window, and `revoke_share_link` takes one back.
 
+## Share once
+
+A Window can open once: its link works for the first reader who opens it, and for nobody after. It is a [Window for its author alone](/concepts/access/#only-you) with a share link that opens once: the Room never sees it, the reader reads it, and you keep it after.
+
+**Share once…**, in the menu Share of a Window you are the author of, asks for a label and an end, as for any link, and keeps the Window for you alone first, unless you uncheck **Keep it for me alone**. The console then shows the link, once.
+
+- **The page of the link says it opens once**, and that its reader reads the Window in their browser for 4 hours. Robots of previews and filters of mail that only follow the link spend nothing; its preview says *Opens once, until* its end.
+- **The click** spends the opening and gives a pass for a session of reading: the browser drops it when it closes, and Cahut ends it 4 hours after the click. Until then, the reader reloads the Window, follows its pages and comes back to the link. After that, they get a page that says the link opens nothing.
+- **After the opening**, only the link dies. The Window stays, for you alone, with the link shown as opened, and its opening in the Logbook. Make another link for another reader, open the Window to the Room, or put it in the trash.
+
+The same holds for every link that opens once, to any Window: its pass lasts 4 hours. An AI makes such a Window in two calls: `publish_window` with the access `author`, then `create_share_link` with `max_openings` 1.
+
+Once is about the link, not about what the reader does: in those 4 hours, they may save, print or copy what they read.
+
 ## The preview of a link
 
 Slack, Teams, Discord, iMessage, WhatsApp, Signal, X, LinkedIn, Facebook and Mastodon show a preview under a link: a robot fetches the address, without a session or a Key, and reads the tags of [Open Graph](https://ogp.me) in the page it gets. At the permanent address of a Window, Cahut answers these robots with a page of its own, whose preview says what the address says to a stranger:
@@ -55,7 +70,7 @@ Slack, Teams, Discord, iMessage, WhatsApp, Signal, X, LinkedIn, Facebook and Mas
 | --- | --- | --- | --- |
 | Public | Its title | Its description, when it has one | With its title |
 | Key | Its title, which the page of its Key already shows | Opens with its Key. | With its title |
-| Room only, Internal | A Window at `cahut.example.com` | Sign in to open it. | Without a title |
+| Only you, Room only, Internal | A Window at `cahut.example.com` | Sign in to open it. | Without a title |
 
 The title and the description of a Window open to its Room or its Cahut stay out of the preview, and out of the servers of the platforms that draw it. The access that counts is the one of the moment, for the next robot that comes. A preview already drawn stays as it was in its messages: a title shared while the Window was public stays there.
 
@@ -63,7 +78,7 @@ The page of a robot opens nothing: it sets no cookie and gives no access. People
 
 The robots are known by the words of their `User-Agent`. A robot that Cahut does not know yet gets what a person without a session gets: the tags that the author of a public Window wrote in its page, and nothing for the others.
 
-A share link gives its preview on its own page, which every visitor gets, robots and people, and which opens nothing. Since the link opens the Window to whoever holds it, its preview shows the title of the Window, `Opens with this link until <date>.`, and the card of the Window. A link that has ended shows no preview.
+A share link gives its preview on its own page, which every visitor gets, robots and people, and which opens nothing. Since the link opens the Window to whoever holds it, its preview shows the title of the Window, `Opens with this link until <date>.`, or `Opens once, until <date>.`, and the card of the Window. A link that has ended shows no preview.
 
 ## The card
 
@@ -75,4 +90,4 @@ The card is at `https://cahut.example.com/-/card/<id>.png`. A new title gives it
 
 The address of the moment, `https://cahut.example.com/<room>/<window>/`, does not change: it serves a public Window as its AI made it, with the tags of its page if it wrote some, and the page of its Key or of what is not found to the others. A link to it shows the preview that its page gives, or none.
 
-The decisions are [ADR 51](https://github.com/getcahut/cahut/blob/main/docs/adr/0051-sharing-a-window-and-its-preview.md), for the menu and the preview, and [ADR 52](https://github.com/getcahut/cahut/blob/main/docs/adr/0052-share-links.md), for share links.
+The decisions are [ADR 51](https://github.com/getcahut/cahut/blob/main/docs/adr/0051-sharing-a-window-and-its-preview.md), for the menu and the preview, [ADR 52](https://github.com/getcahut/cahut/blob/main/docs/adr/0052-share-links.md), for share links, and [ADR 53](https://github.com/getcahut/cahut/blob/main/docs/adr/0053-windows-for-their-author-alone.md), for the Windows that open to their author alone, and once to a single reader.

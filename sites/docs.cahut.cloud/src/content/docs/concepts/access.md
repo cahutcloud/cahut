@@ -1,24 +1,39 @@
 ---
 title: Who can open a Window
-description: Each Window opens to its Room, to everyone signed in to its Cahut, to anyone with its Key, or to the public, until a date if you want. How readers sign in, how Keys work, and how a protected Window is served.
+description: Each Window opens to its author alone, to its Room, to everyone signed in to its Cahut, to anyone with its Key, or to the public, until a date if you want. How readers sign in, how Keys work, and how a protected Window is served.
 sidebar:
   label: Window access
 ---
 
 The access of a Window says who can open it. A new Window opens to its Room only. The members of the Room change its access in the console, on the page of the Window, and their AIs with `set_window_access`.
 
-## Four levels
+## Five levels
 
 | Access | Who opens the Window |
 | --- | --- |
+| Only you | Its author alone, signed in, while they are in its Room. |
 | Room only | The members of its Room, signed in. The default. |
 | Internal | Everyone signed in to its Cahut, except in an [individual Cahut](/concepts/cahuts/#collaborative-or-individual). |
 | Key | Anyone who types its Key, and the members of its Room. |
 | Public | Anyone who has its address. |
 
-An access other than Room only can end on a date. After that date, the Window opens to its Room only, until someone sets its access again; setting it again moves the date or removes it.
+An access other than Only you and Room only can end on a date. After that date, the Window opens to its Room only, until someone sets its access again; setting it again moves the date or removes it.
 
 Besides its access, a Window may open to whoever holds one of its [share links](/concepts/sharing/#share-links), without an account or a Key, until the link ends. Changing the access does not end them.
+
+## Only you
+
+A Window can open to its author alone: the person it was first published for, whether they published it themself or through their AI. It suits a draft that you keep for yourself in a team Room, until you open it to the Room, and a Window for one reader outside the Cahut, which you [share once](/concepts/sharing/#share-once).
+
+- **Only its author** sets Only you, on the page of the Window in the console, or their AI with `set_window_access`. An AI can also publish a Window that way from the start, with `publish_window` and the access `author`, so that the Room never sees it.
+- **Nobody else sees it.** The other members of the Room, its owners included, and their AIs, find it neither in their lists, nor on the page of the Room, nor in the previews of the console; a call that names it gets no Window, as if it did not exist. The number of Windows of the Room that they see leaves it out, and its entries in the Logbook go to its author alone, but for the one that takes it from the Room and the one that gives it back. The administrators of the Cahut read the whole Logbook, as always.
+- **Its share links still open it**, to whoever holds them, and its author sees them all. It takes no invitation by e-mail, and no Key.
+- **It counts** in the limits of the Room and of the Cahut, and in their disk, like any Window. Its name stays taken in its Room.
+- **It has no end.** It opens to its author alone until they choose another access.
+
+When its author leaves the Room, or is removed from it, or is deleted, their Windows for themselves open to the Room again, with the access Room only: what is published in a team Room belongs to the Room. The console says how many before. When its author is disabled, they stay as they are. When the Room is deleted, they go with it.
+
+## Who sees a closed Window
 
 A Window that its reader may not open answers like a Window that does not exist, `404 Not Found`, with a link to sign in. The page of a Room, `https://<domain>/<room>/`, lists the Windows that its reader may open, or shows the Window that its owners chose to the readers who may open it, and answers `404 Not Found` to a reader outside the Room who may open none. See [The page of a Room](/concepts/rooms-and-windows/#the-page-of-a-room).
 
@@ -45,7 +60,7 @@ The members of the Room of a Window, and their AIs, invite people to read it by 
 
 A personal link stands for the Key, for its recipient alone: the Key itself never goes by e-mail. It opens a page of the console that says who invites, to which Window, with what note, and opens the Window on a click, with a pass as the right Key gives. It works again on another device, for 30 days and never beyond the end of the access. **Take back**, in the list of invitations of the Window, ends it and its passes: the Window closes to that recipient alone. A new Key, or another access, ends every personal link of the old Key.
 
-A Window open to its Room or to the Cahut goes to people of the Cahut only, by handle; to invite someone else by address, set its access to Key first. In an [individual Cahut](/concepts/cahuts/), invitations go by address only. An invitation goes to 20 people at most, and a person sends 100 a day at most, their AIs included. An AI invites without knocking, since it could pass the Key on anyway; the message says that the AI sent it, and the Logbook names every recipient.
+A Window that opens to its author alone takes no invitation: give it a [share link](/concepts/sharing/#share-once) instead. A Window open to its Room or to the Cahut goes to people of the Cahut only, by handle; to invite someone else by address, set its access to Key first. In an [individual Cahut](/concepts/cahuts/), invitations go by address only. An invitation goes to 20 people at most, and a person sends 100 a day at most, their AIs included. An AI invites without knocking, since it could pass the Key on anyway; the message says that the AI sent it, and the Logbook names every recipient.
 
 ## Readers who sign in
 
@@ -57,10 +72,10 @@ A reader session is no session of the console: it opens Windows, and calls no op
 
 | Who | What they set |
 | --- | --- |
-| The members of the Room | Every access, its end and its Key, in the console |
-| Their AIs | Room only, internal and Key, with `set_window_access`, within the Rooms they were granted; public, once their person approves |
+| The members of the Room | Every access, its end and its Key, in the console; Only you, for the Windows they are the author of |
+| Their AIs | Only you, room only, internal and Key, with `set_window_access`, within the Rooms they were granted; public, once their person approves |
 
-Opening a Window to its Cahut or to the holders of a Key keeps it among people the organization chose, and can be undone at once: an AI does it alone. Making a Window public cannot be taken back once it is read: an AI that asks [knocks first](/concepts/knock-first-and-logbook/#knock-first), and the Window opens to the public once its person approves in the console. In the console, making a Window public asks to confirm first.
+Keeping a Window for its author, opening it to its Room again, to its Cahut or to the holders of a Key keeps it among people the organization chose, and can be undone at once: an AI does it alone. Making a Window public cannot be taken back once it is read: an AI that asks [knocks first](/concepts/knock-first-and-logbook/#knock-first), and the Window opens to the public once its person approves in the console. In the console, making a Window public asks to confirm first.
 
 ## How a protected Window is served
 

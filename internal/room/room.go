@@ -351,6 +351,9 @@ type Person struct {
 	Handle string `json:"handle"`
 	Name   string `json:"name"`
 	Role   string `json:"role" jsonschema:"owner or member of the Room"`
+	// Kept is said to those who may take the person out of the Room. See
+	// docs/adr/0053-windows-for-their-author-alone.md.
+	Kept int `json:"kept,omitempty" jsonschema:"how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators"`
 }
 
 // GetRoom describes a Room and lists its members.
@@ -386,7 +389,9 @@ func detail(ctx context.Context, c *operation.Call, a Access) (Detail, error) {
 		return Detail{}, err
 	}
 	rows, err := c.Tx.QueryContext(ctx, `
-		SELECT u.handle, u.name, m.role FROM room_members m JOIN users u ON u.id = m.user_id
+		SELECT u.handle, u.name, m.role,
+			(SELECT count(*) FROM windows w WHERE w.room_id = m.room_id AND w.created_by = m.user_id AND w.access = 'author')
+		FROM room_members m JOIN users u ON u.id = m.user_id
 		WHERE m.room_id = ? ORDER BY m.role = 'member', u.handle`, a.ID)
 	if err != nil {
 		return Detail{}, err
@@ -394,8 +399,11 @@ func detail(ctx context.Context, c *operation.Call, a Access) (Detail, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var p Person
-		if err := rows.Scan(&p.Handle, &p.Name, &p.Role); err != nil {
+		if err := rows.Scan(&p.Handle, &p.Name, &p.Role, &p.Kept); err != nil {
 			return Detail{}, err
+		}
+		if a.Role != Owner && !c.Admin && p.Handle != c.Actor.Handle {
+			p.Kept = 0
 		}
 		d.People = append(d.People, p)
 	}
