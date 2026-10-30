@@ -15,7 +15,7 @@ import (
 // docs/adr/0019-window-versions-access-and-declaration.md.
 type Declaration struct {
 	Scripts bool     `json:"scripts" jsonschema:"whether the pages run scripts, inline or in files"`
-	Origins []string `json:"origins,omitempty" jsonschema:"every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make"`
+	Origins []string `json:"origins,omitempty" jsonschema:"every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make"`
 	Forms   []string `json:"forms,omitempty" jsonschema:"the origins that the forms of the pages send to, if any"`
 }
 
