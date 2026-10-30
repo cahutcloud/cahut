@@ -12,7 +12,7 @@ To try Cahut without a server, build it from source and serve it on your machine
 You need Git, make, Go and Node.js. The `toolchain` line of `go.mod` sets the version of Go, and the `go` command downloads it when yours is older. `.nvmrc` sets the version of Node.js, which builds the web console that the binary embeds.
 
 ```bash
-git clone https://github.com/getcahut/cahut.git
+git clone https://github.com/cahutcloud/cahut.git
 cd cahut
 make build
 ```

@@ -10,7 +10,7 @@ The Cahut plugin gives Claude two things: the connection to your Cahut over MCP,
 Add the marketplace of the Cahut repository, then install the plugin:
 
 ```text
-/plugin marketplace add getcahut/cahut
+/plugin marketplace add cahutcloud/cahut
 /plugin install cahut@cahut
 ```
 
@@ -40,7 +40,7 @@ Claude makes the deck in navy and white, with its CSS and its script among its f
 
 ## What the plugin holds
 
-The plugin lives in [`plugins/cahut`](https://github.com/getcahut/cahut/tree/main/plugins/cahut) of the repository, under the Apache License 2.0:
+The plugin lives in [`plugins/cahut`](https://github.com/cahutcloud/cahut/tree/main/plugins/cahut) of the repository, under the Apache License 2.0:
 
 | File | What it is |
 | --- | --- |

@@ -31,7 +31,7 @@ L'[ADR 22](adr/0022-house-style-of-each-cahut.md) fixe :
 - **Les consignes du serveur MCP**, pour les clients sans skill : les liens relatifs pour les fichiers de la Window, la déclaration, l'adresse à donner à la personne, Knock first.
 - **La skill**, `plugins/cahut/skills/cahut/SKILL.md`, avec ses références : les formats (document, présentation, tableau de bord, site), ce qui marche dans le bac à sable et ce qui n'y marche pas (stockage, cookies, fenêtres), la déclaration, les images en base64 et la taille d'une publication, les versions et le retour arrière, l'accès et la Key, Knock first et le lien à transmettre.
 - **Le plugin** `cahut`, dans `plugins/cahut/`, sous Apache-2.0 : son manifeste, la skill, et le serveur MCP `https://<domaine>/mcp`, dont l'utilisateur donne le domaine à l'installation (`userConfig`). Sa version suit celle de Cahut.
-- **La marketplace**, `.claude-plugin/marketplace.json` à la racine du dépôt : `/plugin marketplace add getcahut/cahut`, puis `/plugin install cahut@cahut`. `claude plugin validate --strict` passe sur l'une et l'autre, lancé à la main : la CI n'installe pas Claude Code, et un test Go vérifie le manifeste, la marketplace et les chemins qu'ils nomment.
+- **La marketplace**, `.claude-plugin/marketplace.json` à la racine du dépôt : `/plugin marketplace add cahutcloud/cahut`, puis `/plugin install cahut@cahut`. `claude plugin validate --strict` passe sur l'une et l'autre, lancé à la main : la CI n'installe pas Claude Code, et un test Go vérifie le manifeste, la marketplace et les chemins qu'ils nomment.
 - **L'archive** de la skill, construite au démarrage depuis les fichiers que le binaire embarque, par un fichier Go dans `plugins/`, et servie par chaque Cahut à `/-/cahut-skill.zip`.
 
 ## Console
@@ -60,7 +60,7 @@ Soit environ 2,5 jours. Les pull requests s'enchaînent dans l'ordre.
 
 **Prérequis** : la version du lot installée sur `staging.cahut.cloud` ; Claude Code ; un compte claude.ai.
 
-1. Dans Claude Code, `/plugin marketplace add getcahut/cahut`, puis `/plugin install cahut@cahut`, avec le domaine `staging.cahut.cloud`. Se brancher par OAuth, en écriture et sur toutes les Rooms d'Olivier.
+1. Dans Claude Code, `/plugin marketplace add cahutcloud/cahut`, puis `/plugin install cahut@cahut`, avec le domaine `staging.cahut.cloud`. Se brancher par OAuth, en écriture et sur toutes les Rooms d'Olivier.
 2. Le brief : « Fais une présentation de six diapositives sur les résultats du trimestre et publie-la dans marketing. » Claude suit la skill, appelle `publish_window` et rend l'adresse : la présentation s'ouvre et se mène au clavier.
 3. Dans la console, AIs and access : la carte de la skill donne les commandes de Claude Code et l'archive.
 4. Dans claude.ai, avec l'archive de la skill téléversée et le connecteur de la Cahut, le même brief donne le même résultat.
@@ -94,7 +94,7 @@ Le lot 6 s'est achevé le 23 octobre 2026, en trois pull requests :
 **Reste à faire.**
 
 - La démonstration de fin de lot avec le compte d'Olivier : ouvrir la présentation de `marketing` et la mener au clavier.
-- Installer le plugin dans Claude Code (`/plugin marketplace add getcahut/cahut`, puis `/plugin install cahut@cahut`, avec le domaine `staging.cahut.cloud`), retirer le serveur `cahut-staging` ajouté à la main, et refaire le brief en une demande.
+- Installer le plugin dans Claude Code (`/plugin marketplace add cahutcloud/cahut`, puis `/plugin install cahut@cahut`, avec le domaine `staging.cahut.cloud`), retirer le serveur `cahut-staging` ajouté à la main, et refaire le brief en une demande.
 - Téléverser l'archive de la skill dans claude.ai, à côté du connecteur du staging, et refaire le brief.
 - Firefox et Safari, toujours, depuis le lot 4.
 

@@ -62,7 +62,7 @@ func runUpdate(args []string, stdout, stderr io.Writer) int {
 	}
 	repo := settings("CAHUT_REPO")
 	if repo == "" {
-		repo = "getcahut/cahut"
+		repo = "cahutcloud/cahut"
 	}
 	u := &update.Updater{
 		Repo:      repo,

@@ -154,7 +154,7 @@ function ClaudeCode({ mcp }: { mcp: string }) {
 	return (
 		<>
 			<p class="c-small">{t.plugin(location.host)}</p>
-			<CopyField label={t.addMarketplace} value="/plugin marketplace add getcahut/cahut" />
+			<CopyField label={t.addMarketplace} value="/plugin marketplace add cahutcloud/cahut" />
 			<CopyField label={t.installPlugin} value="/plugin install cahut@cahut" />
 			<p class="c-small">{t.orTerminal}</p>
 			<CopyField label={t.addCahut} value={`claude mcp add --transport http cahut ${mcp}`} />

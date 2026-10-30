@@ -47,7 +47,7 @@ func archiveOf(t *testing.T, bin []byte) []byte {
 	return buf.Bytes()
 }
 
-// fakeGitHub serves releases, signed with key, at /repos/getcahut/cahut.
+// fakeGitHub serves releases, signed with key, at /repos/cahutcloud/cahut.
 type fakeGitHub struct {
 	*httptest.Server
 	mu       sync.Mutex
@@ -62,7 +62,7 @@ func newGitHub(t *testing.T) *fakeGitHub {
 		g.mu.Lock()
 		defer g.mu.Unlock()
 		g.requests++
-		if r.URL.Path == "/repos/getcahut/cahut/releases" {
+		if r.URL.Path == "/repos/cahutcloud/cahut/releases" {
 			_ = json.NewEncoder(w).Encode(g.listing)
 			return
 		}
@@ -98,7 +98,7 @@ func (g *fakeGitHub) add(t *testing.T, version string, key ed25519.PrivateKey, t
 		assets = append(assets, map[string]any{"url": g.URL + path, "name": n, "size": len(data)})
 	}
 	g.listing = append(g.listing, map[string]any{
-		"tag_name": "v" + version, "html_url": "https://github.com/getcahut/cahut/releases/tag/v" + version,
+		"tag_name": "v" + version, "html_url": "https://github.com/cahutcloud/cahut/releases/tag/v" + version,
 		"draft": false, "prerelease": false, "assets": assets,
 	})
 }
@@ -211,7 +211,7 @@ func newFixture(t *testing.T, running string) *fixture {
 	gh := newGitHub(t)
 	out := &bytes.Buffer{}
 	u := &Updater{
-		Repo:      "getcahut/cahut",
+		Repo:      "cahutcloud/cahut",
 		API:       gh.URL,
 		Client:    gh.Client(),
 		Keys:      []ed25519.PublicKey{pub},

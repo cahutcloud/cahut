@@ -5,7 +5,7 @@ code. GitHub does not read this folder: apply a file with the API, or import
 it from Settings, Rules, Rulesets.
 
 ```bash
-gh api -X POST repos/getcahut/cahut/rulesets --input .github/rulesets/main.json
+gh api -X POST repos/cahutcloud/cahut/rulesets --input .github/rulesets/main.json
 ```
 
 - `main.json` protects `main`: no deletion and no force push, a pull request
@@ -19,4 +19,4 @@ gh api -X POST repos/getcahut/cahut/rulesets --input .github/rulesets/main.json
   from it).
 
 To change a ruleset, change its file in a pull request, then apply it again
-with `PUT repos/getcahut/cahut/rulesets/<id>`.
+with `PUT repos/cahutcloud/cahut/rulesets/<id>`.
