@@ -8,7 +8,7 @@
     "url": "https://cahut.cloud"
   },
   "homepage": "https://docs.cahut.cloud/connect/claude-plugin/",
-  "repository": "https://github.com/getcahut/cahut",
+  "repository": "https://github.com/cahutcloud/cahut",
   "license": "Apache-2.0",
   "keywords": ["cahut", "publish", "deck", "dashboard", "mcp"],
   "userConfig": {

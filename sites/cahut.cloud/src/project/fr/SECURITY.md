@@ -6,7 +6,7 @@ Cahut est un serveur qui reçoit du HTML d'une IA et le sert à des lecteurs. Sa
 
 Signalez en privé, jamais dans un ticket ou une discussion publics :
 
-- par le signalement privé de GitHub : [signaler une faille](https://github.com/getcahut/cahut/security/advisories/new) ;
+- par le signalement privé de GitHub : [signaler une faille](https://github.com/cahutcloud/cahut/security/advisories/new) ;
 - ou par e-mail à `security@cahut.cloud`.
 
 Dites ce que vous avez trouvé, comment le reproduire, et ce que cela permet selon vous. En anglais ou en français.

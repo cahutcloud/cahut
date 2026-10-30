@@ -6,7 +6,7 @@ Cahut is a server that takes HTML from an AI and serves it to readers. Its secur
 
 Report privately, never in a public issue or discussion:
 
-- through GitHub's private vulnerability reporting: [report a vulnerability](https://github.com/getcahut/cahut/security/advisories/new);
+- through GitHub's private vulnerability reporting: [report a vulnerability](https://github.com/cahutcloud/cahut/security/advisories/new);
 - or by e-mail to `security@cahut.cloud`.
 
 Say what you found, how to reproduce it, and what you think it allows. English or French.

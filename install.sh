@@ -36,7 +36,7 @@
 #                     service token; off turns it off (the default)
 #
 # Environment:
-#   CAHUT_REPO        GitHub repository of the releases (default: getcahut/cahut)
+#   CAHUT_REPO        GitHub repository of the releases (default: cahutcloud/cahut)
 #   GITHUB_TOKEN      token to read the releases of a private repository,
 #                     kept for the updates in /etc/cahut/update.env
 #
@@ -45,7 +45,7 @@
 
 set -eu
 
-repo="${CAHUT_REPO:-getcahut/cahut}"
+repo="${CAHUT_REPO:-cahutcloud/cahut}"
 domain=""
 ip=""
 email=""

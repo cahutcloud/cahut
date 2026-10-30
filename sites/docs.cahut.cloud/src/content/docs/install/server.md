@@ -107,7 +107,7 @@ The service runs as the `cahut` user, with the one capability it needs to listen
 | `--updates POLICY` | What the daily update does: `patch` (the default), `all`, `check` or `off`. See [Updates](/admin/updates/). |
 | `--help` | Prints the options. |
 
-Two environment variables choose where releases come from: `CAHUT_REPO`, the GitHub repository of the releases, `getcahut/cahut` by default, and `GITHUB_TOKEN`, a token that can read the releases of a private repository.
+Two environment variables choose where releases come from: `CAHUT_REPO`, the GitHub repository of the releases, `cahutcloud/cahut` by default, and `GITHUB_TOKEN`, a token that can read the releases of a private repository.
 
 ## Add a Cahut
 

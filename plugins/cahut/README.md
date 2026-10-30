@@ -7,7 +7,7 @@ It connects Claude to your Cahut over MCP, and gives it the skill to make and pu
 In Claude Code, add the marketplace of this repository, then install the plugin:
 
 ```text
-/plugin marketplace add getcahut/cahut
+/plugin marketplace add cahutcloud/cahut
 /plugin install cahut@cahut
 ```
 
