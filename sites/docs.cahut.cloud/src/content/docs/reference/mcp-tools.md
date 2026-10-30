@@ -1826,6 +1826,10 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+| `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
+| `withdrawn.at` | string | yes |  |
+| `withdrawn.reason` | string | yes | why the moderators withdrew it, for the members of its Room |
+| `withdrawn.by_server` | boolean | no | the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did |
 
 <details>
 <summary>JSON Schema</summary>
@@ -2100,6 +2104,31 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
       "type": [
         "null",
         "array"
+      ]
+    },
+    "withdrawn": {
+      "additionalProperties": false,
+      "description": "when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "by_server": {
+          "description": "the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did",
+          "type": "boolean"
+        },
+        "reason": {
+          "description": "why the moderators withdrew it, for the members of its Room",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "reason"
+      ],
+      "type": [
+        "null",
+        "object"
       ]
     }
   },
@@ -2986,6 +3015,10 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
 | `windows[].description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `windows[].previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `windows[].trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+| `windows[].withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
+| `windows[].withdrawn.at` | string | yes |  |
+| `windows[].withdrawn.reason` | string | yes | why the moderators withdrew it, for the members of its Room |
+| `windows[].withdrawn.by_server` | boolean | no | the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did |
 
 <details>
 <summary>JSON Schema</summary>
@@ -3117,6 +3150,31 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
           "version": {
             "description": "the number of the version that readers see",
             "type": "integer"
+          },
+          "withdrawn": {
+            "additionalProperties": false,
+            "description": "when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn",
+            "properties": {
+              "at": {
+                "type": "string"
+              },
+              "by_server": {
+                "description": "the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did",
+                "type": "boolean"
+              },
+              "reason": {
+                "description": "why the moderators withdrew it, for the members of its Room",
+                "type": "string"
+              }
+            },
+            "required": [
+              "at",
+              "reason"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
           }
         },
         "required": [
@@ -3325,6 +3383,10 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+| `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
+| `withdrawn.at` | string | yes |  |
+| `withdrawn.reason` | string | yes | why the moderators withdrew it, for the members of its Room |
+| `withdrawn.by_server` | boolean | no | the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did |
 
 <details>
 <summary>JSON Schema</summary>
@@ -3452,6 +3514,31 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     "version": {
       "description": "the number of the version that readers see",
       "type": "integer"
+    },
+    "withdrawn": {
+      "additionalProperties": false,
+      "description": "when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "by_server": {
+          "description": "the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did",
+          "type": "boolean"
+        },
+        "reason": {
+          "description": "why the moderators withdrew it, for the members of its Room",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "reason"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     }
   },
   "required": [
@@ -3539,6 +3626,10 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+| `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
+| `withdrawn.at` | string | yes |  |
+| `withdrawn.reason` | string | yes | why the moderators withdrew it, for the members of its Room |
+| `withdrawn.by_server` | boolean | no | the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did |
 
 <details>
 <summary>JSON Schema</summary>
@@ -3666,6 +3757,31 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
     "version": {
       "description": "the number of the version that readers see",
       "type": "integer"
+    },
+    "withdrawn": {
+      "additionalProperties": false,
+      "description": "when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "by_server": {
+          "description": "the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did",
+          "type": "boolean"
+        },
+        "reason": {
+          "description": "why the moderators withdrew it, for the members of its Room",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "reason"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     }
   },
   "required": [
@@ -3908,6 +4024,10 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+| `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
+| `withdrawn.at` | string | yes |  |
+| `withdrawn.reason` | string | yes | why the moderators withdrew it, for the members of its Room |
+| `withdrawn.by_server` | boolean | no | the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did |
 
 <details>
 <summary>JSON Schema</summary>
@@ -4035,6 +4155,31 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
     "version": {
       "description": "the number of the version that readers see",
       "type": "integer"
+    },
+    "withdrawn": {
+      "additionalProperties": false,
+      "description": "when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "by_server": {
+          "description": "the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did",
+          "type": "boolean"
+        },
+        "reason": {
+          "description": "why the moderators withdrew it, for the members of its Room",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "reason"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     }
   },
   "required": [
@@ -4120,6 +4265,10 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+| `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
+| `withdrawn.at` | string | yes |  |
+| `withdrawn.reason` | string | yes | why the moderators withdrew it, for the members of its Room |
+| `withdrawn.by_server` | boolean | no | the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did |
 
 <details>
 <summary>JSON Schema</summary>
@@ -4247,6 +4396,31 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
     "version": {
       "description": "the number of the version that readers see",
       "type": "integer"
+    },
+    "withdrawn": {
+      "additionalProperties": false,
+      "description": "when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "by_server": {
+          "description": "the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did",
+          "type": "boolean"
+        },
+        "reason": {
+          "description": "why the moderators withdrew it, for the members of its Room",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "reason"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     }
   },
   "required": [
@@ -4356,6 +4530,10 @@ Title: Retitle, describe and tag a Window. Annotations: `readOnlyHint: false`, `
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+| `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
+| `withdrawn.at` | string | yes |  |
+| `withdrawn.reason` | string | yes | why the moderators withdrew it, for the members of its Room |
+| `withdrawn.by_server` | boolean | no | the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did |
 
 <details>
 <summary>JSON Schema</summary>
@@ -4483,6 +4661,31 @@ Title: Retitle, describe and tag a Window. Annotations: `readOnlyHint: false`, `
     "version": {
       "description": "the number of the version that readers see",
       "type": "integer"
+    },
+    "withdrawn": {
+      "additionalProperties": false,
+      "description": "when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "by_server": {
+          "description": "the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did",
+          "type": "boolean"
+        },
+        "reason": {
+          "description": "why the moderators withdrew it, for the members of its Room",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "reason"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     }
   },
   "required": [
@@ -4787,6 +4990,10 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+| `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
+| `withdrawn.at` | string | yes |  |
+| `withdrawn.reason` | string | yes | why the moderators withdrew it, for the members of its Room |
+| `withdrawn.by_server` | boolean | no | the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did |
 
 <details>
 <summary>JSON Schema</summary>
@@ -4914,6 +5121,31 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
     "version": {
       "description": "the number of the version that readers see",
       "type": "integer"
+    },
+    "withdrawn": {
+      "additionalProperties": false,
+      "description": "when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "by_server": {
+          "description": "the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did",
+          "type": "boolean"
+        },
+        "reason": {
+          "description": "why the moderators withdrew it, for the members of its Room",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "reason"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     }
   },
   "required": [
@@ -5692,6 +5924,10 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 | `key` | string | no | the new Key, returned this once: give it to the person, who passes it on with the address |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+| `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
+| `withdrawn.at` | string | yes |  |
+| `withdrawn.reason` | string | yes | why the moderators withdrew it, for the members of its Room |
+| `withdrawn.by_server` | boolean | no | the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did |
 
 <details>
 <summary>JSON Schema</summary>
@@ -5823,6 +6059,31 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
     "version": {
       "description": "the number of the version that readers see",
       "type": "integer"
+    },
+    "withdrawn": {
+      "additionalProperties": false,
+      "description": "when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "by_server": {
+          "description": "the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did",
+          "type": "boolean"
+        },
+        "reason": {
+          "description": "why the moderators withdrew it, for the members of its Room",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "reason"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     }
   },
   "required": [
@@ -5908,6 +6169,10 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+| `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
+| `withdrawn.at` | string | yes |  |
+| `withdrawn.reason` | string | yes | why the moderators withdrew it, for the members of its Room |
+| `withdrawn.by_server` | boolean | no | the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did |
 
 <details>
 <summary>JSON Schema</summary>
@@ -6035,6 +6300,31 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
     "version": {
       "description": "the number of the version that readers see",
       "type": "integer"
+    },
+    "withdrawn": {
+      "additionalProperties": false,
+      "description": "when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "by_server": {
+          "description": "the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did",
+          "type": "boolean"
+        },
+        "reason": {
+          "description": "why the moderators withdrew it, for the members of its Room",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "reason"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     }
   },
   "required": [
@@ -6362,6 +6652,10 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
 | `previous_version` | integer | no | the number of the version that rollback_window goes back to; absent when there is none |
 | `trashed_at` | string or null | no | when the Window went to the trash; absent when it is not in it |
+| `withdrawn` | object or null | no | when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn |
+| `withdrawn.at` | string | yes |  |
+| `withdrawn.reason` | string | yes | why the moderators withdrew it, for the members of its Room |
+| `withdrawn.by_server` | boolean | no | the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did |
 
 <details>
 <summary>JSON Schema</summary>
@@ -6489,6 +6783,31 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
     "version": {
       "description": "the number of the version that readers see",
       "type": "integer"
+    },
+    "withdrawn": {
+      "additionalProperties": false,
+      "description": "when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "by_server": {
+          "description": "the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did",
+          "type": "boolean"
+        },
+        "reason": {
+          "description": "why the moderators withdrew it, for the members of its Room",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "reason"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
     }
   },
   "required": [

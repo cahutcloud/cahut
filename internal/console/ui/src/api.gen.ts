@@ -72,6 +72,8 @@ export interface AccessSet {
   trashed_at?: string;
   /** what the pages of the current version do, as declared when it was published; absent for a Window published before declarations */
   declaration?: Declaration;
+  /** when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn */
+  withdrawn?: Withdrawal;
   /** the new Key, returned this once: give it to the person, who passes it on with the address */
   key?: string;
 }
@@ -791,6 +793,14 @@ export interface Membership {
   role: string;
 }
 
+export interface Moderated {
+  window: Reported;
+  /** when and why it is withdrawn; absent once it is reinstated */
+  withdrawn?: Withdrawal;
+  /** the reports that waited about it, which the withdrawal decided */
+  decided?: number[];
+}
+
 export interface MovedRoom {
   /** the name of the Room now */
   room: string;
@@ -973,6 +983,11 @@ export interface ReaderCode {
   expires_at: string;
 }
 
+export interface ReasonLimit {
+  /** the most characters of a reason */
+  limit: number;
+}
+
 export interface Redirect {
   /** send the browser to this address */
   redirect: string;
@@ -980,6 +995,11 @@ export interface Redirect {
 
 export interface RefInput {
   /** the Window's id or address, or its Room and its name as room/name */
+  window: string;
+}
+
+export interface ReinstateInput {
+  /** the Window, by its id or as room/name */
   window: string;
 }
 
@@ -1083,6 +1103,8 @@ export interface Reported {
   access: string;
   /** the Window is in the trash */
   trashed?: boolean;
+  /** the moderators withdrew the Window, which serves nothing to its readers until they reinstate it */
+  withdrawn?: boolean;
 }
 
 export interface ReportedPreview {
@@ -1647,6 +1669,8 @@ export interface Window {
   trashed_at?: string;
   /** what the pages of the current version do, as declared when it was published; absent for a Window published before declarations */
   declaration?: Declaration;
+  /** when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn */
+  withdrawn?: Withdrawal;
 }
 
 export interface WindowDetail {
@@ -1685,6 +1709,8 @@ export interface WindowDetail {
   trashed_at?: string;
   /** what the pages of the current version do, as declared when it was published; absent for a Window published before declarations */
   declaration?: Declaration;
+  /** when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn */
+  withdrawn?: Withdrawal;
   /** the current version, then the previous one if there is one */
   versions: Version[];
   /** the files of the current version */
@@ -1713,6 +1739,37 @@ export interface WindowListInput {
   tag?: string;
   /** list the Windows in the trash instead */
   trashed?: boolean;
+}
+
+export interface WindowRef {
+  /** the Room of the Window */
+  room: string;
+  /** the name of the Window */
+  window: string;
+}
+
+export interface WithdrawInput {
+  /** the Window, by its id or as room/name */
+  window: string;
+  /** why it is withdrawn, 500 characters at most, which the members of its Room read */
+  reason: string;
+}
+
+export interface Withdrawal {
+  at: string;
+  /** why the moderators withdrew it, for the members of its Room */
+  reason: string;
+  /** the administrators of the server withdrew it, and only they reinstate it; otherwise the administrators of the Cahut did */
+  by_server?: boolean;
+}
+
+export interface WithdrawnWindow {
+  /** the Room of the Window */
+  room: string;
+  /** the name of the Window */
+  window: string;
+  /** why the moderators withdrew it */
+  reason: string;
 }
 
 /** The operations of a Cahut, at POST /console/api/<operation> of its domain. */
@@ -1819,6 +1876,8 @@ export interface CahutOperations {
   publish_window: { input: PublishInput; output: Window };
   /** Delete a Window of this Cahut that is in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. */
   purge_window: { input: RefInput; output: Window };
+  /** Give a withdrawn Window back as it was: its access, its Key, its share links until their end. A Window that the administrators of the server withdrew is reinstated by them only. For the moderators of this Cahut. */
+  reinstate_window: { input: ReinstateInput; output: Moderated };
   /** Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. */
   remove_room_member: { input: RemoveMemberInput; output: RoomDetail };
   /** Change the name of a Window of this Cahut, the last part of its address, <domain>/<room>/<name>/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it. */
@@ -1879,6 +1938,8 @@ export interface CahutOperations {
   update_room: { input: UpdateRoomInput; output: RoomDetail };
   /** Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Cahut calls no other system. */
   update_window: { input: UpdateInput; output: Window };
+  /** Withdraw a Window of this Cahut that a report names, or a public Window, with a reason for the members of its Room. It keeps everything, and serves nothing to its readers until reinstate_window: its addresses and its share links say that it was withdrawn. It decides the reports that wait about it. Withdrawing a withdrawn Window changes its reason. For the moderators of this Cahut. */
+  withdraw_window: { input: WithdrawInput; output: Moderated };
 }
 
 /** The operations of the server, at POST /console/api/server/<operation>, for its administrators. */
@@ -2059,8 +2120,14 @@ export interface Refusals {
   window_name_invalid: GivenName;
   /** name {name} is taken in the Room {room}, by a Window or one in its trash: choose another */
   window_name_taken: NameInRoom;
+  /** {room}/{window} was withdrawn by the moderators of this Cahut: {reason}. It serves nothing, and changes nothing, until they reinstate it, which only they can do: tell the person you act for, or ask the administrators of the Cahut */
+  window_withdrawn: WithdrawnWindow;
+  /** the administrators of the server withdrew {room}/{window}: only they change its reason or reinstate it */
+  window_withdrawn_by_host: WindowRef;
   /** {room}/{window} has no author since the person it was published for was deleted: it opens to its Room, its Cahut, a Key or the public, and to no author alone */
   window_without_author: At;
+  /** give the reason of the withdrawal, in {limit} characters at most: the members of the Room of the Window read it */
+  withdrawal_reason_invalid: ReasonLimit;
   /** the current password is wrong */
   wrong_current_password: null;
   /** wrong handle or password */

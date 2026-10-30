@@ -46,6 +46,10 @@ const t = words({
 			</>
 		),
 		inTrash: "This Window is in the trash: it does not open, and it is in no list. Restore it to open it again, as it was, or delete it for good.",
+		withdrawnBy: (when: string, host: boolean) =>
+			`Withdrawn on ${when} by the ${host ? "administrators of the server" : "moderators of this Cahut"}.`,
+		withdrawnText:
+			"It serves nothing to its readers, and changes nothing, until they reinstate it: its address and its share links say that it was withdrawn. You still preview it here, put it in the trash or delete it. Ask the administrators of this Cahut about it.",
 		restore: "Restore",
 		deleteForGood: "Delete for good",
 		deleteQuestion: "Delete it with its versions and its files? This cannot be undone.",
@@ -171,6 +175,9 @@ const t = words({
 		),
 		inTrash:
 			"Cette Window est à la corbeille : elle ne s'ouvre pas, et ne figure dans aucune liste. Restaurez-la pour l'ouvrir de nouveau, telle qu'elle était, ou supprimez-la définitivement.",
+		withdrawnBy: (when, host) => `Retirée le ${when} par les ${host ? "administrateurs du serveur" : "modérateurs de cette Cahut"}.`,
+		withdrawnText:
+			"Elle n'est plus servie à ses lecteurs, et rien n'y change, jusqu'à ce qu'ils la remettent en ligne : son adresse et ses liens de partage disent qu'elle a été retirée. Vous la prévisualisez toujours ici, la mettez à la corbeille ou la supprimez. Demandez-en plus aux administrateurs de cette Cahut.",
 		restore: "Restaurer",
 		deleteForGood: "Supprimer définitivement",
 		deleteQuestion: "La supprimer avec ses versions et ses fichiers ? Cela ne s'annule pas.",
@@ -323,7 +330,8 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 				title={w.title}
 				lead={w.description}
 				actions={
-					!w.trashed_at && (
+					!w.trashed_at &&
+					!w.withdrawn && (
 						<>
 							<ShareMenu window={w} onLinks={reload} />
 							<a class="c-btn c-btn--secondary" href={w.url} target="_blank" rel="noopener noreferrer">
@@ -344,6 +352,15 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 				<span class="c-mono">{w.url}</span>
 			</PageHead>
 			{failure && <Failure message={failure} />}
+			{w.withdrawn && (
+				<div class="c-alert c-alert--warning section" role="status">
+					<div>
+						<strong>{t.withdrawnBy(new Date(w.withdrawn.at).toLocaleDateString(locale, { dateStyle: "long" }), Boolean(w.withdrawn.by_server))}</strong>{" "}
+						{t.withdrawnText}
+						<blockquote class="withdrawn__reason">{w.withdrawn.reason}</blockquote>
+					</div>
+				</div>
+			)}
 			{w.trashed_at ? (
 				<section class="section">
 					<Notice>{t.inTrash}</Notice>

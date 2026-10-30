@@ -116,9 +116,25 @@ const seen = "(access != 'author' OR created_by = ?1 OR ?1 = 0)"
 // when the person ?1 sees it, and windowCount the number of the Windows of
 // r that they see, for the queries that describe Rooms.
 const (
-	homeName    = "(SELECT name FROM windows WHERE id = r.home_window_id AND trashed_at IS NULL AND " + seen + ")"
+	homeName    = "(SELECT name FROM windows WHERE id = r.home_window_id AND trashed_at IS NULL AND withdrawn_at IS NULL AND " + seen + ")"
 	windowCount = "(SELECT count(*) FROM windows WHERE room_id = r.id AND trashed_at IS NULL AND " + seen + ")"
 )
+
+// WindowWithdrawn refuses what would change a Window that the moderators of
+// the Cahut withdrew, or open it to someone: a new version, its access, its
+// names, a share link, an invitation, the home of its Room. The operations
+// of Windows give it too, from this package, which theirs imports. See
+// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+var WindowWithdrawn = operation.NewRefusalOf[WithdrawnWindow]("window_withdrawn", operation.ErrForbidden,
+	"{room}/{window} was withdrawn by the moderators of this Cahut: {reason}. It serves nothing, and changes nothing, "+
+		"until they reinstate it, which only they can do: tell the person you act for, or ask the administrators of the Cahut")
+
+// WithdrawnWindow fills the refusal of a withdrawn Window.
+type WithdrawnWindow struct {
+	Room   string `json:"room" jsonschema:"the Room of the Window"`
+	Window string `json:"window" jsonschema:"the name of the Window"`
+	Reason string `json:"reason" jsonschema:"why the moderators withdrew it"`
+}
 
 // CreateRoomInput is the input of create_room.
 type CreateRoomInput struct {
@@ -486,13 +502,20 @@ var SetHome = &operation.Op[SetHomeInput, Detail]{
 		c.InRoom(a.ID)
 		var home sql.NullInt64
 		if in.Window != "" {
-			err := c.Tx.QueryRowContext(ctx, "SELECT id FROM windows WHERE room_id = ?2 AND name = ?3 AND trashed_at IS NULL AND "+seen,
-				c.Actor.UserID, a.ID, in.Window).Scan(&home)
+			var withdrawn bool
+			var reason string
+			err := c.Tx.QueryRowContext(ctx, `
+				SELECT id, withdrawn_at IS NOT NULL, coalesce(withdrawn_reason, '') FROM windows
+				WHERE room_id = ?2 AND name = ?3 AND trashed_at IS NULL AND `+seen,
+				c.Actor.UserID, a.ID, in.Window).Scan(&home, &withdrawn, &reason)
 			if errors.Is(err, sql.ErrNoRows) {
 				return Detail{}, operation.NotFoundf("no Window %q in the Room %s, out of the trash: list_windows gives the names of its Windows", in.Window, a.Name)
 			}
 			if err != nil {
 				return Detail{}, err
+			}
+			if withdrawn {
+				return Detail{}, WindowWithdrawn(WithdrawnWindow{Room: a.Name, Window: in.Window, Reason: reason})
 			}
 		}
 		if _, err := c.Tx.ExecContext(ctx, "UPDATE rooms SET home_window_id = ? WHERE id = ?", home, a.ID); err != nil {

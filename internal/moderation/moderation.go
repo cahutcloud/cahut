@@ -101,6 +101,25 @@ func Register(r *operation.Registry, frameKey []byte) {
 		PeopleOnly: true,
 		Run:        previewReported(frameKey),
 	})
+	operation.Register(r, &operation.Op[WithdrawInput, Moderated]{
+		Name:  "withdraw_window",
+		Title: "Withdraw a Window",
+		Description: "Withdraw a Window of this Cahut that a report names, or a public Window, with a reason for the members of its Room. " +
+			"It keeps everything, and serves nothing to its readers until reinstate_window: its addresses and its share links say that it was withdrawn. " +
+			"It decides the reports that wait about it. Withdrawing a withdrawn Window changes its reason. For the moderators of this Cahut.",
+		Level:      operation.CahutAdmin,
+		PeopleOnly: true,
+		Run:        withdraw,
+	})
+	operation.Register(r, &operation.Op[ReinstateInput, Moderated]{
+		Name:  "reinstate_window",
+		Title: "Reinstate a Window",
+		Description: "Give a withdrawn Window back as it was: its access, its Key, its share links until their end. " +
+			"A Window that the administrators of the server withdrew is reinstated by them only. For the moderators of this Cahut.",
+		Level:      operation.CahutAdmin,
+		PeopleOnly: true,
+		Run:        reinstate,
+	})
 	operation.Register(r, &operation.Op[DismissInput, Report]{
 		Name:  "dismiss_report",
 		Title: "Dismiss a report",
@@ -130,12 +149,13 @@ type Report struct {
 
 // Reported is the Window that a report names.
 type Reported struct {
-	ID      string `json:"id" jsonschema:"the Window's id, which never changes"`
-	Room    string `json:"room"`
-	Name    string `json:"name"`
-	Title   string `json:"title"`
-	Access  string `json:"access" jsonschema:"author, room, internal, key or public"`
-	Trashed bool   `json:"trashed,omitempty" jsonschema:"the Window is in the trash"`
+	ID        string `json:"id" jsonschema:"the Window's id, which never changes"`
+	Room      string `json:"room"`
+	Name      string `json:"name"`
+	Title     string `json:"title"`
+	Access    string `json:"access" jsonschema:"author, room, internal, key or public"`
+	Trashed   bool   `json:"trashed,omitempty" jsonschema:"the Window is in the trash"`
+	Withdrawn bool   `json:"withdrawn,omitempty" jsonschema:"the moderators withdrew the Window, which serves nothing to its readers until they reinstate it"`
 }
 
 // ListReportsInput is the input of list_reports.
@@ -151,7 +171,7 @@ type Reports struct {
 }
 
 const selectReport = `
-	SELECT p.id, w.uid, r.name, w.name, w.title, w.access, w.trashed_at IS NOT NULL, p.category, p.explanation,
+	SELECT p.id, w.uid, r.name, w.name, w.title, w.access, w.trashed_at IS NOT NULL, w.withdrawn_at IS NOT NULL, p.category, p.explanation,
 		coalesce(p.name, ''), coalesce(p.email, ''), p.created_at, coalesce(p.decision, ''), p.decided_at,
 		coalesce(p.decided_by, ''), p.by_server, p.note
 	FROM reports p JOIN windows w ON w.id = p.window_id JOIN rooms r ON r.id = w.room_id`
@@ -196,7 +216,7 @@ func query(ctx context.Context, tx *sql.Tx, q string, args ...any) ([]Report, er
 		var p Report
 		var created string
 		var decided sql.NullString
-		err := rows.Scan(&p.ID, &p.Window.ID, &p.Window.Room, &p.Window.Name, &p.Window.Title, &p.Window.Access, &p.Window.Trashed,
+		err := rows.Scan(&p.ID, &p.Window.ID, &p.Window.Room, &p.Window.Name, &p.Window.Title, &p.Window.Access, &p.Window.Trashed, &p.Window.Withdrawn,
 			&p.Category, &p.Explanation, &p.Name, &p.Email, &created, &p.Decision, &decided, &p.DecidedBy, &p.ByServer, &p.Note)
 		if err != nil {
 			return nil, err

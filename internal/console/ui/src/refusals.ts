@@ -132,6 +132,11 @@ const said = words<Sentences>({
 		window_name_taken: (v) => `The name "${v.name}" is taken in the Room ${v.room}, by a Window or one in its trash: choose another.`,
 		window_without_author: () =>
 			"This Window has no author since the person it was published for was deleted: it opens to its Room, its Cahut, a Key or the public.",
+		window_withdrawn: (v) =>
+			`The moderators of this Cahut withdrew ${v.room}/${v.window}: nothing in it changes until they reinstate it. Their reason: ${v.reason}`,
+		window_withdrawn_by_host: (v) => `The administrators of the server withdrew ${v.room}/${v.window}: only they change its reason or reinstate it.`,
+		withdrawal_reason_invalid: (v) =>
+			`Give the reason of the withdrawal, in ${plural(v.limit, "character", "characters")} at most: the members of the Room of the Window read it.`,
 		wrong_current_password: "The current password is wrong.",
 		wrong_handle_or_password: "Wrong handle or password.",
 	},
@@ -224,6 +229,12 @@ const said = words<Sentences>({
 		window_name_taken: (v) => `Le nom « ${v.name} » est déjà pris dans la Room ${v.room}, par une Window ou une Window à la corbeille : choisissez-en un autre.`,
 		window_without_author: () =>
 			"Cette Window n'a plus d'auteur depuis la suppression de la personne pour qui elle a été publiée : elle s'ouvre à sa Room, à sa Cahut, à une Key ou au public.",
+		window_withdrawn: (v) =>
+			`Les modérateurs de cette Cahut ont retiré ${v.room}/${v.window} : rien n'y change jusqu'à ce qu'ils la remettent en ligne. Leur raison : ${v.reason}`,
+		window_withdrawn_by_host: (v) =>
+			`Les administrateurs du serveur ont retiré ${v.room}/${v.window} : eux seuls changent sa raison ou la remettent en ligne.`,
+		withdrawal_reason_invalid: (v) =>
+			`Donnez la raison du retrait, en ${plural(v.limit, "caractère", "caractères")} au plus : les membres de la Room de la Window la lisent.`,
 		wrong_current_password: "Le mot de passe actuel est incorrect.",
 		wrong_handle_or_password: "Identifiant ou mot de passe incorrect.",
 	},

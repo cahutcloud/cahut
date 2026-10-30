@@ -61,6 +61,9 @@ func (s *Server) serveWindow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	reader, _ := s.readerOf(r, now)
+	if s.withdrawn(w, r, err, reader, false) {
+		return
+	}
 	if err != nil {
 		s.notFound(w, r, reader.Handle)
 		return
@@ -108,6 +111,11 @@ func (s *Server) servePermanent(w http.ResponseWriter, r *http.Request) {
 	}
 	// The robots of previews get a page of their own, people the Window.
 	w.Header().Add("Vary", "User-Agent")
+	if _, ok := errors.AsType[*window.Withdrawn](err); ok {
+		reader, _ := s.readerOf(r, now)
+		s.withdrawn(w, r, err, reader, false)
+		return
+	}
 	if err == nil && r.PathValue("file") == "" && previewRobot(r) {
 		s.servePreview(w, r, c, win)
 		return
@@ -157,6 +165,19 @@ func (s *Server) serveFrame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	win, err := window.LookupID(r.Context(), c.DB, frame.Window, now)
+	if wd, ok := errors.AsType[*window.Withdrawn](err); ok {
+		// The members of its Room still preview it in the console, and its
+		// moderators open it while a report about it waits; its readers
+		// learn that it was withdrawn. See
+		// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+		switch frame.Kind {
+		case window.FrameByConsole, window.FrameByModerator, window.FrameByHost:
+			win, err = wd.Window, nil
+		default:
+			s.withdrawn(w, r, err, account.SessionOwner{}, true)
+			return
+		}
+	}
 	if err != nil && !isNotFound(err) {
 		s.internal(w, "find a Window", err)
 		return
@@ -214,6 +235,38 @@ func (s *Server) serveFrame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.serveFiles(w, r, c, win, window.FramePrefix+signed, "no-referrer")
+}
+
+// withdrawn answers a reader who reaches a Window that the moderators of
+// its Cahut withdrew, when err says so, and reports whether it did. A
+// reader who would open the Window otherwise, who holds its Key or one of
+// its links, or who reaches a public Window, gets the page that says it was
+// withdrawn, with the status 410; anyone else gets the page of what is not
+// found, and does not learn that it was there. See
+// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+func (s *Server) withdrawn(w http.ResponseWriter, r *http.Request, err error, reader account.SessionOwner, held bool) bool {
+	wd, ok := errors.AsType[*window.Withdrawn](err)
+	if !ok {
+		return false
+	}
+	win := wd.Window
+	tell := held || win.Access == window.AccessPublic || win.Access == window.AccessKey
+	if !tell {
+		how, err := win.Opens(r.Context(), siteOf(r).cahut.DB, reader.UserID, s.passOf(r, win.ID, time.Now()))
+		if err != nil {
+			s.internal(w, "check the access of a Window", err)
+			return true
+		}
+		tell = how != window.Closed
+	}
+	if !tell {
+		s.notFound(w, r, reader.Handle)
+		return true
+	}
+	p := s.page(r, reader.Handle, "Withdrawn")
+	p.Report = ""
+	s.render(w, r, http.StatusGone, "withdrawn", p)
+	return true
 }
 
 // moderatorOpens reports whether the frame f of a moderator still opens its

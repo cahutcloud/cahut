@@ -122,7 +122,10 @@ A refusal that people meet in the console gives its code too, which never change
 | `window_author_only` | `room`, `window`, `author` | Only the author of {room}/{window}, {author}, keeps it for themself |
 | `window_name_invalid` | `name` | Name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit |
 | `window_name_taken` | `name`, `room` | Name {name} is taken in the Room {room}, by a Window or one in its trash: choose another |
+| `window_withdrawn` | `room`, `window`, `reason` | {room}/{window} was withdrawn by the moderators of this Cahut: {reason}. It serves nothing, and changes nothing, until they reinstate it, which only they can do: tell the person you act for, or ask the administrators of the Cahut |
+| `window_withdrawn_by_host` | `room`, `window` | The administrators of the server withdrew {room}/{window}: only they change its reason or reinstate it |
 | `window_without_author` | `room`, `window` | {room}/{window} has no author since the person it was published for was deleted: it opens to its Room, its Cahut, a Key or the public, and to no author alone |
+| `withdrawal_reason_invalid` | `limit` | Give the reason of the withdrawal, in {limit} characters at most: the members of the Room of the Window read it |
 | `wrong_current_password` |  | The current password is wrong |
 | `wrong_handle_or_password` |  | Wrong handle or password |
 
@@ -181,6 +184,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/preview_windows` | Any person | yes |
 | `POST /api/publish_window` | Any person | yes |
 | `POST /api/purge_window` | Any person | yes |
+| `POST /api/reinstate_window` | Administrators of the Cahut | yes |
 | `POST /api/remove_room_member` | Any person | yes |
 | `POST /api/rename_window` | Any person | yes |
 | `POST /api/report_window` | Anyone, to sign in | no |
@@ -211,6 +215,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/trash_window` | Any person | yes |
 | `POST /api/update_room` | Any person | yes |
 | `POST /api/update_window` | Any person | yes |
+| `POST /api/withdraw_window` | Administrators of the Cahut | yes |
 
 ## Operations of the server
 

@@ -1632,6 +1632,14 @@ a.cahut-menu__item:hover {
 	display: grid;
 	gap: var(--space-3);
 }
+/* The reason of a withdrawn Window, on its page. */
+.withdrawn__reason {
+	margin: var(--space-2) 0 0;
+	padding-left: var(--space-3);
+	border-left: 2px solid currentColor;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
 /* A reported Window, as wide as the screen allows, in its dialog. */
 .dialog:has(.report__frame) {
 	width: min(1100px, calc(100vw - 2 * var(--space-4)));

@@ -136,7 +136,7 @@ func (s *Service) invite(ctx context.Context, c *operation.Call, in InviteInput)
 	if err != nil {
 		return Invited{}, err
 	}
-	if err := w.outOfTrash(); err != nil {
+	if err := w.changeable(); err != nil {
 		return Invited{}, err
 	}
 	at := w.Room + "/" + w.Name
@@ -517,7 +517,7 @@ func findOpen(ctx context.Context, q interface {
 			coalesce(i.client, ''), i.note, i.expires_at, w.access, w.access_ends_at
 		FROM invitations i JOIN windows w ON w.id = i.window_id JOIN rooms r ON r.id = w.room_id
 		LEFT JOIN users b ON b.id = i.invited_by
-		WHERE i.hash = ? AND i.ended_at IS NULL AND i.expires_at > ? AND w.trashed_at IS NULL`,
+		WHERE i.hash = ? AND i.ended_at IS NULL AND i.expires_at > ? AND w.trashed_at IS NULL AND w.withdrawn_at IS NULL`,
 		credential.Hash(strings.TrimSpace(code)), store.FormatTime(now)).
 		Scan(&o.id, &o.windowID, &o.page.Window, &o.page.Title, &o.page.By, &o.page.AI, &o.page.Note, &expires, &access, &ends)
 	if errors.Is(err, sql.ErrNoRows) {
