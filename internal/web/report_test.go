@@ -532,3 +532,49 @@ func TestModerationMail(t *testing.T) {
 		t.Errorf("the reinstatement = %v %q", m.To, body(m))
 	}
 }
+
+// The moderators list the public Windows of their Cahut, the latest made
+// public first, and the list of the Cahuts of the server counts the
+// reports that wait in each. See
+// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+func TestPublicWindowsAndWaitingReports(t *testing.T) {
+	f := setup(t)
+	console := f.ts
+	olivier := f.person(t, "localhost", "olivier")
+	publishPage(t, f, "First", "public")
+	publishPage(t, f, "Second", "room")
+	publishPage(t, f, "Third", "public")
+	f.call(t, "localhost", olivier, "set_window_access", `{"window": "olivier/second", "access": "public"}`)
+	ana := activate(t, f, console, "ana", true)
+	root := serverAdmin(t, f, "root")
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/withdraw_window", ana, `{"window": "olivier/third", "reason": "Spam."}`); r.status != http.StatusOK {
+		t.Fatalf("withdraw_window: %d %s", r.status, r.raw)
+	}
+	r := call(t, f, console, http.MethodPost, "localhost", "/console/api/list_public_windows", ana, `{}`)
+	var names []string
+	for _, w := range r.body["windows"].([]any) {
+		names = append(names, w.(map[string]any)["name"].(string)+" by "+w.(map[string]any)["by"].(string))
+	}
+	if r.status != http.StatusOK || !slices.Equal(names, []string{"second by olivier", "first by olivier"}) {
+		t.Errorf("list_public_windows: %d %q %s", r.status, names, r.raw)
+	}
+	camille := activate(t, f, console, "camille", false)
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/list_public_windows", camille, `{}`); r.status != http.StatusForbidden {
+		t.Errorf("list_public_windows as a member: %d %s", r.status, r.raw)
+	}
+
+	for range 2 {
+		if status, _ := f.sendReport(t, "https://localhost/olivier/first/", "other", "Something is wrong here.", ""); status != http.StatusOK {
+			t.Fatalf("report = %d", status)
+		}
+	}
+	r = call(t, f, console, http.MethodPost, "localhost", "/console/api/server/list_domains", root, `{}`)
+	counts := map[string]float64{}
+	for _, c := range r.body["cahuts"].([]any) {
+		reports, _ := c.(map[string]any)["reports"].(float64)
+		counts[c.(map[string]any)["domain"].(string)] = reports
+	}
+	if r.status != http.StatusOK || counts["localhost"] != 2 || counts["beta.localhost"] != 0 {
+		t.Errorf("list_domains: %d %v %s", r.status, counts, r.raw)
+	}
+}

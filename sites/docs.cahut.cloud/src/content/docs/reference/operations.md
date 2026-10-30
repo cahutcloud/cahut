@@ -54,6 +54,7 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | [`list_invitations`](/reference/mcp-tools/#list_invitations) | List the invitations to a Window of this Cahut, the latest first: who got one, who invited, and whether it still stands. | Any person | no | yes |
 | [`list_knocks`](/reference/mcp-tools/#list_knocks) | List the Knocks of this Cahut, those that wait first. A Knock is a call of an AI that waits for a person to approve it, since it cannot be undone or changes what a person may do. An AI lists the Knocks it made; a person, those of their AIs. | Any person | no | yes |
 | [`list_logbook`](/reference/mcp-tools/#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. | Any person | no | yes |
+| `list_public_windows` | List the public Windows of this Cahut, which anyone opens, the latest made public first, for its moderators to look at what it serves to anyone. | Administrators of the Cahut | no | no, people only |
 | `list_reports` | List the reports about the Windows of this Cahut: those that wait for a decision, the oldest first, then the latest decided. For its moderators: its administrators and those of its server. | Administrators of the Cahut | no | no, people only |
 | [`list_rooms`](/reference/mcp-tools/#list_rooms) | List your Rooms in this Cahut, your personal Room first, with your role and how many members and Windows each has. | Any person | no | yes |
 | `list_service_tokens` | List the service tokens of the Cahut, newest first, with their last use. | Administrators of the server | no | no, people only |
@@ -117,7 +118,7 @@ They are not offered over MCP.
 | `get_setup` | Say whether a link to the first start still works at this domain. | Anyone, to sign in | no | no, people only |
 | `get_updates` | Say which version of Cahut runs, the newest release, and how the last check and the last update went. | Administrators of the server | no | no |
 | `list_admins` | List the administrators of the server. | Administrators of the server | no | no |
-| `list_domains` | List the Cahuts of this server, their domains, and those that are suspended. | Administrators of the server | no | no |
+| `list_domains` | List the Cahuts of this server, their domains, those that are suspended, and how many reports wait in each. | Administrators of the server | no | no |
 | `list_logbook` | Read the latest entries of the server's Logbook, newest first. | Administrators of the server | no | no |
 | `rename_admin` | Change the name of an administrator of the server, yours or another's. Their handle, with which they sign in, stays. | Administrators of the server | yes | no |
 | `rename_domain` | Move a Cahut to another domain, or from the IP address of the server to a domain. Its people, Rooms, Windows and Logbook stay; the links that name its old address stop working, and AIs connect again at the new one. | Administrators of the server | yes | no |

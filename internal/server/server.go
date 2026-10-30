@@ -21,6 +21,7 @@ import (
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/mail"
+	"cahut.cloud/internal/moderation"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
@@ -95,10 +96,10 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 	s.ListDomains = &operation.Op[ListDomainsInput, DomainList]{
 		Name:        "list_domains",
 		Title:       "List Cahuts",
-		Description: "List the Cahuts of this server, their domains, and those that are suspended.",
+		Description: "List the Cahuts of this server, their domains, those that are suspended, and how many reports wait in each.",
 		Level:       operation.ServerAdmin,
 		ReadOnly:    true,
-		Prepare:     s.readSuspensions,
+		Prepare:     s.readStates,
 		Run:         s.listDomains,
 	}
 	operation.Register(s.Registry, s.ListDomains)
@@ -129,6 +130,15 @@ type Info struct {
 	// Suspension is read from the Cahut, which keeps it with its settings,
 	// by list_domains only. See docs/adr/0048-suspending-a-cahut.md.
 	Suspension *settings.Suspension `json:"suspension,omitempty" jsonschema:"since when and why the administrators of the server suspended this Cahut, which serves nothing meanwhile; absent while it is active"`
+	// Reports is read from the Cahut too, by list_domains only. See
+	// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+	Reports int `json:"reports,omitempty" jsonschema:"how many reports about the Windows of this Cahut wait for its moderators"`
+}
+
+// state is what list_domains reads in each Cahut.
+type state struct {
+	suspension *settings.Suspension
+	reports    int
 }
 
 // AddDomainInput is the input of add_domain.
@@ -267,28 +277,30 @@ type DomainList struct {
 	Cahuts []Info `json:"cahuts"`
 }
 
-// readSuspensions reads the suspension of each Cahut in the Cahut, before
-// list_domains opens its transaction: opening a Cahut reads the domains of
-// the server, which a transaction held meanwhile could starve.
-func (s *Server) readSuspensions(ctx context.Context, c *operation.Call, _ ListDomainsInput) error {
+// readStates reads the suspension of each Cahut, and the reports that wait
+// in it, in the Cahut, before list_domains opens its transaction: opening a
+// Cahut reads the domains of the server, which a transaction held meanwhile
+// could starve.
+func (s *Server) readStates(ctx context.Context, c *operation.Call, _ ListDomainsInput) error {
 	domains, err := s.Domains(ctx)
 	if err != nil {
 		return err
 	}
-	suspensions := map[string]*settings.Suspension{}
+	states := map[string]state{}
 	for _, d := range domains {
-		if suspensions[d], err = s.suspensionOf(ctx, d); err != nil {
+		if states[d], err = s.stateOf(ctx, d); err != nil {
 			return fmt.Errorf("read the Cahut of %s: %w", d, err)
 		}
 	}
-	c.Keep(suspensions)
+	c.Keep(states)
 	return nil
 }
 
 // listDomains lists the Cahuts of the server, in the order they were
-// declared, with the suspension of each that readSuspensions read.
+// declared, with the suspension and the reports of each that readStates
+// read.
 func (s *Server) listDomains(ctx context.Context, c *operation.Call, _ ListDomainsInput) (DomainList, error) {
-	suspensions, _ := c.Kept().(map[string]*settings.Suspension)
+	states, _ := c.Kept().(map[string]state)
 	rows, err := c.Tx.QueryContext(ctx, "SELECT id, domain, created_at FROM cahuts ORDER BY id")
 	if err != nil {
 		return DomainList{}, err
@@ -304,28 +316,34 @@ func (s *Server) listDomains(ctx context.Context, c *operation.Call, _ ListDomai
 		if info.CreatedAt, err = store.ParseTime(created); err != nil {
 			return DomainList{}, err
 		}
-		info.Suspension = suspensions[info.Domain]
+		info.Suspension, info.Reports = states[info.Domain].suspension, states[info.Domain].reports
 		list.Cahuts = append(list.Cahuts, info)
 	}
 	return list, rows.Err()
 }
 
-// suspensionOf returns the suspension of the Cahut at domain, or nil while
-// it is active.
-func (s *Server) suspensionOf(ctx context.Context, domain string) (*settings.Suspension, error) {
+// stateOf returns the suspension of the Cahut at domain, nil while it is
+// active, and how many reports wait in it.
+func (s *Server) stateOf(ctx context.Context, domain string) (state, error) {
+	var c *cahut.Cahut
+	var err error
 	if s.Opened != nil {
-		c, err := s.Opened(ctx, domain)
-		if err != nil {
-			return nil, err
+		c, err = s.Opened(ctx, domain)
+	} else {
+		c, err = s.OpenCahut(ctx, domain)
+		if err == nil {
+			defer c.Close()
 		}
-		return settings.SuspensionOf(ctx, c.DB.Read)
 	}
-	c, err := s.OpenCahut(ctx, domain)
 	if err != nil {
-		return nil, err
+		return state{}, err
 	}
-	defer c.Close()
-	return settings.SuspensionOf(ctx, c.DB.Read)
+	var st state
+	if st.suspension, err = settings.SuspensionOf(ctx, c.DB.Read); err != nil {
+		return state{}, err
+	}
+	st.reports, err = moderation.Waiting(ctx, c.DB.Read)
+	return st, err
 }
 
 // Domains returns the domains of all the Cahuts, in the order they were

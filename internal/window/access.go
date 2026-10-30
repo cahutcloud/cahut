@@ -162,8 +162,11 @@ func (s *Service) setAccess(ctx context.Context, c *operation.Call, in AccessInp
 		key = credential.Key()
 	}
 	// Who sets the access hears when it ends. See
-	// docs/adr/0031-e-mail-through-a-relay.md.
-	set, args := "access = ?, access_ends_at = ?, access_set_by = ?", []any{in.Access, ends, sql.NullInt64{Int64: c.Actor.UserID, Valid: c.Actor.UserID != 0}}
+	// docs/adr/0031-e-mail-through-a-relay.md. When it is set tells the
+	// moderators which Windows were made public last. See
+	// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+	set, args := "access = ?, access_ends_at = ?, access_set_by = ?, access_set_at = ?",
+		[]any{in.Access, ends, sql.NullInt64{Int64: c.Actor.UserID, Valid: c.Actor.UserID != 0}, store.FormatTime(c.Now)}
 	switch {
 	case key != "":
 		hash, err := credential.HashPassword(ctx, key)

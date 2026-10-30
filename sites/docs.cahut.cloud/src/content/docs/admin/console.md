@@ -47,7 +47,7 @@ The same screens, and:
 - **Logbook**: every entry of the Cahut, from people and from AIs.
 - **AIs and access**: the connected AIs and the tokens of others too, which they can disconnect and revoke.
 - **Kind and limits**: whether the Cahut is collaborative or individual, its [limits](/concepts/cahuts/#limits) with what it holds, and the links to its [legal pages](/concepts/cahuts/#legal-pages). The administrators of the server set them.
-- **Moderation**: the reports that anyone makes about the Windows of the Cahut, those that wait first, which the menu counts. See [Moderation](/admin/moderation/).
+- **Moderation**: the reports that anyone makes about the Windows of the Cahut, those that wait first, which the menu counts, and its public Windows; a reported Window opens there whatever its access, and is withdrawn or left as it is. See [Moderation](/admin/moderation/).
 
 In an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), the page of a Room no longer adds or removes people, and the access of a Window no longer offers Internal.
 
@@ -61,7 +61,7 @@ While the browser holds the session of an administrator of the server, the bar o
 
 They find:
 
-- **Overview**, or **Cahuts** beside the console of a person: the Cahuts of the server, a form that declares one with its first administrator, whose link the console shows, and on each Cahut **Move to a domain** or **Change its domain**. When the Cahut of the console moves, the console sends you to sign in again at its new address. A suspended Cahut says so, since when and why.
+- **Overview**, or **Cahuts** beside the console of a person: the Cahuts of the server, how many reports wait in each, a form that declares one with its first administrator, whose link the console shows, and on each Cahut **Move to a domain** or **Change its domain**. When the Cahut of the console moves, the console sends you to sign in again at its new address. A suspended Cahut says so, since when and why.
 - **Server administrators**: the list, with the day each was added and their state. **New administrator** adds one and gives their link. **Manage** changes the name of an administrator, theirs or one's own, gives another administrator a new link, or disables and enables them; disabling asks to confirm first. A disabled administrator loses their sessions and cannot sign in; the server keeps at least one who is not disabled. The screen reminds that an administrator of one Cahut only is made under **People**.
 - **Logbook of the server**: the Cahuts declared and moved, the administrators and their sign-ins, and the updates.
 - **Updates**: the version running, the newest release, the last update and how it ended, with **Check now** and **Update**. See [Updates](/admin/updates/).
