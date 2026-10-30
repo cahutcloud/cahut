@@ -324,6 +324,10 @@ const fr: Dictionary = {
 						text: 'Des personnes, des Rooms, des Windows et du disque pour chaque Cahut, fixés par les administrateurs du serveur, et des Cahuts où chacun travaille seul.',
 					},
 					{
+						area: 'Modération',
+						text: 'Tout le monde signale une Window, sans compte. Les administrateurs de la Cahut et de son serveur lisent les signalements dans la console, retirent une Window avec un motif, et la rétablissent.',
+					},
+					{
 						area: 'Logbook',
 						text: "L'historique de chaque action : qui, quelle IA, au nom de qui, avec quel résultat.",
 					},
@@ -504,6 +508,7 @@ const fr: Dictionary = {
 				"Des Windows publiées par MCP : documents, présentations, tableaux de bord et sites statiques, servis dans un bac à sable qui les tient à ce que leur IA déclare charger et appeler.",
 				"Deux versions de chaque Window avec retour en arrière, une corbeille, et un accès : Room seulement, interne, avec une Key ou public, jusqu'à une date.",
 				'Des tags sur les Windows, et une recherche dans leurs titres, descriptions, tags et pages, dans la console et pour les IA.',
+				'Des signalements de Windows, par tout le monde, sans compte, et des modérateurs qui retirent une Window avec un motif pour sa Room, puis la rétablissent.',
 				"Knock first : ce qu'une IA ne peut pas défaire, ou ce qui change ce qu'une personne peut faire, attend sa personne, qui l'approuve ou le refuse dans la console.",
 				'Les e-mails, par le relais SMTP de chaque Cahut : des liens pour choisir un mot de passe, des invitations à lire une Window, et les notifications des Knocks, du compte et des limites.',
 				'Un plugin pour Claude Code, et une skill pour les applications Claude, qui apprennent à Claude à faire des Windows et à les publier.',

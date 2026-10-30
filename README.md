@@ -111,6 +111,7 @@ The full scope ships at launch, with no reduced trial version.
 | Web console | See what is published, share, comment, approve irreversible actions, administer the server and its Cahuts, under `/console/` of each Cahut |
 | Domains and TLS | Several Cahuts per server, each at its own domain or subdomain, no wildcard needed, automatic certificates |
 | Limits | People, Rooms, Windows and disk for each Cahut, set by the administrators of the server, and Cahuts where each person works alone |
+| Moderation | Reports of Windows from anyone, without an account; the administrators of the Cahut and of its server withdraw a Window with a reason, and reinstate it |
 | Logbook | History of every action: who, which AI, on whose behalf, with what result |
 | Backups | Optional, to external S3 or SFTP storage, restore from the console |
 | Updates | Automatic, checked against the releases published on GitHub, with rollback |

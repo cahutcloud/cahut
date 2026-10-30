@@ -312,6 +312,10 @@ export default {
 						area: 'Limits',
 						text: 'People, Rooms, Windows and disk for each Cahut, set by the administrators of the server, and Cahuts where each person works alone.',
 					},
+					{
+						area: 'Moderation',
+						text: 'Anyone reports a Window, without an account. The administrators of the Cahut and of its server read the reports in the console, withdraw a Window with a reason, and reinstate it.',
+					},
 					{ area: 'Logbook', text: 'The history of every action: who, which AI, on whose behalf, with what result.' },
 					{ area: 'Backups', text: 'Optional, to external S3 or SFTP storage. Restore from the console.' },
 					{ area: 'Updates', text: 'Automatic, checked against the releases published on GitHub, with rollback.' },
@@ -475,6 +479,7 @@ export default {
 				'Windows published over MCP: documents, decks, dashboards and static sites, served in a sandbox that holds them to what their AI declares they load and call.',
 				'Two versions of each Window with a rollback, a trash, and an access: Room only, internal, with a Key or public, until a date.',
 				'Tags on Windows, and a search of their titles, descriptions, tags and pages, in the console and for AIs.',
+				'Reports of Windows, from anyone, without an account, and moderators who withdraw a Window with a reason for its Room, then reinstate it.',
 				'Knock first: what an AI cannot undo, or what changes what a person may do, waits for its person, who approves or declines it in the console.',
 				'E-mail through the SMTP relay of each Cahut: links to choose a password, invitations to read a Window, and notices of Knocks, of the account and of limits.',
 				'A plugin for Claude Code, and a skill for the Claude apps, that teach Claude to make Windows and publish them.',
