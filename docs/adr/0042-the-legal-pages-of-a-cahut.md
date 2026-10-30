@@ -1,6 +1,6 @@
 # 42. The pages of a Cahut link its legal pages, which the administrators of its server give
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 54](0054-reporting-and-withdrawing-a-window.md) (the foot of the pages for readers links Report, and the settings of a Cahut hold its address of moderation)
 - Date: 2026-10-25
 
 ## Context
