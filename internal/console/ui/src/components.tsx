@@ -597,7 +597,12 @@ const maxPreviews = 100;
  * Windows, as cards, each with a preview of the Window itself when the API
  * gives one. See docs/adr/0027-previews-of-windows-in-the-console.md.
  */
-export function WindowCards({ windows, showRoom, home }: { windows: Window[]; showRoom?: boolean; home?: string }) {
+export function WindowCards({
+	windows,
+	showRoom,
+	home,
+	onChanged,
+}: { windows: Window[]; showRoom?: boolean; home?: string; onChanged?: () => void }) {
 	const api = useConsole();
 	const names = windows.slice(0, maxPreviews).map((w) => `${w.room}/${w.name}`);
 	// Without previews, the cards keep the icon of their kind.
@@ -606,7 +611,14 @@ export function WindowCards({ windows, showRoom, home }: { windows: Window[]; sh
 	return (
 		<div class="cards cards--windows">
 			{windows.map((w) => (
-				<WindowCard key={w.url} window={w} showRoom={showRoom} home={w.name === home} preview={frames.get(`${w.room}/${w.name}`)} />
+				<WindowCard
+					key={w.url}
+					window={w}
+					showRoom={showRoom}
+					home={w.name === home}
+					preview={frames.get(`${w.room}/${w.name}`)}
+					onChanged={onChanged}
+				/>
 			))}
 		</div>
 	);
@@ -617,7 +629,7 @@ export function WindowCards({ windows, showRoom, home }: { windows: Window[]; sh
  * and one that opens the Window itself in a new tab; the Window that the
  * address of its Room shows says so.
  */
-export function WindowCard(props: { window: Window; showRoom?: boolean; home?: boolean; preview?: string }) {
+export function WindowCard(props: { window: Window; showRoom?: boolean; home?: boolean; preview?: string; onChanged?: () => void }) {
 	const { window: w, showRoom, home, preview } = props;
 	const kind = kinds[w.kind] ?? kinds.site;
 	const Icon = kind.icon;
@@ -634,7 +646,7 @@ export function WindowCard(props: { window: Window; showRoom?: boolean; home?: b
 				)}
 			</Link>
 			<div class="window-actions">
-				<ShareMenu window={w} compact />
+				<ShareMenu window={w} compact onLinks={props.onChanged} />
 				<a class="c-btn c-btn--secondary c-btn--sm icon-button" href={w.url} target="_blank" rel="noopener noreferrer" aria-label={t.openWindow(w.title)} title={t.openWindow(w.title)}>
 					<ArrowUpRight class="i" size={16} aria-hidden="true" />
 				</a>

@@ -450,7 +450,7 @@ export function RoomPage({ name }: { name: string }) {
 				{windows.error && <Failure message={windows.error} />}
 				{windows.data === null && <Notice>{t.notInRoom}</Notice>}
 				{list && list.length === 0 && <EmptyRoom name={r.name} />}
-				{list && list.length > 0 && <WindowCards windows={list} home={r.home} />}
+				{list && list.length > 0 && <WindowCards windows={list} home={r.home} onChanged={windows.reload} />}
 				{list && (
 					<RoomTrash
 						room={r.name}
