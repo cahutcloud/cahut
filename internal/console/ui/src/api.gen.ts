@@ -883,6 +883,8 @@ export interface Person {
   name: string;
   /** owner or member of the Room */
   role: string;
+  /** how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators */
+  kept?: number;
 }
 
 export interface PersonUsage {

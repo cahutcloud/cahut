@@ -137,6 +137,7 @@ Title: Add a member to a Room. Annotations: `readOnlyHint: false`, `destructiveH
 | `people[].handle` | string | yes |  |
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
+| `people[].kept` | integer | no | how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
@@ -180,6 +181,10 @@ Title: Add a member to a Room. Annotations: `readOnlyHint: false`, `destructiveH
         "properties": {
           "handle": {
             "type": "string"
+          },
+          "kept": {
+            "description": "how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators",
+            "type": "integer"
           },
           "name": {
             "type": "string"
@@ -1634,6 +1639,7 @@ Title: Describe a Room. Annotations: `readOnlyHint: true`, `destructiveHint: fal
 | `people[].handle` | string | yes |  |
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
+| `people[].kept` | integer | no | how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
@@ -1677,6 +1683,10 @@ Title: Describe a Room. Annotations: `readOnlyHint: true`, `destructiveHint: fal
         "properties": {
           "handle": {
             "type": "string"
+          },
+          "kept": {
+            "description": "how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators",
+            "type": "integer"
           },
           "name": {
             "type": "string"
@@ -3672,6 +3682,7 @@ Title: Remove a member from a Room. Annotations: `readOnlyHint: false`, `destruc
 | `people[].handle` | string | yes |  |
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
+| `people[].kept` | integer | no | how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
@@ -3715,6 +3726,10 @@ Title: Remove a member from a Room. Annotations: `readOnlyHint: false`, `destruc
         "properties": {
           "handle": {
             "type": "string"
+          },
+          "kept": {
+            "description": "how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators",
+            "type": "integer"
           },
           "name": {
             "type": "string"
@@ -5011,6 +5026,7 @@ Title: Choose the home page of a Room. Annotations: `readOnlyHint: false`, `dest
 | `people[].handle` | string | yes |  |
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
+| `people[].kept` | integer | no | how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
@@ -5054,6 +5070,10 @@ Title: Choose the home page of a Room. Annotations: `readOnlyHint: false`, `dest
         "properties": {
           "handle": {
             "type": "string"
+          },
+          "kept": {
+            "description": "how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators",
+            "type": "integer"
           },
           "name": {
             "type": "string"
@@ -5162,6 +5182,7 @@ Title: Change a role in a Room. Annotations: `readOnlyHint: false`, `destructive
 | `people[].handle` | string | yes |  |
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
+| `people[].kept` | integer | no | how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
@@ -5205,6 +5226,10 @@ Title: Change a role in a Room. Annotations: `readOnlyHint: false`, `destructive
         "properties": {
           "handle": {
             "type": "string"
+          },
+          "kept": {
+            "description": "how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators",
+            "type": "integer"
           },
           "name": {
             "type": "string"
@@ -5946,6 +5971,7 @@ Title: Retitle and describe a Room. Annotations: `readOnlyHint: false`, `destruc
 | `people[].handle` | string | yes |  |
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
+| `people[].kept` | integer | no | how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators |
 | `title` | string | yes |  |
 | `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
@@ -5989,6 +6015,10 @@ Title: Retitle and describe a Room. Annotations: `readOnlyHint: false`, `destruc
         "properties": {
           "handle": {
             "type": "string"
+          },
+          "kept": {
+            "description": "how many Windows of the Room they keep for themselves, which open to the Room if they leave it; given to them, to the owners of the Room and to the administrators",
+            "type": "integer"
           },
           "name": {
             "type": "string"

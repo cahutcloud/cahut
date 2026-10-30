@@ -88,6 +88,14 @@ const t = words({
 		leaveQuestion: "Leave this Room? You will no longer open its Windows.",
 		leaveConfirm: "Leave",
 		leaveHelp: "You will no longer open its Windows. Its other owners keep it.",
+		// The Windows of a person for themself open to the Room when they
+		// leave it. See docs/adr/0053-windows-for-their-author-alone.md.
+		yoursOpen: (n: number) =>
+			n === 1 ? "The Window you keep for yourself here will open to its members." : `The ${n} Windows you keep for yourself here will open to its members.`,
+		theirsOpen: (name: string, n: number) =>
+			n === 1
+				? `The Window that ${name} keeps for themself here will open to its members.`
+				: `The ${n} Windows that ${name} keeps for themself here will open to its members.`,
 		roleOf: (role: string, title: string) => `${role} of ${title}`,
 		role: "Role",
 		memberHelp: "Opens and publishes the Windows of the Room.",
@@ -129,7 +137,8 @@ const t = words({
 		save: "Save",
 		saved: "Saved.",
 		deleteRoom: "Delete this Room",
-		deleteHelp: (windows: string) => `Its people, ${windows}, those in its trash and their files. It cannot be undone.`,
+		deleteHelp: (windows: string) =>
+			`Its people, ${windows}, those in its trash, those that its people keep for themselves, and their files. It cannot be undone.`,
 		deleteAsk: "Delete…",
 		typeToConfirm: (name: string) => (
 			<>
@@ -198,6 +207,10 @@ const t = words({
 		leaveQuestion: "Quitter cette Room ? Vous n'ouvrirez plus ses Windows.",
 		leaveConfirm: "Quitter",
 		leaveHelp: "Vous n'ouvrirez plus ses Windows. Ses autres propriétaires la gardent.",
+		yoursOpen: (n) =>
+			n === 1 ? "La Window que vous gardez pour vous ici s'ouvrira à ses membres." : `Les ${n} Windows que vous gardez pour vous ici s'ouvriront à ses membres.`,
+		theirsOpen: (name, n) =>
+			n === 1 ? `La Window gardée ici pour soi par ${name} s'ouvrira à ses membres.` : `Les ${n} Windows gardées ici pour soi par ${name} s'ouvriront à ses membres.`,
 		roleOf: (role, title) => `${role} ${de(title)}`,
 		role: "Rôle",
 		memberHelp: "Ouvre et publie les Windows de la Room.",
@@ -239,7 +252,8 @@ const t = words({
 		save: "Enregistrer",
 		saved: "Enregistré.",
 		deleteRoom: "Supprimer cette Room",
-		deleteHelp: (windows) => `Ses personnes, ${windows}, celles de sa corbeille et leurs fichiers. Cela ne s'annule pas.`,
+		deleteHelp: (windows) =>
+			`Ses personnes, ${windows}, celles de sa corbeille, celles que ses personnes gardent pour elles, et leurs fichiers. Cela ne s'annule pas.`,
 		deleteAsk: "Supprimer…",
 		typeToConfirm: (name) => (
 			<>
@@ -418,6 +432,7 @@ export function RoomPage({ name }: { name: string }) {
 		room.reload();
 	};
 	const person = r.people.find((p) => p.handle === managing);
+	const yours = r.people.find((p) => p.handle === api.session.handle)?.kept ?? 0;
 	return (
 		<>
 			<RoomHead
@@ -435,7 +450,7 @@ export function RoomPage({ name }: { name: string }) {
 				{windows.error && <Failure message={windows.error} />}
 				{windows.data === null && <Notice>{t.notInRoom}</Notice>}
 				{list && list.length === 0 && <EmptyRoom name={r.name} />}
-				{list && list.length > 0 && <WindowCards windows={list} home={r.home} />}
+				{list && list.length > 0 && <WindowCards windows={list} home={r.home} onChanged={windows.reload} />}
 				{list && (
 					<RoomTrash
 						room={r.name}
@@ -461,7 +476,7 @@ export function RoomPage({ name }: { name: string }) {
 							r.role === "member" && (
 								<ConfirmButton
 									label={t.leave}
-									question={t.leaveQuestion}
+									question={withKept(t.leaveQuestion, yours, t.yoursOpen)}
 									confirm={t.leaveConfirm}
 									danger
 									onConfirm={async () => {
@@ -757,7 +772,7 @@ function ManageRoom(props: {
 				{props.leave && (
 					<Setting
 						title={t.leave}
-						help={t.leaveHelp}
+						help={withKept(t.leaveHelp, r.people.find((p) => p.handle === api.session.handle)?.kept ?? 0, t.yoursOpen)}
 						action={t.leaveConfirm}
 						ask={t.leaveQuestion}
 						onAct={async () => {
@@ -1044,7 +1059,7 @@ function ManageMember(props: { room: RoomDetail; person: Person; owners: number;
 					/>
 					<Setting
 						title={t.removeTitle}
-						help={t.removeHelp(p.name)}
+						help={withKept(t.removeHelp(p.name), p.kept ?? 0, (n) => t.theirsOpen(p.name, n))}
 						action={t.remove}
 						danger
 						ask={t.removeQuestion(p.name)}
@@ -1129,4 +1144,9 @@ function AddPerson(props: { room: RoomDetail; onAdded: () => void; onClose: () =
 			)}
 		</Dialog>
 	);
+}
+
+/** A sentence, and what happens to the Windows that a person keeps for themself, when they keep any. */
+function withKept(sentence: string, kept: number, open: (n: number) => string): string {
+	return kept > 0 ? `${sentence} ${open(kept)}` : sentence;
 }

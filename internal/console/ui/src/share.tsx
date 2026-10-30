@@ -4,10 +4,12 @@
 // links: the console loads nothing of those sites, and they learn of the
 // Window only when the person posts it. For a Window that is not public, it
 // also makes share links, which open it to whoever holds them, without an
-// account or a Key, until they end. See
-// docs/adr/0051-sharing-a-window-and-its-preview.md and
-// docs/adr/0052-share-links.md.
-import { ArrowUpRight, Check, Link as LinkIcon, Link2, Mail, Share2 } from "lucide-preact";
+// account or a Key, until they end. Its author also shares it once: a link
+// that opens to a single reader, to a Window that they keep for themself.
+// See docs/adr/0051-sharing-a-window-and-its-preview.md,
+// docs/adr/0052-share-links.md and
+// docs/adr/0053-windows-for-their-author-alone.md.
+import { ArrowUpRight, Check, Link as LinkIcon, Link2, Mail, Share2, UserLock } from "lucide-preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { explain } from "./api";
 import type { ShareLinkInput, ShareLinkMade, Window } from "./api.gen";
@@ -28,6 +30,7 @@ const t = words({
 		email: "E-mail",
 		shareVia: "Share via…",
 		createLink: "Create a share link…",
+		shareOnce: "Share once…",
 		newTab: "opens in a new tab",
 		linkTitle: "Create a share link",
 		linkIntro:
@@ -51,8 +54,15 @@ const t = words({
 		once: "Copy it now: Cahut keeps only a trace of it, and shows it this once.",
 		opensUntil: (until: string, readers: number | undefined) =>
 			`It opens the Window until ${until}${readers ? `, to ${plural(readers, "reader", "readers")}` : ""}.`,
+		onceTitle: "Share once",
+		onceIntro:
+			"The link opens this Window once: whoever opens it first reads it in their browser for 4 hours, and nobody after them. Robots of previews and filters of mail that only follow the link spend nothing.",
+		keep: "Keep it for me alone",
+		keepHelp: "Nobody else in its Room sees it any more, nor their AIs. You open it to the Room again on its page.",
+		opensOnce: (until: string) => `It opens the Window once, until ${until}.`,
 		done: "Done",
 		opens: {
+			author: "Only you open it at this address. To give it to one reader, share it once.",
 			public: "Anyone with the link opens it. Its preview shows its title and its description.",
 			key: "Readers need its Key too, which you give them apart. Its preview shows its title.",
 			internal: "People of this Cahut open it once signed in. Its preview shows no title.",
@@ -67,6 +77,7 @@ const t = words({
 		email: "E-mail",
 		shareVia: "Partager via…",
 		createLink: "Créer un lien de partage…",
+		shareOnce: "Partager une fois…",
 		newTab: "s'ouvre dans un nouvel onglet",
 		linkTitle: "Créer un lien de partage",
 		linkIntro:
@@ -90,8 +101,15 @@ const t = words({
 		theLink: "le lien",
 		once: "Copiez-le maintenant : Cahut n'en garde qu'une empreinte, et ne le montre que cette fois.",
 		opensUntil: (until, readers) => `Il ouvre la Window jusqu'au ${until}${readers ? `, à ${plural(readers, "lecteur", "lecteurs")}` : ""}.`,
+		onceTitle: "Partager une fois",
+		onceIntro:
+			"Le lien ouvre cette Window une fois : la première personne qui l'ouvre la lit dans son navigateur pendant 4 heures, et personne après elle. Les robots d'aperçu et les filtres de messagerie qui suivent seulement le lien ne consomment rien.",
+		keep: "Me la réserver",
+		keepHelp: "Personne d'autre dans sa Room ne la voit plus, ni ses IA. Vous la rouvrez à la Room sur sa page.",
+		opensOnce: (until) => `Il ouvre la Window une fois, jusqu'au ${until}.`,
 		done: "Terminé",
 		opens: {
+			author: "Personne d'autre que vous ne l'ouvre à cette adresse. Pour la donner à une personne, partagez-la une fois.",
 			public: "Quiconque a le lien l'ouvre. Son aperçu montre son titre et sa description.",
 			key: "Il faut aussi sa Key, que vous donnez à part. Son aperçu montre son titre.",
 			internal: "Les personnes de cette Cahut l'ouvrent une fois connectées. Son aperçu ne montre pas de titre.",
@@ -121,13 +139,16 @@ export function mailto(w: Pick<Window, "title" | "description" | "permanent_url"
  * the others open to nobody outside the Cahut.
  */
 export function ShareMenu({ window: w, compact, onLinks }: { window: Window; compact?: boolean; onLinks?: () => void }) {
+	const { session } = useConsole();
 	const id = useId();
 	const button = useRef<HTMLButtonElement>(null);
 	const menu = useRef<HTMLDivElement>(null);
 	const [open, setOpen] = useState(false);
 	const [copied, setCopied] = useState(false);
-	const [making, setMaking] = useState(false);
+	const [making, setMaking] = useState<"link" | "once" | null>(null);
 	const outside = w.access === "public" || w.access === "key";
+	// Its author shares it once, and keeps it for themself.
+	const author = w.created_by === session.handle;
 	const native = typeof navigator.share === "function";
 
 	// The menu stays under its button, its right edge under the button's
@@ -211,11 +232,24 @@ export function ShareMenu({ window: w, compact, onLinks }: { window: Window; com
 						type="button"
 						onClick={() => {
 							menu.current?.hidePopover();
-							setMaking(true);
+							setMaking("link");
 						}}
 					>
 						<Link2 class="i" size={18} aria-hidden="true" />
 						<span>{t.createLink}</span>
+					</button>
+				)}
+				{w.access !== "public" && author && (
+					<button
+						class="share-menu__item"
+						type="button"
+						onClick={() => {
+							menu.current?.hidePopover();
+							setMaking("once");
+						}}
+					>
+						<UserLock class="i" size={18} aria-hidden="true" />
+						<span>{t.shareOnce}</span>
 					</button>
 				)}
 				<a class="share-menu__item" href={mailto(w)}>
@@ -241,7 +275,7 @@ export function ShareMenu({ window: w, compact, onLinks }: { window: Window; com
 				)}
 				<code class="share-menu__url c-mono">{w.permanent_url}</code>
 			</div>
-			{making && <ShareLinkDialog window={w} onMade={onLinks} onClose={() => setMaking(false)} />}
+			{making && <ShareLinkDialog window={w} once={making === "once"} onMade={onLinks} onClose={() => setMaking(null)} />}
 		</>
 	);
 }
@@ -251,11 +285,18 @@ type Lasts = "1" | "7" | "30" | "day";
 
 /**
  * The dialog that makes a share link to a Window, with a label, an end and
- * a number of readers, then shows the link this once.
+ * a number of readers, then shows the link this once. A link that opens
+ * once keeps the Window for its author first, unless they say otherwise.
  */
-export function ShareLinkDialog({ window: w, onMade, onClose }: { window: Window; onMade?: () => void; onClose: () => void }) {
+export function ShareLinkDialog({
+	window: w,
+	once,
+	onMade,
+	onClose,
+}: { window: Window; once?: boolean; onMade?: () => void; onClose: () => void }) {
 	const api = useConsole();
 	const labelId = useId();
+	const [keep, setKeep] = useState(true);
 	const [label, setLabel] = useState("");
 	const [lasts, setLasts] = useState<Lasts>("7");
 	const [day, setDay] = useState("");
@@ -278,7 +319,12 @@ export function ShareLinkDialog({ window: w, onMade, onClose }: { window: Window
 		if (lasts === "1" || lasts === "30") input.ends_at = new Date(Date.now() + Number(lasts) * 24 * 3600 * 1000).toISOString();
 		if (lasts === "day") input.ends_at = new Date(`${day}T23:59:59`).toISOString();
 		if (limited) input.max_openings = Number(readers);
+		if (once) input.max_openings = 1;
 		try {
+			if (once && keep && w.access !== "author") {
+				await api.cahut("set_window_access", { window: w.id, access: "author" });
+				onMade?.();
+			}
 			setMade(await api.cahut("create_share_link", input));
 			onMade?.();
 		} catch (err) {
@@ -288,9 +334,11 @@ export function ShareLinkDialog({ window: w, onMade, onClose }: { window: Window
 		}
 	};
 
+	const title = once ? t.onceTitle : t.linkTitle;
 	if (made) {
+		const until = new Date(made.expires_at).toLocaleString(locale, { dateStyle: "long", timeStyle: "short" });
 		return (
-			<Dialog title={t.linkTitle} meta={w.title} onClose={onClose}>
+			<Dialog title={title} meta={w.title} onClose={onClose}>
 				<div class="c-alert c-alert--success" role="status">
 					<Check class="i" size={16} aria-hidden="true" />
 					<div>
@@ -298,9 +346,7 @@ export function ShareLinkDialog({ window: w, onMade, onClose }: { window: Window
 					</div>
 				</div>
 				<CopyField label={t.theLink} value={made.link} />
-				<p class="c-small c-muted dialog__intro">
-					{t.opensUntil(new Date(made.expires_at).toLocaleString(locale, { dateStyle: "long", timeStyle: "short" }), made.max_openings)}
-				</p>
+				<p class="c-small c-muted dialog__intro">{once ? t.opensOnce(until) : t.opensUntil(until, made.max_openings)}</p>
 				<div class="dialog__foot">
 					<button class="c-btn c-btn--primary" type="button" onClick={onClose}>
 						{t.done}
@@ -310,8 +356,8 @@ export function ShareLinkDialog({ window: w, onMade, onClose }: { window: Window
 		);
 	}
 	return (
-		<Dialog title={t.linkTitle} meta={w.title} onClose={onClose}>
-			<p class="c-small c-muted dialog__intro">{t.linkIntro}</p>
+		<Dialog title={title} meta={w.title} onClose={onClose}>
+			<p class="c-small c-muted dialog__intro">{once ? t.onceIntro : t.linkIntro}</p>
 			<form class="form" onSubmit={submit}>
 				<div class="c-field">
 					<label class="c-field__label" for={labelId}>
@@ -339,32 +385,43 @@ export function ShareLinkDialog({ window: w, onMade, onClose }: { window: Window
 						</label>
 					)}
 				</fieldset>
-				<fieldset class="consent__group">
-					<legend class="c-field__label">{t.readers}</legend>
-					<label class="c-check">
-						<input type="radio" name="readers" checked={!limited} onChange={() => setLimited(false)} />
-						<span>{t.anyReaders}</span>
-					</label>
-					<label class="c-check">
-						<input type="radio" name="readers" checked={limited} onChange={() => setLimited(true)} />
-						<span>{t.someReaders}</span>
-					</label>
-					{limited && (
-						<label class="c-field">
-							<span class="c-field__label">{t.readersLabel}</span>
-							<input
-								class="c-input"
-								type="number"
-								required
-								min={1}
-								max={maxReaders}
-								value={readers}
-								onInput={(e) => setReaders(e.currentTarget.value)}
-							/>
-							<span class="c-field__help">{t.readersHelp}</span>
+				{once && w.access !== "author" && (
+					<div class="c-field">
+						<label class="c-check">
+							<input type="checkbox" checked={keep} onChange={(e) => setKeep(e.currentTarget.checked)} />
+							<span>{t.keep}</span>
 						</label>
-					)}
-				</fieldset>
+						<span class="c-field__help">{t.keepHelp}</span>
+					</div>
+				)}
+				{!once && (
+					<fieldset class="consent__group">
+						<legend class="c-field__label">{t.readers}</legend>
+						<label class="c-check">
+							<input type="radio" name="readers" checked={!limited} onChange={() => setLimited(false)} />
+							<span>{t.anyReaders}</span>
+						</label>
+						<label class="c-check">
+							<input type="radio" name="readers" checked={limited} onChange={() => setLimited(true)} />
+							<span>{t.someReaders}</span>
+						</label>
+						{limited && (
+							<label class="c-field">
+								<span class="c-field__label">{t.readersLabel}</span>
+								<input
+									class="c-input"
+									type="number"
+									required
+									min={1}
+									max={maxReaders}
+									value={readers}
+									onInput={(e) => setReaders(e.currentTarget.value)}
+								/>
+								<span class="c-field__help">{t.readersHelp}</span>
+							</label>
+						)}
+					</fieldset>
+				)}
 				{error && <Failure message={error} />}
 				<div class="dialog__foot">
 					<button class="c-btn c-btn--secondary" type="button" onClick={onClose}>

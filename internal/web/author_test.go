@@ -220,6 +220,15 @@ func TestWindowForItsAuthorAlone(t *testing.T) {
 		t.Errorf("camille does not read that it was taken from the Room: %q", ops)
 	}
 
+	// The owners of the Room learn how many Windows a member keeps for
+	// themself, before they take them out of it.
+	d := f.call(t, "localhost", camille, "get_room", `{"room": "studio"}`).(room.Detail)
+	for _, p := range d.People {
+		if p.Handle == "olivier" && p.Kept != 1 || p.Handle == "camille" && p.Kept != 0 {
+			t.Errorf("get_room gives %s %d Windows for themself", p.Handle, p.Kept)
+		}
+	}
+
 	// An author who leaves the Room gives it their Windows back.
 	f.call(t, "localhost", camille, "remove_room_member", `{"room": "studio", "user": "olivier"}`)
 	if l := f.call(t, "localhost", camille, "list_windows", `{"room": "studio"}`).(window.List); len(l.Windows) != 2 || l.Windows[0].Access != window.AccessRoom && l.Windows[1].Access != window.AccessRoom {

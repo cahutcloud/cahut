@@ -120,7 +120,7 @@ export function Overview() {
 
 function PersonOverview() {
 	const api = useConsole();
-	const { data, error } = useLoad(() =>
+	const { data, error, reload } = useLoad(() =>
 		Promise.all([
 			api.cahut("get_account", {}),
 			api.cahut("list_windows", {}),
@@ -153,7 +153,7 @@ function PersonOverview() {
 				{windows.length === 0 ? (
 					<Notice>{t.noWindow()}</Notice>
 				) : (
-					<WindowCards windows={windows.slice(0, 6)} showRoom />
+					<WindowCards windows={windows.slice(0, 6)} showRoom onChanged={reload} />
 				)}
 			</section>
 			<section class="section">

@@ -1,5 +1,5 @@
 // Small pieces that the screens share.
-import { AppWindow, ArrowUpRight, ChartColumn, Check, Copy, FileText, Globe, House, KeyRound, Lock, Presentation, Users, X } from "lucide-preact";
+import { AppWindow, ArrowUpRight, ChartColumn, Check, Copy, FileText, Globe, House, KeyRound, Lock, Presentation, UserLock, Users, X } from "lucide-preact";
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { cahut, explain } from "./api";
@@ -36,6 +36,8 @@ const t = words({
 		deck: "Deck",
 		dashboard: "Dashboard",
 		site: "Site",
+		authorOnly: "Only you",
+		authorWho: "you, and not the other members of its Room",
 		roomOnly: "Room only",
 		roomWho: "the members of its Room",
 		internal: "Internal",
@@ -83,6 +85,8 @@ const t = words({
 		deck: "Présentation",
 		dashboard: "Tableau de bord",
 		site: "Site",
+		authorOnly: "Vous seulement",
+		authorWho: "vous, et pas les autres membres de sa Room",
 		roomOnly: "Room seulement",
 		roomWho: "les membres de sa Room",
 		internal: "Interne",
@@ -556,6 +560,9 @@ const kinds: Record<string, { icon: typeof FileText; name: string }> = {
 
 /** The access levels of a Window, with their badge. */
 export const accesses: Record<string, { icon: typeof Lock; name: string; who: string }> = {
+	// A Window for its author alone shows to them alone, who read Only you.
+	// See docs/adr/0053-windows-for-their-author-alone.md.
+	author: { icon: UserLock, name: t.authorOnly, who: t.authorWho },
 	room: { icon: Lock, name: t.roomOnly, who: t.roomWho },
 	internal: { icon: Users, name: t.internal, who: t.internalWho },
 	key: { icon: KeyRound, name: t.key, who: t.keyWho },
@@ -567,7 +574,7 @@ export function AccessBadge({ access }: { access: string }) {
 	const a = accesses[access] ?? accesses.room;
 	const Icon = a.icon;
 	return (
-		<span class={`c-badge c-badge--${access in accesses ? access : "room"}`}>
+		<span class={`c-badge c-badge--${access in accesses && access !== "author" ? access : "room"}`}>
 			<Icon class="i" size={14} aria-hidden="true" />
 			{a.name}
 		</span>
@@ -590,7 +597,12 @@ const maxPreviews = 100;
  * Windows, as cards, each with a preview of the Window itself when the API
  * gives one. See docs/adr/0027-previews-of-windows-in-the-console.md.
  */
-export function WindowCards({ windows, showRoom, home }: { windows: Window[]; showRoom?: boolean; home?: string }) {
+export function WindowCards({
+	windows,
+	showRoom,
+	home,
+	onChanged,
+}: { windows: Window[]; showRoom?: boolean; home?: string; onChanged?: () => void }) {
 	const api = useConsole();
 	const names = windows.slice(0, maxPreviews).map((w) => `${w.room}/${w.name}`);
 	// Without previews, the cards keep the icon of their kind.
@@ -599,7 +611,14 @@ export function WindowCards({ windows, showRoom, home }: { windows: Window[]; sh
 	return (
 		<div class="cards cards--windows">
 			{windows.map((w) => (
-				<WindowCard key={w.url} window={w} showRoom={showRoom} home={w.name === home} preview={frames.get(`${w.room}/${w.name}`)} />
+				<WindowCard
+					key={w.url}
+					window={w}
+					showRoom={showRoom}
+					home={w.name === home}
+					preview={frames.get(`${w.room}/${w.name}`)}
+					onChanged={onChanged}
+				/>
 			))}
 		</div>
 	);
@@ -610,7 +629,7 @@ export function WindowCards({ windows, showRoom, home }: { windows: Window[]; sh
  * and one that opens the Window itself in a new tab; the Window that the
  * address of its Room shows says so.
  */
-export function WindowCard(props: { window: Window; showRoom?: boolean; home?: boolean; preview?: string }) {
+export function WindowCard(props: { window: Window; showRoom?: boolean; home?: boolean; preview?: string; onChanged?: () => void }) {
 	const { window: w, showRoom, home, preview } = props;
 	const kind = kinds[w.kind] ?? kinds.site;
 	const Icon = kind.icon;
@@ -627,7 +646,7 @@ export function WindowCard(props: { window: Window; showRoom?: boolean; home?: b
 				)}
 			</Link>
 			<div class="window-actions">
-				<ShareMenu window={w} compact />
+				<ShareMenu window={w} compact onLinks={props.onChanged} />
 				<a class="c-btn c-btn--secondary c-btn--sm icon-button" href={w.url} target="_blank" rel="noopener noreferrer" aria-label={t.openWindow(w.title)} title={t.openWindow(w.title)}>
 					<ArrowUpRight class="i" size={16} aria-hidden="true" />
 				</a>

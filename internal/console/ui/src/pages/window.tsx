@@ -59,7 +59,7 @@ const t = words({
 		putInTrash: "Put in the trash",
 		putInTrashQuestion: "It will no longer open.",
 		access: "Access",
-		canOpen: (who: string, _access: string) => `${capitalize(who)} can open it`,
+		canOpen: (who: string, access: string) => (access === "author" ? "Only you can open it" : `${capitalize(who)} can open it`),
 		until: (day: string) => `, until ${day}. Then only its Room can.`,
 		shareTitle: "Share the address and the Key",
 		shareHelp: "Copy the Key now: Cahut keeps only a trace of it, and shows it this once.",
@@ -86,6 +86,8 @@ const t = words({
 		keyHelp: "10 characters at least. Readers type it to open the Window.",
 		untilLabel: "Until",
 		untilHelp: "Leave empty for no end. After this day, only its Room opens the Window.",
+		authorHelp:
+			"Nobody else in its Room sees it any more, nor their AIs, until you open it to the Room again. Its share links still open it, to whoever holds them.",
 		publicQuestion: "Anyone with its address will open it, and may keep a copy. Make it public?",
 		makePublic: "Make it public",
 		cancel: "Cancel",
@@ -113,6 +115,7 @@ const t = words({
 		sentTo: (to: string) => `Sent to ${to}.`,
 		unreachable: (who: string[]) => `${who.join(", ")} ${who.length === 1 ? "has" : "have"} no e-mail address: nothing went to them.`,
 		how: {
+			author: "This Window opens to you alone: nobody is invited to read it. To give it to one reader, make a share link that opens once, from the menu Share.",
 			key: "People of the Cahut, by handle, and anyone else, by address. Each address gets a personal link that opens it for them alone, until you take it back; the Key never goes.",
 			public: "Anyone, by handle or by address: the message gives its address.",
 			internal: "People of the Cahut, by handle: they sign in to read it. To invite someone else by address, set its access to key first.",
@@ -179,7 +182,8 @@ const t = words({
 		putInTrash: "Mettre à la corbeille",
 		putInTrashQuestion: "Elle ne s'ouvrira plus.",
 		access: "Accès",
-		canOpen: (who, access) => `${capitalize(who)} ${access === "room" ? "peuvent" : "peut"} l'ouvrir`,
+		canOpen: (who, access) =>
+			access === "author" ? "Personne d'autre que vous ne peut l'ouvrir" : `${capitalize(who)} ${access === "room" ? "peuvent" : "peut"} l'ouvrir`,
 		until: (day) => `, jusqu'au ${day}. Ensuite, seuls les membres de sa Room le peuvent.`,
 		shareTitle: "Partagez l'adresse et la Key",
 		shareHelp: "Copiez la Key maintenant : Cahut n'en garde qu'une empreinte, et ne la montre que cette fois.",
@@ -207,6 +211,8 @@ const t = words({
 		keyHelp: "10 caractères au moins. Les lecteurs la tapent pour ouvrir la Window.",
 		untilLabel: "Jusqu'au",
 		untilHelp: "Laissez vide pour ne fixer aucune fin. Après ce jour, seule sa Room ouvre la Window.",
+		authorHelp:
+			"Personne d'autre dans sa Room ne la voit plus, ni ses IA, jusqu'à ce que vous la rouvriez à la Room. Ses liens de partage l'ouvrent toujours, à qui les détient.",
 		publicQuestion: "Quiconque a son adresse l'ouvrira, et pourra en garder une copie. La rendre publique ?",
 		makePublic: "La rendre publique",
 		cancel: "Annuler",
@@ -237,6 +243,8 @@ const t = words({
 				? `${who[0]} n'a pas d'adresse e-mail : rien ne lui a été envoyé.`
 				: `${who.join(", ")} n'ont pas d'adresse e-mail : rien ne leur a été envoyé.`,
 		how: {
+			author:
+				"Cette Window ne s'ouvre qu'à vous : personne n'est invité à la lire. Pour la donner à une personne, faites un lien de partage qui s'ouvre une fois, depuis le menu Partager.",
 			key: "Les personnes de la Cahut, par identifiant, et toute autre personne, par adresse. Chaque adresse reçoit un lien personnel qui ouvre la Window pour elle seule, jusqu'à ce que vous le retiriez ; la Key ne part jamais.",
 			public: "N'importe qui, par identifiant ou par adresse : le message donne son adresse.",
 			internal:
@@ -363,6 +371,8 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 							}}
 						/>
 						<AccessPanel
+							// Its form starts again from the access, when a link that opens once changes it.
+							key={w.access}
 							window={w}
 							shared={shared}
 							onSet={async (input) => {
@@ -466,8 +476,10 @@ type AccessInput = { window: string; access: string; ends_at?: string; key?: str
 
 /** The access of a Window, and the form that changes it. */
 function AccessPanel(props: { window: WindowDetail; shared: AccessSet | null; onSet: (input: AccessInput) => Promise<void> }) {
-	const { individual } = useConsole();
+	const { individual, session } = useConsole();
 	const w = props.window;
+	// Only its author keeps a Window for themself.
+	const author = w.created_by === session.handle;
 	const [access, setAccess] = useState(w.access);
 	const [ends, setEnds] = useState(w.access_ends_at ? w.access_ends_at.slice(0, 10) : "");
 	const [keyChoice, setKeyChoice] = useState<"keep" | "draw" | "choose">(w.access === "key" ? "keep" : "draw");
@@ -480,7 +492,7 @@ function AccessPanel(props: { window: WindowDetail; shared: AccessSet | null; on
 		setError("");
 		setBusy(true);
 		const input: AccessInput = { window: `${w.room}/${w.name}`, access };
-		if (access !== "room" && ends) {
+		if (access !== "room" && access !== "author" && ends) {
 			// The access ends at the end of the chosen day, where the person is.
 			input.ends_at = new Date(`${ends}T23:59:59`).toISOString();
 		}
@@ -540,12 +552,14 @@ function AccessPanel(props: { window: WindowDetail; shared: AccessSet | null; on
 					{Object.entries(accesses)
 						// An individual Cahut opens no Window to everyone signed in to it.
 						.filter(([value]) => !individual || value !== "internal" || w.access === "internal")
+						.filter(([value]) => value !== "author" || author || w.access === "author")
 						.map(([value, a]) => (
 						<label class="c-check" key={value}>
 							<input type="radio" name="access" checked={access === value} onChange={() => setAccess(value)} />
 							<span>{t.option(a.name, a.who)}</span>
 						</label>
 					))}
+					{access === "author" && w.access !== "author" && <span class="c-field__help">{t.authorHelp}</span>}
 				</fieldset>
 				{access === "key" && (
 					<fieldset class="consent__group">
@@ -573,7 +587,7 @@ function AccessPanel(props: { window: WindowDetail; shared: AccessSet | null; on
 						)}
 					</fieldset>
 				)}
-				{access !== "room" && (
+				{access !== "room" && access !== "author" && (
 					<label class="c-field">
 						<span class="c-field__label">{t.untilLabel}</span>
 						<input class="c-input" type="date" min={tomorrow} value={ends} onInput={(e) => setEnds(e.currentTarget.value)} />
@@ -796,7 +810,7 @@ function Invitations({ window: w }: { window: WindowDetail }) {
 					? (how[w.access] ?? how.room)
 					: t.noMail}
 			</p>
-			{api.sendsMail && (
+			{api.sendsMail && w.access !== "author" && (
 				<form class="form" onSubmit={send}>
 					<label class="c-field">
 						<span class="c-field__label">{t.to}</span>
