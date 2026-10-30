@@ -11,7 +11,14 @@ import (
 )
 
 // legalFoot is the foot of a page of the Cahut that links its legal pages.
-const legalFoot = `<footer class="legal">`
+const legalFoot = `aria-label="Legal pages"><a href="https://`
+
+// reportFoot is the foot of a page of a Cahut without legal pages, which
+// links the page where anyone reports a Window.
+const reportFoot = `<footer class="legal">
+<nav class="legal__links" aria-label="Legal pages"><a href="/-/report">Report a Window</a>
+</nav>
+</footer>`
 
 // The administrators of the server link the legal pages of a Cahut from its
 // console, and the pages that readers see link them at their foot, in
@@ -29,6 +36,15 @@ func TestLegalLinks(t *testing.T) {
 		if _, body := f.do(t, "localhost", http.MethodGet, path, nil, nil); strings.Contains(body, legalFoot) {
 			t.Errorf("%s of a Cahut without legal pages links some: %q", what, body)
 		}
+	}
+	// Their foot links the page of a report all the same, which the page of
+	// a Key fills in with its Window. See
+	// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+	if _, body := f.do(t, "localhost", http.MethodGet, "/olivier/", nil, nil); !strings.Contains(body, reportFoot) {
+		t.Errorf("the page of a Room of a Cahut without legal pages does not link the page of a report: %q", body)
+	}
+	if _, body := f.do(t, "localhost", http.MethodGet, "/olivier/review/", nil, nil); !strings.Contains(body, `<a href="/-/report?window=https%3A%2F%2Flocalhost%2Folivier%2Freview%2F">Report a Window</a>`) {
+		t.Errorf("the page of a Key does not fill in its Window in the link of a report: %q", body)
 	}
 
 	// An administrator of the server sets them over the API, in the console
@@ -83,8 +99,7 @@ func TestLegalLinks(t *testing.T) {
 <nav class="legal__links" aria-label="Legal pages"><a href="https://host.example/legal" target="_blank" rel="noopener">Legal notice</a>
 <a href="https://host.example/terms?from=cahut&amp;lang=en" target="_blank" rel="noopener">Terms</a>
 <a href="https://host.example/privacy" target="_blank" rel="noopener">Privacy</a>
-</nav>
-</footer>`
+<a href="/-/report`
 	for what, path := range pages {
 		if _, body := f.do(t, "localhost", http.MethodGet, path, nil, nil); !strings.Contains(body, want) || strings.Contains(body, "mentions-legales") {
 			t.Errorf("%s does not link the legal pages: %q", what, body)
@@ -94,7 +109,7 @@ func TestLegalLinks(t *testing.T) {
 	// The Window that a Room shows at its address fills the page, without
 	// them.
 	f.call(t, "localhost", olivier, "set_room_home", `{"room": "olivier", "window": "launch"}`)
-	if _, body := f.do(t, "localhost", http.MethodGet, "/olivier/", nil, nil); !strings.Contains(body, `<iframe src="/olivier/launch/"`) || strings.Contains(body, legalFoot) {
+	if _, body := f.do(t, "localhost", http.MethodGet, "/olivier/", nil, nil); !strings.Contains(body, `<iframe src="/olivier/launch/"`) || strings.Contains(body, `<footer`) {
 		t.Errorf("the home of a Room = %q", body)
 	}
 	// Another Cahut of the server links none.

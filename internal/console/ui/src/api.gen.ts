@@ -391,6 +391,13 @@ export interface DisconnectAIInput {
   id: number;
 }
 
+export interface DismissInput {
+  /** the number of the report, which list_reports gives */
+  report: number;
+  /** why the Window stays as it is, for the moderators, 500 characters at most */
+  note?: string;
+}
+
 export interface DomainList {
   cahuts: Info[];
 }
@@ -735,6 +742,13 @@ export interface ListLogbookInput {
   limit?: number;
 }
 
+export interface ListReportsInput {
+  /** only the reports that wait for a decision */
+  waiting?: boolean;
+  /** how many reports, 100 by default, at most 500 */
+  limit?: number;
+}
+
 export interface ListRoomsInput {
   /** every Room of the Cahut, for an administrator; your Rooms when false */
   all?: boolean;
@@ -857,6 +871,11 @@ export interface NoteBlock {
   start?: number;
   /** the lines of a paragraph, or the items of a list */
   lines: NoteRun[][];
+}
+
+export interface NoteLimit {
+  /** the most characters of a note */
+  limit: number;
 }
 
 export interface NoteRun {
@@ -1000,6 +1019,72 @@ export interface RenameInput {
   window: string;
   /** the new name, 1 to 63 lowercase letters, digits and hyphens */
   name: string;
+}
+
+export interface Report {
+  id: number;
+  window: Reported;
+  /** what is wrong: phishing, malware, illegal, rights or other */
+  category: string;
+  explanation: string;
+  /** the name of whoever reported, until the decision */
+  name?: string;
+  /** the address of whoever reported, until the decision */
+  email?: string;
+  created_at: string;
+  /** dismissed or withdrawn; absent while it waits */
+  decision?: string;
+  decided_at?: string;
+  /** the handle of the moderator who decided */
+  decided_by?: string;
+  /** an administrator of the server decided */
+  by_server?: boolean;
+  /** what the moderators noted when they left the Window as it is */
+  note?: string;
+}
+
+export interface ReportInput {
+  /** the address of the Window, as its reader meets it: its address, a file under it, its permanent address or a share link, such as https://cahut.example.com/room/window/ */
+  window: string;
+  /** what is wrong: phishing, malware, illegal, rights or other */
+  category: string;
+  /** what is wrong with the Window, from 10 to 2000 characters */
+  explanation: string;
+  /** the name of whoever reports, for the moderators */
+  name?: string;
+  /** where the receipt and the decision go */
+  email?: string;
+  /** whoever reports says that they do it in good faith, and that what they say is true */
+  good_faith: boolean;
+}
+
+export interface ReportReceived {
+  /** the number of the report */
+  report: number;
+}
+
+export interface ReportRef {
+  /** the number of the report */
+  report: number;
+}
+
+export interface Reported {
+  /** the Window's id, which never changes */
+  id: string;
+  room: string;
+  name: string;
+  title: string;
+  /** author, room, internal, key or public */
+  access: string;
+  /** the Window is in the trash */
+  trashed?: boolean;
+}
+
+export interface Reports {
+  /** how many reports wait for a decision, in all */
+  waiting: number;
+  /** the reports that wait, the oldest first, then the latest decided */
+  reports: Report[];
 }
 
 export interface Request {
@@ -1666,6 +1751,8 @@ export interface CahutOperations {
   disable_user: { input: UserInput; output: User };
   /** Disconnect an AI connected over OAuth. Its tokens stop working at once; to use it again, the person connects it again. */
   disconnect_ai: { input: DisconnectAIInput; output: Connection };
+  /** Decide a report that waits, and leave its Window as it is, with a note for the moderators. For the moderators of this Cahut. */
+  dismiss_report: { input: DismissInput; output: Report };
   /** Enable a disabled person again: they can sign in, and their AIs can act with their tokens. */
   enable_user: { input: UserInput; output: User };
   /** Describe the person you act for: their handle, name, role in the Cahut and Rooms. */
@@ -1694,6 +1781,8 @@ export interface CahutOperations {
   list_knocks: { input: KnockListInput; output: KnockList };
   /** Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. */
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
+  /** List the reports about the Windows of this Cahut: those that wait for a decision, the oldest first, then the latest decided. For its moderators: its administrators and those of its server. */
+  list_reports: { input: ListReportsInput; output: Reports };
   /** List your Rooms in this Cahut, your personal Room first, with your role and how many members and Windows each has. */
   list_rooms: { input: ListRoomsInput; output: RoomList };
   /** List the service tokens of the Cahut, newest first, with their last use. */
@@ -1718,6 +1807,8 @@ export interface CahutOperations {
   remove_room_member: { input: RemoveMemberInput; output: RoomDetail };
   /** Change the name of a Window of this Cahut, the last part of its address, <domain>/<room>/<name>/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it. */
   rename_window: { input: RenameInput; output: Window };
+  /** Report a Window of this Cahut to its moderators, from the page /-/report, without an account: its address, what is wrong with it, and an explanation. */
+  report_window: { input: ReportInput; output: ReportReceived };
   /** Send the link where a person chooses a new password to the e-mail address of their account, given its handle or its address. The link works for one hour; the password works until it is used. The answer is the same whether the account exists or not. A Cahut without an e-mail relay sends none: an administrator of the Cahut gives a new link instead. */
   request_password_link: { input: RequestPasswordLinkInput; output: PasswordLinkRequested };
   /** Bring a Window of this Cahut back from the trash, with its versions. */
@@ -1888,6 +1979,10 @@ export interface Refusals {
   password_too_long: Length;
   /** the password has {length} characters: use at least {limit} */
   password_too_short: Length;
+  /** report {report} is decided already: list_reports gives those that wait */
+  report_decided: ReportRef;
+  /** the note holds more than {limit} characters: keep it shorter */
+  report_note_too_long: NoteLimit;
   /** name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit */
   room_name_invalid: NewName;
   /** name {name} is reserved: it names a page of every Cahut */

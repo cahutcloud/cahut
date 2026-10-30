@@ -50,6 +50,7 @@ const t = words({
 		people: "People",
 		kindAndLimits: "Kind and limits",
 		email: "E-mail",
+		moderation: "Moderation",
 		access: "AIs and access",
 		account: "Account",
 		yourAccount: "Your account",
@@ -97,6 +98,7 @@ const t = words({
 		people: "Personnes",
 		kindAndLimits: "Type et limites",
 		email: "E-mail",
+		moderation: "Modération",
 		access: "IA et accès",
 		account: "Compte",
 		yourAccount: "Votre compte",
@@ -127,7 +129,7 @@ const t = words({
 });
 
 export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => void; children: ComponentChildren }) {
-	const { session, serverSession, isAdmin, individual, knocks, legal, suspension } = useConsole();
+	const { session, serverSession, isAdmin, individual, knocks, reports, legal, suspension } = useConsole();
 	const [open, setOpen] = useState(false);
 	useEffect(() => setOpen(false), [props.path]);
 
@@ -222,6 +224,7 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 				{isAdmin && nav("/people", <Pictogram name="people" />, t.people)}
 				{(isAdmin || serverSession) && nav("/settings", <Pictogram name="limits" />, t.kindAndLimits)}
 				{isAdmin && nav("/mail", <Pictogram name="email" />, t.email)}
+				{(isAdmin || serverSession) && nav("/moderation", <Pictogram name="moderation" />, t.moderation, true, reports)}
 				{!person && nav("/rooms", <Pictogram name="room" />, t.rooms, false)}
 				{!person && nav("/logbook", <Pictogram name="logbook" />, t.logbook)}
 				{person && nav("/access", <Pictogram name="aiAccess" />, t.access)}

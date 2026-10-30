@@ -127,6 +127,7 @@ type Server struct {
 	// wrong Keys, by Window and address
 	keyFailuresHere *limiter
 	linkVisits      *limiter // visits to the addresses of share links, by address
+	reports         *limiter // reports of Windows, by address
 
 	// cards are the cards of Windows drawn last, for the previews of their
 	// links.
@@ -204,6 +205,8 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.mux.HandleFunc("GET "+CardPath+"{file}", s.serveCard)
 	s.mux.HandleFunc("GET "+window.LinkPrefix+"{token}", s.serveLink)
 	s.mux.HandleFunc("POST "+window.LinkPrefix+"{token}", s.openLink)
+	s.mux.HandleFunc("GET "+ReportPath, s.serveReport)
+	s.mux.HandleFunc("POST "+ReportPath, s.sendReport)
 	s.mux.HandleFunc("/{room}", s.redirectToRoom)
 	s.mux.HandleFunc("GET /{room}/{$}", s.serveRoom)
 	s.mux.HandleFunc("GET /{room}/{window}", redirectToWindow)
@@ -218,6 +221,7 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.keyFailures = newLimiter(KeyWindowEvery, KeyWindowBurst)
 	s.keyFailuresHere = newLimiter(KeyHereEvery, KeyHereBurst)
 	s.linkVisits = newLimiter(LinkEvery, LinkBurst)
+	s.reports = newLimiter(ReportEvery, ReportBurst)
 	// The console, its API and the consent screen of OAuth. See
 	// docs/adr/0020-console-under-a-path-of-port-443.md.
 	s.console = http.NewServeMux()

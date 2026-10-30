@@ -97,6 +97,8 @@ const said = words<Sentences>({
 		room_name_taken: (v) => `The name "${v.name}" is taken, by a Room or a person: choose another.`,
 		room_name_unavailable: (v) => `The name "${v.name}" is not available: choose another.`,
 		room_name_yours: (v) => `You already have a Room "${v.name}": choose another name.`,
+		report_decided: (v) => `Report ${v.report} is decided already: it no longer waits.`,
+		report_note_too_long: (v) => `Keep the note to ${plural(v.limit, "character", "characters")}.`,
 		room_needs_an_owner: (v) => `The Room ${v.room} needs an owner: make another person one first.`,
 		server_account_disabled: "This account is disabled: another administrator of the server can enable it.",
 		server_activation_link_gone:
@@ -187,6 +189,8 @@ const said = words<Sentences>({
 		room_name_taken: (v) => `Le nom « ${v.name} » est déjà pris, par une Room ou une personne : choisissez-en un autre.`,
 		room_name_unavailable: (v) => `Le nom « ${v.name} » n'est pas disponible : choisissez-en un autre.`,
 		room_name_yours: (v) => `Vous avez déjà une Room « ${v.name} » : choisissez un autre nom.`,
+		report_decided: (v) => `Le signalement ${v.report} est déjà tranché : il n'attend plus.`,
+		report_note_too_long: (v) => `Limitez la note à ${plural(v.limit, "caractère", "caractères")}.`,
 		room_needs_an_owner: (v) => `La Room ${v.room} a besoin d'un propriétaire : rendez d'abord une autre personne propriétaire.`,
 		server_account_disabled: "Ce compte est désactivé : un autre administrateur du serveur peut le réactiver.",
 		server_activation_link_gone:

@@ -60,7 +60,7 @@ export default defineConfig({
 				},
 				{
 					label: 'Administration',
-					items: ['admin/console', 'admin/commands', 'admin/mail', 'admin/service', 'admin/updates', 'admin/doctor'],
+					items: ['admin/console', 'admin/commands', 'admin/mail', 'admin/moderation', 'admin/service', 'admin/updates', 'admin/doctor'],
 				},
 				{
 					// Written from the code by make docs-reference.

@@ -65,6 +65,14 @@ export interface Console {
 	/** Counts the Knocks that wait again, after an answer. */
 	reloadKnocks(): void;
 	/**
+	 * How many reports about the Windows of this Cahut wait for its
+	 * moderators, when the console acts as one. See
+	 * docs/adr/0054-reporting-and-withdrawing-a-window.md.
+	 */
+	reports: number;
+	/** Counts the reports that wait again, after a decision. */
+	reloadReports(): void;
+	/**
 	 * Keeps the new name or handle of the person in the session of this
 	 * browser, and loads the Rooms of the sidebar again: their personal Room
 	 * follows them.

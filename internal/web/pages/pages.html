@@ -1,12 +1,13 @@
 {{/* The pages that a Cahut serves to readers on the port of its Windows.
 They carry the brand of Cahut, light or dark as the reader's system is.
 They run no inline script. Their foot links the legal pages of the Cahut,
-when it has some. The robots that draw the preview of a link to a Window
+when it has some, and the page where anyone reports a Window. The robots that draw the preview of a link to a Window
 get a page of their own, with the tags of Open Graph. See
 docs/adr/0032-the-page-of-a-room.md,
 docs/adr/0042-the-legal-pages-of-a-cahut.md,
-docs/adr/0049-no-house-style.md and
-docs/adr/0051-sharing-a-window-and-its-preview.md. */}}
+docs/adr/0049-no-house-style.md,
+docs/adr/0051-sharing-a-window-and-its-preview.md and
+docs/adr/0054-reporting-and-withdrawing-a-window.md. */}}
 
 {{define "head"}}<!doctype html>
 <html lang="en">
@@ -29,8 +30,9 @@ docs/adr/0051-sharing-a-window-and-its-preview.md. */}}
 {{end}}</header>
 {{end}}
 
-{{define "legal"}}{{with .Legal}}<footer class="legal">
-<nav class="legal__links" aria-label="Legal pages">{{range .}}<a href="{{.URL}}" target="_blank" rel="noopener">{{.Name}}</a>
+{{define "legal"}}{{if or .Legal .Report}}<footer class="legal">
+<nav class="legal__links" aria-label="Legal pages">{{range .Legal}}<a href="{{.URL}}" target="_blank" rel="noopener">{{.Name}}</a>
+{{end}}{{with .Report}}<a href="{{.}}">Report a Window</a>
 {{end}}</nav>
 </footer>
 {{end}}{{end}}
@@ -238,6 +240,63 @@ docs/adr/0051-sharing-a-window-and-its-preview.md. */}}
 <h1 class="c-h3">This Cahut is suspended</h1>
 <p>The administrators of its server suspended it. It keeps everything it holds, and its Windows open again once they resume it.</p>
 <p class="c-small c-muted">If you work in this Cahut, ask its administrators.</p>
+</section>
+</main>
+{{template "legal" .}}</body>
+</html>
+{{end}}
+
+{{define "report"}}{{template "head" .}}</head>
+<body>
+{{template "top" .}}
+<main class="page page--narrow">
+<section class="c-card panel">
+<p class="c-label">{{icon "flag" 14}} Report</p>
+<h1 class="c-h3">Report a Window</h1>
+<p>Tell the moderators of {{.Domain}} what is wrong with a Window it serves. They read every report, and decide whether to withdraw the Window.</p>
+<form class="form" method="post" action="/-/report">
+<div class="c-field">
+<label class="c-field__label" for="window">Address of the Window</label>
+<input class="c-input" id="window" name="window" type="url" value="{{.Window}}" placeholder="https://{{.Domain}}/room/window/" autocomplete="off" autocapitalize="none" spellcheck="false" required{{if not .Window}} autofocus{{end}}>
+<p class="c-field__help">As your browser shows it, or the link you received.</p>
+</div>
+<fieldset class="choices">
+<legend class="c-field__label">What is wrong</legend>
+{{range .Categories}}<label class="c-check"><input type="radio" name="category" value="{{.Name}}"{{if eq .Name $.Category}} checked{{end}} required>{{.Words}}</label>
+{{end}}</fieldset>
+<div class="c-field">
+<label class="c-field__label" for="explanation">Explanation</label>
+<textarea class="c-input" id="explanation" name="explanation" rows="6" minlength="{{.Min}}" maxlength="{{.Max}}" required{{if .Window}} autofocus{{end}}>{{.Explanation}}</textarea>
+<p class="c-field__help">What you saw, and why it should not be here.</p>
+</div>
+<div class="c-field">
+<label class="c-field__label" for="name">Your name <span class="c-muted">(optional)</span></label>
+<input class="c-input" id="name" name="name" type="text" value="{{.Name}}" maxlength="100" autocomplete="name">
+</div>
+<div class="c-field">
+<label class="c-field__label" for="email">Your e-mail address <span class="c-muted">(optional)</span></label>
+<input class="c-input" id="email" name="email" type="email" value="{{.Email}}" autocomplete="email" autocapitalize="none" spellcheck="false">
+<p class="c-field__help">For a receipt and the decision, when this Cahut sends e-mail. Cahut forgets your name and your address once the moderators decide.</p>
+</div>
+<label class="c-check"><input type="checkbox" name="good_faith" value="yes"{{if .GoodFaith}} checked{{end}} required>I report in good faith, and what I say is true.</label>
+{{if .Error}}<p class="c-alert c-alert--danger" role="alert">{{.Error}}</p>{{end}}
+<p><button class="c-btn c-btn--primary" type="submit">{{icon "send" 16}}Send the report</button></p>
+</form>
+</section>
+</main>
+{{template "legal" .}}</body>
+</html>
+{{end}}
+
+{{define "reported"}}{{template "head" .}}</head>
+<body>
+{{template "top" .}}
+<main class="page page--narrow">
+<section class="c-card panel">
+<p class="c-label">{{icon "flag" 14}} Report</p>
+<h1 class="c-h3">Report received</h1>
+<p>The moderators of {{.Domain}} will read it and decide whether to withdraw the Window.</p>
+<p class="c-small c-muted">If you gave your e-mail address and this Cahut sends e-mail, you will receive their decision.</p>
 </section>
 </main>
 {{template "legal" .}}</body>

@@ -90,6 +90,8 @@ A refusal that people meet in the console gives its code too, which never change
 | `no_password_link` |  | This Cahut sends no e-mail: an administrator of the Cahut can give you a new link |
 | `password_too_long` | `length`, `limit` | The password has {length} characters: use at most {limit} |
 | `password_too_short` | `length`, `limit` | The password has {length} characters: use at least {limit} |
+| `report_decided` | `report` | Report {report} is decided already: list_reports gives those that wait |
+| `report_note_too_long` | `limit` | The note holds more than {limit} characters: keep it shorter |
 | `room_name_invalid` | `name` | Name {name}: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit |
 | `room_name_reserved` | `name` | Name {name} is reserved: it names a page of every Cahut |
 | `room_name_taken` | `name` | Name {name} is taken, by a Room or a person: choose another |
@@ -152,6 +154,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/describe_sign_in` | Anyone, to sign in | no |
 | `POST /api/disable_user` | Administrators of the Cahut | yes |
 | `POST /api/disconnect_ai` | Any person | yes |
+| `POST /api/dismiss_report` | Administrators of the Cahut | yes |
 | `POST /api/enable_user` | Administrators of the Cahut | yes |
 | `POST /api/get_account` | Any person | yes |
 | `POST /api/get_cahut` | Any person | yes |
@@ -166,6 +169,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/list_invitations` | Any person | yes |
 | `POST /api/list_knocks` | Any person | yes |
 | `POST /api/list_logbook` | Any person | yes |
+| `POST /api/list_reports` | Administrators of the Cahut | yes |
 | `POST /api/list_rooms` | Any person | yes |
 | `POST /api/list_service_tokens` | Administrators of the server | yes |
 | `POST /api/list_tokens` | Any person | yes |
@@ -178,6 +182,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/purge_window` | Any person | yes |
 | `POST /api/remove_room_member` | Any person | yes |
 | `POST /api/rename_window` | Any person | yes |
+| `POST /api/report_window` | Anyone, to sign in | no |
 | `POST /api/request_password_link` | Anyone, to sign in | no |
 | `POST /api/restore_window` | Any person | yes |
 | `POST /api/resume_cahut` | Administrators of the server | yes |
