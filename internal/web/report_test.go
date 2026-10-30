@@ -2,14 +2,19 @@ package web
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
 
+	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/moderation"
+	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/server"
 	"cahut.cloud/internal/window"
 )
 
@@ -166,5 +171,98 @@ func TestReportAWindow(t *testing.T) {
 	}
 	if !limited {
 		t.Error("reports are not limited by address")
+	}
+}
+
+// serverAdmin activates an administrator of the server, and returns their
+// session in the console of localhost.
+func serverAdmin(t *testing.T, f *fixture, handle string) string {
+	t.Helper()
+	a, err := operation.Do(context.Background(), f.srv.Registry, server.CreateAdmin, admin, server.CreateAdminInput{Handle: handle, Name: handle})
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := call(t, f, f.ts, http.MethodPost, "localhost", "/console/api/server/activate_account", "",
+		`{"code": "`+a.Activation.Code+`", "password": "`+password+`"}`)
+	if r.status != http.StatusOK {
+		t.Fatalf("activate_account of the server: %d %s", r.status, r.raw)
+	}
+	return r.body["token"].(string)
+}
+
+// A moderator opens the Window that a report names, whatever its access,
+// in a frame bound to their session, while the report waits; the members
+// of its Room read each opening in the Logbook. See
+// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+func TestOpenAReportedWindow(t *testing.T) {
+	f := setup(t)
+	console := f.ts
+	olivier := f.person(t, "localhost", "olivier")
+	publishPage(t, f, "Draft", "room")
+	publishPage(t, f, "Other", "room")
+	if status, _ := f.sendReport(t, "https://localhost/olivier/draft/", "illegal", "It shows what the law forbids.", ""); status != http.StatusOK {
+		t.Fatalf("report = %d", status)
+	}
+	ana := activate(t, f, console, "ana", true)
+	camille := activate(t, f, console, "camille", false)
+	root := serverAdmin(t, f, "root")
+
+	// A member cannot open it, nor can the command line, which has no
+	// console.
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/preview_reported_window", camille, `{"report": 1}`); r.status != http.StatusForbidden {
+		t.Errorf("preview_reported_window as a member: %d %s", r.status, r.raw)
+	}
+	if _, err := f.open(t, "localhost").Registry.Invoke(context.Background(), "preview_reported_window", admin, []byte(`{"report": 1}`)); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("preview_reported_window from the command line: %v", err)
+	}
+
+	// An administrator of the Cahut who is not in its Room opens it, and so
+	// does an administrator of the server, each in a frame of their own.
+	frames := map[string]string{}
+	for who, token := range map[string]string{"ana": ana, "root": root} {
+		r := call(t, f, console, http.MethodPost, "localhost", "/console/api/preview_reported_window", token, `{"report": 1}`)
+		frame, _ := r.body["frame"].(string)
+		if r.status != http.StatusOK || r.body["window"] != "olivier/draft" || !strings.HasPrefix(frame, "/-/frame/") {
+			t.Fatalf("preview_reported_window as %s: %d %s", who, r.status, r.raw)
+		}
+		if resp, body := f.do(t, "localhost", http.MethodGet, frame, nil, nil); resp.StatusCode != http.StatusOK || !strings.Contains(body, "<h1>Draft</h1>") {
+			t.Errorf("the frame of %s = %d %q", who, resp.StatusCode, body)
+		}
+		frames[who] = frame
+	}
+	// The frame opens that Window only.
+	other := strings.Replace(frames["ana"], "/-/frame/", "/-/frame/x", 1)
+	if resp, _ := f.do(t, "localhost", http.MethodGet, other, nil, nil); resp.StatusCode != http.StatusNotFound {
+		t.Errorf("a forged frame = %d", resp.StatusCode)
+	}
+
+	// Olivier reads in the Logbook of his Room that both opened it.
+	var opened []string
+	for _, e := range f.call(t, "localhost", olivier, "list_logbook", `{}`).(cahut.LogbookPage).Entries {
+		if e.Operation == "preview_reported_window" && e.Target == "olivier/draft" && e.Outcome == logbook.OK {
+			opened = append(opened, e.UserHandle+" "+e.Detail)
+		}
+	}
+	if len(opened) != 2 || !slices.Contains(opened, "ana report 1") || !slices.Contains(opened, "root report 1") {
+		t.Errorf("olivier reads the openings %q", opened)
+	}
+
+	// A moderator who no longer administers the Cahut loses the frame.
+	activate(t, f, console, "bob", true)
+	f.call(t, "localhost", admin, "set_user_role", `{"user": "ana", "role": "member"}`)
+	if resp, _ := f.do(t, "localhost", http.MethodGet, frames["ana"], nil, nil); resp.StatusCode != http.StatusNotFound {
+		t.Errorf("the frame of a former administrator = %d", resp.StatusCode)
+	}
+
+	// Once the report is decided, the frames open nothing, and no new one
+	// is given.
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/dismiss_report", root, `{"report": 1}`); r.status != http.StatusOK || r.body["by_server"] != true {
+		t.Fatalf("dismiss_report as an administrator of the server: %d %s", r.status, r.raw)
+	}
+	if resp, _ := f.do(t, "localhost", http.MethodGet, frames["root"], nil, nil); resp.StatusCode != http.StatusNotFound {
+		t.Errorf("the frame of a decided report = %d", resp.StatusCode)
+	}
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/preview_reported_window", root, `{"report": 1}`); r.status != http.StatusBadRequest || r.body["code"] != "report_decided" {
+		t.Errorf("preview_reported_window of a decided report: %d %s", r.status, r.raw)
 	}
 }

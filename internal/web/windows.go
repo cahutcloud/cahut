@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"errors"
 	"io/fs"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/address"
 	"cahut.cloud/internal/cahut"
+	"cahut.cloud/internal/moderation"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/window"
 )
@@ -163,6 +165,19 @@ func (s *Server) serveFrame(w http.ResponseWriter, r *http.Request) {
 		gone()
 		return
 	}
+	if frame.Kind == window.FrameByModerator || frame.Kind == window.FrameByHost {
+		opens, err := s.moderatorOpens(r.Context(), c, frame, now)
+		if err != nil {
+			s.internal(w, "verify the frame of a moderator", err)
+			return
+		}
+		if !opens {
+			gone()
+			return
+		}
+		s.serveFiles(w, r, c, win, window.FramePrefix+signed, "no-referrer")
+		return
+	}
 	var userID, pass int64
 	switch frame.Kind {
 	case window.FrameBySession:
@@ -199,6 +214,30 @@ func (s *Server) serveFrame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.serveFiles(w, r, c, win, window.FramePrefix+signed, "no-referrer")
+}
+
+// moderatorOpens reports whether the frame f of a moderator still opens its
+// Window: their session lasts, of the Cahut or of the server, they still
+// moderate it, and a report about the Window waits. See
+// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+func (s *Server) moderatorOpens(ctx context.Context, c *cahut.Cahut, f window.Frame, now time.Time) (bool, error) {
+	var userID int64
+	if f.Kind == window.FrameByHost {
+		lasts, err := s.srv.SessionLasts(ctx, f.ID, c.Domain, now)
+		if err != nil || !lasts {
+			return false, err
+		}
+	} else {
+		o, err := account.Console(ctx, c.DB, f.ID, now)
+		if errors.Is(err, account.ErrInvalidSession) {
+			return false, nil
+		}
+		if err != nil {
+			return false, err
+		}
+		userID = o.UserID
+	}
+	return moderation.Opens(ctx, c.DB, f.Window, userID)
 }
 
 // serveFiles serves the file of the Window win that the request names

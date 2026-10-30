@@ -177,6 +177,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/list_windows` | Any person | yes |
 | `POST /api/open_invitation` | Anyone, to sign in | no |
 | `POST /api/open_share_link` | Anyone, to sign in | no |
+| `POST /api/preview_reported_window` | Administrators of the Cahut | yes |
 | `POST /api/preview_windows` | Any person | yes |
 | `POST /api/publish_window` | Any person | yes |
 | `POST /api/purge_window` | Any person | yes |

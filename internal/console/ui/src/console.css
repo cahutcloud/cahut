@@ -1632,6 +1632,20 @@ a.cahut-menu__item:hover {
 	display: grid;
 	gap: var(--space-3);
 }
+/* A reported Window, as wide as the screen allows, in its dialog. */
+.dialog:has(.report__frame) {
+	width: min(1100px, calc(100vw - 2 * var(--space-4)));
+	max-width: none;
+}
+.report__frame {
+	display: block;
+	width: 100%;
+	height: min(70vh, 720px);
+	margin-top: var(--space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-surface);
+}
 
 /* Read by screen readers, not shown. */
 .visually-hidden {

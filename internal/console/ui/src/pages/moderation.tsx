@@ -3,11 +3,11 @@
 // of its server. Each report waits for a decision: the moderators leave its
 // Window as it is, or withdraw it. See
 // docs/adr/0054-reporting-and-withdrawing-a-window.md.
-import { ArrowUpRight, Flag } from "lucide-preact";
+import { ArrowUpRight, Eye, Flag } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
-import type { Report } from "../api.gen";
-import { AccessBadge, Failure, Notice, PageHead } from "../components";
+import type { Report, ReportedPreview } from "../api.gen";
+import { AccessBadge, Dialog, Failure, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
 import { locale, plural, words } from "../i18n";
 import { useLoad } from "../load";
@@ -34,6 +34,9 @@ const t = words({
 		anonymous: "Gave neither a name nor an address",
 		trashed: "In the trash",
 		openAtAddress: "Open at its address",
+		open: "Open",
+		preview: (title: string) => `The Window ${title}`,
+		openedNotice: "The members of its Room read in the Logbook that you opened it, with this report. It runs in its sandbox, without its forms.",
 		dismiss: "Leave it as it is",
 		note: "Note for the moderators",
 		noteHelp: (left: number) => `Optional. ${plural(left, "character", "characters")} left.`,
@@ -65,6 +68,9 @@ const t = words({
 		anonymous: "Sans nom ni adresse",
 		trashed: "À la corbeille",
 		openAtAddress: "Ouvrir à son adresse",
+		open: "Ouvrir",
+		preview: (title) => `La Window ${title}`,
+		openedNotice: "Les membres de sa Room lisent dans le Logbook que vous l'avez ouverte, avec ce signalement. Elle s'exécute dans son bac à sable, sans ses formulaires.",
 		dismiss: "La laisser telle quelle",
 		note: "Note pour les modérateurs",
 		noteHelp: (left) => `Facultative. ${plural(left, "caractère restant", "caractères restants")}.`,
@@ -111,7 +117,16 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 	const [note, setNote] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	const [shown, setShown] = useState<ReportedPreview | null>(null);
 	const w = p.window;
+	const open = async () => {
+		setError("");
+		try {
+			setShown(await call("preview_reported_window", { report: p.id }));
+		} catch (err) {
+			setError(explain(err));
+		}
+	};
 	const address = `${location.origin}/${w.room}/${w.name}/`;
 	const dismiss = async (e: Event) => {
 		e.preventDefault();
@@ -153,6 +168,12 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 			{error && <Failure message={error} />}
 			{!p.decision && !asking && (
 				<div class="actions">
+					{!w.trashed && (
+						<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={open}>
+							<Eye class="i" size={14} aria-hidden="true" />
+							{t.open}
+						</button>
+					)}
 					{w.access === "public" && !w.trashed && (
 						<a class="c-btn c-btn--secondary c-btn--sm" href={address} target="_blank" rel="noopener noreferrer">
 							<ArrowUpRight class="i" size={14} aria-hidden="true" />
@@ -163,6 +184,16 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 						{t.dismiss}
 					</button>
 				</div>
+			)}
+			{shown && (
+				<Dialog
+					title={w.title}
+					meta={<span class="c-mono c-small c-muted">{`${shown.window} · ${t.report(p.id)}`}</span>}
+					onClose={() => setShown(null)}
+				>
+					<p class="c-small c-muted">{t.openedNotice}</p>
+					<iframe class="report__frame" src={shown.frame} title={t.preview(w.title)} sandbox="allow-scripts" referrerpolicy="no-referrer" />
+				</Dialog>
 			)}
 			{!p.decision && asking && (
 				<form class="report__decide" onSubmit={dismiss}>

@@ -520,6 +520,19 @@ type AdminSession struct {
 	Handle    string
 }
 
+// SessionLasts reports whether the session id of an administrator of the
+// server still lasts at domain, without recording its use: the frame of a
+// reported Window that a moderator opens checks it at each of its files.
+// See docs/adr/0054-reporting-and-withdrawing-a-window.md.
+func (s *Server) SessionLasts(ctx context.Context, id int64, domain string, now time.Time) (bool, error) {
+	var lasts bool
+	err := s.DB.Read.QueryRowContext(ctx, `
+		SELECT EXISTS (SELECT 1 FROM admin_sessions s JOIN admins a ON a.id = s.admin_id
+		WHERE s.id = ? AND s.domain = ? AND s.expires_at > ? AND s.last_used_at > ? AND a.disabled_at IS NULL)`,
+		id, domain, store.FormatTime(now), store.FormatTime(now.Add(-credential.SessionIdle))).Scan(&lasts)
+	return lasts, err
+}
+
 // VerifySession checks the session token of an administrator of the server,
 // at domain, and returns who it belongs to. A session of another domain is
 // invalid. It records when the session was last used, at most once a minute.
