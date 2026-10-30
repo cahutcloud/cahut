@@ -1,6 +1,6 @@
 # 4. SQLite in pure Go
 
-- Status: Accepted, extended by [ADR 8](0008-several-cahuts-per-server.md) (one database per Cahut)
+- Status: Accepted, extended by [ADR 8](0008-several-cahuts-per-server.md) (one database per Cahut) and by [ADR 56](0056-a-database-for-each-window.md) (the SQL of each Window runs in a process of its own)
 - Date: 2026-10-21
 
 ## Context

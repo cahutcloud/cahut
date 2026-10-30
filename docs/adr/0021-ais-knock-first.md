@@ -1,6 +1,6 @@
 # 21. An AI knocks first, and the person it acts for answers
 
-- Status: Accepted, extended by [ADR 31](0031-e-mail-through-a-relay.md) (a waiting Knock goes to its person by e-mail)
+- Status: Accepted, extended by [ADR 31](0031-e-mail-through-a-relay.md) (a waiting Knock goes to its person by e-mail) and by [ADR 56](0056-a-database-for-each-window.md) (`change_window_data` knocks first when it removes or renames, and `update_window` when it lets anyone change or delete the rows of a public Window)
 - Date: 2026-10-23
 
 ## Context
