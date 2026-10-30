@@ -24,7 +24,7 @@ type SetAIReachInput struct {
 var SetAIReach = &operation.Op[SetAIReachInput, Connection]{
 	Name:  "set_ai_reach",
 	Title: "Change what an AI reaches",
-	Description: "Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. " +
+	Description: "Set what an AI connected over OAuth reaches in this Cahut: read or write, and every Room of its person or some of them. " +
 		"A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, " +
 		"and widening it, such as asking for write or for another Room, waits for its person to approve.",
 	KnocksWhen:  "it widens the reach of an AI",

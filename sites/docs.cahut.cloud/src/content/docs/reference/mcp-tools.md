@@ -48,33 +48,33 @@ The Cahut gives these instructions to the AI when it connects:
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
 | [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. |
-| [`get_knock`](#get_knock) | Check a Knock, a call of an AI that waits for a person to approve it: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
-| [`get_room`](#get_room) | Describe a Room: its title, its owners and members, and how many Windows it holds. |
-| [`get_window`](#get_window) | Describe a Window and list its files, optionally with their contents. |
+| [`get_knock`](#get_knock) | Check a Knock of this Cahut, a call of an AI that waits for a person to approve it: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
+| [`get_room`](#get_room) | Describe a Room of this Cahut: its title, its owners and members, and how many Windows it holds. |
+| [`get_window`](#get_window) | Describe a Window of this Cahut and list its files, optionally with their contents. |
 | [`invite_to_window`](#invite_to_window) | Send the address of a Window by e-mail, with a note: to people of the Cahut, named by handle, who sign in to read it, or to anyone else, named by address, when the Window opens with its Key or to the public. For a Window with a Key, each address gets a personal link that opens it for them alone, until revoke_invitation takes it back; the Key itself never goes. 20 people a call, and 100 invitations a day. get_cahut says whether the Cahut sends e-mail. |
-| [`list_invitations`](#list_invitations) | List the invitations to a Window, the latest first: who got one, who invited, and whether it still stands. |
-| [`list_knocks`](#list_knocks) | List Knocks, those that wait first. A Knock is a call of an AI that waits for a person to approve it, since it cannot be undone or changes what a person may do. An AI lists the Knocks it made; a person, those of their AIs. |
+| [`list_invitations`](#list_invitations) | List the invitations to a Window of this Cahut, the latest first: who got one, who invited, and whether it still stands. |
+| [`list_knocks`](#list_knocks) | List the Knocks of this Cahut, those that wait first. A Knock is a call of an AI that waits for a person to approve it, since it cannot be undone or changes what a person may do. An AI lists the Knocks it made; a person, those of their AIs. |
 | [`list_logbook`](#list_logbook) | Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. |
-| [`list_rooms`](#list_rooms) | List your Rooms, your personal Room first, with your role and how many members and Windows each has. |
+| [`list_rooms`](#list_rooms) | List your Rooms in this Cahut, your personal Room first, with your role and how many members and Windows each has. |
 | [`list_users`](#list_users) | List the people of the Cahut, with their handles, names, roles and states. In an individual Cahut, for its administrators only. |
-| [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. |
-| [`publish_window`](#publish_window) | Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. |
-| [`purge_window`](#purge_window) | Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs. |
+| [`list_windows`](#list_windows) | List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, most recently updated first. |
+| [`publish_window`](#publish_window) | Publish a new Window in this Cahut: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. |
+| [`purge_window`](#purge_window) | Delete a Window of this Cahut that is in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs. |
 | [`remove_room_member`](#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
-| [`rename_window`](#rename_window) | Change the name of a Window, the last part of its address, &lt;domain&gt;/&lt;room&gt;/&lt;name&gt;/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it. |
-| [`restore_window`](#restore_window) | Bring a Window back from the trash, with its versions. |
-| [`retitle_window`](#retitle_window) | Change the title of a Window, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it. |
-| [`revoke_invitation`](#revoke_invitation) | Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. |
-| [`revoke_share_link`](#revoke_share_link) | Take back a share link: it no longer opens its Window, to those who opened it too. |
-| [`rollback_window`](#rollback_window) | Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
-| [`set_ai_reach`](#set_ai_reach) | Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs. |
-| [`set_room_home`](#set_room_home) | Show a Window of a Room at the Room's address, &lt;domain&gt;/&lt;room&gt;/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access. |
+| [`rename_window`](#rename_window) | Change the name of a Window of this Cahut, the last part of its address, &lt;domain&gt;/&lt;room&gt;/&lt;name&gt;/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it. |
+| [`restore_window`](#restore_window) | Bring a Window of this Cahut back from the trash, with its versions. |
+| [`retitle_window`](#retitle_window) | Change the title of a Window of this Cahut, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it. |
+| [`revoke_invitation`](#revoke_invitation) | Take back an invitation to a Window of this Cahut: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. |
+| [`revoke_share_link`](#revoke_share_link) | Take back a share link to a Window of this Cahut: it no longer opens the Window, to those who opened it too. |
+| [`rollback_window`](#rollback_window) | Go back to the previous version of a Window of this Cahut. The version you leave becomes the previous one, so calling rollback_window again returns to it. |
+| [`set_ai_reach`](#set_ai_reach) | Set what an AI connected over OAuth reaches in this Cahut: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs. |
+| [`set_room_home`](#set_room_home) | Show a Window of a Room of this Cahut at the Room's address, &lt;domain&gt;/&lt;room&gt;/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access. |
 | [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`set_user_email`](#set_user_email) | Give a person an e-mail address, where their activation links and notices go, or remove it with an empty address. Their old address gets a notice. For the administrators of the Cahut. Knock first: a person approves the call before it runs. |
 | [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs. |
 | [`set_window_access`](#set_window_access) | Set who opens a Window: author, its author alone, for themself; room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
-| [`trash_window`](#trash_window) | Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. |
-| [`update_room`](#update_room) | Change the title of a Room, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it. |
+| [`trash_window`](#trash_window) | Put a Window of this Cahut in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. |
+| [`update_room`](#update_room) | Change the title of a Room of this Cahut, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it. |
 | [`update_window`](#update_window) | Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Cahut calls no other system. |
 
 ## `add_room_member`
@@ -1464,7 +1464,7 @@ This tool takes no arguments.
 
 ## `get_knock`
 
-Check a Knock, a call of an AI that waits for a person to approve it: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked.
+Check a Knock of this Cahut, a call of an AI that waits for a person to approve it: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked.
 
 Title: Check an approval request (Knock). Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -1596,7 +1596,7 @@ Title: Check an approval request (Knock). Annotations: `readOnlyHint: true`, `de
 
 ## `get_room`
 
-Describe a Room: its title, its owners and members, and how many Windows it holds.
+Describe a Room of this Cahut: its title, its owners and members, and how many Windows it holds.
 
 Title: Describe a Room. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -1737,7 +1737,7 @@ Title: Describe a Room. Annotations: `readOnlyHint: true`, `destructiveHint: fal
 
 ## `get_window`
 
-Describe a Window and list its files, optionally with their contents.
+Describe a Window of this Cahut and list its files, optionally with their contents.
 
 Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -2271,7 +2271,7 @@ Title: Invite people to read a Window. Annotations: `readOnlyHint: false`, `dest
 
 ## `list_invitations`
 
-List the invitations to a Window, the latest first: who got one, who invited, and whether it still stands.
+List the invitations to a Window of this Cahut, the latest first: who got one, who invited, and whether it still stands.
 
 Title: List the invitations to a Window. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -2390,7 +2390,7 @@ Title: List the invitations to a Window. Annotations: `readOnlyHint: true`, `des
 
 ## `list_knocks`
 
-List Knocks, those that wait first. A Knock is a call of an AI that waits for a person to approve it, since it cannot be undone or changes what a person may do. An AI lists the Knocks it made; a person, those of their AIs.
+List the Knocks of this Cahut, those that wait first. A Knock is a call of an AI that waits for a person to approve it, since it cannot be undone or changes what a person may do. An AI lists the Knocks it made; a person, those of their AIs.
 
 Title: List approval requests (Knocks). Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -2693,7 +2693,7 @@ Title: Read the Logbook. Annotations: `readOnlyHint: true`, `destructiveHint: fa
 
 ## `list_rooms`
 
-List your Rooms, your personal Room first, with your role and how many members and Windows each has.
+List your Rooms in this Cahut, your personal Room first, with your role and how many members and Windows each has.
 
 Title: List Rooms. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -2908,7 +2908,7 @@ This tool takes no arguments.
 
 ## `list_windows`
 
-List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first.
+List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, most recently updated first.
 
 Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -3126,7 +3126,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
 
 ## `publish_window`
 
-Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens.
+Publish a new Window in this Cahut: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens.
 
 Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -3427,7 +3427,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 
 ## `purge_window`
 
-Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs.
+Delete a Window of this Cahut that is in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. Knock first: a person approves the call before it runs.
 
 Knock first: the call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
@@ -3780,7 +3780,7 @@ Title: Remove a member from a Room. Annotations: `readOnlyHint: false`, `destruc
 
 ## `rename_window`
 
-Change the name of a Window, the last part of its address, &lt;domain&gt;/&lt;room&gt;/&lt;name&gt;/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it.
+Change the name of a Window of this Cahut, the last part of its address, &lt;domain&gt;/&lt;room&gt;/&lt;name&gt;/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it.
 
 Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -3986,7 +3986,7 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
 
 ## `restore_window`
 
-Bring a Window back from the trash, with its versions.
+Bring a Window of this Cahut back from the trash, with its versions.
 
 Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -4186,7 +4186,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 
 ## `retitle_window`
 
-Change the title of a Window, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it.
+Change the title of a Window of this Cahut, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it.
 
 Title: Retitle and describe a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -4399,7 +4399,7 @@ Title: Retitle and describe a Window. Annotations: `readOnlyHint: false`, `destr
 
 ## `revoke_invitation`
 
-Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent.
+Take back an invitation to a Window of this Cahut: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent.
 
 Title: Take back an invitation. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
@@ -4501,7 +4501,7 @@ Title: Take back an invitation. Annotations: `readOnlyHint: false`, `destructive
 
 ## `revoke_share_link`
 
-Take back a share link: it no longer opens its Window, to those who opened it too.
+Take back a share link to a Window of this Cahut: it no longer opens the Window, to those who opened it too.
 
 Title: Take back a share link. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
@@ -4618,7 +4618,7 @@ Title: Take back a share link. Annotations: `readOnlyHint: false`, `destructiveH
 
 ## `rollback_window`
 
-Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it.
+Go back to the previous version of a Window of this Cahut. The version you leave becomes the previous one, so calling rollback_window again returns to it.
 
 Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -4818,7 +4818,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
 
 ## `set_ai_reach`
 
-Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs.
+Set what an AI connected over OAuth reaches in this Cahut: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. Knock first when it widens the reach of an AI: a person approves the call before it runs.
 
 Offered also to the AIs that may only read, though it changes things.
 
@@ -4978,7 +4978,7 @@ Title: Change what an AI reaches. Annotations: `readOnlyHint: false`, `destructi
 
 ## `set_room_home`
 
-Show a Window of a Room at the Room's address, &lt;domain&gt;/&lt;room&gt;/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access.
+Show a Window of a Room of this Cahut at the Room's address, &lt;domain&gt;/&lt;room&gt;/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access.
 
 Title: Choose the home page of a Room. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -5715,7 +5715,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 
 ## `trash_window`
 
-Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was.
+Put a Window of this Cahut in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was.
 
 Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -5915,7 +5915,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 
 ## `update_room`
 
-Change the title of a Room, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it.
+Change the title of a Room of this Cahut, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it.
 
 Title: Retitle and describe a Room. Annotations: `readOnlyHint: false`, `destructiveHint: false`, `openWorldHint: false`.
 

@@ -88,7 +88,7 @@ func Register(r *operation.Registry, url func(id int64) string) {
 	operation.Register(r, &operation.Op[ListInput, List]{
 		Name:  "list_knocks",
 		Title: "List approval requests (Knocks)",
-		Description: "List Knocks, those that wait first. A Knock is a call of an AI that waits for a person to approve it, " +
+		Description: "List the Knocks of this Cahut, those that wait first. A Knock is a call of an AI that waits for a person to approve it, " +
 			"since it cannot be undone or changes what a person may do. An AI lists the Knocks it made; a person, those of their AIs.",
 		ReadOnly: true,
 		Run:      s.list,
@@ -96,7 +96,7 @@ func Register(r *operation.Registry, url func(id int64) string) {
 	operation.Register(r, &operation.Op[GetInput, Knock]{
 		Name:  "get_knock",
 		Title: "Check an approval request (Knock)",
-		Description: "Check a Knock, a call of an AI that waits for a person to approve it: whether it waits, was approved and run, " +
+		Description: "Check a Knock of this Cahut, a call of an AI that waits for a person to approve it: whether it waits, was approved and run, " +
 			"failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked.",
 		ReadOnly: true,
 		Run:      s.get,
