@@ -54,7 +54,23 @@ func (s *Server) cookieName(name string) string {
 // setCookie sets a cookie of Cahut until expires, or removes it when
 // expires is zero.
 func (s *Server) setCookie(w http.ResponseWriter, name, value string, expires time.Time) {
-	c := &http.Cookie{ //nolint:gosec // Secure, but for development in plain HTTP
+	c := s.cookie(name, value) //nolint:gosec // Secure, but for development in plain HTTP
+	if expires.IsZero() {
+		c.MaxAge = -1
+	} else {
+		c.MaxAge = max(int(time.Until(expires).Seconds()), 1)
+	}
+	http.SetCookie(w, c)
+}
+
+// setSessionCookie sets a cookie of Cahut without an end, which the browser
+// drops when it closes: what it holds ends on the server too.
+func (s *Server) setSessionCookie(w http.ResponseWriter, name, value string) {
+	http.SetCookie(w, s.cookie(name, value))
+}
+
+func (s *Server) cookie(name, value string) *http.Cookie {
+	return &http.Cookie{ //nolint:gosec // Secure, but for development in plain HTTP
 		Name:     s.cookieName(name),
 		Value:    value,
 		Path:     "/",
@@ -62,12 +78,6 @@ func (s *Server) setCookie(w http.ResponseWriter, name, value string, expires ti
 		Secure:   !s.cfg.Dev,
 		SameSite: http.SameSiteLaxMode,
 	}
-	if expires.IsZero() {
-		c.MaxAge = -1
-	} else {
-		c.MaxAge = max(int(time.Until(expires).Seconds()), 1)
-	}
-	http.SetCookie(w, c)
 }
 
 // readerOf returns the reader session of the request, or none.

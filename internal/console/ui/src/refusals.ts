@@ -64,6 +64,8 @@ const said = words<Sentences>({
 		handle_room_cannot_move: (v) =>
 			`Your Room ${v.room} would be named ${v.name}, which another Room holds or which is too long: choose another handle.`,
 		handle_taken: (v) => `The handle "${v.handle}" is taken, by a person or a Room.`,
+		invitation_author_only: () =>
+			"This Window opens to you alone: nobody else signs in to read it, and it has no Key. Make a share link instead, which opens once for a single reader.",
 		invitation_gone:
 			"This invitation does not open the Window any more: it was taken back, it expired, or the Window changed its Key or its access. Ask the person who invited you for a new one.",
 		invite_address_internal: () =>
@@ -122,7 +124,10 @@ const said = words<Sentences>({
 		too_many_sign_ins_at_once: "Too many sign-ins at once: try again in a few seconds.",
 		window_name_invalid: (v) =>
 			`"${v.name}" cannot be the name of a Window: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit.`,
+		window_author_only: (v) => `Only the author of this Window, ${v.author}, can keep it for themself.`,
 		window_name_taken: (v) => `The name "${v.name}" is taken in the Room ${v.room}, by a Window or one in its trash: choose another.`,
+		window_without_author:
+			"This Window has no author since the person it was published for was deleted: it opens to its Room, its Cahut, a Key or the public.",
 		wrong_current_password: "The current password is wrong.",
 		wrong_handle_or_password: "Wrong handle or password.",
 	},
@@ -146,6 +151,8 @@ const said = words<Sentences>({
 		handle_room_cannot_move: (v) =>
 			`Votre Room ${v.room} s'appellerait ${v.name}, nom qu'une autre Room porte déjà ou qui est trop long : choisissez un autre identifiant.`,
 		handle_taken: (v) => `L'identifiant « ${v.handle} » est déjà pris, par une personne ou une Room.`,
+		invitation_author_only: () =>
+			"Cette Window ne s'ouvre qu'à vous : personne d'autre ne s'y connecte pour la lire, et elle n'a pas de Key. Faites plutôt un lien de partage, qui s'ouvre une fois pour une seule personne.",
 		invitation_gone:
 			"Cette invitation n'ouvre plus la Window : elle a été retirée, elle a expiré, ou la Window a changé de Key ou d'accès. Demandez-en une nouvelle à la personne qui vous l'a envoyée.",
 		invite_address_internal: () =>
@@ -205,7 +212,10 @@ const said = words<Sentences>({
 		too_many_sign_ins_at_once: "Trop de connexions en même temps : réessayez dans quelques secondes.",
 		window_name_invalid: (v) =>
 			`« ${v.name} » ne peut pas être le nom d'une Window : utilisez de 1 à 63 lettres minuscules, chiffres et tirets, en commençant et en finissant par une lettre ou un chiffre.`,
+		window_author_only: (v) => `Seule la personne qui a publié cette Window, ${v.author}, peut la garder pour elle.`,
 		window_name_taken: (v) => `Le nom « ${v.name} » est déjà pris dans la Room ${v.room}, par une Window ou une Window à la corbeille : choisissez-en un autre.`,
+		window_without_author:
+			"Cette Window n'a plus d'auteur depuis la suppression de la personne pour qui elle a été publiée : elle s'ouvre à sa Room, à sa Cahut, à une Key ou au public.",
 		wrong_current_password: "Le mot de passe actuel est incorrect.",
 		wrong_handle_or_password: "Identifiant ou mot de passe incorrect.",
 	},

@@ -1,6 +1,6 @@
 # 52. A share link opens a Window to whoever holds it, without an account or a Key, until it ends
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 53](0053-windows-for-their-author-alone.md) (the pass of a link that opens once lasts a session of reading, and its page says so)
 - Date: 2026-10-29
 
 ## Context

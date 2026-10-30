@@ -21,7 +21,7 @@ The Cahut gives these instructions to the AI when it connects:
 
 > Cahut keeps what you make on the user's own server, as Windows. To publish a document, deck, dashboard or site: call publish_window with a complete index.html and all its files, linked by relative paths (css/deck.css, never /css/deck.css), and a declaration of its scripts and of every origin it loads from or calls. Give the user the address it returns. A call that cannot be undone makes a Knock: give the user its link to approve it.
 >
-> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. Give each Window a description of a sentence or two; retitle_window changes its title and description without a new version. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. create_share_link gives a link that opens a Window to whoever holds it, without an account or a Key, for 30 days at most: give it to the user, who passes it on; revoke_share_link takes it back. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
+> Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. Pages can load and call nothing that their declaration does not list, and send forms only where it says. They run in a sandbox where localStorage, sessionStorage, IndexedDB and cookies throw errors: keep state in memory or in the address. To change a Window, publish its new version with update_window at the same address; rollback_window goes back to the previous one. Each Window has an id that never changes: name the Window by its id to find it again, and give its permanent_url for a link that lasts. Give each Window a description of a sentence or two; retitle_window changes its title and description without a new version. A Window opens to the members of its Room until set_window_access opens it to the whole Cahut or to anyone with its Key; making it public waits for a person. publish_window with access author keeps a Window for the person you act for alone, such as a draft in a team Room; set_window_access to room shares it with the Room. invite_to_window sends its address to people by e-mail, with a personal link for a Window with a Key. create_share_link gives a link that opens a Window to whoever holds it, without an account or a Key, for 30 days at most: give it to the user, who passes it on; revoke_share_link takes it back. For a Window that one reader opens once, publish it with access author, then make a share link with max_openings 1. Knock first: a call that cannot be undone, or that changes what a person may do, does not run at once; once the person has answered its Knock, get_knock gives the outcome. Every call is recorded in the Logbook of the Cahut.
 
 ## Limits
 
@@ -72,7 +72,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`set_room_member_role`](#set_room_member_role) | Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. Knock first: a person approves the call before it runs. |
 | [`set_user_email`](#set_user_email) | Give a person an e-mail address, where their activation links and notices go, or remove it with an empty address. Their old address gets a notice. For the administrators of the Cahut. Knock first: a person approves the call before it runs. |
 | [`set_user_role`](#set_user_role) | Make a person an administrator of the Cahut, or a member. The Cahut keeps at least one administrator. Knock first: a person approves the call before it runs. |
-| [`set_window_access`](#set_window_access) | Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
+| [`set_window_access`](#set_window_access) | Set who opens a Window: author, its author alone, for themself; room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
 | [`trash_window`](#trash_window) | Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. |
 | [`update_room`](#update_room) | Change the title of a Room, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it. |
 | [`update_window`](#update_window) | Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. |
@@ -138,7 +138,7 @@ Title: Add a member to a Room. Annotations: `readOnlyHint: false`, `destructiveH
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
@@ -209,7 +209,7 @@ Title: Add a member to a Room. Annotations: `readOnlyHint: false`, `destructiveH
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds, out of the trash",
+      "description": "how many Windows of the Room you see, out of the trash: all but those that others keep for themselves",
       "type": "integer"
     }
   },
@@ -285,7 +285,7 @@ Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint:
 | `members` | integer | yes | how many people are in the Room |
 | `name` | string | yes | the Room's name, first part of its address |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
@@ -328,7 +328,7 @@ Title: Create a team Room. Annotations: `readOnlyHint: false`, `destructiveHint:
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds, out of the trash",
+      "description": "how many Windows of the Room you see, out of the trash: all but those that others keep for themselves",
       "type": "integer"
     }
   },
@@ -1635,7 +1635,7 @@ Title: Describe a Room. Annotations: `readOnlyHint: true`, `destructiveHint: fal
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
@@ -1706,7 +1706,7 @@ Title: Describe a Room. Annotations: `readOnlyHint: true`, `destructiveHint: fal
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds, out of the trash",
+      "description": "how many Windows of the Room you see, out of the trash: all but those that others keep for themselves",
       "type": "integer"
     }
   },
@@ -1767,7 +1767,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
-| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `access` | string | yes | who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
@@ -1824,7 +1824,7 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
   "additionalProperties": false,
   "properties": {
     "access": {
-      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "description": "who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
       "type": "string"
     },
     "access_ends_at": {
@@ -2721,7 +2721,7 @@ Title: List Rooms. Annotations: `readOnlyHint: true`, `destructiveHint: false`, 
 | `rooms[].members` | integer | yes | how many people are in the Room |
 | `rooms[].name` | string | yes | the Room's name, first part of its address |
 | `rooms[].title` | string | yes |  |
-| `rooms[].windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `rooms[].windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `rooms[].description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `rooms[].home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `rooms[].role` | string | no | your role in the Room, owner or member; empty when you are not in it |
@@ -2768,7 +2768,7 @@ Title: List Rooms. Annotations: `readOnlyHint: true`, `destructiveHint: false`, 
             "type": "string"
           },
           "windows": {
-            "description": "how many Windows the Room holds, out of the trash",
+            "description": "how many Windows of the Room you see, out of the trash: all but those that others keep for themselves",
             "type": "integer"
           }
         },
@@ -2936,7 +2936,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
 | `windows` | array of objects or null | yes |  |
-| `windows[].access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `windows[].access` | string | yes | who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `windows[].created_at` | string | yes |  |
 | `windows[].created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `windows[].file_count` | integer | yes |  |
@@ -2971,7 +2971,7 @@ Title: List Windows. Annotations: `readOnlyHint: true`, `destructiveHint: false`
         "additionalProperties": false,
         "properties": {
           "access": {
-            "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+            "description": "who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
             "type": "string"
           },
           "access_ends_at": {
@@ -3134,6 +3134,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `files[].encoding` | string | no | utf-8 (the default) or base64, for binary files |
 | `kind` | string | yes | one of document, deck, dashboard or site |
 | `title` | string | yes | title of the Window, also used in its address |
+| `access` | string | no | room, the members of its Room (the default), or author, the person you act for alone: a draft, or a Window that one reader opens once with create_share_link and max_openings 1 |
 | `description` | string | no | what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window |
 | `name` | string | no | its name in its address, 1 to 63 lowercase letters, digits and hyphens; from the title when empty |
 | `room` | string | no | name of the Room to publish in; the personal Room of the person you act for when empty |
@@ -3145,6 +3146,10 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 {
   "additionalProperties": false,
   "properties": {
+    "access": {
+      "description": "room, the members of its Room (the default), or author, the person you act for alone: a draft, or a Window that one reader opens once with create_share_link and max_openings 1",
+      "type": "string"
+    },
     "declaration": {
       "additionalProperties": false,
       "description": "what the pages do: Cahut lets them load and call the origins listed here, and nothing else",
@@ -3247,7 +3252,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
-| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `access` | string | yes | who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
@@ -3278,7 +3283,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
   "additionalProperties": false,
   "properties": {
     "access": {
-      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "description": "who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
       "type": "string"
     },
     "access_ends_at": {
@@ -3449,7 +3454,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
-| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `access` | string | yes | who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
@@ -3480,7 +3485,7 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
   "additionalProperties": false,
   "properties": {
     "access": {
-      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "description": "who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
       "type": "string"
     },
     "access_ends_at": {
@@ -3668,7 +3673,7 @@ Title: Remove a member from a Room. Annotations: `readOnlyHint: false`, `destruc
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
@@ -3739,7 +3744,7 @@ Title: Remove a member from a Room. Annotations: `readOnlyHint: false`, `destruc
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds, out of the trash",
+      "description": "how many Windows of the Room you see, out of the trash: all but those that others keep for themselves",
       "type": "integer"
     }
   },
@@ -3801,7 +3806,7 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
-| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `access` | string | yes | who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
@@ -3832,7 +3837,7 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
   "additionalProperties": false,
   "properties": {
     "access": {
-      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "description": "who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
       "type": "string"
     },
     "access_ends_at": {
@@ -4001,7 +4006,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
-| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `access` | string | yes | who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
@@ -4032,7 +4037,7 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
   "additionalProperties": false,
   "properties": {
     "access": {
-      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "description": "who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
       "type": "string"
     },
     "access_ends_at": {
@@ -4214,7 +4219,7 @@ Title: Retitle and describe a Window. Annotations: `readOnlyHint: false`, `destr
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
-| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `access` | string | yes | who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
@@ -4245,7 +4250,7 @@ Title: Retitle and describe a Window. Annotations: `readOnlyHint: false`, `destr
   "additionalProperties": false,
   "properties": {
     "access": {
-      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "description": "who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
       "type": "string"
     },
     "access_ends_at": {
@@ -4633,7 +4638,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
-| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `access` | string | yes | who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
@@ -4664,7 +4669,7 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
   "additionalProperties": false,
   "properties": {
     "access": {
-      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "description": "who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
       "type": "string"
     },
     "access_ends_at": {
@@ -5007,7 +5012,7 @@ Title: Choose the home page of a Room. Annotations: `readOnlyHint: false`, `dest
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
@@ -5078,7 +5083,7 @@ Title: Choose the home page of a Room. Annotations: `readOnlyHint: false`, `dest
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds, out of the trash",
+      "description": "how many Windows of the Room you see, out of the trash: all but those that others keep for themselves",
       "type": "integer"
     }
   },
@@ -5158,7 +5163,7 @@ Title: Change a role in a Room. Annotations: `readOnlyHint: false`, `destructive
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
@@ -5229,7 +5234,7 @@ Title: Change a role in a Room. Annotations: `readOnlyHint: false`, `destructive
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds, out of the trash",
+      "description": "how many Windows of the Room you see, out of the trash: all but those that others keep for themselves",
       "type": "integer"
     }
   },
@@ -5454,7 +5459,7 @@ Title: Change the role of a person. Annotations: `readOnlyHint: false`, `destruc
 
 ## `set_window_access`
 
-Set who opens a Window: room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs.
+Set who opens a Window: author, its author alone, for themself; room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs.
 
 Knock first when it makes a Window public: that call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
@@ -5464,7 +5469,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `access` | string | yes | room, internal, key or public |
+| `access` | string | yes | author, room, internal, key or public |
 | `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 | `ends_at` | string or null | no | when the access ends, such as 2026-12-31T18:00:00Z; after it, the Window opens to its Room only. It does not end when absent |
 | `key` | string | no | for key: the Key to set, of 10 to 256 characters. When empty, the Window keeps its Key, or Cahut draws one |
@@ -5478,7 +5483,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
   "additionalProperties": false,
   "properties": {
     "access": {
-      "description": "room, internal, key or public",
+      "description": "author, room, internal, key or public",
       "type": "string"
     },
     "ends_at": {
@@ -5515,7 +5520,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
-| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `access` | string | yes | who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
@@ -5547,7 +5552,7 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
   "additionalProperties": false,
   "properties": {
     "access": {
-      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "description": "who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
       "type": "string"
     },
     "access_ends_at": {
@@ -5720,7 +5725,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
-| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `access` | string | yes | who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
@@ -5751,7 +5756,7 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
   "additionalProperties": false,
   "properties": {
     "access": {
-      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "description": "who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
       "type": "string"
     },
     "access_ends_at": {
@@ -5942,7 +5947,7 @@ Title: Retitle and describe a Room. Annotations: `readOnlyHint: false`, `destruc
 | `people[].name` | string | yes |  |
 | `people[].role` | string | yes | owner or member of the Room |
 | `title` | string | yes |  |
-| `windows` | integer | yes | how many Windows the Room holds, out of the trash |
+| `windows` | integer | yes | how many Windows of the Room you see, out of the trash: all but those that others keep for themselves |
 | `description` | string | no | what the Room is, in a sentence or two; absent when it has none |
 | `home` | string | no | the Window shown at the Room's address, in place of the list of its Windows; empty when the address lists them |
 | `role` | string | no | your role in the Room, owner or member; empty when you are not in it |
@@ -6013,7 +6018,7 @@ Title: Retitle and describe a Room. Annotations: `readOnlyHint: false`, `destruc
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows the Room holds, out of the trash",
+      "description": "how many Windows of the Room you see, out of the trash: all but those that others keep for themselves",
       "type": "integer"
     }
   },
@@ -6157,7 +6162,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
-| `access` | string | yes | who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
+| `access` | string | yes | who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public |
 | `created_at` | string | yes |  |
 | `created_by` | string | yes | handle of the person it was first published for, empty once that person is deleted |
 | `file_count` | integer | yes |  |
@@ -6188,7 +6193,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
   "additionalProperties": false,
   "properties": {
     "access": {
-      "description": "who opens the Window: room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
+      "description": "who opens the Window: author (its author alone), room (the members of its Room), internal (everyone signed in to the Cahut), key (anyone with its Key) or public",
       "type": "string"
     },
     "access_ends_at": {

@@ -55,6 +55,9 @@ var (
 		"no person {to} in this Cahut: invite someone else by e-mail address")
 	inviteeDisabled = operation.NewRefusalOf[Invitee]("invite_disabled", operation.ErrInvalid,
 		"{handle} is disabled, and cannot read the Window")
+	inviteToAuthor = operation.NewRefusalOf[At]("invitation_author_only", operation.ErrInvalid,
+		"{room}/{window} opens to its author alone, so nobody else signs in to read it, and it has no Key: "+
+			"make a share link instead, with create_share_link, and max_openings 1 for a single reader")
 	outsider = operation.NewRefusalOf[Outsider]("invite_not_in_room", operation.ErrInvalid,
 		"{handle} is not in the Room {room}, and {room}/{window} opens to its Room only: "+
 			"add them to the Room, or set its access to internal or key first")
@@ -137,6 +140,9 @@ func (s *Service) invite(ctx context.Context, c *operation.Call, in InviteInput)
 		return Invited{}, err
 	}
 	at := w.Room + "/" + w.Name
+	if w.Access == AccessAuthor {
+		return Invited{}, inviteToAuthor(At{Room: w.Room, Window: w.Name})
+	}
 	to := unique(in.To)
 	switch {
 	case len(to) == 0:

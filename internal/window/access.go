@@ -14,13 +14,46 @@ import (
 )
 
 // Access levels of a Window: who opens it. See
-// docs/adr/0019-window-versions-access-and-declaration.md.
+// docs/adr/0019-window-versions-access-and-declaration.md and
+// docs/adr/0053-windows-for-their-author-alone.md.
 const (
+	AccessAuthor   = "author"   // its author, signed in, while they are in its Room
 	AccessRoom     = "room"     // the members of its Room, signed in
 	AccessInternal = "internal" // everyone signed in to its Cahut
 	AccessKey      = "key"      // anyone who types its Key, and the members of its Room
 	AccessPublic   = "public"   // anyone who has its address
 )
+
+// The refusals of a Window that its author keeps for themself, which the
+// console says in the language of its person. See
+// docs/adr/0053-windows-for-their-author-alone.md.
+var (
+	authorOnly = operation.NewRefusalOf[ByAuthor]("window_author_only", operation.ErrForbidden,
+		"only the author of {room}/{window}, {author}, keeps it for themself")
+	withoutAuthor = operation.NewRefusalOf[At]("window_without_author", operation.ErrInvalid,
+		"{room}/{window} has no author since the person it was published for was deleted: "+
+			"it opens to its Room, its Cahut, a Key or the public, and to no author alone")
+)
+
+// ByAuthor fills the refusal of a Window that someone else than its author
+// would keep for its author alone.
+type ByAuthor struct {
+	Room   string `json:"room" jsonschema:"the Room of the Window"`
+	Window string `json:"window" jsonschema:"the name of the Window"`
+	Author string `json:"author" jsonschema:"the handle of its author"`
+}
+
+// keptBy returns an error unless the person the call acts for may keep the
+// Window w for themself: its author.
+func (w found) keptBy(c *operation.Call) error {
+	switch {
+	case w.authorID == 0:
+		return withoutAuthor(At{Room: w.Room, Window: w.Name})
+	case w.authorID != c.Actor.UserID:
+		return authorOnly(ByAuthor{Room: w.Room, Window: w.Name, Author: w.CreatedBy})
+	}
+	return nil
+}
 
 // A pass is what a reader gets for typing the Key of a Window. It lasts
 // PassTTL, and never beyond the end of the access.
@@ -48,7 +81,7 @@ func effective(access string, ends sql.NullString, now time.Time) (string, *time
 // AccessInput is the input of set_window_access.
 type AccessInput struct {
 	Window string     `json:"window" jsonschema:"the Window's id or address, or its Room and its name as room/name"`
-	Access string     `json:"access" jsonschema:"room, internal, key or public"`
+	Access string     `json:"access" jsonschema:"author, room, internal, key or public"`
 	EndsAt *time.Time `json:"ends_at,omitempty" jsonschema:"when the access ends, such as 2026-12-31T18:00:00Z; after it, the Window opens to its Room only. It does not end when absent"`
 	Key    string     `json:"key,omitempty" jsonschema:"for key: the Key to set, of 10 to 256 characters. When empty, the Window keeps its Key, or Cahut draws one"`
 	NewKey bool       `json:"new_key,omitempty" jsonschema:"for key: draw a new Key; the old one no longer opens the Window"`
@@ -69,9 +102,19 @@ func (s *Service) setAccess(ctx context.Context, c *operation.Call, in AccessInp
 		return AccessSet{}, err
 	}
 	switch in.Access {
-	case AccessRoom, AccessInternal, AccessKey, AccessPublic:
+	case AccessAuthor, AccessRoom, AccessInternal, AccessKey, AccessPublic:
 	default:
-		return AccessSet{}, operation.Invalidf("access %q: use room, internal, key or public", in.Access)
+		return AccessSet{}, operation.Invalidf("access %q: use author, room, internal, key or public", in.Access)
+	}
+	if in.Access == AccessAuthor {
+		if err := w.keptBy(c); err != nil {
+			return AccessSet{}, err
+		}
+	}
+	// The Room reads the entry that takes the Window from it, and the one
+	// that gives it back.
+	if (w.Access == AccessAuthor) != (in.Access == AccessAuthor) {
+		c.ReadBy(0)
 	}
 	if in.Access == AccessInternal {
 		individual, err := settings.IsIndividual(ctx, c.Tx)
@@ -92,6 +135,8 @@ func (s *Service) setAccess(ctx context.Context, c *operation.Call, in AccessInp
 		switch {
 		case in.Access == AccessRoom:
 			return AccessSet{}, operation.Invalidf("a Window open to its Room only has no end: give no ends_at")
+		case in.Access == AccessAuthor:
+			return AccessSet{}, operation.Invalidf("a Window for its author alone has no end: give no ends_at")
 		case !at.After(c.Now):
 			return AccessSet{}, operation.Invalidf("ends_at %s is past", at.Format(time.RFC3339))
 		}
@@ -166,6 +211,7 @@ type Served struct {
 	Kind              string
 	Version           int
 	Access            string // as it is now: an access that has ended is room
+	AuthorID          int64  // the person it was first published for; zero once they are deleted
 	EndsAt            *time.Time
 	UpdatedAt         time.Time
 	Declaration       *Declaration // of the current version; nil when it was published before declarations
@@ -173,7 +219,7 @@ type Served struct {
 }
 
 const served = `
-	SELECT w.id, w.room_id, w.uid, r.name, w.name, w.title, w.description, w.kind, w.version, w.access, w.access_ends_at, w.updated_at, w.key_hash, v.declaration
+	SELECT w.id, w.room_id, w.uid, r.name, w.name, w.title, w.description, w.kind, w.version, w.access, coalesce(w.created_by, 0), w.access_ends_at, w.updated_at, w.key_hash, v.declaration
 	FROM windows w JOIN rooms r ON r.id = w.room_id JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
 	WHERE w.trashed_at IS NULL AND `
 
@@ -213,7 +259,7 @@ func scanServed(row scanner, now time.Time) (Served, error) {
 	var ends, keyHash sql.NullString
 	var updated string
 	var declared *string
-	err := row.Scan(&w.ID, &w.RoomID, &w.UID, &w.Room, &w.Name, &w.Title, &w.Description, &w.Kind, &w.Version, &w.Access, &ends, &updated, &keyHash, &declared)
+	err := row.Scan(&w.ID, &w.RoomID, &w.UID, &w.Room, &w.Name, &w.Title, &w.Description, &w.Kind, &w.Version, &w.Access, &w.AuthorID, &ends, &updated, &keyHash, &declared)
 	if err != nil {
 		return Served{}, err
 	}
@@ -242,12 +288,13 @@ const (
 // Opens says how a reader opens the Window w: userID is the person of their
 // reader session, or zero, and pass the id of a pass of theirs for w, or
 // zero. The pass of a Key opens it while its access is key, and the pass of
-// a share link whatever its access.
+// a share link whatever its access. A Window for its author alone opens to
+// no other session.
 func (w Served) Opens(ctx context.Context, db *store.DB, userID, pass int64) (Opening, error) {
 	if w.Access == AccessPublic {
 		return ByAddress, nil
 	}
-	if userID != 0 {
+	if userID != 0 && (w.Access != AccessAuthor || userID == w.AuthorID) {
 		if w.Access == AccessInternal {
 			return BySession, nil
 		}
@@ -404,6 +451,10 @@ func ViewRoom(ctx context.Context, db *store.DB, name string, userID int64, pass
 		switch {
 		case w.Access == AccessPublic:
 			o.How = ByAddress
+		case w.Access == AccessAuthor:
+			if userID != 0 && v.Member && userID == w.AuthorID {
+				o.How = BySession
+			}
 		case userID != 0 && (v.Member || w.Access == AccessInternal):
 			o.How = BySession
 		case w.Access == AccessKey && passes[w.ID] != "":

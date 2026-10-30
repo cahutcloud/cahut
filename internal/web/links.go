@@ -40,6 +40,8 @@ type linkPage struct {
 	Until       string // the end of the link, in words
 	Limited     bool   // it opens to a number of readers only
 	Left        int    // how many, from now on
+	Once        bool   // it opens once, for a session of reading
+	Hours       int    // how long that session lasts
 }
 
 // serveLink answers a visit to the address of a share link with its page,
@@ -61,6 +63,11 @@ func (s *Server) serveLink(w http.ResponseWriter, r *http.Request) {
 		Until:       mail.Day(l.ExpiresAt),
 		Limited:     l.Limited,
 		Left:        l.Left,
+		Once:        l.Once,
+		Hours:       int(window.OnceTTL / time.Hour),
+	}
+	if l.Once {
+		p.Description = "Opens once, until " + mail.Day(l.ExpiresAt) + "."
 	}
 	if title != "" {
 		p.ImageAlt = title + ", a Window at " + c.Domain
@@ -97,7 +104,13 @@ func (s *Server) openLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	o := out.(window.ShareLinkOpening)
-	s.setCookie(w, passCookie+strconv.FormatInt(o.WindowID, 10), o.Pass, o.ExpiresAt)
+	if o.Once {
+		// A session of reading: the pass ends on the server 4 hours after
+		// the click, and the cookie with the browser.
+		s.setSessionCookie(w, passCookie+strconv.FormatInt(o.WindowID, 10), o.Pass)
+	} else {
+		s.setCookie(w, passCookie+strconv.FormatInt(o.WindowID, 10), o.Pass, o.ExpiresAt)
+	}
 	http.Redirect(w, r, "/"+l.Window.Room+"/"+l.Window.Name+"/", http.StatusSeeOther)
 }
 

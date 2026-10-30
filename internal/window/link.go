@@ -34,6 +34,10 @@ const (
 	MaxLinksPerDay  = 100                 // links that one person makes in 24 hours, their AIs included
 	MaxLinkOpenings = 1000
 	MaxLabel        = 100 // characters of a label
+	// OnceTTL is how long the pass of a link that opens once lasts: a
+	// session of reading, as long as a frame. See
+	// docs/adr/0053-windows-for-their-author-alone.md.
+	OnceTTL = FrameTTL
 	// The clock of a browser, or the idea that an AI has of the time, may
 	// be a little ahead of the server's.
 	linkSkew = 10 * time.Minute
@@ -268,13 +272,13 @@ type RevokeShareLinkInput struct {
 }
 
 func (s *Service) revokeLink(ctx context.Context, c *operation.Call, in RevokeShareLinkInput) (ShareLink, error) {
-	var roomName, name, expires string
-	var windowID int64
+	var roomName, name, expires, access string
+	var windowID, author int64
 	var revoked sql.NullString
 	err := c.Tx.QueryRowContext(ctx, `
-		SELECT r.name, w.name, w.id, l.expires_at, l.revoked_at
+		SELECT r.name, w.name, w.id, w.access, coalesce(w.created_by, 0), l.expires_at, l.revoked_at
 		FROM share_links l JOIN windows w ON w.id = l.window_id JOIN rooms r ON r.id = w.room_id
-		WHERE l.id = ?`, in.Link).Scan(&roomName, &name, &windowID, &expires, &revoked)
+		WHERE l.id = ?`, in.Link).Scan(&roomName, &name, &windowID, &access, &author, &expires, &revoked)
 	gone := operation.NotFoundf("no share link %d: get_window lists those of a Window", in.Link)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ShareLink{}, gone
@@ -288,7 +292,11 @@ func (s *Service) revokeLink(ctx context.Context, c *operation.Call, in RevokeSh
 		return ShareLink{}, err
 	}
 	c.InRoom(r.ID)
-	if !c.Actor.Reaches(r.ID) {
+	if access == AccessAuthor {
+		c.ReadBy(author)
+	}
+	// A Window that its author keeps for themself is theirs to manage.
+	if !c.Actor.Reaches(r.ID) || access == AccessAuthor && author != c.Actor.UserID && !c.Actor.CommandLine() {
 		return ShareLink{}, gone
 	}
 	if revoked.Valid || expires <= store.FormatTime(c.Now) {
@@ -322,27 +330,29 @@ type OpenShareLinkInput struct {
 // hands over, in a cookie.
 type ShareLinkOpening struct {
 	Window    string    `json:"window" jsonschema:"the Window, as room/name"`
-	ExpiresAt time.Time `json:"expires_at" jsonschema:"when the pass ends, with the link"`
+	ExpiresAt time.Time `json:"expires_at" jsonschema:"when the pass ends: with the link, or 4 hours after the opening of a link that opens once"`
 	WindowID  int64     `json:"-"`
 	Pass      string    `json:"-"`
+	Once      bool      `json:"-"` // the link opens once: its pass is for a session of reading
 }
 
 // openLink spends an opening of a share link, and gives its reader a pass
-// that lasts as long as the link. The Logbook records the opening in the
-// Room of the Window, without the reader, signed in or not, their address
+// that lasts as long as the link, or a session of reading for a link that
+// opens once. The Logbook records the opening in the Room of the Window, or
+// for its author alone, without the reader, signed in or not, their address
 // or their browser.
 func openLink(ctx context.Context, c *operation.Call, in OpenShareLinkInput) (ShareLinkOpening, error) {
 	c.Anonymize()
 	var o ShareLinkOpening
-	var id, roomID int64
-	var expires string
+	var id, roomID, author int64
+	var expires, access string
 	var limit, openings int
 	err := c.Tx.QueryRowContext(ctx, `
-		SELECT l.id, w.id, w.room_id, r.name || '/' || w.name, l.expires_at, coalesce(l.max_openings, 0), l.openings
+		SELECT l.id, w.id, w.room_id, r.name || '/' || w.name, w.access, coalesce(w.created_by, 0), l.expires_at, coalesce(l.max_openings, 0), l.openings
 		FROM share_links l JOIN windows w ON w.id = l.window_id JOIN rooms r ON r.id = w.room_id
 		WHERE l.hash = ? AND w.trashed_at IS NULL AND `+stands,
 		credential.Hash(strings.TrimSpace(in.Token)), store.FormatTime(c.Now)).
-		Scan(&id, &o.WindowID, &roomID, &o.Window, &expires, &limit, &openings)
+		Scan(&id, &o.WindowID, &roomID, &o.Window, &access, &author, &expires, &limit, &openings)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ShareLinkOpening{}, errLinkGone
 	}
@@ -350,8 +360,15 @@ func openLink(ctx context.Context, c *operation.Call, in OpenShareLinkInput) (Sh
 		return ShareLinkOpening{}, err
 	}
 	c.InRoom(roomID)
+	if access == AccessAuthor {
+		c.ReadBy(author)
+	}
 	if o.ExpiresAt, err = store.ParseTime(expires); err != nil {
 		return ShareLinkOpening{}, err
+	}
+	o.Once = limit == 1
+	if o.Once && c.Now.Add(OnceTTL).Before(o.ExpiresAt) {
+		o.ExpiresAt = c.Now.Add(OnceTTL)
 	}
 	openings++
 	detail := fmt.Sprintf("link %d, opening %d", id, openings)
@@ -368,7 +385,7 @@ func openLink(ctx context.Context, c *operation.Call, in OpenShareLinkInput) (Sh
 	}
 	o.Pass = credential.Token(PassPrefix)
 	_, err = c.Tx.ExecContext(ctx, "INSERT INTO window_passes (window_id, hash, created_at, expires_at, link_id) VALUES (?, ?, ?, ?, ?)",
-		o.WindowID, credential.Hash(o.Pass), now, expires, id)
+		o.WindowID, credential.Hash(o.Pass), now, store.FormatTime(o.ExpiresAt), id)
 	return o, err
 }
 
@@ -379,6 +396,7 @@ type Link struct {
 	ExpiresAt time.Time
 	Left      int  // openings left, when it has a number of them
 	Limited   bool // it has a number of openings
+	Once      bool // it opens once, and its pass lasts a session of reading
 	Stands    bool // it opens the Window to someone new
 }
 
@@ -406,7 +424,7 @@ func FindLink(ctx context.Context, db *store.DB, token string, now time.Time) (L
 	if l.ExpiresAt, err = store.ParseTime(expires); err != nil {
 		return Link{}, err
 	}
-	l.Limited, l.Left = limit != 0, limit-openings
+	l.Limited, l.Left, l.Once = limit != 0, limit-openings, limit == 1
 	l.Window, err = LookupID(ctx, db, windowID, now)
 	if errors.Is(err, operation.ErrNotFound) {
 		return Link{}, ErrNoLink

@@ -1,6 +1,6 @@
 # 53. A Window can open to its author alone, and a share link that opens once gives it a single reader
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-30
 
 ## Context
