@@ -292,7 +292,7 @@ type List struct {
 var ListRooms = &operation.Op[ListRoomsInput, List]{
 	Name:        "list_rooms",
 	Title:       "List Rooms",
-	Description: "List your Rooms, your personal Room first, with your role and how many members and Windows each has.",
+	Description: "List your Rooms in this Cahut, your personal Room first, with your role and how many members and Windows each has.",
 	ReadOnly:    true,
 	Run: func(ctx context.Context, c *operation.Call, in ListRoomsInput) (List, error) {
 		if in.All && !c.Admin {
@@ -360,7 +360,7 @@ type Person struct {
 var GetRoom = &operation.Op[GetInput, Detail]{
 	Name:        "get_room",
 	Title:       "Describe a Room",
-	Description: "Describe a Room: its title, its owners and members, and how many Windows it holds.",
+	Description: "Describe a Room of this Cahut: its title, its owners and members, and how many Windows it holds.",
 	ReadOnly:    true,
 	Run: func(ctx context.Context, c *operation.Call, in GetInput) (Detail, error) {
 		c.Log(in.Room, "")
@@ -424,7 +424,7 @@ type UpdateRoomInput struct {
 var UpdateRoom = &operation.Op[UpdateRoomInput, Detail]{
 	Name:  "update_room",
 	Title: "Retitle and describe a Room",
-	Description: "Change the title of a Room, its description, or both. Its name, and so its address, stays. " +
+	Description: "Change the title of a Room of this Cahut, its description, or both. Its name, and so its address, stays. " +
 		"Give the old title and description again to undo it.",
 	Run: func(ctx context.Context, c *operation.Call, in UpdateRoomInput) (Detail, error) {
 		c.Log(in.Room, "")
@@ -474,7 +474,7 @@ type SetHomeInput struct {
 var SetHome = &operation.Op[SetHomeInput, Detail]{
 	Name:  "set_room_home",
 	Title: "Choose the home page of a Room",
-	Description: "Show a Window of a Room at the Room's address, <domain>/<room>/, in place of the page that lists its Windows, " +
+	Description: "Show a Window of a Room of this Cahut at the Room's address, <domain>/<room>/, in place of the page that lists its Windows, " +
 		"such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. " +
 		"An empty window goes back to the list. The Window keeps its own address and its access.",
 	Run: func(ctx context.Context, c *operation.Call, in SetHomeInput) (Detail, error) {

@@ -1650,27 +1650,27 @@ export interface CahutOperations {
   get_cahut: { input: GetCahutInput; output: About };
   /** Describe the invitation of a personal link: the Window, who invites, and their note. */
   get_invitation: { input: InvitationCodeInput; output: InvitationPage };
-  /** Check a Knock, a call of an AI that waits for a person to approve it: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
+  /** Check a Knock of this Cahut, a call of an AI that waits for a person to approve it: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
   get_knock: { input: KnockGetInput; output: Knock };
   /** Describe the SMTP relay of this Cahut, without its password, or say that it has none and sends no e-mail; and when a message last went out, or last failed and why. For the administrators of the Cahut. */
   get_mail_relay: { input: GetMailRelayInput; output: Delivery };
-  /** Describe a Room: its title, its owners and members, and how many Windows it holds. */
+  /** Describe a Room of this Cahut: its title, its owners and members, and how many Windows it holds. */
   get_room: { input: RoomGetInput; output: RoomDetail };
   /** Describe one person of the Cahut, as list_users does, with their e-mail address. For the administrators of the Cahut. */
   get_user: { input: UserInput; output: User };
-  /** Describe a Window and list its files, optionally with their contents. */
+  /** Describe a Window of this Cahut and list its files, optionally with their contents. */
   get_window: { input: WindowGetInput; output: WindowDetail };
   /** Send the address of a Window by e-mail, with a note: to people of the Cahut, named by handle, who sign in to read it, or to anyone else, named by address, when the Window opens with its Key or to the public. For a Window with a Key, each address gets a personal link that opens it for them alone, until revoke_invitation takes it back; the Key itself never goes. 20 people a call, and 100 invitations a day. get_cahut says whether the Cahut sends e-mail. */
   invite_to_window: { input: InviteInput; output: Invited };
   /** List the AIs connected over OAuth, newest first, with the person each acts for, its scope and its Rooms. */
   list_connected_ais: { input: ListConnectedAIsInput; output: ConnectedAIs };
-  /** List the invitations to a Window, the latest first: who got one, who invited, and whether it still stands. */
+  /** List the invitations to a Window of this Cahut, the latest first: who got one, who invited, and whether it still stands. */
   list_invitations: { input: ListInvitationsInput; output: InvitationList };
-  /** List Knocks, those that wait first. A Knock is a call of an AI that waits for a person to approve it, since it cannot be undone or changes what a person may do. An AI lists the Knocks it made; a person, those of their AIs. */
+  /** List the Knocks of this Cahut, those that wait first. A Knock is a call of an AI that waits for a person to approve it, since it cannot be undone or changes what a person may do. An AI lists the Knocks it made; a person, those of their AIs. */
   list_knocks: { input: KnockListInput; output: KnockList };
   /** Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. */
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
-  /** List your Rooms, your personal Room first, with your role and how many members and Windows each has. */
+  /** List your Rooms in this Cahut, your personal Room first, with your role and how many members and Windows each has. */
   list_rooms: { input: ListRoomsInput; output: RoomList };
   /** List the service tokens of the Cahut, newest first, with their last use. */
   list_service_tokens: { input: ListServiceTokensInput; output: ServiceTokenList };
@@ -1678,7 +1678,7 @@ export interface CahutOperations {
   list_tokens: { input: ListTokensInput; output: TokenList };
   /** List the people of the Cahut, with their handles, names, roles and states. In an individual Cahut, for its administrators only. */
   list_users: { input: ListUsersInput; output: UserList };
-  /** List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first. */
+  /** List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, most recently updated first. */
   list_windows: { input: WindowListInput; output: WindowList };
   /** Open the Window of the invitation of a personal link: a code, valid a minute, for /-/invitation, which gives a pass. */
   open_invitation: { input: InvitationCodeInput; output: InvitationOpening };
@@ -1686,35 +1686,35 @@ export interface CahutOperations {
   open_share_link: { input: OpenShareLinkInput; output: ShareLinkOpening };
   /** Get the frames that show Windows of your Rooms in the console, as previews: each opens one Window, while your session lasts and four hours at most. */
   preview_windows: { input: PreviewInput; output: Previews };
-  /** Publish a new Window: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. */
+  /** Publish a new Window in this Cahut: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. */
   publish_window: { input: PublishInput; output: Window };
-  /** Delete a Window in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. */
+  /** Delete a Window of this Cahut that is in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. */
   purge_window: { input: RefInput; output: Window };
   /** Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. */
   remove_room_member: { input: RemoveMemberInput; output: RoomDetail };
-  /** Change the name of a Window, the last part of its address, <domain>/<room>/<name>/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it. */
+  /** Change the name of a Window of this Cahut, the last part of its address, <domain>/<room>/<name>/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it. */
   rename_window: { input: RenameInput; output: Window };
   /** Send the link where a person chooses a new password to the e-mail address of their account, given its handle or its address. The link works for one hour; the password works until it is used. The answer is the same whether the account exists or not. A Cahut without an e-mail relay sends none: an administrator of the Cahut gives a new link instead. */
   request_password_link: { input: RequestPasswordLinkInput; output: PasswordLinkRequested };
-  /** Bring a Window back from the trash, with its versions. */
+  /** Bring a Window of this Cahut back from the trash, with its versions. */
   restore_window: { input: RefInput; output: Window };
   /** Resume this Cahut, which suspend_cahut suspended: its Windows open again, its people sign in, and their AIs act in it as before, without connecting again. Its administrators hear of it by e-mail when it sends e-mail. For the administrators of the server. */
   resume_cahut: { input: ResumeCahutInput; output: Settings };
-  /** Change the title of a Window, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it. */
+  /** Change the title of a Window of this Cahut, its description, or both, without publishing a new version. Its address stays. Give the old title and description again to undo it. */
   retitle_window: { input: RetitleInput; output: Window };
-  /** Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. */
+  /** Take back an invitation to a Window of this Cahut: its personal link, and the passes it gave, no longer open the Window. The e-mail stays sent. */
   revoke_invitation: { input: RevokeInvitationInput; output: Invitation };
   /** Revoke a service token. The program that used it loses access to the admin API at once. */
   revoke_service_token: { input: RevokeServiceTokenInput; output: ServiceTokenInfo };
-  /** Take back a share link: it no longer opens its Window, to those who opened it too. */
+  /** Take back a share link to a Window of this Cahut: it no longer opens the Window, to those who opened it too. */
   revoke_share_link: { input: RevokeShareLinkInput; output: ShareLink };
   /** Revoke a personal token. The AI that used it loses access at once. */
   revoke_token: { input: RevokeTokenInput; output: TokenInfo };
-  /** Go back to the previous version of a Window. The version you leave becomes the previous one, so calling rollback_window again returns to it. */
+  /** Go back to the previous version of a Window of this Cahut. The version you leave becomes the previous one, so calling rollback_window again returns to it. */
   rollback_window: { input: RefInput; output: Window };
   /** Send a test message through the relay of this Cahut, and say whether the relay took it. For the administrators of the Cahut. */
   send_test_mail: { input: SendTestMailInput; output: TestSent };
-  /** Set what an AI connected over OAuth reaches: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. */
+  /** Set what an AI connected over OAuth reaches in this Cahut: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. */
   set_ai_reach: { input: SetAIReachInput; output: Connection };
   /** Set the kind of this Cahut, collaborative or individual, and its limits: how many people, administrators, Rooms and Windows it may have, how many Windows each Room may hold, how many bytes it may keep, and, in an individual Cahut, how many Rooms, Windows and bytes each person may have. Give every limit: a limit left out is lifted. Lowering a limit deletes nothing: the Cahut keeps what it holds and refuses what would add to it. For the administrators of the server. */
   set_cahut_settings: { input: SetCahutSettingsInput; output: Settings };
@@ -1724,7 +1724,7 @@ export interface CahutOperations {
   set_mail_notices: { input: SetMailNoticesInput; output: MailNotices };
   /** Set the SMTP relay that sends the e-mail of this Cahut, such as activation links, from an address of its own. The relay is at a public address and speaks TLS. Cahut connects to it and signs in before it keeps it. An empty host removes it: the Cahut then sends no e-mail, and its console offers nothing that would. For the administrators of the Cahut. */
   set_mail_relay: { input: SetMailRelayInput; output: Delivery };
-  /** Show a Window of a Room at the Room's address, <domain>/<room>/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access. */
+  /** Show a Window of a Room of this Cahut at the Room's address, <domain>/<room>/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access. */
   set_room_home: { input: SetHomeInput; output: RoomDetail };
   /** Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. */
   set_room_member_role: { input: MemberInput; output: RoomDetail };
@@ -1742,9 +1742,9 @@ export interface CahutOperations {
   sign_out: { input: SignOutInput; output: SignedOut };
   /** Suspend this Cahut, with a reason, after a decision of moderation or when its organization stops paying. It keeps everything: its people and their sessions, their AIs, its Rooms, its Windows and its Logbook. Until resume_cahut, it serves nothing to anyone but the administrators of the server: its Windows answer with a page that says it is suspended, and every call of a person, an AI or a service is refused. Its administrators receive the reason by e-mail when it sends e-mail. Suspending a suspended Cahut changes its reason only. For the administrators of the server. */
   suspend_cahut: { input: SuspendCahutInput; output: Settings };
-  /** Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. */
+  /** Put a Window of this Cahut in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. */
   trash_window: { input: RefInput; output: Window };
-  /** Change the title of a Room, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it. */
+  /** Change the title of a Room of this Cahut, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it. */
   update_room: { input: UpdateRoomInput; output: RoomDetail };
   /** Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Cahut calls no other system. */
   update_window: { input: UpdateInput; output: Window };

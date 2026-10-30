@@ -77,7 +77,7 @@ func (s *Service) Register(r *operation.Registry) {
 	operation.Register(r, &operation.Op[PublishInput, Window]{
 		Name:  "publish_window",
 		Title: "Publish a Window",
-		Description: "Publish a new Window: a document, deck, dashboard or site made of HTML and its files, " +
+		Description: "Publish a new Window in this Cahut: a document, deck, dashboard or site made of HTML and its files, " +
 			"in a Room of the person you act for, by default their personal Room. Returns the address where it opens.",
 		Run: s.publish,
 	})
@@ -93,40 +93,40 @@ func (s *Service) Register(r *operation.Registry) {
 	operation.Register(r, &operation.Op[RetitleInput, Window]{
 		Name:  "retitle_window",
 		Title: "Retitle and describe a Window",
-		Description: "Change the title of a Window, its description, or both, without publishing a new version. " +
+		Description: "Change the title of a Window of this Cahut, its description, or both, without publishing a new version. " +
 			"Its address stays. Give the old title and description again to undo it.",
 		Run: s.retitle,
 	})
 	operation.Register(r, &operation.Op[RenameInput, Window]{
 		Name:  "rename_window",
 		Title: "Rename a Window in its address",
-		Description: "Change the name of a Window, the last part of its address, <domain>/<room>/<name>/. Its title, its id and its permanent address stay. " +
+		Description: "Change the name of a Window of this Cahut, the last part of its address, <domain>/<room>/<name>/. Its title, its id and its permanent address stay. " +
 			"The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it.",
 		Run: s.rename,
 	})
 	operation.Register(r, &operation.Op[RefInput, Window]{
 		Name:  "rollback_window",
 		Title: "Roll back a Window",
-		Description: "Go back to the previous version of a Window. The version you leave becomes the previous one, " +
+		Description: "Go back to the previous version of a Window of this Cahut. The version you leave becomes the previous one, " +
 			"so calling rollback_window again returns to it.",
 		Run: s.rollback,
 	})
 	operation.Register(r, &operation.Op[RefInput, Window]{
 		Name:        "trash_window",
 		Title:       "Put a Window in the trash",
-		Description: "Put a Window in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was.",
+		Description: "Put a Window of this Cahut in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was.",
 		Run:         s.trash,
 	})
 	operation.Register(r, &operation.Op[RefInput, Window]{
 		Name:        "restore_window",
 		Title:       "Restore a Window",
-		Description: "Bring a Window back from the trash, with its versions.",
+		Description: "Bring a Window of this Cahut back from the trash, with its versions.",
 		Run:         s.restore,
 	})
 	operation.Register(r, &operation.Op[RefInput, Window]{
 		Name:  "purge_window",
 		Title: "Delete a Window for good",
-		Description: "Delete a Window in the trash for good, with its versions and its files: this cannot be undone. " +
+		Description: "Delete a Window of this Cahut that is in the trash for good, with its versions and its files: this cannot be undone. " +
 			"Its address becomes free. Put the Window in the trash first, with trash_window.",
 		KnockFirst: true,
 		Run:        s.purge,
@@ -176,14 +176,14 @@ func (s *Service) Register(r *operation.Registry) {
 	operation.Register(r, &operation.Op[ListInvitationsInput, InvitationList]{
 		Name:        "list_invitations",
 		Title:       "List the invitations to a Window",
-		Description: "List the invitations to a Window, the latest first: who got one, who invited, and whether it still stands.",
+		Description: "List the invitations to a Window of this Cahut, the latest first: who got one, who invited, and whether it still stands.",
 		ReadOnly:    true,
 		Run:         s.listInvitations,
 	})
 	operation.Register(r, &operation.Op[RevokeInvitationInput, Invitation]{
 		Name:  "revoke_invitation",
 		Title: "Take back an invitation",
-		Description: "Take back an invitation to a Window: its personal link, and the passes it gave, no longer open the Window. " +
+		Description: "Take back an invitation to a Window of this Cahut: its personal link, and the passes it gave, no longer open the Window. " +
 			"The e-mail stays sent.",
 		Destructive: true,
 		Run:         s.revokeInvitation,
@@ -200,7 +200,7 @@ func (s *Service) Register(r *operation.Registry) {
 	operation.Register(r, &operation.Op[RevokeShareLinkInput, ShareLink]{
 		Name:        "revoke_share_link",
 		Title:       "Take back a share link",
-		Description: "Take back a share link: it no longer opens its Window, to those who opened it too.",
+		Description: "Take back a share link to a Window of this Cahut: it no longer opens the Window, to those who opened it too.",
 		Destructive: true,
 		Run:         s.revokeLink,
 	})
@@ -232,14 +232,14 @@ func (s *Service) Register(r *operation.Registry) {
 	operation.Register(r, &operation.Op[GetInput, Detail]{
 		Name:        "get_window",
 		Title:       "Describe a Window",
-		Description: "Describe a Window and list its files, optionally with their contents.",
+		Description: "Describe a Window of this Cahut and list its files, optionally with their contents.",
 		ReadOnly:    true,
 		Run:         s.get,
 	})
 	operation.Register(r, &operation.Op[ListInput, List]{
 		Name:        "list_windows",
 		Title:       "List Windows",
-		Description: "List the Windows in the Rooms of the person you act for, or in one of them, most recently updated first.",
+		Description: "List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, most recently updated first.",
 		ReadOnly:    true,
 		Run:         s.list,
 	})
