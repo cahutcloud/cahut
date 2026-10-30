@@ -524,11 +524,25 @@ func TestModerationMail(t *testing.T) {
 		t.Errorf("the withdrawal to olivier = %q", b)
 	}
 
+	// A new reason goes to them too, and the same reason given again does
+	// not.
+	for range 2 {
+		r := call(t, f, console, http.MethodPost, "localhost", "/console/api/withdraw_window", root, `{"window": "olivier/phish", "reason": "It imitates a bank, and asks for card numbers."}`)
+		if r.status != http.StatusOK {
+			t.Fatalf("withdraw_window with a new reason: %d %s", r.status, r.raw)
+		}
+	}
+	if m := relay.Wait(t, 6)[5]; m.To[0] != "olivier@example.org" || !strings.Contains(body(m), "olivier/phish is withdrawn for a new reason") ||
+		!strings.Contains(body(m), "The administrators of the server of the Cahut at localhost changed the reason why the Window https://localhost/olivier/phish/") ||
+		!strings.Contains(body(m), "asks for card numbers") {
+		t.Errorf("the new reason = %v %q", m.To, body(m))
+	}
+
 	// Reinstating tells them that it opens again.
-	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/reinstate_window", ana, `{"window": "olivier/phish"}`); r.status != http.StatusOK {
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/reinstate_window", root, `{"window": "olivier/phish"}`); r.status != http.StatusOK {
 		t.Fatalf("reinstate_window: %d %s", r.status, r.raw)
 	}
-	if m := relay.Wait(t, 6)[5]; m.To[0] != "olivier@example.org" || !strings.Contains(body(m), "olivier/phish is open again") {
+	if m := relay.Wait(t, 7)[6]; m.To[0] != "olivier@example.org" || !strings.Contains(body(m), "olivier/phish is open again") {
 		t.Errorf("the reinstatement = %v %q", m.To, body(m))
 	}
 }

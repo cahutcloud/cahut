@@ -145,6 +145,20 @@ h1, h2, h3 { font-family: var(--font-heading); }
 	position: absolute;
 	inset: 0;
 }
+/* The link that reports a Window, for a reader outside its Room: discreet,
+   as the links of the foot, and above the link of its card. */
+.card__report {
+	position: relative;
+	z-index: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-self: end;
+	gap: var(--space-1);
+	color: var(--color-text-muted);
+	font-size: var(--text-xs);
+	text-underline-offset: 3px;
+}
+.card__report:hover { color: var(--color-text); }
 @media (prefers-reduced-motion: reduce) {
 	.card, .card__preview { transition: none; }
 }

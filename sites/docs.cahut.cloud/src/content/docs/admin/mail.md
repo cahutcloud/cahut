@@ -80,7 +80,7 @@ Whether messages arrive depends on the relay and on the domain of the sender. Se
 | A limit of the Cahut at 90% or reached | Its administrators |
 | A report about a Window | Its administrators, and its address of moderation. See [Moderation](/admin/moderation/#e-mail) |
 | The receipt of a report, then the decision | Whoever reported, when they gave an address |
-| A Window withdrawn, with the reason, then reinstated | The members of its Room, or its author for a Window that is theirs alone |
+| A Window withdrawn, with the reason, each new reason, then reinstated | The members of its Room, or its author for a Window that is theirs alone |
 
 The administrators of the server have no address and receive no e-mail: updates, certificates and the disk show in the console of the server and in `cahut doctor`, and a forgotten password goes through another administrator or `cahut admin link`.
 

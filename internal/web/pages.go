@@ -221,6 +221,7 @@ type windowCard struct {
 	AccessClass        string
 	Updated            string
 	Preview            string // empty when the Window has no preview
+	Report             string // the page that reports it, for a reader outside its Room; empty for its members
 }
 
 // serveRoom serves the page of a Room: the Window that the Room shows at
@@ -263,13 +264,20 @@ func (s *Server) serveRoom(w http.ResponseWriter, r *http.Request) {
 			kind = kinds["site"]
 		}
 		access := accesses[o.Access]
-		data.Windows = append(data.Windows, windowCard{
+		card := windowCard{
 			URL: "/" + o.Room + "/" + o.Name + "/", Title: o.Title, Description: o.Description,
 			Kind: kind.Name, KindIcon: kind.Icon,
 			Access: access.Name, AccessIcon: access.Icon, AccessClass: o.Access,
 			Updated: ago(o.UpdatedAt, now),
 			Preview: s.frameSrc(c, o, reader.SessionID, now),
-		})
+		}
+		// A reader outside the Room reports each of its Windows from its
+		// card, with its address filled in. See
+		// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+		if !v.Member {
+			card.Report = reportLink(s.cfg.BaseURL(c.Domain) + o.Room + "/" + o.Name + "/")
+		}
+		data.Windows = append(data.Windows, card)
 	}
 	s.render(w, r, http.StatusOK, "room", data)
 }
