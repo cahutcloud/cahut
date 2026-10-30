@@ -1,5 +1,21 @@
 // Small pieces that the screens share.
-import { AppWindow, ArrowUpRight, ChartColumn, Check, Copy, FileText, Globe, House, KeyRound, Lock, Presentation, UserLock, Users, X } from "lucide-preact";
+import {
+	AppWindow,
+	ArrowUpRight,
+	ChartColumn,
+	Check,
+	Copy,
+	FileText,
+	Globe,
+	House,
+	KeyRound,
+	Lock,
+	Presentation,
+	Search,
+	UserLock,
+	Users,
+	X,
+} from "lucide-preact";
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { cahut, explain } from "./api";
@@ -9,7 +25,7 @@ import { de, lang, langs, locale, setLang, words } from "./i18n";
 import { useLoad } from "./load";
 import { Logo } from "./logo";
 import { Pictogram } from "./pictograms";
-import { href, Link } from "./router";
+import { href, Link, navigate } from "./router";
 import { ShareMenu } from "./share";
 import type { Theme } from "./theme";
 
@@ -545,6 +561,55 @@ export function WindowTags(props: { tags: string[]; selected?: string; onTag?: (
 	);
 }
 
+/**
+ * A field that searches the Windows of the person, and opens the page of
+ * results; it holds the words of the search shown, query. See
+ * docs/adr/0055-tags-and-search-of-windows.md.
+ */
+export function SearchForm(props: { class: string; label: string; query: string }) {
+	return (
+		<form
+			class={props.class}
+			role="search"
+			onSubmit={(e) => {
+				e.preventDefault();
+				const q = String(new FormData(e.currentTarget).get("q") ?? "").trim();
+				if (q) navigate(`/search?q=${encodeURIComponent(q)}`);
+			}}
+		>
+			<label class="c-search">
+				<Search class="i" size={16} aria-hidden="true" />
+				<input key={props.query} class="c-input" type="search" name="q" defaultValue={props.query} placeholder={props.label} aria-label={props.label} />
+			</label>
+		</form>
+	);
+}
+
+/** Returns s without its case and accents, as the search compares words. */
+function fold(s: string): string {
+	return s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
+
+/** The text, with the words that start with a word of query marked. */
+function Found({ text, query }: { text: string; query: string }) {
+	const sought = query.split(/[^\p{L}\p{N}\p{M}]+/u).filter(Boolean).map(fold);
+	// Split around words keeps them at the odd places.
+	const parts = text.split(/([\p{L}\p{N}\p{M}]+)/u);
+	return (
+		<>
+			{parts.map((part, i) =>
+				i % 2 === 1 && sought.some((word) => fold(part).startsWith(word)) ? (
+					<mark key={i} class="window-excerpt__found">
+						{part}
+					</mark>
+				) : (
+					part
+				),
+			)}
+		</>
+	);
+}
+
 /** The tags of the Windows, each with how many carry it, the most common first. */
 export function tagsOf(windows: Window[]): [string, number][] {
 	const counts = new Map<string, number>();
@@ -750,8 +815,17 @@ export function WindowCards({
 	home,
 	tag,
 	onTag,
+	query,
 	onChanged,
-}: { windows: Window[]; showRoom?: boolean; home?: string; tag?: string; onTag?: (tag: string) => void; onChanged?: () => void }) {
+}: {
+	windows: Window[];
+	showRoom?: boolean;
+	home?: string;
+	tag?: string;
+	onTag?: (tag: string) => void;
+	query?: string;
+	onChanged?: () => void;
+}) {
 	const api = useConsole();
 	const names = windows.slice(0, maxPreviews).map((w) => `${w.room}/${w.name}`);
 	// Without previews, the cards keep the icon of their kind.
@@ -768,6 +842,7 @@ export function WindowCards({
 					preview={frames.get(`${w.room}/${w.name}`)}
 					tag={tag}
 					onTag={onTag}
+					query={query}
 					onChanged={onChanged}
 				/>
 			))}
@@ -778,7 +853,8 @@ export function WindowCards({
 /**
  * A Window, as a card that leads to its page, with a button that shares it
  * and one that opens the Window itself in a new tab, and its tags; the
- * Window that the address of its Room shows says so.
+ * Window that the address of its Room shows says so. Found by a search, it
+ * shows the words of its pages around those of query.
  */
 export function WindowCard(props: {
 	window: Window;
@@ -787,6 +863,7 @@ export function WindowCard(props: {
 	preview?: string;
 	tag?: string;
 	onTag?: (tag: string) => void;
+	query?: string;
 	onChanged?: () => void;
 }) {
 	const { window: w, showRoom, home, preview } = props;
@@ -816,6 +893,11 @@ export function WindowCard(props: {
 					{w.title}
 				</Link>
 				{w.description && <p class="window-description">{w.description}</p>}
+				{w.excerpt && (
+					<p class="window-excerpt">
+						<Found text={w.excerpt} query={props.query ?? ""} />
+					</p>
+				)}
 				<WindowTags tags={w.tags} selected={props.tag} onTag={props.onTag} />
 				<div class="c-window__meta">
 					<span>

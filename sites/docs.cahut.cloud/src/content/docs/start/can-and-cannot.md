@@ -62,6 +62,8 @@ See [What a Window declares](/concepts/rooms-and-windows/#what-a-window-declares
 | Title of a Window or a Room | 200 bytes |
 | Description of a Window or a Room | 300 characters |
 | Tags of a Window | 10, each of 32 characters |
+| Text of the pages of a version that the search reads | 100 KB |
+| Words in a search | 10 |
 | Name of a Window in its address, taken from its title | 40 characters |
 | Origins in each list of a declaration | 20 |
 | Versions of a Window | 2: the current one and the one before |

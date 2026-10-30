@@ -240,7 +240,7 @@ export default {
 	features: {
 		label: 'Features',
 		title: 'What ships at launch',
-		lead: 'The full scope ships at launch, with no reduced trial version. Today, the first version works: it installs on a server, connects Claude and ChatGPT, publishes and shares documents, decks, dashboards and sites, and gathers a team in Rooms. Apps, comments, search, export, single sign-on and backups are the target.',
+		lead: 'The full scope ships at launch, with no reduced trial version. Today, the first version works: it installs on a server, connects Claude and ChatGPT, publishes and shares documents, decks, dashboards and sites, finds them by tag or by word, and gathers a team in Rooms. Apps, comments, export, single sign-on and backups are the target.',
 		groups: [
 			{
 				title: 'Publish',
@@ -255,7 +255,7 @@ export default {
 						text: 'Predefined runtimes, such as Node and Python, and an advanced Dockerfile mode. Variables and secrets, PostgreSQL or SQLite databases, runtime logs, resource limits.',
 					},
 					{ area: 'Versions', text: 'Two versions kept per publication. Roll back in one gesture.' },
-					{ area: 'Search', text: 'Find any page, deck or dashboard across everything published.' },
+					{ area: 'Search', text: 'Find any page, deck or dashboard of your Rooms by a word of it or a tag.' },
 					{ area: 'Export', text: 'PDF and PowerPoint, for recipients still on Office.' },
 				],
 			},
@@ -474,6 +474,7 @@ export default {
 				'AI clients that connect over OAuth, such as claude.ai, Claude Code, Mistral Vibe and ChatGPT, to the Rooms and the scope a person grants, or with a personal token.',
 				'Windows published over MCP: documents, decks, dashboards and static sites, served in a sandbox that holds them to what their AI declares they load and call.',
 				'Two versions of each Window with a rollback, a trash, and an access: Room only, internal, with a Key or public, until a date.',
+				'Tags on Windows, and a search of their titles, descriptions, tags and pages, in the console and for AIs.',
 				'Knock first: what an AI cannot undo, or what changes what a person may do, waits for its person, who approves or declines it in the console.',
 				'E-mail through the SMTP relay of each Cahut: links to choose a password, invitations to read a Window, and notices of Knocks, of the account and of limits.',
 				'A plugin for Claude Code, and a skill for the Claude apps, that teach Claude to make Windows and publish them.',
@@ -485,7 +486,7 @@ export default {
 			afterTitle: 'After the first version',
 			afterLead: 'Then, towards the full scope of the launch, in about this order:',
 			after: [
-				'Comments, search, single sign-on, and backups and restore.',
+				'Comments, single sign-on, and backups and restore.',
 				'Apps in unprivileged containers: runtimes, a Dockerfile mode, databases, secrets, logs and resource limits.',
 				'Export to PDF and PowerPoint, SSH access limited to the same operations, and other AI clients.',
 			],

@@ -37,6 +37,7 @@ Pages run with an opaque origin. `localStorage`, `sessionStorage`, IndexedDB and
 
 ## Change, share, undo
 
+- When the user asks you to change a Window, or to make one that may be there already, search first: `list_windows` with `query` gives the Windows whose title, description, tags or pages hold some words, the best first, whatever their case and accents, each with an `excerpt` of its pages. Update the one you find rather than publish it again.
 - Each Window has an `id` that never changes. Name the Window by its id in later calls, as `window`, to find it whatever its name. Its `permanent_url`, `https://<domain>/-/w/<id>`, sends whoever may open it to its address: give it for a link that lasts.
 - Give each Window a `description` when you publish it: a sentence or two, 300 characters at most, that say what it is. Give it a few `tags` too, such as `q3` or `sales`, 10 at most: reuse those of the Windows that `list_windows` gives, so that one subject keeps one spelling, and find the Windows of a tag with `list_windows` and `tag`. `retitle_window` changes its title, its description, its tags or several, without a new version. `rename_window` changes its name in its address: the old address stops working at once, so ask the user first, and give them the permanent address.
 - `update_window` publishes a new version at the same address: give all its files again. `rollback_window` goes back to the previous one. `trash_window` and `restore_window` take a Window away and bring it back.

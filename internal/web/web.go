@@ -519,6 +519,7 @@ func (s *Server) Run(ctx context.Context) error {
 		s.log.Warn("this server holds no Cahut yet: declare one with cahut domain add <domain>")
 	}
 	go s.watchNotices(ctx)
+	go s.readTexts(ctx)
 	if s.cfg.Dev {
 		srv := s.httpServer(s.cfg.DevAddr, s.localHealth(s))
 		s.log.Info("serving over HTTP for development", "address", "http://"+s.cfg.DevAddr+"/",
@@ -586,6 +587,40 @@ func (s *Server) watchNotices(ctx context.Context) {
 		case <-tick.C:
 		}
 		s.SendNotices(ctx, time.Now())
+	}
+}
+
+// readTexts reads once, a minute after the start so that the service is up
+// first, the text of the versions of Windows published before the search,
+// in every Cahut. See docs/adr/0055-tags-and-search-of-windows.md.
+func (s *Server) readTexts(ctx context.Context) {
+	select {
+	case <-ctx.Done():
+		return
+	case <-time.After(time.Minute):
+	}
+	s.ReadTexts(ctx)
+}
+
+// ReadTexts reads the text of the versions of Windows published before the
+// search, in every Cahut.
+func (s *Server) ReadTexts(ctx context.Context) {
+	domains, err := s.srv.Domains(ctx)
+	if err != nil {
+		s.log.Warn("read the texts of Windows", "error", err)
+		return
+	}
+	for _, d := range domains {
+		st, err := s.site(ctx, d)
+		read := 0
+		if err == nil {
+			read, err = st.cahut.Windows.ReadTexts(ctx, st.cahut.DB)
+		}
+		if err != nil {
+			s.log.Warn("read the texts of Windows", "cahut", d, "error", err)
+		} else if read > 0 {
+			s.log.Info("read the texts of Windows published before the search", "cahut", d, "versions", read)
+		}
 	}
 }
 

@@ -21,7 +21,7 @@ Cahut is built in slices, each one working from the AI to the reader. Nine slice
 | Rooms | Team Rooms with owners and members, created by any person or AI, and deleted for good by their owners; their members publish in them. The page of each Room lists the Windows its reader may open, or shows the Window its owners choose. See [The page of a Room](/concepts/rooms-and-windows/#the-page-of-a-room) |
 | AI access | OAuth for AI clients such as claude.ai, Claude Code, Mistral Vibe and ChatGPT, with a consent screen where a person grants read or write access to all their Rooms or some of them, and a list of connected AIs to change or disconnect; an AI asks for more by Knock first; personal tokens too, sent in a header. See [Connect an AI client](/connect/ai-clients/) |
 | MCP | The [tools](/reference/mcp-tools/) of Windows, Rooms, people and the Logbook, over Streamable HTTP |
-| Windows | Documents, decks, dashboards and static sites, served at `<domain>/<room>/<window>/` in a sandbox, with a policy made from what their AI declares they load and call; a title, a description and tags; two versions, a rollback, a trash and deletion for good. See [Rooms and Windows](/concepts/rooms-and-windows/) |
+| Windows | Documents, decks, dashboards and static sites, served at `<domain>/<room>/<window>/` in a sandbox, with a policy made from what their AI declares they load and call; a title, a description and tags, and a search of their words; two versions, a rollback, a trash and deletion for good. See [Rooms and Windows](/concepts/rooms-and-windows/) |
 | Access | Room only by default, internal, with a Key, or public, until a date; readers sign in through the console; an AI makes a Window public once its person approves. See [Who can open a Window](/concepts/access/) |
 | E-mail | Through the SMTP relay of each Cahut, set by its administrators: activation links, forgotten passwords, invitations to read a Window with a personal link, and notices of Knocks, of the account and of limits. Without a relay, a Cahut sends none and shows no feature of e-mail. See [E-mail](/admin/mail/) |
 | Claude | A plugin for Claude Code that connects a Cahut and gives Claude the skill to make Windows, and the skill as a zip for the Claude apps. See [The Cahut plugin for Claude](/connect/claude-plugin/) |
@@ -31,4 +31,4 @@ Cahut is built in slices, each one working from the AI to the reader. Nine slice
 
 ## What comes later
 
-In about this order and without dates: comments, search, single sign-on, and backups to S3 or SFTP storage; apps in containers; export to PDF and PowerPoint, and SSH access for terminal AIs.
+In about this order and without dates: comments, single sign-on, and backups to S3 or SFTP storage; apps in containers; export to PDF and PowerPoint, and SSH access for terminal AIs.

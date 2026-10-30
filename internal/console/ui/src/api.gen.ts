@@ -74,6 +74,8 @@ export interface AccessSet {
   declaration?: Declaration;
   /** when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn */
   withdrawn?: Withdrawal;
+  /** for a search, a few words of its pages around the words found; absent when its pages hold none */
+  excerpt?: string;
   /** the new Key, returned this once: give it to the person, who passes it on with the address */
   key?: string;
 }
@@ -1671,6 +1673,8 @@ export interface Window {
   declaration?: Declaration;
   /** when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn */
   withdrawn?: Withdrawal;
+  /** for a search, a few words of its pages around the words found; absent when its pages hold none */
+  excerpt?: string;
 }
 
 export interface WindowDetail {
@@ -1711,6 +1715,8 @@ export interface WindowDetail {
   declaration?: Declaration;
   /** when and why the moderators of this Cahut withdrew the Window, which serves nothing to its readers until they reinstate it; absent when it is not withdrawn */
   withdrawn?: Withdrawal;
+  /** for a search, a few words of its pages around the words found; absent when its pages hold none */
+  excerpt?: string;
   /** the current version, then the previous one if there is one */
   versions: Version[];
   /** the files of the current version */
@@ -1737,6 +1743,8 @@ export interface WindowListInput {
   room?: string;
   /** only the Windows with this tag */
   tag?: string;
+  /** words to search, such as q3 sales; accents and case do not count */
+  query?: string;
   /** list the Windows in the trash instead */
   trashed?: boolean;
 }
@@ -1862,7 +1870,7 @@ export interface CahutOperations {
   list_tokens: { input: ListTokensInput; output: TokenList };
   /** List the people of the Cahut, with their handles, names, roles and states. In an individual Cahut, for its administrators only. */
   list_users: { input: ListUsersInput; output: UserList };
-  /** List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first. */
+  /** List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first; with query, those whose title, description, tags or pages hold its words, the best first. */
   list_windows: { input: WindowListInput; output: WindowList };
   /** Open the Window of the invitation of a personal link: a code, valid a minute, for /-/invitation, which gives a pass. */
   open_invitation: { input: InvitationCodeInput; output: InvitationOpening };

@@ -248,7 +248,7 @@ const fr: Dictionary = {
 	features: {
 		label: 'Fonctionnalités',
 		title: 'Ce qui sort au lancement',
-		lead: "Le périmètre complet sort au lancement, sans version d'essai réduite. Aujourd'hui, la première version fonctionne : elle s'installe sur un serveur, connecte Claude et ChatGPT, publie et partage documents, présentations, tableaux de bord et sites, et réunit une équipe dans des Rooms. Les applis, les commentaires, la recherche, l'export, l'authentification unique et les sauvegardes sont la cible.",
+		lead: "Le périmètre complet sort au lancement, sans version d'essai réduite. Aujourd'hui, la première version fonctionne : elle s'installe sur un serveur, connecte Claude et ChatGPT, publie et partage documents, présentations, tableaux de bord et sites, les retrouve par tag ou par mot, et réunit une équipe dans des Rooms. Les applis, les commentaires, l'export, l'authentification unique et les sauvegardes sont la cible.",
 		groups: [
 			{
 				title: 'Publier',
@@ -265,7 +265,7 @@ const fr: Dictionary = {
 					{ area: 'Versions', text: 'Deux versions gardées par publication. Retour arrière en un geste.' },
 					{
 						area: 'Recherche',
-						text: "Retrouvez n'importe quelle page, présentation ou tableau de bord parmi tout ce qui est publié.",
+						text: "Retrouvez n'importe quelle page, présentation ou tableau de bord de vos Rooms par l'un de ses mots ou un tag.",
 					},
 					{ area: 'Export', text: 'PDF et PowerPoint, pour les destinataires encore sur Office.' },
 				],
@@ -503,6 +503,7 @@ const fr: Dictionary = {
 				"Des clients d'IA qui se connectent par OAuth, comme claude.ai, Claude Code, Mistral Vibe et ChatGPT, aux Rooms et dans la portée qu'une personne accorde, ou avec un jeton personnel.",
 				"Des Windows publiées par MCP : documents, présentations, tableaux de bord et sites statiques, servis dans un bac à sable qui les tient à ce que leur IA déclare charger et appeler.",
 				"Deux versions de chaque Window avec retour en arrière, une corbeille, et un accès : Room seulement, interne, avec une Key ou public, jusqu'à une date.",
+				'Des tags sur les Windows, et une recherche dans leurs titres, descriptions, tags et pages, dans la console et pour les IA.',
 				"Knock first : ce qu'une IA ne peut pas défaire, ou ce qui change ce qu'une personne peut faire, attend sa personne, qui l'approuve ou le refuse dans la console.",
 				'Les e-mails, par le relais SMTP de chaque Cahut : des liens pour choisir un mot de passe, des invitations à lire une Window, et les notifications des Knocks, du compte et des limites.',
 				'Un plugin pour Claude Code, et une skill pour les applications Claude, qui apprennent à Claude à faire des Windows et à les publier.',
@@ -515,7 +516,7 @@ const fr: Dictionary = {
 			afterTitle: 'Après la première version',
 			afterLead: 'Puis, vers le périmètre complet du lancement, à peu près dans cet ordre :',
 			after: [
-				"Les commentaires, la recherche, l'authentification unique, et les sauvegardes et leur restauration.",
+				"Les commentaires, l'authentification unique, et les sauvegardes et leur restauration.",
 				'Les applis dans des conteneurs sans privilèges : environnements, mode Dockerfile, bases de données, secrets, journaux et limites de ressources.',
 				"L'export en PDF et en PowerPoint, l'accès SSH limité aux mêmes opérations, et d'autres clients d'IA.",
 			],

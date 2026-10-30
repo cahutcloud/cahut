@@ -31,7 +31,7 @@ on your own server, where your team works on them, whichever AI made them.
 Cahut installs with one command on a Linux server. Claude, ChatGPT, Mistral or Copilot publish to it over MCP, and you share a link instead of sending a file. Your team reads it, comments on it and asks the AI for the next version, in Rooms where people and their AIs work on the same Windows. The AI does on its own what can be undone, a human approves the rest, and every action is logged.
 
 > [!WARNING]
-> Cahut is in early development. Its first version installs on a server, connects Claude and ChatGPT, and publishes and shares documents, decks, dashboards and sites, as [Installation](#installation) shows. Apps, comments, search, export, single sign-on and backups come before the public launch: the rest of this page describes the launch. There are no backups yet, so keep snapshots of your server.
+> Cahut is in early development. Its first version installs on a server, connects Claude and ChatGPT, publishes and shares documents, decks, dashboards and sites, and finds them by tag or by word, as [Installation](#installation) shows. Apps, comments, export, single sign-on and backups come before the public launch: the rest of this page describes the launch. There are no backups yet, so keep snapshots of your server.
 
 ## Why Cahut
 
@@ -104,7 +104,7 @@ The full scope ships at launch, with no reduced trial version.
 | Invitations | A Window sent by e-mail, to people of the Cahut or outside it, with a personal link in place of its Key |
 | Versions | Two versions kept per publication, roll back in one gesture |
 | Comments | Reader feedback directly on the pages |
-| Search | Find any page, deck or dashboard across everything published |
+| Search | Find any page, deck or dashboard of your Rooms by a word of it or a tag |
 | Export | PDF and PowerPoint, for recipients still on Office |
 | Users and Rooms | The people of each Cahut and its admins, a personal Room for each person, team Rooms with owners and members |
 | Sign-in | Accounts of each Cahut, and single sign-on with OpenID Connect (Google, Microsoft Entra, Okta...) |

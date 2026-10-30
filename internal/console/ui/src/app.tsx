@@ -20,6 +20,7 @@ import { Overview, ServerOverview } from "./pages/overview";
 import { People } from "./pages/people";
 import { Read } from "./pages/read";
 import { RoomPage, RoomsPage } from "./pages/rooms";
+import { SearchPage } from "./pages/search";
 import { Setup } from "./pages/setup";
 import { Settings } from "./pages/settings";
 import { SignIn } from "./pages/sign-in";
@@ -340,6 +341,8 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 			return <Overview />;
 		case "/rooms":
 			return <RoomsPage />;
+		case "/search":
+			return <SearchPage />;
 		case "/logbook":
 			return <Logbook of="cahut" />;
 		case "/knocks":

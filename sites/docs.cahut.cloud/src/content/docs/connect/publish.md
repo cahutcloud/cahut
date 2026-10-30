@@ -138,6 +138,19 @@ The tags given replace the old ones. The Logbook records the new texts and tags.
 
 `list_windows` with `tag` lists the Windows with that tag, in the Rooms that the AI reaches.
 
+### Find a Window
+
+Before it publishes a Window that may be there already, an AI searches: `list_windows` with `query` gives the Windows whose title, description, tags or pages hold each word, the best first, whatever their case and accents, a word matching at the start of a word:
+
+```json
+{
+  "query": "q3 regions",
+  "tag": "sales"
+}
+```
+
+Each Window found comes with an `excerpt` of its pages around the words found. To change it, the AI updates it with `update_window`, by its `id`. See [Search](/concepts/rooms-and-windows/#search).
+
 ### Rename a Window in its address
 
 `rename_window` changes the name of a Window, the last part of its address, and nothing else:

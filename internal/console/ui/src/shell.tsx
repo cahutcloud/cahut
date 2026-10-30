@@ -19,14 +19,14 @@ import {
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { Room } from "./api.gen";
-import { initials, Languages, Legal } from "./components";
+import { initials, Languages, Legal, SearchForm } from "./components";
 import { useConsole } from "./context";
 import { locale, words } from "./i18n";
 import { Logo } from "./logo";
 import { originOf } from "./pages/overview";
 import { roomPictogram } from "./pages/rooms";
 import { Pictogram } from "./pictograms";
-import { href, Link } from "./router";
+import { href, Link, useQuery } from "./router";
 import type { Session } from "./session";
 
 const t = words({
@@ -69,6 +69,7 @@ const t = words({
 			</>
 		),
 		signInAsPerson: "Sign in as a person",
+		search: "Search your Windows",
 		suspended: (since: string) => `This Cahut is suspended since ${since}`,
 		suspendedText:
 			"Its people, their AIs and the readers of its Windows meet a notice, and nobody but the administrators of the server acts in it.",
@@ -117,6 +118,7 @@ const t = words({
 			</>
 		),
 		signInAsPerson: "Se connecter en tant que personne",
+		search: "Chercher dans vos Windows",
 		suspended: (since) => `Cette Cahut est suspendue depuis le ${since}`,
 		suspendedText:
 			"Ses personnes, leurs IA et les lecteurs de ses Windows trouvent un avis, et seuls les administrateurs du serveur y agissent.",
@@ -132,6 +134,9 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 	const { session, serverSession, isAdmin, individual, knocks, reports, legal, suspension } = useConsole();
 	const [open, setOpen] = useState(false);
 	useEffect(() => setOpen(false), [props.path]);
+	// The field of the search keeps the words of the page of results.
+	const params = useQuery();
+	const query = props.path === "/search" ? (params.get("q") ?? "") : "";
 
 	const nav = (href: string, icon: ComponentChildren, label: string, exact = true, count = 0) => (
 		<Link
@@ -179,6 +184,10 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 					<Link class="c-topbar__logo" href="/">
 						<Logo height={26} />
 					</Link>
+					{/* A person searches their Windows from every page: in the top bar,
+					    or at the head of the menu on a narrow screen. See
+					    docs/adr/0055-tags-and-search-of-windows.md. */}
+					{person && <SearchForm class="console-search" label={t.search} query={query} />}
 					{/* The top bar of the Cahut says who acts in it: the person, or the
 					    administrator of the server alone. See
 					    docs/adr/0044-two-bars-for-the-server-and-the-cahut.md. */}
@@ -207,6 +216,7 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 				</div>
 			</header>
 			<nav id="sidebar" class="c-sidebar" aria-label={t.main} data-open={open}>
+				{person && <SearchForm class="sidebar-search" label={t.search} query={query} />}
 				{nav("/", <Pictogram name="cahut" />, t.overview)}
 				{person && nav("/knocks", <Pictogram name="knockFirst" />, t.knocks, false, knocks)}
 				{person && nav("/logbook", <Pictogram name="logbook" />, t.logbook)}
