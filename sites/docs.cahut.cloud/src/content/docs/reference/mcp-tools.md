@@ -1202,6 +1202,7 @@ This tool takes no arguments.
 | `limits.windows_per_room` | integer or null | no | how many Windows out of the trash each Room may hold, personal Rooms included |
 | `sends_mail` | boolean | yes | whether this Cahut sends e-mail, through the relay that its administrators set; without one, nothing that would send e-mail works, such as invitations |
 | `mcp` | string | no | the address of its MCP endpoint, where AI clients connect |
+| `moderation_email` | string | no | the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators |
 | `suspension` | object or null | no | since when and why the administrators of the server suspended the Cahut; absent while it is active |
 | `suspension.reason` | string | yes | why the administrators of the server suspended the Cahut; its administrators read it, and readers, people and AIs never do |
 | `suspension.since` | string | yes | when the administrators of the server suspended the Cahut |
@@ -1352,6 +1353,10 @@ This tool takes no arguments.
     },
     "mcp": {
       "description": "the address of its MCP endpoint, where AI clients connect",
+      "type": "string"
+    },
+    "moderation_email": {
+      "description": "the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators",
       "type": "string"
     },
     "sends_mail": {

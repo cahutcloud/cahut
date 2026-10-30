@@ -275,13 +275,25 @@ func dismiss(ctx context.Context, c *operation.Call, in DismissInput) (Report, e
 }
 
 // decide records the decision of the moderator of c about the report id,
-// and forgets the name and the address of whoever made it.
+// sends it to whoever made it when they gave an address, and forgets their
+// name and their address.
 func decide(ctx context.Context, c *operation.Call, id int64, decision, note string) error {
-	_, err := c.Tx.ExecContext(ctx, `
+	var email, room, name string
+	err := c.Tx.QueryRowContext(ctx, `
+		SELECT coalesce(p.email, ''), r.name, w.name FROM reports p JOIN windows w ON w.id = p.window_id JOIN rooms r ON r.id = w.room_id
+		WHERE p.id = ?`, id).Scan(&email, &room, &name)
+	if err != nil {
+		return err
+	}
+	_, err = c.Tx.ExecContext(ctx, `
 		UPDATE reports SET decision = ?, decided_at = ?, decided_by = ?, by_server = ?, note = ?, name = NULL, email = NULL
 		WHERE id = ? AND decision IS NULL`,
 		decision, store.FormatTime(c.Now), c.Actor.Handle, c.Actor.Kind == operation.Admin, note, id)
-	return err
+	if err != nil {
+		return err
+	}
+	tellOfDecision(c, id, decision, email, room, name)
+	return nil
 }
 
 // cleanLine returns s trimmed, or false when it holds a line break or

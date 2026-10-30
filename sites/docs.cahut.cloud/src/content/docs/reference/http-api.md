@@ -203,6 +203,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/set_legal_links` | Administrators of the server | yes |
 | `POST /api/set_mail_notices` | Any person | yes |
 | `POST /api/set_mail_relay` | Administrators of the Cahut | yes |
+| `POST /api/set_moderation_address` | Administrators of the server | yes |
 | `POST /api/set_room_home` | Any person | yes |
 | `POST /api/set_room_member_role` | Any person | yes |
 | `POST /api/set_user_email` | Administrators of the Cahut | yes |

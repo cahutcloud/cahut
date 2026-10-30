@@ -441,3 +441,94 @@ func TestWithdrawAWindow(t *testing.T) {
 		}
 	}
 }
+
+// With a relay, each report goes to the administrators of the Cahut who
+// have an address and to its address of moderation, whoever reports gets a
+// receipt and the decision, and the members of the Room hear that their
+// Window was withdrawn, and why, and that it was reinstated. No e-mail
+// holds what whoever reported wrote. See
+// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+func TestModerationMail(t *testing.T) {
+	f := setup(t)
+	console := f.ts
+	relay := f.relay(t)
+	publishPage(t, f, "Phish", "public")
+	c := f.open(t, "localhost")
+	ana := activate(t, f, console, "ana", true)
+	activate(t, f, console, "bob", true) // without an address
+	for _, q := range []string{
+		"UPDATE users SET email = 'olivier@example.org', name = 'Olivier' WHERE handle = 'olivier'",
+		"UPDATE users SET email = 'ana@example.org', name = 'Ana' WHERE handle = 'ana'",
+	} {
+		if _, err := c.DB.Write.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	root := serverAdmin(t, f, "root")
+
+	// Only the administrators of the server set the address of moderation.
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/set_moderation_address", ana, `{"email": "abuse@host.example"}`); r.status != http.StatusForbidden {
+		t.Errorf("set_moderation_address as an administrator of the Cahut: %d %s", r.status, r.raw)
+	}
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/set_moderation_address", root, `{"email": "not an address"}`); r.status != http.StatusBadRequest {
+		t.Errorf("set_moderation_address with a wrong address: %d %s", r.status, r.raw)
+	}
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/set_moderation_address", root, `{"email": "abuse@host.example"}`); r.status != http.StatusOK {
+		t.Fatalf("set_moderation_address: %d %s", r.status, r.raw)
+	}
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/get_cahut", ana, `{}`); r.body["moderation_email"] != "abuse@host.example" {
+		t.Errorf("get_cahut for an administrator: %s", r.raw)
+	}
+
+	// A report goes to Ana and to the address of moderation, and its receipt
+	// to whoever reported.
+	if status, _ := f.sendReport(t, "https://localhost/olivier/phish/extra-words-of-a-spammer", "phishing", "Buy cheap watches at spam.example now.", "reader@example.org"); status != http.StatusOK {
+		t.Fatalf("report = %d", status)
+	}
+	msgs := relay.Wait(t, 3)
+	to := map[string]string{}
+	for _, m := range msgs {
+		to[m.To[0]] = body(m)
+	}
+	for _, who := range []string{"ana@example.org", "abuse@host.example"} {
+		if b := to[who]; !strings.Contains(b, "Report 1 about a Window of localhost") || !strings.Contains(b, "https://localhost/olivier/phish/") ||
+			!strings.Contains(b, "phishing or a scam") || !strings.Contains(b, "https://localhost/console/moderation") {
+			t.Errorf("the report to %s = %q", who, b)
+		}
+	}
+	if b := to["reader@example.org"]; !strings.Contains(b, "received your report 1 about the Window https://localhost/olivier/phish/") {
+		t.Errorf("the receipt = %q", b)
+	}
+	for who, b := range to {
+		if strings.Contains(b, "spam.example") || strings.Contains(b, "Jane Reader") || strings.Contains(b, "extra-words") {
+			t.Errorf("the e-mail to %s holds what whoever reported wrote: %q", who, b)
+		}
+	}
+
+	// Withdrawing tells the decision to whoever reported, and the reason to
+	// the members of the Room.
+	r := call(t, f, console, http.MethodPost, "localhost", "/console/api/withdraw_window", ana, `{"window": "olivier/phish", "reason": "It imitates a bank."}`)
+	if r.status != http.StatusOK {
+		t.Fatalf("withdraw_window: %d %s", r.status, r.raw)
+	}
+	msgs = relay.Wait(t, 5)[3:]
+	to = map[string]string{}
+	for _, m := range msgs {
+		to[m.To[0]] = body(m)
+	}
+	if b := to["reader@example.org"]; !strings.Contains(b, "and withdrew the Window: it no longer opens") {
+		t.Errorf("the decision = %q", b)
+	}
+	if b := to["olivier@example.org"]; !strings.Contains(b, "olivier/phish was withdrawn") || !strings.Contains(b, "It imitates a bank.") ||
+		!strings.Contains(b, "The moderators of the Cahut at localhost withdrew the Window https://localhost/olivier/phish/") {
+		t.Errorf("the withdrawal to olivier = %q", b)
+	}
+
+	// Reinstating tells them that it opens again.
+	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/reinstate_window", ana, `{"window": "olivier/phish"}`); r.status != http.StatusOK {
+		t.Fatalf("reinstate_window: %d %s", r.status, r.raw)
+	}
+	if m := relay.Wait(t, 6)[5]; m.To[0] != "olivier@example.org" || !strings.Contains(body(m), "olivier/phish is open again") {
+		t.Errorf("the reinstatement = %v %q", m.To, body(m))
+	}
+}

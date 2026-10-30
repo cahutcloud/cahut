@@ -105,3 +105,29 @@ func TestSettingsLinks(t *testing.T) {
 		t.Errorf("settings links --legal-notice-fr alone: %d %q", code, errOut)
 	}
 }
+
+// The administrators of the server set the address that receives the
+// reports of a Cahut. See
+// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+func TestSettingsModerationAddress(t *testing.T) {
+	data := t.TempDir()
+	if code, _, errOut := run(t, data, "domain", "add", "cahut.example.com"); code != exitOK {
+		t.Fatalf("domain add: %d %q", code, errOut)
+	}
+	for _, tt := range []struct {
+		args []string
+		code int
+		want string
+	}{
+		{nil, exitOK, "cahut.example.com has no address of moderation"},
+		{[]string{"--email", "abuse@host.example"}, exitOK, "now go to abuse@host.example too"},
+		{nil, exitOK, "The reports of cahut.example.com go to abuse@host.example too"},
+		{[]string{"--email", "not an address"}, exitError, "is not an e-mail address"},
+		{[]string{"--email", "none"}, exitOK, "has no address of moderation now"},
+	} {
+		code, out, errOut := run(t, data, append([]string{"settings", "moderation-address"}, tt.args...)...)
+		if code != tt.code || !strings.Contains(out+errOut, tt.want) {
+			t.Errorf("settings moderation-address %q: %d %q %q", tt.args, code, out, errOut)
+		}
+	}
+}
