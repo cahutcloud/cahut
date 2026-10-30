@@ -79,6 +79,9 @@ func report(ctx context.Context, c *operation.Call, in ReportInput) (ReportRecei
 		return ReportReceived{}, err
 	}
 	c.Log(w.room+"/"+w.name, fmt.Sprintf("report %d, %s", id, in.Category))
+	if err := tellOfReport(ctx, c, id, in.Category, w.room, w.name, email); err != nil {
+		return ReportReceived{}, err
+	}
 	return ReportReceived{Report: id}, nil
 }
 

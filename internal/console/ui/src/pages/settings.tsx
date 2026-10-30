@@ -74,6 +74,12 @@ const t = words({
 		https: "An address that starts with https://",
 		legalHelp:
 			"Give an address in French only where the page in French differs: the console links it when it speaks French. Leave a field empty to remove its link.",
+		moderation: "Address of moderation",
+		moderationAbout:
+			"The address that receives each report about the Windows of this Cahut, beside its administrators who have an address, such as an abuse mailbox of its host. It receives them when this Cahut sends e-mail.",
+		noModeration: "This Cahut has no address of moderation.",
+		moderationField: "Address",
+		moderationHelp: "Leave it empty to remove it.",
 		suspension: "Suspension",
 		suspendTitle: "Suspend this Cahut",
 		suspendHelp:
@@ -154,6 +160,12 @@ const t = words({
 		https: "Une adresse qui commence par https://",
 		legalHelp:
 			"Ne donnez une adresse en français que si la page en français diffère : la console la lie quand elle parle français. Laissez un champ vide pour retirer son lien.",
+		moderation: "Adresse de modération",
+		moderationAbout:
+			"L'adresse qui reçoit chaque signalement des Windows de cette Cahut, à côté de ses administrateurs qui ont une adresse, comme une boîte d'abus de son hébergeur. Elle les reçoit quand cette Cahut envoie des e-mails.",
+		noModeration: "Cette Cahut n'a pas d'adresse de modération.",
+		moderationField: "Adresse",
+		moderationHelp: "Laissez-la vide pour la retirer.",
 		suspension: "Suspension",
 		suspendTitle: "Suspendre cette Cahut",
 		suspendHelp:
@@ -238,6 +250,7 @@ export function Settings() {
 				{!server && <LegalTable legal={data.legal} />}
 			</section>
 			{server && <LegalForm legal={data.legal} onSaved={() => (reload(), api.reloadCahut())} />}
+			<ModerationAddress email={data.moderation_email ?? ""} server={server} onSaved={reload} />
 			{server && <SuspensionForm suspension={data.suspension} onChanged={(on) => (reload(), api.setSuspended(on))} />}
 		</>
 	);
@@ -383,6 +396,68 @@ function LegalTable({ legal }: { legal: LegalLinks }) {
 				</tbody>
 			</table>
 		</div>
+	);
+}
+
+/**
+ * The address that receives the reports of this Cahut, which the
+ * administrators of the server set and those of the Cahut read. See
+ * docs/adr/0054-reporting-and-withdrawing-a-window.md.
+ */
+function ModerationAddress({ email, server, onSaved }: { email: string; server: boolean; onSaved: () => void }) {
+	const api = useConsole();
+	const [value, setValue] = useState(email);
+	const [error, setError] = useState("");
+	const [saved, setSaved] = useState(false);
+	const [busy, setBusy] = useState(false);
+	const submit = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		setSaved(false);
+		try {
+			await api.cahutAsServer("set_moderation_address", { email: value.trim() });
+			setSaved(true);
+			onSaved();
+		} catch (err) {
+			setError(explain(err));
+		}
+		setBusy(false);
+	};
+	return (
+		<section class="section c-card panel">
+			<h2 class="c-h4">{t.moderation}</h2>
+			<p class="c-small c-muted">{t.moderationAbout}</p>
+			{!server && (email ? <p class="c-mono c-small">{email}</p> : <Notice>{t.noModeration}</Notice>)}
+			{server && (
+				<form class="form" onSubmit={submit}>
+					<label class="c-field">
+						<span class="c-field__label">{t.moderationField}</span>
+						<input
+							class="c-input"
+							type="email"
+							autocomplete="off"
+							spellcheck={false}
+							placeholder="abuse@example.com"
+							value={value}
+							onInput={(e) => setValue(e.currentTarget.value)}
+						/>
+						<span class="c-field__help">{t.moderationHelp}</span>
+					</label>
+					{error && <Failure message={error} />}
+					{saved && (
+						<p class="c-small" role="status">
+							{t.saved}
+						</p>
+					)}
+					<div>
+						<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
+							{t.save}
+						</button>
+					</div>
+				</form>
+			)}
+		</section>
 	);
 }
 

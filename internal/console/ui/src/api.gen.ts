@@ -21,6 +21,8 @@ export interface About {
   legal: LegalLinks;
   /** since when and why the administrators of the server suspended the Cahut; absent while it is active */
   suspension?: Suspension;
+  /** the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators */
+  moderation_email?: string;
 }
 
 export interface AccessInput {
@@ -801,6 +803,11 @@ export interface Moderated {
   decided?: number[];
 }
 
+export interface ModerationAddressSet {
+  /** the address of moderation of the Cahut; absent when it has none */
+  email?: string;
+}
+
 export interface MovedRoom {
   /** the name of the Room now */
   room: string;
@@ -1346,6 +1353,11 @@ export interface SetMailRelayInput {
   name?: string;
 }
 
+export interface SetModerationAddressInput {
+  /** the address that receives each report about the Windows of this Cahut, such as abuse@host.example; empty removes it */
+  email?: string;
+}
+
 export interface SetUp {
   /** the session of the first person, at the console of the Cahut */
   session: AccountSession;
@@ -1389,6 +1401,8 @@ export interface Settings {
   legal: LegalLinks;
   /** since when and why the administrators of the server suspended the Cahut; absent while it is active */
   suspension?: Suspension;
+  /** the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators */
+  moderation_email?: string;
 }
 
 export interface Setup {
@@ -1914,6 +1928,8 @@ export interface CahutOperations {
   set_mail_notices: { input: SetMailNoticesInput; output: MailNotices };
   /** Set the SMTP relay that sends the e-mail of this Cahut, such as activation links, from an address of its own. The relay is at a public address and speaks TLS. Cahut connects to it and signs in before it keeps it. An empty host removes it: the Cahut then sends no e-mail, and its console offers nothing that would. For the administrators of the Cahut. */
   set_mail_relay: { input: SetMailRelayInput; output: Delivery };
+  /** Set the address that receives each report about the Windows of this Cahut, beside its administrators, such as an abuse mailbox of its host, or remove it with an empty address. It receives them when the Cahut sends e-mail. For the administrators of the server. */
+  set_moderation_address: { input: SetModerationAddressInput; output: ModerationAddressSet };
   /** Show a Window of a Room of this Cahut at the Room's address, <domain>/<room>/, in place of the page that lists its Windows, such as a landing page made for the Room. Readers who may not open that Window still get the list of the Windows they may open. An empty window goes back to the list. The Window keeps its own address and its access. */
   set_room_home: { input: SetHomeInput; output: RoomDetail };
   /** Make a person of a team Room an owner or a member of it. A Room keeps at least one owner. */

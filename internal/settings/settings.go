@@ -85,6 +85,10 @@ type Settings struct {
 	// Cahut suspended, when only they read its settings. See
 	// docs/adr/0048-suspending-a-cahut.md.
 	Suspension *Suspension `json:"suspension,omitempty" jsonschema:"since when and why the administrators of the server suspended the Cahut; absent while it is active"`
+	// ModerationEmail is the address that receives the reports of the
+	// Cahut, which its administrators read. See
+	// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+	ModerationEmail string `json:"moderation_email,omitempty" jsonschema:"the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators"`
 }
 
 // querier runs a query, in a transaction or not.
@@ -173,6 +177,11 @@ func Read(ctx context.Context, tx *sql.Tx, userID int64, admin bool) (Settings, 
 		return Settings{}, err
 	}
 	s := Settings{Kind: kind, Limits: l, Legal: legal, Suspension: suspension}
+	if admin {
+		if s.ModerationEmail, err = ModerationAddress(ctx, tx); err != nil {
+			return Settings{}, err
+		}
+	}
 	if kind == Individual && userID != 0 {
 		u, err := UseOf(ctx, tx, userID)
 		if err != nil {

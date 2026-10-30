@@ -124,6 +124,18 @@ support       none
 
 Each address starts with `https://`. An address in French is for a page whose French version differs: the console links it when it speaks French, and needs the address of the same page for the other languages. Without a flag, `settings links` prints the links; `settings show` prints them too.
 
+## Set the address of moderation of a Cahut
+
+Each report about a Window of a Cahut goes, when it sends e-mail, to its administrators who have an address, and to its address of moderation, such as an abuse mailbox of the host: the administrators of the server have no address of their own. See [Moderation](/admin/moderation/). `settings moderation-address` sets it, prints it without a flag, and `none` removes it:
+
+```bash
+sudo -u cahut /usr/local/bin/cahut settings moderation-address --domain docs.example.org --email abuse@example.org
+```
+
+```text
+The reports of docs.example.org now go to abuse@example.org too, when it sends e-mail.
+```
+
 ## Suspend a Cahut
 
 After a decision of moderation, or when its organization stops paying, the administrators of the server [suspend a Cahut](/concepts/cahuts/#suspension), with a reason, and resume it later:

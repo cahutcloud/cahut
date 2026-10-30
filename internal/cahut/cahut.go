@@ -99,6 +99,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	})
 	operation.Register(r, settings.Set)
 	operation.Register(r, settings.SetLegalLinks)
+	operation.Register(r, settings.SetModerationAddress)
 	operation.Register(r, settings.Suspend)
 	operation.Register(r, settings.Resume)
 	operation.Register(r, ListLogbook)

@@ -174,6 +174,11 @@ func withdraw(ctx context.Context, c *operation.Call, in WithdrawInput) (Moderat
 			return Moderated{}, err
 		}
 	}
+	if t.withdrawal == nil {
+		if err := tellOfWithdrawal(ctx, c, t, w); err != nil {
+			return Moderated{}, err
+		}
+	}
 	detail := reason
 	if len(waiting) > 0 {
 		detail = fmt.Sprintf("reports %s: %s", joinIDs(waiting), reason)
@@ -197,6 +202,9 @@ func reinstate(ctx context.Context, c *operation.Call, in ReinstateInput) (Moder
 	}
 	_, err = c.Tx.ExecContext(ctx, "UPDATE windows SET withdrawn_at = NULL, withdrawn_reason = NULL, withdrawn_by_server = 0 WHERE id = ?", t.id)
 	if err != nil {
+		return Moderated{}, err
+	}
+	if err := tellOfReinstatement(ctx, c, t, t.withdrawal.At); err != nil {
 		return Moderated{}, err
 	}
 	t.Withdrawn = false

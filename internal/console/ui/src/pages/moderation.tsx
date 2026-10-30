@@ -269,7 +269,9 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 export function Moderation() {
 	const { moderates, call } = useModerator();
 	const api = useConsole();
-	const { data, error, reload } = useLoad(() => (moderates ? call("list_reports", {}) : Promise.resolve(null)), [api.reports]);
+	// Whether the person administers the Cahut comes after the first render:
+	// the reports load again once it does.
+	const { data, error, reload } = useLoad(() => (moderates ? call("list_reports", {}) : Promise.resolve(null)), [api.reports, moderates]);
 	if (!moderates) return <Notice>{t.onlyModerators}</Notice>;
 	if (error) return <Failure message={error} />;
 	if (!data) return null;

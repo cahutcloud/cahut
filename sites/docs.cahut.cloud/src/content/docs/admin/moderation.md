@@ -45,7 +45,17 @@ Cahut then forgets the name and the address of whoever reported. Decided reports
 
 For a person who publishes abuse again and again, disable them or delete them for good under **People**, or have the administrators of the server [suspend the Cahut](/concepts/cahuts/#suspension). Disabling a person leaves their public Windows open: withdraw them too.
 
-Moderation is for people: no AI and no service is offered its operations, [`report_window`, `list_reports`, `preview_reported_window`, `dismiss_report`, `withdraw_window` and `reinstate_window`](/reference/operations/).
+Moderation is for people: no AI and no service is offered its operations, [`report_window`, `list_reports`, `preview_reported_window`, `dismiss_report`, `withdraw_window` and `reinstate_window`](/reference/operations/). The administrators of the server set the address of moderation with `set_moderation_address`.
+
+## E-mail
+
+When the Cahut sends e-mail, through its [relay](/admin/mail/):
+
+- **Each report** goes to its administrators who have an address, and to its **address of moderation**, which the administrators of the server set on the page **Kind and limits**, or with [`cahut settings moderation-address`](/admin/commands/#set-the-address-of-moderation-of-a-cahut): an abuse mailbox of the host, since they have no address of their own. The message gives the number of the report, what is wrong and the address of the Window, and links **Moderation**. The explanation stays in the console.
+- **Whoever reported** with an address gets a receipt, then the decision: the Window was withdrawn, or the moderators left it as it is. Cahut then forgets their address.
+- **The members of the Room** of a Window, or its author for a Window that is theirs alone, hear that it was withdrawn, with the reason and the link to the support page of the Cahut when it has one, and that it was reinstated.
+
+These messages name the Window by its address, and hold nothing that whoever reported wrote: the page of a report cannot send a text of one's choice to someone else. Without a relay, the Cahut sends none of them.
 
 ## What the Logbook keeps
 

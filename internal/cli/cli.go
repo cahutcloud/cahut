@@ -71,9 +71,15 @@ func usage(w io.Writer) {
 	fmt.Fprintf(w, "\t%-10s %s\n", "help", "Print this help")
 }
 
+// list prints cmds, their summaries in a column as wide as the longest
+// name needs, and 10 at least.
 func list(w io.Writer, cmds []command) {
+	width := 10
 	for _, c := range cmds {
-		fmt.Fprintf(w, "\t%-10s %s\n", c.name, c.summary)
+		width = max(width, len(c.name))
+	}
+	for _, c := range cmds {
+		fmt.Fprintf(w, "\t%-*s %s\n", width, c.name, c.summary)
 	}
 }
 

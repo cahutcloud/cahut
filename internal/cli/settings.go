@@ -20,6 +20,46 @@ var settingsCommands = []command{
 	{name: "show", summary: "Print the kind and limits of a Cahut, with what it holds", run: runSettingsShow},
 	{name: "set", summary: "Change the kind or limits of a Cahut; what you leave out stays as it is", run: runSettingsSet},
 	{name: "links", summary: "Link the legal pages of a Cahut, or print its links; what you leave out stays as it is", run: runSettingsLinks},
+	{name: "moderation-address", summary: "Set the address that receives the reports of a Cahut, or print it", run: runSettingsModeration},
+}
+
+// runSettingsModeration sets or prints the address of moderation of a
+// Cahut. See docs/adr/0054-reporting-and-withdrawing-a-window.md.
+func runSettingsModeration(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("settings moderation-address", stderr)
+	data := dataFlag(fs)
+	domain := domainFlag(fs)
+	email := fs.String("email", "", "the `ADDRESS` that receives each report about the Windows of the Cahut, beside its administrators; none removes it")
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	set := *email != ""
+	out, at, ok := withCahut(*data, *domain, stderr, func(ctx context.Context, c *cahut.Cahut) (string, error) {
+		if !set {
+			about, err := operation.Do(ctx, c.Registry, c.About, admin, cahut.GetCahutInput{})
+			return about.ModerationEmail, err
+		}
+		in := settings.SetModerationAddressInput{Email: *email}
+		if in.Email == "none" {
+			in.Email = ""
+		}
+		s, err := operation.Do(ctx, c.Registry, settings.SetModerationAddress, admin, in)
+		return s.Email, err
+	})
+	if !ok {
+		return exitError
+	}
+	switch {
+	case out == "" && set:
+		fmt.Fprintf(stdout, "%s has no address of moderation now: its reports go to its administrators alone.\n", at)
+	case out == "":
+		fmt.Fprintf(stdout, "%s has no address of moderation: its reports go to its administrators alone.\n", at)
+	case set:
+		fmt.Fprintf(stdout, "The reports of %s now go to %s too, when it sends e-mail.\n", at, out)
+	default:
+		fmt.Fprintf(stdout, "The reports of %s go to %s too, when it sends e-mail.\n", at, out)
+	}
+	return exitOK
 }
 
 func runSettingsShow(args []string, stdout, stderr io.Writer) int {
