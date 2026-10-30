@@ -126,7 +126,7 @@ const said = words<Sentences>({
 			`"${v.name}" cannot be the name of a Window: use 1 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or a digit.`,
 		window_author_only: (v) => `Only the author of this Window, ${v.author}, can keep it for themself.`,
 		window_name_taken: (v) => `The name "${v.name}" is taken in the Room ${v.room}, by a Window or one in its trash: choose another.`,
-		window_without_author:
+		window_without_author: () =>
 			"This Window has no author since the person it was published for was deleted: it opens to its Room, its Cahut, a Key or the public.",
 		wrong_current_password: "The current password is wrong.",
 		wrong_handle_or_password: "Wrong handle or password.",
@@ -214,7 +214,7 @@ const said = words<Sentences>({
 			`« ${v.name} » ne peut pas être le nom d'une Window : utilisez de 1 à 63 lettres minuscules, chiffres et tirets, en commençant et en finissant par une lettre ou un chiffre.`,
 		window_author_only: (v) => `Seule la personne qui a publié cette Window, ${v.author}, peut la garder pour elle.`,
 		window_name_taken: (v) => `Le nom « ${v.name} » est déjà pris dans la Room ${v.room}, par une Window ou une Window à la corbeille : choisissez-en un autre.`,
-		window_without_author:
+		window_without_author: () =>
 			"Cette Window n'a plus d'auteur depuis la suppression de la personne pour qui elle a été publiée : elle s'ouvre à sa Room, à sa Cahut, à une Key ou au public.",
 		wrong_current_password: "Le mot de passe actuel est incorrect.",
 		wrong_handle_or_password: "Identifiant ou mot de passe incorrect.",
