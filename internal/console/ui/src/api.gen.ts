@@ -325,7 +325,7 @@ export interface CreateUserInput {
 export interface Declaration {
   /** whether the pages run scripts, inline or in files */
   scripts: boolean;
-  /** every origin the pages load anything from or call, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make */
+  /** every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make */
   origins?: string[];
   /** the origins that the forms of the pages send to, if any */
   forms?: string[];
@@ -1650,7 +1650,7 @@ export interface CahutOperations {
   get_cahut: { input: GetCahutInput; output: About };
   /** Describe the invitation of a personal link: the Window, who invites, and their note. */
   get_invitation: { input: InvitationCodeInput; output: InvitationPage };
-  /** Describe a Knock: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
+  /** Check a Knock, a call of an AI that waits for a person to approve it: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. */
   get_knock: { input: KnockGetInput; output: Knock };
   /** Describe the SMTP relay of this Cahut, without its password, or say that it has none and sends no e-mail; and when a message last went out, or last failed and why. For the administrators of the Cahut. */
   get_mail_relay: { input: GetMailRelayInput; output: Delivery };
@@ -1666,7 +1666,7 @@ export interface CahutOperations {
   list_connected_ais: { input: ListConnectedAIsInput; output: ConnectedAIs };
   /** List the invitations to a Window, the latest first: who got one, who invited, and whether it still stands. */
   list_invitations: { input: ListInvitationsInput; output: InvitationList };
-  /** List Knocks, those that wait first: the calls that cannot be undone, or that change what a person may do, which wait for a person to approve them. An AI lists the Knocks it made; a person, those of their AIs. */
+  /** List Knocks, those that wait first. A Knock is a call of an AI that waits for a person to approve it, since it cannot be undone or changes what a person may do. An AI lists the Knocks it made; a person, those of their AIs. */
   list_knocks: { input: KnockListInput; output: KnockList };
   /** Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. */
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
@@ -1746,7 +1746,7 @@ export interface CahutOperations {
   trash_window: { input: RefInput; output: Window };
   /** Change the title of a Room, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it. */
   update_room: { input: UpdateRoomInput; output: RoomDetail };
-  /** Publish a new version of a Window: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. */
+  /** Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Cahut calls no other system. */
   update_window: { input: UpdateInput; output: Window };
 }
 

@@ -84,9 +84,9 @@ func (s *Service) Register(r *operation.Registry) {
 	operation.Register(r, &operation.Op[UpdateInput, Window]{
 		Name:  "update_window",
 		Title: "Update a Window",
-		Description: "Publish a new version of a Window: give all its files again, as for publish_window. " +
+		Description: "Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. " +
 			"Its address stays. Its current version becomes the previous one, which rollback_window goes back to; " +
-			"the version before that is deleted.",
+			"the version before that is deleted. Cahut calls no other system.",
 		Destructive: true,
 		Run:         s.update,
 	})
