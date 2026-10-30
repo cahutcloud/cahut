@@ -51,6 +51,7 @@ type page struct {
 	Reader string      // the handle of the reader signed in; empty when there is none
 	SignIn string      // where to sign in, to come back to this page
 	Legal  []legalLink // the legal pages of the Cahut, which its foot links
+	Report string      // where its foot sends a reader to report a Window; empty on the pages that need none
 }
 
 // legalLink is a legal page of the Cahut, as the foot of a page links it.
@@ -69,7 +70,7 @@ var legalNames = map[string]string{
 
 func (s *Server) page(r *http.Request, reader, title string) page {
 	c := siteOf(r).cahut
-	p := page{Title: title, Domain: c.Domain, Reader: reader, SignIn: "/-/sign-in?to=" + url.QueryEscape(r.URL.RequestURI())}
+	p := page{Title: title, Domain: c.Domain, Reader: reader, SignIn: "/-/sign-in?to=" + url.QueryEscape(r.URL.RequestURI()), Report: ReportPath}
 	legal, err := settings.Legal(r.Context(), c.DB.Read)
 	if err != nil {
 		s.log.Error("read the legal pages", "cahut", c.Domain, "error", err)

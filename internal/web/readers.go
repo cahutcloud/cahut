@@ -221,6 +221,7 @@ func (s *Server) askKey(w http.ResponseWriter, r *http.Request, win window.Serve
 		back = window.PermanentPrefix + ref
 	}
 	p.SignIn = "/-/sign-in?to=" + url.QueryEscape(back)
+	p.Report = reportLink(strings.TrimSuffix(s.cfg.BaseURL(siteOf(r).cahut.Domain), "/") + back)
 	s.render(w, r, status, "key", keyPage{page: p, Window: ref, Error: msg})
 }
 

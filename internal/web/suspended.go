@@ -54,7 +54,7 @@ func (s *Server) serveSuspended(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 	p := s.page(r, "", "Suspended")
-	p.SignIn = ""
+	p.SignIn, p.Report = "", ""
 	s.render(w, r, http.StatusServiceUnavailable, "suspended", p)
 	return true
 }

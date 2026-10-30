@@ -17,6 +17,7 @@ import (
 	"cahut.cloud/internal/knock"
 	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/mail"
+	"cahut.cloud/internal/moderation"
 	"cahut.cloud/internal/oauth"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
@@ -83,6 +84,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	room.Register(r)
 	w := window.NewService(filepath.Join(cfg.Dir, "windows"), cfg.BaseURL, frameKey)
 	w.Register(r)
+	moderation.Register(r)
 	auth := oauth.New(db, r, oauth.Config{
 		Issuer:    strings.TrimSuffix(cfg.BaseURL, "/"),
 		Authorize: cfg.ConsoleURL + "oauth/authorize",

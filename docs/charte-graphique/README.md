@@ -1,6 +1,6 @@
 # Cahut · Charte graphique
 
-Version 1.9 · 29 octobre 2026 · Olivier Durand
+Version 1.10 · 30 octobre 2026 · Olivier Durand
 
 ![Cahut, la maison ouverte](illustrations/maison-ouverte.png)
 
@@ -231,6 +231,7 @@ En secours : `ui-sans-serif, system-ui, "Segoe UI", sans-serif` et `ui-monospace
 | Personnes | [`people.svg`](icones/navigation/people.svg) | People : une carte de membre |
 | Type et limites | [`limits.svg`](icones/navigation/limits.svg) | Kind and limits |
 | E-mail | [`email.svg`](icones/navigation/email.svg) | E-mail |
+| Modération | [`moderation.svg`](icones/navigation/moderation.svg) | Moderation : un drapeau, celui qu'on lève pour signaler |
 | Administrateurs du serveur | [`server-admins.svg`](icones/navigation/server-admins.svg) | Server administrators |
 | Mises à jour | [`updates.svg`](icones/navigation/updates.svg) | Updates |
 
@@ -442,5 +443,6 @@ charte-graphique/
 | 1.7 | 28 octobre 2026 | Nouvelle signature : *Your home to publish and share what your AIs make.* (en français : *Votre maison pour publier et partager ce que fabriquent vos IA.*), à la place de *Your own cloud for everything your AI makes.* Elle dit ce que fait Cahut. L'image de partage, l'aperçu GitHub, les bannières et la signature e-mail la reprennent, et l'image de partage ne parle plus de *house style* |
 | 1.8 | 29 octobre 2026 | Cahut n'a plus de *house style* ([ADR 49](../adr/0049-no-house-style.md)) : le mot quitte le vocabulaire, avec son pictogramme `house-style.svg` et son pictogramme de navigation. Une Window porte l'apparence que son IA lui a donnée, jamais la marque de Cahut, qui vaut pour ses propres écrans : la console, les pages d'une Cahut, ses e-mails et ses sites (§ 12, *Les Windows*, à la place de *Cahut chez les autres*). La valeur Accueillante prend le pictogramme de la Key. La planche des pictogrammes, la maquette de la console et leurs rendus sont refaits |
 | 1.9 | 29 octobre 2026 | La carte d'une Window, que chaque Cahut dessine pour les aperçus de ses liens ([ADR 51](../adr/0051-sharing-a-window-and-its-preview.md)), rejoint les applications (§ 10), avec son rendu `carte-window.png` |
+| 1.10 | 30 octobre 2026 | Un pictogramme de navigation pour la modération, [`moderation.svg`](icones/navigation/moderation.svg) : un drapeau, celui qu'on lève pour signaler une Window ([ADR 54](../adr/0054-reporting-and-withdrawing-a-window.md)). La planche des pictogrammes le montre |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.

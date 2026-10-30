@@ -13,6 +13,7 @@ import { ConfirmEmail } from "./pages/confirm-email";
 import { Consent } from "./pages/consent";
 import { Invitation } from "./pages/invitation";
 import { KnockPage, Knocks } from "./pages/knocks";
+import { Moderation } from "./pages/moderation";
 import { Logbook } from "./pages/logbook";
 import { MailPage } from "./pages/mail";
 import { Overview, ServerOverview } from "./pages/overview";
@@ -222,6 +223,7 @@ function SignedIn(props: {
 		}
 	}, []);
 	const knocks = useWaitingKnocks(api, session);
+	const reports = useWaitingReports(api, session.kind !== "person" || isAdmin || Boolean(props.serverSession));
 
 	const value = {
 		...api,
@@ -240,6 +242,8 @@ function SignedIn(props: {
 		reloadRooms: () => setRoomsVersion((n) => n + 1),
 		knocks: knocks.count,
 		reloadKnocks: knocks.reload,
+		reports: reports.count,
+		reloadReports: reports.reload,
 		renamed: (p: { handle: string; name: string }) => {
 			renamed(p);
 			setRoomsVersion((n) => n + 1);
@@ -291,6 +295,33 @@ function useWaitingKnocks(api: ReturnType<typeof bind>, session: Session): { cou
 	return { count, reload: () => setRound((n) => n + 1) };
 }
 
+/**
+ * Counts the reports that wait for the moderators of this Cahut, as the
+ * Knocks are counted, when the console acts as one of them: as an
+ * administrator of the Cahut, or with the session of the server.
+ */
+function useWaitingReports(api: ReturnType<typeof bind>, moderates: boolean): { count: number; reload: () => void } {
+	const [count, setCount] = useState(0);
+	const [round, setRound] = useState(0);
+	useEffect(() => {
+		if (!moderates) return;
+		const call = api.session.kind === "person" && api.serverSession ? api.cahutAsServer : api.cahut;
+		const ask = () => {
+			if (document.visibilityState === "visible") {
+				call("list_reports", { waiting: true, limit: 1 }).then((l) => setCount(l.waiting), () => undefined);
+			}
+		};
+		ask();
+		const timer = setInterval(ask, knockEvery);
+		document.addEventListener("visibilitychange", ask);
+		return () => {
+			clearInterval(timer);
+			document.removeEventListener("visibilitychange", ask);
+		};
+	}, [round, moderates]);
+	return { count, reload: () => setRound((n) => n + 1) };
+}
+
 function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 	const { serverSession } = useConsole();
 	// The pages of the server need its session, which the person adds from
@@ -319,6 +350,8 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 			return <Settings />;
 		case "/mail":
 			return <MailPage />;
+		case "/moderation":
+			return <Moderation />;
 		case "/access":
 			return <Access />;
 		case "/account":

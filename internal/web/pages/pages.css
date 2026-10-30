@@ -169,6 +169,9 @@ h1, h2, h3 { font-family: var(--font-heading); }
 .panel h1, .panel h2 { margin: 0 0 var(--space-4); overflow-wrap: anywhere; }
 .form { display: grid; gap: var(--space-4); margin: 0 0 var(--space-4); }
 .form p { margin: 0; }
+.form textarea.c-input { height: auto; min-height: 8rem; padding: var(--space-3); line-height: var(--leading-sm); resize: vertical; }
+.choices { display: grid; gap: var(--space-2); margin: 0; padding: 0; border: 0; min-width: 0; }
+.choices legend { margin-bottom: var(--space-2); padding: 0; }
 
 .foot { margin: var(--space-12) 0 0; }
 .foot .c-mono { overflow-wrap: anywhere; }

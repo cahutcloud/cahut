@@ -1593,6 +1593,46 @@ a.cahut-menu__item:hover {
 	overflow-wrap: anywhere;
 }
 
+/* Reports: the brand's card, one under the other, as the Knocks. See
+   docs/adr/0054-reporting-and-withdrawing-a-window.md. */
+.reports {
+	display: grid;
+	gap: var(--space-3);
+}
+.report {
+	display: grid;
+	gap: var(--space-2);
+	margin: 0;
+}
+.report p {
+	margin: 0;
+}
+.report__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-2);
+}
+.report__meta {
+	margin-left: auto;
+	font-size: 12px;
+}
+.report__window {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-2);
+	overflow-wrap: anywhere;
+}
+.report__explanation {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+.report__decide {
+	display: grid;
+	gap: var(--space-3);
+}
+
 /* Read by screen readers, not shown. */
 .visually-hidden {
 	position: absolute;

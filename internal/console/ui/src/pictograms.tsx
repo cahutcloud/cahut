@@ -10,6 +10,7 @@ import email from "@charte/icones/navigation/email.svg?raw";
 import knockFirst from "@charte/icones/navigation/knock-first.svg?raw";
 import limits from "@charte/icones/navigation/limits.svg?raw";
 import logbook from "@charte/icones/navigation/logbook.svg?raw";
+import moderation from "@charte/icones/navigation/moderation.svg?raw";
 import people from "@charte/icones/navigation/people.svg?raw";
 import room from "@charte/icones/navigation/room.svg?raw";
 import roomNew from "@charte/icones/navigation/room-new.svg?raw";
@@ -27,6 +28,7 @@ const files = {
 	knockFirst,
 	limits,
 	logbook,
+	moderation,
 	people,
 	room,
 	roomNew,
