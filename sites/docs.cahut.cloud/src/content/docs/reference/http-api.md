@@ -172,6 +172,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/list_invitations` | Any person | yes |
 | `POST /api/list_knocks` | Any person | yes |
 | `POST /api/list_logbook` | Any person | yes |
+| `POST /api/list_public_windows` | Administrators of the Cahut | yes |
 | `POST /api/list_reports` | Administrators of the Cahut | yes |
 | `POST /api/list_rooms` | Any person | yes |
 | `POST /api/list_service_tokens` | Administrators of the server | yes |

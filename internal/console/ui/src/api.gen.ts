@@ -508,6 +508,8 @@ export interface Info {
   created_at: string;
   /** since when and why the administrators of the server suspended this Cahut, which serves nothing meanwhile; absent while it is active */
   suspension?: Suspension;
+  /** how many reports about the Windows of this Cahut wait for its moderators */
+  reports?: number;
 }
 
 export interface Invitation {
@@ -748,6 +750,11 @@ export interface ListLogbookInput {
   limit?: number;
 }
 
+export interface ListPublicInput {
+  /** how many Windows, 100 by default, at most 500 */
+  limit?: number;
+}
+
 export interface ListReportsInput {
   /** only the reports that wait for a decision */
   waiting?: boolean;
@@ -840,6 +847,8 @@ export interface NewCahut {
   created_at: string;
   /** since when and why the administrators of the server suspended this Cahut, which serves nothing meanwhile; absent while it is active */
   suspension?: Suspension;
+  /** how many reports about the Windows of this Cahut wait for its moderators */
+  reports?: number;
   /** the first administrator of the Cahut, with their activation link */
   admin?: NewUser;
 }
@@ -963,6 +972,29 @@ export interface PreviewReportedInput {
 export interface Previews {
   /** the previews of the Windows asked for that are in your Rooms and out of the trash, in the same order */
   previews: Preview[];
+}
+
+export interface PublicWindow {
+  /** the Window's id, which never changes */
+  id: string;
+  room: string;
+  name: string;
+  title: string;
+  /** author, room, internal, key or public */
+  access: string;
+  /** the Window is in the trash */
+  trashed?: boolean;
+  /** the moderators withdrew the Window, which serves nothing to its readers until they reinstate it */
+  withdrawn?: boolean;
+  /** the handle of the person it was first published for; empty once they are deleted */
+  by?: string;
+  /** when its access was last set, or when it was published */
+  public_at: string;
+}
+
+export interface PublicWindows {
+  /** the public Windows of the Cahut, out of the trash and not withdrawn, the latest made public first */
+  windows: PublicWindow[];
 }
 
 export interface PublishInput {
@@ -1874,6 +1906,8 @@ export interface CahutOperations {
   list_knocks: { input: KnockListInput; output: KnockList };
   /** Read the latest entries of the Logbook, newest first: all of them for an administrator of the Cahut, and for anyone else what they did and what AIs did on their behalf. */
   list_logbook: { input: ListLogbookInput; output: LogbookPage };
+  /** List the public Windows of this Cahut, which anyone opens, the latest made public first, for its moderators to look at what it serves to anyone. */
+  list_public_windows: { input: ListPublicInput; output: PublicWindows };
   /** List the reports about the Windows of this Cahut: those that wait for a decision, the oldest first, then the latest decided. For its moderators: its administrators and those of its server. */
   list_reports: { input: ListReportsInput; output: Reports };
   /** List your Rooms in this Cahut, your personal Room first, with your role and how many members and Windows each has. */
@@ -1990,7 +2024,7 @@ export interface ServerOperations {
   get_updates: { input: UpdatesInput; output: Updates };
   /** List the administrators of the server. */
   list_admins: { input: ListAdminsInput; output: AdminList };
-  /** List the Cahuts of this server, their domains, and those that are suspended. */
+  /** List the Cahuts of this server, their domains, those that are suspended, and how many reports wait in each. */
   list_domains: { input: ListDomainsInput; output: DomainList };
   /** Read the latest entries of the server's Logbook, newest first. */
   list_logbook: { input: ListLogbookInput; output: LogbookPage };

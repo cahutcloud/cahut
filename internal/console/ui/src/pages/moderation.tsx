@@ -6,7 +6,7 @@
 import { ArrowUpRight, Eye, Flag } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
-import type { Report, ReportedPreview } from "../api.gen";
+import type { PublicWindow, Report, ReportedPreview } from "../api.gen";
 import { AccessBadge, ConfirmButton, Dialog, Failure, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
 import { locale, plural, words } from "../i18n";
@@ -53,6 +53,10 @@ const t = words({
 		withdrawnBy: (who: string, when: string) => `Withdrawn by ${who} on ${when}.`,
 		serverAdmin: (handle: string) => (handle ? `${handle}, an administrator of the server` : "the command line of the server"),
 		waitingCount: (n: number) => plural(n, "report waits", "reports wait"),
+		publicTitle: "Public Windows",
+		publicLead: "What this Cahut serves to anyone, the latest made public first. You open them at their address, as anyone does, without a report.",
+		noPublic: "This Cahut has no public Window.",
+		publicSince: (who: string, when: string) => (who ? `Published by ${who}, public since ${when}` : `Public since ${when}`),
 	},
 	fr: {
 		label: "Cette Cahut",
@@ -94,6 +98,10 @@ const t = words({
 		withdrawnBy: (who, when) => `Retirée par ${who} le ${when}.`,
 		serverAdmin: (handle) => (handle ? `${handle}, administrateur du serveur` : "la ligne de commande du serveur"),
 		waitingCount: (n) => plural(n, "signalement attend", "signalements attendent"),
+		publicTitle: "Windows publiques",
+		publicLead: "Ce que cette Cahut sert à tout le monde, de la dernière rendue publique à la plus ancienne. Vous les ouvrez à leur adresse, comme tout le monde, sans signalement.",
+		noPublic: "Cette Cahut n'a aucune Window publique.",
+		publicSince: (who, when) => (who ? `Publiée pour ${who}, publique depuis le ${when}` : `Publique depuis le ${when}`),
 	},
 });
 
@@ -265,6 +273,89 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 	);
 }
 
+/**
+ * A public Window, as the moderators look at it without a report: at its
+ * address, as anyone does, with Withdraw.
+ */
+function PublicCard(props: { window: PublicWindow; onWithdrawn: () => void }) {
+	const { call } = useModerator();
+	const api = useConsole();
+	const w = props.window;
+	const [asking, setAsking] = useState(false);
+	const [reason, setReason] = useState("");
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	const withdraw = async (e: Event) => {
+		e.preventDefault();
+		setBusy(true);
+		setError("");
+		try {
+			await call("withdraw_window", { window: w.id, reason });
+			api.reloadReports();
+			props.onWithdrawn();
+		} catch (err) {
+			setError(explain(err));
+		}
+		setBusy(false);
+	};
+	return (
+		<article class="c-card panel report">
+			<p class="report__window">
+				<strong>{w.title}</strong> <span class="c-mono c-muted">{`${w.room}/${w.name}`}</span> <AccessBadge access={w.access} />
+			</p>
+			<p class="c-small c-muted">{t.publicSince(w.by ?? "", when(w.public_at))}</p>
+			{error && <Failure message={error} />}
+			{!asking ? (
+				<div class="actions">
+					<a class="c-btn c-btn--secondary c-btn--sm" href={`${location.origin}/${w.room}/${w.name}/`} target="_blank" rel="noopener noreferrer">
+						<ArrowUpRight class="i" size={14} aria-hidden="true" />
+						{t.openAtAddress}
+					</a>
+					<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={() => setAsking(true)}>
+						{t.withdraw}
+					</button>
+				</div>
+			) : (
+				<form class="report__decide" onSubmit={withdraw}>
+					<label class="c-field">
+						<span class="c-field__label">{t.reason}</span>
+						<textarea class="c-input" required maxLength={maxNote} rows={2} value={reason} onInput={(e) => setReason(e.currentTarget.value)} />
+						<span class="c-field__help">{t.reasonHelp(maxNote - reason.length)}</span>
+					</label>
+					<div class="actions">
+						<button class="c-btn c-btn--danger c-btn--sm" type="submit" disabled={busy || reason.trim() === ""}>
+							{t.confirmWithdraw}
+						</button>
+						<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => (setAsking(false), setReason(""), setError(""))}>
+							{t.cancel}
+						</button>
+					</div>
+				</form>
+			)}
+		</article>
+	);
+}
+
+/** The public Windows of this Cahut, which its moderators look at without a report. */
+function PublicWindows() {
+	const { call } = useModerator();
+	const { data, error, reload } = useLoad(() => call("list_public_windows", {}));
+	if (error) return <Failure message={error} />;
+	if (!data) return null;
+	return (
+		<section class="section">
+			<h2 class="c-h4">{t.publicTitle}</h2>
+			<p class="c-small c-muted">{t.publicLead}</p>
+			{data.windows.length === 0 && <p class="c-muted">{t.noPublic}</p>}
+			<div class="reports">
+				{data.windows.map((w) => (
+					<PublicCard key={w.id} window={w} onWithdrawn={reload} />
+				))}
+			</div>
+		</section>
+	);
+}
+
 /** The reports of this Cahut: those that wait, then the latest decided. */
 export function Moderation() {
 	const { moderates, call } = useModerator();
@@ -291,6 +382,7 @@ export function Moderation() {
 					))}
 				</div>
 			</section>
+			<PublicWindows key={api.reports} />
 			{decided.length > 0 && (
 				<section class="section">
 					<h2 class="c-h4">{t.decided}</h2>

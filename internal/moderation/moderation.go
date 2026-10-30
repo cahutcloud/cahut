@@ -90,6 +90,16 @@ func Register(r *operation.Registry, frameKey []byte) {
 		ReadOnly:   true,
 		Run:        list,
 	})
+	operation.Register(r, &operation.Op[ListPublicInput, PublicWindows]{
+		Name:  "list_public_windows",
+		Title: "List the public Windows",
+		Description: "List the public Windows of this Cahut, which anyone opens, the latest made public first, " +
+			"for its moderators to look at what it serves to anyone.",
+		Level:      operation.CahutAdmin,
+		PeopleOnly: true,
+		ReadOnly:   true,
+		Run:        listPublic,
+	})
 	operation.Register(r, &operation.Op[PreviewReportedInput, ReportedPreview]{
 		Name:  "preview_reported_window",
 		Title: "Open a reported Window",

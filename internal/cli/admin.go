@@ -395,13 +395,15 @@ func runDomainList(args []string, stdout, stderr io.Writer) int {
 		return exitError
 	}
 	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
-	fmt.Fprintln(tw, "ID\tDOMAIN\tCREATED\tSTATE")
+	fmt.Fprintln(tw, "ID\tDOMAIN\tCREATED\tREPORTS\tSTATE")
 	for _, c := range list.Cahuts {
 		state := "active"
 		if s := c.Suspension; s != nil {
 			state = "suspended since " + day(s.Since) + ": " + s.Reason
 		}
-		fmt.Fprintf(tw, "%d\t%s\t%s\t%s\n", c.ID, c.Domain, day(c.CreatedAt), state)
+		// The reports that wait for the moderators of the Cahut. See
+		// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+		fmt.Fprintf(tw, "%d\t%s\t%s\t%d\t%s\n", c.ID, c.Domain, day(c.CreatedAt), c.Reports, state)
 	}
 	if err := tw.Flush(); err != nil {
 		return exitError

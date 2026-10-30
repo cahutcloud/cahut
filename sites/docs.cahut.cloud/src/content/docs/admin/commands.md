@@ -32,12 +32,12 @@ sudo -u cahut /usr/local/bin/cahut domain list
 
 ```text
 Declared docs.example.org: its Cahut is ready. Point its DNS to this server, then serve it.
-ID  DOMAIN             CREATED     STATE
-1   cahut.example.com  2026-10-20  active
-2   docs.example.org   2026-10-21  active
+ID  DOMAIN             CREATED     REPORTS  STATE
+1   cahut.example.com  2026-10-20  0        active
+2   docs.example.org   2026-10-21  0        active
 ```
 
-The running service serves the new Cahut at once, and gets its certificate at the first HTTPS connection to its domain. A domain is a host name such as `cahut.example.com`; a Cahut without a domain takes the public IPv4 address of the server instead, such as `203.0.113.7`. There is no command yet to remove a Cahut.
+`REPORTS` counts the reports about the Windows of each Cahut that wait for its [moderators](/admin/moderation/). The running service serves the new Cahut at once, and gets its certificate at the first HTTPS connection to its domain. A domain is a host name such as `cahut.example.com`; a Cahut without a domain takes the public IPv4 address of the server instead, such as `203.0.113.7`. There is no command yet to remove a Cahut.
 
 `cahut setup` prints the link to the [first start](/install/first-start/) of a Cahut that has nobody yet, where its first person chooses their account:
 
@@ -149,9 +149,9 @@ sudo -u cahut /usr/local/bin/cahut domain resume docs.example.org
 ```text
 The Cahut of docs.example.org is suspended since 2026-10-29 10:42: it keeps everything, and serves nothing but to the administrators of the server.
 Its administrators hear of it by e-mail when it has a relay. Resume it with cahut domain resume docs.example.org.
-ID  DOMAIN             CREATED     STATE
-1   cahut.example.com  2026-10-20  active
-2   docs.example.org   2026-10-21  suspended since 2026-10-29: Invoice of October unpaid
+ID  DOMAIN             CREATED     REPORTS  STATE
+1   cahut.example.com  2026-10-20  2        active
+2   docs.example.org   2026-10-21  0        suspended since 2026-10-29: Invoice of October unpaid
 The Cahut of docs.example.org is open again: its Windows, its people and their AIs find everything as it was.
 ```
 

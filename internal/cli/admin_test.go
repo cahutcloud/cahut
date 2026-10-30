@@ -161,8 +161,8 @@ func TestDomainSuspend(t *testing.T) {
 		t.Errorf("domain suspend: %d %q %q", code, out, errOut)
 	}
 	code, out, _ = run(t, data, "domain", "list")
-	if code != exitOK || !regexp.MustCompile(`a\.example\.com\s+\S+\s+suspended since \S+: Unpaid invoice\n`).MatchString(out) ||
-		!regexp.MustCompile(`b\.example\.com\s+\S+\s+active\n`).MatchString(out) {
+	if code != exitOK || !regexp.MustCompile(`a\.example\.com\s+\S+\s+0\s+suspended since \S+: Unpaid invoice\n`).MatchString(out) ||
+		!regexp.MustCompile(`b\.example\.com\s+\S+\s+0\s+active\n`).MatchString(out) {
 		t.Errorf("domain list: %d %q", code, out)
 	}
 	if code, out, errOut := run(t, data, "domain", "resume", "a.example.com"); code != exitOK || !strings.Contains(out, "is open again") {

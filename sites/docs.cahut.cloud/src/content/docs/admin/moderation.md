@@ -23,13 +23,13 @@ The page then says that the report was received, and nothing about the Window. R
 
 ## Reading the reports
 
-The administrators of a Cahut, and the administrators of its server from their session in its console, find its reports under **Moderation**. The menu counts those that wait. Each report gives its number, what is wrong, the Window it names with its Room and its access, the explanation, and the name and address of whoever reported, if they gave them.
+The administrators of a Cahut, and the administrators of its server from their session in its console, find its reports under **Moderation**. The menu counts those that wait, and so does the list of the Cahuts of the server, in its console and in [`cahut domain list`](/admin/commands/#declare-a-cahut). Each report gives its number, what is wrong, the Window it names with its Room and its access, the explanation, and the name and address of whoever reported, if they gave them.
 
 ## Opening a reported Window
 
 **Open**, on a report that waits, shows its Window in the console, whatever its access: open to its Room, to its author alone, with a Key or with a share link. It runs in its sandbox, as every Window does, without its forms. The frame opens that Window only, for four hours at most, and stops when the session of the moderator ends, when they no longer administer the Cahut, or when the report is decided.
 
-Each opening goes to the Logbook in the Room of the Window, under the moderator and with the number of the report, so that the members of the Room read who opened it and why; for a Window that its author keeps for themself, the author reads it. Without a report, a moderator opens what anyone opens: a public Window, with **Open at its address**.
+Each opening goes to the Logbook in the Room of the Window, under the moderator and with the number of the report, so that the members of the Room read who opened it and why; for a Window that its author keeps for themself, the author reads it. Without a report, a moderator opens what anyone opens: a public Window. Under **Public Windows**, the page lists those of the Cahut, the latest made public first, with who published them, so that moderators look at what the Cahut serves to anyone without waiting for a report: each opens at its address, and **Withdraw** withdraws it.
 
 ## Deciding
 
@@ -45,7 +45,7 @@ Cahut then forgets the name and the address of whoever reported. Decided reports
 
 For a person who publishes abuse again and again, disable them or delete them for good under **People**, or have the administrators of the server [suspend the Cahut](/concepts/cahuts/#suspension). Disabling a person leaves their public Windows open: withdraw them too.
 
-Moderation is for people: no AI and no service is offered its operations, [`report_window`, `list_reports`, `preview_reported_window`, `dismiss_report`, `withdraw_window` and `reinstate_window`](/reference/operations/). The administrators of the server set the address of moderation with `set_moderation_address`.
+Moderation is for people: no AI and no service is offered its operations, [`report_window`, `list_reports`, `list_public_windows`, `preview_reported_window`, `dismiss_report`, `withdraw_window` and `reinstate_window`](/reference/operations/). The administrators of the server set the address of moderation with `set_moderation_address`.
 
 ## E-mail
 

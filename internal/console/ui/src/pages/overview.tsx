@@ -35,6 +35,7 @@ const t = words({
 		declaredOn: (date: string) => `Declared on ${date}`,
 		suspended: "Suspended",
 		suspendedOn: (date: string, reason: string) => `Since ${date}: ${reason}`,
+		reportsWait: (n: number) => (n === 1 ? "1 report waits" : `${n} reports wait`),
 		atConsole: "You are at its console.",
 		openConsole: "Open its console",
 		moveToDomain: "Move to a domain",
@@ -83,6 +84,7 @@ const t = words({
 		declaredOn: (date) => `Déclarée le ${date}`,
 		suspended: "Suspendue",
 		suspendedOn: (date, reason) => `Depuis le ${date} : ${reason}`,
+		reportsWait: (n) => (n === 1 ? "1 signalement attend" : `${n} signalements attendent`),
 		atConsole: "Vous êtes sur sa console.",
 		openConsole: "Ouvrir sa console",
 		moveToDomain: "Passer à un domaine",
@@ -194,6 +196,13 @@ export function ServerOverview() {
 							<span class="c-small">
 								<span class="c-badge c-badge--warning">{t.suspended}</span>{" "}
 								{t.suspendedOn(new Date(c.suspension.since).toLocaleDateString(locale, { dateStyle: "medium" }), c.suspension.reason)}
+							</span>
+						)}
+						{/* The reports that wait for its moderators, who read them at its
+						    console. See docs/adr/0054-reporting-and-withdrawing-a-window.md. */}
+						{(c.reports ?? 0) > 0 && (
+							<span class="c-small">
+								<span class="c-badge c-badge--warning">{t.reportsWait(c.reports ?? 0)}</span>
 							</span>
 						)}
 						{c.domain === location.hostname ? (
