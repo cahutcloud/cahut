@@ -11,8 +11,8 @@ Documents, slide decks, dashboards and small apps, as pages at your address<br>
 on your own server, where your team works on them, whichever AI made them.
 
 <p>
-  <a href="https://github.com/getcahut/cahut/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/getcahut/cahut?label=release&color=B9E1FB&labelColor=1F2A33"></a>
-  <a href="https://github.com/getcahut/cahut/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/getcahut/cahut/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/cahutcloud/cahut/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/cahutcloud/cahut?label=release&color=B9E1FB&labelColor=1F2A33"></a>
+  <a href="https://github.com/cahutcloud/cahut/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/cahutcloud/cahut/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="LICENSE"><img alt="License AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-D9DCDF?labelColor=1F2A33"></a>
   <a href="go.mod"><img alt="Go 1.27" src="https://img.shields.io/badge/Go-1.27-D9DCDF?logo=go&logoColor=F7F5F0&labelColor=1F2A33"></a>
   <a href="https://www.bestpractices.dev/projects/15845"><img alt="OpenSSF Best Practices" src="https://www.bestpractices.dev/projects/15845/badge"></a>
@@ -180,7 +180,7 @@ Then give your AI the address of the MCP server, `https://cahut.example.com/mcp`
 | AI client | Where |
 | --- | --- |
 | claude.ai, Claude Desktop | Settings, Connectors, add a custom connector, on every plan |
-| Claude Code | `/plugin marketplace add getcahut/cahut`, then `/plugin install cahut@cahut`, which also brings the skill for Claude |
+| Claude Code | `/plugin marketplace add cahutcloud/cahut`, then `/plugin install cahut@cahut`, which also brings the skill for Claude |
 | Mistral Vibe, formerly Le Chat | Connectors, add a custom MCP connector, on every plan |
 | ChatGPT | On the web, Plugins, Add custom MCP server, with OAuth, on the Business, Enterprise and Edu plans only: not on Free, Plus or Pro |
 | Others | Any MCP client over HTTP, with OAuth or a personal token |

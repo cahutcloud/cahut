@@ -27,7 +27,7 @@ OVH SAS\
 
 ## Code, nom et logo
 
-Le code de Cahut est un logiciel libre, sous licence [GNU Affero General Public License 3.0](https://github.com/getcahut/cahut/blob/main/LICENSE). Le nom et le logo de Cahut suivent [la politique sur le nom](/brand/#name-and-logo), en anglais.
+Le code de Cahut est un logiciel libre, sous licence [GNU Affero General Public License 3.0](https://github.com/cahutcloud/cahut/blob/main/LICENSE). Le nom et le logo de Cahut suivent [la politique sur le nom](/brand/#name-and-logo), en anglais.
 
 ## Données personnelles
 

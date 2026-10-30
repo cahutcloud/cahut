@@ -11,7 +11,7 @@ body:
     attributes:
       label: The discussion
       description: The link to the Discussion where this feature was accepted.
-      placeholder: https://github.com/getcahut/cahut/discussions/123
+      placeholder: https://github.com/cahutcloud/cahut/discussions/123
     validations:
       required: true
   - type: textarea

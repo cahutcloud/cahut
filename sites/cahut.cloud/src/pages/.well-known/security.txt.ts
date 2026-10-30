@@ -9,7 +9,7 @@ export function GET(): Response {
 	expires.setUTCHours(0, 0, 0, 0);
 	const text = [
 		'Contact: mailto:security@cahut.cloud',
-		'Contact: https://github.com/getcahut/cahut/security/advisories/new',
+		'Contact: https://github.com/cahutcloud/cahut/security/advisories/new',
 		`Expires: ${expires.toISOString()}`,
 		'Preferred-Languages: en, fr',
 		'Canonical: https://cahut.cloud/.well-known/security.txt',

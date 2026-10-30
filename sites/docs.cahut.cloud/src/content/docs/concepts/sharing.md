@@ -75,4 +75,4 @@ The card is at `https://cahut.example.com/-/card/<id>.png`. A new title gives it
 
 The address of the moment, `https://cahut.example.com/<room>/<window>/`, does not change: it serves a public Window as its AI made it, with the tags of its page if it wrote some, and the page of its Key or of what is not found to the others. A link to it shows the preview that its page gives, or none.
 
-The decisions are [ADR 51](https://github.com/getcahut/cahut/blob/main/docs/adr/0051-sharing-a-window-and-its-preview.md), for the menu and the preview, and [ADR 52](https://github.com/getcahut/cahut/blob/main/docs/adr/0052-share-links.md), for share links.
+The decisions are [ADR 51](https://github.com/cahutcloud/cahut/blob/main/docs/adr/0051-sharing-a-window-and-its-preview.md), for the menu and the preview, and [ADR 52](https://github.com/cahutcloud/cahut/blob/main/docs/adr/0052-share-links.md), for share links.

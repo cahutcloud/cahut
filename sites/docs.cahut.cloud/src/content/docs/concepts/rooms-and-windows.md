@@ -29,7 +29,7 @@ The id gives the Window a permanent address, `https://cahut.example.com/-/w/<id>
 
 The id opens nothing by itself, and the permanent address follows the access of the Window. A reader who may not open the Window there finds nothing, as at an address that does not exist, or the page of its Key, without learning its address. In the trash, a Window is not found at its permanent address either.
 
-The console shows both addresses on the page of each Window. AIs get the id as `id` and the permanent address as `permanent_url`, and name a Window by either, as by its address or `room/name`. The invitations that a Cahut sends by e-mail give the permanent address. It is the link to share: robots of previews read there a preview in the brand of Cahut, which says no more than the address says to a stranger. See [Share a Window](/concepts/sharing/). The decision is [ADR 50](https://github.com/getcahut/cahut/blob/main/docs/adr/0050-window-ids-permanent-addresses-and-names.md).
+The console shows both addresses on the page of each Window. AIs get the id as `id` and the permanent address as `permanent_url`, and name a Window by either, as by its address or `room/name`. The invitations that a Cahut sends by e-mail give the permanent address. It is the link to share: robots of previews read there a preview in the brand of Cahut, which says no more than the address says to a stranger. See [Share a Window](/concepts/sharing/). The decision is [ADR 50](https://github.com/cahutcloud/cahut/blob/main/docs/adr/0050-window-ids-permanent-addresses-and-names.md).
 
 ## Names
 
@@ -69,7 +69,7 @@ Its owners, and the administrators of the Cahut, delete a team Room for good wit
 
 The address of a Room, such as `https://cahut.example.com/marketing/`, shows each reader the Windows they may open, as cards, most recently updated first. Each card shows the Window itself, shrunk to the card, with its kind, when it last changed, and its access. A reader outside the Room sees only the Windows open to them, and a reader who may open none finds nothing, as at an address that does not exist. The page names nobody: neither who published nor who is in the Room.
 
-The owners of a Room, personal Rooms included, can show one of its Windows at its address instead, such as a page that presents the team or the person: `set_room_home`, or **Page of the Room** under **Manage the Room**, on its page in the console. Readers who may open that Window see it at the address of the Room; the others still see the Windows they may open. The Window keeps its own address and its access, and `set_room_home` without a Window goes back to the list. The decision is [ADR 32](https://github.com/getcahut/cahut/blob/main/docs/adr/0032-the-page-of-a-room.md).
+The owners of a Room, personal Rooms included, can show one of its Windows at its address instead, such as a page that presents the team or the person: `set_room_home`, or **Page of the Room** under **Manage the Room**, on its page in the console. Readers who may open that Window see it at the address of the Room; the others still see the Windows they may open. The Window keeps its own address and its access, and `set_room_home` without a Window goes back to the list. The decision is [ADR 32](https://github.com/cahutcloud/cahut/blob/main/docs/adr/0032-the-page-of-a-room.md).
 
 ## Windows
 

@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { frenchSpaces, localize, type Lang } from '../i18n';
 
-export const github = 'https://github.com/getcahut/cahut';
+export const github = 'https://github.com/cahutcloud/cahut';
 
 /** The root of the repository, where the community files are. */
 export const repository = path.resolve(fileURLToPath(new URL('../../../..', import.meta.url)));

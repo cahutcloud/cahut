@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Ask a question
-    url: https://github.com/getcahut/cahut/discussions/categories/q-a
+    url: https://github.com/cahutcloud/cahut/discussions/categories/q-a
     about: Installation, configuration, "is this normal?". Questions go to the Discussions, where other users answer too.
   - name: Propose a feature
-    url: https://github.com/getcahut/cahut/discussions/categories/ideas
+    url: https://github.com/cahutcloud/cahut/discussions/categories/ideas
     about: Features are discussed before they are coded. Once accepted, an idea becomes an issue.
   - name: Report a vulnerability
-    url: https://github.com/getcahut/cahut/security/advisories/new
+    url: https://github.com/cahutcloud/cahut/security/advisories/new
     about: Privately, never in an issue. SECURITY.md says what to expect.
