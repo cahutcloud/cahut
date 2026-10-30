@@ -92,9 +92,9 @@ func (s *Service) Register(r *operation.Registry) {
 	})
 	operation.Register(r, &operation.Op[RetitleInput, Window]{
 		Name:  "retitle_window",
-		Title: "Retitle and describe a Window",
-		Description: "Change the title of a Window of this Cahut, its description, or both, without publishing a new version. " +
-			"Its address stays. Give the old title and description again to undo it.",
+		Title: "Retitle, describe and tag a Window",
+		Description: "Change the title of a Window of this Cahut, its description, its tags, or several, without publishing a new version. " +
+			"Its address stays. Give the old ones again to undo it.",
 		Run: s.retitle,
 	})
 	operation.Register(r, &operation.Op[RenameInput, Window]{
@@ -239,7 +239,7 @@ func (s *Service) Register(r *operation.Registry) {
 	operation.Register(r, &operation.Op[ListInput, List]{
 		Name:        "list_windows",
 		Title:       "List Windows",
-		Description: "List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, most recently updated first.",
+		Description: "List the Windows in the Rooms of the person you act for in this Cahut, or in one of them, or those with a tag, most recently updated first.",
 		ReadOnly:    true,
 		Run:         s.list,
 	})
@@ -260,6 +260,7 @@ type Window struct {
 	Name         string    `json:"name" jsonschema:"the Window's name, last part of its address"`
 	Title        string    `json:"title"`
 	Description  string    `json:"description,omitempty" jsonschema:"what the Window is, in a sentence or two; absent when it has none"`
+	Tags         []string  `json:"tags" jsonschema:"its tags, in order, which help find it among many"`
 	Kind         string    `json:"kind"`
 	URL          string    `json:"url" jsonschema:"where the Window opens"`
 	PermanentURL string    `json:"permanent_url" jsonschema:"the Window's permanent address, which sends whoever may open the Window to its address, whatever its name: the link that lasts"`
@@ -283,6 +284,7 @@ type Window struct {
 type PublishInput struct {
 	Title       string       `json:"title" jsonschema:"title of the Window, also used in its address"`
 	Description string       `json:"description,omitempty" jsonschema:"what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window"`
+	Tags        []string     `json:"tags,omitempty" jsonschema:"10 at most, such as q3 or sales, which help find it among many: reuse those that list_windows gives"`
 	Kind        string       `json:"kind" jsonschema:"one of document, deck, dashboard or site"`
 	Room        string       `json:"room,omitempty" jsonschema:"name of the Room to publish in; the personal Room of the person you act for when empty"`
 	Name        string       `json:"name,omitempty" jsonschema:"its name in its address, 1 to 63 lowercase letters, digits and hyphens; from the title when empty"`
@@ -305,6 +307,10 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 		return Window{}, err
 	}
 	description, err := room.CheckDescription(in.Description)
+	if err != nil {
+		return Window{}, err
+	}
+	tags, err := CheckTags(in.Tags)
 	if err != nil {
 		return Window{}, err
 	}
@@ -353,7 +359,7 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err := settings.CheckDisk(ctx, c, roomID, size); err != nil {
 		return Window{}, err
 	}
-	w := Window{ID: address.NewID(), Title: title, Description: description, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: access,
+	w := Window{ID: address.NewID(), Title: title, Description: description, Tags: tags, Kind: in.Kind, Room: r.Name, Version: 1, Size: size, FileCount: len(files), Access: access,
 		CreatedBy: c.Actor.Handle, CreatedAt: c.Now, UpdatedAt: c.Now, Declaration: declared}
 	if in.Name != "" {
 		w.Name = strings.TrimSpace(in.Name)
@@ -376,7 +382,13 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err := insertVersion(ctx, c, id, w); err != nil {
 		return Window{}, err
 	}
+	if err := setTags(ctx, c.Tx, id, w.Tags); err != nil {
+		return Window{}, err
+	}
 	detail := fmt.Sprintf("%s %q, id %s, %d files, %d bytes; %s", w.Kind, w.Title, w.ID, w.FileCount, w.Size, w.Declaration)
+	if len(w.Tags) > 0 {
+		detail += "; " + tagsDetail(w.Tags)
+	}
 	if w.Access == AccessAuthor {
 		detail += "; for its author alone"
 	}
@@ -494,14 +506,18 @@ type RetitleInput struct {
 	// A pointer, so that an empty description removes it and an absent one
 	// keeps it.
 	Description *string `json:"description,omitempty" jsonschema:"the new description, a sentence or two of plain text, 300 characters at most; empty to remove it, and it stays when absent"`
+	// A pointer too: an empty list removes the tags, and an absent one
+	// keeps them.
+	Tags *[]string `json:"tags,omitempty" jsonschema:"the new tags, in place of the old ones, 10 at most; an empty list removes them, and they stay when absent"`
 }
 
-// retitle changes the title of a Window, its description, or both, in
-// place: no new version, and the time of its last version stays.
+// retitle changes the title of a Window, its description, its tags, or
+// several, in place: no new version, and the time of its last version
+// stays.
 func (s *Service) retitle(ctx context.Context, c *operation.Call, in RetitleInput) (Window, error) {
-	if strings.TrimSpace(in.Title) == "" && in.Description == nil {
+	if strings.TrimSpace(in.Title) == "" && in.Description == nil && in.Tags == nil {
 		c.Log(in.Window, "")
-		return Window{}, operation.Invalidf("give a new title, a new description, or both")
+		return Window{}, operation.Invalidf("give a new title, a new description, new tags, or several")
 	}
 	w, err := s.target(ctx, c, in.Window)
 	if err != nil {
@@ -522,6 +538,15 @@ func (s *Service) retitle(ctx context.Context, c *operation.Call, in RetitleInpu
 			return Window{}, err
 		}
 		changes = append(changes, fmt.Sprintf("description %q", w.Description))
+	}
+	if in.Tags != nil {
+		if w.Tags, err = CheckTags(*in.Tags); err != nil {
+			return Window{}, err
+		}
+		if err := setTags(ctx, c.Tx, w.id, w.Tags); err != nil {
+			return Window{}, err
+		}
+		changes = append(changes, tagsDetail(w.Tags))
 	}
 	if _, err := c.Tx.ExecContext(ctx, "UPDATE windows SET title = ?, description = ? WHERE id = ?", w.Title, w.Description, w.id); err != nil {
 		return Window{}, err
@@ -774,6 +799,7 @@ func versionsOf(ctx context.Context, tx *sql.Tx, w found) ([]Version, error) {
 // ListInput is the input of list_windows.
 type ListInput struct {
 	Room    string `json:"room,omitempty" jsonschema:"only the Windows of this Room, by its name"`
+	Tag     string `json:"tag,omitempty" jsonschema:"only the Windows with this tag"`
 	Trashed bool   `json:"trashed,omitempty" jsonschema:"list the Windows in the trash instead"`
 }
 
@@ -795,11 +821,20 @@ func (s *Service) list(ctx context.Context, c *operation.Call, in ListInput) (Li
 		c.InRoom(r.ID)
 		where, args = where+" AND w.room_id = ?", []any{r.ID}
 	}
+	tag, err := CheckTag(in.Tag)
+	if err != nil {
+		return List{}, err
+	}
+	detail := ""
+	if tag != "" {
+		where, args = where+" AND w.id IN (SELECT window_id FROM window_tags WHERE tag = ?)", append(args, tag)
+		detail = "tag " + tag + "; "
+	}
 	found, err := s.query(ctx, c, where, args...)
 	if err != nil {
 		return List{}, err
 	}
-	c.Log(in.Room, fmt.Sprintf("%d Windows", len(found)))
+	c.Log(in.Room, fmt.Sprintf("%s%d Windows", detail, len(found)))
 	list := List{Windows: make([]Window, len(found))}
 	for i, w := range found {
 		list.Windows[i] = w.Window
@@ -824,7 +859,8 @@ type found struct {
 func (s *Service) query(ctx context.Context, c *operation.Call, where string, args ...any) ([]found, error) {
 	q := `
 		SELECT w.id, w.uid, w.room_id, w.name, w.title, w.description, w.kind, r.name, w.version, w.previous, w.size, w.file_count,
-			coalesce(u.handle, ''), coalesce(w.created_by, 0), w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL, v.declaration
+			coalesce(u.handle, ''), coalesce(w.created_by, 0), w.created_at, w.updated_at, w.trashed_at, w.access, w.access_ends_at, w.key_hash IS NOT NULL, v.declaration,
+			coalesce((SELECT group_concat(tag, ' ' ORDER BY tag) FROM window_tags WHERE window_id = w.id), '')
 		FROM windows w JOIN rooms r ON r.id = w.room_id LEFT JOIN users u ON u.id = w.created_by
 		JOIN window_versions v ON v.window_id = w.id AND v.number = w.version
 		WHERE ` + where
@@ -844,10 +880,13 @@ func (s *Service) query(ctx context.Context, c *operation.Call, where string, ar
 		var created, updated string
 		var trashed, ends sql.NullString
 		var declared *string
+		var tags string
 		if err := rows.Scan(&w.id, &w.ID, &w.roomID, &w.Name, &w.Title, &w.Description, &w.Kind, &w.Room, &w.Version, &previous, &w.Size, &w.FileCount,
-			&w.CreatedBy, &w.authorID, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey, &declared); err != nil {
+			&w.CreatedBy, &w.authorID, &created, &updated, &trashed, &w.Access, &ends, &w.hasKey, &declared, &tags); err != nil {
 			return nil, err
 		}
+		// A tag holds no space.
+		w.Tags = append([]string{}, strings.Fields(tags)...)
 		if w.Declaration, err = decodeDeclaration(declared); err != nil {
 			return nil, err
 		}

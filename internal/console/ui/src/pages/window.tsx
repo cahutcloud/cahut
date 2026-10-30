@@ -24,6 +24,8 @@ import {
 	Notice,
 	PageHead,
 	plural,
+	TagsField,
+	tagsOf,
 } from "../components";
 import { useConsole } from "../context";
 import { de, lang, locale, words } from "../i18n";
@@ -47,11 +49,14 @@ const t = words({
 		restore: "Restore",
 		deleteForGood: "Delete for good",
 		deleteQuestion: "Delete it with its versions and its files? This cannot be undone.",
-		text: "Title and description",
-		textHelp: "They change without a new version, and the address stays. Readers see the description on the page of the Room, and AIs read it to find the Window.",
+		text: "Title, description and tags",
+		textHelp:
+			"They change without a new version, and the address stays. Readers see the description on the page of the Room. The tags help you and your AIs find the Window among many, and only the people of the Room see them.",
 		titleLabel: "Title",
 		descriptionLabel: "Description",
 		descriptionHelp: "A sentence or two that say what the Window is.",
+		tagsLabel: "Tags",
+		tagsHelp: "Press Enter or type a comma after each. Cahut writes them in lower case, with hyphens between their words.",
 		saveText: "Save",
 		textSaved: "Saved.",
 		trash: "Trash",
@@ -169,12 +174,14 @@ const t = words({
 		restore: "Restaurer",
 		deleteForGood: "Supprimer définitivement",
 		deleteQuestion: "La supprimer avec ses versions et ses fichiers ? Cela ne s'annule pas.",
-		text: "Titre et description",
+		text: "Titre, description et tags",
 		textHelp:
-			"Ils changent sans nouvelle version, et l'adresse reste la même. Les lecteurs voient la description sur la page de la Room, et les IA la lisent pour retrouver la Window.",
+			"Ils changent sans nouvelle version, et l'adresse reste la même. Les lecteurs voient la description sur la page de la Room. Les tags vous aident, vous et vos IA, à retrouver la Window parmi d'autres, et seules les personnes de la Room les voient.",
 		titleLabel: "Titre",
 		descriptionLabel: "Description",
 		descriptionHelp: "Une phrase ou deux qui disent ce qu'est la Window.",
+		tagsLabel: "Tags",
+		tagsHelp: "Appuyez sur Entrée ou tapez une virgule après chacun. Cahut les écrit en minuscules, avec des tirets entre leurs mots.",
 		saveText: "Enregistrer",
 		textSaved: "Enregistré.",
 		trash: "Corbeille",
@@ -416,24 +423,33 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 	);
 }
 
-/** The title and the description of a Window, which change in place, without a new version. */
-function TextPanel(props: { window: WindowDetail; onSave: (input: { title?: string; description?: string }) => Promise<void> }) {
+/**
+ * The title, the description and the tags of a Window, which change in
+ * place, without a new version. The field of its tags suggests those of the
+ * other Windows of the person.
+ */
+function TextPanel(props: { window: WindowDetail; onSave: (input: { title?: string; description?: string; tags?: string[] }) => Promise<void> }) {
 	const w = props.window;
+	const api = useConsole();
 	const id = useId();
 	const [title, setTitle] = useState(w.title);
 	const [description, setDescription] = useState(w.description ?? "");
+	const [tags, setTags] = useState(w.tags);
 	const [busy, setBusy] = useState(false);
 	const [said, setSaid] = useState("");
 	const [error, setError] = useState("");
+	const others = useLoad(() => api.cahut("list_windows", {}).catch(() => null));
+	const suggestions = tagsOf(others.data?.windows ?? []).map(([tag]) => tag);
 	const newTitle = title.trim() !== w.title;
 	const newDescription = description.trim() !== (w.description ?? "");
+	const newTags = tags.join(" ") !== w.tags.join(" ");
 	const save = async (e: Event) => {
 		e.preventDefault();
 		setBusy(true);
 		setError("");
 		setSaid("");
 		try {
-			await props.onSave({ ...(newTitle && { title }), ...(newDescription && { description }) });
+			await props.onSave({ ...(newTitle && { title }), ...(newDescription && { description }), ...(newTags && { tags }) });
 			setSaid(t.textSaved);
 		} catch (err) {
 			setError(explain(err));
@@ -456,6 +472,18 @@ function TextPanel(props: { window: WindowDetail; onSave: (input: { title?: stri
 					</label>
 					<DescriptionField id={id} value={description} help={t.descriptionHelp} onInput={(v) => (setDescription(v), setSaid(""))} />
 				</div>
+				<div class="c-field">
+					<label class="c-field__label" for={`${id}-tags`}>
+						{t.tagsLabel}
+					</label>
+					<TagsField
+						id={`${id}-tags`}
+						value={tags}
+						suggestions={suggestions}
+						help={t.tagsHelp}
+						onChange={(v) => (setTags([...v].sort()), setSaid(""))}
+					/>
+				</div>
 				{error && <Failure message={error} />}
 				{said && (
 					<div class="c-alert c-alert--success" role="status">
@@ -463,7 +491,7 @@ function TextPanel(props: { window: WindowDetail; onSave: (input: { title?: stri
 					</div>
 				)}
 				<div>
-					<button class="c-btn c-btn--secondary" type="submit" disabled={busy || (!newTitle && !newDescription)}>
+					<button class="c-btn c-btn--secondary" type="submit" disabled={busy || (!newTitle && !newDescription && !newTags)}>
 						{t.saveText}
 					</button>
 				</div>

@@ -82,7 +82,18 @@ A Window is static: HTML, styles, scripts, images, fonts and data files, served 
 
 A Window has a title, of 200 bytes at most, and a description: a sentence or two of plain text, 300 characters at most, which says what it is. A Room has them too. The page of a Room shows its description under its title, and the description of each Window on its card; AIs read them in `list_windows` and `list_rooms` to find what they are asked to update.
 
-`publish_window` and `create_room` take a description. `retitle_window` changes the title of a Window, its description or both, without a new version, and `update_room` those of a Room; their addresses stay. Changing them is undone by changing them back, so an AI does it alone, and the Logbook records the new texts. In the console, the page of a Window changes them under **Title and description**, and **Manage the Room** changes those of a Room.
+`publish_window` and `create_room` take a description. `retitle_window` changes the title of a Window, its description or both, without a new version, and `update_room` those of a Room; their addresses stay. Changing them is undone by changing them back, so an AI does it alone, and the Logbook records the new texts. In the console, the page of a Window changes them under **Title, description and tags**, and **Manage the Room** changes those of a Room.
+
+### Tags
+
+A Window carries tags, which help its people and their AIs find it among many: 10 at most, each of 1 to 32 letters, digits and hyphens, such as `q3`, `sales` or `board-meeting`. Anyone may write them as they come: Cahut writes `#Board Meeting` as `board-meeting`, in lower case, without the `#`, its words joined by hyphens. Accents and other scripts stay, as in `été`. A tag given twice counts once, and the tags of a Window are kept in order.
+
+- `publish_window` takes `tags`. `retitle_window` changes them without a new version: the list it gives replaces the old one, an empty list removes them, and they stay when it gives none. Giving the old ones back undoes the change, so an AI does it alone, and the Logbook records the new tags.
+- The tags belong to the Window, not to a version: `update_window` and `rollback_window` keep them, and so do the trash and a new name.
+- `list_windows` gives the tags of each Window, and `tag` lists the Windows with one tag. An AI reuses the tags that the Windows already carry, so that one subject keeps one spelling.
+- Only the people of the Room, and their AIs, see the tags: the page of the Room that readers see, and the Windows themselves, show none.
+
+In the console, the page of a Room shows the tags of its Windows over their cards: a click shows only the Windows with that tag. The page of a Window changes them under **Title, description and tags**, where the field suggests the tags of the other Windows of the person.
 ## Versions and the trash
 
 A Window keeps two versions: the current one, which readers see, and the one before.

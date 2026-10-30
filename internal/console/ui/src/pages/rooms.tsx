@@ -19,6 +19,8 @@ import {
 	PageHead,
 	plural,
 	Setting,
+	TagFilter,
+	tagsOf,
 	WindowCards,
 	windowPage,
 } from "../components";
@@ -66,6 +68,8 @@ const t = words({
 		persons: "people",
 		peopleIn: (n: string) => `${n} in this Room`,
 		notInRoom: "You are not in this Room. As an administrator, you manage its people, not its Windows.",
+		byTag: "Show the Windows with a tag",
+		allTags: "All",
 		emptyTitle: "No Window in this Room yet",
 		emptyText: (name: string) => (
 			<>
@@ -185,6 +189,8 @@ const t = words({
 		persons: "personnes",
 		peopleIn: (n) => `${n} dans cette Room`,
 		notInRoom: "Vous n'êtes pas dans cette Room. En tant qu'administrateur, vous gérez ses personnes, pas ses Windows.",
+		byTag: "Montrer les Windows d'un tag",
+		allTags: "Toutes",
 		emptyTitle: "Pas encore de Window dans cette Room",
 		emptyText: (name) => (
 			<>
@@ -412,6 +418,8 @@ export function RoomPage({ name }: { name: string }) {
 	const [dialog, setDialog] = useState<"manage" | "add" | null>(null);
 	const [managing, setManaging] = useState<string | null>(null);
 	const [leaveError, setLeaveError] = useState("");
+	// The tag whose Windows the page shows alone, if any.
+	const [tag, setTag] = useState("");
 	if (room.error) return <Failure message={room.error} />;
 	if (!room.data) return null;
 	const r = room.data;
@@ -422,6 +430,10 @@ export function RoomPage({ name }: { name: string }) {
 	const members = !api.individual;
 	const owners = r.people.filter((p) => p.role === "owner").length;
 	const list = windows.data?.windows;
+	const tags = tagsOf(list ?? []);
+	// A tag that no Window has any more shows them all.
+	const shown = tags.some(([name]) => name === tag) ? list?.filter((w) => w.tags.includes(tag)) : list;
+	const toggle = (name: string) => setTag(name === tag ? "" : name);
 	// What the address shows is set by those who own the Room, from its Windows.
 	const home = (r.role === "owner" || api.isAdmin) && list !== undefined;
 	const leave = team && members && r.role === "owner" && owners > 1;
@@ -450,7 +462,10 @@ export function RoomPage({ name }: { name: string }) {
 				{windows.error && <Failure message={windows.error} />}
 				{windows.data === null && <Notice>{t.notInRoom}</Notice>}
 				{list && list.length === 0 && <EmptyRoom name={r.name} />}
-				{list && list.length > 0 && <WindowCards windows={list} home={r.home} onChanged={windows.reload} />}
+				{tags.length > 0 && <TagFilter tags={tags} selected={shown === list ? "" : tag} label={t.byTag} all={t.allTags} onTag={toggle} />}
+				{shown && shown.length > 0 && (
+					<WindowCards windows={shown} home={r.home} tag={shown === list ? "" : tag} onTag={toggle} onChanged={windows.reload} />
+				)}
 				{list && (
 					<RoomTrash
 						room={r.name}
