@@ -23,14 +23,22 @@ The page then says that the report was received, and nothing about the Window. R
 
 ## Reading the reports
 
-The administrators of a Cahut, and the administrators of its server from their session in its console, find its reports under **Moderation**. The menu counts those that wait. Each report gives its number, what is wrong, the Window it names with its Room and its access, the explanation, and the name and address of whoever reported, if they gave them. A public Window opens at its address from the report.
+The administrators of a Cahut, and the administrators of its server from their session in its console, find its reports under **Moderation**. The menu counts those that wait. Each report gives its number, what is wrong, the Window it names with its Room and its access, the explanation, and the name and address of whoever reported, if they gave them.
+
+## Opening a reported Window
+
+**Open**, on a report that waits, shows its Window in the console, whatever its access: open to its Room, to its author alone, with a Key or with a share link. It runs in its sandbox, as every Window does, without its forms. The frame opens that Window only, for four hours at most, and stops when the session of the moderator ends, when they no longer administer the Cahut, or when the report is decided.
+
+Each opening goes to the Logbook in the Room of the Window, under the moderator and with the number of the report, so that the members of the Room read who opened it and why; for a Window that its author keeps for themself, the author reads it. Without a report, a moderator opens what anyone opens: a public Window, with **Open at its address**.
+
+## Deciding
 
 **Leave it as it is** decides a report and leaves its Window as it is, with a note for the moderators if they want one. Cahut then forgets the name and the address of whoever reported. Decided reports stay on the page, under **Decided**, with who decided and when.
 
-Moderation is for people: no AI and no service is offered its operations, [`report_window`, `list_reports` and `dismiss_report`](/reference/operations/).
+Moderation is for people: no AI and no service is offered its operations, [`report_window`, `list_reports`, `preview_reported_window` and `dismiss_report`](/reference/operations/).
 
 ## What the Logbook keeps
 
-Each report goes to the Logbook of the Cahut, under someone who reports a Window, with its number, what is wrong and the Window it names. Only the administrators of the Cahut read it: the members of the Room of the Window do not. The entry holds neither the explanation, nor the name, nor the address of whoever reported, nor their address on the network. Each decision goes to the Logbook too, under the moderator who made it.
+Each report goes to the Logbook of the Cahut, under someone who reports a Window, with its number, what is wrong and the Window it names. Only the administrators of the Cahut read it: the members of the Room of the Window do not. The entry holds neither the explanation, nor the name, nor the address of whoever reported, nor their address on the network. Each opening of a reported Window goes to the Logbook of its Room, and each decision to the Logbook too, under the moderator who made it.
 
 The record of these decisions is [ADR 54](https://github.com/cahutcloud/cahut/blob/main/docs/adr/0054-reporting-and-withdrawing-a-window.md).

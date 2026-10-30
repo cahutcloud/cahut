@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
+	"strings"
 	"time"
 )
 
@@ -21,6 +22,11 @@ const (
 	FrameBySession byte = 's' // a reader session, at the address of a protected Window
 	FrameByPass    byte = 'p' // a pass, given for the Key of a Window
 	FrameByConsole byte = 'c' // a session of the console, for the preview of a Window
+	// The moderators of a Cahut open the Window that a report names,
+	// whatever its access, while the report waits. See
+	// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+	FrameByModerator byte = 'm' // a session of the console of an administrator of the Cahut
+	FrameByHost      byte = 'h' // a session of an administrator of the server, in the console of the Cahut
 )
 
 // Frame is the capability in the address of the frame of a Window: it names
@@ -67,11 +73,14 @@ func VerifyFrame(key []byte, s string, now time.Time) (Frame, bool) {
 		ID:      int64(binary.BigEndian.Uint64(data[9:17])),  //nolint:gosec // signed by this Cahut
 		Expires: int64(binary.BigEndian.Uint64(data[17:25])), //nolint:gosec // signed by this Cahut
 	}
-	if now.Unix() >= f.Expires || f.Kind != FrameBySession && f.Kind != FrameByPass && f.Kind != FrameByConsole {
+	if now.Unix() >= f.Expires || !strings.ContainsRune(frameKinds, rune(f.Kind)) {
 		return Frame{}, false
 	}
 	return f, true
 }
+
+// frameKinds are the kinds of the frames that a Cahut signs.
+const frameKinds = string(FrameBySession) + string(FrameByPass) + string(FrameByConsole) + string(FrameByModerator) + string(FrameByHost)
 
 func mac(key, data []byte) []byte {
 	h := hmac.New(sha256.New, key)

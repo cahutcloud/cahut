@@ -936,6 +936,11 @@ export interface PreviewInput {
   windows: string[];
 }
 
+export interface PreviewReportedInput {
+  /** the number of a report that waits, which list_reports gives */
+  report: number;
+}
+
 export interface Previews {
   /** the previews of the Windows asked for that are in your Rooms and out of the trash, in the same order */
   previews: Preview[];
@@ -1078,6 +1083,15 @@ export interface Reported {
   access: string;
   /** the Window is in the trash */
   trashed?: boolean;
+}
+
+export interface ReportedPreview {
+  /** the Window, as room/name */
+  window: string;
+  /** the path of the frame that shows the Window, on the domain of the Cahut, such as /-/frame/<capability>/ */
+  frame: string;
+  /** when the frame stops showing the Window, if the session or the report have not ended before */
+  expires_at: string;
 }
 
 export interface Reports {
@@ -1797,6 +1811,8 @@ export interface CahutOperations {
   open_invitation: { input: InvitationCodeInput; output: InvitationOpening };
   /** Open the Window of a share link, from the page of the link: spend one of its openings, and give a pass. */
   open_share_link: { input: OpenShareLinkInput; output: ShareLinkOpening };
+  /** Get the frame that shows, in the console, the Window of a report that waits, whatever its access, for four hours at most. The members of its Room read in the Logbook that a moderator opened it. For the moderators of this Cahut. */
+  preview_reported_window: { input: PreviewReportedInput; output: ReportedPreview };
   /** Get the frames that show Windows of your Rooms in the console, as previews: each opens one Window, while your session lasts and four hours at most. */
   preview_windows: { input: PreviewInput; output: Previews };
   /** Publish a new Window in this Cahut: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. */

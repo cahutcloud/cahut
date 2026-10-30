@@ -84,7 +84,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	room.Register(r)
 	w := window.NewService(filepath.Join(cfg.Dir, "windows"), cfg.BaseURL, frameKey)
 	w.Register(r)
-	moderation.Register(r)
+	moderation.Register(r, frameKey)
 	auth := oauth.New(db, r, oauth.Config{
 		Issuer:    strings.TrimSuffix(cfg.BaseURL, "/"),
 		Authorize: cfg.ConsoleURL + "oauth/authorize",

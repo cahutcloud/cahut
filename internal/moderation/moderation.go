@@ -68,8 +68,9 @@ type NoteLimit struct {
 	Limit int `json:"limit" jsonschema:"the most characters of a note"`
 }
 
-// Register adds the operations of moderation to r.
-func Register(r *operation.Registry) {
+// Register adds the operations of moderation to r. frameKey signs the
+// frames of the Windows that moderators open.
+func Register(r *operation.Registry, frameKey []byte) {
 	operation.Register(r, &operation.Op[ReportInput, ReportReceived]{
 		Name:  "report_window",
 		Title: "Report a Window",
@@ -88,6 +89,17 @@ func Register(r *operation.Registry) {
 		PeopleOnly: true,
 		ReadOnly:   true,
 		Run:        list,
+	})
+	operation.Register(r, &operation.Op[PreviewReportedInput, ReportedPreview]{
+		Name:  "preview_reported_window",
+		Title: "Open a reported Window",
+		Description: "Get the frame that shows, in the console, the Window of a report that waits, whatever its access, " +
+			"for four hours at most. The members of its Room read in the Logbook that a moderator opened it. " +
+			"For the moderators of this Cahut.",
+		Level: operation.CahutAdmin,
+		// It reads, yet goes to the Logbook, as the reads of people do not.
+		PeopleOnly: true,
+		Run:        previewReported(frameKey),
 	})
 	operation.Register(r, &operation.Op[DismissInput, Report]{
 		Name:  "dismiss_report",
