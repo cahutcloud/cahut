@@ -174,8 +174,9 @@ func withdraw(ctx context.Context, c *operation.Call, in WithdrawInput) (Moderat
 			return Moderated{}, err
 		}
 	}
-	if t.withdrawal == nil {
-		if err := tellOfWithdrawal(ctx, c, t, w); err != nil {
+	// The members of its Room read each reason, once.
+	if t.withdrawal == nil || t.withdrawal.Reason != w.Reason {
+		if err := tellOfWithdrawal(ctx, c, t, w, t.withdrawal != nil); err != nil {
 			return Moderated{}, err
 		}
 	}

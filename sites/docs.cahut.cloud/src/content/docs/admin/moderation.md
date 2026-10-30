@@ -7,7 +7,7 @@ Anyone reports a Window of a Cahut to its moderators, without an account. The mo
 
 ## Reporting a Window
 
-Every Cahut serves a page where anyone reports one of its Windows, at `https://<domain>/-/report`. The foot of the pages that Cahut serves to readers links it as **Report a Window**: the page of a Room, the page that asks for a Key, the page of a share link, and the page of an address where nothing is found. The page that asks for a Key fills in the address of its Window.
+Every Cahut serves a page where anyone reports one of its Windows, at `https://<domain>/-/report`. The foot of the pages that Cahut serves to readers links it as **Report a Window**: the page of a Room, the page that asks for a Key, the page of a share link, and the page of an address where nothing is found. The page that asks for a Key fills in the address of its Window. On the page of a Room, each Window links **Report** too, with its address filled in, for the readers outside the Room.
 
 Cahut draws nothing in a Window or around it: the reader of a public Window types or pastes its address. A host who opens Cahuts to the public says in its legal notice where to report too.
 
@@ -53,7 +53,7 @@ When the Cahut sends e-mail, through its [relay](/admin/mail/):
 
 - **Each report** goes to its administrators who have an address, and to its **address of moderation**, which the administrators of the server set on the page **Kind and limits**, or with [`cahut settings moderation-address`](/admin/commands/#set-the-address-of-moderation-of-a-cahut): an abuse mailbox of the host, since they have no address of their own. The message gives the number of the report, what is wrong and the address of the Window, and links **Moderation**. The explanation stays in the console.
 - **Whoever reported** with an address gets a receipt, then the decision: the Window was withdrawn, or the moderators left it as it is. Cahut then forgets their address.
-- **The members of the Room** of a Window, or its author for a Window that is theirs alone, hear that it was withdrawn, with the reason and the link to the support page of the Cahut when it has one, and that it was reinstated.
+- **The members of the Room** of a Window, or its author for a Window that is theirs alone, hear that it was withdrawn, with the reason and the link to the support page of the Cahut when it has one, then each new reason that a moderator gives, and that it was reinstated.
 
 These messages name the Window by its address, and hold nothing that whoever reported wrote: the page of a report cannot send a text of one's choice to someone else. Without a relay, the Cahut sends none of them.
 

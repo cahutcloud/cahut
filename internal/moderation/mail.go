@@ -156,22 +156,30 @@ func tellMembers(ctx context.Context, c *operation.Call, t target, write func(p 
 
 // tellOfWithdrawal tells the members of the Room of the Window t that the
 // moderators withdrew it, and why: the statement of reasons that the
-// Digital Services Act asks for.
-func tellOfWithdrawal(ctx context.Context, c *operation.Call, t target, w window.Withdrawal) error {
+// Digital Services Act asks for. With changed, it was withdrawn already,
+// and tells them its new reason.
+func tellOfWithdrawal(ctx context.Context, c *operation.Call, t target, w window.Withdrawal, changed bool) error {
 	legal, err := settings.Legal(ctx, c.Tx)
 	if err != nil {
 		return err
 	}
 	by := "The moderators"
-	if w.ByServer {
+	if byHost(c) {
 		by = "The administrators of the server"
 	}
 	return tellMembers(ctx, c, t, func(p mail.Person, where, address string) mail.Letter {
+		subject := t.Room + "/" + t.Name + " was withdrawn"
+		what := fmt.Sprintf("%s of %s withdrew the Window %s, in the Room %s, on %s.", by, where, address, t.Room, mail.Day(w.At))
+		if changed {
+			subject = t.Room + "/" + t.Name + " is withdrawn for a new reason"
+			what = fmt.Sprintf("%s of %s changed the reason why the Window %s, in the Room %s, is withdrawn. It is withdrawn since %s.",
+				by, where, address, t.Room, mail.Day(w.At))
+		}
 		l := mail.Letter{
-			Subject: t.Room + "/" + t.Name + " was withdrawn",
+			Subject: subject,
 			Lines: []string{
 				"Hello " + p.Name + ",",
-				fmt.Sprintf("%s of %s withdrew the Window %s, in the Room %s, on %s.", by, where, address, t.Room, mail.Day(w.At)),
+				what,
 				"It keeps everything, and serves nothing to its readers until they reinstate it: its address and its share links say that it was withdrawn. " +
 					"You still find it in the console, where you can put it in the trash or delete it for good.",
 			},

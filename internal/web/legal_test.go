@@ -46,6 +46,15 @@ func TestLegalLinks(t *testing.T) {
 	if _, body := f.do(t, "localhost", http.MethodGet, "/olivier/review/", nil, nil); !strings.Contains(body, `<a href="/-/report?window=https%3A%2F%2Flocalhost%2Folivier%2Freview%2F">Report a Window</a>`) {
 		t.Errorf("the page of a Key does not fill in its Window in the link of a report: %q", body)
 	}
+	// On the page of a Room, each card links it for a reader outside the
+	// Room, and for its members none does.
+	card := `<a class="card__report" href="/-/report?window=https%3A%2F%2Flocalhost%2Folivier%2Flaunch%2F" aria-label="Report Launch">`
+	if _, body := f.do(t, "localhost", http.MethodGet, "/olivier/", nil, nil); !strings.Contains(body, card) {
+		t.Errorf("the card of a Window on the page of its Room does not link its report: %q", body)
+	}
+	if _, body := f.do(t, "localhost", http.MethodGet, "/olivier/", []*http.Cookie{f.signIn(t, "localhost", "olivier")}, nil); strings.Contains(body, "card__report") {
+		t.Errorf("the page of a Room links reports for its members: %q", body)
+	}
 
 	// An administrator of the server sets them over the API, in the console
 	// of the Cahut.
