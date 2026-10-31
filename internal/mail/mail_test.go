@@ -554,9 +554,11 @@ func TestDevelopmentSends(t *testing.T) {
 	}
 }
 
-// TestTestOfAServerAdministrator checks that an administrator of the
-// server, who has no address, names where the test goes.
-func TestTestOfAServerAdministrator(t *testing.T) {
+// TestTestFromTheCommandLine checks that the command line, which has no
+// address, names where the test goes, and that an administrator of the
+// server no longer sends it: the e-mail of a Cahut is for its
+// administrators. See docs/adr/0058-a-console-for-the-server.md.
+func TestTestFromTheCommandLine(t *testing.T) {
 	f := setup(t, server.Config{})
 	ctx := context.Background()
 	relay := cahutRelay(t, f, mailtest.Options{})
@@ -564,11 +566,14 @@ func TestTestOfAServerAdministrator(t *testing.T) {
 		t.Fatal(err)
 	}
 	root := operation.Actor{Kind: operation.Admin, Via: "api", Domain: "example.com", Handle: "root", Session: 1}
-	if _, err := f.cahut.Registry.Invoke(ctx, "send_test_mail", root, []byte(`{}`)); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "to:") {
-		t.Errorf("send_test_mail by an administrator of the server, without an address: %v", err)
+	if _, err := f.cahut.Registry.Invoke(ctx, "send_test_mail", root, []byte(`{"to":"root@example.org"}`)); !errors.Is(err, operation.ErrForbidden) {
+		t.Errorf("send_test_mail by an administrator of the server: %v", err)
 	}
-	if _, err := f.cahut.Registry.Invoke(ctx, "send_test_mail", root, []byte(`{"to":"root@example.org"}`)); err != nil {
-		t.Fatalf("send_test_mail by an administrator of the server: %v", err)
+	if _, err := f.cahut.Registry.Invoke(ctx, "send_test_mail", cli, []byte(`{}`)); !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "to:") {
+		t.Errorf("send_test_mail from the command line, without an address: %v", err)
+	}
+	if _, err := f.cahut.Registry.Invoke(ctx, "send_test_mail", cli, []byte(`{"to":"root@example.org"}`)); err != nil {
+		t.Fatalf("send_test_mail from the command line: %v", err)
 	}
 	if m := relay.Wait(t, 1); m[0].To[0] != "root@example.org" {
 		t.Errorf("the test went to %v", m[0].To)

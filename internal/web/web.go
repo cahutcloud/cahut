@@ -254,7 +254,6 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.console = http.NewServeMux()
 	pages := http.StripPrefix(strings.TrimSuffix(ConsolePath, "/"), console.Handler())
 	s.console.HandleFunc("GET "+ConsolePath+"oauth/authorize", s.logged(pages.ServeHTTP))
-	s.console.HandleFunc("POST "+ConsolePath+"api/server/{operation}", s.serveServerAPI)
 	s.console.HandleFunc("POST "+ConsolePath+"api/{operation}", s.serveAPI)
 	s.console.HandleFunc(ConsolePath+"api/", refuseAPI)
 	s.console.Handle(ConsolePath, pages)

@@ -33,7 +33,7 @@ func TestRun(t *testing.T) {
 		"cli.md":        {"## `cahut serve`", "### `cahut token create`", "| `--data string` | `/var/lib/cahut` |"},
 		"operations.md": {"[`publish_window`](/reference/mcp-tools/#publish_window)", "| `add_domain` |"},
 		"http-api.md": {"## Sessions", "| `POST /server/api/add_domain` | Administrators of the server | yes |", "| 401 Unauthorized |",
-			"| `POST /server/api/cahuts/<domain>/suspend_cahut` |", "| `POST /console/api/list_rooms` | Any person | yes |",
+			"| `POST /server/api/cahuts/<domain>/suspend_cahut` |", "| `POST /server/api/cahuts/<domain>/get_cahut` | Administrators of the server | yes |", "| `POST /console/api/list_rooms` | Any person | yes |",
 			"| `password_too_short` | `length`, `limit` | The password has {length} characters: use at least {limit} |", "| `session_ended` |  | Invalid or ended session |"},
 	}
 	for file, parts := range want {

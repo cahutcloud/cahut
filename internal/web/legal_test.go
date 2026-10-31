@@ -57,12 +57,12 @@ func TestLegalLinks(t *testing.T) {
 	}
 
 	// An administrator of the server sets them over the API, in the console
-	// of the Cahut.
+	// of the server.
 	a, err := operation.Do(context.Background(), f.srv.Registry, server.CreateAdmin, admin, server.CreateAdminInput{Handle: "root", Name: "Root"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	r := call(t, f, console, http.MethodPost, "localhost", "/console/api/server/activate_account", "",
+	r := call(t, f, console, http.MethodPost, "localhost", "/server/api/activate_account", "",
 		`{"code": "`+a.Activation.Code+`", "password": "`+password+`"}`)
 	if r.status != http.StatusOK {
 		t.Fatalf("activate_account of the server: %d %s", r.status, r.raw)
@@ -70,17 +70,17 @@ func TestLegalLinks(t *testing.T) {
 	root := r.body["token"].(string)
 	checkRefusals(t, f, console, root, []refusalCase{
 		{
-			name: "an address in HTTP", path: "/console/api/set_legal_links", body: `{"terms": "http://host.example/terms"}`,
+			name: "an address in HTTP", path: "/server/api/cahuts/localhost/set_legal_links", body: `{"terms": "http://host.example/terms"}`,
 			status: 400, code: "legal_link_invalid", values: map[string]any{"link": "terms"},
 			error: "invalid input: terms: give the address of a page, which starts with https://, such as https://example.org/terms, or leave it out to remove the link",
 		},
 		{
-			name: "an address in French alone", path: "/console/api/set_legal_links", body: `{"fr": {"privacy": "https://host.example/fr/confidentialite"}}`,
+			name: "an address in French alone", path: "/server/api/cahuts/localhost/set_legal_links", body: `{"fr": {"privacy": "https://host.example/fr/confidentialite"}}`,
 			status: 400, code: "legal_link_in_french_only", values: map[string]any{"link": "fr.privacy", "page": "privacy"},
 			error: "invalid input: fr.privacy: give privacy too, the address of the page for every other language; the address in French takes its place in French only",
 		},
 	})
-	r = call(t, f, console, http.MethodPost, "localhost", "/console/api/set_legal_links", root, `{
+	r = call(t, f, console, http.MethodPost, "localhost", "/server/api/cahuts/localhost/set_legal_links", root, `{
 		"legal_notice": "https://host.example/legal", "terms": "https://host.example/terms?from=cahut&lang=en", "privacy": "https://host.example/privacy",
 		"fr": {"legal_notice": "https://host.example/fr/mentions-legales"}}`)
 	if r.status != http.StatusOK || r.body["terms"] != "https://host.example/terms?from=cahut&lang=en" {

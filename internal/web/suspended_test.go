@@ -37,7 +37,7 @@ func TestSuspendedCahut(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r := call(t, f, f.ts, http.MethodPost, "localhost", "/console/api/server/activate_account", "",
+	r := call(t, f, f.ts, http.MethodPost, "localhost", "/server/api/activate_account", "",
 		`{"code": "`+a.Activation.Code+`", "password": "`+password+`"}`)
 	if r.status != http.StatusOK {
 		t.Fatalf("activate_account of the server: %d %s", r.status, r.raw)
@@ -45,12 +45,12 @@ func TestSuspendedCahut(t *testing.T) {
 	root := r.body["token"].(string)
 
 	// The administrators of the server suspend it from the console of the
-	// Cahut, with their session.
+	// server, with their session.
 	r = call(t, f, f.ts, http.MethodPost, "localhost", "/console/api/suspend_cahut", camille, `{"reason": "Unpaid invoice"}`)
 	if r.status != http.StatusForbidden {
 		t.Errorf("suspend_cahut by a person: %d %s", r.status, r.raw)
 	}
-	r = call(t, f, f.ts, http.MethodPost, "localhost", "/console/api/suspend_cahut", root, `{"reason": "Unpaid invoice"}`)
+	r = call(t, f, f.ts, http.MethodPost, "localhost", "/server/api/cahuts/localhost/suspend_cahut", root, `{"reason": "Unpaid invoice"}`)
 	if r.status != http.StatusOK || r.body["suspension"].(map[string]any)["reason"] != "Unpaid invoice" {
 		t.Fatalf("suspend_cahut: %d %s", r.status, r.raw)
 	}
@@ -112,11 +112,11 @@ func TestSuspendedCahut(t *testing.T) {
 
 	// The administrators of the server act in it, and see it suspended in
 	// the list of the Cahuts.
-	r = call(t, f, f.ts, http.MethodPost, "localhost", "/console/api/list_users", root, `{}`)
-	if r.status != http.StatusOK {
-		t.Errorf("list_users as an administrator of the server: %d %s", r.status, r.raw)
+	r = call(t, f, f.ts, http.MethodPost, "localhost", "/server/api/cahuts/localhost/get_cahut", root, `{}`)
+	if r.status != http.StatusOK || r.body["suspension"] == nil {
+		t.Errorf("get_cahut as an administrator of the server: %d %s", r.status, r.raw)
 	}
-	r = call(t, f, f.ts, http.MethodPost, "localhost", "/console/api/server/list_domains", root, `{}`)
+	r = call(t, f, f.ts, http.MethodPost, "localhost", "/server/api/list_domains", root, `{}`)
 	cahuts, _ := r.body["cahuts"].([]any)
 	if r.status != http.StatusOK || len(cahuts) != 2 || cahuts[0].(map[string]any)["suspension"] == nil ||
 		cahuts[1].(map[string]any)["suspension"] != nil {

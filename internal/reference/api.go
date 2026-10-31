@@ -86,6 +86,9 @@ func apiPage(s sample) page {
 	var forServer []operation.Info
 	for _, op := range s.cahutOps {
 		if op.ServesServer() {
+			// Whatever their level in the Cahut, the administrators of the
+			// server alone call them at this route.
+			op.Level = operation.ServerAdmin
 			forServer = append(forServer, op)
 		}
 	}

@@ -51,20 +51,25 @@ func TestBatch2Scenario(t *testing.T) {
 		t.Fatal(err)
 	}
 	root := code(must("1. activate the administrator of the server",
-		post("localhost", "/console/api/server/activate_account", "", map[string]string{"code": a.Activation.Code, "password": password}), 200), "token")
+		post("localhost", "/server/api/activate_account", "", map[string]string{"code": a.Activation.Code, "password": password}), 200), "token")
 
 	// 2. They declare a third Cahut, with its first administrator, who
 	// activates their account there.
-	n := must("2. declare a Cahut", post("localhost", "/console/api/server/add_domain", root,
+	n := must("2. declare a Cahut", post("localhost", "/server/api/add_domain", root,
 		map[string]any{"domain": "gamma.localhost", "admin": map[string]string{"handle": "zoe", "name": "Zoé"}}), 200)
 	zoe := code(must("2. activate its first administrator", post("gamma.localhost", "/console/api/activate_account", "",
 		map[string]string{"code": code(n, "admin", "activation", "code"), "password": password}), 200), "token")
 
-	// 3. In the first Cahut, the administrator creates two people, who
-	// activate their accounts.
+	// 3. In the first Cahut, its administrator, whom the command line made,
+	// creates two people, who activate their accounts. The administrator of
+	// the server manages no person there. See
+	// docs/adr/0058-a-console-for-the-server.md.
+	must("3. create alice as the administrator of the server", post("localhost", "/server/api/cahuts/localhost/create_user", root,
+		map[string]string{"handle": "alice", "name": "alice"}), 404)
+	carla := activate(t, f, f.ts, "carla", true)
 	sessions := map[string]string{}
 	for _, handle := range []string{"alice", "bruno"} {
-		u := must("3. create "+handle, post("localhost", "/console/api/create_user", root, map[string]string{"handle": handle, "name": handle}), 200)
+		u := must("3. create "+handle, post("localhost", "/console/api/create_user", carla, map[string]string{"handle": handle, "name": handle}), 200)
 		sessions[handle] = code(must("3. activate "+handle, post("localhost", "/console/api/activate_account", "",
 			map[string]string{"code": code(u, "activation", "code"), "password": password}), 200), "token")
 	}
@@ -118,7 +123,7 @@ func TestBatch2Scenario(t *testing.T) {
 
 	// 7. The Logbook shows the publications, the accounts and the Room, with
 	// the AI and the person.
-	entries := must("7. the Logbook", post("localhost", "/console/api/list_logbook", root, map[string]int{"limit": 200}), 200)["entries"].([]any)
+	entries := must("7. the Logbook", post("localhost", "/console/api/list_logbook", carla, map[string]int{"limit": 200}), 200)["entries"].([]any)
 	seen := map[string]int{}
 	for _, e := range entries {
 		m := e.(map[string]any)
@@ -131,8 +136,9 @@ func TestBatch2Scenario(t *testing.T) {
 		}
 		seen[op]++
 	}
-	// setup created olivier in the first Cahut already.
-	for op, want := range map[string]int{"publish_window": 3, "create_user": 3, "activate_account": 2, "create_room": 1, "add_room_member": 1} {
+	// setup created olivier in the first Cahut already, and the command line
+	// carla.
+	for op, want := range map[string]int{"publish_window": 3, "create_user": 4, "activate_account": 3, "create_room": 1, "add_room_member": 1} {
 		if seen[op] != want {
 			t.Errorf("7. the Logbook holds %d %s, want %d", seen[op], op, want)
 		}

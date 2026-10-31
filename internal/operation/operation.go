@@ -729,6 +729,12 @@ func authorize(info Info, a Actor) error {
 	if info.Level == ServerAdmin && a.Kind != Admin {
 		return Forbiddenf("%s is for the %s", info.Name, info.Level)
 	}
+	// An administrator of the server calls in a Cahut what serves the
+	// server only; the command line calls everything. See
+	// docs/adr/0058-a-console-for-the-server.md.
+	if a.Kind == Admin && !a.CommandLine() && !info.ServesServer() && !info.Visitors {
+		return Forbiddenf("%s is for the people of the Cahut: the administrators of the server call in a Cahut what serves the server only", info.Name)
+	}
 	return nil
 }
 

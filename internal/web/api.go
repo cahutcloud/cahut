@@ -19,11 +19,14 @@ import (
 	"cahut.cloud/internal/server"
 )
 
-// The HTTP API of the console calls each operation at its own route, under
-// the console's path: POST /console/api/<operation> for the operations of
-// the Cahut of the request's domain, and POST /console/api/server/<operation>
-// for those of the server. It takes session tokens only, reads no cookie and grants no
-// CORS access. See docs/adr/0014-console-http-api.md.
+// The HTTP APIs of the consoles call each operation at its own route:
+// POST /console/api/<operation> for the operations of the Cahut of the
+// request's domain, for its people; POST /server/api/<operation> for those
+// of the server, and POST /server/api/cahuts/<domain>/<operation> for those
+// that serve the server in a Cahut, for its administrators. They take
+// session tokens only, read no cookie and grant no CORS access. See
+// docs/adr/0014-console-http-api.md and
+// docs/adr/0058-a-console-for-the-server.md.
 
 // MaxAPIRequestSize bounds the body of a request to the API. The console
 // does not publish: Windows come from AIs, over MCP. The calls of visitors,
@@ -117,7 +120,7 @@ func refuseAPI(w http.ResponseWriter, r *http.Request) {
 		apiError(w, http.StatusMethodNotAllowed, "the API takes POST requests only, with the input of the operation in JSON")
 		return
 	}
-	apiError(w, http.StatusNotFound, "no such route: call POST /api/<operation> or POST /api/server/<operation>")
+	apiError(w, http.StatusNotFound, "no such route: call POST /console/api/<operation>, POST /server/api/<operation> or POST /server/api/cahuts/<domain>/<operation>")
 }
 
 func setAPIHeaders(w http.ResponseWriter) {
@@ -212,10 +215,10 @@ func (s *Server) invoke(w http.ResponseWriter, r *http.Request, reg *operation.R
 }
 
 // sessionActor returns the actor of the session that the request presents:
-// a person of the Cahut st, or an administrator of the server who signed in
-// at its domain. Only administrators of the server reach its operations. It
-// returns an error wrapping account.ErrInvalidSession when the request has
-// no valid session for this call.
+// a person of the Cahut st, for the API of its console, or an administrator
+// of the server who signed in at its domain, for the API of the console of
+// the server. It returns an error wrapping account.ErrInvalidSession when
+// the request has no valid session for this call.
 func (s *Server) sessionActor(r *http.Request, st *site, ofServer bool) (operation.Actor, error) {
 	token, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
 	token = strings.TrimSpace(token)
@@ -224,6 +227,11 @@ func (s *Server) sessionActor(r *http.Request, st *site, ofServer bool) (operati
 	switch {
 	case !ok || token == "":
 		return actor, fmt.Errorf("%w: sign in first, then send the session token in the Authorization header", account.ErrInvalidSession)
+	case strings.HasPrefix(token, server.SessionPrefix) && !ofServer:
+		// The console of the Cahut takes the sessions of its people only.
+		// See docs/adr/0058-a-console-for-the-server.md.
+		return actor, fmt.Errorf("%w: the console of the Cahut takes the sessions of its people: the administrators of the server use %s",
+			account.ErrInvalidSession, ServerPath)
 	case strings.HasPrefix(token, server.SessionPrefix):
 		a, err := s.srv.VerifySession(r.Context(), token, st.cahut.Domain, now)
 		if err != nil {

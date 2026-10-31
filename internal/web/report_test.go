@@ -182,7 +182,7 @@ func serverAdmin(t *testing.T, f *fixture, handle string) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r := call(t, f, f.ts, http.MethodPost, "localhost", "/console/api/server/activate_account", "",
+	r := call(t, f, f.ts, http.MethodPost, "localhost", "/server/api/activate_account", "",
 		`{"code": "`+a.Activation.Code+`", "password": "`+password+`"}`)
 	if r.status != http.StatusOK {
 		t.Fatalf("activate_account of the server: %d %s", r.status, r.raw)
@@ -217,10 +217,15 @@ func TestOpenAReportedWindow(t *testing.T) {
 	}
 
 	// An administrator of the Cahut who is not in its Room opens it, and so
-	// does an administrator of the server, each in a frame of their own.
+	// does an administrator of the server, from the console of the server,
+	// each in a frame of their own.
 	frames := map[string]string{}
-	for who, token := range map[string]string{"ana": ana, "root": root} {
-		r := call(t, f, console, http.MethodPost, "localhost", "/console/api/preview_reported_window", token, `{"report": 1}`)
+	for who, path := range map[string]string{
+		"ana":  "/console/api/preview_reported_window",
+		"root": "/server/api/cahuts/localhost/preview_reported_window",
+	} {
+		token := map[string]string{"ana": ana, "root": root}[who]
+		r := call(t, f, console, http.MethodPost, "localhost", path, token, `{"report": 1}`)
 		frame, _ := r.body["frame"].(string)
 		if r.status != http.StatusOK || r.body["window"] != "olivier/draft" || !strings.HasPrefix(frame, "/-/frame/") {
 			t.Fatalf("preview_reported_window as %s: %d %s", who, r.status, r.raw)
@@ -256,13 +261,13 @@ func TestOpenAReportedWindow(t *testing.T) {
 
 	// Once the report is decided, the frames open nothing, and no new one
 	// is given.
-	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/dismiss_report", root, `{"report": 1}`); r.status != http.StatusOK || r.body["by_server"] != true {
+	if r := call(t, f, console, http.MethodPost, "localhost", "/server/api/cahuts/localhost/dismiss_report", root, `{"report": 1}`); r.status != http.StatusOK || r.body["by_server"] != true {
 		t.Fatalf("dismiss_report as an administrator of the server: %d %s", r.status, r.raw)
 	}
 	if resp, _ := f.do(t, "localhost", http.MethodGet, frames["root"], nil, nil); resp.StatusCode != http.StatusNotFound {
 		t.Errorf("the frame of a decided report = %d", resp.StatusCode)
 	}
-	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/preview_reported_window", root, `{"report": 1}`); r.status != http.StatusBadRequest || r.body["code"] != "report_decided" {
+	if r := call(t, f, console, http.MethodPost, "localhost", "/server/api/cahuts/localhost/preview_reported_window", root, `{"report": 1}`); r.status != http.StatusBadRequest || r.body["code"] != "report_decided" {
 		t.Errorf("preview_reported_window of a decided report: %d %s", r.status, r.raw)
 	}
 }
@@ -331,7 +336,13 @@ func TestWithdrawAWindow(t *testing.T) {
 		if reason != "" {
 			body = `{"window": "` + window + `", "reason": "` + reason + `"}`
 		}
-		return call(t, f, console, http.MethodPost, "localhost", "/console/api/"+op, token, body)
+		// The administrators of the server moderate from the console of the
+		// server.
+		path := "/console/api/" + op
+		if token == root {
+			path = "/server/api/cahuts/localhost/" + op
+		}
+		return call(t, f, console, http.MethodPost, "localhost", path, token, body)
 	}
 
 	// The moderators withdraw a Window that a report names, or a public
@@ -504,10 +515,10 @@ func TestModerationMail(t *testing.T) {
 	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/set_moderation_address", ana, `{"email": "abuse@host.example"}`); r.status != http.StatusForbidden {
 		t.Errorf("set_moderation_address as an administrator of the Cahut: %d %s", r.status, r.raw)
 	}
-	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/set_moderation_address", root, `{"email": "not an address"}`); r.status != http.StatusBadRequest {
+	if r := call(t, f, console, http.MethodPost, "localhost", "/server/api/cahuts/localhost/set_moderation_address", root, `{"email": "not an address"}`); r.status != http.StatusBadRequest {
 		t.Errorf("set_moderation_address with a wrong address: %d %s", r.status, r.raw)
 	}
-	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/set_moderation_address", root, `{"email": "abuse@host.example"}`); r.status != http.StatusOK {
+	if r := call(t, f, console, http.MethodPost, "localhost", "/server/api/cahuts/localhost/set_moderation_address", root, `{"email": "abuse@host.example"}`); r.status != http.StatusOK {
 		t.Fatalf("set_moderation_address: %d %s", r.status, r.raw)
 	}
 	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/get_cahut", ana, `{}`); r.body["moderation_email"] != "abuse@host.example" {
@@ -561,7 +572,7 @@ func TestModerationMail(t *testing.T) {
 	// A new reason goes to them too, and the same reason given again does
 	// not.
 	for range 2 {
-		r := call(t, f, console, http.MethodPost, "localhost", "/console/api/withdraw_window", root, `{"window": "olivier/phish", "reason": "It imitates a bank, and asks for card numbers."}`)
+		r := call(t, f, console, http.MethodPost, "localhost", "/server/api/cahuts/localhost/withdraw_window", root, `{"window": "olivier/phish", "reason": "It imitates a bank, and asks for card numbers."}`)
 		if r.status != http.StatusOK {
 			t.Fatalf("withdraw_window with a new reason: %d %s", r.status, r.raw)
 		}
@@ -573,7 +584,7 @@ func TestModerationMail(t *testing.T) {
 	}
 
 	// Reinstating tells them that it opens again.
-	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/reinstate_window", root, `{"window": "olivier/phish"}`); r.status != http.StatusOK {
+	if r := call(t, f, console, http.MethodPost, "localhost", "/server/api/cahuts/localhost/reinstate_window", root, `{"window": "olivier/phish"}`); r.status != http.StatusOK {
 		t.Fatalf("reinstate_window: %d %s", r.status, r.raw)
 	}
 	if m := relay.Wait(t, 7)[6]; m.To[0] != "olivier@example.org" || !strings.Contains(body(m), "olivier/phish is open again") {
@@ -616,7 +627,7 @@ func TestPublicWindowsAndWaitingReports(t *testing.T) {
 			t.Fatalf("report = %d", status)
 		}
 	}
-	r = call(t, f, console, http.MethodPost, "localhost", "/console/api/server/list_domains", root, `{}`)
+	r = call(t, f, console, http.MethodPost, "localhost", "/server/api/list_domains", root, `{}`)
 	counts := map[string]float64{}
 	for _, c := range r.body["cahuts"].([]any) {
 		reports, _ := c.(map[string]any)["reports"].(float64)

@@ -257,20 +257,20 @@ The administrators of the server call these operations in every Cahut of the ser
 | Route | Who calls it | Session |
 | --- | --- | --- |
 | `POST /server/api/cahuts/<domain>/create_service_token` | Administrators of the server | yes |
-| `POST /server/api/cahuts/<domain>/dismiss_report` | Administrators of the Cahut | yes |
-| `POST /server/api/cahuts/<domain>/get_cahut` | Any person | yes |
-| `POST /server/api/cahuts/<domain>/list_public_windows` | Administrators of the Cahut | yes |
-| `POST /server/api/cahuts/<domain>/list_reports` | Administrators of the Cahut | yes |
+| `POST /server/api/cahuts/<domain>/dismiss_report` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/get_cahut` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/list_public_windows` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/list_reports` | Administrators of the server | yes |
 | `POST /server/api/cahuts/<domain>/list_service_tokens` | Administrators of the server | yes |
-| `POST /server/api/cahuts/<domain>/preview_reported_window` | Administrators of the Cahut | yes |
-| `POST /server/api/cahuts/<domain>/reinstate_window` | Administrators of the Cahut | yes |
+| `POST /server/api/cahuts/<domain>/preview_reported_window` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/reinstate_window` | Administrators of the server | yes |
 | `POST /server/api/cahuts/<domain>/resume_cahut` | Administrators of the server | yes |
 | `POST /server/api/cahuts/<domain>/revoke_service_token` | Administrators of the server | yes |
 | `POST /server/api/cahuts/<domain>/set_cahut_settings` | Administrators of the server | yes |
 | `POST /server/api/cahuts/<domain>/set_legal_links` | Administrators of the server | yes |
 | `POST /server/api/cahuts/<domain>/set_moderation_address` | Administrators of the server | yes |
 | `POST /server/api/cahuts/<domain>/suspend_cahut` | Administrators of the server | yes |
-| `POST /server/api/cahuts/<domain>/withdraw_window` | Administrators of the Cahut | yes |
+| `POST /server/api/cahuts/<domain>/withdraw_window` | Administrators of the server | yes |
 
 ## Admin API
 
