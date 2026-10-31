@@ -1,6 +1,6 @@
 # 10. Windows run in a CSP sandbox
 
-- Status: Accepted, extended by [ADR 27](0027-previews-of-windows-in-the-console.md) (the console shows each Window in a preview, in a sandboxed frame)
+- Status: Accepted, extended by [ADR 27](0027-previews-of-windows-in-the-console.md) (the console shows each Window in a preview, in a sandboxed frame) and by [ADR 56](0056-a-database-for-each-window.md) (Cahut keeps the data of a Window in a database of its own, which its pages call at `.data/`)
 - Date: 2026-10-21
 
 ## Context
