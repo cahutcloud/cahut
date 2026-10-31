@@ -185,7 +185,7 @@ func (s *Server) serveFrame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if frame.Kind == window.FrameByModerator || frame.Kind == window.FrameByHost {
-		opens, err := c.Windows.ModeratorOpens(r.Context(), frame, now)
+		opens, err := c.Windows.ModeratorOpens(r.Context(), c.DB.Read, frame, now)
 		if err != nil {
 			s.internal(w, "verify the frame of a moderator", err)
 			return

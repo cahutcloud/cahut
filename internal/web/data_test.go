@@ -6,7 +6,9 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -203,9 +205,39 @@ func TestModeratorFramesReadWhileTheyOpen(t *testing.T) {
 	}
 	closed("ana once signed out", anaFrame)
 
+	// The pages of a frame call at once, more than the reads of the Cahut
+	// take together: the check holds no connection of its own.
+	statuses := make(chan int, 2*readConnections)
+	var wg sync.WaitGroup
+	for range 2 * readConnections {
+		wg.Go(func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			req, _ := http.NewRequestWithContext(ctx, http.MethodPost, f.ts.URL+bobFrame+".data/sql", strings.NewReader(read))
+			req.Header.Set("Content-Type", "application/json")
+			resp, err := f.client("localhost", "").Do(req)
+			if err != nil {
+				statuses <- 0
+				return
+			}
+			resp.Body.Close()
+			statuses <- resp.StatusCode
+		})
+	}
+	wg.Wait()
+	close(statuses)
+	for status := range statuses {
+		if status != http.StatusOK {
+			t.Errorf("a read among many at once = %d", status)
+		}
+	}
+
 	f.call(t, "localhost", admin, "dismiss_report", `{"report": 1}`)
 	closed("bob once the report is decided", bobFrame)
 }
+
+// readConnections is how many connections read the database of a Cahut.
+const readConnections = 4
 
 func TestWritesClose(t *testing.T) {
 	f := setup(t)

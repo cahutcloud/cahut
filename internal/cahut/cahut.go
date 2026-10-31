@@ -102,8 +102,8 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		data = windata.NewPool(windata.Options{})
 	}
 	w := window.NewService(filepath.Join(cfg.Dir, "windows"), cfg.BaseURL, frameKey, data)
-	w.ModeratorOpens = func(ctx context.Context, f window.Frame, now time.Time) (bool, error) {
-		return moderation.FrameOpens(ctx, db, f, now, cfg.AdminSessionLasts)
+	w.ModeratorOpens = func(ctx context.Context, q account.RowQuerier, f window.Frame, now time.Time) (bool, error) {
+		return moderation.FrameOpens(ctx, q, f, now, cfg.AdminSessionLasts)
 	}
 	w.Register(r)
 	moderation.Register(r, frameKey)

@@ -47,8 +47,9 @@ type Service struct {
 	copies   copies
 	// ModeratorOpens reports whether the frame f of a moderator still opens
 	// its Window, for the data that its pages read as for its files; without
-	// it, none does. See docs/adr/0054-reporting-and-withdrawing-a-window.md.
-	ModeratorOpens func(ctx context.Context, f Frame, now time.Time) (bool, error)
+	// it, none does. It reads the Cahut with q, the transaction of a call or
+	// its database. See docs/adr/0054-reporting-and-withdrawing-a-window.md.
+	ModeratorOpens func(ctx context.Context, q account.RowQuerier, f Frame, now time.Time) (bool, error)
 }
 
 // NewService returns a service that keeps Window files under dir, gives

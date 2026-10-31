@@ -232,7 +232,7 @@ func (s *Service) pageWindow(ctx context.Context, c *operation.Call, in PageData
 			// Window.
 			opens := false
 			if s.ModeratorOpens != nil {
-				if opens, err = s.ModeratorOpens(ctx, frame, c.Now); err != nil {
+				if opens, err = s.ModeratorOpens(ctx, c.Tx, frame, c.Now); err != nil {
 					return Served{}, pageReader{}, err
 				}
 			}
