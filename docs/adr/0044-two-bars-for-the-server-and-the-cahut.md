@@ -1,6 +1,6 @@
 # 44. The console shows the server and the Cahut in two bars, and each signs out of its own session
 
-- Status: Accepted
+- Status: Superseded by [ADR 58](0058-a-console-for-the-server.md) (the administrators of the server have a console of their own, under `/server/`)
 - Date: 2026-10-27
 
 ## Context

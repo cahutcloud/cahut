@@ -1,6 +1,6 @@
 # 54. Anyone reports a Window, and the moderators of its Cahut open it and withdraw it
 
-- Status: Accepted, extended by [ADR 56](0056-a-database-for-each-window.md) (a withdrawn Window takes no data from readers, and moderators write none)
+- Status: Accepted, extended by [ADR 56](0056-a-database-for-each-window.md) (a withdrawn Window takes no data from readers, and moderators write none), superseded in part by [ADR 58](0058-a-console-for-the-server.md) (the administrators of the server moderate from the console of the server)
 - Date: 2026-10-30
 
 ## Context

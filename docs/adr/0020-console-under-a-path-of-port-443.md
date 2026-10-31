@@ -1,6 +1,6 @@
 # 20. The console is served under `/console/` on port 443
 
-- Status: Accepted, extended by [ADR 43](0043-the-console-holds-two-sessions.md) (the console holds two sessions, that of a person and that of an administrator of the server)
+- Status: Accepted, extended by [ADR 43](0043-the-console-holds-two-sessions.md) (the console holds two sessions, that of a person and that of an administrator of the server), superseded in part by [ADR 58](0058-a-console-for-the-server.md) (the API of the server is under `/server/api/`)
 - Date: 2026-10-23
 
 ## Context
