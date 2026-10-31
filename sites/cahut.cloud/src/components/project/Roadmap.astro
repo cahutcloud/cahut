@@ -14,8 +14,9 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 
-// Batches 0 to 9 are done: the first version is complete, and e-mail with it.
-const done = 10;
+// Batches 0 to 10 are done: the first version is complete, with e-mail and
+// the data of Windows.
+const done = 11;
 const batches = t.project.roadmap.batches.map((batch, index) => ({
 	...batch,
 	index,

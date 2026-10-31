@@ -105,6 +105,7 @@ The full scope ships at launch, with no reduced trial version.
 | Versions | Two versions kept per publication, roll back in one gesture |
 | Comments | Reader feedback directly on the pages |
 | Search | Find any page, deck or dashboard of your Rooms by a word of it or a tag |
+| Data | A SQLite database for each page, on your server: polls, forms, petitions and trackers keep what their readers write |
 | Export | PDF and PowerPoint, for recipients still on Office |
 | Users and Rooms | The people of each Cahut and its admins, a personal Room for each person, team Rooms with owners and members |
 | Sign-in | Accounts of each Cahut, and single sign-on with OpenID Connect (Google, Microsoft Entra, Okta...) |
@@ -204,7 +205,7 @@ Cahut is written in **Go**: a new, clean codebase built for Cahut, which one per
 | AI interface | MCP over HTTP with OAuth, forced-command SSH for the same operations | Decided |
 | Web console | A Preact app embedded in the binary, served under `/console/` of each Cahut, using the same API as the AIs: no capability is reserved for it | Decided |
 | Web and TLS | Built into the binary, automatic certificates with CertMagic, Windows at paths of their Cahut's domain, each in a CSP sandbox | Decided |
-| Database | SQLite in pure Go, so the binary stays static, one database per Cahut | Decided |
+| Database | SQLite in pure Go, so the binary stays static, one database per Cahut, and one per Window for its data, run in a confined process | Decided |
 | Authorization | Cahut's own minimal OAuth 2.1 server, built for MCP clients | Decided |
 | Updates | Automatic, latest version checked on GitHub, rollback possible | Decided |
 | Backups | Optional, to external S3 or SFTP | Decided |

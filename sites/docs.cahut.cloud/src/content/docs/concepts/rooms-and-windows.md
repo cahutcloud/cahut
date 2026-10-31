@@ -144,7 +144,7 @@ Cache-Control: no-cache
 The files of a protected Window, in their frame, carry `Referrer-Policy: no-referrer` instead. The `sandbox` directive, without `allow-same-origin`, gives the page an opaque origin:
 
 - Its scripts cannot read the other Windows of the Cahut, nor the session of its reader.
-- `localStorage`, `sessionStorage`, IndexedDB and `document.cookie` throw a `SecurityError`. A page keeps its state in memory or in its address.
+- `localStorage`, `sessionStorage`, IndexedDB and `document.cookie` throw a `SecurityError`. A page keeps its state in memory, in its address, or in the [data of its Window](/concepts/data/).
 - Scripts, forms, dialogs, downloads, and links that open in a new tab keep working.
 - Module scripts, `fetch` calls and web fonts become cross-origin requests. `Access-Control-Allow-Origin: *` lets them load the files of the Window, without credentials.
 

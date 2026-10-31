@@ -84,7 +84,7 @@ func runSettingsSet(args []string, stdout, stderr io.Writer) int {
 	data := dataFlag(fs)
 	domain := domainFlag(fs)
 	kind := fs.String("kind", "", "collaborative or individual; the kind stays when left out")
-	var people, admins, rooms, windows, perRoom, disk, roomsPP, windowsPP, diskPP limitFlag
+	var people, admins, rooms, windows, perRoom, disk, dataPW, roomsPP, windowsPP, diskPP limitFlag
 	fs.Var(&people, "people", "the Cahut may have `N` people, administrators included, and disabled people do not count; none lifts the limit")
 	fs.Var(&admins, "admins", "`N` of them may be administrators of the Cahut; none lifts the limit")
 	fs.Var(&rooms, "rooms", "the Cahut may have `N` team Rooms; none lifts the limit")
@@ -92,13 +92,15 @@ func runSettingsSet(args []string, stdout, stderr io.Writer) int {
 	fs.Var(&perRoom, "windows-per-room", "each Room may hold `N` Windows out of the trash; none lifts the limit")
 	disk.bytes = true
 	fs.Var(&disk, "disk", "the Cahut may keep `SIZE`, such as 10GB or 500MB, in units of 1000 bytes; none lifts the limit")
+	dataPW.bytes = true
+	fs.Var(&dataPW, "data-per-window", "the data of each Window may hold `SIZE`, such as 20MB, its copies apart; none leaves it at 100 MiB")
 	fs.Var(&roomsPP, "rooms-per-person", "in an individual Cahut, each person may have `N` Rooms beside their personal Room; none lifts the limit")
 	fs.Var(&windowsPP, "windows-per-person", "in an individual Cahut, each person may hold `N` Windows out of the trash; none lifts the limit")
 	diskPP.bytes = true
 	fs.Var(&diskPP, "disk-per-person", "in an individual Cahut, the Windows of each person may keep `SIZE`; none lifts the limit")
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "Usage: cahut settings set [--data DIR] [--domain DOMAIN] [--kind KIND] [--people N] [--admins N] [--rooms N] "+
-			"[--windows N] [--windows-per-room N] [--disk SIZE] [--rooms-per-person N] [--windows-per-person N] [--disk-per-person SIZE]")
+			"[--windows N] [--windows-per-room N] [--disk SIZE] [--data-per-window SIZE] [--rooms-per-person N] [--windows-per-person N] [--disk-per-person SIZE]")
 		fs.PrintDefaults()
 	}
 	if code, ok := parse(fs, args); !ok {
@@ -116,6 +118,7 @@ func runSettingsSet(args []string, stdout, stderr io.Writer) int {
 		windows.apply(&l.Windows)
 		perRoom.apply(&l.WindowsPerRoom)
 		disk.apply(&l.Disk)
+		dataPW.apply(&l.DataPerWindow)
 		if *kind == settings.Collaborative {
 			// A collaborative Cahut has no limit per person: they go with
 			// the kind, unless the flags set them, which the operation
@@ -323,6 +326,7 @@ func printSettings(w io.Writer, s settings.Settings) int {
 	fmt.Fprintf(tw, "Windows\t%d\t%s\n", u.Windows, limit(s.Limits.Windows, false))
 	fmt.Fprintf(tw, "Windows per Room\t\t%s\n", limit(s.Limits.WindowsPerRoom, false))
 	fmt.Fprintf(tw, "disk\t%s\t%s\n", settings.Bytes(u.Disk), limit(s.Limits.Disk, true))
+	fmt.Fprintf(tw, "data per Window\t\t%s\n", limit(s.Limits.DataPerWindow, true))
 	if s.Kind == settings.Individual {
 		fmt.Fprintf(tw, "Rooms per person\t\t%s\n", limit(s.Limits.RoomsPerPerson, false))
 		fmt.Fprintf(tw, "Windows per person\t\t%s\n", limit(s.Limits.WindowsPerPerson, false))

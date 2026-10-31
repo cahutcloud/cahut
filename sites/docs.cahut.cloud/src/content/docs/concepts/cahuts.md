@@ -39,7 +39,8 @@ The server keeps records of its own: the Cahuts and their domains, and the Logbo
     ├── 1/
     │   ├── cahut.db       people, Rooms, tokens, Windows and Logbook of the first Cahut
     │   └── windows/
-    │       └── 7/1/       the files of version 1 of Window 7
+    │       ├── 7/1/       the files of version 1 of Window 7
+    │       └── 7/data/    the data of Window 7, data.db, and its copies
     └── 2/
 ```
 
@@ -76,7 +77,8 @@ The administrators of the server can bound what each Cahut holds, such as when a
 | Team Rooms | Team Rooms. A personal Room comes with its person, and the limit of people already bounds them. |
 | Windows | The Windows out of the trash, in the whole Cahut. |
 | Windows per Room | The Windows out of the trash in one Room, personal Rooms included. |
-| Disk | Every version of every Window, those in the trash included, in units of 1000 bytes: 10 GB is 10 billion bytes. |
+| Disk | Every version of every Window, those in the trash included, and the data of each Window with its copies, in units of 1000 bytes: 10 GB is 10 billion bytes. |
+| Data per Window | What the [data](/concepts/data/) of each Window may hold, its copies apart, 100 MiB at most, which is also the bound without this limit. |
 
 In an individual Cahut, three more limits bound each person, the same for everyone: their Rooms beside the personal one, their Windows out of the trash, and the disk that their Windows keep. No person can then take what the Cahut gives to all, and a refusal speaks of the person's own use. A member of an individual Cahut reads the limits per person and their own use, not what the whole Cahut holds.
 

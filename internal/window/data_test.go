@@ -297,3 +297,32 @@ func TestDailyCopy(t *testing.T) {
 		t.Errorf("copies after a second write = %+v", copies)
 	}
 }
+
+// TestDataLimits checks that the disk counts the data of each Window, and
+// that the limit of each database stops the writes of readers.
+func TestDataLimits(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	if _, err := f.invoke(t, f.olivier, "publish_window", petition("", "")); err != nil {
+		t.Fatal(err)
+	}
+	var size int64
+	if err := f.db.Read.QueryRowContext(ctx, "SELECT data_size FROM windows WHERE name = 'save-the-river'").Scan(&size); err != nil || size == 0 {
+		t.Fatalf("data_size = %d, %v", size, err)
+	}
+	if _, err := f.r.Invoke(ctx, "set_window_access", person(f.olivier), []byte(`{"window": "olivier/save-the-river", "access": "public"}`)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.db.Write.ExecContext(ctx, "UPDATE settings SET data_per_window = 65536"); err != nil {
+		t.Fatal(err)
+	}
+	visitor := operation.Actor{Kind: operation.Visitor, Via: "web", Address: "192.0.2.1"}
+	sign := `{"window": "olivier/save-the-river", "query": "sign", "params": {"name": "` + strings.Repeat("x", 4000) + `", "email": "x"}}`
+	var err error
+	for i := 0; i < 40 && err == nil; i++ {
+		_, err = f.r.Invoke(ctx, "call_window_query", visitor, []byte(sign))
+	}
+	if e, ok := errors.AsType[*DataError](err); !ok || e.Code != DataFull {
+		t.Errorf("writing past data_per_window: %v, want %s", err, DataFull)
+	}
+}

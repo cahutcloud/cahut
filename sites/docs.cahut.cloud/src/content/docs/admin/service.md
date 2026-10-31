@@ -165,7 +165,7 @@ sudo tar -C /var/lib -czf cahut-backup.tar.gz cahut
 sudo systemctl start cahut
 ```
 
-Stop the service first: a copy of a database in use may not open.
+Stop the service first: a copy of a database in use may not open. The folder holds the data of each Window too, in `windows/<id>/data/`, with its copies.
 
 ## Update
 

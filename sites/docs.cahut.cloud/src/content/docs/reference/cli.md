@@ -177,13 +177,14 @@ cahut settings show [flags]
 Change the kind or limits of a Cahut; what you leave out stays as it is.
 
 ```text
-cahut settings set [--data DIR] [--domain DOMAIN] [--kind KIND] [--people N] [--admins N] [--rooms N] [--windows N] [--windows-per-room N] [--disk SIZE] [--rooms-per-person N] [--windows-per-person N] [--disk-per-person SIZE]
+cahut settings set [--data DIR] [--domain DOMAIN] [--kind KIND] [--people N] [--admins N] [--rooms N] [--windows N] [--windows-per-room N] [--disk SIZE] [--data-per-window SIZE] [--rooms-per-person N] [--windows-per-person N] [--disk-per-person SIZE]
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
 | `--admins N` |  | N of them may be administrators of the Cahut; none lifts the limit |
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--data-per-window SIZE` |  | the data of each Window may hold SIZE, such as 20MB, its copies apart; none leaves it at 100 MiB |
 | `--disk SIZE` |  | the Cahut may keep SIZE, such as 10GB or 500MB, in units of 1000 bytes; none lifts the limit |
 | `--disk-per-person SIZE` |  | in an individual Cahut, the Windows of each person may keep SIZE; none lifts the limit |
 | `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
