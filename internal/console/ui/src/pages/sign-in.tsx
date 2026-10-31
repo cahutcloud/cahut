@@ -33,7 +33,6 @@ const t = words({
 				gives you a new link.
 			</>
 		),
-		asPerson: "Sign in as a person of this Cahut",
 		forgot: "Forgot your password?",
 		askAdmin: "Forgot your password? An administrator of the Cahut can give you a new link.",
 		newPassword: "Choose a new password",
@@ -60,7 +59,6 @@ const t = words({
 				vous donne un nouveau lien.
 			</>
 		),
-		asPerson: "Se connecter en tant que personne de cette Cahut",
 		forgot: "Mot de passe oublié ?",
 		askAdmin: "Mot de passe oublié ? Un administrateur de la Cahut peut vous donner un nouveau lien.",
 		newPassword: "Choisissez un nouveau mot de passe",
@@ -183,11 +181,6 @@ export function SignIn(props: {
 				{kind === "admin" ? (
 					<div class="auth__foot">
 						<p class="c-small c-muted">{t.adminForgot}</p>
-						<p class="c-small">
-							<Link class="c-link" href={beside ? "/" : "/sign-in"}>
-								{beside ? t.backToConsole : t.asPerson}
-							</Link>
-						</p>
 					</div>
 				) : (
 					<div class="auth__foot">

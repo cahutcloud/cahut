@@ -2,16 +2,17 @@
 // the server answers every one of their addresses with the app.
 //
 // The console is served under /console/ of its Cahut's domain (see
-// docs/adr/0020-console-under-a-path-of-port-443.md). Its pages name their
-// paths without that prefix, such as /logbook: the router adds it to the
-// address and takes it off again.
+// docs/adr/0020-console-under-a-path-of-port-443.md), and the console of
+// the server under /server/ (see docs/adr/0058-a-console-for-the-server.md).
+// Their pages name their paths without that prefix, such as /logbook: the
+// router adds it to the address and takes it off again.
 import type { AccessibleAnchorHTMLAttributes, TargetedMouseEvent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 const changed = "cahut:navigate";
 
-/** The path of the console, without its final slash: /console. */
-export const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+/** The path of this console, without its final slash: /console, or /server for the console of the server. */
+export const base = /^\/server(\/|$)/.test(location.pathname) ? "/server" : "/console";
 
 /** Returns the address of the page at to, a path of the console. */
 export function href(to: string): string {
@@ -86,5 +87,14 @@ export function Link(props: AccessibleAnchorHTMLAttributes<HTMLAnchorElement> & 
 /** Goes to the page at to once it renders. */
 export function Redirect({ to }: { to: string }) {
 	useEffect(() => navigate(to, true), [to]);
+	return null;
+}
+
+/**
+ * Goes to the address to, outside this console, in place of the current
+ * page: from the console of the Cahut to that of the server, for one.
+ */
+export function Away({ to }: { to: string }) {
+	useEffect(() => location.replace(to), [to]);
 	return null;
 }

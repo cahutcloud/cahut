@@ -49,6 +49,7 @@ const said = words<Sentences>({
 		account_disabled: "This account is disabled: an administrator of the Cahut can enable it.",
 		activation_link_gone: "This activation link is unknown, used or expired: ask an administrator of the Cahut for a new one.",
 		cahut_needs_an_admin: "The Cahut needs an administrator: make another person one first.",
+		cahut_not_on_server: (v) => `This server holds no Cahut at ${v.domain}: it may have moved to another domain.`,
 		cahut_suspended:
 			"This Cahut is suspended by the administrators of its server. It keeps everything it holds, and opens again once they resume it: ask its administrators.",
 		description_control: "The description holds a control character: write it in plain text.",
@@ -145,6 +146,7 @@ const said = words<Sentences>({
 		activation_link_gone:
 			"Ce lien d'activation est inconnu, déjà utilisé ou expiré : demandez-en un nouveau à un administrateur de la Cahut.",
 		cahut_needs_an_admin: "La Cahut a besoin d'un administrateur : faites d'abord d'une autre personne un administrateur.",
+		cahut_not_on_server: (v) => `Ce serveur ne tient aucune Cahut à ${v.domain} : elle a peut-être changé de domaine.`,
 		cahut_suspended:
 			"Cette Cahut est suspendue par les administrateurs de son serveur. Elle garde tout ce qu'elle contient, et rouvre dès qu'ils la réactivent : demandez à ses administrateurs.",
 		description_control: "La description contient un caractère de contrôle : écrivez-la en texte simple.",

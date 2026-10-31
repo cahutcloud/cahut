@@ -7,7 +7,7 @@
 // docs/adr/0048-suspending-a-cahut.md.
 import { Fragment } from "preact";
 import { useState } from "preact/hooks";
-import { explain } from "../api";
+import { type CahutCall, explain } from "../api";
 import type { LegalLinks, LegalPages, Limits, SetLegalLinksInput, Settings as CahutSettings, Suspension } from "../api.gen";
 import { bytes, Failure, legalPages, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
@@ -248,15 +248,45 @@ export function Settings() {
 				<h2 class="c-h4">{t.limits}</h2>
 				<LimitsTable settings={data} />
 			</section>
-			{server && <SettingsForm settings={data} onSaved={() => (reload(), api.reloadCahut(), api.reloadRooms())} />}
+			{server && <SettingsForm call={api.cahutAsServer} settings={data} onSaved={() => (reload(), api.reloadCahut(), api.reloadRooms())} />}
 			<section class="section">
 				<h2 class="c-h4">{t.legal}</h2>
 				<p class="c-small c-muted">{t.legalAbout}</p>
 				{!server && <LegalTable legal={data.legal} />}
 			</section>
-			{server && <LegalForm legal={data.legal} onSaved={() => (reload(), api.reloadCahut())} />}
-			<ModerationAddress email={data.moderation_email ?? ""} server={server} onSaved={reload} />
-			{server && <SuspensionForm suspension={data.suspension} onChanged={(on) => (reload(), api.setSuspended(on))} />}
+			{server && <LegalForm call={api.cahutAsServer} legal={data.legal} onSaved={() => (reload(), api.reloadCahut())} />}
+			<ModerationAddress call={api.cahutAsServer} email={data.moderation_email ?? ""} server={server} onSaved={reload} />
+			{server && <SuspensionForm call={api.cahutAsServer} suspension={data.suspension} onChanged={(on) => (reload(), api.setSuspended(on))} />}
+		</>
+	);
+}
+
+/**
+ * The kind, the limits, the legal pages, the address of moderation and the
+ * suspension of a Cahut, as the administrators of the server set them with
+ * call, in the console of the server. See
+ * docs/adr/0058-a-console-for-the-server.md.
+ */
+export function ServerSettings({ settings, call, onChanged }: { settings: CahutSettings; call: CahutCall; onChanged: () => void }) {
+	const kind = kinds[settings.kind] ?? kinds.collaborative;
+	return (
+		<>
+			<section class="section c-card panel">
+				<h2 class="c-h4">{t.kindTitle(kind.name)}</h2>
+				<p class="c-small">{kind.about}</p>
+			</section>
+			<section class="section">
+				<h2 class="c-h4">{t.limits}</h2>
+				<LimitsTable settings={settings} />
+			</section>
+			<SettingsForm call={call} settings={settings} onSaved={onChanged} />
+			<section class="section">
+				<h2 class="c-h4">{t.legal}</h2>
+				<p class="c-small c-muted">{t.legalAbout}</p>
+			</section>
+			<LegalForm call={call} legal={settings.legal} onSaved={onChanged} />
+			<ModerationAddress call={call} email={settings.moderation_email ?? ""} server onSaved={onChanged} />
+			<SuspensionForm call={call} suspension={settings.suspension} onChanged={onChanged} />
 		</>
 	);
 }
@@ -265,13 +295,12 @@ export function Settings() {
  * The suspension of the Cahut, which only the administrators of the server
  * decide: they suspend it with a reason, change the reason, and resume it.
  */
-function SuspensionForm({ suspension, onChanged }: { suspension?: Suspension; onChanged: (suspended: boolean) => void }) {
-	const api = useConsole();
+export function SuspensionForm({ call, suspension, onChanged }: { call: CahutCall; suspension?: Suspension; onChanged: (suspended: boolean) => void }) {
 	const [asking, setAsking] = useState(false);
 	const [reason, setReason] = useState(suspension?.reason ?? "");
 	const [error, setError] = useState("");
 	const [busy, setBusy] = useState(false);
-	const call = async (run: () => Promise<unknown>, suspended: boolean) => {
+	const act = async (run: () => Promise<unknown>, suspended: boolean) => {
 		setBusy(true);
 		setError("");
 		try {
@@ -285,9 +314,9 @@ function SuspensionForm({ suspension, onChanged }: { suspension?: Suspension; on
 	};
 	const suspend = (e: Event) => {
 		e.preventDefault();
-		call(() => api.cahutAsServer("suspend_cahut", { reason }), true);
+		act(() => call("suspend_cahut", { reason }), true);
 	};
-	const resume = () => call(() => api.cahutAsServer("resume_cahut", {}), false);
+	const resume = () => act(() => call("resume_cahut", {}), false);
 	const form = (submit: string) => (
 		<form class="setting__more setting__confirm" onSubmit={suspend}>
 			<label class="c-field">
@@ -362,7 +391,7 @@ function SuspensionForm({ suspension, onChanged }: { suspension?: Suspension; on
 }
 
 /** The links to the legal pages of a Cahut, as its administrators read them. */
-function LegalTable({ legal }: { legal: LegalLinks }) {
+export function LegalTable({ legal }: { legal: LegalLinks }) {
 	const rows = legalPages.filter(({ page }) => legal[page]);
 	if (rows.length === 0) return <Notice>{t.noLegal}</Notice>;
 	// A long address goes on to the next line after one of its slashes.
@@ -409,8 +438,7 @@ function LegalTable({ legal }: { legal: LegalLinks }) {
  * administrators of the server set and those of the Cahut read. See
  * docs/adr/0054-reporting-and-withdrawing-a-window.md.
  */
-function ModerationAddress({ email, server, onSaved }: { email: string; server: boolean; onSaved: () => void }) {
-	const api = useConsole();
+export function ModerationAddress({ call, email, server, onSaved }: { call: CahutCall; email: string; server: boolean; onSaved: () => void }) {
 	const [value, setValue] = useState(email);
 	const [error, setError] = useState("");
 	const [saved, setSaved] = useState(false);
@@ -421,7 +449,7 @@ function ModerationAddress({ email, server, onSaved }: { email: string; server: 
 		setError("");
 		setSaved(false);
 		try {
-			await api.cahutAsServer("set_moderation_address", { email: value.trim() });
+			await call("set_moderation_address", { email: value.trim() });
 			setSaved(true);
 			onSaved();
 		} catch (err) {
@@ -467,8 +495,7 @@ function ModerationAddress({ email, server, onSaved }: { email: string; server: 
 }
 
 /** The form where an administrator of the server sets the links to the legal pages. */
-function LegalForm({ legal, onSaved }: { legal: LegalLinks; onSaved: () => void }) {
-	const api = useConsole();
+export function LegalForm({ call, legal, onSaved }: { call: CahutCall; legal: LegalLinks; onSaved: () => void }) {
 	const [values, setValues] = useState<Record<string, string>>(() =>
 		Object.fromEntries(
 			legalPages.flatMap(({ page }) => [
@@ -495,7 +522,7 @@ function LegalForm({ legal, onSaved }: { legal: LegalLinks; onSaved: () => void 
 		}
 		if (Object.keys(fr).length > 0) set.fr = fr;
 		try {
-			await api.cahutAsServer("set_legal_links", set);
+			await call("set_legal_links", set);
 			setSaved(true);
 			onSaved();
 		} catch (err) {
@@ -548,7 +575,7 @@ function LegalForm({ legal, onSaved }: { legal: LegalLinks; onSaved: () => void 
 }
 
 /** The limits of a Cahut with what it holds, as its reader may read them. */
-function LimitsTable({ settings: s }: { settings: CahutSettings }) {
+export function LimitsTable({ settings: s }: { settings: CahutSettings }) {
 	const rows = limits.filter((l) => (l.perPerson ? s.kind === "individual" : s.usage !== undefined || s.limits[l.key] !== undefined));
 	if (rows.length === 0) return <Notice>{t.noLimit}</Notice>;
 	const show = (n: number | undefined, disk?: boolean) => (n === undefined ? "" : disk ? bytes(n) : String(n));
@@ -595,8 +622,7 @@ function typed(n: number | undefined, disk?: boolean): string {
 }
 
 /** The form where an administrator of the server sets the kind and the limits. */
-function SettingsForm({ settings, onSaved }: { settings: CahutSettings; onSaved: () => void }) {
-	const api = useConsole();
+export function SettingsForm({ call, settings, onSaved }: { call: CahutCall; settings: CahutSettings; onSaved: () => void }) {
 	const [kind, setKind] = useState(settings.kind);
 	const [values, setValues] = useState<Record<string, string>>(() =>
 		Object.fromEntries(limits.map((l) => [l.key, typed(settings.limits[l.key], l.disk)])),
@@ -616,7 +642,7 @@ function SettingsForm({ settings, onSaved }: { settings: CahutSettings; onSaved:
 			set[l.key] = l.disk ? Math.round(Number(v) * 1e9) : Number(v);
 		}
 		try {
-			await api.cahutAsServer("set_cahut_settings", { kind, limits: set });
+			await call("set_cahut_settings", { kind, limits: set });
 			setSaved(true);
 			onSaved();
 		} catch (err) {

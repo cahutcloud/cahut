@@ -57,6 +57,16 @@ func (s *Server) serveServerAPI(w http.ResponseWriter, r *http.Request) {
 	s.callAPI(w, r, s.srv.Registry, true)
 }
 
+// CahutDomain fills the refusal of a Cahut that the server does not hold.
+type CahutDomain struct {
+	Domain operation.Quoted `json:"domain" jsonschema:"the domain, as the console of the server named it"`
+}
+
+// errNoCahut refuses a call of the console of the server for a Cahut that
+// the server does not hold, such as one that moved to another domain.
+var errNoCahut = operation.NewRefusalOf[CahutDomain]("cahut_not_on_server", operation.ErrNotFound,
+	"no Cahut at {domain} on this server: list_domains gives them")
+
 // serveCahutAsServer runs, for an administrator of the server who signed in
 // at the domain of the request, an operation that serves the server in the
 // Cahut that the path names: POST /server/api/cahuts/<domain>/<operation>.
@@ -77,7 +87,7 @@ func (s *Server) serveCahutAsServer(w http.ResponseWriter, r *http.Request) {
 	domain := strings.TrimSuffix(strings.ToLower(r.PathValue("domain")), ".")
 	st, err := s.site(r.Context(), domain)
 	if errors.Is(err, operation.ErrNotFound) {
-		apiError(w, http.StatusNotFound, fmt.Sprintf("no Cahut at %q on this server: list_domains gives them", domain))
+		apiRefusal(w, http.StatusNotFound, errNoCahut(CahutDomain{Domain: operation.Quoted(domain)}))
 		return
 	}
 	if err != nil {

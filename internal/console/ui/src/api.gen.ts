@@ -219,6 +219,11 @@ export interface ByAuthor {
   author: string;
 }
 
+export interface CahutDomain {
+  /** the domain, as the console of the server named it */
+  domain: string;
+}
+
 export interface ChangeDataInput {
   /** the Window's id or address, or room/name */
   window: string;
@@ -568,6 +573,8 @@ export interface Info {
   suspension?: Suspension;
   /** how many reports about the Windows of this Cahut wait for its moderators */
   reports?: number;
+  /** collaborative or individual */
+  kind?: string;
 }
 
 export interface Invitation {
@@ -909,6 +916,8 @@ export interface NewCahut {
   suspension?: Suspension;
   /** how many reports about the Windows of this Cahut wait for its moderators */
   reports?: number;
+  /** collaborative or individual */
+  kind?: string;
   /** the first administrator of the Cahut, with their activation link */
   admin?: NewUser;
 }
@@ -2192,6 +2201,8 @@ export interface Refusals {
   activation_link_gone: null;
   /** the Cahut needs an administrator: make another person one first */
   cahut_needs_an_admin: null;
+  /** no Cahut at {domain} on this server: list_domains gives them */
+  cahut_not_on_server: CahutDomain;
   /** this Cahut is suspended by the administrators of its server: it keeps everything it holds, and nothing in it can be read or changed until they resume it. Ask the administrators of the Cahut, or, for an AI, tell the person you act for */
   cahut_suspended: null;
   /** the description holds a control character: write it in plain text */

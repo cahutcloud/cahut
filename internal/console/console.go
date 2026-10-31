@@ -22,15 +22,18 @@ import (
 // origin, no frame around it. Its scripts come from its assets only, which
 // Vite builds for /console/: the Windows that AIs publish at the same
 // origin hold scripts too, and none of them may run in the console, should
-// a flaw ever let one in. See
-// docs/adr/0027-previews-of-windows-in-the-console.md.
-func policy(r *http.Request) string {
+// a flaw ever let one in. The console of the server frames the reported
+// Windows of the other Cahuts too, at their origins. See
+// docs/adr/0027-previews-of-windows-in-the-console.md and
+// docs/adr/0058-a-console-for-the-server.md.
+func policy(r *http.Request, frames []string) string {
 	origin := "http://" + r.Host
 	if r.TLS != nil {
 		origin = "https://" + r.Host
 	}
+	frameSrc := strings.Join(append([]string{"'self'"}, frames...), " ")
 	return "default-src 'self'; script-src " + origin + "/console/assets/; style-src 'self'; img-src 'self' data:; font-src 'self'; " +
-		"connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+		"connect-src 'self'; frame-src " + frameSrc + "; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 }
 
 // notice is the page of a binary built without the console.
@@ -42,17 +45,29 @@ const notice = `<!doctype html>
 <p>To build the console into the binary, run <code>make build</code>, which needs Node.js.</p>
 `
 
-// Handler returns the handler of the console's pages.
+// Handler returns the handler of the pages of the console of a Cahut.
 func Handler() http.Handler {
-	return newHandler(app())
+	return newHandler(app(), "index.html", nil)
 }
 
-// newHandler serves the console built into files, or the notice when files
-// is nil.
-func newHandler(files fs.FS) http.Handler {
+// ServerHandler returns the handler of the pages of the console of the
+// server, which frames the Windows of the origins that frames gives. See
+// docs/adr/0058-a-console-for-the-server.md.
+func ServerHandler(frames func(*http.Request) []string) http.Handler {
+	return newHandler(app(), "server.html", frames)
+}
+
+// newHandler serves the console built into files, whose every page is the
+// app of page, or the notice when files is nil. frames, when set, gives the
+// other origins whose frames the pages show.
+func newHandler(files fs.FS, page string, frames func(*http.Request) []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
-		h.Set("Content-Security-Policy", policy(r))
+		var others []string
+		if frames != nil {
+			others = frames(r)
+		}
+		h.Set("Content-Security-Policy", policy(r, others))
 		h.Set("X-Content-Type-Options", "nosniff")
 		h.Set("Referrer-Policy", "no-referrer")
 		h.Set("Cross-Origin-Opener-Policy", "same-origin")
@@ -69,7 +84,7 @@ func newHandler(files fs.FS) http.Handler {
 			return
 		}
 		name := strings.TrimPrefix(path.Clean("/"+r.URL.Path), "/")
-		if name != "" && !strings.HasSuffix(name, "/") && name != "index.html" {
+		if name != "" && !strings.HasSuffix(name, "/") && name != "index.html" && name != "server.html" {
 			if info, err := fs.Stat(files, name); err == nil && !info.IsDir() {
 				// Vite names the files of assets/ after their contents.
 				if strings.HasPrefix(name, "assets/") {
@@ -80,15 +95,16 @@ func newHandler(files fs.FS) http.Handler {
 				serve(w, r, files, name)
 				return
 			}
-			// A missing file is a 404; any other address is a page of the
-			// app, which routes it itself.
-			if path.Ext(name) != "" {
+			// A missing file of the build, under assets/ or at the root, is
+			// a 404; any other address is a page of the app, which routes it
+			// itself, such as /cahuts/<domain> in the console of the server.
+			if path.Ext(name) != "" && (strings.HasPrefix(name, "assets/") || !strings.Contains(name, "/")) {
 				http.NotFound(w, r)
 				return
 			}
 		}
 		h.Set("Cache-Control", "no-cache")
-		serve(w, r, files, "index.html")
+		serve(w, r, files, page)
 	})
 }
 

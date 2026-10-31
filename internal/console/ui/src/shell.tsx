@@ -23,10 +23,9 @@ import { initials, Languages, Legal, SearchForm } from "./components";
 import { useConsole } from "./context";
 import { locale, words } from "./i18n";
 import { Logo } from "./logo";
-import { originOf } from "./pages/overview";
 import { roomPictogram } from "./pages/rooms";
 import { Pictogram } from "./pictograms";
-import { href, Link, useQuery } from "./router";
+import { Link, useQuery } from "./router";
 import type { Session } from "./session";
 
 const t = words({
@@ -41,11 +40,6 @@ const t = words({
 		rooms: "Rooms",
 		everyRoom: "Every Room",
 		newRoom: "New Room",
-		thisServer: "This server",
-		cahuts: "Cahuts",
-		serverAdmins: "Server administrators",
-		serverLogbook: "Logbook of the server",
-		updates: "Updates",
 		thisCahut: "This Cahut",
 		people: "People",
 		kindAndLimits: "Kind and limits",
@@ -58,9 +52,7 @@ const t = words({
 		switchCahut: "Switch Cahut",
 		cahutsOfServer: "Cahuts of this server",
 		youAreHere: "You are here",
-		openConsole: "Open its console",
 		manageCahuts: "Manage the Cahuts of the server",
-		eachConsole: "Each Cahut has its own console: you sign in there as an administrator of the server.",
 		serverAccount: "Your account as an administrator of the server",
 		signOutServer: "Sign out of the server",
 		actingAsServer: () => (
@@ -90,11 +82,6 @@ const t = words({
 		rooms: "Rooms",
 		everyRoom: "Toutes les Rooms",
 		newRoom: "Nouvelle Room",
-		thisServer: "Ce serveur",
-		cahuts: "Cahuts",
-		serverAdmins: "Administrateurs",
-		serverLogbook: "Logbook du serveur",
-		updates: "Mises à jour",
 		thisCahut: "Cette Cahut",
 		people: "Personnes",
 		kindAndLimits: "Type et limites",
@@ -107,9 +94,7 @@ const t = words({
 		switchCahut: "Changer de Cahut",
 		cahutsOfServer: "Cahuts de ce serveur",
 		youAreHere: "Vous êtes ici",
-		openConsole: "Ouvrir sa console",
 		manageCahuts: "Gérer les Cahuts du serveur",
-		eachConsole: "Chaque Cahut a sa propre console : vous vous y connectez en administrateur du serveur.",
 		serverAccount: "Votre compte d'administrateur du serveur",
 		signOutServer: "Se déconnecter du serveur",
 		actingAsServer: () => (
@@ -155,17 +140,6 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 		</Link>
 	);
 	const person = session.kind === "person";
-	// The pages of the server follow those of the person when the browser
-	// holds both sessions. See docs/adr/0043-the-console-holds-two-sessions.md.
-	const serverPages = (cahuts: boolean) => (
-		<>
-			<div class="c-label">{t.thisServer}</div>
-			{cahuts && nav("/server/cahuts", <Pictogram name="cahut" />, t.cahuts)}
-			{nav("/server/admins", <Pictogram name="serverAdmins" />, t.serverAdmins)}
-			{nav("/server/logbook", <Pictogram name="logbook" />, t.serverLogbook)}
-			{nav("/server/updates", <Pictogram name="updates" />, t.updates)}
-		</>
-	);
 	return (
 		<div class="c-app" data-server={serverSession ? "" : undefined}>
 			<header class="console-head">
@@ -229,7 +203,6 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 						{nav("/rooms", <Pictogram name="roomNew" />, isAdmin ? t.everyRoom : t.newRoom)}
 					</>
 				)}
-				{!person && serverPages(false)}
 				<div class="c-label">{t.thisCahut}</div>
 				{isAdmin && nav("/people", <Pictogram name="people" />, t.people)}
 				{(isAdmin || serverSession) && nav("/settings", <Pictogram name="limits" />, t.kindAndLimits)}
@@ -238,7 +211,6 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 				{!person && nav("/rooms", <Pictogram name="room" />, t.rooms, false)}
 				{!person && nav("/logbook", <Pictogram name="logbook" />, t.logbook)}
 				{person && nav("/access", <Pictogram name="aiAccess" />, t.access)}
-				{person && serverSession && serverPages(true)}
 				<div class="sidebar-foot">
 					{nav("/account", <Pictogram name="account" />, t.account)}
 					<div class="sidebar-languages">
@@ -341,22 +313,20 @@ function ServerBar({ admin, path }: { admin: Session; path: string }) {
 									</span>
 								</span>
 							) : (
-								<a key={domain} class="cahut-menu__item" href={`${originOf(domain)}${href("/server/sign-in")}`}>
+								<a key={domain} class="cahut-menu__item" href={`/server/cahuts/${encodeURIComponent(domain)}`}>
 									<Pictogram name="cahut" />
 									<span class="cahut-menu__domain">{domain}</span>
 									<span class="cahut-menu__hint">
-										{t.openConsole}
 										<ArrowUpRight class="i" size={14} aria-hidden="true" />
 									</span>
 								</a>
 							),
 						)}
 						<hr />
-						<Link class="cahut-menu__item" href="/server/cahuts">
+						<a class="cahut-menu__item" href="/server/cahuts">
 							<LayoutGrid class="i" size={18} aria-hidden="true" />
 							<span>{t.manageCahuts}</span>
-						</Link>
-						<p class="cahut-menu__note">{t.eachConsole}</p>
+						</a>
 					</div>
 				)}
 			</div>

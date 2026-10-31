@@ -513,6 +513,27 @@ func TestRootOpensTheConsole(t *testing.T) {
 	}
 }
 
+// Every domain serves the console of the server under /server/, with the
+// policy of the console, even while the Cahut of the domain is suspended.
+// See docs/adr/0058-a-console-for-the-server.md.
+func TestServerConsoleRoutes(t *testing.T) {
+	f := setup(t)
+	if resp, _ := f.do(t, "localhost", http.MethodGet, "/server", nil, nil); resp.StatusCode != http.StatusMovedPermanently || resp.Header.Get("Location") != "/server/" {
+		t.Errorf("GET /server = %d %q, want 301 to /server/", resp.StatusCode, resp.Header.Get("Location"))
+	}
+	check := func(when string) {
+		t.Helper()
+		resp, _ := f.do(t, "localhost", http.MethodGet, "/server/cahuts", nil, nil)
+		if csp := resp.Header.Get("Content-Security-Policy"); !strings.HasPrefix(csp, "default-src 'self';") ||
+			!strings.Contains(csp, "frame-src 'self' https://localhost https://beta.localhost;") {
+			t.Errorf("GET /server/cahuts %s = %d with the policy %q, want that of the console of the server", when, resp.StatusCode, csp)
+		}
+	}
+	check("")
+	f.call(t, "localhost", admin, "suspend_cahut", `{"reason": "Unpaid."}`)
+	check("while localhost is suspended")
+}
+
 func TestBaseURL(t *testing.T) {
 	if got := (Config{}).BaseURL("cahut.example.com"); got != "https://cahut.example.com/" {
 		t.Errorf("BaseURL = %q", got)
