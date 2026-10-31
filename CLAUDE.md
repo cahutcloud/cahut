@@ -23,6 +23,7 @@ Read before working on anything substantial:
 - [docs/plan-lot-7.md](docs/plan-lot-7.md): the detailed plan of batch 7 (installation, first start and updates), in French.
 - [docs/plan-lot-8.md](docs/plan-lot-8.md): the detailed plan of batch 8 (second AI client and acceptance of the V0), in French.
 - [docs/plan-lot-9.md](docs/plan-lot-9.md): the detailed plan of batch 9 (e-mail from each Cahut), in French.
+- [docs/plan-lot-10.md](docs/plan-lot-10.md): the detailed plan of batch 10 (the data of Windows), in French.
 - [docs/revue-securite-v0.md](docs/revue-securite-v0.md): the security review of the V0, in French: its method, what was found sound, each finding and what was done about it.
 - [docs/recette-v0.md](docs/recette-v0.md): the acceptance of the V0, in French: the five criteria, what CI checks, the steps on two blank servers, and the results of each run.
 - [docs/gouvernance.md](docs/gouvernance.md): how the project is governed and how it lives, in French: roles, contributions, channels, releases, security, name, license and money, and the decisions still open.
@@ -188,6 +189,7 @@ docs/
   plan-lot-7.md        Detailed plan of batch 7 (French)
   plan-lot-8.md        Detailed plan of batch 8 (French)
   plan-lot-9.md        Detailed plan of batch 9 (French)
+  plan-lot-10.md       Detailed plan of batch 10 (French)
   revue-securite-v0.md Security review of the V0 (French)
   recette-v0.md        Acceptance of the V0 (French)
   gouvernance.md       Governance and project life (French)
