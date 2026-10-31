@@ -125,30 +125,63 @@ export default {
 		title: 'See for yourself: pages published by an AI',
 		lead: 'Each one started from a single request. They are public: open them.',
 		all: 'All the demos, with their prompts',
+		// The two demos that lead keep what their readers write.
+		data: 'With a database',
+		// Beside a demo that exists in English only, on the pages of another language.
+		inEnglish: 'In English',
+		// The Rooms of demo.cahut.cloud, as the hero names them.
+		rooms: { perso: 'Personal', pme: 'Small business', entreprise: 'Enterprise' },
 		items: [
+			{
+				title: 'A small online shop',
+				prompt: 'Make a small online shop for my honey, with live stock and orders to collect on Saturday. I will run it by talking to you.',
+				text: "A beekeeper's honey, with live stock, a basket and orders to collect on Saturday. The orders go into the Window's own database, and the AI runs the shop when you talk to it.",
+			},
+			{
+				title: 'A deck the team reviews',
+				prompt: 'Turn these notes into the deck for SteerCo #6 of Project Northstar, and publish it so the team can comment on each slide before the meeting.',
+				text: "The draft deck of a steering committee. Each person clicks on a slide to leave a comment pinned to that spot, signed with their name. The comments stay in the Window's database.",
+			},
 			{
 				title: 'An online CV',
 				prompt: 'Can you create a Window in my Room on Cahut to publish my CV? Here is my background.',
+				text: "A designer's CV, with a name that reacts to the cursor, a career path that draws itself as you scroll, projects that open, and a PDF to print.",
 			},
 			{
 				title: 'A team report',
-				prompt: 'Write the monthly report of the Platform team from this data, and publish it for the executive committee.',
+				prompt: 'Make the monthly report of the Platform team from this data, and publish it for the leadership team.',
+				text: 'The month in figures, the goals, the deliveries, uptime and cost, then the decisions expected from management.',
 			},
 			{
 				title: 'A travel journal',
-				prompt: 'Here are our photos and notes from Iceland. Make a travel journal with a map of our route, and publish it for the family.',
+				prompt: 'Here are our photos and notes from our trip to Iceland. Make a travel journal with a map of our route, and publish it for the family.',
+				text: 'Ten days on Route 1: a map that draws itself as you scroll, a night of northern lights, and the family album.',
 			},
 			{
 				title: 'A 3D configurator',
-				prompt: 'Create a 3D configurator for our armchairs, with fabrics, price and a PDF quote. Publish it in the PME Room.',
+				prompt: 'Create a 3D configurator for our armchairs, with the fabrics, the finishes, the price and a PDF quote. Publish it in the Small business Room.',
+				text: 'The customer turns the armchair, changes the velvet, sees the price and the delivery date, then downloads the quote. The link keeps the configuration.',
 			},
-			{ title: 'An investor deck', prompt: 'Prepare the deck for our €2.5M fundraise from these figures.' },
+			{
+				title: 'An investor deck',
+				prompt: 'Prepare the deck for our €2.5M fundraise from these figures, and publish it for the investors.',
+				text: "Fourteen animated slides, charts that draw themselves, and Cahut's deck engine: arrow keys, full screen, a view of all the slides.",
+			},
 			{
 				title: 'A live dashboard',
-				prompt: 'Make a dashboard of our 14 sites around the world, for the screen at head office.',
+				prompt: 'Make a dashboard of our 14 sites around the world, with the shipments in progress, for the screen at headquarters.',
+				text: 'A 3D globe where shipments take off, indicators that move, and a click on a site to see its figures.',
 			},
-			{ title: 'A made-to-measure game', prompt: 'Noé turns 9 on Saturday. Invent a little game for him, with a surprise at the end.' },
-			{ title: 'A mini poll', prompt: 'Create a short poll to choose where the 2027 offsite goes.' },
+			{
+				title: 'A game made just for him',
+				prompt: 'Noah turns 9 on Saturday. Make him a little game where he fishes for stars, with a surprise at the end, and publish it in our Cahut.',
+				text: 'You fish for stars from a boat. At the end, they write “Happy birthday Noah” in the sky. A link lets you challenge a friend.',
+			},
+			{
+				title: 'A mini poll',
+				prompt: 'Create a small poll to choose where we go for the 2027 offsite, and give me the link to send to the team.',
+				text: 'Three questions, and results that move after each vote. In this demo, votes are not saved.',
+			},
 		],
 	},
 

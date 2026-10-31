@@ -1,9 +1,10 @@
 ---
 // The demos of demo.cahut.cloud: each opens its Window, and shows on hover the
 // request it started from. They say what Cahut does better than a long text.
+// The first ones lead, twice as wide, with what they do.
 import { Image } from 'astro:assets';
 import Icon from '../Icon.astro';
-import { examples, examplesURL } from './examples';
+import { examplesIn, examplesURL, leading } from './examples';
 import { useTranslations, type Lang } from '../../i18n';
 
 interface Props {
@@ -13,10 +14,12 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang).examples;
 
-const demos = examples.map((demo, index) => ({
+const demos = examplesIn(lang).map((demo, index) => ({
 	...demo,
 	...t.items[index],
 	path: demo.url.replace('https://demo.cahut.cloud', ''),
+	lead: index < leading,
+	other: demo.lang !== lang,
 }));
 ---
 
@@ -27,19 +30,29 @@ const demos = examples.map((demo, index) => ({
 			<h2 id="examples-title" class="c-h1">{t.title}</h2>
 			<p class="lead c-muted">{t.lead}</p>
 		</div>
-		<a class="c-btn c-btn--secondary" href={examplesURL}>{t.all} <Icon name="arrow-up-right" /></a>
+		<a class="c-btn c-btn--secondary" href={examplesURL[lang]}>{t.all} <Icon name="arrow-up-right" /></a>
 	</header>
 	<ul class="demos" role="list" data-reveal-group>
 		{
-			demos.map(({ url, image, title, prompt, path }) => (
-				<li class="demo" data-reveal>
-					<a href={url}>
+			demos.map(({ url, image, title, prompt, text, path, lead, other, lang: opens }) => (
+				<li class:list={['demo', { 'demo--lead': lead }]} data-reveal>
+					<a href={url} hreflang={other ? opens : undefined}>
 						<span class="demo__shot">
-							<Image src={image} alt="" width={600} format="webp" loading="lazy" />
+							<Image src={image} alt="" width={lead ? 1200 : 600} format="webp" loading="lazy" />
+							{lead && (
+								<span class="c-badge demo__badge">
+									<Icon name="database" size={14} />
+									{t.data}
+								</span>
+							)}
 							<span class="demo__prompt">{prompt}</span>
 						</span>
 						<span class="demo__title">{title}</span>
-						<span class="c-mono demo__path">{path}</span>
+						{lead && <span class="demo__text">{text}</span>}
+						<span class="demo__path">
+							<span class="c-mono">{path}</span>
+							{other && <span class="demo__lang">{t.inEnglish}</span>}
+						</span>
 					</a>
 				</li>
 			))
@@ -140,6 +153,42 @@ const demos = examples.map((demo, index) => ({
 		font-size: var(--text-xs);
 		line-height: var(--leading-xs);
 		overflow-wrap: anywhere;
+	}
+	/* Beside a demo that opens in another language than the page. */
+	.demo__lang {
+		margin-left: var(--space-2);
+		font-weight: var(--weight-semibold);
+	}
+
+	/* The demos that lead take two columns, and say what they do. */
+	.demo--lead {
+		grid-column: span 2;
+	}
+	.demo--lead .demo__title {
+		font-size: var(--text-lg);
+		line-height: var(--leading-lg);
+	}
+	.demo--lead .demo__prompt {
+		inset: auto var(--space-3) var(--space-3) var(--space-3);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	.demo__text {
+		max-width: 60ch;
+		margin-bottom: var(--space-1);
+		color: var(--color-text-muted);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+	}
+	/* That they keep what their readers write. */
+	.demo__badge {
+		position: absolute;
+		top: var(--space-3);
+		left: var(--space-3);
+		border-color: var(--color-border);
+		background: var(--color-surface);
+		color: var(--color-text);
+		box-shadow: var(--shadow-sm);
 	}
 
 	@media (max-width: 960px) {
