@@ -10,7 +10,6 @@ import { type Limits, nearLimit, type Settings } from "./api.gen";
 import { bytes, plural } from "./components";
 import { useConsole } from "./context";
 import { de, locale, words } from "./i18n";
-import { Link } from "./router";
 
 const count = (n: number) => n.toLocaleString(locale);
 
@@ -45,11 +44,6 @@ const t = words({
 		deleteRoom: "Delete a Room that is no longer used",
 		trashWindows: "Put the Windows that are no longer needed in the trash",
 		purgeWindows: "Delete Windows in the trash for good, since they still count",
-		raise: () => (
-			<>
-				, or raise the limit on the <Link class="c-link" href="/settings">Kind and limits</Link> page.
-			</>
-		),
 		askServer: ", or ask the administrators of the server for a higher limit.",
 		askCahut: ", or ask an administrator of the Cahut about a higher limit.",
 	},
@@ -82,11 +76,6 @@ const t = words({
 		deleteRoom: "Supprimez une Room qui ne sert plus",
 		trashWindows: "Mettez à la corbeille les Windows qui ne servent plus",
 		purgeWindows: "Supprimez définitivement des Windows de la corbeille, puisqu'elles comptent encore",
-		raise: () => (
-			<>
-				, ou relevez la limite sur la page <Link class="c-link" href="/settings">Type et limites</Link>.
-			</>
-		),
 		askServer: ", ou demandez une limite plus haute aux administrateurs du serveur.",
 		askCahut: ", ou demandez une limite plus haute à un administrateur de la Cahut.",
 	},
@@ -141,7 +130,7 @@ export function LimitBanner({ settings: s }: { settings: Settings }) {
 	// Who raises a limit, as the refusals say: the administrators of the
 	// server, whom an administrator of the Cahut asks, and whom a member asks
 	// through an administrator of the Cahut.
-	const ask = api.serverSession ? t.raise() : api.isAdmin ? t.askServer : t.askCahut;
+	const ask = api.isAdmin ? t.askServer : t.askCahut;
 	return (
 		<section class="section">
 			{close.map((c) => {

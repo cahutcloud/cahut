@@ -6,7 +6,6 @@
 import { LegalBeforeSignIn, Languages } from "../components";
 import { words } from "../i18n";
 import { Logo } from "../logo";
-import { Link } from "../router";
 
 const t = words({
 	en: {
@@ -14,23 +13,21 @@ const t = words({
 		text: "The administrators of its server suspended it. It keeps everything it holds: your Rooms, your Windows and your AIs find their place again once they resume it.",
 		ask: "If you work in this Cahut, ask its administrators.",
 		signOut: "Sign out",
-		backToConsole: "Back to the console",
 	},
 	fr: {
 		title: "Cette Cahut est suspendue",
 		text: "Les administrateurs de son serveur l'ont suspendue. Elle garde tout ce qu'elle contient : vos Rooms, vos Windows et vos IA retrouvent leur place dès qu'ils la réactivent.",
 		ask: "Si vous travaillez dans cette Cahut, demandez à ses administrateurs.",
 		signOut: "Se déconnecter",
-		backToConsole: "Retour à la console",
 	},
 });
 
 /**
  * The page of a suspended Cahut. A person who holds a session signs out of
- * it here; a browser that holds the session of the server goes back to the
- * console, where its administrator acts.
+ * it here; the administrators of its server resume it from the console of
+ * the server. See docs/adr/0058-a-console-for-the-server.md.
  */
-export function Suspended(props: { onSignOut?: () => void; beside?: boolean }) {
+export function Suspended(props: { onSignOut?: () => void }) {
 	return (
 		<main class="auth">
 			<div class="c-card auth__card">
@@ -41,22 +38,13 @@ export function Suspended(props: { onSignOut?: () => void; beside?: boolean }) {
 				</div>
 				<p class="c-small">{t.text}</p>
 				<p class="c-small c-muted">{t.ask}</p>
-				{(props.onSignOut || props.beside) && (
+				{props.onSignOut && (
 					<div class="auth__foot">
-						{props.onSignOut && (
-							<p class="c-small">
-								<button class="c-link link-button" type="button" onClick={props.onSignOut}>
-									{t.signOut}
-								</button>
-							</p>
-						)}
-						{props.beside && (
-							<p class="c-small">
-								<Link class="c-link" href="/">
-									{t.backToConsole}
-								</Link>
-							</p>
-						)}
+						<p class="c-small">
+							<button class="c-link link-button" type="button" onClick={props.onSignOut}>
+								{t.signOut}
+							</button>
+						</p>
 					</div>
 				)}
 			</div>

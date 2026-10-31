@@ -372,27 +372,15 @@ function PublicWindows() {
 }
 
 /**
- * The page of moderation in the console of the Cahut: for its
- * administrators, or the administrator of the server whose session the
- * browser holds too.
+ * The page of moderation in the console of the Cahut, for its
+ * administrators. Those of the server moderate from the console of the
+ * server. See docs/adr/0058-a-console-for-the-server.md.
  */
 export function Moderation() {
 	const api = useConsole();
-	// Whether the person administers the Cahut comes after the first render:
-	// the reports load again once it does.
-	const asServer = api.session.kind === "person" && !api.isAdmin;
-	if (asServer && !api.serverSession) return <Notice>{t.onlyModerators}</Notice>;
-	return (
-		<ModerationOf
-			key={asServer ? "server" : "cahut"}
-			call={asServer ? api.cahutAsServer : api.cahut}
-			origin={location.origin}
-			host={api.session.kind !== "person" || asServer}
-			onDecided={api.reloadReports}
-			version={api.reports}
-			head
-		/>
-	);
+	// Whether the person administers the Cahut comes after the first render.
+	if (!api.isAdmin) return <Notice>{t.onlyModerators}</Notice>;
+	return <ModerationOf call={api.cahut} origin={location.origin} host={false} onDecided={api.reloadReports} version={api.reports} head />;
 }
 
 /**

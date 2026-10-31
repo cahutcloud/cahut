@@ -481,9 +481,9 @@
 	gap: var(--space-3);
 }
 
-/* The two bars at the top: that of the server while the browser holds its
-   session, above that of the Cahut. See
-   docs/adr/0044-two-bars-for-the-server-and-the-cahut.md. */
+/* The top bar, above the navigation and the page: that of the Cahut, or
+   that of the server in its own console. See
+   docs/adr/0058-a-console-for-the-server.md. */
 .c-app {
 	grid-template-rows: auto 1fr;
 }
@@ -549,197 +549,13 @@
 .console-head .c-topbar {
 	height: 64px;
 }
-.server-bar {
-	--bar-muted: var(--cahut-ink-300);
-	--bar-raised: var(--cahut-ink-800);
-	--bar-line: var(--cahut-ink-700);
-	display: flex;
-	align-items: center;
-	gap: var(--space-3);
-	min-width: 0;
-	height: 48px;
-	padding: 0 var(--space-6);
-	background: var(--color-primary);
-	color: var(--color-on-primary);
-	font-size: var(--text-sm);
-}
-@media (prefers-color-scheme: dark) {
-	.server-bar {
-		--bar-muted: var(--cahut-ink-600);
-		--bar-raised: var(--cahut-paper-200);
-		--bar-line: var(--cahut-ink-200);
-	}
-}
-.server-bar__mode {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--space-2);
-	font-weight: 600;
-	white-space: nowrap;
-}
-.server-bar__sep {
-	color: var(--bar-muted);
-}
-.server-bar__cahut {
-	position: relative;
-	min-width: 0;
-}
-.server-bar__switch {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--space-2);
-	max-width: 100%;
-	height: 32px;
-	padding: 0 var(--space-2) 0 var(--space-3);
-	border: 1px solid var(--bar-line);
-	border-radius: var(--radius-md);
-	background: var(--bar-raised);
-	color: inherit;
-	font: inherit;
-	cursor: pointer;
-}
-.server-bar__switch .i {
-	color: var(--bar-muted);
-}
-.server-bar__domain {
-	min-width: 0;
-	overflow: hidden;
-	font-family: var(--font-mono);
-	font-weight: 500;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-.server-bar__account {
-	margin-left: auto;
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-}
-.server-bar__who {
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-	color: inherit;
-	text-decoration: none;
-	white-space: nowrap;
-}
-.server-bar__who:hover .server-bar__words {
-	text-decoration: underline;
-	text-underline-offset: 3px;
-}
-.server-bar .c-avatar {
-	width: 28px;
-	height: 28px;
-	font-size: 11px;
-	background: var(--bar-raised);
-	color: inherit;
-	border-color: var(--bar-line);
-}
-.server-bar .c-btn--ghost {
-	color: inherit;
-}
-.server-bar .c-btn--ghost:hover {
-	background: var(--bar-raised);
-}
-/* The Cahuts of the server, under the name of this one */
-.cahut-menu {
-	position: absolute;
-	top: calc(100% + var(--space-2));
-	left: 0;
-	z-index: 20;
-	width: min(380px, calc(100vw - 2 * var(--space-4)));
-	padding: var(--space-2);
-	display: grid;
-	gap: 2px;
-	color: var(--color-text);
-	box-shadow: var(--shadow-lg);
-}
-.cahut-menu .c-label {
-	padding: var(--space-2) var(--space-3);
-}
-.cahut-menu__item {
-	display: grid;
-	grid-template-columns: 20px minmax(0, 1fr) auto;
-	align-items: center;
-	gap: 10px;
-	min-height: 40px;
-	padding: var(--space-1) var(--space-3);
-	border-radius: var(--radius-sm);
-	color: var(--color-text);
-	text-decoration: none;
-	font-size: var(--text-sm);
-}
-a.cahut-menu__item:hover {
-	background: var(--color-surface-muted);
-}
-.cahut-menu__domain {
-	overflow: hidden;
-	font-family: var(--font-mono);
-	font-weight: 500;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-.cahut-menu__item[aria-current] .cahut-menu__domain {
-	font-weight: 600;
-}
-.cahut-menu__hint {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--space-1);
-	font-size: var(--text-xs);
-	color: var(--color-text-muted);
-	white-space: nowrap;
-}
-.cahut-menu hr {
-	width: 100%;
-	margin: var(--space-1) 0;
-	border: 0;
-	border-top: 1px solid var(--color-border);
-}
-.cahut-menu__note {
-	margin: 0;
-	padding: var(--space-1) var(--space-3) var(--space-2);
-	font-size: var(--text-xs);
-	line-height: var(--leading-xs);
-	color: var(--color-text-muted);
-}
 
-/* The account, at the end of the top bar, or who acts in the Cahut when
-   the administrator of the server is alone */
+/* The account, at the end of the top bar */
 .console-account {
 	margin-left: auto;
 	display: flex;
 	align-items: center;
 	gap: var(--space-3);
-}
-.console-acting {
-	margin-left: auto;
-	display: flex;
-	align-items: center;
-	gap: var(--space-4);
-	min-width: 0;
-}
-.console-acting p {
-	margin: 0;
-}
-.console-acting strong {
-	color: var(--color-text);
-	font-weight: 600;
-}
-/* On a narrow screen, the bar of the server keeps its marks, and its words
-   stay for screen readers. */
-@media (max-width: 900px) {
-	.server-bar__words {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
-	}
-	.console-acting p {
-		display: none;
-	}
 }
 @media (max-width: 560px) {
 	.console-account__name {
@@ -852,29 +668,6 @@ a.cahut-menu__item:hover {
 		overflow-y: auto;
 		box-shadow: var(--shadow-lg);
 	}
-	.server-bar {
-		gap: var(--space-2);
-		height: 44px;
-		padding: 0 var(--space-4);
-	}
-	.server-bar__sep {
-		display: none;
-	}
-	.server-bar__cahut {
-		flex: 1;
-	}
-	.server-bar__switch {
-		width: 100%;
-	}
-	.server-bar__domain {
-		flex: 1;
-		text-align: left;
-		font-size: var(--text-xs);
-	}
-	/* The menu opens under both bars. */
-	.c-app[data-server] .c-sidebar[data-open="true"] {
-		inset: 108px 0 0;
-	}
 }
 
 /* Screens */
@@ -914,11 +707,6 @@ a.cahut-menu__item:hover {
 }
 .section > .cards {
 	margin-top: 0;
-}
-/* The notice of a suspended Cahut, above the head of every page that its
-   administrators of the server see. See docs/adr/0048-suspending-a-cahut.md. */
-.suspended-banner {
-	margin-bottom: var(--space-6);
 }
 .panel {
 	padding: var(--space-5) var(--space-6);

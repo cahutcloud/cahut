@@ -1,32 +1,19 @@
-// What every screen of a signed-in console shares: the sessions, the API
-// bound to them, and the Rooms of the sidebar.
+// What every screen of a signed-in console of the Cahut shares: the session
+// of the person, the API bound to it, and the Rooms of the sidebar. The
+// console of the server has its own: see server/context.tsx and
+// docs/adr/0058-a-console-for-the-server.md.
 import { createContext, type ComponentChildren } from "preact";
 import { useContext } from "preact/hooks";
-import { ApiError, cahut as callCahut, server as callServer } from "./api";
-import type { CahutOperations, LegalLinks, ServerOperations, Suspension } from "./api.gen";
+import { ApiError, cahut as callCahut } from "./api";
+import type { CahutOperations, LegalLinks } from "./api.gen";
 import type { Session } from "./session";
 
 export interface Console {
-	/** The session the console acts with: that of the person, or else that of an administrator of the server alone. */
+	/** The session of the person. */
 	session: Session;
-	/**
-	 * The session of an administrator of the server, alone or beside that of
-	 * the person. See docs/adr/0043-the-console-holds-two-sessions.md.
-	 */
-	serverSession: Session | null;
 	/** Runs an operation of the Cahut of this domain, with the session. */
 	cahut<K extends keyof CahutOperations>(op: K, input: CahutOperations[K]["input"]): Promise<CahutOperations[K]["output"]>;
-	/**
-	 * Runs an operation of the Cahut of this domain that only the
-	 * administrators of the server call, such as its kind and limits, with
-	 * the session of the server.
-	 */
-	cahutAsServer<K extends keyof CahutOperations>(op: K, input: CahutOperations[K]["input"]): Promise<CahutOperations[K]["output"]>;
-	/** Runs an operation of the server, with the session of its administrator. */
-	server<K extends keyof ServerOperations>(op: K, input: ServerOperations[K]["input"]): Promise<ServerOperations[K]["output"]>;
-	/** Ends the session of the server in this browser, and keeps that of the person. */
-	leaveServer(): void;
-	/** Whether the person administers this Cahut, or the server. */
+	/** Whether the person administers this Cahut. */
 	isAdmin: boolean;
 	/**
 	 * Whether this Cahut is individual: each Room keeps one member, and
@@ -46,14 +33,6 @@ export interface Console {
 	 * screen shows. See docs/adr/0042-the-legal-pages-of-a-cahut.md.
 	 */
 	legal?: LegalLinks;
-	/**
-	 * Since when and why the administrators of the server suspended this
-	 * Cahut, which only they read: the console then acts with their session.
-	 * See docs/adr/0048-suspending-a-cahut.md.
-	 */
-	suspension?: Suspension;
-	/** Says that this Cahut is now suspended, or resumed, so that the console acts with the right session. */
-	setSuspended(suspended: boolean): void;
 	/** Reads this Cahut again, after a change of its kind, of its relay or of its legal pages. */
 	reloadCahut(): void;
 	/** Loads the Rooms of the sidebar again, after a change. */
@@ -78,8 +57,6 @@ export interface Console {
 	 * follows them.
 	 */
 	renamed(person: { handle: string; name: string }): void;
-	/** Keeps the new name of the administrator of the server in the session of this browser. */
-	serverRenamed(admin: { name: string }): void;
 }
 
 const context = createContext<Console | null>(null);
@@ -93,34 +70,24 @@ export function useConsole(): Console {
 }
 
 /**
- * Binds the API to the sessions: that of the console, and that of the
- * server when the browser holds it. A session that has ended calls expired
- * with its kind. A call of the person that a suspended Cahut refuses calls
- * suspended: the console then shows the notice of a suspended Cahut, or
- * acts with the session of the server.
+ * Binds the API to the session of the person. A session that has ended
+ * calls expired. A call that a suspended Cahut refuses calls suspended: the
+ * console then shows the notice of a suspended Cahut.
  */
-export function bind(
-	session: Session,
-	serverSession: Session | null,
-	expired: (kind: Session["kind"]) => void,
-	suspended: () => void = () => undefined,
-): Pick<Console, "session" | "serverSession" | "cahut" | "cahutAsServer" | "server"> {
-	const watch = <T,>(p: Promise<T>, kind: Session["kind"]): Promise<T> =>
+export function bind(session: Session, expired: () => void, suspended: () => void = () => undefined): Pick<Console, "session" | "cahut"> {
+	const watch = <T,>(p: Promise<T>): Promise<T> =>
 		p.catch((err: unknown) => {
 			if (err instanceof ApiError && err.status === 401) {
-				expired(kind);
+				expired();
 			}
-			if (err instanceof ApiError && err.code === "cahut_suspended" && kind === "person") {
+			if (err instanceof ApiError && err.code === "cahut_suspended") {
 				suspended();
 			}
 			throw err;
 		});
 	return {
 		session,
-		serverSession,
-		cahut: (op, input) => watch(callCahut(op, input, session.token), session.kind),
-		cahutAsServer: (op, input) => watch(callCahut(op, input, serverSession?.token), "admin"),
-		server: (op, input) => watch(callServer(op, input, serverSession?.token), "admin"),
+		cahut: (op, input) => watch(callCahut(op, input, session.token)),
 	};
 }
 

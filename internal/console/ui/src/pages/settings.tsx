@@ -42,7 +42,6 @@ const t = words({
 		individualAbout: "People share the Cahut, not their work: each Room keeps one member, and nobody sees the others.",
 		label: "This Cahut",
 		title: "Kind and limits",
-		leadServer: "As an administrator of the server, you choose how people work in this Cahut, bound what it holds, and link its legal pages.",
 		leadCahut: "The administrators of the server choose how people work in this Cahut, bound what it holds, and link its legal pages.",
 		kindTitle: (kind: string) => `${kind} Cahut`,
 		limits: "Limits",
@@ -128,8 +127,6 @@ const t = words({
 			"Les personnes partagent la Cahut, pas leur travail : chaque Room garde un seul membre, et personne ne voit les autres.",
 		label: "Cette Cahut",
 		title: "Type et limites",
-		leadServer:
-			"En tant qu'administrateur du serveur, vous choisissez comment les personnes travaillent dans cette Cahut, bornez ce qu'elle contient, et liez ses pages légales.",
 		leadCahut:
 			"Les administrateurs du serveur choisissent comment les personnes travaillent dans cette Cahut, bornent ce qu'elle contient, et lient ses pages légales.",
 		kindTitle: (kind) => `Cahut ${kind.toLowerCase()}`,
@@ -227,18 +224,21 @@ const kinds: Record<string, { name: string; about: string }> = {
 	individual: { name: t.individual, about: t.individualAbout },
 };
 
+/**
+ * The kind, the limits, the legal pages and the address of moderation of
+ * this Cahut, which its administrators read: the administrators of the
+ * server set them in the console of the server. See
+ * docs/adr/0058-a-console-for-the-server.md.
+ */
 export function Settings() {
 	const api = useConsole();
-	const { data, error, reload } = useLoad(() => api.cahut("get_cahut", {}));
+	const { data, error } = useLoad(() => api.cahut("get_cahut", {}));
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
-	// Only the administrators of the server set the kind, the limits and the
-	// legal pages, with their session, alone or beside that of the person.
-	const server = api.serverSession !== null;
 	return (
 		<>
 			<PageHead label={t.label} title={t.title}>
-				{server ? t.leadServer : t.leadCahut}
+				{t.leadCahut}
 			</PageHead>
 			<section class="section c-card panel">
 				<h2 class="c-h4">{t.kindTitle((kinds[data.kind] ?? kinds.collaborative).name)}</h2>
@@ -248,15 +248,12 @@ export function Settings() {
 				<h2 class="c-h4">{t.limits}</h2>
 				<LimitsTable settings={data} />
 			</section>
-			{server && <SettingsForm call={api.cahutAsServer} settings={data} onSaved={() => (reload(), api.reloadCahut(), api.reloadRooms())} />}
 			<section class="section">
 				<h2 class="c-h4">{t.legal}</h2>
 				<p class="c-small c-muted">{t.legalAbout}</p>
-				{!server && <LegalTable legal={data.legal} />}
+				<LegalTable legal={data.legal} />
 			</section>
-			{server && <LegalForm call={api.cahutAsServer} legal={data.legal} onSaved={() => (reload(), api.reloadCahut())} />}
-			<ModerationAddress call={api.cahutAsServer} email={data.moderation_email ?? ""} server={server} onSaved={reload} />
-			{server && <SuspensionForm call={api.cahutAsServer} suspension={data.suspension} onChanged={(on) => (reload(), api.setSuspended(on))} />}
+			<ModerationAddress email={data.moderation_email ?? ""} />
 		</>
 	);
 }
@@ -285,7 +282,7 @@ export function ServerSettings({ settings, call, onChanged }: { settings: CahutS
 				<p class="c-small c-muted">{t.legalAbout}</p>
 			</section>
 			<LegalForm call={call} legal={settings.legal} onSaved={onChanged} />
-			<ModerationAddress call={call} email={settings.moderation_email ?? ""} server onSaved={onChanged} />
+			<ModerationAddress call={call} email={settings.moderation_email ?? ""} onSaved={onChanged} />
 			<SuspensionForm call={call} suspension={settings.suspension} onChanged={onChanged} />
 		</>
 	);
@@ -435,23 +432,24 @@ export function LegalTable({ legal }: { legal: LegalLinks }) {
 
 /**
  * The address that receives the reports of this Cahut, which the
- * administrators of the server set and those of the Cahut read. See
- * docs/adr/0054-reporting-and-withdrawing-a-window.md.
+ * administrators of the server set with call, and those of the Cahut read.
+ * See docs/adr/0054-reporting-and-withdrawing-a-window.md.
  */
-export function ModerationAddress({ call, email, server, onSaved }: { call: CahutCall; email: string; server: boolean; onSaved: () => void }) {
+export function ModerationAddress({ call, email, onSaved }: { call?: CahutCall; email: string; onSaved?: () => void }) {
 	const [value, setValue] = useState(email);
 	const [error, setError] = useState("");
 	const [saved, setSaved] = useState(false);
 	const [busy, setBusy] = useState(false);
 	const submit = async (e: Event) => {
 		e.preventDefault();
+		if (!call) return;
 		setBusy(true);
 		setError("");
 		setSaved(false);
 		try {
 			await call("set_moderation_address", { email: value.trim() });
 			setSaved(true);
-			onSaved();
+			onSaved?.();
 		} catch (err) {
 			setError(explain(err));
 		}
@@ -461,8 +459,8 @@ export function ModerationAddress({ call, email, server, onSaved }: { call: Cahu
 		<section class="section c-card panel">
 			<h2 class="c-h4">{t.moderation}</h2>
 			<p class="c-small c-muted">{t.moderationAbout}</p>
-			{!server && (email ? <p class="c-mono c-small">{email}</p> : <Notice>{t.noModeration}</Notice>)}
-			{server && (
+			{!call && (email ? <p class="c-mono c-small">{email}</p> : <Notice>{t.noModeration}</Notice>)}
+			{call && (
 				<form class="form" onSubmit={submit}>
 					<label class="c-field">
 						<span class="c-field__label">{t.moderationField}</span>
