@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"cahut.cloud/internal/store"
 )
 
 // petitionWindow is a Window that keeps data: anyone signs, people see
@@ -191,9 +193,11 @@ func TestModeratorFramesReadWhileTheyOpen(t *testing.T) {
 	root := serverAdmin(t, f, "root")
 	ana := activate(t, f, f.ts, "ana", true)
 	bob := activate(t, f, f.ts, "bob", true)
+	camille := activate(t, f, f.ts, "camille", true)
 	rootFrame := frameOf("root", "/server/api/cahuts/localhost/preview_reported_window", root)
 	anaFrame := frameOf("ana", "/console/api/preview_reported_window", ana)
 	bobFrame := frameOf("bob", "/console/api/preview_reported_window", bob)
+	camilleFrame := frameOf("camille", "/console/api/preview_reported_window", camille)
 
 	if r := call(t, f, f.ts, http.MethodPost, "localhost", "/server/api/sign_out", root, `{}`); r.status != http.StatusOK {
 		t.Fatalf("sign_out of the server: %d %s", r.status, r.raw)
@@ -205,11 +209,14 @@ func TestModeratorFramesReadWhileTheyOpen(t *testing.T) {
 	}
 	closed("ana once signed out", anaFrame)
 
+	f.call(t, "localhost", admin, "set_user_role", `{"user": "camille", "role": "member"}`)
+	closed("camille once a member", camilleFrame)
+
 	// The pages of a frame call at once, more than the reads of the Cahut
 	// take together: the check holds no connection of its own.
-	statuses := make(chan int, 2*readConnections)
+	statuses := make(chan int, 2*store.ReadConnections)
 	var wg sync.WaitGroup
-	for range 2 * readConnections {
+	for range 2 * store.ReadConnections {
 		wg.Go(func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
@@ -235,9 +242,6 @@ func TestModeratorFramesReadWhileTheyOpen(t *testing.T) {
 	f.call(t, "localhost", admin, "dismiss_report", `{"report": 1}`)
 	closed("bob once the report is decided", bobFrame)
 }
-
-// readConnections is how many connections read the database of a Cahut.
-const readConnections = 4
 
 func TestWritesClose(t *testing.T) {
 	f := setup(t)

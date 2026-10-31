@@ -51,7 +51,10 @@ type Config struct {
 	Data *windata.Pool
 	// AdminSessionLasts reports whether the session id of an administrator
 	// of the server lasts, for the frames of reported Windows that they open
-	// in the Cahut. Without it, those frames open nothing. See
+	// in the Cahut. Without it, those frames open nothing. It reads the
+	// database of the server while a call of the Cahut holds a read
+	// connection of its own: nothing may wait for a connection of a Cahut
+	// while it holds one of the server. See
 	// docs/adr/0058-a-console-for-the-server.md.
 	AdminSessionLasts func(ctx context.Context, id int64, now time.Time) (bool, error)
 }
