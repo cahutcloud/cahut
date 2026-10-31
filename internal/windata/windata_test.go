@@ -246,7 +246,7 @@ func TestExecAndCopies(t *testing.T) {
 	p := newPool(t, Options{})
 	dir := setup(t, p)
 	ctx := context.Background()
-	c, err := p.Exec(ctx, dir, AILimits, "DROP VIEW cities; ALTER TABLE signatures DROP COLUMN city", true)
+	c, err := p.Exec(ctx, dir, AILimits, "DROP VIEW cities; ALTER TABLE signatures DROP COLUMN city", nil, true)
 	if err != nil || !slices.Equal(c.Removes, []string{"column signatures.city", "view cities"}) {
 		t.Fatalf("dry Exec = %+v, %v", c, err)
 	}
@@ -257,7 +257,7 @@ func TestExecAndCopies(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	c, err = p.Exec(ctx, dir, AILimits, "DELETE FROM signatures WHERE name = 'Ben'; UPDATE signatures SET city = 'Paris'", false)
+	c, err = p.Exec(ctx, dir, AILimits, "DELETE FROM signatures WHERE name = :name; UPDATE signatures SET city = 'Paris'", params("name", "Ben"), false)
 	if err != nil || c.Changes != 2 || c.Statements != 2 || len(c.Removes) != 0 {
 		t.Fatalf("Exec = %+v, %v", c, err)
 	}
@@ -297,7 +297,7 @@ func TestExecAndCopies(t *testing.T) {
 		t.Errorf("copies = %+v, want 3", copies)
 	}
 	for _, sql := range []string{"ATTACH 'x.db' AS x", "VACUUM", "PRAGMA writable_schema = 1", "DELETE FROM cahut_migrations", "BEGIN; COMMIT"} {
-		if _, err := p.Exec(ctx, dir, AILimits, sql, false); code(err) != CodeInvalid {
+		if _, err := p.Exec(ctx, dir, AILimits, sql, nil, false); code(err) != CodeInvalid {
 			t.Errorf("Exec %s: %v, want %s", sql, err, CodeInvalid)
 		}
 	}
@@ -377,7 +377,7 @@ func TestFunctions(t *testing.T) {
 	if _, err := p.Migrate(ctx, dir, AILimits, nil); err != nil {
 		t.Fatal(err)
 	}
-	c, err := p.Exec(ctx, dir, AILimits, "CREATE TABLE f AS SELECT DISTINCT name FROM pragma_function_list", false)
+	c, err := p.Exec(ctx, dir, AILimits, "CREATE TABLE f AS SELECT DISTINCT name FROM pragma_function_list", nil, false)
 	if err == nil {
 		t.Fatalf("pragma_function_list is open to AIs: %+v", c)
 	}

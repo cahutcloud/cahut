@@ -219,6 +219,15 @@ export interface ByAuthor {
   author: string;
 }
 
+export interface ChangeDataInput {
+  /** the Window's id or address, or room/name */
+  window: string;
+  /** SQLite statements, separated by semicolons, that create, add, change or delete */
+  sql: string;
+  /** their named parameters */
+  params?: Record<string, number[]>;
+}
+
 export interface ChangeEmailInput {
   /** your new e-mail address, which a link sent to it confirms; empty removes yours */
   email: string;
@@ -239,6 +248,14 @@ export interface ChangePasswordInput {
   password: string;
   /** the new password, of 15 characters at least */
   new_password: string;
+}
+
+export interface ChangedData {
+  statements: number;
+  changes: number;
+  removes?: string[];
+  /** the copy made before, which rollback_window_data goes back to */
+  copy?: string;
 }
 
 export interface Check {
@@ -1081,6 +1098,13 @@ export interface PublishInput {
   declaration: Declaration;
 }
 
+export interface QueriedData {
+  columns: string[];
+  rows: number[][][];
+  cut?: boolean;
+  note: string;
+}
+
 export interface Query {
   /** one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut */
   sql: string;
@@ -1088,6 +1112,15 @@ export interface Query {
   who: string;
   /** reads, adds, changes or deletes, which Cahut sets */
   kind?: string;
+}
+
+export interface QueryDataInput {
+  /** the Window's id or address, or room/name */
+  window: string;
+  /** one SQLite SELECT over its whole database */
+  sql: string;
+  /** its named parameters, such as {"city": "Lyon"} for :city */
+  params?: Record<string, number[]>;
 }
 
 export interface ReaderCode {
@@ -1291,6 +1324,20 @@ export interface RevokeShareLinkInput {
 
 export interface RevokeTokenInput {
   id: number;
+}
+
+export interface RollbackDataInput {
+  /** the Window's id or address, or room/name */
+  window: string;
+  /** the name of a copy, as get_window lists them; the latest when empty */
+  copy?: string;
+}
+
+export interface RolledBackData {
+  /** the copy the database went back to */
+  restored: DataCopy;
+  /** the copy of the database as it was, which another rollback_window_data goes back to */
+  kept: string;
 }
 
 export interface Room {
@@ -1926,6 +1973,8 @@ export interface CahutOperations {
   change_name: { input: ChangeNameInput; output: User };
   /** Change your password. Your other sessions end. */
   change_password: { input: ChangePasswordInput; output: PasswordChanged };
+  /** Run SQLite statements on the database of a Window of your Rooms: create tables, add columns, add, change or delete rows. Cahut copies the database first; rollback_window_data goes back to the copy. */
+  change_window_data: { input: ChangeDataInput; output: ChangedData };
   /** Say whether a handle can go to a new person: of the form of a handle, not reserved, and held by no person and by no Room. For the administrators of the Cahut. */
   check_handle: { input: CheckHandleInput; output: HandleCheck };
   /** Confirm a new e-mail address from the link sent to it, which makes it the address of its person. */
@@ -2014,6 +2063,8 @@ export interface CahutOperations {
   publish_window: { input: PublishInput; output: Window };
   /** Delete a Window of this Cahut that is in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. */
   purge_window: { input: RefInput; output: Window };
+  /** Run one SELECT over the whole database of a Window of your Rooms, private columns included, and get 1,000 rows at most, marked cut beyond. get_window gives its tables and columns. */
+  query_window_data: { input: QueryDataInput; output: QueriedData };
   /** Give a withdrawn Window back as it was: its access, its Key, its share links until their end. A Window that the administrators of the server withdrew is reinstated by them only. For the moderators of this Cahut. */
   reinstate_window: { input: ReinstateInput; output: Moderated };
   /** Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. */
@@ -2040,6 +2091,8 @@ export interface CahutOperations {
   revoke_token: { input: RevokeTokenInput; output: TokenInfo };
   /** Go back to the previous version of a Window of this Cahut. The version you leave becomes the previous one, so calling rollback_window again returns to it. */
   rollback_window: { input: RefInput; output: Window };
+  /** Put the database of a Window back as a copy has it, the latest by default: what readers wrote since is lost. The database as it was becomes a copy, so calling it again undoes it. */
+  rollback_window_data: { input: RollbackDataInput; output: RolledBackData };
   /** Run the SELECT of a page of a Window over what its declaration makes readable. */
   select_window_data: { input: PageDataInput; output: PageData };
   /** Send a test message through the relay of this Cahut, and say whether the relay took it. For the administrators of the Cahut. */

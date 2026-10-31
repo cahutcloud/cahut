@@ -142,6 +142,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/change_handle` | Any person | yes |
 | `POST /api/change_name` | Any person | yes |
 | `POST /api/change_password` | Any person | yes |
+| `POST /api/change_window_data` | Any person | yes |
 | `POST /api/check_handle` | Administrators of the Cahut | yes |
 | `POST /api/confirm_email` | Anyone, to sign in | no |
 | `POST /api/create_activation_link` | Administrators of the Cahut | yes |
@@ -186,6 +187,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/preview_windows` | Any person | yes |
 | `POST /api/publish_window` | Any person | yes |
 | `POST /api/purge_window` | Any person | yes |
+| `POST /api/query_window_data` | Any person | yes |
 | `POST /api/reinstate_window` | Administrators of the Cahut | yes |
 | `POST /api/remove_room_member` | Any person | yes |
 | `POST /api/rename_window` | Any person | yes |
@@ -199,6 +201,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/revoke_share_link` | Any person | yes |
 | `POST /api/revoke_token` | Any person | yes |
 | `POST /api/rollback_window` | Any person | yes |
+| `POST /api/rollback_window_data` | Any person | yes |
 | `POST /api/select_window_data` | Anyone, to sign in | no |
 | `POST /api/send_test_mail` | Administrators of the Cahut | yes |
 | `POST /api/set_ai_reach` | Any person | yes |

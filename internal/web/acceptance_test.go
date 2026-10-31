@@ -53,6 +53,10 @@ var undo = map[string]string{
 	// The link given stays where it went, and opens nothing more.
 	"create_share_link": "revoke_share_link",
 	"revoke_share_link": "create_share_link",
+	// The data of a Window goes back to the copy made before; removing or
+	// renaming knocks first.
+	"change_window_data":   "rollback_window_data",
+	"rollback_window_data": "rollback_window_data",
 }
 
 // TestEveryAIOperationIsReversibleOrApproved checks the rule of

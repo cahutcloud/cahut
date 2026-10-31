@@ -396,10 +396,11 @@ func (p *Pool) Call(ctx context.Context, dir string, lim Limits, sql string, par
 	return Result{Rows: Rows{Columns: r.Columns, Rows: r.Rows, Cut: r.Cut}, Changes: r.Changes, LastID: r.LastID}, err
 }
 
-// Exec runs the statements of an AI or a person, or runs them and rolls
-// them back when dry, and says what they did.
-func (p *Pool) Exec(ctx context.Context, dir string, lim Limits, sql string, dry bool) (Change, error) {
-	r, err := p.do(ctx, dir, request{Op: opExec, SQL: sql, Dry: dry, Limits: lim})
+// Exec runs the statements of an AI or a person, with their named
+// parameters, or runs them and rolls them back when dry, and says what
+// they did.
+func (p *Pool) Exec(ctx context.Context, dir string, lim Limits, sql string, params map[string]json.RawMessage, dry bool) (Change, error) {
+	r, err := p.do(ctx, dir, request{Op: opExec, SQL: sql, Params: params, Dry: dry, Limits: lim})
 	return Change{Statements: r.Statements, Changes: r.Changes, Removes: r.Removes}, err
 }
 

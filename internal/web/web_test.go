@@ -165,9 +165,10 @@ func TestPublishOverMCP(t *testing.T) {
 	for _, tool := range tools.Tools {
 		names = append(names, tool.Name)
 	}
-	if want := []string{"add_room_member", "create_room", "create_share_link", "delete_room", "get_account", "get_cahut", "get_knock", "get_room", "get_window",
+	if want := []string{"add_room_member", "change_window_data", "create_room", "create_share_link", "delete_room", "get_account", "get_cahut", "get_knock", "get_room", "get_window",
 		"invite_to_window", "list_invitations", "list_knocks", "list_logbook", "list_rooms", "list_users", "list_windows", "publish_window",
-		"purge_window", "remove_room_member", "rename_window", "restore_window", "retitle_window", "revoke_invitation", "revoke_share_link", "rollback_window", "set_ai_reach", "set_room_home",
+		"purge_window", "query_window_data", "remove_room_member", "rename_window", "restore_window", "retitle_window", "revoke_invitation", "revoke_share_link", "rollback_window",
+		"rollback_window_data", "set_ai_reach", "set_room_home",
 		"set_room_member_role", "set_window_access", "trash_window", "update_room", "update_window"}; !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v: those of a member", names, want)
 	}
@@ -387,10 +388,10 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 			t.Errorf("%s is marked open world: %v", tool.Name, open)
 		}
 	}
-	want := []string{"add_room_member", "create_room", "create_share_link", "create_user", "delete_room", "delete_user", "disable_user", "enable_user", "get_account", "get_cahut",
+	want := []string{"add_room_member", "change_window_data", "create_room", "create_share_link", "create_user", "delete_room", "delete_user", "disable_user", "enable_user", "get_account", "get_cahut",
 		"get_knock", "get_room", "get_window", "invite_to_window", "list_invitations", "list_knocks", "list_logbook", "list_rooms",
-		"list_users", "list_windows", "publish_window", "purge_window", "remove_room_member", "rename_window", "restore_window", "retitle_window", "revoke_invitation", "revoke_share_link",
-		"rollback_window", "set_ai_reach", "set_room_home", "set_room_member_role", "set_user_email",
+		"list_users", "list_windows", "publish_window", "purge_window", "query_window_data", "remove_room_member", "rename_window", "restore_window", "retitle_window", "revoke_invitation", "revoke_share_link",
+		"rollback_window", "rollback_window_data", "set_ai_reach", "set_room_home", "set_room_member_role", "set_user_email",
 		"set_user_role", "set_window_access", "trash_window", "update_room", "update_window"}
 	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)
