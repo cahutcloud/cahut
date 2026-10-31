@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/credential"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/settings"
@@ -254,7 +255,11 @@ func (e *Withdrawn) Unwrap() error { return operation.ErrNotFound }
 // error when the moderators withdrew it, or what is not found, which
 // missing says.
 func lookup(ctx context.Context, db *store.DB, now time.Time, missing error, where string, args ...any) (Served, error) {
-	w, err := scanServed(db.Read.QueryRowContext(ctx, servedAll+where, args...), now)
+	return lookupIn(ctx, db.Read, now, missing, where, args...)
+}
+
+func lookupIn(ctx context.Context, q account.RowQuerier, now time.Time, missing error, where string, args ...any) (Served, error) {
+	w, err := scanServed(q.QueryRowContext(ctx, servedAll+where, args...), now)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Served{}, missing
 	}
@@ -321,6 +326,10 @@ const (
 // a share link whatever its access. A Window for its author alone opens to
 // no other session.
 func (w Served) Opens(ctx context.Context, db *store.DB, userID, pass int64) (Opening, error) {
+	return w.opensIn(ctx, db.Read, userID, pass)
+}
+
+func (w Served) opensIn(ctx context.Context, q account.RowQuerier, userID, pass int64) (Opening, error) {
 	if w.Access == AccessPublic {
 		return ByAddress, nil
 	}
@@ -329,7 +338,7 @@ func (w Served) Opens(ctx context.Context, db *store.DB, userID, pass int64) (Op
 			return BySession, nil
 		}
 		var member bool
-		err := db.Read.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM room_members WHERE room_id = ? AND user_id = ?)",
+		err := q.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM room_members WHERE room_id = ? AND user_id = ?)",
 			w.RoomID, userID).Scan(&member)
 		if err != nil {
 			return Closed, err
@@ -343,7 +352,7 @@ func (w Served) Opens(ctx context.Context, db *store.DB, userID, pass int64) (Op
 	}
 	if pass != 0 {
 		var link bool
-		err := db.Read.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM window_passes WHERE id = ? AND window_id = ? AND link_id IS NOT NULL)",
+		err := q.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM window_passes WHERE id = ? AND window_id = ? AND link_id IS NOT NULL)",
 			pass, w.ID).Scan(&link)
 		if err != nil {
 			return Closed, err
@@ -418,8 +427,12 @@ func pass(ctx context.Context, db *store.DB, windowID int64, token string, now t
 // PassLasts reports whether the pass id still opens the Window windowID,
 // as far as the pass goes: the access of the Window still applies.
 func PassLasts(ctx context.Context, db *store.DB, windowID, id int64, now time.Time) (bool, error) {
+	return passLastsIn(ctx, db.Read, windowID, id, now)
+}
+
+func passLastsIn(ctx context.Context, q account.RowQuerier, windowID, id int64, now time.Time) (bool, error) {
 	var ok bool
-	err := db.Read.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM window_passes WHERE id = ? AND window_id = ? AND expires_at > ?)",
+	err := q.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM window_passes WHERE id = ? AND window_id = ? AND expires_at > ?)",
 		id, windowID, store.FormatTime(now)).Scan(&ok)
 	return ok, err
 }

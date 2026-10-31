@@ -967,6 +967,28 @@ export interface Outsider {
   window: string;
 }
 
+export interface PageData {
+  columns: string[];
+  rows: number[][][];
+  cut?: boolean;
+  changes?: number;
+  id?: number;
+}
+
+export interface PageDataInput {
+  /** room/name of a public Window, as its address has it */
+  window?: string;
+  /** the capability of the frame that opened the Window, as its address has it */
+  frame?: string;
+  /** for select_window_data: one SELECT over what the declaration makes readable */
+  sql?: string;
+  /** for call_window_query: the name of a query of the declaration */
+  query?: string;
+  /** the named parameters of the statement; :reader is given by Cahut */
+  params?: Record<string, number[]>;
+  no_write?: boolean;
+}
+
 export type PasswordChanged = Record<string, never>;
 
 export interface PasswordLinkRequested {
@@ -1894,6 +1916,8 @@ export interface CahutOperations {
   approve_authorization: { input: ApproveInput; output: Redirect };
   /** Approve a Knock of one of your AIs: the call runs now, as the AI, and what it returns comes to you. It may still fail, if things changed since the AI called. */
   approve_knock: { input: AnswerInput; output: Answer };
+  /** Run a query of the declaration of a Window, for a page of that Window. */
+  call_window_query: { input: PageDataInput; output: PageData };
   /** Change your e-mail address: a link goes to the new one, which replaces yours once you use the link, within 24 hours, and your old address gets a notice. An empty address removes yours at once. */
   change_email: { input: ChangeEmailInput; output: EmailChanged };
   /** Change your handle, with which you sign in. Your personal Room takes it as its name: the addresses of its Windows change, the old ones stop working, and your old handle is free for another person or Room. In an individual Cahut, your other Rooms, whose names start with your handle, take the new one too. Answer the Knocks that wait for you first. */
@@ -2016,6 +2040,8 @@ export interface CahutOperations {
   revoke_token: { input: RevokeTokenInput; output: TokenInfo };
   /** Go back to the previous version of a Window of this Cahut. The version you leave becomes the previous one, so calling rollback_window again returns to it. */
   rollback_window: { input: RefInput; output: Window };
+  /** Run the SELECT of a page of a Window over what its declaration makes readable. */
+  select_window_data: { input: PageDataInput; output: PageData };
   /** Send a test message through the relay of this Cahut, and say whether the relay took it. For the administrators of the Cahut. */
   send_test_mail: { input: SendTestMailInput; output: TestSent };
   /** Set what an AI connected over OAuth reaches in this Cahut: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. */

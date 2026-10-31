@@ -77,6 +77,7 @@ func (s *Service) permanentURL(id string) string {
 
 // Register adds the Window operations to r.
 func (s *Service) Register(r *operation.Registry) {
+	s.registerPages(r)
 	operation.Register(r, &operation.Op[PublishInput, Window]{
 		Name:  "publish_window",
 		Title: "Publish a Window",

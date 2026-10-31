@@ -157,11 +157,33 @@ func verify(ctx context.Context, db *store.DB, where string, arg any, now time.T
 	return o, err
 }
 
+// SessionIn returns who the session id belongs to, while it lasts, read in q:
+// a reader session when reader is true, a session of the console
+// otherwise. It records no use: for the calls of the pages of a Window,
+// which run in a transaction of the registry. See
+// docs/adr/0056-a-database-for-each-window.md.
+func SessionIn(ctx context.Context, q RowQuerier, id int64, reader bool, now time.Time) (SessionOwner, error) {
+	where := "s.id = ? AND s.reader = 0"
+	if reader {
+		where = "s.id = ? AND s.reader = 1"
+	}
+	return lookupSessionIn(ctx, q, where, id, now)
+}
+
+// RowQuerier reads one row: a database, or a transaction.
+type RowQuerier interface {
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+}
+
 // lookupSession returns the owner of the session that where finds, with
 // arg, if it lasts and its person is not disabled.
 func lookupSession(ctx context.Context, db *store.DB, where string, arg any, now time.Time) (SessionOwner, error) {
+	return lookupSessionIn(ctx, db.Read, where, arg, now)
+}
+
+func lookupSessionIn(ctx context.Context, q RowQuerier, where string, arg any, now time.Time) (SessionOwner, error) {
 	var o SessionOwner
-	err := db.Read.QueryRowContext(ctx, `
+	err := q.QueryRowContext(ctx, `
 		SELECT s.id, u.id, u.handle FROM sessions s JOIN users u ON u.id = s.user_id
 		WHERE `+where+` AND s.expires_at > ? AND s.last_used_at > ? AND u.disabled_at IS NULL`,
 		arg, store.FormatTime(now), store.FormatTime(now.Add(-credential.SessionIdle))).Scan(&o.SessionID, &o.UserID, &o.Handle)
