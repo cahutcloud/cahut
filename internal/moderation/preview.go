@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
 	"cahut.cloud/internal/window"
@@ -73,6 +74,32 @@ func previewReported(frameKey []byte) func(ctx context.Context, c *operation.Cal
 		f := window.Frame{Window: id, Kind: kind, ID: c.Actor.Session, Expires: expires.Unix()}
 		return ReportedPreview{Window: at, Frame: window.FramePrefix + f.Sign(frameKey) + "/", ExpiresAt: expires}, nil
 	}
+}
+
+// FrameOpens reports whether the frame f of a moderator still opens its
+// Window: their session lasts, of the Cahut, or of the server as hostLasts
+// says, they still moderate the Cahut, and a report about the Window waits.
+func FrameOpens(ctx context.Context, db *store.DB, f window.Frame, now time.Time, hostLasts func(ctx context.Context, id int64, now time.Time) (bool, error)) (bool, error) {
+	var userID int64
+	if f.Kind == window.FrameByHost {
+		if hostLasts == nil {
+			return false, nil
+		}
+		lasts, err := hostLasts(ctx, f.ID, now)
+		if err != nil || !lasts {
+			return false, err
+		}
+	} else {
+		o, err := account.Console(ctx, db, f.ID, now)
+		if errors.Is(err, account.ErrInvalidSession) {
+			return false, nil
+		}
+		if err != nil {
+			return false, err
+		}
+		userID = o.UserID
+	}
+	return Opens(ctx, db, f.Window, userID)
 }
 
 // Opens reports whether the frame of a moderator opens the Window id: a

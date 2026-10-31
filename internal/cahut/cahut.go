@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/credential"
@@ -48,6 +49,11 @@ type Config struct {
 	// server. Without it, the Cahut runs a pool of its own, which Close
 	// stops.
 	Data *windata.Pool
+	// AdminSessionLasts reports whether the session id of an administrator
+	// of the server lasts, for the frames of reported Windows that they open
+	// in the Cahut. Without it, those frames open nothing. See
+	// docs/adr/0058-a-console-for-the-server.md.
+	AdminSessionLasts func(ctx context.Context, id int64, now time.Time) (bool, error)
 }
 
 // Cahut is an open Cahut.
@@ -96,6 +102,9 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		data = windata.NewPool(windata.Options{})
 	}
 	w := window.NewService(filepath.Join(cfg.Dir, "windows"), cfg.BaseURL, frameKey, data)
+	w.ModeratorOpens = func(ctx context.Context, f window.Frame, now time.Time) (bool, error) {
+		return moderation.FrameOpens(ctx, db, f, now, cfg.AdminSessionLasts)
+	}
 	w.Register(r)
 	moderation.Register(r, frameKey)
 	auth := oauth.New(db, r, oauth.Config{
