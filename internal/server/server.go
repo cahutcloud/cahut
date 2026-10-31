@@ -139,12 +139,16 @@ type Info struct {
 	// Reports is read from the Cahut too, by list_domains only. See
 	// docs/adr/0054-reporting-and-withdrawing-a-window.md.
 	Reports int `json:"reports,omitempty" jsonschema:"how many reports about the Windows of this Cahut wait for its moderators"`
+	// Kind is read from the Cahut too, by list_domains only. See
+	// docs/adr/0058-a-console-for-the-server.md.
+	Kind string `json:"kind,omitempty" jsonschema:"collaborative or individual"`
 }
 
 // state is what list_domains reads in each Cahut.
 type state struct {
 	suspension *settings.Suspension
 	reports    int
+	kind       string
 }
 
 // AddDomainInput is the input of add_domain.
@@ -322,14 +326,15 @@ func (s *Server) listDomains(ctx context.Context, c *operation.Call, _ ListDomai
 		if info.CreatedAt, err = store.ParseTime(created); err != nil {
 			return DomainList{}, err
 		}
-		info.Suspension, info.Reports = states[info.Domain].suspension, states[info.Domain].reports
+		st := states[info.Domain]
+		info.Suspension, info.Reports, info.Kind = st.suspension, st.reports, st.kind
 		list.Cahuts = append(list.Cahuts, info)
 	}
 	return list, rows.Err()
 }
 
 // stateOf returns the suspension of the Cahut at domain, nil while it is
-// active, and how many reports wait in it.
+// active, its kind, and how many reports wait in it.
 func (s *Server) stateOf(ctx context.Context, domain string) (state, error) {
 	var c *cahut.Cahut
 	var err error
@@ -346,6 +351,9 @@ func (s *Server) stateOf(ctx context.Context, domain string) (state, error) {
 	}
 	var st state
 	if st.suspension, err = settings.SuspensionOf(ctx, c.DB.Read); err != nil {
+		return state{}, err
+	}
+	if st.kind, err = settings.KindOf(ctx, c.DB.Read); err != nil {
 		return state{}, err
 	}
 	st.reports, err = moderation.Waiting(ctx, c.DB.Read)

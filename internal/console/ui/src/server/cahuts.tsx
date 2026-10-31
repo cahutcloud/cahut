@@ -18,6 +18,7 @@ const t = words({
 		thisServer: "This server",
 		lead: "Each Cahut has its own domain, its people and its database. Open one to set it and to moderate it.",
 		declaredOn: (date: string) => `Declared on ${date}`,
+		kinds: { collaborative: "Collaborative Cahut", individual: "Individual Cahut" } as Record<string, string>,
 		suspended: "Suspended",
 		suspendedOn: (date: string, reason: string) => `Since ${date}: ${reason}`,
 		reportsWait: (n: number) => (n === 1 ? "1 report waits" : `${n} reports wait`),
@@ -51,6 +52,7 @@ const t = words({
 		thisServer: "Ce serveur",
 		lead: "Chaque Cahut a son domaine, ses personnes et sa base de données. Ouvrez-en une pour la régler et la modérer.",
 		declaredOn: (date) => `Déclarée le ${date}`,
+		kinds: { collaborative: "Cahut collaborative", individual: "Cahut individuelle" },
 		suspended: "Suspendue",
 		suspendedOn: (date, reason) => `Depuis le ${date} : ${reason}`,
 		reportsWait: (n) => (n === 1 ? "1 signalement attend" : `${n} signalements attendent`),
@@ -101,6 +103,7 @@ export function Cahuts() {
 						<Link class="c-window__title c-mono" href={`/cahuts/${encodeURIComponent(c.domain)}`}>
 							{c.domain}
 						</Link>
+						{c.kind && <span class="c-small">{t.kinds[c.kind] ?? c.kind}</span>}
 						<span class="c-small c-muted">{t.declaredOn(new Date(c.created_at).toLocaleDateString(locale, { dateStyle: "medium" }))}</span>
 						{/* A suspended Cahut serves nothing but to the administrators of the
 						    server. See docs/adr/0048-suspending-a-cahut.md. */}

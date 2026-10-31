@@ -294,7 +294,7 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
  * address, as anyone does, with Withdraw.
  */
 function PublicCard(props: { window: PublicWindow; onWithdrawn: () => void }) {
-	const { call, onDecided } = useModerator();
+	const { call, origin, onDecided } = useModerator();
 	const w = props.window;
 	const [asking, setAsking] = useState(false);
 	const [reason, setReason] = useState("");
@@ -322,7 +322,7 @@ function PublicCard(props: { window: PublicWindow; onWithdrawn: () => void }) {
 			{error && <Failure message={error} />}
 			{!asking ? (
 				<div class="actions">
-					<a class="c-btn c-btn--secondary c-btn--sm" href={`${location.origin}/${w.room}/${w.name}/`} target="_blank" rel="noopener noreferrer">
+					<a class="c-btn c-btn--secondary c-btn--sm" href={`${origin}/${w.room}/${w.name}/`} target="_blank" rel="noopener noreferrer">
 						<ArrowUpRight class="i" size={14} aria-hidden="true" />
 						{t.openAtAddress}
 					</a>

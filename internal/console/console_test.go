@@ -46,6 +46,10 @@ func TestHandler(t *testing.T) {
 		{path: "/robots.txt", body: "Disallow", cache: "no-cache", status: 200},
 		{path: "/assets/missing.js", status: 404},
 		{path: "/../../etc/passwd", body: "<title>Cahut</title>", cache: "no-cache", status: 200},
+		// A missing file of the build is a 404; an address of the app with a
+		// dot is a page.
+		{path: "/favicon.ico", status: 404},
+		{path: "/rooms/a.b", body: "<title>Cahut</title>", cache: "no-cache", status: 200},
 	} {
 		resp, body := get(t, h, http.MethodGet, tt.path)
 		if resp.status != tt.status || !strings.Contains(body, tt.body) || tt.cache != "" && resp.header.Get("Cache-Control") != tt.cache {
@@ -78,6 +82,9 @@ func TestServerHandler(t *testing.T) {
 			!strings.Contains(csp, "script-src http://example.com/console/assets/;") {
 			t.Errorf("GET %s: Content-Security-Policy = %q", path, csp)
 		}
+	}
+	if resp, _ := get(t, h, http.MethodGet, "/assets/missing.js"); resp.status != http.StatusNotFound {
+		t.Errorf("GET /assets/missing.js = %d, want 404", resp.status)
 	}
 	if resp, body := get(t, h, http.MethodGet, "/assets/app-1a2b.js"); resp.status != http.StatusOK || body != "console.log(1)" {
 		t.Errorf("GET /assets/app-1a2b.js = %d %q", resp.status, body)

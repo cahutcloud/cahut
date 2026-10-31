@@ -23,16 +23,8 @@ const t = words({
 		title: "Server administrators",
 		newAdmin: "New administrator",
 		intro:
-			"They hold every Cahut of this server: they declare Cahuts, set their kind and limits, read the Logbook of the server, and manage the people and Rooms of every Cahut, at its console.",
-		cahutOnly: () => (
-			<>
-				To make someone an administrator of this Cahut only, add them in{" "}
-				<Link class="c-link" href="/people">
-					People
-				</Link>{" "}
-				as an administrator.
-			</>
-		),
+			"They hold every Cahut of this server, from any of its domains: they declare Cahuts, set their kind, limits and legal pages, suspend and resume them, moderate them, and read the Logbook of the server. The people and the Rooms of each Cahut are for its own administrators.",
+		cahutOnly: "An administrator of one Cahut only is added by the administrators of that Cahut, in its People.",
 		adminColumn: "Administrator",
 		added: "Added",
 		state: "State",
@@ -88,16 +80,8 @@ const t = words({
 		title: "Administrateurs du serveur",
 		newAdmin: "Nouvel administrateur",
 		intro:
-			"Ils ont la main sur toutes les Cahuts de ce serveur : ils déclarent des Cahuts, fixent leur type et leurs limites, lisent le Logbook du serveur, et gèrent les personnes et les Rooms de chaque Cahut, depuis sa console.",
-		cahutOnly: () => (
-			<>
-				Pour faire de quelqu'un un administrateur de cette Cahut seulement, ajoutez cette personne dans{" "}
-				<Link class="c-link" href="/people">
-					Personnes
-				</Link>
-				, comme administrateur.
-			</>
-		),
+			"Ils ont la main sur toutes les Cahuts de ce serveur, depuis n'importe lequel de ses domaines : ils déclarent des Cahuts, fixent leur type, leurs limites et leurs pages légales, les suspendent et les réactivent, les modèrent, et lisent le Logbook du serveur. Les personnes et les Rooms de chaque Cahut relèvent de ses propres administrateurs.",
+		cahutOnly: "Un administrateur d'une seule Cahut s'ajoute par les administrateurs de cette Cahut, dans ses Personnes.",
 		adminColumn: "Administrateur",
 		added: "Ajouté le",
 		state: "État",
@@ -190,7 +174,7 @@ export function Admins() {
 				{t.intro}
 			</PageHead>
 			<div class="section">
-				<Notice>{t.cahutOnly()}</Notice>
+				<Notice>{t.cahutOnly}</Notice>
 			</div>
 			<section class="section">
 				<p class="c-small c-muted people-summary">{summary.join(" · ")}</p>

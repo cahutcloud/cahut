@@ -225,6 +225,13 @@ func TestServerAPI(t *testing.T) {
 		}
 	}
 
+	// The console of the server says in its language that a Cahut is not
+	// there, such as one that moved to another domain.
+	if r := post("localhost", "/server/api/cahuts/nope.localhost/get_cahut", root, `{}`); r.body["code"] != "cahut_not_on_server" ||
+		r.body["values"].(map[string]any)["domain"] != "nope.localhost" {
+		t.Errorf("get_cahut of a Cahut that the server does not hold: %d %s", r.status, r.raw)
+	}
+
 	// A suspended Cahut still answers the administrators of the server.
 	if r := post("localhost", "/server/api/cahuts/beta.localhost/suspend_cahut", root, `{"reason": "Unpaid."}`); r.status != http.StatusOK {
 		t.Fatalf("suspend_cahut: %d %s", r.status, r.raw)
