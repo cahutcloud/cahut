@@ -146,6 +146,21 @@ func (d *Data) writesForAnyone() []string {
 	return out
 }
 
+// writesForAnyone returns the queries of the declaration that write for
+// anyone, as "sign (adds)", sorted.
+func (d *Declaration) writesForAnyone() []string {
+	if d == nil || d.Data == nil {
+		return nil
+	}
+	var out []string
+	for _, name := range slices.Sorted(maps.Keys(d.Data.Queries)) {
+		if q := d.Data.Queries[name]; q.Who == Anyone && q.Kind != "" && q.Kind != "reads" {
+			out = append(out, name+" ("+q.Kind+")")
+		}
+	}
+	return out
+}
+
 // String sums the data up for the Logbook, without its SQL.
 func (d *Data) String() string {
 	s := fmt.Sprintf("data: %d migrations, %d queries, %d readable tables", len(d.Migrations), len(d.Queries), len(d.Readable))

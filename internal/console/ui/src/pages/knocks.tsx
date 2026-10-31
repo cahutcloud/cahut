@@ -22,6 +22,9 @@ const t = words({
 		canceled: "Canceled",
 		asks: {
 			setWindowAccess: (window: string) => `make ${window} public`,
+			anyoneWrites: (queries: string) => `, where anyone writes in its data with ${queries}`,
+			updateWindow: (window: string) => `publish a new version of ${window}, in which anyone changes or deletes what its readers wrote`,
+			changeWindowData: (window: string, what: string) => `change the data of ${window}, which removes or renames ${what}`,
 			purgeWindow: (window: string) => `delete ${window} for good, with its versions and its files`,
 			deleteRoom: (room: string) => `delete the Room ${room} for good, with its Windows and their files`,
 			createUser: (name: string, handle: string, admin: boolean) =>
@@ -75,6 +78,9 @@ const t = words({
 		canceled: "Annulé",
 		asks: {
 			setWindowAccess: (window) => `rendre ${window} publique`,
+			anyoneWrites: (queries) => `, où quiconque écrit dans ses données avec ${queries}`,
+			updateWindow: (window) => `publier une nouvelle version de ${window}, où quiconque modifie ou supprime ce que ses lecteurs ont écrit`,
+			changeWindowData: (window, what) => `changer les données de ${window}, ce qui supprime ou renomme ${what}`,
 			purgeWindow: (window) => `supprimer définitivement ${window}, avec ses versions et ses fichiers`,
 			deleteRoom: (room) => `supprimer définitivement la Room ${room}, avec ses Windows et leurs fichiers`,
 			createUser: (name, handle, admin) => `ajouter ${name} (${handle}) à cette Cahut${admin ? ", comme administrateur" : ""}`,
@@ -141,8 +147,15 @@ export function asks(k: Knock): string {
 	const user = text(i.user);
 	const room = text(i.room);
 	switch (k.operation) {
-		case "set_window_access":
-			return t.asks.setWindowAccess(k.target ?? text(i.window));
+		case "set_window_access": {
+			// The detail of its Logbook entry names what anyone will write.
+			const writes = (k.detail ?? "").split("; anyone writes with ")[1];
+			return t.asks.setWindowAccess(k.target ?? text(i.window)) + (writes ? t.asks.anyoneWrites(writes) : "");
+		}
+		case "update_window":
+			return t.asks.updateWindow(k.target ?? text(i.window));
+		case "change_window_data":
+			return t.asks.changeWindowData(k.target ?? text(i.window), (k.detail ?? "").split("removes or renames ")[1] ?? "");
 		case "purge_window":
 			return t.asks.purgeWindow(k.target ?? text(i.window));
 		case "delete_room":
