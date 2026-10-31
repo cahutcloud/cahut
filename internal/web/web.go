@@ -66,14 +66,29 @@ const DevPort = 8080
 // of its Windows. See docs/adr/0020-console-under-a-path-of-port-443.md.
 const ConsolePath = "/console/"
 
+// ServerPath is where the console of the server is served, at every domain
+// of the server. See docs/adr/0058-a-console-for-the-server.md.
+const ServerPath = "/server/"
+
 // ConsoleURL returns the address of the console of the Cahut at domain.
 // Only a server for development serves localhost and *.localhost, which no
 // certificate authority certifies.
 func ConsoleURL(domain string) string {
+	return addressAt(domain, ConsolePath)
+}
+
+// ServerConsoleURL returns the address of the console of the server, at
+// domain.
+func ServerConsoleURL(domain string) string {
+	return addressAt(domain, ServerPath)
+}
+
+// addressAt returns the address of path at domain.
+func addressAt(domain, path string) string {
 	if domain == "localhost" || strings.HasSuffix(domain, ".localhost") {
-		return fmt.Sprintf("http://%s:%d%s", domain, DevPort, ConsolePath)
+		return fmt.Sprintf("http://%s:%d%s", domain, DevPort, path)
 	}
-	return "https://" + domain + ConsolePath
+	return "https://" + domain + path
 }
 
 // ActivationURL is the address where a person of the Cahut at domain uses
@@ -114,7 +129,10 @@ type Server struct {
 	// console serves the paths under ConsolePath: the console, its API and
 	// the consent screen of OAuth. It has a mux of its own, since its paths
 	// would overlap those of the Rooms.
-	console       *http.ServeMux
+	console *http.ServeMux
+	// serverConsole serves the paths under ServerPath: the console of the
+	// server and its API.
+	serverConsole *http.ServeMux
 	visitors      *limiter // calls that sign in, by address
 	registrations *limiter // registrations of OAuth clients, by address
 	tokens        *limiter // calls to the token and revocation endpoints, by address
@@ -240,6 +258,12 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.console.HandleFunc("POST "+ConsolePath+"api/{operation}", s.serveAPI)
 	s.console.HandleFunc(ConsolePath+"api/", refuseAPI)
 	s.console.Handle(ConsolePath, pages)
+	// The console of the server and its API, which reaches every Cahut by
+	// its domain. See docs/adr/0058-a-console-for-the-server.md.
+	s.serverConsole = http.NewServeMux()
+	s.serverConsole.HandleFunc("POST "+ServerPath+"api/cahuts/{domain}/{operation}", s.serveCahutAsServer)
+	s.serverConsole.HandleFunc("POST "+ServerPath+"api/{operation}", s.serveServerAPI)
+	s.serverConsole.HandleFunc(ServerPath+"api/", refuseAPI)
 	return s
 }
 
@@ -295,6 +319,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch p := r.URL.Path; {
 	case strings.HasPrefix(p, ConsolePath):
 		s.console.ServeHTTP(w, r)
+	case strings.HasPrefix(p, ServerPath):
+		s.serverConsole.ServeHTTP(w, r)
 	case p == strings.TrimSuffix(ConsolePath, "/"), p == "/admin", strings.HasPrefix(p, "/admin/"):
 		redirectToConsole(w, r)
 	case !servedWhileSuspended(p) && s.serveSuspended(w, r):

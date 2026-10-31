@@ -267,6 +267,34 @@ func TestOpenAReportedWindow(t *testing.T) {
 	}
 }
 
+// An administrator of the server who signed in at one domain opens the
+// reported Window of another Cahut, in a frame of that Cahut, until their
+// session ends. See docs/adr/0058-a-console-for-the-server.md.
+func TestHostPreviewsAReportOfAnotherCahut(t *testing.T) {
+	f := setup(t)
+	f.person(t, "localhost", "olivier")
+	publishPage(t, f, "Draft", "room")
+	if status, _ := f.sendReport(t, "https://localhost/olivier/draft/", "illegal", "It shows what the law forbids.", ""); status != http.StatusOK {
+		t.Fatalf("report = %d", status)
+	}
+	root := serverAdminAt(t, f, "beta.localhost", "root")
+
+	r := call(t, f, f.ts, http.MethodPost, "beta.localhost", "/server/api/cahuts/localhost/preview_reported_window", root, `{"report": 1}`)
+	frame, _ := r.body["frame"].(string)
+	if r.status != http.StatusOK || !strings.HasPrefix(frame, "/-/frame/") {
+		t.Fatalf("preview_reported_window from beta.localhost: %d %s", r.status, r.raw)
+	}
+	if resp, body := f.do(t, "localhost", http.MethodGet, frame, nil, nil); resp.StatusCode != http.StatusOK || !strings.Contains(body, "<h1>Draft</h1>") {
+		t.Errorf("the frame = %d %q", resp.StatusCode, body)
+	}
+	if r := call(t, f, f.ts, http.MethodPost, "beta.localhost", "/server/api/sign_out", root, `{}`); r.status != http.StatusOK {
+		t.Fatalf("sign_out: %d %s", r.status, r.raw)
+	}
+	if resp, _ := f.do(t, "localhost", http.MethodGet, frame, nil, nil); resp.StatusCode != http.StatusNotFound {
+		t.Errorf("the frame once signed out = %d", resp.StatusCode)
+	}
+}
+
 // The moderators withdraw a Window that a report names, or a public
 // Window, with a reason: it keeps everything, and serves nothing to its
 // readers, who learn that it was withdrawn when they would open it; its

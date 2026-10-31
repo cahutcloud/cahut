@@ -57,6 +57,47 @@ func (s *Server) serveServerAPI(w http.ResponseWriter, r *http.Request) {
 	s.callAPI(w, r, s.srv.Registry, true)
 }
 
+// serveCahutAsServer runs, for an administrator of the server who signed in
+// at the domain of the request, an operation that serves the server in the
+// Cahut that the path names: POST /server/api/cahuts/<domain>/<operation>.
+// See docs/adr/0058-a-console-for-the-server.md.
+func (s *Server) serveCahutAsServer(w http.ResponseWriter, r *http.Request) {
+	setAPIHeaders(w)
+	actor, err := s.sessionActor(r, siteOf(r), true)
+	if errors.Is(err, account.ErrInvalidSession) {
+		w.Header().Set("WWW-Authenticate", "Bearer")
+		apiRefusal(w, http.StatusUnauthorized, err)
+		return
+	}
+	if err != nil {
+		s.log.Error("verify a session", "cahut", siteOf(r).cahut.Domain, "error", err)
+		apiError(w, http.StatusInternalServerError, "Internal error.")
+		return
+	}
+	domain := strings.TrimSuffix(strings.ToLower(r.PathValue("domain")), ".")
+	st, err := s.site(r.Context(), domain)
+	if errors.Is(err, operation.ErrNotFound) {
+		apiError(w, http.StatusNotFound, fmt.Sprintf("no Cahut at %q on this server: list_domains gives them", domain))
+		return
+	}
+	if err != nil {
+		s.log.Error("open a Cahut", "cahut", domain, "error", err)
+		apiError(w, http.StatusInternalServerError, "Internal error.")
+		return
+	}
+	name := r.PathValue("operation")
+	if info, ok := st.cahut.Registry.Lookup(name); !ok || !info.ServesServer() {
+		apiError(w, http.StatusNotFound, fmt.Sprintf("no operation %q for the server in a Cahut: the reference of the operations lists them", name))
+		return
+	}
+	body, ok := readCall(w, r, MaxAPIRequestSize)
+	if !ok {
+		return
+	}
+	actor.Domain = st.cahut.Domain
+	s.invoke(w, r, st.cahut.Registry, name, actor, body)
+}
+
 // refuseAPI answers the requests to the API that are not a POST to an
 // operation: the API answers no other method, not even a CORS preflight.
 func refuseAPI(w http.ResponseWriter, r *http.Request) {
