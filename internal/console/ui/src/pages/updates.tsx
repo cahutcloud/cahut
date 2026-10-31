@@ -7,7 +7,7 @@ import { useEffect, useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Updates as UpdatesInfo } from "../api.gen";
 import { agoInText, ConfirmButton, Failure, Notice, PageHead } from "../components";
-import { useConsole } from "../context";
+import { useServer } from "../server/context";
 import { locale, words } from "../i18n";
 import { useLoad } from "../load";
 
@@ -144,7 +144,7 @@ export function newer(a: string, b: string): boolean {
 const day = (at: string) => new Date(at).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
 
 export function Updates() {
-	const api = useConsole();
+	const api = useServer();
 	const { data, error, reload } = useLoad(() => api.server("get_updates", {}));
 	const [failure, setFailure] = useState("");
 

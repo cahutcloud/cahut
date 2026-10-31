@@ -58,6 +58,13 @@ func TestAddDomain(t *testing.T) {
 	if len(list.Cahuts) != 2 || list.Cahuts[0].Domain != "cahut.example.com" || list.Cahuts[1].Domain != "beta.example.org" {
 		t.Errorf("list_domains = %+v", list)
 	}
+	// The console of the server lists the kind of each Cahut. See
+	// docs/adr/0058-a-console-for-the-server.md.
+	for _, c := range list.Cahuts {
+		if c.Kind != "collaborative" {
+			t.Errorf("list_domains: the kind of %s = %q, want collaborative", c.Domain, c.Kind)
+		}
+	}
 	if ok, err := s.Declared(ctx, "beta.example.org"); !ok || err != nil {
 		t.Errorf("Declared(beta.example.org) = %v, %v", ok, err)
 	}

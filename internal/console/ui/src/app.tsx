@@ -3,12 +3,12 @@ import { useEffect, useState } from "preact/hooks";
 import { cahut, server } from "./api";
 import type { LegalLinks, Room, Suspension } from "./api.gen";
 import { PageHead } from "./components";
-import { bind, ConsoleProvider, useConsole } from "./context";
+import { bind, ConsoleProvider } from "./context";
+import { fragment } from "./fragment";
 import { words } from "./i18n";
 import { Access } from "./pages/access";
 import { Account } from "./pages/account";
 import { Activate } from "./pages/activate";
-import { Admins } from "./pages/admins";
 import { ConfirmEmail } from "./pages/confirm-email";
 import { Consent } from "./pages/consent";
 import { Invitation } from "./pages/invitation";
@@ -16,7 +16,7 @@ import { KnockPage, Knocks } from "./pages/knocks";
 import { Moderation } from "./pages/moderation";
 import { Logbook } from "./pages/logbook";
 import { MailPage } from "./pages/mail";
-import { Overview, ServerOverview } from "./pages/overview";
+import { Overview } from "./pages/overview";
 import { People } from "./pages/people";
 import { Read } from "./pages/read";
 import { RoomPage, RoomsPage } from "./pages/rooms";
@@ -25,9 +25,8 @@ import { Setup } from "./pages/setup";
 import { Settings } from "./pages/settings";
 import { SignIn } from "./pages/sign-in";
 import { Suspended } from "./pages/suspended";
-import { Updates } from "./pages/updates";
 import { WindowPage } from "./pages/window";
-import { navigate, Redirect, usePath } from "./router";
+import { Away, navigate, Redirect, usePath } from "./router";
 import { clear, load, save, type Session } from "./session";
 import { Shell } from "./shell";
 
@@ -118,15 +117,17 @@ export function App() {
 	const signOut = () => signOutOf(session?.kind ?? "person");
 	const leaveServer = () => signOutOf("admin");
 
+	// The pages of the server live in the console of the server, which an
+	// older link or a bookmark reaches with its code. See
+	// docs/adr/0058-a-console-for-the-server.md.
+	if (path === "/server" || path.startsWith("/server/")) {
+		return <Away to={`${path}${location.search}${fragment ? `#${fragment}` : ""}`} />;
+	}
 	switch (path) {
 		case "/sign-in":
 			return <SignIn kind="person" beside={held.admin !== null} onSignIn={signIn} />;
-		case "/server/sign-in":
-			return <SignIn kind="admin" beside={held.person !== null} onSignIn={signIn} />;
 		case "/activate":
 			return <Activate kind="person" onSignIn={signIn} />;
-		case "/server/activate":
-			return <Activate kind="admin" onSignIn={signIn} />;
 		case "/confirm-email":
 			return <ConfirmEmail />;
 		case "/invitation":
@@ -324,12 +325,6 @@ function useWaitingReports(api: ReturnType<typeof bind>, moderates: boolean): { 
 }
 
 function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
-	const { serverSession } = useConsole();
-	// The pages of the server need its session, which the person adds from
-	// the page of their account.
-	if (path.startsWith("/server/") && !serverSession) {
-		return <Redirect to="/server/sign-in" />;
-	}
 	const knock = path.match(/^\/knocks\/([0-9]+)\/?$/);
 	if (knock) return <KnockPage key={path} id={Number(knock[1])} />;
 	const room = path.match(/^\/rooms\/([a-z0-9-]+)\/?$/);
@@ -344,7 +339,7 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 		case "/search":
 			return <SearchPage />;
 		case "/logbook":
-			return <Logbook of="cahut" />;
+			return <Logbook />;
 		case "/knocks":
 			return <Knocks />;
 		case "/people":
@@ -359,14 +354,6 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 			return <Access />;
 		case "/account":
 			return <Account onSignOut={onSignOut} />;
-		case "/server/cahuts":
-			return <ServerOverview />;
-		case "/server/admins":
-			return <Admins />;
-		case "/server/logbook":
-			return <Logbook of="server" />;
-		case "/server/updates":
-			return <Updates />;
 	}
 	return (
 		<PageHead label={t.notFound} title={t.nothingHere}>

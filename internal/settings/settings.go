@@ -98,6 +98,14 @@ type querier interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
+// KindOf returns the kind of the Cahut, collaborative or individual, which
+// the list of the Cahuts of the server shows. See
+// docs/adr/0058-a-console-for-the-server.md.
+func KindOf(ctx context.Context, q querier) (string, error) {
+	kind, _, err := get(ctx, q)
+	return kind, err
+}
+
 // get returns the kind and the limits of the Cahut.
 func get(ctx context.Context, q querier) (string, Limits, error) {
 	var kind string

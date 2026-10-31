@@ -98,10 +98,10 @@ func ActivationURL(domain string) string {
 }
 
 // AdminActivationURL is the address where an administrator of the server
-// uses an activation link, at the console of the Cahut at domain: the code
+// uses an activation link, at the console of the server at domain: the code
 // follows it.
 func AdminActivationURL(domain string) string {
-	return ConsoleURL(domain) + "server/activate#"
+	return ServerConsoleURL(domain) + "activate#"
 }
 
 // BaseURL returns the address of the Cahut at domain.
@@ -264,7 +264,23 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.serverConsole.HandleFunc("POST "+ServerPath+"api/cahuts/{domain}/{operation}", s.serveCahutAsServer)
 	s.serverConsole.HandleFunc("POST "+ServerPath+"api/{operation}", s.serveServerAPI)
 	s.serverConsole.HandleFunc(ServerPath+"api/", refuseAPI)
+	s.serverConsole.Handle(ServerPath, http.StripPrefix(strings.TrimSuffix(ServerPath, "/"), console.ServerHandler(s.cahutOrigins)))
 	return s
+}
+
+// cahutOrigins returns the origins of the Cahuts of the server, whose
+// reported Windows the console of the server frames.
+func (s *Server) cahutOrigins(r *http.Request) []string {
+	domains, err := s.srv.Domains(r.Context())
+	if err != nil {
+		s.log.Error("list the Cahuts for the console of the server", "error", err)
+		return nil
+	}
+	origins := make([]string, 0, len(domains))
+	for _, d := range domains {
+		origins = append(origins, strings.TrimSuffix(s.cfg.BaseURL(d), "/"))
+	}
+	return origins
 }
 
 // redirectToConsole sends /console, and /admin, which people type out of
@@ -323,6 +339,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.serverConsole.ServeHTTP(w, r)
 	case p == strings.TrimSuffix(ConsolePath, "/"), p == "/admin", strings.HasPrefix(p, "/admin/"):
 		redirectToConsole(w, r)
+	case p == strings.TrimSuffix(ServerPath, "/"):
+		http.Redirect(w, r, ServerPath, http.StatusMovedPermanently)
 	case !servedWhileSuspended(p) && s.serveSuspended(w, r):
 	default:
 		s.mux.ServeHTTP(w, r)

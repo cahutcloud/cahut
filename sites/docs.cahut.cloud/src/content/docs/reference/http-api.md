@@ -59,6 +59,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `account_disabled` |  | This account is disabled: an administrator of the Cahut can enable it |
 | `activation_link_gone` |  | This activation link is unknown, used or expired: ask an administrator of the Cahut for a new one |
 | `cahut_needs_an_admin` |  | The Cahut needs an administrator: make another person one first |
+| `cahut_not_on_server` | `domain` | No Cahut at {domain} on this server: list_domains gives them |
 | `cahut_suspended` |  | This Cahut is suspended by the administrators of its server: it keeps everything it holds, and nothing in it can be read or changed until they resume it. Ask the administrators of the Cahut, or, for an AI, tell the person you act for |
 | `description_control` |  | The description holds a control character: write it in plain text |
 | `description_too_long` | `length`, `limit` | The description has {length} characters: use at most {limit}, a sentence or two |

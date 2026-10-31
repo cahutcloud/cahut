@@ -182,7 +182,7 @@ func TestServerAdminCommands(t *testing.T) {
 	code, out, errOut := run(t, data, "admin", "create", "--handle", "olivier", "--name", "Olivier Durand")
 	if code != exitOK || !strings.Contains(out, "Created olivier (Olivier Durand), administrator of this server.") ||
 		!strings.Contains(out, "This server holds no Cahut yet") ||
-		!regexp.MustCompile(`(?m)^https://<domain>/console/server/activate#[a-z2-7]{52}$`).MatchString(out) {
+		!regexp.MustCompile(`(?m)^https://<domain>/server/activate#[a-z2-7]{52}$`).MatchString(out) {
 		t.Errorf("admin create without a Cahut: %d %q %q", code, out, errOut)
 	}
 
@@ -201,7 +201,7 @@ func TestServerAdminCommands(t *testing.T) {
 	}
 
 	code, out, _ = run(t, data, "admin", "link", "--handle", "olivier")
-	if code != exitOK || !regexp.MustCompile(`(?m)^https://cahut\.example\.com/console/server/activate#[a-z2-7]{52}$`).MatchString(out) {
+	if code != exitOK || !regexp.MustCompile(`(?m)^https://cahut\.example\.com/server/activate#[a-z2-7]{52}$`).MatchString(out) {
 		t.Errorf("admin link: %d %q", code, out)
 	}
 	if code, _, errOut := run(t, data, "admin", "link", "--handle", "olivier", "--domain", "c.example.com"); code != exitError || !strings.Contains(errOut, "no Cahut at c.example.com") {

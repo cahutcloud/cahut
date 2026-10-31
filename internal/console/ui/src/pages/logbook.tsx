@@ -2,12 +2,13 @@
 // result. Administrators read all of it; anyone else what they did, what
 // their AIs did and what happened in their Rooms.
 import { useState } from "preact/hooks";
-import type { Entry } from "../api.gen";
+import type { Entry, LogbookPage } from "../api.gen";
 import { Failure, PageHead } from "../components";
 import { useConsole } from "../context";
 import { locale, words } from "../i18n";
 import { useLoad } from "../load";
 import { Link } from "../router";
+import { useServer } from "../server/context";
 
 const t = words({
 	en: {
@@ -105,16 +106,24 @@ function day(at: string): string {
 	return d.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" });
 }
 
-export function Logbook({ of }: { of: "cahut" | "server" }) {
+/** The Logbook of this Cahut, in its console. */
+export function Logbook() {
 	const api = useConsole();
+	return <LogbookView of="cahut" lead={api.isAdmin ? t.ofAdmin : t.ofPerson} load={(limit) => api.cahut("list_logbook", { limit })} />;
+}
+
+/** The Logbook of the server, in the console of the server. See docs/adr/0058-a-console-for-the-server.md. */
+export function ServerLogbook() {
+	const api = useServer();
+	return <LogbookView of="server" lead={t.ofServer} load={(limit) => api.server("list_logbook", { limit })} />;
+}
+
+function LogbookView({ of, lead, load }: { of: "cahut" | "server"; lead: string; load: (limit: number) => Promise<LogbookPage> }) {
 	const [limit, setLimit] = useState(step);
 	const [person, setPerson] = useState("");
 	const [operation, setOperation] = useState("");
 	const [outcome, setOutcome] = useState("");
-	const { data, error } = useLoad(
-		() => (of === "server" ? api.server("list_logbook", { limit }) : api.cahut("list_logbook", { limit })),
-		[of, limit],
-	);
+	const { data, error } = useLoad(() => load(limit), [of, limit]);
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
 
@@ -134,7 +143,7 @@ export function Logbook({ of }: { of: "cahut" | "server" }) {
 	return (
 		<>
 			<PageHead label={of === "server" ? t.thisServer : t.thisCahut} title="Logbook">
-				{of === "server" ? t.ofServer : api.isAdmin ? t.ofAdmin : t.ofPerson}
+				{lead}
 			</PageHead>
 			<div class="filters" role="search">
 				<label class="c-field">

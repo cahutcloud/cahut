@@ -8,7 +8,7 @@ import { useEffect, useId, useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Activation, Admin } from "../api.gen";
 import { ActivationResult, Dialog, Failure, handleFrom, initials, Notice, Outcome, PageHead, plural, Setting, StatusBadge } from "../components";
-import { useConsole } from "../context";
+import { useServer } from "../server/context";
 import { de, locale, words } from "../i18n";
 import { useLoad } from "../load";
 import { Link } from "../router";
@@ -23,16 +23,8 @@ const t = words({
 		title: "Server administrators",
 		newAdmin: "New administrator",
 		intro:
-			"They hold every Cahut of this server: they declare Cahuts, set their kind and limits, read the Logbook of the server, and manage the people and Rooms of every Cahut, at its console.",
-		cahutOnly: () => (
-			<>
-				To make someone an administrator of this Cahut only, add them in{" "}
-				<Link class="c-link" href="/people">
-					People
-				</Link>{" "}
-				as an administrator.
-			</>
-		),
+			"They hold every Cahut of this server, from any of its domains: they declare Cahuts, set their kind, limits and legal pages, suspend and resume them, moderate them, and read the Logbook of the server. The people and the Rooms of each Cahut are for its own administrators.",
+		cahutOnly: "An administrator of one Cahut only is added by the administrators of that Cahut, in its People.",
 		adminColumn: "Administrator",
 		added: "Added",
 		state: "State",
@@ -88,16 +80,8 @@ const t = words({
 		title: "Administrateurs du serveur",
 		newAdmin: "Nouvel administrateur",
 		intro:
-			"Ils ont la main sur toutes les Cahuts de ce serveur : ils déclarent des Cahuts, fixent leur type et leurs limites, lisent le Logbook du serveur, et gèrent les personnes et les Rooms de chaque Cahut, depuis sa console.",
-		cahutOnly: () => (
-			<>
-				Pour faire de quelqu'un un administrateur de cette Cahut seulement, ajoutez cette personne dans{" "}
-				<Link class="c-link" href="/people">
-					Personnes
-				</Link>
-				, comme administrateur.
-			</>
-		),
+			"Ils ont la main sur toutes les Cahuts de ce serveur, depuis n'importe lequel de ses domaines : ils déclarent des Cahuts, fixent leur type, leurs limites et leurs pages légales, les suspendent et les réactivent, les modèrent, et lisent le Logbook du serveur. Les personnes et les Rooms de chaque Cahut relèvent de ses propres administrateurs.",
+		cahutOnly: "Un administrateur d'une seule Cahut s'ajoute par les administrateurs de cette Cahut, dans ses Personnes.",
 		adminColumn: "Administrateur",
 		added: "Ajouté le",
 		state: "État",
@@ -153,17 +137,17 @@ function added(a: Admin): string {
 }
 
 export function Admins() {
-	const api = useConsole();
+	const api = useServer();
 	const { data, error, reload } = useLoad(() => api.server("list_admins", {}));
 	const [adding, setAdding] = useState(false);
 	const [managing, setManaging] = useState("");
 	// The administrator who signs in, alone or beside a person.
-	const isSelf = (a: Admin) => a.handle === api.serverSession?.handle;
+	const isSelf = (a: Admin) => a.handle === api.session.handle;
 	// Their name may have changed in another browser: the bar of the server
 	// takes it.
 	useEffect(() => {
 		const me = data?.admins.find(isSelf);
-		if (me) api.serverRenamed(me);
+		if (me) api.renamed(me);
 	}, [data]);
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
@@ -190,7 +174,7 @@ export function Admins() {
 				{t.intro}
 			</PageHead>
 			<div class="section">
-				<Notice>{t.cahutOnly()}</Notice>
+				<Notice>{t.cahutOnly}</Notice>
 			</div>
 			<section class="section">
 				<p class="c-small c-muted people-summary">{summary.join(" · ")}</p>
@@ -249,7 +233,7 @@ export function Admins() {
 
 /** The dialog that adds an administrator of the server, then gives the link where they choose their password. */
 function NewAdmin({ onCreated, onClose }: { onCreated: () => void; onClose: () => void }) {
-	const api = useConsole();
+	const api = useServer();
 	const [name, setName] = useState("");
 	const [handle, setHandle] = useState("");
 	const [handleTouched, setHandleTouched] = useState(false);
@@ -285,7 +269,7 @@ function NewAdmin({ onCreated, onClose }: { onCreated: () => void; onClose: () =
 					<Check class="i" size={16} aria-hidden="true" />
 					<div>{t.created(created.name)}</div>
 				</div>
-				<ActivationResult name={created.name} activation={created.activation} page="/server/activate" />
+				<ActivationResult name={created.name} activation={created.activation} page="/activate" />
 				<div class="dialog__foot">
 					<button class="c-btn c-btn--secondary" type="button" onClick={again}>
 						{t.addAnother}
@@ -351,7 +335,7 @@ function NewAdmin({ onCreated, onClose }: { onCreated: () => void; onClose: () =
  * page of one's account.
  */
 function ManageAdmin(props: { admin: Admin; self: boolean; onChanged: () => void; onClose: () => void }) {
-	const api = useConsole();
+	const api = useServer();
 	const a = props.admin;
 	const run = async <T,>(call: () => Promise<T>): Promise<T> => {
 		const out = await call();
@@ -360,7 +344,7 @@ function ManageAdmin(props: { admin: Admin; self: boolean; onChanged: () => void
 	};
 	const rename = async (name: string) => {
 		const b = await run(() => api.server("rename_admin", { admin: a.handle, name }));
-		if (props.self) api.serverRenamed(b);
+		if (props.self) api.renamed(b);
 	};
 	return (
 		<Dialog
@@ -398,7 +382,7 @@ function ManageAdmin(props: { admin: Admin; self: boolean; onChanged: () => void
 						action={t.newLink}
 						onAct={async () => {
 							const link = await run(() => api.server("create_activation_link", { admin: a.handle }));
-							return <ActivationResult name={a.name} activation={link} page="/server/activate" />;
+							return <ActivationResult name={a.name} activation={link} page="/activate" />;
 						}}
 					/>
 				)}

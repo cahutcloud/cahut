@@ -5,6 +5,19 @@ import logo from "@charte/logos/cahut-logo-horizontal.svg";
 import inverse from "@charte/logos/cahut-logo-horizontal-inverse.svg";
 import type { Theme } from "./theme";
 
+/**
+ * The logo on the bar of the console of the server, which is Ink, or Paper
+ * when the system shows dark colors: the inverse of the logo of the page.
+ */
+export function BarLogo({ height }: { height: number }) {
+	return (
+		<picture>
+			<source srcset={logo} media="(prefers-color-scheme: dark)" />
+			<img src={inverse} alt="Cahut" height={height} />
+		</picture>
+	);
+}
+
 export function Logo({ height, theme }: { height: number; theme?: Theme }) {
 	if (theme) return <img src={theme === "dark" ? inverse : logo} alt="Cahut" height={height} />;
 	return (

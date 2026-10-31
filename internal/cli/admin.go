@@ -508,13 +508,13 @@ func runUserEmail(args []string, stdout, stderr io.Writer) int {
 }
 
 // printAdminActivation prints the link of an administrator's activation, at
-// the console of the Cahut at domain, or at that of any Cahut when the
-// server holds none yet.
+// the console of the server at domain, or at any domain of the server when
+// it holds no Cahut yet.
 func printAdminActivation(w io.Writer, domain string, a account.Activation) {
 	if domain == "" {
 		fmt.Fprintln(w, "This server holds no Cahut yet. Once you declare one, put its domain in the link: "+
-			"it opens in the console of any Cahut of the server.")
-		printActivation(w, "https://<domain>"+web.ConsolePath+"server/activate#", a)
+			"the console of the server opens at the domain of any Cahut of the server.")
+		printActivation(w, "https://<domain>"+web.ServerPath+"activate#", a)
 		return
 	}
 	printActivation(w, web.AdminActivationURL(domain), a)
