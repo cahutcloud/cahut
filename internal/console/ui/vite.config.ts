@@ -29,6 +29,7 @@ export default defineConfig({
 		// that the API answers as the Cahut at localhost.
 		proxy: {
 			"/console/api": { target: "http://localhost:8080" },
+			"/server/api": { target: "http://localhost:8080" },
 			"/-/brand": { target: "http://localhost:8080" },
 		},
 	},

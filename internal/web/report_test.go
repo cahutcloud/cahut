@@ -293,6 +293,12 @@ func TestHostPreviewsAReportOfAnotherCahut(t *testing.T) {
 	if resp, _ := f.do(t, "localhost", http.MethodGet, frame, nil, nil); resp.StatusCode != http.StatusNotFound {
 		t.Errorf("the frame once signed out = %d", resp.StatusCode)
 	}
+	// The next session of the server, at any domain, does not take the id
+	// of the one that ended, and opens nothing of it.
+	serverAdminAt(t, f, "localhost", "ana")
+	if resp, _ := f.do(t, "localhost", http.MethodGet, frame, nil, nil); resp.StatusCode != http.StatusNotFound {
+		t.Errorf("the frame once another administrator signed in = %d", resp.StatusCode)
+	}
 }
 
 // The moderators withdraw a Window that a report names, or a public
