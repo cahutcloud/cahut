@@ -213,7 +213,7 @@ export function People() {
 	if (!data) return null;
 
 	const users = data.users;
-	const isSelf = (u: User) => api.session.kind === "person" && u.handle === api.session.handle;
+	const isSelf = (u: User) => u.handle === api.session.handle;
 	const managed = users.find((u) => u.handle === managing);
 	const count = (test: (u: User) => boolean) => users.filter(test).length;
 	const summary = [plural(users.length, t.person, t.people), plural(count((u) => u.role === "admin"), t.administrator, t.administrators)];
@@ -340,7 +340,7 @@ function NewPerson({ onCreated, onClose }: { onCreated: () => void; onClose: () 
 					<Check class="i" size={16} aria-hidden="true" />
 					<div>{t.created(created.user.name, `${location.hostname}/${created.user.handle}`)}</div>
 				</div>
-				<ActivationResult name={created.user.name} email={created.user.email} activation={created.activation} page="/activate" />
+				<ActivationResult name={created.user.name} email={created.user.email} activation={created.activation} />
 				<div class="dialog__foot">
 					<button class="c-btn c-btn--secondary" type="button" onClick={again}>
 						{t.addAnother}
@@ -470,7 +470,7 @@ function ManagePerson(props: { user: User; self: boolean; onChanged: () => void;
 						action={t.newLink}
 						onAct={async () => {
 							const a = await run(() => api.cahut("create_activation_link", { user: u.handle }));
-							return <ActivationResult name={u.name} email={u.email} activation={a} page="/activate" />;
+							return <ActivationResult name={u.name} email={u.email} activation={a} />;
 						}}
 					/>
 				)}

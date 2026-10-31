@@ -1,10 +1,8 @@
-// How to connect an AI to this Cahut, client by client, and whether one has
-// connected: the first start, the overview and AIs and access show it. See
-// docs/adr/0025-first-start-in-the-browser.md.
-import { CircleCheck, Download, LoaderCircle } from "lucide-preact";
-import { useEffect, useState } from "preact/hooks";
-import type { Connection, TokenInfo } from "./api.gen";
-import { CopyField, Notice } from "./components";
+// How to connect an AI to this Cahut, client by client: the overview and
+// AIs and access show it. See docs/adr/0025-first-start-in-the-browser.md.
+import { Download } from "lucide-preact";
+import { useState } from "preact/hooks";
+import { CopyField, ipAddress, Notice } from "./components";
 import { words } from "./i18n";
 import { Link } from "./router";
 
@@ -52,8 +50,6 @@ const t = words({
 				creates.
 			</>
 		),
-		connected: (name: string) => `${name} is connected. Ask it to publish something on Cahut.`,
-		waiting: "Waiting for your AI. This page sees it as soon as it connects.",
 	},
 	fr: {
 		claudeApps: "Applis Claude",
@@ -98,13 +94,8 @@ const t = words({
 				.
 			</>
 		),
-		connected: (name) => `${name} est connecté. Demandez-lui de publier quelque chose sur Cahut.`,
-		waiting: "En attente de votre IA. Cette page la voit dès qu'elle se connecte.",
 	},
 });
-
-/** An address that is an IPv4 address, not a domain. */
-export const ipAddress = /^\d{1,3}(\.\d{1,3}){3}$/;
 
 const clients = [
 	{ id: "claude-code", name: "Claude Code" },
@@ -211,55 +202,6 @@ function Other({ mcp }: { mcp: string }) {
 			<p class="c-small">{t.other}</p>
 			<CopyField label={t.address} value={mcp} />
 		</>
-	);
-}
-
-/** How often the console asks whether an AI has connected. */
-const every = 3000;
-
-/**
- * Asks every few seconds, while the tab is in front, whether an AI acts for
- * the person: a connection over OAuth, or a personal token it has used.
- * It returns the name of the first one, or "".
- */
-export function useConnectedAI(list: () => Promise<[Connection[], TokenInfo[]]>): string {
-	const [name, setName] = useState("");
-	useEffect(() => {
-		if (name) return;
-		let stop = false;
-		const ask = async () => {
-			if (document.visibilityState !== "visible") return;
-			try {
-				const [connections, tokens] = await list();
-				const c = connections.find((c) => c.status === "active");
-				const t = tokens.find((t) => t.last_used_at && !t.revoked_at);
-				if (!stop && (c || t)) setName(c ? c.client : t ? t.name : "");
-			} catch {
-				// The next round asks again.
-			}
-		};
-		ask();
-		const timer = setInterval(ask, every);
-		return () => {
-			stop = true;
-			clearInterval(timer);
-		};
-	}, [name]);
-	return name;
-}
-
-/** Says whether an AI has connected yet. */
-export function ConnectedStatus({ name }: { name: string }) {
-	return name ? (
-		<p class="connect__status connect__status--done" role="status">
-			<CircleCheck class="i" size={18} aria-hidden="true" />
-			{t.connected(name)}
-		</p>
-	) : (
-		<p class="connect__status" role="status">
-			<LoaderCircle class="i connect__spin" size={18} aria-hidden="true" />
-			{t.waiting}
-		</p>
 	);
 }
 

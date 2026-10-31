@@ -403,10 +403,11 @@ export function handleFrom(name: string): string {
 }
 
 /**
- * The link where someone chooses their password, shown once, at page: /activate
- * for the people of a Cahut, /server/activate for the administrators of the server.
+ * The link where someone chooses their password, shown once: the page of
+ * activation of the console that shows it, that of the Cahut for its people,
+ * that of the server for its administrators.
  */
-export function ActivationResult(props: { name: string; email?: string; activation: Activation; page: string }) {
+export function ActivationResult(props: { name: string; email?: string; activation: Activation }) {
 	const { name, email, activation } = props;
 	const until = new Date(activation.expires_at).toLocaleDateString(locale, { dateStyle: "long" });
 	return (
@@ -414,7 +415,7 @@ export function ActivationResult(props: { name: string; email?: string; activati
 			<p class="c-small">
 				{activation.emailed ? t.emailed(name, email, until) : t.send(name, until)}
 			</p>
-			<CopyField label={t.activationLink} value={`${location.origin}${href(props.page)}#${activation.code}`} />
+			<CopyField label={t.activationLink} value={`${location.origin}${href("/activate")}#${activation.code}`} />
 		</div>
 	);
 }
@@ -981,6 +982,9 @@ export function bytes(n: number): string {
 export function originOf(domain: string): string {
 	return `${location.protocol}//${domain}${location.port ? `:${location.port}` : ""}`;
 }
+
+/** An address that is an IPv4 address, not a domain. */
+export const ipAddress = /^\d{1,3}(\.\d{1,3}){3}$/;
 
 /** The initials of a name, for its avatar. */
 export function initials(name: string): string {
