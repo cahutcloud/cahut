@@ -36,6 +36,11 @@ func TestRun(t *testing.T) {
 			"| `POST /server/api/cahuts/<domain>/suspend_cahut` |", "| `POST /server/api/cahuts/<domain>/get_cahut` | Administrators of the server | yes |", "| `POST /console/api/list_rooms` | Any person | yes |",
 			"| `password_too_short` | `length`, `limit` | The password has {length} characters: use at least {limit} |", "| `session_ended` |  | Invalid or ended session |"},
 	}
+	// The operations at the level of the server answer at the API of the
+	// console of the server only. See docs/adr/0058-a-console-for-the-server.md.
+	if got, err := os.ReadFile(filepath.Join(dir, "http-api.md")); err != nil || bytes.Contains(got, []byte("| `POST /console/api/set_cahut_settings` |")) {
+		t.Errorf("http-api.md lists set_cahut_settings at the API of the console of the Cahut (%v)", err)
+	}
 	for file, parts := range want {
 		got, err := os.ReadFile(filepath.Join(dir, file))
 		if err != nil {

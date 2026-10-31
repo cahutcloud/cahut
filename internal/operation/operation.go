@@ -83,7 +83,9 @@ type Level int
 const (
 	// AnyPerson is any person of the Cahut, and the AIs that act for one.
 	AnyPerson Level = iota
-	// CahutAdmin is the administrators of the Cahut, and those of the server.
+	// CahutAdmin is the administrators of the Cahut. The administrators of the
+	// server call in a Cahut what serves the server only: see
+	// Info.ServesServer and docs/adr/0058-a-console-for-the-server.md.
 	CahutAdmin
 	// ServerAdmin is the administrators of the server.
 	ServerAdmin

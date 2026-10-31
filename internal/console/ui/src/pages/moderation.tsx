@@ -17,7 +17,7 @@ const t = words({
 	en: {
 		label: "This Cahut",
 		title: "Moderation",
-		lead: "Anyone reports a Window of this Cahut, without an account, from the page Report a Window that the pages of this Cahut link. Its administrators and those of its server read the reports here, and decide.",
+		lead: "Anyone reports a Window of this Cahut, without an account, from the page Report a Window that the pages of this Cahut link. Its administrators read the reports here, and decide.",
 		onlyModerators: "Only the administrators of this Cahut, and those of its server, read its reports.",
 		waiting: "Waiting for a decision",
 		nothingWaits: "No report waits.",
@@ -62,7 +62,7 @@ const t = words({
 	fr: {
 		label: "Cette Cahut",
 		title: "Modération",
-		lead: "Tout le monde signale une Window de cette Cahut, sans compte, depuis la page Report a Window que ses pages relient. Ses administrateurs et ceux de son serveur lisent les signalements ici, et tranchent.",
+		lead: "Tout le monde signale une Window de cette Cahut, sans compte, depuis la page Report a Window que ses pages relient. Ses administrateurs lisent les signalements ici, et tranchent.",
 		onlyModerators: "Seuls les administrateurs de cette Cahut, et ceux de son serveur, lisent ses signalements.",
 		waiting: "En attente d'une décision",
 		nothingWaits: "Aucun signalement n'attend.",

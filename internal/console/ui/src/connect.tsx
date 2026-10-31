@@ -31,9 +31,8 @@ const t = words({
 		downloadSkill: "Download the skill",
 		chatgptIP: (
 			<>
-				ChatGPT does not connect to a Cahut at an IP address. Point a domain to this server and move the Cahut there, in the
-				console of the administrator of the server or with <code class="c-mono">cahut domain rename</code>, then add it to ChatGPT
-				at its new address.
+				ChatGPT does not connect to a Cahut at an IP address. Ask the administrators of the server to move it to a domain, then add
+				it to ChatGPT at its new address.
 			</>
 		),
 		chatgpt:
@@ -78,9 +77,8 @@ const t = words({
 		downloadSkill: "Télécharger la skill",
 		chatgptIP: (
 			<>
-				ChatGPT ne se connecte pas à une Cahut à une adresse IP. Faites pointer un domaine vers ce serveur et déplacez-y la Cahut, dans
-				la console de l'administrateur du serveur ou avec <code class="c-mono">cahut domain rename</code>, puis ajoutez-le à
-				ChatGPT à sa nouvelle adresse.
+				ChatGPT ne se connecte pas à une Cahut à une adresse IP. Demandez aux administrateurs du serveur de la déplacer vers un
+				domaine, puis ajoutez-la à ChatGPT à sa nouvelle adresse.
 			</>
 		),
 		chatgpt:

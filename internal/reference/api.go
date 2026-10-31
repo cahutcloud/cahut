@@ -57,7 +57,7 @@ func apiPage(s sample) page {
 		". The message says what to change. An internal error says only that it happened: the Logbook keeps the details.")
 	m.table([]string{"Status", "When"}, [][]string{
 		{status(http.StatusBadRequest), "The input is invalid"},
-		{status(http.StatusUnauthorized), "The session is missing, unknown or ended, or holds at another domain"},
+		{status(http.StatusUnauthorized), "The session is missing, unknown or ended, holds at another domain, or is a session of the other console"},
 		{status(http.StatusForbidden), "The caller may not do this"},
 		{status(http.StatusNotFound), "The operation, or what it names, does not exist, or the caller may not see it"},
 		{status(http.StatusMethodNotAllowed), "The request is not a " + code("POST")},
@@ -77,7 +77,15 @@ func apiPage(s sample) page {
 	m.table([]string{"Code", "Values", "Message"}, refusalRows(operation.Refusals()))
 
 	m.block("## Operations of a Cahut")
-	m.table([]string{"Route", "Who calls it", "Session"}, apiRows(web.ConsolePath+"api/", s.cahutOps))
+	// Those at the level of the server answer at the API of the console of
+	// the server only, in the last table.
+	var ofPeople []operation.Info
+	for _, op := range s.cahutOps {
+		if op.Level != operation.ServerAdmin {
+			ofPeople = append(ofPeople, op)
+		}
+	}
+	m.table([]string{"Route", "Who calls it", "Session"}, apiRows(web.ConsolePath+"api/", ofPeople))
 	m.block("## Operations of the server")
 	m.table([]string{"Route", "Who calls it", "Session"}, apiRows(web.ServerPath+"api/", s.serverOps))
 	m.block("## Operations that serve the server in a Cahut")

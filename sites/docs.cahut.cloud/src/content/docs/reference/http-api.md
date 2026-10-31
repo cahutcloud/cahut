@@ -42,7 +42,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | Status | When |
 | --- | --- |
 | 400 Bad Request | The input is invalid |
-| 401 Unauthorized | The session is missing, unknown or ended, or holds at another domain |
+| 401 Unauthorized | The session is missing, unknown or ended, holds at another domain, or is a session of the other console |
 | 403 Forbidden | The caller may not do this |
 | 404 Not Found | The operation, or what it names, does not exist, or the caller may not see it |
 | 405 Method Not Allowed | The request is not a `POST` |
@@ -149,7 +149,6 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/confirm_email` | Anyone, to sign in | no |
 | `POST /console/api/create_activation_link` | Administrators of the Cahut | yes |
 | `POST /console/api/create_room` | Any person | yes |
-| `POST /console/api/create_service_token` | Administrators of the server | yes |
 | `POST /console/api/create_share_link` | Any person | yes |
 | `POST /console/api/create_token` | Any person | yes |
 | `POST /console/api/create_user` | Administrators of the Cahut | yes |
@@ -179,7 +178,6 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/list_public_windows` | Administrators of the Cahut | yes |
 | `POST /console/api/list_reports` | Administrators of the Cahut | yes |
 | `POST /console/api/list_rooms` | Any person | yes |
-| `POST /console/api/list_service_tokens` | Administrators of the server | yes |
 | `POST /console/api/list_tokens` | Any person | yes |
 | `POST /console/api/list_users` | Any person | yes |
 | `POST /console/api/list_windows` | Any person | yes |
@@ -196,10 +194,8 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/report_window` | Anyone, to sign in | no |
 | `POST /console/api/request_password_link` | Anyone, to sign in | no |
 | `POST /console/api/restore_window` | Any person | yes |
-| `POST /console/api/resume_cahut` | Administrators of the server | yes |
 | `POST /console/api/retitle_window` | Any person | yes |
 | `POST /console/api/revoke_invitation` | Any person | yes |
-| `POST /console/api/revoke_service_token` | Administrators of the server | yes |
 | `POST /console/api/revoke_share_link` | Any person | yes |
 | `POST /console/api/revoke_token` | Any person | yes |
 | `POST /console/api/rollback_window` | Any person | yes |
@@ -207,11 +203,8 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/select_window_data` | Anyone, to sign in | no |
 | `POST /console/api/send_test_mail` | Administrators of the Cahut | yes |
 | `POST /console/api/set_ai_reach` | Any person | yes |
-| `POST /console/api/set_cahut_settings` | Administrators of the server | yes |
-| `POST /console/api/set_legal_links` | Administrators of the server | yes |
 | `POST /console/api/set_mail_notices` | Any person | yes |
 | `POST /console/api/set_mail_relay` | Administrators of the Cahut | yes |
-| `POST /console/api/set_moderation_address` | Administrators of the server | yes |
 | `POST /console/api/set_room_home` | Any person | yes |
 | `POST /console/api/set_room_member_role` | Any person | yes |
 | `POST /console/api/set_user_email` | Administrators of the Cahut | yes |
@@ -220,7 +213,6 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/sign_in` | Anyone, to sign in | no |
 | `POST /console/api/sign_in_to_windows` | Any person | yes |
 | `POST /console/api/sign_out` | Any person | yes |
-| `POST /console/api/suspend_cahut` | Administrators of the server | yes |
 | `POST /console/api/trash_window` | Any person | yes |
 | `POST /console/api/update_room` | Any person | yes |
 | `POST /console/api/update_window` | Any person | yes |
