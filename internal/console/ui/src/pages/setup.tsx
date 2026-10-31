@@ -83,11 +83,13 @@ export function Setup({ onSession }: { onSession: (s: Session) => void }) {
 	// Cahut, when it made the administrator of the server; otherwise in the
 	// console of the Cahut, whose overview offers to connect an AI. See
 	// docs/adr/0058-a-console-for-the-server.md.
-	const done = (person: Session, admin: Session | null) => {
+	const done = (person: Session, serverAdmin: boolean, admin: Session | null) => {
 		onSession(person);
-		if (admin && info) {
-			onSession(admin);
-			location.assign(`/server/cahuts/${encodeURIComponent(info.domain)}?ready`);
+		if (serverAdmin && info) {
+			// Where its sign-in failed, the console of the server asks for the
+			// same handle and password.
+			if (admin) onSession(admin);
+			location.assign(admin ? `/server/cahuts/${encodeURIComponent(info.domain)}?ready` : "/server/sign-in");
 			return;
 		}
 		navigate("/", true);
@@ -129,7 +131,7 @@ function handleOf(name: string): string {
 		.slice(0, 32);
 }
 
-function You({ info, onDone }: { info: SetupInfo; onDone: (person: Session, admin: Session | null) => void }) {
+function You({ info, onDone }: { info: SetupInfo; onDone: (person: Session, serverAdmin: boolean, admin: Session | null) => void }) {
 	const [name, setName] = useState("");
 	const [handle, setHandle] = useState("");
 	const [edited, setEdited] = useState(false);
@@ -159,7 +161,7 @@ function You({ info, onDone }: { info: SetupInfo; onDone: (person: Session, admi
 						() => null,
 					)
 				: null;
-			onDone(person, admin);
+			onDone(person, r.server_admin === true, admin);
 		} catch (err) {
 			setError(explain(err));
 			setBusy(false);

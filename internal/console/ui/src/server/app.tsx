@@ -19,9 +19,21 @@ import { bindServer, ServerProvider } from "./context";
 import { ServerShell } from "./shell";
 
 const t = words({
-	en: { notFound: "Not found", nothingHere: "Nothing here", noPage: "This page does not exist." },
-	fr: { notFound: "Introuvable", nothingHere: "Rien ici", noPage: "Cette page n'existe pas." },
+	en: { title: "Cahut · Server", notFound: "Not found", nothingHere: "Nothing here", noPage: "This page does not exist." },
+	fr: { title: "Cahut · Serveur", notFound: "Introuvable", nothingHere: "Rien ici", noPage: "Cette page n'existe pas." },
 });
+
+// The tab says the console of the server in the language of the console.
+document.title = t.title;
+
+/** The domain in a path, or null when it does not decode. */
+function decoded(segment: string): string | null {
+	try {
+		return decodeURIComponent(segment);
+	} catch {
+		return null;
+	}
+}
 
 /** Ends a session of the server on the server, whatever it says. */
 function end(s: Session): Promise<unknown> {
@@ -86,7 +98,8 @@ export function ServerApp() {
 
 function Page({ path }: { path: string }) {
 	const cahut = path.match(/^\/cahuts\/([^/]+)\/?$/);
-	if (cahut) return <CahutPage key={cahut[1]} domain={decodeURIComponent(cahut[1])} />;
+	const domain = cahut && decoded(cahut[1]);
+	if (cahut && domain !== null) return <CahutPage key={cahut[1]} domain={domain} />;
 	switch (path) {
 		case "/":
 			return <Redirect to="/cahuts" />;

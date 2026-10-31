@@ -23,8 +23,11 @@ const t = words({
 		suspendedOn: (date: string, reason: string) => `Since ${date}: ${reason}`,
 		reportsWait: (n: number) => (n === 1 ? "1 report waits" : `${n} reports wait`),
 		address: "Its address",
+		addressOf: (domain: string) => `The address of ${domain}`,
 		moveToDomain: "Move to a domain",
+		moveToDomainOf: (domain: string) => `Move ${domain} to a domain`,
 		changeDomain: "Change its domain",
+		changeDomainOf: (domain: string) => `Change the domain of ${domain}`,
 		moveText: (domain: string) => (
 			<>
 				Point the DNS record of the new domain to this server first. Everything in the Cahut stays, but the links that name{" "}
@@ -57,8 +60,11 @@ const t = words({
 		suspendedOn: (date, reason) => `Depuis le ${date} : ${reason}`,
 		reportsWait: (n) => (n === 1 ? "1 signalement attend" : `${n} signalements attendent`),
 		address: "Son adresse",
+		addressOf: (domain) => `L'adresse de ${domain}`,
 		moveToDomain: "Passer à un domaine",
+		moveToDomainOf: (domain) => `Passer ${domain} à un domaine`,
 		changeDomain: "Changer de domaine",
+		changeDomainOf: (domain) => `Changer le domaine de ${domain}`,
 		moveText: (domain) => (
 			<>
 				Faites d'abord pointer l'enregistrement DNS du nouveau domaine vers ce serveur. Tout ce que contient la Cahut reste, mais
@@ -120,7 +126,7 @@ export function Cahuts() {
 								<span class="c-badge c-badge--warning">{t.reportsWait(c.reports ?? 0)}</span>
 							</span>
 						)}
-						<a class="c-link c-small" href={`${originOf(c.domain)}/`}>
+						<a class="c-link c-small" href={`${originOf(c.domain)}/`} aria-label={t.addressOf(c.domain)}>
 							{t.address}
 							<ArrowUpRight class="i" size={14} aria-hidden="true" />
 						</a>
@@ -147,7 +153,12 @@ function MoveCahut(props: { domain: string; onMoved: () => void }) {
 	if (!open) {
 		return (
 			<div>
-				<button class={`c-btn c-btn--sm ${ip ? "c-btn--primary" : "c-btn--ghost"}`} type="button" onClick={() => setOpen(true)}>
+				<button
+					class={`c-btn c-btn--sm ${ip ? "c-btn--primary" : "c-btn--ghost"}`}
+					type="button"
+					aria-label={ip ? t.moveToDomainOf(props.domain) : t.changeDomainOf(props.domain)}
+					onClick={() => setOpen(true)}
+				>
 					{ip ? t.moveToDomain : t.changeDomain}
 				</button>
 			</div>

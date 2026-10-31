@@ -352,14 +352,14 @@ function PublicCard(props: { window: PublicWindow; onWithdrawn: () => void }) {
 }
 
 /** The public Windows of this Cahut, which its moderators look at without a report. */
-function PublicWindows() {
+function PublicWindows({ Sub }: { Sub: "h2" | "h3" }) {
 	const { call } = useModerator();
 	const { data, error, reload } = useLoad(() => call("list_public_windows", {}));
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
 	return (
 		<section class="section">
-			<h2 class="c-h4">{t.publicTitle}</h2>
+			<Sub class="c-h4">{t.publicTitle}</Sub>
 			<p class="c-small c-muted">{t.publicLead}</p>
 			{data.windows.length === 0 && <p class="c-muted">{t.noPublic}</p>}
 			<div class="reports">
@@ -395,6 +395,9 @@ export function ModerationOf(props: Moderator & { version?: number; head?: boole
 	if (!data) return null;
 	const waiting = data.reports.filter((p) => !p.decision);
 	const decided = data.reports.filter((p) => p.decision);
+	// Under the head of a page, its sections; under a heading of the page of
+	// a Cahut, theirs.
+	const Sub = props.head ? "h2" : "h3";
 	return (
 		<moderator.Provider value={{ call, origin, host, onDecided }}>
 			{props.head ? (
@@ -405,7 +408,7 @@ export function ModerationOf(props: Moderator & { version?: number; head?: boole
 				<h2 class="c-h3 section">{t.title}</h2>
 			)}
 			<section class="section">
-				<h2 class="c-h4">{t.waiting}</h2>
+				<Sub class="c-h4">{t.waiting}</Sub>
 				{waiting.length === 0 ? <p class="c-muted">{t.nothingWaits}</p> : <p class="c-small c-muted">{t.waitingCount(data.waiting)}</p>}
 				<div class="reports">
 					{waiting.map((p) => (
@@ -413,10 +416,10 @@ export function ModerationOf(props: Moderator & { version?: number; head?: boole
 					))}
 				</div>
 			</section>
-			<PublicWindows key={props.version} />
+			<PublicWindows key={props.version} Sub={Sub} />
 			{decided.length > 0 && (
 				<section class="section">
-					<h2 class="c-h4">{t.decided}</h2>
+					<Sub class="c-h4">{t.decided}</Sub>
 					<div class="reports">
 						{decided.map((p) => (
 							<ReportCard key={p.id} report={p} onDecided={reload} />
