@@ -16,6 +16,7 @@ import (
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/store"
+	"cahut.cloud/internal/windata"
 )
 
 type fixture struct {
@@ -38,7 +39,9 @@ func setup(t *testing.T) *fixture {
 	r := operation.NewRegistry(db)
 	account.Register(r)
 	room.Register(r)
-	s := NewService(filepath.Join(dir, "windows"), "https://cahut.test/", frameKey)
+	data := windata.NewPool(windata.Options{})
+	t.Cleanup(data.Close)
+	s := NewService(filepath.Join(dir, "windows"), "https://cahut.test/", frameKey, data)
 	s.Register(r)
 
 	f := &fixture{r: r, db: db, s: s}

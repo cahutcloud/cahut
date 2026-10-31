@@ -23,6 +23,7 @@ import (
 	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
+	"cahut.cloud/internal/windata"
 	"cahut.cloud/internal/window"
 )
 
@@ -43,6 +44,10 @@ type Config struct {
 	// Mail sends the e-mail of the server and of its Cahuts. It may be nil
 	// where nothing sends e-mail.
 	Mail *mail.Service
+	// Data runs the SQL of the databases of Windows, for every Cahut of the
+	// server. Without it, the Cahut runs a pool of its own, which Close
+	// stops.
+	Data *windata.Pool
 }
 
 // Cahut is an open Cahut.
@@ -61,6 +66,10 @@ type Cahut struct {
 	// docs/adr/0019-window-versions-access-and-declaration.md and
 	// docs/adr/0027-previews-of-windows-in-the-console.md.
 	FrameKey []byte
+	// Data runs the SQL of the databases of its Windows. See
+	// docs/adr/0056-a-database-for-each-window.md.
+	Data    *windata.Pool
+	ownData bool
 }
 
 // Open opens the Cahut in cfg.Dir, creating it if needed.
@@ -82,7 +91,11 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	r.Suspended = settings.CheckActive
 	account.Register(r)
 	room.Register(r)
-	w := window.NewService(filepath.Join(cfg.Dir, "windows"), cfg.BaseURL, frameKey)
+	data, ownData := cfg.Data, cfg.Data == nil
+	if ownData {
+		data = windata.NewPool(windata.Options{})
+	}
+	w := window.NewService(filepath.Join(cfg.Dir, "windows"), cfg.BaseURL, frameKey, data)
 	w.Register(r)
 	moderation.Register(r, frameKey)
 	auth := oauth.New(db, r, oauth.Config{
@@ -132,7 +145,8 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		},
 	}
 	operation.Register(r, about)
-	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w, OAuth: auth, About: about, Outbox: outbox, FrameKey: frameKey}, nil
+	return &Cahut{Domain: cfg.Domain, DB: db, Registry: r, Windows: w, OAuth: auth, About: about, Outbox: outbox, FrameKey: frameKey,
+		Data: data, ownData: ownData}, nil
 }
 
 // secret returns the random secret of the Cahut called name, drawn on first
@@ -149,6 +163,9 @@ func secret(ctx context.Context, db *store.DB, name string) ([]byte, error) {
 
 // Close closes the database.
 func (c *Cahut) Close() error {
+	if c.ownData {
+		c.Data.Close()
+	}
 	return c.DB.Close()
 }
 

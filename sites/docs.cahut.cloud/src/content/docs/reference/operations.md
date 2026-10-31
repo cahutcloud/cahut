@@ -98,7 +98,7 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | `suspend_cahut` | Suspend this Cahut, with a reason, after a decision of moderation or when its organization stops paying. It keeps everything: its people and their sessions, their AIs, its Rooms, its Windows and its Logbook. Until resume_cahut, it serves nothing to anyone but the administrators of the server: its Windows answer with a page that says it is suspended, and every call of a person, an AI or a service is refused. Its administrators receive the reason by e-mail when it sends e-mail. Suspending a suspended Cahut changes its reason only. For the administrators of the server. | Administrators of the server | yes | no |
 | [`trash_window`](/reference/mcp-tools/#trash_window) | Put a Window of this Cahut in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. | Any person | yes | yes |
 | [`update_room`](/reference/mcp-tools/#update_room) | Change the title of a Room of this Cahut, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it. | Any person | yes | yes |
-| [`update_window`](/reference/mcp-tools/#update_window) | Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Cahut calls no other system. | Any person | yes | yes |
+| [`update_window`](/reference/mcp-tools/#update_window) | Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Its database stays and runs the new migrations. Cahut calls no other system. | Any person | yes | yes |
 | `withdraw_window` | Withdraw a Window of this Cahut that a report names, or a public Window, with a reason for the members of its Room. It keeps everything, and serves nothing to its readers until reinstate_window: its addresses and its share links say that it was withdrawn. It decides the reports that wait about it. Withdrawing a withdrawn Window changes its reason. For the moderators of this Cahut. | Administrators of the Cahut | yes | no, people only |
 
 ## Operations of the server
@@ -133,7 +133,7 @@ An operation that cannot be undone, or that changes what a person may do, knocks
 
 These operations knock first: `add_room_member`, `create_user`, `delete_room`, `delete_user`, `disable_user`, `enable_user`, `purge_window`, `remove_room_member`, `set_room_member_role`, `set_user_email`, `set_user_role`.
 
-These knock first for some calls only: `set_ai_reach`, when it widens the reach of an AI; `set_window_access`, when it makes a Window public.
+These knock first for some calls only: `set_ai_reach`, when it widens the reach of an AI; `set_window_access`, when it makes a Window public; `update_window`, when it lets anyone change or delete the rows of a public Window.
 
 ## Open to services
 

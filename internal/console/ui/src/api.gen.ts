@@ -255,6 +255,13 @@ export interface CheckHandleInput {
   handle: string;
 }
 
+export interface Column {
+  name: string;
+  type?: string;
+  not_null?: boolean;
+  primary_key?: boolean;
+}
+
 export interface ConfirmEmailInput {
   /** the code of the link sent to the new address */
   code: string;
@@ -330,6 +337,38 @@ export interface CreateUserInput {
   send_activation_email?: boolean;
 }
 
+export interface Data {
+  /** the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end */
+  migrations?: string[];
+  /** the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private */
+  readable?: Record<string, string[]>;
+  /** the statements that the pages call at .data/queries/<name>, named with lowercase letters, digits and _ */
+  queries?: Record<string, Query>;
+  /** when the queries that write stop */
+  closes?: string;
+}
+
+export interface DataCopy {
+  name: string;
+  /** when it was made */
+  at: string;
+  size: number;
+}
+
+export interface DataInfo {
+  /** its tables, with their columns and how many rows each holds */
+  tables: Table[];
+  views?: string[];
+  indexes?: string[];
+  triggers?: string[];
+  /** how many migrations of the declaration ran */
+  migrations: number;
+  /** its size, in bytes */
+  size: number;
+  /** the copies that rollback_window_data goes back to, the latest first */
+  copies: DataCopy[];
+}
+
 export interface Declaration {
   /** whether the pages run scripts, inline or in files */
   scripts: boolean;
@@ -337,6 +376,8 @@ export interface Declaration {
   origins?: string[];
   /** the origins that the forms of the pages send to, if any */
   forms?: string[];
+  /** a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root */
+  data?: Data;
 }
 
 export interface DeleteRoomInput {
@@ -1018,6 +1059,15 @@ export interface PublishInput {
   declaration: Declaration;
 }
 
+export interface Query {
+  /** one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut */
+  sql: string;
+  /** anyone, people signed in to the Cahut, or members of its Room */
+  who: string;
+  /** reads, adds, changes or deletes, which Cahut sets */
+  kind?: string;
+}
+
 export interface ReaderCode {
   /** send the browser to <domain>/-/session?code=<code>, on the port of the Windows */
   code: string;
@@ -1563,6 +1613,12 @@ export interface Suspension {
   reason: string;
 }
 
+export interface Table {
+  name: string;
+  columns: Column[];
+  rows: number;
+}
+
 export interface TagCount {
   /** how many tags were given */
   count: number;
@@ -1771,6 +1827,8 @@ export interface WindowDetail {
   share_links: number;
   /** its share links, the latest first, without the links themselves */
   links: ShareLink[];
+  /** its database, when its declaration keeps data: its tables, their columns and rows counted, and its copies */
+  data?: DataInfo;
 }
 
 export interface WindowGetInput {
@@ -1994,7 +2052,7 @@ export interface CahutOperations {
   trash_window: { input: RefInput; output: Window };
   /** Change the title of a Room of this Cahut, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it. */
   update_room: { input: UpdateRoomInput; output: RoomDetail };
-  /** Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Cahut calls no other system. */
+  /** Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Its database stays and runs the new migrations. Cahut calls no other system. */
   update_window: { input: UpdateInput; output: Window };
   /** Withdraw a Window of this Cahut that a report names, or a public Window, with a reason for the members of its Room. It keeps everything, and serves nothing to its readers until reinstate_window: its addresses and its share links say that it was withdrawn. It decides the reports that wait about it. Withdrawing a withdrawn Window changes its reason. For the moderators of this Cahut. */
   withdraw_window: { input: WithdrawInput; output: Moderated };

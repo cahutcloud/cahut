@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +27,7 @@ import (
 	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
+	"cahut.cloud/internal/windata"
 )
 
 // Kinds of Windows.
@@ -41,14 +43,15 @@ type Service struct {
 	dir      string
 	base     string
 	frameKey []byte
+	data     *windata.Pool
 }
 
 // NewService returns a service that keeps Window files under dir, gives
 // Window addresses under base, the address of the Cahut with its final
 // slash, or none when base is empty, and signs the frames of previews with
-// frameKey.
-func NewService(dir, base string, frameKey []byte) *Service {
-	return &Service{dir: dir, base: base, frameKey: frameKey}
+// frameKey, and runs the SQL of their databases with data.
+func NewService(dir, base string, frameKey []byte, data *windata.Pool) *Service {
+	return &Service{dir: dir, base: base, frameKey: frameKey, data: data}
 }
 
 // PermanentPrefix starts the path of the permanent address of every
@@ -86,8 +89,9 @@ func (s *Service) Register(r *operation.Registry) {
 		Title: "Update a Window",
 		Description: "Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. " +
 			"Its address stays. Its current version becomes the previous one, which rollback_window goes back to; " +
-			"the version before that is deleted. Cahut calls no other system.",
+			"the version before that is deleted. Its database stays and runs the new migrations. Cahut calls no other system.",
 		Destructive: true,
+		KnocksWhen:  "it lets anyone change or delete the rows of a public Window",
 		Run:         s.update,
 	})
 	operation.Register(r, &operation.Op[RetitleInput, Window]{
@@ -390,6 +394,15 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if err != nil {
 		return Window{}, err
 	}
+	c.OnFailure(func() { s.remove(id) })
+	if w.Declaration.Data != nil {
+		if _, err := s.checkData(ctx, id, w.Declaration.Data); err != nil {
+			return Window{}, err
+		}
+		if err := s.migrateData(ctx, id, w.Declaration.Data, false); err != nil {
+			return Window{}, err
+		}
+	}
 	if err := insertVersion(ctx, c, id, w, textOf(pagesOf(files))); err != nil {
 		return Window{}, err
 	}
@@ -408,7 +421,6 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	}
 	c.Log(w.Room+"/"+w.Name, detail)
 
-	c.OnFailure(func() { os.RemoveAll(filepath.Join(s.dir, strconv.FormatInt(id, 10))) })
 	if err := writeFiles(s.Dir(id, w.Version), files); err != nil {
 		return Window{}, err
 	}
@@ -451,8 +463,30 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 	if err := s.checkSpace(size); err != nil {
 		return Window{}, err
 	}
+	before := w.Declaration
 	if w.Declaration, err = in.Declaration.check(); err != nil {
 		return Window{}, err
+	}
+	if data := w.Declaration.Data; data != nil {
+		checked, err := s.checkData(ctx, w.id, data)
+		if err != nil {
+			return Window{}, err
+		}
+		// Anyone may open a public Window, and change or delete what the
+		// others wrote by a query that it gets now: a person approves it.
+		// See docs/adr/0056-a-database-for-each-window.md.
+		var was *Data
+		if before != nil {
+			was = before.Data
+		}
+		if w.Access == AccessPublic && !subset(data.writesForAnyone(), was.writesForAnyone()) && c.Knock() {
+			return w.Window, nil
+		}
+		if checked.New > 0 {
+			if err := s.migrateData(ctx, w.id, data, true); err != nil {
+				return Window{}, err
+			}
+		}
 	}
 
 	// The current version becomes the previous one, and the previous one
@@ -501,6 +535,16 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 		c.AfterCommit(func() { os.RemoveAll(s.Dir(w.id, dropped)) })
 	}
 	return w.Window, nil
+}
+
+// subset reports whether every item of a is in b.
+func subset(a, b []string) bool {
+	for _, x := range a {
+		if !slices.Contains(b, x) {
+			return false
+		}
+	}
+	return true
 }
 
 // insertVersion records the current version of the Window w, whose id is
@@ -756,6 +800,9 @@ type Detail struct {
 	// docs/adr/0052-share-links.md.
 	ShareLinks int         `json:"share_links" jsonschema:"how many share links open the Window to someone new, besides its access"`
 	Links      []ShareLink `json:"links" jsonschema:"its share links, the latest first, without the links themselves"`
+	// The database of the Window. See
+	// docs/adr/0056-a-database-for-each-window.md.
+	Data *DataInfo `json:"data,omitempty" jsonschema:"its database, when its declaration keeps data: its tables, their columns and rows counted, and its copies"`
 }
 
 // Version describes a version of a Window.
@@ -803,7 +850,11 @@ func (s *Service) get(ctx context.Context, c *operation.Call, in GetInput) (Deta
 	if err != nil {
 		return Detail{}, err
 	}
-	return Detail{Window: w[0].Window, Versions: versions, Files: files, ShareLinks: standing, Links: links}, nil
+	data, err := s.dataInfo(ctx, w[0].id)
+	if err != nil {
+		return Detail{}, err
+	}
+	return Detail{Window: w[0].Window, Versions: versions, Files: files, ShareLinks: standing, Links: links, Data: data}, nil
 }
 
 // versionsOf returns the versions of the Window w, the current one first.

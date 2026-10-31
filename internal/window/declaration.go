@@ -3,8 +3,11 @@ package window
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"regexp"
+	"slices"
 	"strings"
+	"time"
 
 	"cahut.cloud/internal/operation"
 )
@@ -17,6 +20,139 @@ type Declaration struct {
 	Scripts bool     `json:"scripts" jsonschema:"whether the pages run scripts, inline or in files"`
 	Origins []string `json:"origins,omitempty" jsonschema:"every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make"`
 	Forms   []string `json:"forms,omitempty" jsonschema:"the origins that the forms of the pages send to, if any"`
+	Data    *Data    `json:"data,omitempty" jsonschema:"a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root"`
+}
+
+// Data is what the pages of a version keep and read in the database of
+// their Window. The database belongs to the Window, not to the version:
+// it keeps its tables and rows across versions and rollbacks. See
+// docs/adr/0056-a-database-for-each-window.md.
+type Data struct {
+	Migrations []string            `json:"migrations,omitempty" jsonschema:"the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end"`
+	Readable   map[string][]string `json:"readable,omitempty" jsonschema:"the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private"`
+	Queries    map[string]Query    `json:"queries,omitempty" jsonschema:"the statements that the pages call at .data/queries/<name>, named with lowercase letters, digits and _"`
+	Closes     *time.Time          `json:"closes,omitempty" jsonschema:"when the queries that write stop"`
+}
+
+// Query is a statement of a declaration, which pages call by its name.
+type Query struct {
+	SQL  string `json:"sql" jsonschema:"one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut"`
+	Who  string `json:"who" jsonschema:"anyone, people signed in to the Cahut, or members of its Room"`
+	Kind string `json:"kind,omitempty" jsonschema:"reads, adds, changes or deletes, which Cahut sets"`
+}
+
+// Who may call a query of a declaration.
+const (
+	Anyone  = "anyone"
+	People  = "people"
+	Members = "members"
+)
+
+// Bounds of the data of a declaration.
+const (
+	MaxMigrations    = 100
+	MaxMigrationSize = 100_000
+	MaxQueries       = 50
+	MaxQuerySize     = 10_000
+	MaxReadable      = 50
+)
+
+var (
+	validQueryName = regexp.MustCompile(`^[a-z0-9_]{1,64}$`)
+	validSQLName   = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]{0,63}$`)
+)
+
+// check returns the data, or nil when it declares nothing, or an error
+// wrapping operation.ErrInvalid. What its SQL does, the database of the
+// Window checks.
+func (d *Data) check() (*Data, error) {
+	if d == nil || len(d.Migrations) == 0 && len(d.Readable) == 0 && len(d.Queries) == 0 {
+		return nil, nil
+	}
+	if len(d.Migrations) > MaxMigrations {
+		return nil, operation.Invalidf("declaration.data has %d migrations, more than the %d allowed", len(d.Migrations), MaxMigrations)
+	}
+	for i, m := range d.Migrations {
+		if strings.TrimSpace(m) == "" {
+			return nil, operation.Invalidf("declaration.data: migration %d is empty", i+1)
+		}
+		if len(m) > MaxMigrationSize {
+			return nil, operation.Invalidf("declaration.data: migration %d is longer than %d bytes", i+1, MaxMigrationSize)
+		}
+	}
+	if len(d.Readable) > MaxReadable {
+		return nil, operation.Invalidf("declaration.data.readable lists %d tables, more than the %d allowed", len(d.Readable), MaxReadable)
+	}
+	for t, cols := range d.Readable {
+		if !validSQLName.MatchString(t) {
+			return nil, operation.Invalidf("declaration.data.readable: %q is not the name of a table: use letters, digits and underscores", t)
+		}
+		for _, c := range cols {
+			if !validSQLName.MatchString(c) {
+				return nil, operation.Invalidf("declaration.data.readable.%s: %q is not the name of a column: use letters, digits and underscores", t, c)
+			}
+		}
+	}
+	if len(d.Queries) > MaxQueries {
+		return nil, operation.Invalidf("declaration.data has %d queries, more than the %d allowed", len(d.Queries), MaxQueries)
+	}
+	out := &Data{Migrations: d.Migrations, Readable: d.Readable, Closes: d.Closes, Queries: make(map[string]Query, len(d.Queries))}
+	for name, q := range d.Queries {
+		if !validQueryName.MatchString(name) {
+			return nil, operation.Invalidf("declaration.data.queries: %q is not the name of a query: use 1 to 64 lowercase letters, digits and underscores", name)
+		}
+		if strings.TrimSpace(q.SQL) == "" {
+			return nil, operation.Invalidf("declaration.data.queries.%s: sql is empty", name)
+		}
+		if len(q.SQL) > MaxQuerySize {
+			return nil, operation.Invalidf("declaration.data.queries.%s: sql is longer than %d bytes", name, MaxQuerySize)
+		}
+		switch q.Who {
+		case Anyone, People, Members:
+		default:
+			return nil, operation.Invalidf("declaration.data.queries.%s: who %q: use anyone, people or members", name, q.Who)
+		}
+		out.Queries[name] = Query{SQL: q.SQL, Who: q.Who} // the database says what it does
+	}
+	if d.Closes != nil {
+		closes := d.Closes.UTC().Truncate(time.Second)
+		out.Closes = &closes
+	}
+	return out, nil
+}
+
+// statements returns the SQL of each query, by name.
+func (d *Data) statements() map[string]string {
+	out := make(map[string]string, len(d.Queries))
+	for name, q := range d.Queries {
+		out[name] = q.SQL
+	}
+	return out
+}
+
+// writesForAnyone returns the names of the queries that change or delete
+// rows for anyone, as they are, sorted.
+func (d *Data) writesForAnyone() []string {
+	if d == nil {
+		return nil
+	}
+	var out []string
+	for _, name := range slices.Sorted(maps.Keys(d.Queries)) {
+		q := d.Queries[name]
+		if q.Who == Anyone && (q.Kind == "changes" || q.Kind == "deletes") {
+			out = append(out, name+" "+q.SQL)
+		}
+	}
+	return out
+}
+
+// String sums the data up for the Logbook, without its SQL.
+func (d *Data) String() string {
+	s := fmt.Sprintf("data: %d migrations, %d queries, %d readable tables", len(d.Migrations), len(d.Queries), len(d.Readable))
+	if d.Closes != nil {
+		s += ", writes close " + d.Closes.Format(time.RFC3339)
+	}
+	return s
 }
 
 // MaxOrigins bounds each list of a declaration.
@@ -40,6 +176,12 @@ func (d *Declaration) check() (*Declaration, error) {
 	}
 	if out.Forms, err = origins("forms", d.Forms); err != nil {
 		return nil, err
+	}
+	if out.Data, err = d.Data.check(); err != nil {
+		return nil, err
+	}
+	if out.Data != nil && !out.Scripts {
+		return nil, operation.Invalidf("declaration.data: the pages call their data with scripts: set scripts to true")
 	}
 	return out, nil
 }
@@ -79,7 +221,11 @@ func (d *Declaration) String() string {
 		}
 		return fmt.Sprintf("; %s %s", name, strings.Join(origins, " "))
 	}
-	return s + list("origins", d.Origins) + list("forms", d.Forms)
+	s += list("origins", d.Origins) + list("forms", d.Forms)
+	if d.Data != nil {
+		s += "; " + d.Data.String()
+	}
+	return s
 }
 
 // encode returns the declaration as the store keeps it.

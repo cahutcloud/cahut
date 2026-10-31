@@ -397,7 +397,7 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 	}
 	// Every client gets light tools with a title (ADR 29): ChatGPT shows
 	// the title when it asks the person to confirm a call, and Codex cut a
-	// list of 87 KB short.
+	// list of 87 KB short. The list stays under 40 KB (ADR 57).
 	for _, tool := range tools.Tools {
 		if tool.Title == "" || tool.Annotations == nil || tool.Annotations.Title != tool.Title {
 			t.Errorf("%s has no title: %q, %+v", tool.Name, tool.Title, tool.Annotations)
@@ -406,8 +406,8 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 			t.Errorf("%s has an output schema", tool.Name)
 		}
 	}
-	if list, _ := json.Marshal(tools); len(list) > 32<<10 {
-		t.Errorf("the list of tools weighs %d bytes, more than 32 KB", len(list))
+	if list, _ := json.Marshal(tools); len(list) > 40<<10 {
+		t.Errorf("the list of tools weighs %d bytes, more than 40 KB", len(list))
 	}
 
 	res, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "disable_user", Arguments: map[string]any{"user": "olivier"}})
