@@ -4,7 +4,7 @@
 // typed, the AI publishes the Window, then knocks to make it public.
 import { getImage } from 'astro:assets';
 import Icon from '../Icon.astro';
-import { examples, bare } from './examples';
+import { examplesIn, heroScenes, bare } from './examples';
 import { useTranslations, type Lang } from '../../i18n';
 import { signupURL, myCahutURL } from '../../links';
 import clouds from '@charte/illustrations/motif-nuages.svg?url';
@@ -24,14 +24,20 @@ const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon
 let count = 0;
 const lines = t.title.map((line) => line.split(' ').map((word) => ({ word, index: count++ })));
 
-// The four demos that play, with their request and their first screen.
+// The four demos that play, in the language of the page, with their request
+// and their first screen.
+const demos = examplesIn(lang);
 const scenes = await Promise.all(
-	examples.slice(0, 4).map(async ({ url, room, image }, index) => ({
-		prompt: words.items[index].prompt,
-		url: bare(url),
-		room,
-		image: (await getImage({ src: image, width: 1200, format: 'webp' })).src,
-	})),
+	heroScenes.map(async (id) => {
+		const index = demos.findIndex((demo) => demo.id === id);
+		const { url, room, image } = demos[index];
+		return {
+			prompt: words.items[index].prompt,
+			url: bare(url),
+			room: words.rooms[room],
+			image: (await getImage({ src: image, width: 1200, format: 'webp' })).src,
+		};
+	}),
 );
 
 const access = [

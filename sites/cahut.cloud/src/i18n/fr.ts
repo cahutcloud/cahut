@@ -123,36 +123,60 @@ const fr: Dictionary = {
 		title: 'Voyez par vous-même : des pages publiées par une IA',
 		lead: "Chacune part d'une seule demande. Elles sont publiques : ouvrez-les.",
 		all: 'Toutes les démos, avec leurs prompts',
+		data: 'Avec sa base de données',
+		inEnglish: 'En anglais',
+		rooms: { perso: 'Perso', pme: 'PME', entreprise: 'Grande entreprise' },
 		items: [
+			{
+				title: 'Une micro-boutique en ligne',
+				prompt: 'Fais une petite boutique en ligne pour mon miel, avec le stock en direct et des commandes à retirer le samedi. Je la gérerai en te parlant.',
+				text: "Le miel d'une apicultrice, avec le stock en direct, un panier et des commandes à retirer le samedi. Les commandes vont dans la base de la Window, et l'IA gère la boutique quand vous lui parlez.",
+			},
+			{
+				title: 'Un deck à relire en équipe',
+				prompt: "Fais le deck du SteerCo n° 6 du projet Northstar à partir de ces notes, et publie-le pour que l'équipe commente chaque slide avant la réunion.",
+				text: "Le brouillon d'un deck de comité de pilotage. Chacun clique sur une slide pour laisser un commentaire épinglé à cet endroit, signé de son nom. Les commentaires restent dans la base de la Window.",
+			},
 			{
 				title: 'Un CV en ligne',
 				prompt: 'Peux-tu créer une Window dans ma Room sur Cahut pour publier mon CV ? Voici mon parcours.',
+				text: "Le CV d'une designer, avec un nom qui réagit au curseur, un parcours qui se trace au défilement, des projets qui s'ouvrent, et un PDF à imprimer.",
 			},
 			{
 				title: "Un reporting d'équipe",
 				prompt: "Fais-moi le reporting mensuel de l'équipe Plateforme à partir de ces données, et publie-le pour le comité de direction.",
+				text: 'Le mois en chiffres, les objectifs, les livraisons, la disponibilité et le coût, puis les décisions attendues de la direction.',
 			},
 			{
 				title: 'Un carnet de voyage',
 				prompt: 'Voici nos photos et nos notes de voyage en Islande. Fais-en un carnet avec la carte de notre route, et publie-le pour la famille.',
+				text: "Dix jours sur la route 1 : une carte qui se dessine au fil du défilement, une nuit d'aurore boréale, et l'album de la famille.",
 			},
 			{
 				title: 'Un configurateur 3D',
-				prompt: 'Crée un configurateur 3D de nos fauteuils, avec les tissus, le prix et un devis en PDF. Publie-le dans la Room PME.',
+				prompt: 'Crée un configurateur 3D de nos fauteuils, avec les tissus, les finitions, le prix et un devis en PDF. Publie-le dans la Room PME.',
+				text: 'Le client tourne le fauteuil, change le velours, voit le prix et la date de livraison, puis télécharge son devis. Le lien garde sa configuration.',
 			},
 			{
 				title: "Un deck d'investisseurs",
-				prompt: 'Prépare le deck de notre levée de fonds de 2,5 M€ à partir de ces chiffres.',
+				prompt: 'Prépare le deck de notre levée de fonds de 2,5 M€ à partir de ces chiffres, et publie-le pour les investisseurs.',
+				text: 'Quatorze slides animées, des graphiques qui se dessinent, et le moteur de deck de Cahut : flèches, plein écran, vue de toutes les slides.',
 			},
 			{
 				title: 'Un tableau de bord en direct',
-				prompt: "Fais un tableau de bord de nos 14 sites dans le monde, pour l'écran du siège.",
+				prompt: "Fais un tableau de bord de nos 14 sites dans le monde, avec les expéditions en cours, pour l'écran du siège.",
+				text: 'Un globe 3D où partent les expéditions, des indicateurs qui bougent, et un clic sur un site pour voir ses chiffres.',
 			},
 			{
 				title: 'Un jeu fait sur mesure',
-				prompt: 'Noé a 9 ans samedi. Invente-lui un petit jeu, avec une surprise à la fin.',
+				prompt: 'Noé a 9 ans samedi. Invente-lui un petit jeu de pêche aux étoiles, avec une surprise à la fin, et publie-le dans notre Cahut.',
+				text: 'On pêche les étoiles depuis une barque. À la fin, elles écrivent « Joyeux anniversaire Noé » dans le ciel. Un lien permet de défier un ami.',
 			},
-			{ title: 'Un mini sondage', prompt: 'Crée un petit sondage pour choisir la destination du séminaire 2027.' },
+			{
+				title: 'Un mini sondage',
+				prompt: "Crée un petit sondage pour choisir la destination du séminaire 2027, et donne-moi le lien à envoyer à l'équipe.",
+				text: "Trois questions, des résultats qui s'animent après chaque vote. Dans cette démo, les votes ne sont pas enregistrés.",
+			},
 		],
 	},
 
