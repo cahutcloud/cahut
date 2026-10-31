@@ -8,6 +8,7 @@ import { CopyField, Domain, Failure, originOf, PageHead } from "../components";
 import { ipAddress } from "../connect";
 import { words } from "../i18n";
 import { useLoad } from "../load";
+import { useQuery } from "../router";
 import { ModerationOf } from "../pages/moderation";
 import { ServerSettings } from "../pages/settings";
 import { useServer } from "./context";
@@ -63,15 +64,15 @@ const t = words({
 	},
 });
 
-// The first start ends here, with ?ready in the address, when it made the
-// administrator of the server. See docs/adr/0058-a-console-for-the-server.md.
-const ready = new URLSearchParams(location.search).has("ready");
-
 export function CahutPage({ domain }: { domain: string }) {
 	const api = useServer();
 	const call = useMemo(() => api.cahutOf(domain), [api, domain]);
 	const { data, error, reload } = useLoad(() => call("get_cahut", {}), [domain]);
 	const [decisions, setDecisions] = useState(0);
+	// The first start ends here, with ?ready in the address, when it made the
+	// administrator of the server; the query follows each navigation. See
+	// docs/adr/0058-a-console-for-the-server.md.
+	const ready = useQuery().has("ready");
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
 	const origin = originOf(data.domain);
