@@ -419,12 +419,17 @@ echo
 people=$(as_cahut user list --domain "$domain" 2>/dev/null | awk 'NR > 1' | wc -l)
 if [ "$people" -eq 0 ] && link=$(as_cahut setup --domain "$domain" 2>/dev/null); then
 	printf '%s\n\n' "$link"
+	# The administrators of the server have a console of their own, at every
+	# domain of the server. See docs/adr/0058-a-console-for-the-server.md.
 	cat <<EOF
-It creates your account and connects your first AI.
+It creates your account, and that of the administrator of this server
+while it has none, with the same password.
 For a new link: sudo -u cahut $bin_path setup
+Then, the console of the server: https://$domain/server/
 EOF
 else
 	echo "The Cahut of $domain has people already: sign in at https://$domain/console/"
+	echo "The console of the server: https://$domain/server/"
 fi
 cat <<EOF
 
