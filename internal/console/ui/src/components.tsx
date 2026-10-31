@@ -977,6 +977,11 @@ export function bytes(n: number): string {
 	return size(n / 1000 / 1000 / 1000, t.gb, 1);
 }
 
+/** The origin of a Cahut of this server: each has its own, on the same port of its own domain. */
+export function originOf(domain: string): string {
+	return `${location.protocol}//${domain}${location.port ? `:${location.port}` : ""}`;
+}
+
 /** The initials of a name, for its avatar. */
 export function initials(name: string): string {
 	const words = name.trim().split(/\s+/);

@@ -491,6 +491,61 @@
 	grid-column: 1 / -1;
 	display: grid;
 }
+/* The top bar of the console of the server: Ink, or Paper in the dark
+   theme, so that it reads at once as the server. See
+   docs/adr/0058-a-console-for-the-server.md. */
+.server-topbar {
+	--bar-raised: var(--cahut-ink-800);
+	--bar-line: var(--cahut-ink-700);
+	background: var(--color-primary);
+	color: var(--color-on-primary);
+	border-bottom-color: var(--bar-line);
+}
+@media (prefers-color-scheme: dark) {
+	.server-topbar {
+		--bar-raised: var(--cahut-paper-200);
+		--bar-line: var(--cahut-ink-200);
+	}
+}
+.server-topbar__mark {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	white-space: nowrap;
+}
+.server-topbar .console-account__link {
+	color: inherit;
+}
+.server-topbar .c-btn--ghost {
+	color: inherit;
+}
+.server-topbar .c-btn--ghost:hover {
+	background: var(--bar-raised);
+}
+.server-topbar .c-avatar {
+	background: var(--bar-raised);
+	color: inherit;
+	border-color: var(--bar-line);
+}
+/* The service tokens of a Cahut */
+.tokens {
+	display: grid;
+	gap: var(--space-2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.tokens__item {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+	padding: var(--space-2) 0;
+	border-bottom: 1px solid var(--color-border);
+}
 .console-head .c-topbar {
 	height: 64px;
 }

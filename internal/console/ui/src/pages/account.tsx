@@ -274,6 +274,15 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 /** Changes the password of an account: that of the person, or that of the server. */
 function PasswordForm({ kind }: { kind: "person" | "admin" }) {
 	const api = useConsole();
+	return (
+		<ChangePassword
+			change={(input) => (kind === "admin" ? api.server("change_password", input) : api.cahut("change_password", input))}
+		/>
+	);
+}
+
+/** The form that changes a password, which change sends. */
+export function ChangePassword({ change }: { change: (input: { password: string; new_password: string }) => Promise<unknown> }) {
 	const [password, setPassword] = useState("");
 	const [next, setNext] = useState("");
 	const [again, setAgain] = useState("");
@@ -289,7 +298,7 @@ function PasswordForm({ kind }: { kind: "person" | "admin" }) {
 		}
 		try {
 			const input = { password, new_password: next };
-			await (kind === "admin" ? api.server("change_password", input) : api.cahut("change_password", input));
+			await change(input);
 			setPassword("");
 			setNext("");
 			setAgain("");
@@ -418,7 +427,7 @@ function Profile() {
 }
 
 /** The language of the console in this browser, which a choice changes at once. */
-function Language() {
+export function Language() {
 	return (
 		<section class="section c-card panel narrow">
 			<h2 class="c-h4">{t.language}</h2>

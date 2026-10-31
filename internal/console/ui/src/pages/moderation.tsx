@@ -4,8 +4,9 @@
 // Window as it is, or withdraw it. See
 // docs/adr/0054-reporting-and-withdrawing-a-window.md.
 import { ArrowUpRight, Eye, Flag } from "lucide-preact";
-import { useState } from "preact/hooks";
-import { explain } from "../api";
+import { createContext } from "preact";
+import { useContext, useState } from "preact/hooks";
+import { type CahutCall, explain } from "../api";
 import type { PublicWindow, Report, ReportedPreview } from "../api.gen";
 import { AccessBadge, ConfirmButton, Dialog, Failure, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
@@ -118,22 +119,33 @@ function decider(p: Report): string {
 }
 
 /**
- * Calls the API as the moderator: the person, when they administer this
- * Cahut, or else the administrator of the server whose session the browser
- * holds too. See docs/adr/0043-the-console-holds-two-sessions.md.
+ * Who moderates, as the cards of the page see it: how they call the API of
+ * the Cahut, its origin, where its Windows open, whether they act for the
+ * host, who alone reinstates what the administrators of the server
+ * withdrew, and what to count again after a decision. See
+ * docs/adr/0054-reporting-and-withdrawing-a-window.md and
+ * docs/adr/0058-a-console-for-the-server.md.
  */
-export function useModerator() {
-	const api = useConsole();
-	if (api.session.kind !== "person" || api.isAdmin) {
-		return { moderates: true, call: api.cahut };
+interface Moderator {
+	call: CahutCall;
+	origin: string;
+	host: boolean;
+	onDecided: () => void;
+}
+
+const moderator = createContext<Moderator | null>(null);
+
+function useModerator(): Moderator {
+	const m = useContext(moderator);
+	if (!m) {
+		throw new Error("useModerator outside a page of moderation");
 	}
-	return { moderates: Boolean(api.serverSession), call: api.cahutAsServer };
+	return m;
 }
 
 /** A report, as a card, with what the moderators can decide while it waits. */
 function ReportCard(props: { report: Report; onDecided: () => void }) {
-	const { call } = useModerator();
-	const api = useConsole();
+	const { call, origin, host, onDecided } = useModerator();
 	const p = props.report;
 	// The decision being made: leave the Window as it is, or withdraw it.
 	const [asking, setAsking] = useState<"dismiss" | "withdraw" | null>(null);
@@ -150,13 +162,13 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 			setError(explain(err));
 		}
 	};
-	const address = `${location.origin}/${w.room}/${w.name}/`;
+	const address = `${origin}/${w.room}/${w.name}/`;
 	const run = async (act: () => Promise<unknown>) => {
 		setBusy(true);
 		setError("");
 		try {
 			await act();
-			api.reloadReports();
+			onDecided();
 			props.onDecided();
 		} catch (err) {
 			setError(explain(err));
@@ -198,12 +210,16 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 			{p.decision && w.withdrawn && (
 				<div class="actions">
 					<span class="c-badge c-badge--danger">{t.withdrawnNow}</span>
-					<ConfirmButton
-						label={t.reinstate}
-						question={t.reinstateQuestion}
-						confirm={t.reinstate}
-						onConfirm={() => run(() => call("reinstate_window", { window: w.id }))}
-					/>
+					{/* What the administrators of the server withdrew, they alone
+					    reinstate. */}
+					{(host || !p.by_server) && (
+						<ConfirmButton
+							label={t.reinstate}
+							question={t.reinstateQuestion}
+							confirm={t.reinstate}
+							onConfirm={() => run(() => call("reinstate_window", { window: w.id }))}
+						/>
+					)}
 				</div>
 			)}
 			{error && <Failure message={error} />}
@@ -236,7 +252,7 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
 					onClose={() => setShown(null)}
 				>
 					<p class="c-small c-muted">{t.openedNotice}</p>
-					<iframe class="report__frame" src={shown.frame} title={t.preview(w.title)} sandbox="allow-scripts" referrerpolicy="no-referrer" />
+					<iframe class="report__frame" src={`${origin}${shown.frame}`} title={t.preview(w.title)} sandbox="allow-scripts" referrerpolicy="no-referrer" />
 				</Dialog>
 			)}
 			{!p.decision && asking && (
@@ -278,8 +294,7 @@ function ReportCard(props: { report: Report; onDecided: () => void }) {
  * address, as anyone does, with Withdraw.
  */
 function PublicCard(props: { window: PublicWindow; onWithdrawn: () => void }) {
-	const { call } = useModerator();
-	const api = useConsole();
+	const { call, onDecided } = useModerator();
 	const w = props.window;
 	const [asking, setAsking] = useState(false);
 	const [reason, setReason] = useState("");
@@ -291,7 +306,7 @@ function PublicCard(props: { window: PublicWindow; onWithdrawn: () => void }) {
 		setError("");
 		try {
 			await call("withdraw_window", { window: w.id, reason });
-			api.reloadReports();
+			onDecided();
 			props.onWithdrawn();
 		} catch (err) {
 			setError(explain(err));
@@ -356,23 +371,51 @@ function PublicWindows() {
 	);
 }
 
-/** The reports of this Cahut: those that wait, then the latest decided. */
+/**
+ * The page of moderation in the console of the Cahut: for its
+ * administrators, or the administrator of the server whose session the
+ * browser holds too.
+ */
 export function Moderation() {
-	const { moderates, call } = useModerator();
 	const api = useConsole();
 	// Whether the person administers the Cahut comes after the first render:
 	// the reports load again once it does.
-	const { data, error, reload } = useLoad(() => (moderates ? call("list_reports", {}) : Promise.resolve(null)), [api.reports, moderates]);
-	if (!moderates) return <Notice>{t.onlyModerators}</Notice>;
+	const asServer = api.session.kind === "person" && !api.isAdmin;
+	if (asServer && !api.serverSession) return <Notice>{t.onlyModerators}</Notice>;
+	return (
+		<ModerationOf
+			key={asServer ? "server" : "cahut"}
+			call={asServer ? api.cahutAsServer : api.cahut}
+			origin={location.origin}
+			host={api.session.kind !== "person" || asServer}
+			onDecided={api.reloadReports}
+			version={api.reports}
+			head
+		/>
+	);
+}
+
+/**
+ * The reports of a Cahut, those that wait, then the latest decided, and its
+ * public Windows, for its moderators: with the head of a page, or as a
+ * section of the page of a Cahut in the console of the server.
+ */
+export function ModerationOf(props: Moderator & { version?: number; head?: boolean }) {
+	const { call, origin, host, onDecided } = props;
+	const { data, error, reload } = useLoad(() => call("list_reports", {}), [props.version]);
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
 	const waiting = data.reports.filter((p) => !p.decision);
 	const decided = data.reports.filter((p) => p.decision);
 	return (
-		<>
-			<PageHead label={t.label} title={t.title}>
-				{t.lead}
-			</PageHead>
+		<moderator.Provider value={{ call, origin, host, onDecided }}>
+			{props.head ? (
+				<PageHead label={t.label} title={t.title}>
+					{t.lead}
+				</PageHead>
+			) : (
+				<h2 class="c-h3 section">{t.title}</h2>
+			)}
 			<section class="section">
 				<h2 class="c-h4">{t.waiting}</h2>
 				{waiting.length === 0 ? <p class="c-muted">{t.nothingWaits}</p> : <p class="c-small c-muted">{t.waitingCount(data.waiting)}</p>}
@@ -382,7 +425,7 @@ export function Moderation() {
 					))}
 				</div>
 			</section>
-			<PublicWindows key={api.reports} />
+			<PublicWindows key={props.version} />
 			{decided.length > 0 && (
 				<section class="section">
 					<h2 class="c-h4">{t.decided}</h2>
@@ -393,6 +436,6 @@ export function Moderation() {
 					</div>
 				</section>
 			)}
-		</>
+		</moderator.Provider>
 	);
 }

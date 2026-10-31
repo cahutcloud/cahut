@@ -8,7 +8,7 @@ import { useEffect, useId, useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Activation, Admin } from "../api.gen";
 import { ActivationResult, Dialog, Failure, handleFrom, initials, Notice, Outcome, PageHead, plural, Setting, StatusBadge } from "../components";
-import { useConsole } from "../context";
+import { useServer } from "../server/context";
 import { de, locale, words } from "../i18n";
 import { useLoad } from "../load";
 import { Link } from "../router";
@@ -153,17 +153,17 @@ function added(a: Admin): string {
 }
 
 export function Admins() {
-	const api = useConsole();
+	const api = useServer();
 	const { data, error, reload } = useLoad(() => api.server("list_admins", {}));
 	const [adding, setAdding] = useState(false);
 	const [managing, setManaging] = useState("");
 	// The administrator who signs in, alone or beside a person.
-	const isSelf = (a: Admin) => a.handle === api.serverSession?.handle;
+	const isSelf = (a: Admin) => a.handle === api.session.handle;
 	// Their name may have changed in another browser: the bar of the server
 	// takes it.
 	useEffect(() => {
 		const me = data?.admins.find(isSelf);
-		if (me) api.serverRenamed(me);
+		if (me) api.renamed(me);
 	}, [data]);
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
@@ -249,7 +249,7 @@ export function Admins() {
 
 /** The dialog that adds an administrator of the server, then gives the link where they choose their password. */
 function NewAdmin({ onCreated, onClose }: { onCreated: () => void; onClose: () => void }) {
-	const api = useConsole();
+	const api = useServer();
 	const [name, setName] = useState("");
 	const [handle, setHandle] = useState("");
 	const [handleTouched, setHandleTouched] = useState(false);
@@ -285,7 +285,7 @@ function NewAdmin({ onCreated, onClose }: { onCreated: () => void; onClose: () =
 					<Check class="i" size={16} aria-hidden="true" />
 					<div>{t.created(created.name)}</div>
 				</div>
-				<ActivationResult name={created.name} activation={created.activation} page="/server/activate" />
+				<ActivationResult name={created.name} activation={created.activation} page="/activate" />
 				<div class="dialog__foot">
 					<button class="c-btn c-btn--secondary" type="button" onClick={again}>
 						{t.addAnother}
@@ -351,7 +351,7 @@ function NewAdmin({ onCreated, onClose }: { onCreated: () => void; onClose: () =
  * page of one's account.
  */
 function ManageAdmin(props: { admin: Admin; self: boolean; onChanged: () => void; onClose: () => void }) {
-	const api = useConsole();
+	const api = useServer();
 	const a = props.admin;
 	const run = async <T,>(call: () => Promise<T>): Promise<T> => {
 		const out = await call();
@@ -360,7 +360,7 @@ function ManageAdmin(props: { admin: Admin; self: boolean; onChanged: () => void
 	};
 	const rename = async (name: string) => {
 		const b = await run(() => api.server("rename_admin", { admin: a.handle, name }));
-		if (props.self) api.serverRenamed(b);
+		if (props.self) api.renamed(b);
 	};
 	return (
 		<Dialog
@@ -398,7 +398,7 @@ function ManageAdmin(props: { admin: Admin; self: boolean; onChanged: () => void
 						action={t.newLink}
 						onAct={async () => {
 							const link = await run(() => api.server("create_activation_link", { admin: a.handle }));
-							return <ActivationResult name={a.name} activation={link} page="/server/activate" />;
+							return <ActivationResult name={a.name} activation={link} page="/activate" />;
 						}}
 					/>
 				)}

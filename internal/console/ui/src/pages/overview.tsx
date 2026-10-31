@@ -1,17 +1,14 @@
 // The first screen once signed in: for a person, their latest Windows, their
-// Rooms and what the Cahut holds; for an administrator of the server, the
-// Cahuts of the server.
-import { ArrowUpRight, Plus } from "lucide-preact";
-import { useState } from "preact/hooks";
-import { explain } from "../api";
-import type { NewCahut } from "../api.gen";
-import { CopyField, Domain, Failure, Notice, PageHead, plural, WindowCards } from "../components";
-import { ConnectSteps, ipAddress } from "../connect";
+// Rooms and what the Cahut holds. An administrator of the server finds the
+// Cahuts of the server in the console of the server. See
+// docs/adr/0058-a-console-for-the-server.md.
+import { Domain, Failure, Notice, PageHead, WindowCards } from "../components";
+import { ConnectSteps } from "../connect";
 import { useConsole } from "../context";
-import { de, locale, que, words } from "../i18n";
+import { que, words } from "../i18n";
 import { LimitBanner } from "../limit-banner";
 import { useLoad } from "../load";
-import { href, Link } from "../router";
+import { Away, Link } from "../router";
 import { RoomCards } from "./rooms";
 import { Usage } from "./usage";
 
@@ -29,39 +26,6 @@ const t = words({
 			</>
 		),
 		yourRooms: "Your Rooms",
-		thisServer: "This server",
-		administer: (host: string) =>
-			`You administer this server, and here the Cahut of ${host}. For another Cahut, sign in at its own console.`,
-		declaredOn: (date: string) => `Declared on ${date}`,
-		suspended: "Suspended",
-		suspendedOn: (date: string, reason: string) => `Since ${date}: ${reason}`,
-		reportsWait: (n: number) => (n === 1 ? "1 report waits" : `${n} reports wait`),
-		atConsole: "You are at its console.",
-		openConsole: "Open its console",
-		moveToDomain: "Move to a domain",
-		changeDomain: "Change its domain",
-		moveText: (domain: string) => (
-			<>
-				Point the DNS record of the new domain to this server first. Everything in the Cahut stays, but the links that name{" "}
-				<span class="c-mono">{domain}</span> stop working, and AIs connect again at the new address.
-			</>
-		),
-		newDomain: "New domain",
-		moveCahut: "Move the Cahut",
-		cancel: "Cancel",
-		declareCahut: "Declare a Cahut",
-		declareText: "Point the DNS record of the domain to this server first. The Cahut gets its certificate at the first visit.",
-		domain: "Domain",
-		firstAdmin: "Handle of its first administrator",
-		theirName: "Their name",
-		declare: "Declare",
-		declared: (domain: string) => (
-			<>
-				Declared <span class="c-mono">{domain}</span>.
-			</>
-		),
-		sendLink: (name: string) => ` Send ${name} this link, where they choose their password. It works once, for 7 days.`,
-		activationLink: "the activation link",
 	},
 	fr: {
 		overview: "Vue d'ensemble",
@@ -78,46 +42,11 @@ const t = words({
 			</>
 		),
 		yourRooms: "Vos Rooms",
-		thisServer: "Ce serveur",
-		administer: (host) =>
-			`Vous administrez ce serveur, et ici la Cahut ${de(host)}. Pour une autre Cahut, connectez-vous à sa propre console.`,
-		declaredOn: (date) => `Déclarée le ${date}`,
-		suspended: "Suspendue",
-		suspendedOn: (date, reason) => `Depuis le ${date} : ${reason}`,
-		reportsWait: (n) => (n === 1 ? "1 signalement attend" : `${n} signalements attendent`),
-		atConsole: "Vous êtes sur sa console.",
-		openConsole: "Ouvrir sa console",
-		moveToDomain: "Passer à un domaine",
-		changeDomain: "Changer de domaine",
-		moveText: (domain) => (
-			<>
-				Faites d'abord pointer l'enregistrement DNS du nouveau domaine vers ce serveur. Tout ce que contient la Cahut reste, mais
-				les liens qui nomment <span class="c-mono">{domain}</span> cessent de fonctionner, et les IA se reconnectent à la
-				nouvelle adresse.
-			</>
-		),
-		newDomain: "Nouveau domaine",
-		moveCahut: "Déplacer la Cahut",
-		cancel: "Annuler",
-		declareCahut: "Déclarer une Cahut",
-		declareText:
-			"Faites d'abord pointer l'enregistrement DNS du domaine vers ce serveur. La Cahut obtient son certificat à la première visite.",
-		domain: "Domaine",
-		firstAdmin: "Identifiant de son premier administrateur",
-		theirName: "Son nom",
-		declare: "Déclarer",
-		declared: (domain) => (
-			<>
-				La Cahut <span class="c-mono">{domain}</span> est déclarée.
-			</>
-		),
-		sendLink: (name) => ` Envoyez ce lien à ${name}, qui y choisira son mot de passe. Il ne sert qu'une fois, pendant 7 jours.`,
-		activationLink: "le lien d'activation",
 	},
 });
 
 export function Overview() {
-	return useConsole().session.kind === "admin" ? <ServerOverview /> : <PersonOverview />;
+	return useConsole().session.kind === "admin" ? <Away to="/server/cahuts" /> : <PersonOverview />;
 }
 
 function PersonOverview() {
@@ -164,183 +93,5 @@ function PersonOverview() {
 			</section>
 			<Usage settings={about} admin={account.role === "admin"} />
 		</>
-	);
-}
-
-/** The origin of the console of a Cahut of this server: each has its own, on the same port of its own domain. */
-export function originOf(domain: string): string {
-	return `${location.protocol}//${domain}${location.port ? `:${location.port}` : ""}`;
-}
-
-/** The Cahuts of the server, for its administrators. */
-export function ServerOverview() {
-	const api = useConsole();
-	const { data, error, reload } = useLoad(() => api.server("list_domains", {}));
-	if (error) return <Failure message={error} />;
-	if (!data) return null;
-	const origin = originOf;
-	return (
-		<>
-			<PageHead label={t.thisServer} title={plural(data.cahuts.length, "Cahut", "Cahuts")}>
-				{t.administer(location.hostname)}
-			</PageHead>
-			<div class="cards">
-				{data.cahuts.map((c) => (
-					<article key={c.domain} class="c-card card">
-						<div class="c-window__title c-mono">{c.domain}</div>
-						<span class="c-small c-muted">{t.declaredOn(new Date(c.created_at).toLocaleDateString(locale, { dateStyle: "medium" }))}</span>
-						{/* A suspended Cahut serves nothing but to the administrators of the
-						    server, who resume it at its console. See
-						    docs/adr/0048-suspending-a-cahut.md. */}
-						{c.suspension && (
-							<span class="c-small">
-								<span class="c-badge c-badge--warning">{t.suspended}</span>{" "}
-								{t.suspendedOn(new Date(c.suspension.since).toLocaleDateString(locale, { dateStyle: "medium" }), c.suspension.reason)}
-							</span>
-						)}
-						{/* The reports that wait for its moderators, who read them at its
-						    console. See docs/adr/0054-reporting-and-withdrawing-a-window.md. */}
-						{(c.reports ?? 0) > 0 && (
-							<span class="c-small">
-								<span class="c-badge c-badge--warning">{t.reportsWait(c.reports ?? 0)}</span>
-							</span>
-						)}
-						{c.domain === location.hostname ? (
-							<span class="c-small">{t.atConsole}</span>
-						) : (
-							<a class="c-link c-small" href={`${origin(c.domain)}${href("/server/sign-in")}`}>
-								{t.openConsole}
-								<ArrowUpRight class="i" size={14} aria-hidden="true" />
-							</a>
-						)}
-						<MoveCahut domain={c.domain} origin={origin} onMoved={reload} />
-					</article>
-				))}
-			</div>
-			<DeclareCahut origin={origin} onDeclared={reload} />
-		</>
-	);
-}
-
-/**
- * Moves a Cahut to another domain, or from the address of the server to a
- * domain. See docs/adr/0026-cahut-at-an-ip-address.md.
- */
-function MoveCahut(props: { domain: string; origin: (domain: string) => string; onMoved: () => void }) {
-	const api = useConsole();
-	const [open, setOpen] = useState(false);
-	const [to, setTo] = useState("");
-	const [error, setError] = useState("");
-	const [busy, setBusy] = useState(false);
-	const ip = ipAddress.test(props.domain);
-	if (!open) {
-		return (
-			<div>
-				<button class={`c-btn c-btn--sm ${ip ? "c-btn--primary" : "c-btn--ghost"}`} type="button" onClick={() => setOpen(true)}>
-					{ip ? t.moveToDomain : t.changeDomain}
-				</button>
-			</div>
-		);
-	}
-	const move = async (e: Event) => {
-		e.preventDefault();
-		setBusy(true);
-		setError("");
-		try {
-			const moved = await api.server("rename_domain", { domain: props.domain, to });
-			// The sessions at the old address end with it: sign in again at the
-			// new one.
-			if (props.domain === location.hostname) {
-				location.assign(`${props.origin(moved.domain)}${href("/server/sign-in")}`);
-				return;
-			}
-			setOpen(false);
-			props.onMoved();
-		} catch (err) {
-			setError(explain(err));
-		}
-		setBusy(false);
-	};
-	return (
-		<form class="form" onSubmit={move}>
-			<p class="c-small">{t.moveText(props.domain)}</p>
-			<label class="c-field">
-				<span class="c-field__label">{t.newDomain}</span>
-				<input class="c-input c-mono" required placeholder="cahut.example.com" value={to} onInput={(e) => setTo(e.currentTarget.value)} />
-			</label>
-			{error && <Failure message={error} />}
-			<div class="updates__actions">
-				<button class="c-btn c-btn--primary c-btn--sm" type="submit" disabled={busy}>
-					{t.moveCahut}
-				</button>
-				<button class="c-btn c-btn--ghost c-btn--sm" type="button" onClick={() => setOpen(false)}>
-					{t.cancel}
-				</button>
-			</div>
-		</form>
-	);
-}
-
-/** The form that declares a Cahut, with its first administrator. */
-function DeclareCahut({ origin, onDeclared }: { origin: (domain: string) => string; onDeclared: () => void }) {
-	const api = useConsole();
-	const [domain, setDomain] = useState("");
-	const [handle, setHandle] = useState("");
-	const [name, setName] = useState("");
-	const [error, setError] = useState("");
-	const [done, setDone] = useState<NewCahut | null>(null);
-	const submit = async (e: Event) => {
-		e.preventDefault();
-		setError("");
-		try {
-			const admin = handle || name ? { handle, name } : undefined;
-			setDone(await api.server("add_domain", { domain, admin }));
-			setDomain("");
-			setHandle("");
-			setName("");
-			onDeclared();
-		} catch (err) {
-			setError(explain(err));
-		}
-	};
-	return (
-		<section class="section c-card panel">
-			<h2 class="c-h4">{t.declareCahut}</h2>
-			<p class="c-small c-muted">{t.declareText}</p>
-			<form class="form" onSubmit={submit}>
-				<label class="c-field">
-					<span class="c-field__label">{t.domain}</span>
-					<input class="c-input c-mono" required placeholder="cahut.example.com" value={domain} onInput={(e) => setDomain(e.currentTarget.value)} />
-				</label>
-				<div class="form__row">
-					<label class="c-field">
-						<span class="c-field__label">{t.firstAdmin}</span>
-						<input class="c-input" autocapitalize="none" value={handle} onInput={(e) => setHandle(e.currentTarget.value)} />
-					</label>
-					<label class="c-field">
-						<span class="c-field__label">{t.theirName}</span>
-						<input class="c-input" value={name} onInput={(e) => setName(e.currentTarget.value)} />
-					</label>
-				</div>
-				{error && <Failure message={error} />}
-				<div>
-					<button class="c-btn c-btn--primary" type="submit">
-						<Plus class="i" size={16} aria-hidden="true" />
-						{t.declare}
-					</button>
-				</div>
-			</form>
-			{done && (
-				<div class="result" role="status">
-					<p class="c-small">
-						{t.declared(done.domain)}
-						{done.admin?.activation && t.sendLink(done.admin.name)}
-					</p>
-					{done.admin?.activation && (
-						<CopyField label={t.activationLink} value={`${origin(done.domain)}${href("/activate")}#${done.admin.activation.code}`} />
-					)}
-				</div>
-			)}
-		</section>
 	);
 }
