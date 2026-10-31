@@ -32,7 +32,7 @@ sudo /usr/local/bin/cahut update --version 0.4.2
 
 ## In the console
 
-The administrators of the server find **This server › Updates**: the version running, the newest release and a link to its notes, the last check, the last update and how it ended. *Check now* and *Update to 0.4.2* ask the updater, which runs within a minute. The console may stop answering for a few seconds while the service restarts.
+The administrators of the server find **Updates** in the [console of the server](/admin/console/#the-console-of-the-server): the version running, the newest release and a link to its notes, the last check, the last update and how it ended. *Check now* and *Update to 0.4.2* ask the updater, which runs within a minute. The console may stop answering for a few seconds while the service restarts.
 
 ## What an update does
 
