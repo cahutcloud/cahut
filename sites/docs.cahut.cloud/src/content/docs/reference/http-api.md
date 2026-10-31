@@ -7,14 +7,15 @@ sidebar:
 
 <!-- Generated from the code by make docs-reference: do not edit. -->
 
-Each Cahut serves the API of its console under `/console/api/` of its domain, next to the console itself at `/console/`. The console uses this API and nothing else, and AIs reach the same operations over [MCP](/reference/mcp-tools/): there is one registry of [operations](/reference/operations/).
+Each Cahut serves the API of its console under `/console/api/` of its domain, next to the console itself at `/console/`. Every domain of the server serves the API of the console of the server under `/server/api/`, next to that console at `/server/`. The consoles use these APIs and nothing else, and AIs reach the same operations over [MCP](/reference/mcp-tools/): there is one registry of [operations](/reference/operations/).
 
 ## Calls
 
 | Route | What it runs |
 | --- | --- |
 | `POST /console/api/<operation>` | An operation of the Cahut of the domain |
-| `POST /console/api/server/<operation>` | An operation of the server, for its administrators |
+| `POST /server/api/<operation>` | An operation of the server, for its administrators |
+| `POST /server/api/cahuts/<domain>/<operation>` | An operation that serves the server, in the Cahut of that domain, for the administrators of the server |
 
 The body of the request is the input of the operation, in JSON, and the body of the response its output, with the same names and schemas as the MCP tools. Fields that the operation does not know are refused. The API takes `POST` only, reads included, and answers no CORS preflight.
 
@@ -30,7 +31,7 @@ The operations that sign in take no session: `sign_in` and `activate_account`, a
 | Token | Whose session | Where it holds |
 | --- | --- | --- |
 | `cahut_ses_…` | A person of the Cahut | The Cahut that holds the person |
-| `cahut_adm_…` | An administrator of the server | The domain where it opened, for the server and for that Cahut |
+| `cahut_adm_…` | An administrator of the server | The domain where it opened, for the server and for every Cahut that it names |
 
 A session ends 7 days after its last use, and 30 days after it opened in any case. Personal tokens, which start with `cahut_pat_`, are for AIs over MCP: the API refuses them.
 
@@ -133,120 +134,142 @@ A refusal that people meet in the console gives its code too, which never change
 
 | Route | Who calls it | Session |
 | --- | --- | --- |
-| `POST /api/activate_account` | Anyone, to sign in | no |
-| `POST /api/add_room_member` | Any person | yes |
-| `POST /api/approve_authorization` | Any person | yes |
-| `POST /api/approve_knock` | Any person | yes |
-| `POST /api/call_window_query` | Anyone, to sign in | no |
-| `POST /api/change_email` | Any person | yes |
-| `POST /api/change_handle` | Any person | yes |
-| `POST /api/change_name` | Any person | yes |
-| `POST /api/change_password` | Any person | yes |
-| `POST /api/change_window_data` | Any person | yes |
-| `POST /api/check_handle` | Administrators of the Cahut | yes |
-| `POST /api/confirm_email` | Anyone, to sign in | no |
-| `POST /api/create_activation_link` | Administrators of the Cahut | yes |
-| `POST /api/create_room` | Any person | yes |
-| `POST /api/create_service_token` | Administrators of the server | yes |
-| `POST /api/create_share_link` | Any person | yes |
-| `POST /api/create_token` | Any person | yes |
-| `POST /api/create_user` | Administrators of the Cahut | yes |
-| `POST /api/delete_room` | Any person | yes |
-| `POST /api/delete_user` | Administrators of the Cahut | yes |
-| `POST /api/deny_authorization` | Any person | yes |
-| `POST /api/deny_knock` | Any person | yes |
-| `POST /api/describe_authorization` | Any person | yes |
-| `POST /api/describe_sign_in` | Anyone, to sign in | no |
-| `POST /api/disable_user` | Administrators of the Cahut | yes |
-| `POST /api/disconnect_ai` | Any person | yes |
-| `POST /api/dismiss_report` | Administrators of the Cahut | yes |
-| `POST /api/enable_user` | Administrators of the Cahut | yes |
-| `POST /api/get_account` | Any person | yes |
-| `POST /api/get_cahut` | Any person | yes |
-| `POST /api/get_invitation` | Anyone, to sign in | no |
-| `POST /api/get_knock` | Any person | yes |
-| `POST /api/get_mail_relay` | Administrators of the Cahut | yes |
-| `POST /api/get_room` | Any person | yes |
-| `POST /api/get_user` | Administrators of the Cahut | yes |
-| `POST /api/get_window` | Any person | yes |
-| `POST /api/invite_to_window` | Any person | yes |
-| `POST /api/list_connected_ais` | Any person | yes |
-| `POST /api/list_invitations` | Any person | yes |
-| `POST /api/list_knocks` | Any person | yes |
-| `POST /api/list_logbook` | Any person | yes |
-| `POST /api/list_public_windows` | Administrators of the Cahut | yes |
-| `POST /api/list_reports` | Administrators of the Cahut | yes |
-| `POST /api/list_rooms` | Any person | yes |
-| `POST /api/list_service_tokens` | Administrators of the server | yes |
-| `POST /api/list_tokens` | Any person | yes |
-| `POST /api/list_users` | Any person | yes |
-| `POST /api/list_windows` | Any person | yes |
-| `POST /api/open_invitation` | Anyone, to sign in | no |
-| `POST /api/open_share_link` | Anyone, to sign in | no |
-| `POST /api/preview_reported_window` | Administrators of the Cahut | yes |
-| `POST /api/preview_windows` | Any person | yes |
-| `POST /api/publish_window` | Any person | yes |
-| `POST /api/purge_window` | Any person | yes |
-| `POST /api/query_window_data` | Any person | yes |
-| `POST /api/reinstate_window` | Administrators of the Cahut | yes |
-| `POST /api/remove_room_member` | Any person | yes |
-| `POST /api/rename_window` | Any person | yes |
-| `POST /api/report_window` | Anyone, to sign in | no |
-| `POST /api/request_password_link` | Anyone, to sign in | no |
-| `POST /api/restore_window` | Any person | yes |
-| `POST /api/resume_cahut` | Administrators of the server | yes |
-| `POST /api/retitle_window` | Any person | yes |
-| `POST /api/revoke_invitation` | Any person | yes |
-| `POST /api/revoke_service_token` | Administrators of the server | yes |
-| `POST /api/revoke_share_link` | Any person | yes |
-| `POST /api/revoke_token` | Any person | yes |
-| `POST /api/rollback_window` | Any person | yes |
-| `POST /api/rollback_window_data` | Any person | yes |
-| `POST /api/select_window_data` | Anyone, to sign in | no |
-| `POST /api/send_test_mail` | Administrators of the Cahut | yes |
-| `POST /api/set_ai_reach` | Any person | yes |
-| `POST /api/set_cahut_settings` | Administrators of the server | yes |
-| `POST /api/set_legal_links` | Administrators of the server | yes |
-| `POST /api/set_mail_notices` | Any person | yes |
-| `POST /api/set_mail_relay` | Administrators of the Cahut | yes |
-| `POST /api/set_moderation_address` | Administrators of the server | yes |
-| `POST /api/set_room_home` | Any person | yes |
-| `POST /api/set_room_member_role` | Any person | yes |
-| `POST /api/set_user_email` | Administrators of the Cahut | yes |
-| `POST /api/set_user_role` | Administrators of the Cahut | yes |
-| `POST /api/set_window_access` | Any person | yes |
-| `POST /api/sign_in` | Anyone, to sign in | no |
-| `POST /api/sign_in_to_windows` | Any person | yes |
-| `POST /api/sign_out` | Any person | yes |
-| `POST /api/suspend_cahut` | Administrators of the server | yes |
-| `POST /api/trash_window` | Any person | yes |
-| `POST /api/update_room` | Any person | yes |
-| `POST /api/update_window` | Any person | yes |
-| `POST /api/withdraw_window` | Administrators of the Cahut | yes |
+| `POST /console/api/activate_account` | Anyone, to sign in | no |
+| `POST /console/api/add_room_member` | Any person | yes |
+| `POST /console/api/approve_authorization` | Any person | yes |
+| `POST /console/api/approve_knock` | Any person | yes |
+| `POST /console/api/call_window_query` | Anyone, to sign in | no |
+| `POST /console/api/change_email` | Any person | yes |
+| `POST /console/api/change_handle` | Any person | yes |
+| `POST /console/api/change_name` | Any person | yes |
+| `POST /console/api/change_password` | Any person | yes |
+| `POST /console/api/change_window_data` | Any person | yes |
+| `POST /console/api/check_handle` | Administrators of the Cahut | yes |
+| `POST /console/api/confirm_email` | Anyone, to sign in | no |
+| `POST /console/api/create_activation_link` | Administrators of the Cahut | yes |
+| `POST /console/api/create_room` | Any person | yes |
+| `POST /console/api/create_service_token` | Administrators of the server | yes |
+| `POST /console/api/create_share_link` | Any person | yes |
+| `POST /console/api/create_token` | Any person | yes |
+| `POST /console/api/create_user` | Administrators of the Cahut | yes |
+| `POST /console/api/delete_room` | Any person | yes |
+| `POST /console/api/delete_user` | Administrators of the Cahut | yes |
+| `POST /console/api/deny_authorization` | Any person | yes |
+| `POST /console/api/deny_knock` | Any person | yes |
+| `POST /console/api/describe_authorization` | Any person | yes |
+| `POST /console/api/describe_sign_in` | Anyone, to sign in | no |
+| `POST /console/api/disable_user` | Administrators of the Cahut | yes |
+| `POST /console/api/disconnect_ai` | Any person | yes |
+| `POST /console/api/dismiss_report` | Administrators of the Cahut | yes |
+| `POST /console/api/enable_user` | Administrators of the Cahut | yes |
+| `POST /console/api/get_account` | Any person | yes |
+| `POST /console/api/get_cahut` | Any person | yes |
+| `POST /console/api/get_invitation` | Anyone, to sign in | no |
+| `POST /console/api/get_knock` | Any person | yes |
+| `POST /console/api/get_mail_relay` | Administrators of the Cahut | yes |
+| `POST /console/api/get_room` | Any person | yes |
+| `POST /console/api/get_user` | Administrators of the Cahut | yes |
+| `POST /console/api/get_window` | Any person | yes |
+| `POST /console/api/invite_to_window` | Any person | yes |
+| `POST /console/api/list_connected_ais` | Any person | yes |
+| `POST /console/api/list_invitations` | Any person | yes |
+| `POST /console/api/list_knocks` | Any person | yes |
+| `POST /console/api/list_logbook` | Any person | yes |
+| `POST /console/api/list_public_windows` | Administrators of the Cahut | yes |
+| `POST /console/api/list_reports` | Administrators of the Cahut | yes |
+| `POST /console/api/list_rooms` | Any person | yes |
+| `POST /console/api/list_service_tokens` | Administrators of the server | yes |
+| `POST /console/api/list_tokens` | Any person | yes |
+| `POST /console/api/list_users` | Any person | yes |
+| `POST /console/api/list_windows` | Any person | yes |
+| `POST /console/api/open_invitation` | Anyone, to sign in | no |
+| `POST /console/api/open_share_link` | Anyone, to sign in | no |
+| `POST /console/api/preview_reported_window` | Administrators of the Cahut | yes |
+| `POST /console/api/preview_windows` | Any person | yes |
+| `POST /console/api/publish_window` | Any person | yes |
+| `POST /console/api/purge_window` | Any person | yes |
+| `POST /console/api/query_window_data` | Any person | yes |
+| `POST /console/api/reinstate_window` | Administrators of the Cahut | yes |
+| `POST /console/api/remove_room_member` | Any person | yes |
+| `POST /console/api/rename_window` | Any person | yes |
+| `POST /console/api/report_window` | Anyone, to sign in | no |
+| `POST /console/api/request_password_link` | Anyone, to sign in | no |
+| `POST /console/api/restore_window` | Any person | yes |
+| `POST /console/api/resume_cahut` | Administrators of the server | yes |
+| `POST /console/api/retitle_window` | Any person | yes |
+| `POST /console/api/revoke_invitation` | Any person | yes |
+| `POST /console/api/revoke_service_token` | Administrators of the server | yes |
+| `POST /console/api/revoke_share_link` | Any person | yes |
+| `POST /console/api/revoke_token` | Any person | yes |
+| `POST /console/api/rollback_window` | Any person | yes |
+| `POST /console/api/rollback_window_data` | Any person | yes |
+| `POST /console/api/select_window_data` | Anyone, to sign in | no |
+| `POST /console/api/send_test_mail` | Administrators of the Cahut | yes |
+| `POST /console/api/set_ai_reach` | Any person | yes |
+| `POST /console/api/set_cahut_settings` | Administrators of the server | yes |
+| `POST /console/api/set_legal_links` | Administrators of the server | yes |
+| `POST /console/api/set_mail_notices` | Any person | yes |
+| `POST /console/api/set_mail_relay` | Administrators of the Cahut | yes |
+| `POST /console/api/set_moderation_address` | Administrators of the server | yes |
+| `POST /console/api/set_room_home` | Any person | yes |
+| `POST /console/api/set_room_member_role` | Any person | yes |
+| `POST /console/api/set_user_email` | Administrators of the Cahut | yes |
+| `POST /console/api/set_user_role` | Administrators of the Cahut | yes |
+| `POST /console/api/set_window_access` | Any person | yes |
+| `POST /console/api/sign_in` | Anyone, to sign in | no |
+| `POST /console/api/sign_in_to_windows` | Any person | yes |
+| `POST /console/api/sign_out` | Any person | yes |
+| `POST /console/api/suspend_cahut` | Administrators of the server | yes |
+| `POST /console/api/trash_window` | Any person | yes |
+| `POST /console/api/update_room` | Any person | yes |
+| `POST /console/api/update_window` | Any person | yes |
+| `POST /console/api/withdraw_window` | Administrators of the Cahut | yes |
 
 ## Operations of the server
 
 | Route | Who calls it | Session |
 | --- | --- | --- |
-| `POST /api/server/activate_account` | Anyone, to sign in | no |
-| `POST /api/server/add_domain` | Administrators of the server | yes |
-| `POST /api/server/change_password` | Administrators of the server | yes |
-| `POST /api/server/create_activation_link` | Administrators of the server | yes |
-| `POST /api/server/create_admin` | Administrators of the server | yes |
-| `POST /api/server/create_setup_link` | Administrators of the server | yes |
-| `POST /api/server/disable_admin` | Administrators of the server | yes |
-| `POST /api/server/enable_admin` | Administrators of the server | yes |
-| `POST /api/server/get_setup` | Anyone, to sign in | no |
-| `POST /api/server/get_updates` | Administrators of the server | yes |
-| `POST /api/server/list_admins` | Administrators of the server | yes |
-| `POST /api/server/list_domains` | Administrators of the server | yes |
-| `POST /api/server/list_logbook` | Administrators of the server | yes |
-| `POST /api/server/rename_admin` | Administrators of the server | yes |
-| `POST /api/server/rename_domain` | Administrators of the server | yes |
-| `POST /api/server/request_update` | Administrators of the server | yes |
-| `POST /api/server/set_up` | Anyone, to sign in | no |
-| `POST /api/server/sign_in` | Anyone, to sign in | no |
-| `POST /api/server/sign_out` | Administrators of the server | yes |
+| `POST /server/api/activate_account` | Anyone, to sign in | no |
+| `POST /server/api/add_domain` | Administrators of the server | yes |
+| `POST /server/api/change_password` | Administrators of the server | yes |
+| `POST /server/api/create_activation_link` | Administrators of the server | yes |
+| `POST /server/api/create_admin` | Administrators of the server | yes |
+| `POST /server/api/create_setup_link` | Administrators of the server | yes |
+| `POST /server/api/disable_admin` | Administrators of the server | yes |
+| `POST /server/api/enable_admin` | Administrators of the server | yes |
+| `POST /server/api/get_setup` | Anyone, to sign in | no |
+| `POST /server/api/get_updates` | Administrators of the server | yes |
+| `POST /server/api/list_admins` | Administrators of the server | yes |
+| `POST /server/api/list_domains` | Administrators of the server | yes |
+| `POST /server/api/list_logbook` | Administrators of the server | yes |
+| `POST /server/api/rename_admin` | Administrators of the server | yes |
+| `POST /server/api/rename_domain` | Administrators of the server | yes |
+| `POST /server/api/request_update` | Administrators of the server | yes |
+| `POST /server/api/set_up` | Anyone, to sign in | no |
+| `POST /server/api/sign_in` | Anyone, to sign in | no |
+| `POST /server/api/sign_out` | Administrators of the server | yes |
+
+## Operations that serve the server in a Cahut
+
+The administrators of the server call these operations in every Cahut of the server, from the domain where they signed in: the Cahut is the one that the route names.
+
+| Route | Who calls it | Session |
+| --- | --- | --- |
+| `POST /server/api/cahuts/<domain>/create_service_token` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/dismiss_report` | Administrators of the Cahut | yes |
+| `POST /server/api/cahuts/<domain>/get_cahut` | Any person | yes |
+| `POST /server/api/cahuts/<domain>/list_public_windows` | Administrators of the Cahut | yes |
+| `POST /server/api/cahuts/<domain>/list_reports` | Administrators of the Cahut | yes |
+| `POST /server/api/cahuts/<domain>/list_service_tokens` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/preview_reported_window` | Administrators of the Cahut | yes |
+| `POST /server/api/cahuts/<domain>/reinstate_window` | Administrators of the Cahut | yes |
+| `POST /server/api/cahuts/<domain>/resume_cahut` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/revoke_service_token` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/set_cahut_settings` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/set_legal_links` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/set_moderation_address` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/suspend_cahut` | Administrators of the server | yes |
+| `POST /server/api/cahuts/<domain>/withdraw_window` | Administrators of the Cahut | yes |
 
 ## Admin API
 

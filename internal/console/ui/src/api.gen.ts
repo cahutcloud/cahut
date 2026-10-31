@@ -2139,7 +2139,7 @@ export interface CahutOperations {
   withdraw_window: { input: WithdrawInput; output: Moderated };
 }
 
-/** The operations of the server, at POST /console/api/server/<operation>, for its administrators. */
+/** The operations of the server, at POST /server/api/<operation>, for its administrators. */
 export interface ServerOperations {
   /** Choose a password from a single-use activation link, as an administrator of the server, and sign in. */
   activate_account: { input: ActivateInput; output: ServerSession };
@@ -2180,6 +2180,9 @@ export interface ServerOperations {
   /** End the session you signed in with, as an administrator of the server. */
   sign_out: { input: SignOutInput; output: SignedOut };
 }
+
+/** The operations of a Cahut that serve the server, at POST /server/api/cahuts/<domain>/<operation>, for its administrators. */
+export type ServerCahutOperations = Pick<CahutOperations, "create_service_token" | "dismiss_report" | "get_cahut" | "list_public_windows" | "list_reports" | "list_service_tokens" | "preview_reported_window" | "reinstate_window" | "resume_cahut" | "revoke_service_token" | "set_cahut_settings" | "set_legal_links" | "set_moderation_address" | "suspend_cahut" | "withdraw_window">;
 
 /** The refusals that the console says in the language of its person, by code, each with its values. */
 export interface Refusals {
