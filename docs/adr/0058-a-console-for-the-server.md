@@ -56,9 +56,9 @@ The two roles do not do the same work. The administrators of a Cahut look after 
 
 ### The first start
 
-- The link of the first start does not change, nor do its steps You and Your Cahut ([ADR 25](0025-first-start-in-the-browser.md)).
+- The link of the first start does not change, nor does its step You ([ADR 25](0025-first-start-in-the-browser.md)).
 - When the first start makes the administrator of the server, it opens both sessions and ends in the console of the server, on the page of the Cahut, which links to the console of the Cahut. When the server has administrators already, it ends in the console of the Cahut.
-- The step Your first AI leaves the first start. The overview of the console of the Cahut offers it, as long as the person has neither a connected AI nor a token, as ADR 25 has it.
+- The step Your first AI leaves the first start, which keeps one step. The overview of the console of the Cahut offers it, as long as the person has neither a connected AI nor a token, as ADR 25 has it.
 - `install.sh` prints the address of the console of the server beside that of the console of the Cahut.
 
 ### A reserved name
@@ -75,7 +75,7 @@ This record supersedes ADR 43 and ADR 44. It replaces, in ADR 13, the lines unde
 - An administrator of the server who looked after the people or the Rooms of a Cahut needs an account of a person there, as one of its administrators.
 - A request of the console of the server reads `server.db` for its session, then the database of the Cahut that it names. The server opens that Cahut, as the command line does: no Cahut reads the records of another ([ADR 8](0008-several-cahuts-per-server.md)).
 - The console of the server hides, at `/server/`, a Room or a handle named `server` made before this record. A person changes such a handle ([ADR 39](0039-people-change-their-name-and-handle.md)); a team Room keeps its Windows at their permanent addresses ([ADR 50](0050-window-ids-permanent-addresses-and-names.md)).
-- The links of activation that the command line printed for an administrator of the server before this record name `/console/activate`, and stop working. `cahut admin link` gives a new one.
+- The links of activation that the command line printed for an administrator of the server before this record name `/console/server/activate`. The console of the Cahut sends them on to `/server/activate`, with their code.
 - The bar of the server leaves the console of the Cahut, and its 48 pixels with it.
 - The pages of the server load in their own entry: the browser of a member does not load them.
 
