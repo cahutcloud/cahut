@@ -43,7 +43,7 @@ console-dev: $(CONSOLE_DEPS) ## Serve the console with live reload on http://loc
 
 test: ## Run the tests with the race detector, and the confinement of workers without it
 	go test -race ./...
-	CGO_ENABLED=0 go test -count=1 ./internal/windata/|TestPool' ./internal/windata/
+	CGO_ENABLED=0 go test -count=1 ./internal/windata/
 
 lint: ## Check go.mod and run the linters
 	go mod tidy -diff
