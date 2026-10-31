@@ -164,6 +164,7 @@ internal/
     mailtest/          An SMTP relay in memory, for tests
   notice/              The notices that time brings: the end of an access, limits, the disk of the server (ADR 31)
   window/              Windows: publish, describe, list, files on disk
+  windata/             The database of each Window: the workers that run its SQL, confined, and their pool (ADR 56)
   card/                The card of a Window, which the previews of its links show, drawn in Go (ADR 51)
   cahut/               Assembles a Cahut: its database, registry and operations
   server/              The server as a whole: its Cahuts and their domains, its administrators

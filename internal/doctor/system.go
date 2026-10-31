@@ -16,6 +16,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"cahut.cloud/internal/windata"
 )
 
 // Machine is the System of the machine that runs cahut doctor.
@@ -146,6 +148,9 @@ func issuer(c *x509.Certificate) string {
 
 // Root reports whether cahut doctor runs as root.
 func (Machine) Root() bool { return os.Geteuid() == 0 }
+
+// Landlock returns the version of Landlock that the kernel offers, or 0.
+func (Machine) Landlock() int { return windata.LandlockABI() }
 
 // Now returns the time.
 func (Machine) Now() time.Time { return time.Now() }

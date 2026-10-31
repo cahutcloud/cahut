@@ -31,12 +31,14 @@ type fake struct {
 	gets     map[string]string // body by URL; absent fails
 	health   update.Health
 	cert     *Certificate
+	landlock int
 }
 
 func healthy() *fake {
 	f := &fake{
-		root:  true,
-		files: map[string]string{"/etc/os-release": "ID=\"almalinux\"\nVERSION_ID=\"10.2\"\nPRETTY_NAME=\"AlmaLinux 10.2 (Lavender Lion)\"\n"},
+		root:     true,
+		landlock: 6,
+		files:    map[string]string{"/etc/os-release": "ID=\"almalinux\"\nVERSION_ID=\"10.2\"\nPRETTY_NAME=\"AlmaLinux 10.2 (Lavender Lion)\"\n"},
 		commands: map[string]string{
 			"timedatectl show --property=NTPSynchronized --value": "yes",
 			"systemctl is-active cahut":                           "active",
@@ -92,6 +94,7 @@ func (f *fake) Label(string) (string, error)     { return f.label, nil }
 func (f *fake) FreeBytes(string) (uint64, error) { return f.free, nil }
 func (f *fake) LocalAddrs() ([]net.IP, error)    { return f.local, nil }
 func (f *fake) Root() bool                       { return f.root }
+func (f *fake) Landlock() int                    { return f.landlock }
 func (f *fake) Now() time.Time                   { return now }
 func (f *fake) LookupIP(_ context.Context, host string) ([]net.IP, error) {
 	if ips, ok := f.dns[host]; ok {
@@ -170,6 +173,7 @@ func TestHealthyServer(t *testing.T) {
 		{"Service", "Cahut 0.4.0 answers, with 1 Cahut"},
 		{"Firewall", "firewalld lets in"},
 		{"SELinux", "Enforcing"},
+		{"Window data", "Landlock 6 confines the workers"},
 		{"cahut.example.com", "Points to this machine (203.0.113.7)"},
 		{"cahut.example.com", "valid until 11 January 2027"},
 		{"cahut.example.com", "https://cahut.example.com/ answers"},
@@ -211,6 +215,8 @@ func TestProblems(t *testing.T) {
 		}, OK, "Firewall", "ufw lets in"},
 		{"no firewall", func(f *fake) { f.commands["systemctl is-active firewalld"] = "inactive" }, OK, "Firewall", "No firewall"},
 		{"not root", func(f *fake) { f.root = false }, Info, "Firewall", "as root"},
+		{"no Landlock", func(f *fake) { f.landlock = 0 }, Warn, "Window data", "This kernel has no Landlock"},
+		{"Landlock without network", func(f *fake) { f.landlock = 3 }, Warn, "Window data", "cannot close their network"},
 		{"SELinux label", func(f *fake) { f.label = "unconfined_u:object_r:user_tmp_t:s0" }, Fail, "SELinux", "restorecon /usr/local/bin/cahut"},
 		{"Cahut does not open", func(f *fake) {
 			f.health.OK, f.health.Cahuts[0].OK, f.health.Cahuts[0].Error = false, false, "migration 0012: no such table"
