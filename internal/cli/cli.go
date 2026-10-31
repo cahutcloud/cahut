@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"cahut.cloud/internal/version"
+	"cahut.cloud/internal/windata"
 )
 
 // Exit codes returned by Run.
@@ -53,6 +54,9 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return exitOK
 	case "-version", "--version":
 		name = "version"
+	case windata.WorkerCommand:
+		// Hidden: the service runs it, for the database of a Window.
+		return windata.RunWorker(args[1:], stderr)
 	}
 	for _, c := range commands {
 		if c.name == name {

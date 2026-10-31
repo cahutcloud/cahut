@@ -64,6 +64,8 @@ type System interface {
 	Certificate(ctx context.Context, addr, name string) (Certificate, error)
 	Root() bool
 	Now() time.Time
+	// Landlock returns the version of Landlock that the kernel offers, or 0.
+	Landlock() int
 }
 
 // Certificate is a certificate that the service serves.
@@ -100,6 +102,7 @@ func Run(ctx context.Context, sys System, cfg Config) []Result {
 	d.ports()
 	d.firewall()
 	d.selinux()
+	d.workers()
 	d.proxies()
 	d.cahuts()
 	d.outside()
@@ -289,6 +292,21 @@ func (d *doctor) selinux() {
 		return
 	}
 	d.add(OK, "SELinux", "Enforcing, and the binary has its label.")
+}
+
+// workers says how far Landlock confines the workers that run the SQL of
+// Windows. See docs/adr/0056-a-database-for-each-window.md.
+func (d *doctor) workers() {
+	switch abi := d.sys.Landlock(); {
+	case abi >= 4:
+		d.add(OK, "Window data", "Landlock %d confines the workers that run the SQL of Windows to the folder of their database, without network.", abi)
+	case abi >= 1:
+		d.add(Warn, "Window data", "Landlock %d confines the workers that run the SQL of Windows to the folder of their database, "+
+			"but this kernel cannot close their network: Linux 6.7 or later can.", abi)
+	default:
+		d.add(Warn, "Window data", "This kernel has no Landlock: the workers that run the SQL of Windows keep their limits, "+
+			"but read what the cahut user reads. Linux 5.13 or later has it, when its boot enables it (lsm=landlock).")
+	}
 }
 
 // proxies says which proxies the service trusts to pass the address of each
