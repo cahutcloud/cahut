@@ -33,7 +33,7 @@ func TestHandler(t *testing.T) {
 		"index.html":         {Data: []byte("<!doctype html><title>Cahut</title>")},
 		"assets/app-1a2b.js": {Data: []byte("console.log(1)")},
 		"robots.txt":         {Data: []byte("User-agent: *\nDisallow: /\n")},
-	})
+	}, "index.html", nil)
 	for _, tt := range []struct {
 		path, body, cache string
 		status            int
@@ -61,8 +61,31 @@ func TestHandler(t *testing.T) {
 	}
 }
 
+// The console of the server serves its own page, and frames the Windows of
+// every Cahut of the server. See docs/adr/0058-a-console-for-the-server.md.
+func TestServerHandler(t *testing.T) {
+	h := newHandler(fstest.MapFS{
+		"index.html":         {Data: []byte("<!doctype html><title>Cahut</title>")},
+		"server.html":        {Data: []byte("<!doctype html><title>Cahut server</title>")},
+		"assets/app-1a2b.js": {Data: []byte("console.log(1)")},
+	}, "server.html", func(*http.Request) []string { return []string{"http://example.com", "http://beta.example.com"} })
+	for _, path := range []string{"/", "/sign-in", "/cahuts/beta.example.com", "/index.html"} {
+		resp, body := get(t, h, http.MethodGet, path)
+		if resp.status != http.StatusOK || !strings.Contains(body, "<title>Cahut server</title>") {
+			t.Errorf("GET %s = %d %q", path, resp.status, body)
+		}
+		if csp := resp.header.Get("Content-Security-Policy"); !strings.Contains(csp, "frame-src 'self' http://example.com http://beta.example.com;") ||
+			!strings.Contains(csp, "script-src http://example.com/console/assets/;") {
+			t.Errorf("GET %s: Content-Security-Policy = %q", path, csp)
+		}
+	}
+	if resp, body := get(t, h, http.MethodGet, "/assets/app-1a2b.js"); resp.status != http.StatusOK || body != "console.log(1)" {
+		t.Errorf("GET /assets/app-1a2b.js = %d %q", resp.status, body)
+	}
+}
+
 func TestNotice(t *testing.T) {
-	resp, body := get(t, newHandler(nil), http.MethodGet, "/sign-in")
+	resp, body := get(t, newHandler(nil, "index.html", nil), http.MethodGet, "/sign-in")
 	if resp.status != http.StatusNotFound || !strings.Contains(body, "built without its console") ||
 		resp.header.Get("Content-Security-Policy") == "" {
 		t.Errorf("GET /sign-in without the console = %d %q", resp.status, body)
