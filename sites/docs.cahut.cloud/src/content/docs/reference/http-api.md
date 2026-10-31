@@ -137,6 +137,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/add_room_member` | Any person | yes |
 | `POST /api/approve_authorization` | Any person | yes |
 | `POST /api/approve_knock` | Any person | yes |
+| `POST /api/call_window_query` | Anyone, to sign in | no |
 | `POST /api/change_email` | Any person | yes |
 | `POST /api/change_handle` | Any person | yes |
 | `POST /api/change_name` | Any person | yes |
@@ -198,6 +199,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /api/revoke_share_link` | Any person | yes |
 | `POST /api/revoke_token` | Any person | yes |
 | `POST /api/rollback_window` | Any person | yes |
+| `POST /api/select_window_data` | Anyone, to sign in | no |
 | `POST /api/send_test_mail` | Administrators of the Cahut | yes |
 | `POST /api/set_ai_reach` | Any person | yes |
 | `POST /api/set_cahut_settings` | Administrators of the server | yes |

@@ -128,6 +128,8 @@ type Server struct {
 	keyFailuresHere *limiter
 	linkVisits      *limiter // visits to the addresses of share links, by address
 	reports         *limiter // reports of Windows, by address
+	dataReads       *limiter // calls of pages to the data of their Window, by address and Window
+	dataWrites      *limiter // those that write
 
 	// cards are the cards of Windows drawn last, for the previews of their
 	// links.
@@ -200,6 +202,8 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.mux.HandleFunc("POST /-/sign-out", s.serveSignOut)
 	s.mux.HandleFunc("POST /-/key", s.serveKey)
 	s.mux.HandleFunc("GET /-/frame/{capability}/{file...}", s.serveFrame)
+	s.mux.HandleFunc("POST /-/frame/{capability}/"+window.DataPath+"{rest...}", s.serveFrameData)
+	s.mux.HandleFunc("OPTIONS /-/frame/{capability}/"+window.DataPath+"{rest...}", preflightData)
 	s.mux.HandleFunc("GET "+window.PermanentPrefix+"{id}", s.servePermanent)
 	s.mux.HandleFunc("GET "+window.PermanentPrefix+"{id}/{file...}", s.servePermanent)
 	s.mux.HandleFunc("GET "+CardPath+"{file}", s.serveCard)
@@ -211,6 +215,9 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.mux.HandleFunc("GET /{room}/{$}", s.serveRoom)
 	s.mux.HandleFunc("GET /{room}/{window}", redirectToWindow)
 	s.mux.HandleFunc("GET /{room}/{window}/{file...}", s.serveWindow)
+	// The pattern of a frame is the more specific: this one takes the rest.
+	s.mux.HandleFunc("POST /{room}/{window}/{rest...}", s.serveData)
+	s.mux.HandleFunc("OPTIONS /{room}/{window}/{rest...}", preflightData)
 
 	s.visitors = newLimiter(SignInEvery, SignInBurst)
 	s.registrations = newLimiter(RegisterEvery, RegisterBurst)
@@ -222,6 +229,8 @@ func New(srv *server.Server, cfg Config, log *slog.Logger) *Server {
 	s.keyFailuresHere = newLimiter(KeyHereEvery, KeyHereBurst)
 	s.linkVisits = newLimiter(LinkEvery, LinkBurst)
 	s.reports = newLimiter(ReportEvery, ReportBurst)
+	s.dataReads = newLimiter(DataReadEvery, DataReadBurst)
+	s.dataWrites = newLimiter(DataWriteEvery, DataWriteBurst)
 	// The console, its API and the consent screen of OAuth. See
 	// docs/adr/0020-console-under-a-path-of-port-443.md.
 	s.console = http.NewServeMux()
