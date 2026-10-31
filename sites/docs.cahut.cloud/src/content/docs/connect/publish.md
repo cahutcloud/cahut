@@ -77,6 +77,7 @@ Every publication declares what its pages do, and Cahut lets them do that and no
 | `scripts` | `true` when the pages run scripts, inline or in files. |
 | `origins` | Every origin the pages load anything from or call: scripts, styles, fonts, images, `fetch` calls, WebSockets. Such as `https://cdn.jsdelivr.net`, `https://fonts.googleapis.com` and `https://fonts.gstatic.com`. `https://*.example.com` covers the subdomains of `example.com`, not `example.com` itself. |
 | `forms` | The origins that the forms of the pages send to, if any. |
+| `data` | What the pages keep and read in the database of the Window: its migrations, what readers read, the queries that pages call, and when writing closes. See [The data of Windows](/concepts/data/). |
 
 - An origin is `https://` or `wss://`, a host and an optional port, without a path. Each list holds 20 origins at most.
 - The files of the Window need no origin: they come from the Cahut, which the policy always allows. A deck that moves from slide to slide with a script declares `scripts`.
@@ -91,7 +92,7 @@ Every publication declares what its pages do, and Cahut lets them do that and no
 Every file of a Window is served with the header `Content-Security-Policy: sandbox`, which gives its page an origin of its own. In that sandbox:
 
 - Scripts, forms, dialogs, downloads and links that open in a new tab work.
-- `localStorage`, `sessionStorage`, IndexedDB and cookies throw an error. Keep state in memory or in the address, and check that the libraries of the page do not stop on that error.
+- `localStorage`, `sessionStorage`, IndexedDB and cookies throw an error. Keep state in memory, in the address, or in the [data of the Window](/concepts/data/), and check that the libraries of the page do not stop on that error.
 - The page cannot read the other Windows of the Cahut, nor the session of its reader.
 - Module scripts, `fetch` calls and web fonts load as cross-origin requests, which the files of the Window allow.
 

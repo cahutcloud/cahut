@@ -1,8 +1,8 @@
 {
   "name": "cahut",
   "displayName": "Cahut",
-  "version": "0.9.0",
-  "description": "Publish documents, decks and dashboards to your Cahut, and share them by link. It connects Claude to your Cahut over MCP, and teaches it the formats, the sandbox of Windows and Knock first.",
+  "version": "0.10.0",
+  "description": "Publish documents, decks and dashboards to your Cahut, and share them by link. It connects Claude to your Cahut over MCP, and teaches it the formats, the sandbox and the data of Windows, and Knock first.",
   "author": {
     "name": "Olivier Durand",
     "url": "https://cahut.cloud"

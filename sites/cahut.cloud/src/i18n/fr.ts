@@ -248,7 +248,7 @@ const fr: Dictionary = {
 	features: {
 		label: 'Fonctionnalités',
 		title: 'Ce qui sort au lancement',
-		lead: "Le périmètre complet sort au lancement, sans version d'essai réduite. Aujourd'hui, la première version fonctionne : elle s'installe sur un serveur, connecte Claude et ChatGPT, publie et partage documents, présentations, tableaux de bord et sites, les retrouve par tag ou par mot, et réunit une équipe dans des Rooms. Les applis, les commentaires, l'export, l'authentification unique et les sauvegardes sont la cible.",
+		lead: "Le périmètre complet sort au lancement, sans version d'essai réduite. Aujourd'hui, la première version fonctionne : elle s'installe sur un serveur, connecte Claude et ChatGPT, publie et partage documents, présentations, tableaux de bord et sites, garde ce qu'écrivent leurs lecteurs, les retrouve par tag ou par mot, et réunit une équipe dans des Rooms. Les applis, les commentaires, l'export, l'authentification unique et les sauvegardes sont la cible.",
 		groups: [
 			{
 				title: 'Publier',
@@ -266,6 +266,10 @@ const fr: Dictionary = {
 					{
 						area: 'Recherche',
 						text: "Retrouvez n'importe quelle page, présentation ou tableau de bord de vos Rooms par l'un de ses mots ou un tag.",
+					},
+					{
+						area: 'Données',
+						text: "Une base SQLite pour chaque page, sur votre serveur : sondages, formulaires, pétitions et suivis gardent ce qu'écrivent leurs lecteurs.",
 					},
 					{ area: 'Export', text: 'PDF et PowerPoint, pour les destinataires encore sur Office.' },
 				],
@@ -494,10 +498,14 @@ const fr: Dictionary = {
 					title: "L'envoi d'e-mails",
 					text: 'Chaque Cahut envoie ses e-mails par son propre relais SMTP : des liens pour choisir un mot de passe, des invitations à lire une Window, et les notifications des Knocks.',
 				},
+				{
+					title: 'Les données des Windows',
+					text: "Chaque Window garde ce qu'écrivent ses lecteurs dans une base SQLite à elle, que ses pages lisent et écrivent comme son IA le déclare : sondages, formulaires, pétitions et suivis.",
+				},
 			],
 			milestones: 'Les jalons sur GitHub',
 			todayTitle: "Ce qui marche aujourd'hui",
-			todayLead: "Les lots 0 à 9 sont faits, et la première version a rempli les critères de réussite sur un serveur vierge. Aujourd'hui, dans une Cahut :",
+			todayLead: "Les lots 0 à 10 sont faits, et la première version a rempli les critères de réussite sur un serveur vierge. Aujourd'hui, dans une Cahut :",
 			today: [
 				"Une commande qui installe un serveur Linux, un premier démarrage dans le navigateur, et des mises à jour quotidiennes depuis les releases signées, avec retour arrière.",
 				"Un service sur un serveur Linux, qui porte une ou plusieurs Cahuts, chacune à son domaine avec son certificat, ou à l'adresse IPv4 du serveur tant qu'elle n'en a pas.",
@@ -508,6 +516,7 @@ const fr: Dictionary = {
 				"Des Windows publiées par MCP : documents, présentations, tableaux de bord et sites statiques, servis dans un bac à sable qui les tient à ce que leur IA déclare charger et appeler.",
 				"Deux versions de chaque Window avec retour en arrière, une corbeille, et un accès : Room seulement, interne, avec une Key ou public, jusqu'à une date.",
 				'Des tags sur les Windows, et une recherche dans leurs titres, descriptions, tags et pages, dans la console et pour les IA.',
+				"Les données de chaque Window, dans une base SQLite à elle sur le serveur : sondages, formulaires, pétitions et suivis gardent ce qu'écrivent leurs lecteurs, et les membres de sa Room et leurs IA les lisent et les changent, avec des copies où revenir.",
 				'Des signalements de Windows, par tout le monde, sans compte, et des modérateurs qui retirent une Window avec un motif pour sa Room, puis la rétablissent.',
 				"Knock first : ce qu'une IA ne peut pas défaire, ou ce qui change ce qu'une personne peut faire, attend sa personne, qui l'approuve ou le refuse dans la console.",
 				'Les e-mails, par le relais SMTP de chaque Cahut : des liens pour choisir un mot de passe, des invitations à lire une Window, et les notifications des Knocks, du compte et des limites.',

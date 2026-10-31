@@ -240,7 +240,7 @@ export default {
 	features: {
 		label: 'Features',
 		title: 'What ships at launch',
-		lead: 'The full scope ships at launch, with no reduced trial version. Today, the first version works: it installs on a server, connects Claude and ChatGPT, publishes and shares documents, decks, dashboards and sites, finds them by tag or by word, and gathers a team in Rooms. Apps, comments, export, single sign-on and backups are the target.',
+		lead: 'The full scope ships at launch, with no reduced trial version. Today, the first version works: it installs on a server, connects Claude and ChatGPT, publishes and shares documents, decks, dashboards and sites, keeps what their readers write, finds them by tag or by word, and gathers a team in Rooms. Apps, comments, export, single sign-on and backups are the target.',
 		groups: [
 			{
 				title: 'Publish',
@@ -256,6 +256,10 @@ export default {
 					},
 					{ area: 'Versions', text: 'Two versions kept per publication. Roll back in one gesture.' },
 					{ area: 'Search', text: 'Find any page, deck or dashboard of your Rooms by a word of it or a tag.' },
+					{
+						area: 'Data',
+						text: 'A SQLite database for each page, on your server: polls, forms, petitions and trackers keep what their readers write.',
+					},
 					{ area: 'Export', text: 'PDF and PowerPoint, for recipients still on Office.' },
 				],
 			},
@@ -465,10 +469,14 @@ export default {
 					title: 'E-mail from each Cahut',
 					text: 'Each Cahut sends e-mail through its own SMTP relay: links to choose a password, invitations to read a Window, and notices of Knocks.',
 				},
+				{
+					title: 'The data of Windows',
+					text: 'Each Window keeps what its readers write in a SQLite database of its own, which its pages read and write as its AI declares: polls, forms, petitions and trackers.',
+				},
 			],
 			milestones: 'The milestones on GitHub',
 			todayTitle: 'What works today',
-			todayLead: 'Batches 0 to 9 are done, and the first version met the success criteria on a fresh server. In a Cahut, today:',
+			todayLead: 'Batches 0 to 10 are done, and the first version met the success criteria on a fresh server. In a Cahut, today:',
 			today: [
 				'One command that installs a Linux server, a first start in the browser, and daily updates from signed releases, with a rollback.',
 				'One service on a Linux server, holding one or more Cahuts, each at its own domain with its certificate, or at the IPv4 address of the server until it has one.',
@@ -479,6 +487,7 @@ export default {
 				'Windows published over MCP: documents, decks, dashboards and static sites, served in a sandbox that holds them to what their AI declares they load and call.',
 				'Two versions of each Window with a rollback, a trash, and an access: Room only, internal, with a Key or public, until a date.',
 				'Tags on Windows, and a search of their titles, descriptions, tags and pages, in the console and for AIs.',
+				'The data of each Window, in a SQLite database of its own on the server: polls, forms, petitions and trackers keep what their readers write, and the people of its Room and their AIs read and change it, with copies to go back to.',
 				'Reports of Windows, from anyone, without an account, and moderators who withdraw a Window with a reason for its Room, then reinstate it.',
 				'Knock first: what an AI cannot undo, or what changes what a person may do, waits for its person, who approves or declines it in the console.',
 				'E-mail through the SMTP relay of each Cahut: links to choose a password, invitations to read a Window, and notices of Knocks, of the account and of limits.',

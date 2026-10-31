@@ -53,6 +53,7 @@ export default defineConfig({
 						'concepts/vocabulary',
 						'concepts/cahuts',
 						'concepts/rooms-and-windows',
+						'concepts/data',
 						'concepts/access',
 						'concepts/sharing',
 						'concepts/knock-first-and-logbook',
