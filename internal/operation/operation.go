@@ -157,6 +157,12 @@ type Op[In, Out any] struct {
 	// never knock. See
 	// docs/adr/0035-a-program-on-the-server-manages-people-with-a-service-token.md.
 	Services bool
+	// ForServer operations of a Cahut serve the administrators of its server
+	// too, who call them in each Cahut from the console of the server,
+	// beside those at their level: its moderation, and get_cahut, which
+	// reads the settings they set. See
+	// docs/adr/0058-a-console-for-the-server.md.
+	ForServer bool
 	// WhileSuspended operations answer everyone in a suspended Cahut, whom
 	// every other call is refused: describe_sign_in, which says that it is
 	// suspended, and the end of a connection, which takes an access away.
@@ -191,10 +197,17 @@ type Info struct {
 	ReadOnlyAIs  bool
 	OpenWorld    bool
 	Services     bool
+	ForServer    bool
 	// WhileSuspended operations answer in a suspended Cahut.
 	WhileSuspended bool
 	Input          reflect.Type
 	Output         reflect.Type
+}
+
+// ServesServer reports whether the administrators of the server call the
+// operation: it is at their level, or serves them in each Cahut.
+func (i Info) ServesServer() bool {
+	return i.Level == ServerAdmin || i.ForServer
 }
 
 // ForAIs reports whether the operation is offered to the AIs of a person,
@@ -502,6 +515,7 @@ func (op *Op[In, Out]) info() Info {
 		ReadOnlyAIs:    op.ReadOnlyAIs,
 		OpenWorld:      op.OpenWorld,
 		Services:       op.Services,
+		ForServer:      op.ForServer,
 		WhileSuspended: op.WhileSuspended,
 		Input:          reflect.TypeFor[In](),
 		Output:         reflect.TypeFor[Out](),

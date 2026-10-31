@@ -87,6 +87,30 @@ func TestGetCahut(t *testing.T) {
 	}
 }
 
+// TestOperationsThatServeTheServer lists the operations that the
+// administrators of the server call in a Cahut, from the console of the
+// server: those at their level, its moderation, and get_cahut. See
+// docs/adr/0058-a-console-for-the-server.md.
+func TestOperationsThatServeTheServer(t *testing.T) {
+	c, err := Open(context.Background(), Config{Dir: t.TempDir(), Domain: "cahut.example.com"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Close()
+	var got []string
+	for _, info := range c.Registry.Ops() {
+		if info.ServesServer() {
+			got = append(got, info.Name)
+		}
+	}
+	want := []string{"create_service_token", "dismiss_report", "get_cahut", "list_public_windows", "list_reports",
+		"list_service_tokens", "preview_reported_window", "reinstate_window", "resume_cahut", "revoke_service_token",
+		"set_cahut_settings", "set_legal_links", "set_moderation_address", "suspend_cahut", "withdraw_window"}
+	if !slices.Equal(got, want) {
+		t.Errorf("the operations that serve the server = %q, want %q", got, want)
+	}
+}
+
 // TestReach checks that an AI reaches only what its person granted it: some
 // Rooms, and reading only. See docs/adr/0016-oauth-for-ai-clients.md.
 func TestReach(t *testing.T) {

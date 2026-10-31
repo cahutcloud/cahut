@@ -276,7 +276,7 @@ func (s *Server) withdrawn(w http.ResponseWriter, r *http.Request, err error, re
 func (s *Server) moderatorOpens(ctx context.Context, c *cahut.Cahut, f window.Frame, now time.Time) (bool, error) {
 	var userID int64
 	if f.Kind == window.FrameByHost {
-		lasts, err := s.srv.SessionLasts(ctx, f.ID, c.Domain, now)
+		lasts, err := s.srv.SessionLasts(ctx, f.ID, now)
 		if err != nil || !lasts {
 			return false, err
 		}

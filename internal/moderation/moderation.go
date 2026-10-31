@@ -86,6 +86,7 @@ func Register(r *operation.Registry, frameKey []byte) {
 		Description: "List the reports about the Windows of this Cahut: those that wait for a decision, the oldest first, " +
 			"then the latest decided. For its moderators: its administrators and those of its server.",
 		Level:      operation.CahutAdmin,
+		ForServer:  true,
 		PeopleOnly: true,
 		ReadOnly:   true,
 		Run:        list,
@@ -96,6 +97,7 @@ func Register(r *operation.Registry, frameKey []byte) {
 		Description: "List the public Windows of this Cahut, which anyone opens, the latest made public first, " +
 			"for its moderators to look at what it serves to anyone.",
 		Level:      operation.CahutAdmin,
+		ForServer:  true,
 		PeopleOnly: true,
 		ReadOnly:   true,
 		Run:        listPublic,
@@ -106,7 +108,8 @@ func Register(r *operation.Registry, frameKey []byte) {
 		Description: "Get the frame that shows, in the console, the Window of a report that waits, whatever its access, " +
 			"for four hours at most. The members of its Room read in the Logbook that a moderator opened it. " +
 			"For the moderators of this Cahut.",
-		Level: operation.CahutAdmin,
+		Level:     operation.CahutAdmin,
+		ForServer: true,
 		// It reads, yet goes to the Logbook, as the reads of people do not.
 		PeopleOnly: true,
 		Run:        previewReported(frameKey),
@@ -118,6 +121,7 @@ func Register(r *operation.Registry, frameKey []byte) {
 			"It keeps everything, and serves nothing to its readers until reinstate_window: its addresses and its share links say that it was withdrawn. " +
 			"It decides the reports that wait about it. Withdrawing a withdrawn Window changes its reason. For the moderators of this Cahut.",
 		Level:      operation.CahutAdmin,
+		ForServer:  true,
 		PeopleOnly: true,
 		Run:        withdraw,
 	})
@@ -127,6 +131,7 @@ func Register(r *operation.Registry, frameKey []byte) {
 		Description: "Give a withdrawn Window back as it was: its access, its Key, its share links until their end. " +
 			"A Window that the administrators of the server withdrew is reinstated by them only. For the moderators of this Cahut.",
 		Level:      operation.CahutAdmin,
+		ForServer:  true,
 		PeopleOnly: true,
 		Run:        reinstate,
 	})
@@ -136,6 +141,7 @@ func Register(r *operation.Registry, frameKey []byte) {
 		Description: "Decide a report that waits, and leave its Window as it is, with a note for the moderators. " +
 			"For the moderators of this Cahut.",
 		Level:      operation.CahutAdmin,
+		ForServer:  true,
 		PeopleOnly: true,
 		Run:        dismiss,
 	})

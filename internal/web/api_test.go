@@ -12,6 +12,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"cahut.cloud/internal/account"
+	"cahut.cloud/internal/cahut"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/server"
 )
@@ -173,6 +174,89 @@ func TestAPIForServerAdmins(t *testing.T) {
 	}
 	if r := call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/list_users", root, ``); r.status != http.StatusUnauthorized {
 		t.Errorf("list_users at another domain: %d %s", r.status, r.raw)
+	}
+}
+
+// serverAdminAt activates an administrator of the server at the console of
+// the server of host, and returns their session.
+func serverAdminAt(t *testing.T, f *fixture, host, handle string) string {
+	t.Helper()
+	a, err := operation.Do(context.Background(), f.srv.Registry, server.CreateAdmin, admin, server.CreateAdminInput{Handle: handle, Name: handle})
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := call(t, f, f.ts, http.MethodPost, host, "/server/api/activate_account", "",
+		`{"code": "`+a.Activation.Code+`", "password": "`+password+`"}`)
+	if r.status != http.StatusOK {
+		t.Fatalf("activate_account of the server: %d %s", r.status, r.raw)
+	}
+	return r.body["token"].(string)
+}
+
+// From the domain where they signed in, the administrators of the server
+// call the operations of the server, and in every Cahut those that serve
+// the server. See docs/adr/0058-a-console-for-the-server.md.
+func TestServerAPI(t *testing.T) {
+	f := setup(t)
+	root := serverAdminAt(t, f, "localhost", "root")
+	post := func(host, path, token, body string) apiResponse {
+		t.Helper()
+		return call(t, f, f.ts, http.MethodPost, host, path, token, body)
+	}
+
+	if r := post("localhost", "/server/api/list_domains", root, `{}`); r.status != http.StatusOK || len(r.body["cahuts"].([]any)) != 2 {
+		t.Errorf("list_domains: %d %s", r.status, r.raw)
+	}
+	for _, domain := range []string{"beta.localhost", "BETA.localhost."} {
+		if r := post("localhost", "/server/api/cahuts/"+domain+"/get_cahut", root, `{}`); r.status != http.StatusOK || r.body["domain"] != "beta.localhost" {
+			t.Errorf("get_cahut of %s: %d %s", domain, r.status, r.raw)
+		}
+	}
+	// A Cahut that the server does not hold, or an operation that does not
+	// serve the server, is not found.
+	for _, path := range []string{
+		"/server/api/cahuts/nope.localhost/get_cahut",
+		"/server/api/cahuts/..%2Fetc/get_cahut",
+		"/server/api/cahuts/beta.localhost/list_users",
+		"/server/api/cahuts/beta.localhost/nope",
+	} {
+		if r := post("localhost", path, root, `{}`); r.status != http.StatusNotFound || r.body["error"] == nil {
+			t.Errorf("POST %s: %d %s", path, r.status, r.raw)
+		}
+	}
+
+	// A suspended Cahut still answers the administrators of the server.
+	if r := post("localhost", "/server/api/cahuts/beta.localhost/suspend_cahut", root, `{"reason": "Unpaid."}`); r.status != http.StatusOK {
+		t.Fatalf("suspend_cahut: %d %s", r.status, r.raw)
+	}
+	if r := post("localhost", "/server/api/cahuts/beta.localhost/get_cahut", root, `{}`); r.status != http.StatusOK || r.body["suspension"] == nil {
+		t.Errorf("get_cahut of a suspended Cahut: %d %s", r.status, r.raw)
+	}
+	if r := post("localhost", "/server/api/cahuts/beta.localhost/resume_cahut", root, `{}`); r.status != http.StatusOK {
+		t.Errorf("resume_cahut: %d %s", r.status, r.raw)
+	}
+	// What they do in a Cahut goes to its Logbook, under their handle.
+	var logged bool
+	for _, e := range f.call(t, "beta.localhost", admin, "list_logbook", `{}`).(cahut.LogbookPage).Entries {
+		logged = logged || e.Operation == "suspend_cahut" && e.UserHandle == "root"
+	}
+	if !logged {
+		t.Error("the Logbook of beta.localhost does not say that root suspended it")
+	}
+
+	// Another kind of session, or a session of another domain, is refused.
+	camille := activate(t, f, f.ts, "camille", false)
+	for who, tc := range map[string]struct{ host, token string }{
+		"a person":                    {"localhost", camille},
+		"an AI":                       {"localhost", f.token},
+		"nobody":                      {"localhost", ""},
+		"a session of beta.localhost": {"beta.localhost", root},
+	} {
+		for _, path := range []string{"/server/api/list_domains", "/server/api/cahuts/localhost/get_cahut"} {
+			if r := post(tc.host, path, tc.token, `{}`); r.status != http.StatusUnauthorized {
+				t.Errorf("POST %s as %s: %d %s", path, who, r.status, r.raw)
+			}
+		}
 	}
 }
 

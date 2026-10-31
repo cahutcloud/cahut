@@ -100,7 +100,7 @@ func TestService(t *testing.T) {
 	}
 	f.person(t, "olivier", true)
 	for handle, want := range map[string]string{
-		"ana": "", "Ana": HandleInvalid, "x": HandleInvalid, "mcp": HandleReserved, "olivier": HandleTaken, "marketing": HandleTaken,
+		"ana": "", "Ana": HandleInvalid, "x": HandleInvalid, "mcp": HandleReserved, "server": HandleReserved, "olivier": HandleTaken, "marketing": HandleTaken,
 	} {
 		check, err := operation.Do(ctx, f.r, CheckHandle, svc, CheckHandleInput{Handle: handle})
 		if err != nil || check.Reason != want || check.Available != (want == "") || check.Handle != handle {

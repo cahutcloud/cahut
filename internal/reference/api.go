@@ -24,13 +24,16 @@ func apiPage(s sample) page {
 	}
 	m := &p.body
 	m.block(fmt.Sprintf("Each Cahut serves the API of its console under %s of its domain, next to the console itself at %s. "+
-		"The console uses this API and nothing else, and AIs reach the same operations over [MCP](/reference/mcp-tools/): "+
-		"there is one registry of [operations](/reference/operations/).", code(web.ConsolePath+"api/"), code(web.ConsolePath)))
+		"Every domain of the server serves the API of the console of the server under %s, next to that console at %s. "+
+		"The consoles use these APIs and nothing else, and AIs reach the same operations over [MCP](/reference/mcp-tools/): "+
+		"there is one registry of [operations](/reference/operations/).",
+		code(web.ConsolePath+"api/"), code(web.ConsolePath), code(web.ServerPath+"api/"), code(web.ServerPath)))
 
 	m.block("## Calls")
 	m.table([]string{"Route", "What it runs"}, [][]string{
 		{code("POST " + web.ConsolePath + "api/<operation>"), "An operation of the Cahut of the domain"},
-		{code("POST " + web.ConsolePath + "api/server/<operation>"), "An operation of the server, for its administrators"},
+		{code("POST " + web.ServerPath + "api/<operation>"), "An operation of the server, for its administrators"},
+		{code("POST " + web.ServerPath + "api/cahuts/<domain>/<operation>"), "An operation that serves the server, in the Cahut of that domain, for the administrators of the server"},
 	})
 	m.block("The body of the request is the input of the operation, in JSON, and the body of the response its output, " +
 		"with the same names and schemas as the MCP tools. Fields that the operation does not know are refused. " +
@@ -44,7 +47,7 @@ func apiPage(s sample) page {
 		code("Authorization: Bearer <token>") + ". The API reads no cookie.")
 	m.table([]string{"Token", "Whose session", "Where it holds"}, [][]string{
 		{code(account.SessionPrefix + "…"), "A person of the Cahut", "The Cahut that holds the person"},
-		{code(server.SessionPrefix + "…"), "An administrator of the server", "The domain where it opened, for the server and for that Cahut"},
+		{code(server.SessionPrefix + "…"), "An administrator of the server", "The domain where it opened, for the server and for every Cahut that it names"},
 	})
 	m.block("A session ends 7 days after its last use, and 30 days after it opened in any case. " +
 		"Personal tokens, which start with " + code(account.TokenPrefix) + ", are for AIs over MCP: the API refuses them.")
@@ -74,9 +77,19 @@ func apiPage(s sample) page {
 	m.table([]string{"Code", "Values", "Message"}, refusalRows(operation.Refusals()))
 
 	m.block("## Operations of a Cahut")
-	m.table([]string{"Route", "Who calls it", "Session"}, apiRows("/api/", s.cahutOps))
+	m.table([]string{"Route", "Who calls it", "Session"}, apiRows(web.ConsolePath+"api/", s.cahutOps))
 	m.block("## Operations of the server")
-	m.table([]string{"Route", "Who calls it", "Session"}, apiRows("/api/server/", s.serverOps))
+	m.table([]string{"Route", "Who calls it", "Session"}, apiRows(web.ServerPath+"api/", s.serverOps))
+	m.block("## Operations that serve the server in a Cahut")
+	m.block("The administrators of the server call these operations in every Cahut of the server, " +
+		"from the domain where they signed in: the Cahut is the one that the route names.")
+	var forServer []operation.Info
+	for _, op := range s.cahutOps {
+		if op.ServesServer() {
+			forServer = append(forServer, op)
+		}
+	}
+	m.table([]string{"Route", "Who calls it", "Session"}, apiRows(web.ServerPath+"api/cahuts/<domain>/", forServer))
 
 	m.block("## Admin API")
 	m.block("A program on the server, such as a site where people sign up, manages the people of a Cahut through the admin API, " +

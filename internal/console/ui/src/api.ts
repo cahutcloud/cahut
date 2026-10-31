@@ -1,11 +1,12 @@
-// Calls the API of the console, under the console's path. Every
-// operation and its types come from api.gen.ts, which make console-types
-// writes from the Go code: a call to an operation that does not exist, or
-// with the wrong input, fails the build. See docs/adr/0014-console-http-api.md.
-import type { CahutOperations, ServerOperations } from "./api.gen";
+// Calls the API of the consoles: that of the Cahut, under /console/api/,
+// and that of the server, under /server/api/. Every operation and its types
+// come from api.gen.ts, which make console-types writes from the Go code: a
+// call to an operation that does not exist, or with the wrong input, fails
+// the build. See docs/adr/0014-console-http-api.md and
+// docs/adr/0058-a-console-for-the-server.md.
+import type { CahutOperations, ServerCahutOperations, ServerOperations } from "./api.gen";
 import { words } from "./i18n";
 import { say } from "./refusals";
-import { base } from "./router";
 
 const t = words({
 	en: { noAnswer: "Cahut does not answer. Check your connection, then try again." },
@@ -47,7 +48,7 @@ export function cahut<K extends keyof CahutOperations>(
 	input: CahutOperations[K]["input"],
 	token?: string,
 ): Promise<CahutOperations[K]["output"]> {
-	return post(`${base}/api/${op}`, input, token) as Promise<CahutOperations[K]["output"]>;
+	return post(`/console/api/${op}`, input, token) as Promise<CahutOperations[K]["output"]>;
 }
 
 /** Runs an operation of the server, for its administrators. */
@@ -56,8 +57,27 @@ export function server<K extends keyof ServerOperations>(
 	input: ServerOperations[K]["input"],
 	token?: string,
 ): Promise<ServerOperations[K]["output"]> {
-	return post(`${base}/api/server/${op}`, input, token) as Promise<ServerOperations[K]["output"]>;
+	return post(`/server/api/${op}`, input, token) as Promise<ServerOperations[K]["output"]>;
 }
+
+/**
+ * Runs, for an administrator of the server, an operation that serves the
+ * server in the Cahut at domain, whichever domain they signed in at.
+ */
+export function serverInCahut<K extends keyof ServerCahutOperations>(
+	domain: string,
+	op: K,
+	input: ServerCahutOperations[K]["input"],
+	token?: string,
+): Promise<ServerCahutOperations[K]["output"]> {
+	return post(`/server/api/cahuts/${encodeURIComponent(domain)}/${op}`, input, token) as Promise<ServerCahutOperations[K]["output"]>;
+}
+
+/** Runs an operation that serves the server in one Cahut, bound to it and to a session. */
+export type CahutCall = <K extends keyof ServerCahutOperations>(
+	op: K,
+	input: ServerCahutOperations[K]["input"],
+) => Promise<ServerCahutOperations[K]["output"]>;
 
 // The prefixes that the registry puts before the message of an error, which
 // the console does not show.

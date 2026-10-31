@@ -25,6 +25,17 @@ func setup(t *testing.T) *Server {
 	return s
 }
 
+// TestServerOperationsAreForItsAdministrators checks that each operation of
+// the server serves its administrators, or signs them in. See
+// docs/adr/0058-a-console-for-the-server.md.
+func TestServerOperationsAreForItsAdministrators(t *testing.T) {
+	for _, info := range setup(t).Registry.Ops() {
+		if !info.ServesServer() && !info.Visitors {
+			t.Errorf("%s is for the %s: an operation of the server serves its administrators, or signs them in", info.Name, info.Level)
+		}
+	}
+}
+
 func TestAddDomain(t *testing.T) {
 	s := setup(t)
 	ctx := context.Background()

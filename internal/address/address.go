@@ -18,8 +18,9 @@ func ValidName(s string) bool {
 }
 
 // reserved are the names that no Room can take, because clients expect them
-// at the root of a Cahut's domain or Cahut may need them there.
-var reserved = map[string]bool{"mcp": true, "api": true, "admin": true, "console": true, "help": true, "oauth": true}
+// at the root of a Cahut's domain or Cahut may need them there: server is
+// the console of the server. See docs/adr/0058-a-console-for-the-server.md.
+var reserved = map[string]bool{"mcp": true, "api": true, "admin": true, "console": true, "help": true, "oauth": true, "server": true}
 
 // Reserved reports whether no Room can take the name s.
 func Reserved(s string) bool {

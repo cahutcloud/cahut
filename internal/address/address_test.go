@@ -22,6 +22,11 @@ func TestReserved(t *testing.T) {
 	if !Reserved("mcp") || Reserved("marketing") {
 		t.Error("Reserved is wrong about mcp or marketing")
 	}
+	// The console of the server lives under /server/ of every domain. See
+	// docs/adr/0058-a-console-for-the-server.md.
+	if !Reserved("server") {
+		t.Error("Reserved is wrong about server")
+	}
 }
 
 func TestValidDomain(t *testing.T) {

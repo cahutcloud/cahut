@@ -111,10 +111,25 @@ func generate(cahutOps, serverOps []operation.Info, refusals []operation.Refusal
 		g.declare(&b, t)
 	}
 	g.operations(&b, "CahutOperations", "The operations of a Cahut, at POST /console/api/<operation> of its domain.", cahutOps)
-	g.operations(&b, "ServerOperations", "The operations of the server, at POST /console/api/server/<operation>, for its administrators.", serverOps)
+	g.operations(&b, "ServerOperations", "The operations of the server, at POST /server/api/<operation>, for its administrators.", serverOps)
+	forServer(&b, cahutOps)
 	g.refusals(&b, refusals)
 	constants(&b)
 	return b.String()
+}
+
+// forServer writes the operations of a Cahut that serve the server, which
+// the console of the server calls in each Cahut. See
+// docs/adr/0058-a-console-for-the-server.md.
+func forServer(b *strings.Builder, cahutOps []operation.Info) {
+	var names []string
+	for _, op := range cahutOps {
+		if op.ServesServer() {
+			names = append(names, fmt.Sprintf("%q", op.Name))
+		}
+	}
+	fmt.Fprintf(b, "\n/** The operations of a Cahut that serve the server, at POST /server/api/cahuts/<domain>/<operation>, for its administrators. */\n"+
+		"export type ServerCahutOperations = Pick<CahutOperations, %s>;\n", strings.Join(names, " | "))
 }
 
 // constants writes the values that the console shares with the server.
