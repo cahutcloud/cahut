@@ -402,7 +402,7 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 		if _, err := s.checkData(ctx, id, w.Declaration.Data); err != nil {
 			return Window{}, err
 		}
-		if err := s.migrateData(ctx, id, w.Declaration.Data, false); err != nil {
+		if err := s.migrateData(ctx, c, id, w.Declaration.Data, false); err != nil {
 			return Window{}, err
 		}
 	}
@@ -486,7 +486,7 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 			return w.Window, nil
 		}
 		if checked.New > 0 {
-			if err := s.migrateData(ctx, w.id, data, true); err != nil {
+			if err := s.migrateData(ctx, c, w.id, data, true); err != nil {
 				return Window{}, err
 			}
 		}

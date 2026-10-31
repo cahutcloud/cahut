@@ -15,6 +15,7 @@ import (
 
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/store"
+	"cahut.cloud/internal/windata"
 )
 
 // Kinds of Cahuts.
@@ -34,7 +35,8 @@ type Limits struct {
 	Rooms            *int64 `json:"rooms,omitempty" jsonschema:"how many team Rooms the Cahut may have, or in an individual Cahut how many Rooms beside the personal ones; personal Rooms come with their person and do not count"`
 	Windows          *int64 `json:"windows,omitempty" jsonschema:"how many Windows out of the trash the Cahut may hold"`
 	WindowsPerRoom   *int64 `json:"windows_per_room,omitempty" jsonschema:"how many Windows out of the trash each Room may hold, personal Rooms included"`
-	Disk             *int64 `json:"disk,omitempty" jsonschema:"how many bytes the Cahut may keep: every version of every Window, those in the trash included"`
+	Disk             *int64 `json:"disk,omitempty" jsonschema:"how many bytes the Cahut may keep: every version of every Window, those in the trash included, and their data with its copies"`
+	DataPerWindow    *int64 `json:"data_per_window,omitempty" jsonschema:"how many bytes the data of each Window may hold, its copies apart, up to 100 MiB"`
 	RoomsPerPerson   *int64 `json:"rooms_per_person,omitempty" jsonschema:"in an individual Cahut, how many Rooms each person may have beside their personal Room"`
 	WindowsPerPerson *int64 `json:"windows_per_person,omitempty" jsonschema:"in an individual Cahut, how many Windows out of the trash each person may hold, over their Rooms"`
 	DiskPerPerson    *int64 `json:"disk_per_person,omitempty" jsonschema:"in an individual Cahut, how many bytes the Windows of each person may keep, every version included"`
@@ -63,7 +65,7 @@ type Usage struct {
 	Admins  int64 `json:"admins" jsonschema:"administrators who are not disabled"`
 	Rooms   int64 `json:"rooms" jsonschema:"team Rooms, or in an individual Cahut the Rooms beside the personal ones"`
 	Windows int64 `json:"windows" jsonschema:"Windows out of the trash"`
-	Disk    int64 `json:"disk" jsonschema:"bytes of every version of every Window, those in the trash included"`
+	Disk    int64 `json:"disk" jsonschema:"bytes of every version of every Window, those in the trash included, and of their data"`
 }
 
 // PersonUsage is what a person of an individual Cahut holds, as the limits
@@ -71,7 +73,7 @@ type Usage struct {
 type PersonUsage struct {
 	Rooms   int64 `json:"rooms" jsonschema:"Rooms beside the personal one"`
 	Windows int64 `json:"windows" jsonschema:"Windows out of the trash, over their Rooms"`
-	Disk    int64 `json:"disk" jsonschema:"bytes of every version of the Windows of their Rooms, those in the trash included"`
+	Disk    int64 `json:"disk" jsonschema:"bytes of every version of the Windows of their Rooms, those in the trash included, and of their data"`
 }
 
 // Settings are the settings of a Cahut, with what it holds.
@@ -99,17 +101,17 @@ type querier interface {
 // get returns the kind and the limits of the Cahut.
 func get(ctx context.Context, q querier) (string, Limits, error) {
 	var kind string
-	var people, admins, rooms, windows, perRoom, disk, roomsPP, windowsPP, diskPP sql.NullInt64
+	var people, admins, rooms, windows, perRoom, disk, data, roomsPP, windowsPP, diskPP sql.NullInt64
 	err := q.QueryRowContext(ctx, `
-		SELECT kind, people, admins, rooms, windows, windows_per_room, disk, rooms_per_person, windows_per_person, disk_per_person
+		SELECT kind, people, admins, rooms, windows, windows_per_room, disk, data_per_window, rooms_per_person, windows_per_person, disk_per_person
 		FROM settings WHERE id = 1`).
-		Scan(&kind, &people, &admins, &rooms, &windows, &perRoom, &disk, &roomsPP, &windowsPP, &diskPP)
+		Scan(&kind, &people, &admins, &rooms, &windows, &perRoom, &disk, &data, &roomsPP, &windowsPP, &diskPP)
 	if err != nil {
 		return "", Limits{}, err
 	}
 	return kind, Limits{
 		People: ptr(people), Admins: ptr(admins), Rooms: ptr(rooms),
-		Windows: ptr(windows), WindowsPerRoom: ptr(perRoom), Disk: ptr(disk),
+		Windows: ptr(windows), WindowsPerRoom: ptr(perRoom), Disk: ptr(disk), DataPerWindow: ptr(data),
 		RoomsPerPerson: ptr(roomsPP), WindowsPerPerson: ptr(windowsPP), DiskPerPerson: ptr(diskPP),
 	}, nil
 }
@@ -154,7 +156,8 @@ func UseOf(ctx context.Context, tx *sql.Tx, userID int64) (PersonUsage, error) {
 		  (SELECT count(*) FROM rooms r JOIN room_members m ON m.room_id = r.id WHERE r.kind = 'team' AND m.user_id = ?1),
 		  (SELECT count(*) FROM windows w JOIN room_members m ON m.room_id = w.room_id WHERE w.trashed_at IS NULL AND m.user_id = ?1),
 		  (SELECT coalesce(sum(v.size), 0) FROM window_versions v JOIN windows w ON w.id = v.window_id
-		     JOIN room_members m ON m.room_id = w.room_id WHERE m.user_id = ?1)`, userID).
+		     JOIN room_members m ON m.room_id = w.room_id WHERE m.user_id = ?1)
+		  + (SELECT coalesce(sum(w.data_size), 0) FROM windows w JOIN room_members m ON m.room_id = w.room_id WHERE m.user_id = ?1)`, userID).
 		Scan(&u.Rooms, &u.Windows, &u.Disk)
 	return u, err
 }
@@ -203,11 +206,25 @@ func Read(ctx context.Context, tx *sql.Tx, userID int64, admin bool) (Settings, 
 
 // disk returns the bytes that the Cahut keeps, as the limit of its disk
 // counts them: the sizes that the database records for each version of a
-// Window.
+// Window, and for its data with its copies.
 func disk(ctx context.Context, tx *sql.Tx) (int64, error) {
 	var n int64
-	err := tx.QueryRowContext(ctx, "SELECT coalesce(sum(size), 0) FROM window_versions").Scan(&n)
+	err := tx.QueryRowContext(ctx, `SELECT (SELECT coalesce(sum(size), 0) FROM window_versions)
+		+ (SELECT coalesce(sum(data_size), 0) FROM windows)`).Scan(&n)
 	return n, err
+}
+
+// DataLimit returns how many bytes the data of each Window of the Cahut may
+// hold. See docs/adr/0056-a-database-for-each-window.md.
+func DataLimit(ctx context.Context, tx *sql.Tx) (int64, error) {
+	_, l, err := get(ctx, tx)
+	if err != nil {
+		return 0, err
+	}
+	if l.DataPerWindow != nil {
+		return min(*l.DataPerWindow, windata.MaxSize), nil
+	}
+	return windata.MaxSize, nil
 }
 
 // SetCahutSettingsInput is the input of set_cahut_settings.
@@ -238,6 +255,9 @@ var Set = &operation.Op[SetCahutSettingsInput, Settings]{
 				return Settings{}, operation.Invalidf("%s: give a limit of %d or more, or leave it out to lift it", f.name, f.least)
 			}
 		}
+		if l.DataPerWindow != nil && *l.DataPerWindow > windata.MaxSize {
+			return Settings{}, operation.Invalidf("data_per_window: the data of a Window holds %s at most, which bounds it already", Bytes(windata.MaxSize))
+		}
 		was, before, err := get(ctx, c.Tx)
 		if err != nil {
 			return Settings{}, err
@@ -253,9 +273,9 @@ var Set = &operation.Op[SetCahutSettingsInput, Settings]{
 			}
 		}
 		_, err = c.Tx.ExecContext(ctx, `
-			UPDATE settings SET kind = ?, people = ?, admins = ?, rooms = ?, windows = ?, windows_per_room = ?, disk = ?,
+			UPDATE settings SET kind = ?, people = ?, admins = ?, rooms = ?, windows = ?, windows_per_room = ?, disk = ?, data_per_window = ?,
 			  rooms_per_person = ?, windows_per_person = ?, disk_per_person = ?, set_at = ? WHERE id = 1`,
-			kind, l.People, l.Admins, l.Rooms, l.Windows, l.WindowsPerRoom, l.Disk,
+			kind, l.People, l.Admins, l.Rooms, l.Windows, l.WindowsPerRoom, l.Disk, l.DataPerWindow,
 			l.RoomsPerPerson, l.WindowsPerPerson, l.DiskPerPerson, store.FormatTime(c.Now))
 		if err != nil {
 			return Settings{}, err
@@ -343,6 +363,7 @@ func fields(l *Limits) []field {
 		{name: "windows", limit: &l.Windows},
 		{name: "windows_per_room", limit: &l.WindowsPerRoom},
 		{name: "disk", bytes: true, limit: &l.Disk},
+		{name: "data_per_window", least: 1 << 20, bytes: true, limit: &l.DataPerWindow},
 		{name: "rooms_per_person", limit: &l.RoomsPerPerson},
 		{name: "windows_per_person", limit: &l.WindowsPerPerson},
 		{name: "disk_per_person", bytes: true, limit: &l.DiskPerPerson},

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/windata"
 )
 
@@ -49,17 +50,52 @@ func (s *Service) checkData(ctx context.Context, id int64, d *Data) (windata.Che
 // migrateData runs the migrations of d that have not run yet, after a copy
 // of the database when it has one, which rollback_window_data goes back
 // to.
-func (s *Service) migrateData(ctx context.Context, id int64, d *Data, copyFirst bool) error {
+func (s *Service) migrateData(ctx context.Context, c *operation.Call, id int64, d *Data, copyFirst bool) error {
 	dir := s.dataDir(id)
 	if copyFirst {
 		if _, err := s.data.Copy(ctx, dir, CopiesKept); err != nil {
 			return dataError("copy the database before its migrations", err)
 		}
 	}
-	if _, err := s.data.Migrate(ctx, dir, windata.AILimits, d.Migrations); err != nil {
+	lim, err := limitsOf(ctx, c, windata.AILimits)
+	if err != nil {
+		return err
+	}
+	if _, err := s.data.Migrate(ctx, dir, lim, d.Migrations); err != nil {
 		return dataError("declaration.data", err)
 	}
-	return nil
+	return s.recordData(ctx, c, id)
+}
+
+// limitsOf returns lim, with the size that the data of each Window of the
+// Cahut may reach.
+func limitsOf(ctx context.Context, c *operation.Call, lim windata.Limits) (windata.Limits, error) {
+	size, err := settings.DataLimit(ctx, c.Tx)
+	if err != nil {
+		return windata.Limits{}, err
+	}
+	lim.MaxSize = size
+	return lim, nil
+}
+
+// recordData records the size of the database of the Window id and of its
+// copies, which the limit of the disk counts.
+func (s *Service) recordData(ctx context.Context, c *operation.Call, id int64) error {
+	dir := s.dataDir(id)
+	schema, err := s.data.Schema(ctx, dir)
+	if err != nil {
+		return dataError("measure the database", err)
+	}
+	size := schema.Size
+	copies, err := windata.Copies(dir)
+	if err != nil {
+		return err
+	}
+	for _, cp := range copies {
+		size += cp.Size
+	}
+	_, err = c.Tx.ExecContext(ctx, "UPDATE windows SET data_size = ? WHERE id = ?", size, id)
+	return err
 }
 
 // dataError tells the caller what went wrong in the database of a Window:

@@ -164,7 +164,11 @@ func (s *Service) callQuery(ctx context.Context, c *operation.Call, in PageDataI
 	if err != nil {
 		return PageData{}, err
 	}
-	r, err := s.data.Call(ctx, s.dataDir(w.ID), windata.ReaderLimits, q.SQL, params, writes)
+	lim, err := limitsOf(ctx, c, windata.ReaderLimits)
+	if err != nil {
+		return PageData{}, err
+	}
+	r, err := s.data.Call(ctx, s.dataDir(w.ID), lim, q.SQL, params, writes)
 	if err != nil {
 		return PageData{}, pageError(err)
 	}

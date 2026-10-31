@@ -734,8 +734,10 @@ export interface Limits {
   windows?: number;
   /** how many Windows out of the trash each Room may hold, personal Rooms included */
   windows_per_room?: number;
-  /** how many bytes the Cahut may keep: every version of every Window, those in the trash included */
+  /** how many bytes the Cahut may keep: every version of every Window, those in the trash included, and their data with its copies */
   disk?: number;
+  /** how many bytes the data of each Window may hold, its copies apart, up to 100 MiB */
+  data_per_window?: number;
   /** in an individual Cahut, how many Rooms each person may have beside their personal Room */
   rooms_per_person?: number;
   /** in an individual Cahut, how many Windows out of the trash each person may hold, over their Rooms */
@@ -1026,7 +1028,7 @@ export interface PersonUsage {
   rooms: number;
   /** Windows out of the trash, over their Rooms */
   windows: number;
-  /** bytes of every version of the Windows of their Rooms, those in the trash included */
+  /** bytes of every version of the Windows of their Rooms, those in the trash included, and of their data */
   disk: number;
 }
 
@@ -1762,7 +1764,7 @@ export interface Usage {
   rooms: number;
   /** Windows out of the trash */
   windows: number;
-  /** bytes of every version of every Window, those in the trash included */
+  /** bytes of every version of every Window, those in the trash included, and of their data */
   disk: number;
 }
 

@@ -135,9 +135,16 @@ func (s *Service) changeData(ctx context.Context, c *operation.Call, in ChangeDa
 	if err != nil {
 		return ChangedData{}, dataError("copy the database", err)
 	}
-	done, err := s.data.Exec(ctx, dir, windata.AILimits, in.SQL, in.Params, false)
+	lim, err := limitsOf(ctx, c, windata.AILimits)
+	if err != nil {
+		return ChangedData{}, err
+	}
+	done, err := s.data.Exec(ctx, dir, lim, in.SQL, in.Params, false)
 	if err != nil {
 		return ChangedData{}, dataError("sql", err)
+	}
+	if err := s.recordData(ctx, c, w.id); err != nil {
+		return ChangedData{}, err
 	}
 	detail := fmt.Sprintf("%d statements, %d rows changed, after the copy %s", done.Statements, done.Changes, copied.Name)
 	if len(done.Removes) > 0 {
@@ -179,6 +186,9 @@ func (s *Service) rollbackData(ctx context.Context, c *operation.Call, in Rollba
 	kept, err := s.data.Restore(ctx, dir, chosen.Name, CopiesKept)
 	if err != nil {
 		return RolledBackData{}, dataError("roll back the data", err)
+	}
+	if err := s.recordData(ctx, c, w.id); err != nil {
+		return RolledBackData{}, err
 	}
 	restored := DataCopy{Name: chosen.Name, At: copyTime(chosen.Name), Size: chosen.Size}
 	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("back to the copy of %s; the data as it was kept as %s", restored.At.Format(time.RFC3339), kept.Name))
