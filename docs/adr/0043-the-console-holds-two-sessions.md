@@ -1,6 +1,6 @@
 # 43. The console holds the session of a person and that of an administrator of the server together
 
-- Status: Accepted, superseded in part by [ADR 44](0044-two-bars-for-the-server-and-the-cahut.md) (the console shows the server and the Cahut in two bars, and each signs out of its own session)
+- Status: Superseded by [ADR 44](0044-two-bars-for-the-server-and-the-cahut.md) (the console shows the server and the Cahut in two bars, and each signs out of its own session) and by [ADR 58](0058-a-console-for-the-server.md) (the administrators of the server have a console of their own, under `/server/`)
 - Date: 2026-10-26
 
 ## Context
