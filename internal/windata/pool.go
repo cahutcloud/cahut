@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+	"testing"
 	"time"
 )
 
@@ -19,7 +20,9 @@ type Options struct {
 	// and no file of the service.
 	Command func(dir string) (*exec.Cmd, error)
 	// Inline runs the workers in this process, through the same protocol,
-	// without their confinement: for the tests of other packages.
+	// without their confinement: for the tests of other packages, where it
+	// is the default unless Command is set, since a test binary knows no
+	// WorkerCommand.
 	Inline bool
 	// MaxWorkers bounds the workers that run at once: 32 by default.
 	MaxWorkers int
@@ -55,6 +58,7 @@ type Pool struct {
 func NewPool(o Options) *Pool {
 	if o.Command == nil {
 		o.Command = command
+		o.Inline = o.Inline || testing.Testing()
 	}
 	if o.MaxWorkers <= 0 {
 		o.MaxWorkers = 32

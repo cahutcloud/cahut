@@ -32,7 +32,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [26](0026-cahut-at-an-ip-address.md) | A Cahut can live at the IP address of its server until it has a domain | Accepted, superseded in part by 28 |
 | [27](0027-previews-of-windows-in-the-console.md) | The console shows each Window in a live preview | Accepted, extended by 32, superseded in part by 50 |
 | [28](0028-ip-address-of-a-cahut-is-ipv4.md) | The IP address of a Cahut is an IPv4 address, for now | Accepted |
-| [29](0029-chatgpt-second-ai-client.md) | ChatGPT is the second AI client of the V0, through the same tools as Claude | Accepted, superseded in part by 49 |
+| [29](0029-chatgpt-second-ai-client.md) | ChatGPT is the second AI client of the V0, through the same tools as Claude | Accepted, superseded in part by 49 and 57 |
 | [30](0030-kind-and-limits-of-each-cahut.md) | Each Cahut has a kind and limits, set by the administrators of its server | Accepted, extended by 42, 48 and 56, superseded in part by 49 |
 | [31](0031-e-mail-through-a-relay.md) | Each Cahut sends e-mail through its own relay or that of its server | Accepted, superseded in part by 34 and 46 |
 | [32](0032-the-page-of-a-room.md) | The page of a Room shows its Windows in previews, or a Window that its owners choose, in the brand of Cahut until the house style | Accepted, extended by 33, superseded in part by 38 and 49 |
@@ -60,6 +60,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [54](0054-reporting-and-withdrawing-a-window.md) | Anyone reports a Window, and the moderators of its Cahut open it and withdraw it | Accepted, extended by 56 |
 | [55](0055-tags-and-search-of-windows.md) | Windows carry tags, and people and AIs search them | Accepted |
 | [56](0056-a-database-for-each-window.md) | Each Window has a database of its own, which its pages read and write as its declaration says | Accepted |
+| [57](0057-the-list-of-tools-under-40-kb.md) | The list of tools stays under 40 KB | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

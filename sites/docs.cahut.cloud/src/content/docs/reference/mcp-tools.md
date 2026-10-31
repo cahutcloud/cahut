@@ -75,7 +75,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`set_window_access`](#set_window_access) | Set who opens a Window: author, its author alone, for themself; room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. Knock first when it makes a Window public: a person approves the call before it runs. |
 | [`trash_window`](#trash_window) | Put a Window of this Cahut in the trash: it no longer opens and leaves the lists, until restore_window brings it back as it was. |
 | [`update_room`](#update_room) | Change the title of a Room of this Cahut, its description, or both. Its name, and so its address, stays. Give the old title and description again to undo it. |
-| [`update_window`](#update_window) | Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Cahut calls no other system. |
+| [`update_window`](#update_window) | Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Its database stays and runs the new migrations. Cahut calls no other system. Knock first when it lets anyone change or delete the rows of a public Window: a person approves the call before it runs. |
 
 ## `add_room_member`
 
@@ -1824,8 +1824,31 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
 | `versions[].published_by` | string | yes | handle of the person it was published for, empty once that person is deleted |
 | `versions[].size` | integer | yes | total size of its files, in bytes |
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
+| `data` | object or null | no | its database, when its declaration keeps data: its tables, their columns and rows counted, and its copies |
+| `data.copies` | array of objects or null | yes | the copies that rollback_window_data goes back to, the latest first |
+| `data.copies[].at` | string | yes | when it was made |
+| `data.copies[].name` | string | yes |  |
+| `data.copies[].size` | integer | yes |  |
+| `data.migrations` | integer | yes | how many migrations of the declaration ran |
+| `data.size` | integer | yes | its size, in bytes |
+| `data.tables` | array of objects or null | yes | its tables, with their columns and how many rows each holds |
+| `data.tables[].columns` | array of objects or null | yes |  |
+| `data.tables[].columns[].name` | string | yes |  |
+| `data.tables[].columns[].not_null` | boolean | no |  |
+| `data.tables[].columns[].primary_key` | boolean | no |  |
+| `data.tables[].columns[].type` | string | no |  |
+| `data.tables[].name` | string | yes |  |
+| `data.tables[].rows` | integer | yes |  |
+| `data.indexes` | array of strings or null | no |  |
+| `data.triggers` | array of strings or null | no |  |
+| `data.views` | array of strings or null | no |  |
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
@@ -1862,10 +1885,206 @@ Title: Describe a Window. Annotations: `readOnlyHint: true`, `destructiveHint: f
       "description": "handle of the person it was first published for, empty once that person is deleted",
       "type": "string"
     },
+    "data": {
+      "additionalProperties": false,
+      "description": "its database, when its declaration keeps data: its tables, their columns and rows counted, and its copies",
+      "properties": {
+        "copies": {
+          "description": "the copies that rollback_window_data goes back to, the latest first",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "at": {
+                "description": "when it was made",
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "size": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "name",
+              "at",
+              "size"
+            ],
+            "type": "object"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "indexes": {
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "migrations": {
+          "description": "how many migrations of the declaration ran",
+          "type": "integer"
+        },
+        "size": {
+          "description": "its size, in bytes",
+          "type": "integer"
+        },
+        "tables": {
+          "description": "its tables, with their columns and how many rows each holds",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "columns": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "not_null": {
+                      "type": "boolean"
+                    },
+                    "primary_key": {
+                      "type": "boolean"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "rows": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "name",
+              "columns",
+              "rows"
+            ],
+            "type": "object"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "triggers": {
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "views": {
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        }
+      },
+      "required": [
+        "tables",
+        "migrations",
+        "size",
+        "copies"
+      ],
+      "type": [
+        "null",
+        "object"
+      ]
+    },
     "declaration": {
       "additionalProperties": false,
       "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {
@@ -3025,6 +3244,11 @@ Title: List and search Windows. Annotations: `readOnlyHint: true`, `destructiveH
 | `windows[].access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
 | `windows[].declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `windows[].declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `windows[].declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `windows[].declaration.data.closes` | string or null | no | when the queries that write stop |
+| `windows[].declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `windows[].declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `windows[].declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `windows[].declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `windows[].declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `windows[].description` | string | no | what the Window is, in a sentence or two; absent when it has none |
@@ -3069,6 +3293,72 @@ Title: List and search Windows. Annotations: `readOnlyHint: true`, `destructiveH
             "additionalProperties": false,
             "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
             "properties": {
+              "data": {
+                "additionalProperties": false,
+                "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+                "properties": {
+                  "closes": {
+                    "description": "when the queries that write stop",
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "migrations": {
+                    "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": [
+                      "null",
+                      "array"
+                    ]
+                  },
+                  "queries": {
+                    "additionalProperties": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "kind": {
+                          "description": "reads, adds, changes or deletes, which Cahut sets",
+                          "type": "string"
+                        },
+                        "sql": {
+                          "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                          "type": "string"
+                        },
+                        "who": {
+                          "description": "anyone, people signed in to the Cahut, or members of its Room",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "sql",
+                        "who"
+                      ],
+                      "type": "object"
+                    },
+                    "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+                    "type": "object"
+                  },
+                  "readable": {
+                    "additionalProperties": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": [
+                        "null",
+                        "array"
+                      ]
+                    },
+                    "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+                    "type": "object"
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ]
+              },
               "forms": {
                 "description": "the origins that the forms of the pages send to, if any",
                 "items": {
@@ -3243,6 +3533,11 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | --- | --- | --- | --- |
 | `declaration` | object or null | yes | what the pages do: Cahut lets them load and call the origins listed here, and nothing else |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `files` | array of objects or null | yes | the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css |
@@ -3272,6 +3567,72 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
       "additionalProperties": false,
       "description": "what the pages do: Cahut lets them load and call the origins listed here, and nothing else",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {
@@ -3398,6 +3759,11 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
@@ -3438,6 +3804,72 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
       "additionalProperties": false,
       "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {
@@ -3646,6 +4078,11 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
@@ -3686,6 +4123,72 @@ Title: Delete a Window for good. Annotations: `readOnlyHint: false`, `destructiv
       "additionalProperties": false,
       "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {
@@ -4049,6 +4552,11 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
@@ -4089,6 +4597,72 @@ Title: Rename a Window in its address. Annotations: `readOnlyHint: false`, `dest
       "additionalProperties": false,
       "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {
@@ -4295,6 +4869,11 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
@@ -4335,6 +4914,72 @@ Title: Restore a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
       "additionalProperties": false,
       "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {
@@ -4565,6 +5210,11 @@ Title: Retitle, describe and tag a Window. Annotations: `readOnlyHint: false`, `
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
@@ -4605,6 +5255,72 @@ Title: Retitle, describe and tag a Window. Annotations: `readOnlyHint: false`, `
       "additionalProperties": false,
       "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {
@@ -5030,6 +5746,11 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
@@ -5070,6 +5791,72 @@ Title: Roll back a Window. Annotations: `readOnlyHint: false`, `destructiveHint:
       "additionalProperties": false,
       "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {
@@ -5968,6 +6755,11 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
@@ -6009,6 +6801,72 @@ Title: Set who opens a Window. Annotations: `readOnlyHint: false`, `destructiveH
       "additionalProperties": false,
       "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {
@@ -6219,6 +7077,11 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
@@ -6259,6 +7122,72 @@ Title: Put a Window in the trash. Annotations: `readOnlyHint: false`, `destructi
       "additionalProperties": false,
       "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {
@@ -6566,7 +7495,9 @@ Title: Retitle and describe a Room. Annotations: `readOnlyHint: false`, `destruc
 
 ## `update_window`
 
-Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Cahut calls no other system.
+Publish a new version of a Window of this Cahut: give all its files again, as for publish_window. Its address stays. Its current version becomes the previous one, which rollback_window goes back to; the version before that is deleted. Its database stays and runs the new migrations. Cahut calls no other system. Knock first when it lets anyone change or delete the rows of a public Window: a person approves the call before it runs.
+
+Knock first when it lets anyone change or delete the rows of a public Window: that call of an AI makes a Knock, which the person it acts for approves ([Operations](/reference/operations/#knock-first)).
 
 Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false`.
 
@@ -6576,6 +7507,11 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | --- | --- | --- | --- |
 | `declaration` | object or null | yes | what the pages do: Cahut lets them load and call the origins listed here, and nothing else |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `files` | array of objects or null | yes | every file of the new version, as for publish_window; files left out are not in it |
@@ -6597,6 +7533,72 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
       "additionalProperties": false,
       "description": "what the pages do: Cahut lets them load and call the origins listed here, and nothing else",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {
@@ -6707,6 +7709,11 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `access_ends_at` | string or null | no | when the access ends, after which the Window opens to its Room only; absent when it does not end |
 | `declaration` | object or null | no | what the pages of the current version do, as declared when it was published; absent for a Window published before declarations |
 | `declaration.scripts` | boolean | yes | whether the pages run scripts, inline or in files |
+| `declaration.data` | object or null | no | a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root |
+| `declaration.data.closes` | string or null | no | when the queries that write stop |
+| `declaration.data.migrations` | array of strings or null | no | the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end |
+| `declaration.data.queries` | object | no | the statements that the pages call at .data/queries/&lt;name&gt;, named with lowercase letters, digits and _ |
+| `declaration.data.readable` | object | no | the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private |
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `description` | string | no | what the Window is, in a sentence or two; absent when it has none |
@@ -6747,6 +7754,72 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
       "additionalProperties": false,
       "description": "what the pages of the current version do, as declared when it was published; absent for a Window published before declarations",
       "properties": {
+        "data": {
+          "additionalProperties": false,
+          "description": "a SQLite database of the Window on the server, for a poll, a form or a tracker, which its pages call at .data/ under its root",
+          "properties": {
+            "closes": {
+              "description": "when the queries that write stop",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "migrations": {
+              "description": "the SQL that makes the database, in order: create tables, indexes, views and triggers, add columns, insert rows. Each runs once: keep those that ran as they are, add new ones at the end",
+              "items": {
+                "type": "string"
+              },
+              "type": [
+                "null",
+                "array"
+              ]
+            },
+            "queries": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "description": "reads, adds, changes or deletes, which Cahut sets",
+                    "type": "string"
+                  },
+                  "sql": {
+                    "description": "one statement that reads, adds, changes or deletes rows; parameters such as :name come from the page, :reader from Cahut",
+                    "type": "string"
+                  },
+                  "who": {
+                    "description": "anyone, people signed in to the Cahut, or members of its Room",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sql",
+                  "who"
+                ],
+                "type": "object"
+              },
+              "description": "the statements that the pages call at .data/queries/\u003cname\u003e, named with lowercase letters, digits and _",
+              "type": "object"
+            },
+            "readable": {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "description": "the tables, and their columns, that readers SELECT themselves at .data/sql; other columns read as NULL. List nothing private",
+              "type": "object"
+            }
+          },
+          "type": [
+            "null",
+            "object"
+          ]
+        },
         "forms": {
           "description": "the origins that the forms of the pages send to, if any",
           "items": {

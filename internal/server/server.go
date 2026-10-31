@@ -25,6 +25,7 @@ import (
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/settings"
 	"cahut.cloud/internal/store"
+	"cahut.cloud/internal/windata"
 )
 
 // Config says where the server keeps its data and how its Cahuts are
@@ -70,6 +71,9 @@ type Server struct {
 	// Mail sends the e-mail of the Cahuts, each through its own relay. See
 	// docs/adr/0034-e-mail-through-the-relay-of-each-cahut-only.md.
 	Mail *mail.Service
+	// Data runs the SQL of the databases of the Windows of every Cahut. See
+	// docs/adr/0056-a-database-for-each-window.md.
+	Data *windata.Pool
 	cfg  Config
 }
 
@@ -84,6 +88,7 @@ func Open(ctx context.Context, cfg Config) (*Server, error) {
 	}
 	s := &Server{DB: db, Registry: operation.NewRegistry(db), cfg: cfg}
 	s.Mail = mail.New(mail.Config{DataDir: cfg.DataDir, Dev: cfg.MailDev, Log: cfg.Log})
+	s.Data = windata.NewPool(windata.Options{Log: cfg.Log})
 	s.AddDomain = &operation.Op[AddDomainInput, NewCahut]{
 		Name:  "add_domain",
 		Title: "Declare a Cahut",
@@ -119,6 +124,7 @@ const mailDrain = 30 * time.Second
 func (s *Server) Close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), mailDrain)
 	defer cancel()
+	s.Data.Close()
 	return errors.Join(s.Mail.Close(ctx), s.DB.Close())
 }
 
@@ -401,7 +407,7 @@ func (s *Server) OpenCahut(ctx context.Context, domain string) (*cahut.Cahut, er
 	if err != nil {
 		return nil, err
 	}
-	cfg := cahut.Config{Dir: s.dir(id), Domain: domain, Mail: s.Mail}
+	cfg := cahut.Config{Dir: s.dir(id), Domain: domain, Mail: s.Mail, Data: s.Data}
 	if s.cfg.BaseURL != nil {
 		cfg.BaseURL = s.cfg.BaseURL(domain)
 	}

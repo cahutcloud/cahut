@@ -42,8 +42,10 @@ func versions(w Window) string {
 	return fmt.Sprintf("versions %d and %d", w.Version, w.Previous)
 }
 
-// remove deletes the files of the Window id, every version.
+// remove deletes the files of the Window id, every version, and its
+// database with its copies, once its worker has stopped.
 func (s *Service) remove(id int64) {
+	s.data.Stop(s.dataDir(id))
 	_ = os.RemoveAll(filepath.Join(s.dir, strconv.FormatInt(id, 10))) // a leftover directory serves nothing
 }
 
