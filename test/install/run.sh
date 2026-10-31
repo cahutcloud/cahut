@@ -46,6 +46,7 @@ out=$(sh "$script" --binary "$a" --domain cahut.test --staging 2>&1) || {
 }
 echo "$out" | sed -E 's/(setup#)[a-z0-9]+/\1<code>/'
 echo "$out" | grep -q '/console/setup#' || fail "install.sh printed no link to the first start"
+echo "$out" | grep -q 'https://cahut.test/server/' || fail "install.sh printed no address of the console of the server"
 systemctl is-active --quiet cahut || fail "the cahut service does not run"
 systemctl is-enabled --quiet cahut || fail "the cahut service does not start at boot"
 systemctl is-active --quiet cahut-update.timer || fail "the timer of updates does not run"

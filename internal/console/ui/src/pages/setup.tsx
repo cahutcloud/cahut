@@ -1,13 +1,14 @@
 // The first start of a Cahut, from the single-use link that the
-// installation prints: the first person chooses their account, and
-// connects their first AI. See docs/adr/0025-first-start-in-the-browser.md
-// and docs/adr/0049-no-house-style.md.
+// installation prints: the first person chooses their account, then finds
+// the console of the server, when they administer it too, or that of their
+// Cahut, which offers to connect their first AI. See
+// docs/adr/0025-first-start-in-the-browser.md, docs/adr/0049-no-house-style.md
+// and docs/adr/0058-a-console-for-the-server.md.
 import { ArrowRight } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
-import { cahut, explain, server } from "../api";
+import { explain, server } from "../api";
 import type { Setup as SetupInfo } from "../api.gen";
 import { Languages } from "../components";
-import { ConnectedStatus, ConnectSteps, ipAddress, useConnectedAI } from "../connect";
 import { fragment as code } from "../fragment";
 import { de, words } from "../i18n";
 import { Logo } from "../logo";
@@ -17,7 +18,6 @@ import { minPassword } from "./activate";
 
 const t = words({
 	en: {
-		steps: ["You", "Your first AI"],
 		noCode: "This link has no code. Open the whole link that the installation printed.",
 		gone: "This link does not open the first start",
 		newLink: "On the server, this command gives a new link, valid for 24 hours, as long as the Cahut has nobody:",
@@ -42,24 +42,8 @@ const t = words({
 		passwordHelp: (min: number) => `At least ${min} characters. A short sentence works well.`,
 		again: "The same password again",
 		create: "Create my account",
-		answers: (origin: string) => (
-			<>
-				It answers at <strong>{origin}/</strong>, where each Room and each Window has its own address.
-			</>
-		),
-		noDomain: (
-			<>
-				This Cahut has no domain yet. When you have one, point it to this server, then move the Cahut there, in the console of the
-				administrator of the server or with <code class="c-mono">cahut domain rename</code>. The links shared before then stop working.
-			</>
-		),
-		firstAI: "Your first AI",
-		connects: "Your AI connects to this Cahut over MCP. You choose the Rooms it reaches, and everything it does goes to the Logbook.",
-		open: "Open the console",
-		skip: "Skip, open the console",
 	},
 	fr: {
-		steps: ["Vous", "Votre première IA"],
 		noCode: "Ce lien n'a pas de code. Ouvrez le lien entier qu'a affiché l'installation.",
 		gone: "Ce lien n'ouvre pas le premier démarrage",
 		newLink: "Sur le serveur, cette commande donne un nouveau lien, valable 24 heures, tant que la Cahut n'a personne :",
@@ -84,66 +68,38 @@ const t = words({
 		passwordHelp: (min) => `Au moins ${min} caractères. Une courte phrase convient bien.`,
 		again: "Le même mot de passe, une seconde fois",
 		create: "Créer mon compte",
-		answers: (origin) => (
-			<>
-				Elle répond à <strong>{origin}/</strong>, où chaque Room et chaque Window a sa propre adresse.
-			</>
-		),
-		noDomain: (
-			<>
-				Cette Cahut n'a pas encore de domaine. Quand vous en aurez un, pointez-le vers ce serveur, puis déplacez-y la Cahut, dans la console
-				de l'administrateur du serveur ou avec <code class="c-mono">cahut domain rename</code>. Les liens partagés d'ici là cessent
-				alors de fonctionner.
-			</>
-		),
-		firstAI: "Votre première IA",
-		connects: "Votre IA se connecte à cette Cahut par MCP. Vous choisissez les Rooms qu'elle atteint, et tout ce qu'elle fait va au Logbook.",
-		open: "Ouvrir la console",
-		skip: "Passer, ouvrir la console",
 	},
 });
-
-const steps = t.steps;
 
 export function Setup({ onSession }: { onSession: (s: Session) => void }) {
 	const [info, setInfo] = useState<SetupInfo | null>(null);
 	const [error, setError] = useState(code ? "" : t.noCode);
-	const [step, setStep] = useState(0);
-	const [session, setSession] = useState<Session | null>(null);
 
 	useEffect(() => {
 		if (code) server("get_setup", { code }).then(setInfo, (err) => setError(explain(err)));
 	}, []);
 
-	const signedIn = (s: Session) => {
-		setSession(s);
-		onSession(s);
-		setStep(1);
+	// The first start ends in the console of the server, on the page of the
+	// Cahut, when it made the administrator of the server; otherwise in the
+	// console of the Cahut, whose overview offers to connect an AI. See
+	// docs/adr/0058-a-console-for-the-server.md.
+	const done = (person: Session, admin: Session | null) => {
+		onSession(person);
+		if (admin && info) {
+			onSession(admin);
+			location.assign(`/server/cahuts/${encodeURIComponent(info.domain)}?ready`);
+			return;
+		}
+		navigate("/", true);
 	};
 	return (
 		<main class="setup">
 			<div class="setup__frame">
 				<header class="setup__head">
 					<Logo height={30} />
-					<ol class="setup__steps">
-						{steps.map((name, i) => (
-							<li key={name} aria-current={i === step ? "step" : undefined} data-done={i < step ? "" : undefined}>
-								<span class="setup__number">{i + 1}</span>
-								{name}
-							</li>
-						))}
-					</ol>
 				</header>
-				<div class="c-card setup__card">
-					{error ? (
-						<Gone message={error} />
-					) : step === 0 ? (
-						info && <You info={info} onDone={signedIn} onServer={onSession} />
-					) : (
-						session && <FirstAI session={session} />
-					)}
-				</div>
-				{step === 0 && <Languages />}
+				<div class="c-card setup__card">{error ? <Gone message={error} /> : info && <You info={info} onDone={done} />}</div>
+				<Languages />
 			</div>
 		</main>
 	);
@@ -173,7 +129,7 @@ function handleOf(name: string): string {
 		.slice(0, 32);
 }
 
-function You({ info, onDone, onServer }: { info: SetupInfo; onDone: (s: Session) => void; onServer: (s: Session) => void }) {
+function You({ info, onDone }: { info: SetupInfo; onDone: (person: Session, admin: Session | null) => void }) {
 	const [name, setName] = useState("");
 	const [handle, setHandle] = useState("");
 	const [edited, setEdited] = useState(false);
@@ -193,16 +149,17 @@ function You({ info, onDone, onServer }: { info: SetupInfo; onDone: (s: Session)
 		try {
 			const r = await server("set_up", { code, handle, name, password });
 			const s = r.session;
-			onDone({ kind: "person", token: s.token, handle: s.user.handle, name: s.user.name, expiresAt: s.expires_at });
+			const person: Session = { kind: "person", token: s.token, handle: s.user.handle, name: s.user.name, expiresAt: s.expires_at };
 			// The administrator of the server, made with the same handle and
-			// password, signs in beside the person. See
-			// docs/adr/0043-the-console-holds-two-sessions.md.
-			if (r.server_admin) {
-				server("sign_in", { handle: s.user.handle, password }).then(
-					(a) => onServer({ kind: "admin", token: a.token, handle: a.admin.handle, name: a.admin.name, expiresAt: a.expires_at }),
-					() => undefined,
-				);
-			}
+			// password, signs in beside the person, in the console of the
+			// server. See docs/adr/0058-a-console-for-the-server.md.
+			const admin = r.server_admin
+				? await server("sign_in", { handle: s.user.handle, password }).then(
+						(a): Session => ({ kind: "admin", token: a.token, handle: a.admin.handle, name: a.admin.name, expiresAt: a.expires_at }),
+						() => null,
+					)
+				: null;
+			onDone(person, admin);
 		} catch (err) {
 			setError(explain(err));
 			setBusy(false);
@@ -281,34 +238,5 @@ function You({ info, onDone, onServer }: { info: SetupInfo; onDone: (s: Session)
 				</button>
 			</div>
 		</form>
-	);
-}
-
-function FirstAI({ session }: { session: Session }) {
-	const mcp = `${location.origin}/mcp`;
-	const connected = useConnectedAI(async () => {
-		const [ais, tokens] = await Promise.all([
-			cahut("list_connected_ais", { user: session.handle }, session.token),
-			cahut("list_tokens", { user: session.handle }, session.token),
-		]);
-		return [ais.connections, tokens.tokens];
-	});
-	return (
-		<div class="setup__body">
-			<div class="setup__intro">
-				<h1 class="c-h3">{t.firstAI}</h1>
-				<p class="c-small c-muted">{t.answers(location.origin)}</p>
-				<p class="c-small c-muted">{t.connects}</p>
-			</div>
-			{ipAddress.test(location.hostname) && <div class="c-alert c-alert--info">{t.noDomain}</div>}
-			<ConnectSteps mcp={mcp} />
-			<ConnectedStatus name={connected} />
-			<div class="setup__actions">
-				<button class="c-btn c-btn--primary" type="button" onClick={() => navigate("/", true)}>
-					{connected ? t.open : t.skip}
-					<ArrowRight class="i" size={16} aria-hidden="true" />
-				</button>
-			</div>
-		</div>
 	);
 }
