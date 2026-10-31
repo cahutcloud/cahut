@@ -200,6 +200,11 @@ func (s *Service) setAccess(ctx context.Context, c *operation.Call, in AccessInp
 	if in.EndsAt != nil {
 		detail += " until " + in.EndsAt.Format(time.RFC3339)
 	}
+	// Its Knock says what anyone will write. See
+	// docs/adr/0056-a-database-for-each-window.md.
+	if writes := w.Declaration.writesForAnyone(); in.Access == AccessPublic && len(writes) > 0 {
+		detail += "; anyone writes with " + strings.Join(writes, ", ")
+	}
 	c.Log(w.Room+"/"+w.Name, detail)
 	return AccessSet{Window: w.Window, Key: key}, nil
 }

@@ -16,6 +16,7 @@ package main
 import (
 	"cmp"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -128,6 +129,9 @@ type generator struct {
 
 var timeType = reflect.TypeFor[time.Time]()
 
+// rawType is that of JSON kept as it is.
+var rawType = reflect.TypeFor[json.RawMessage]()
+
 // collect records the named struct types that t is or holds.
 func (g *generator) collect(t reflect.Type) {
 	switch t.Kind() {
@@ -228,6 +232,9 @@ func (g *generator) declare(b *strings.Builder, t reflect.Type) {
 
 // typeOf returns the TypeScript type of the Go type t.
 func (g *generator) typeOf(t reflect.Type) string {
+	if t == rawType {
+		return "unknown" // any JSON, such as a value of the data of a Window
+	}
 	switch t.Kind() {
 	case reflect.String:
 		return "string"

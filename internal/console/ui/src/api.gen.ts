@@ -225,7 +225,7 @@ export interface ChangeDataInput {
   /** SQLite statements, separated by semicolons, that create, add, change or delete */
   sql: string;
   /** their named parameters */
-  params?: Record<string, number[]>;
+  params?: Record<string, unknown>;
 }
 
 export interface ChangeEmailInput {
@@ -986,7 +986,7 @@ export interface Outsider {
 
 export interface PageData {
   columns: string[];
-  rows: number[][][];
+  rows: unknown[][];
   cut?: boolean;
   changes?: number;
   id?: number;
@@ -1002,7 +1002,7 @@ export interface PageDataInput {
   /** for call_window_query: the name of a query of the declaration */
   query?: string;
   /** the named parameters of the statement; :reader is given by Cahut */
-  params?: Record<string, number[]>;
+  params?: Record<string, unknown>;
   no_write?: boolean;
 }
 
@@ -1100,7 +1100,7 @@ export interface PublishInput {
 
 export interface QueriedData {
   columns: string[];
-  rows: number[][][];
+  rows: unknown[][];
   cut?: boolean;
   note: string;
 }
@@ -1120,7 +1120,7 @@ export interface QueryDataInput {
   /** one SQLite SELECT over its whole database */
   sql: string;
   /** its named parameters, such as {"city": "Lyon"} for :city */
-  params?: Record<string, number[]>;
+  params?: Record<string, unknown>;
 }
 
 export interface ReaderCode {

@@ -5,11 +5,11 @@
 // docs/adr/0050-window-ids-permanent-addresses-and-names.md,
 // docs/adr/0051-sharing-a-window-and-its-preview.md and
 // docs/adr/0052-share-links.md.
-import { ArrowUpRight, Link2, RotateCcw, Send, Undo2 } from "lucide-preact";
+import { ArrowUpRight, Download, Link2, RotateCcw, Send, Undo2 } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import { useId, useState } from "preact/hooks";
 import { explain } from "../api";
-import type { AccessSet, Declaration, WindowDetail } from "../api.gen";
+import type { AccessSet, Declaration, QueriedData, WindowDetail } from "../api.gen";
 import {
 	AccessBadge,
 	accesses,
@@ -165,6 +165,36 @@ const t = words({
 		spent: "Used up",
 		takenBack: "Taken back",
 		takeBackLink: "Take back this link? It opens nothing more.",
+		data: "Data",
+		dataHelp: (size: string, migrations: number) =>
+			`What this Window keeps, in a database of its own on this server: ${size}, made by ${migrations === 1 ? "1 migration" : `${migrations} migrations`}. The AIs of its Room read and change all of it.`,
+		closesOn: (when: string) => `Its pages stop taking answers on ${when}.`,
+		table: "Table",
+		columns: "Columns",
+		rowCount: "Rows",
+		readable: "Readers read",
+		readableHelp: "Anyone who opens this Window reads these columns. The others stay with its Room.",
+		nothingReadable: "Readers read none of its data themselves.",
+		queries: "What its pages do",
+		query: "Query",
+		does: "Does",
+		who: "Who",
+		kinds: { reads: "Reads", adds: "Adds rows", changes: "Changes rows", deletes: "Deletes rows" } as Record<string, string>,
+		whos: { anyone: "Anyone who opens it", people: "People signed in", members: "Members of its Room" } as Record<string, string>,
+		showRows: "Show rows",
+		hideRows: "Hide",
+		exportCSV: "Export CSV",
+		rowsOf: (table: string, from: number, to: number) => `${table}, rows ${from} to ${to}`,
+		noRows: "No rows yet.",
+		previous: "Previous",
+		next: "Next",
+		blob: (n: number) => `${n} bytes`,
+		copies: "Copies",
+		copiesHelp: "Cahut copies the data before each change of an AI or a person, and once a day while readers write. Going back to a copy loses what readers wrote since; the data as it is becomes a copy.",
+		noCopies: "No copy yet.",
+		goBackTo: "Go back to it",
+		goBackQuestion: (when: string) => `Put the data back as it was on ${when}? What readers wrote since is lost.`,
+		publicData: (queries: string) => `Anyone will also write in its data, with ${queries}.`,
 	},
 	fr: {
 		open: "Ouvrir",
@@ -301,6 +331,36 @@ const t = words({
 		spent: "Épuisé",
 		takenBack: "Retiré",
 		takeBackLink: "Retirer ce lien ? Il n'ouvrira plus rien.",
+		data: "Données",
+		dataHelp: (size, migrations) =>
+			`Ce que garde cette Window, dans une base à elle sur ce serveur : ${size}, faite par ${migrations === 1 ? "1 migration" : `${migrations} migrations`}. Les IA de sa Room lisent et changent tout.`,
+		closesOn: (when) => `Ses pages cessent de prendre des réponses le ${when}.`,
+		table: "Table",
+		columns: "Colonnes",
+		rowCount: "Lignes",
+		readable: "Les lecteurs lisent",
+		readableHelp: "Quiconque ouvre cette Window lit ces colonnes. Les autres restent à sa Room.",
+		nothingReadable: "Les lecteurs ne lisent eux-mêmes aucune de ses données.",
+		queries: "Ce que font ses pages",
+		query: "Requête",
+		does: "Fait",
+		who: "Qui",
+		kinds: { reads: "Lit", adds: "Ajoute des lignes", changes: "Modifie des lignes", deletes: "Supprime des lignes" },
+		whos: { anyone: "Quiconque l'ouvre", people: "Les personnes connectées", members: "Les membres de sa Room" },
+		showRows: "Voir les lignes",
+		hideRows: "Masquer",
+		exportCSV: "Exporter en CSV",
+		rowsOf: (table, from, to) => `${table}, lignes ${from} à ${to}`,
+		noRows: "Aucune ligne pour l'instant.",
+		previous: "Précédentes",
+		next: "Suivantes",
+		blob: (n) => `${n} octets`,
+		copies: "Copies",
+		copiesHelp: "Cahut copie les données avant chaque changement d'une IA ou d'une personne, et une fois par jour tant que des lecteurs écrivent. Revenir à une copie perd ce que les lecteurs ont écrit depuis ; les données telles qu'elles sont deviennent une copie.",
+		noCopies: "Aucune copie pour l'instant.",
+		goBackTo: "Y revenir",
+		goBackQuestion: (when) => `Remettre les données telles qu'elles étaient le ${when} ? Ce que les lecteurs ont écrit depuis est perdu.`,
+		publicData: (queries) => `Quiconque écrira aussi dans ses données, avec ${queries}.`,
 	},
 });
 
@@ -408,6 +468,12 @@ export function WindowPage({ room, name }: { room: string; name: string }) {
 						/>
 						<ShareLinks window={w} onChange={reload} />
 						<Versions window={w} onRollback={() => act(() => api.cahut("rollback_window", { window: `${w.room}/${w.name}` }))} />
+						{w.data && (
+							<DataPanel
+								window={w}
+								onRollback={(copy) => act(() => api.cahut("rollback_window_data", { window: `${w.room}/${w.name}`, copy }))}
+							/>
+						)}
 						<Invitations window={w} />
 					</section>
 					<aside class="aside">
@@ -642,7 +708,10 @@ function AccessPanel(props: { window: WindowDetail; shared: AccessSet | null; on
 				{error && <Failure message={error} />}
 				{asking ? (
 					<span class="confirm" role="group">
-						<span class="c-small">{t.publicQuestion}</span>
+						<span class="c-small">
+							{t.publicQuestion}
+							{writesForAnyone(w).length > 0 && <> {t.publicData(writesForAnyone(w).join(", "))}</>}
+						</span>
 						<button class="c-btn c-btn--primary c-btn--sm" type="button" disabled={busy} onClick={save}>
 							{t.makePublic}
 						</button>
@@ -660,6 +729,14 @@ function AccessPanel(props: { window: WindowDetail; shared: AccessSet | null; on
 			</form>
 		</div>
 	);
+}
+
+/** The queries of a Window that write for anyone, as "sign (adds rows)". */
+function writesForAnyone(w: WindowDetail): string[] {
+	const queries = w.declaration?.data?.queries ?? {};
+	return Object.entries(queries)
+		.filter(([, q]) => q.who === "anyone" && q.kind && q.kind !== "reads")
+		.map(([name, q]) => `${name} (${(t.kinds[q.kind ?? ""] ?? q.kind ?? "").toLowerCase()})`);
 }
 
 function capitalize(s: string): string {
@@ -1015,6 +1092,234 @@ function ShareLinks({ window: w, onChange }: { window: WindowDetail; onChange: (
 						</tbody>
 					</table>
 				</div>
+			)}
+		</div>
+	);
+}
+
+/** How many rows the console shows at once, and reads at once to export. */
+const pageRows = 50;
+const exportRows = 1000;
+
+/** quoteName quotes the name of a table for SQLite. */
+function quoteName(name: string): string {
+	return `"${name.replaceAll('"', '""')}"`;
+}
+
+/** cell writes a value of the data of a Window as text. */
+function cell(v: unknown): string {
+	if (v === null || v === undefined) return "";
+	if (typeof v === "string") return v;
+	if (typeof v === "number" || typeof v === "boolean") return String(v);
+	if (typeof v === "object" && v !== null && "blob" in v && typeof (v as { blob: unknown }).blob === "string") {
+		return t.blob(Math.floor(((v as { blob: string }).blob.length * 3) / 4));
+	}
+	return JSON.stringify(v);
+}
+
+/**
+ * csvCell writes a value as a cell of CSV. A cell that starts with =, +, -
+ * or @, which a spreadsheet would run as a formula, starts with ' instead.
+ */
+function csvCell(v: unknown): string {
+	let s = cell(v);
+	if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+	return /[",\n\r]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
+}
+
+/**
+ * The data of a Window: its tables, which the console shows as text, page by
+ * page, and exports as CSV; what its readers read and what its pages do; and
+ * its copies, to go back to one. See
+ * docs/adr/0056-a-database-for-each-window.md.
+ */
+function DataPanel({ window: w, onRollback }: { window: WindowDetail; onRollback: (copy: string) => Promise<void> }) {
+	const api = useConsole();
+	const [shown, setShown] = useState<{ table: string; page: number; rows: QueriedData } | null>(null);
+	const [error, setError] = useState("");
+	const data = w.data;
+	if (!data) return null;
+	const declared = w.declaration?.data;
+	const ref = `${w.room}/${w.name}`;
+	const read = (table: string, limit: number, offset: number) =>
+		api.cahut("query_window_data", { window: ref, sql: `SELECT * FROM ${quoteName(table)} LIMIT ${limit} OFFSET ${offset}` });
+	const show = async (table: string, page: number) => {
+		setError("");
+		try {
+			setShown({ table, page, rows: await read(table, pageRows, page * pageRows) });
+		} catch (err) {
+			setError(explain(err));
+		}
+	};
+	const exportTable = async (table: string) => {
+		setError("");
+		try {
+			const lines: string[] = [];
+			for (let offset = 0; ; offset += exportRows) {
+				const r = await read(table, exportRows, offset);
+				if (offset === 0) lines.push(r.columns.map(csvCell).join(","));
+				for (const row of r.rows) lines.push(row.map(csvCell).join(","));
+				if (r.rows.length < exportRows) break;
+			}
+			const url = URL.createObjectURL(new Blob([`${lines.join("\r\n")}\r\n`], { type: "text/csv;charset=utf-8" }));
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `${w.name}-${table}.csv`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch (err) {
+			setError(explain(err));
+		}
+	};
+	const day = (at: string) => new Date(at).toLocaleString(lang === "en" ? "en-US" : locale, { dateStyle: "medium", timeStyle: "short" });
+	const readable = Object.entries(declared?.readable ?? {}).flatMap(([table, cols]) => cols.map((c) => `${table}.${c}`));
+	const queries = Object.entries(declared?.queries ?? {}).sort(([a], [b]) => a.localeCompare(b));
+	return (
+		<div class="c-card panel section">
+			<h2 class="c-h4">{t.data}</h2>
+			<p class="c-small c-muted">{t.dataHelp(bytes(data.size), data.migrations)}</p>
+			{declared?.closes && <p class="c-small">{t.closesOn(day(declared.closes))}</p>}
+			{error && <Failure message={error} />}
+			<div class="table-wrap">
+				<table class="table">
+					<thead>
+						<tr>
+							<th>{t.table}</th>
+							<th>{t.columns}</th>
+							<th>{t.rowCount}</th>
+							<th />
+						</tr>
+					</thead>
+					<tbody>
+						{data.tables.map((tb) => (
+							<tr key={tb.name}>
+								<td class="c-mono">{tb.name}</td>
+								<td class="c-small c-mono">{tb.columns.map((c) => c.name).join(", ")}</td>
+								<td class="c-small">{tb.rows}</td>
+								<td class="table__actions">
+									<button
+										class="c-btn c-btn--secondary c-btn--sm"
+										type="button"
+										onClick={() => (shown?.table === tb.name ? setShown(null) : show(tb.name, 0))}
+									>
+										{shown?.table === tb.name ? t.hideRows : t.showRows}
+									</button>
+									<button class="c-btn c-btn--ghost c-btn--sm" type="button" disabled={tb.rows === 0} onClick={() => exportTable(tb.name)}>
+										<Download class="i" size={14} aria-hidden="true" />
+										{t.exportCSV}
+									</button>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+			{shown && (
+				<div class="data-rows">
+					{shown.rows.rows.length === 0 ? (
+						<p class="c-small c-muted">{t.noRows}</p>
+					) : (
+						<>
+							<p class="c-small c-muted">
+								{t.rowsOf(shown.table, shown.page * pageRows + 1, shown.page * pageRows + shown.rows.rows.length)}
+							</p>
+							<div class="table-wrap">
+								<table class="table">
+									<thead>
+										<tr>
+											{shown.rows.columns.map((c) => (
+												<th key={c} class="c-mono">
+													{c}
+												</th>
+											))}
+										</tr>
+									</thead>
+									<tbody>
+										{shown.rows.rows.map((row, i) => (
+											<tr key={i}>
+												{row.map((v, j) => (
+													<td key={j} class={`c-small${v === null ? " c-muted" : ""}`}>
+														{v === null ? "NULL" : cell(v)}
+													</td>
+												))}
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						</>
+					)}
+					<div class="actions">
+						<button class="c-btn c-btn--secondary c-btn--sm" type="button" disabled={shown.page === 0} onClick={() => show(shown.table, shown.page - 1)}>
+							{t.previous}
+						</button>
+						<button
+							class="c-btn c-btn--secondary c-btn--sm"
+							type="button"
+							disabled={shown.rows.rows.length < pageRows}
+							onClick={() => show(shown.table, shown.page + 1)}
+						>
+							{t.next}
+						</button>
+					</div>
+				</div>
+			)}
+			<h3 class="c-label">{t.readable}</h3>
+			{readable.length > 0 ? (
+				<>
+					<p class="c-small c-mono">{readable.join(", ")}</p>
+					<p class="c-small c-muted">{t.readableHelp}</p>
+				</>
+			) : (
+				<p class="c-small c-muted">{t.nothingReadable}</p>
+			)}
+			{queries.length > 0 && (
+				<>
+					<h3 class="c-label">{t.queries}</h3>
+					<div class="table-wrap">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>{t.query}</th>
+									<th>{t.does}</th>
+									<th>{t.who}</th>
+								</tr>
+							</thead>
+							<tbody>
+								{queries.map(([name, q]) => (
+									<tr key={name}>
+										<td class="c-mono">{name}</td>
+										<td class="c-small">{t.kinds[q.kind ?? ""] ?? q.kind}</td>
+										<td class="c-small">{t.whos[q.who] ?? q.who}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				</>
+			)}
+			<h3 class="c-label">{t.copies}</h3>
+			<p class="c-small c-muted">{t.copiesHelp}</p>
+			{data.copies.length === 0 ? (
+				<p class="c-small c-muted">{t.noCopies}</p>
+			) : (
+				<ul class="versions">
+					{data.copies.map((c) => (
+						<li key={c.name} class="versions__row">
+							<span>
+								<b>{day(c.at)}</b>
+								<span class="c-small c-muted versions__meta">{bytes(c.size)}</span>
+							</span>
+							<ConfirmButton
+								label={t.goBackTo}
+								question={t.goBackQuestion(day(c.at))}
+								confirm={t.goBackTo}
+								danger
+								onConfirm={() => onRollback(c.name)}
+							/>
+						</li>
+					))}
+				</ul>
 			)}
 		</div>
 	);

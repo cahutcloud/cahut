@@ -1567,6 +1567,16 @@ a.cahut-menu__item:hover {
 	gap: var(--space-2);
 	min-width: 0;
 }
+/* The rows of a table of the data of a Window, under the list of its tables. */
+.data-rows {
+	display: grid;
+	gap: var(--space-3);
+}
+.data-rows td {
+	max-width: 24rem;
+	overflow-wrap: anywhere;
+}
+
 .versions {
 	list-style: none;
 	margin: 0;

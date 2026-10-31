@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
 // petitionWindow is a Window that keeps data: anyone signs, people see
@@ -162,5 +164,31 @@ func TestWritesClose(t *testing.T) {
 	}
 	if status, _ := f.post(t, "/olivier/save-the-river/.data/sql", `{"sql": "SELECT count(*) FROM signatures"}`); status != http.StatusOK {
 		t.Errorf("a read after closes = %d", status)
+	}
+}
+
+// TestPublicKnockSaysWhatAnyoneWrites checks that the Knock that makes a
+// Window public names the queries that write for anyone.
+func TestPublicKnockSaysWhatAnyoneWrites(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	session := f.connect(t, "localhost", f.token)
+	var args map[string]any
+	if err := json.Unmarshal([]byte(strings.Replace(petitionWindow, "%s", "", 1)), &args); err != nil {
+		t.Fatal(err)
+	}
+	if res, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "publish_window", Arguments: args}); err != nil || res.IsError {
+		t.Fatalf("publish_window = %+v, %v", res, err)
+	}
+	res, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "set_window_access", Arguments: map[string]any{"window": "olivier/save-the-river", "access": "public"}})
+	if err != nil || !res.IsError {
+		t.Fatalf("set_window_access public = %+v, %v, want a Knock", res, err)
+	}
+	var detail string
+	if err := f.open(t, "localhost").DB.Read.QueryRow("SELECT detail FROM knocks WHERE operation = 'set_window_access'").Scan(&detail); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(detail, "anyone writes with sign (adds)") || strings.Contains(detail, "count") {
+		t.Errorf("the detail of the Knock = %q", detail)
 	}
 }
