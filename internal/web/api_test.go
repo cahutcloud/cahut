@@ -102,7 +102,7 @@ func TestAPI(t *testing.T) {
 		{name: "a refusal", method: http.MethodPost, host: "localhost", path: "/console/api/create_user", token: camille, body: `{"handle": "bruno", "name": "Bruno"}`, want: 403},
 		{name: "a missing record", method: http.MethodPost, host: "localhost", path: "/console/api/get_room", token: camille, body: `{"room": "nope"}`, want: 404},
 		{name: "a large body", method: http.MethodPost, host: "localhost", path: "/console/api/get_account", token: camille, body: `{"x": "` + strings.Repeat("x", MaxAPIRequestSize) + `"}`, want: 413},
-		{name: "the server, as a person", method: http.MethodPost, host: "localhost", path: "/console/api/server/list_domains", token: camille, want: 401},
+		{name: "the server, as a person", method: http.MethodPost, host: "localhost", path: "/server/api/list_domains", token: camille, want: 401},
 		{name: "a domain of no Cahut", method: http.MethodPost, host: "nope.localhost", path: "/console/api/get_account", token: camille, want: 421},
 	} {
 		r := call(t, f, console, tt.method, tt.host, tt.path, tt.token, tt.body)
@@ -140,40 +140,26 @@ func TestAPI(t *testing.T) {
 	}
 }
 
+// The console of the Cahut takes the sessions of its people only, and the
+// administrators of the server call in a Cahut what serves the server
+// only, under /server/api/. See docs/adr/0058-a-console-for-the-server.md.
 func TestAPIForServerAdmins(t *testing.T) {
 	f := setup(t)
-	console := f.ts
-	a, err := operation.Do(context.Background(), f.srv.Registry, server.CreateAdmin, admin, server.CreateAdminInput{Handle: "root", Name: "Root"})
-	if err != nil {
-		t.Fatal(err)
+	root := serverAdminAt(t, f, "localhost", "root")
+	for _, path := range []string{"/console/api/list_users", "/console/api/get_cahut", "/console/api/list_reports"} {
+		r := call(t, f, f.ts, http.MethodPost, "localhost", path, root, `{}`)
+		if r.status != http.StatusUnauthorized || !strings.Contains(r.raw, "/server/") {
+			t.Errorf("POST %s as an administrator of the server: %d %s", path, r.status, r.raw)
+		}
 	}
-	r := call(t, f, console, http.MethodPost, "localhost", "/console/api/server/activate_account", "",
-		`{"code": "`+a.Activation.Code+`", "password": "`+password+`"}`)
-	if r.status != http.StatusOK || r.body["domain"] != "localhost" {
-		t.Fatalf("activate_account of the server: %d %s", r.status, r.raw)
+	if r := call(t, f, f.ts, http.MethodPost, "localhost", "/console/api/server/list_domains", root, `{}`); r.status != http.StatusNotFound {
+		t.Errorf("the old API of the server: %d %s", r.status, r.raw)
 	}
-	root := r.body["token"].(string)
-
-	r = call(t, f, console, http.MethodPost, "localhost", "/console/api/server/list_domains", root, ``)
-	if r.status != http.StatusOK || len(r.body["cahuts"].([]any)) != 2 {
-		t.Errorf("list_domains: %d %s", r.status, r.raw)
+	if r := call(t, f, f.ts, http.MethodPost, "localhost", "/server/api/cahuts/localhost/list_users", root, `{}`); r.status != http.StatusNotFound {
+		t.Errorf("list_users for the server: %d %s", r.status, r.raw)
 	}
-	// In the Cahut of the domain, the administrator manages people, but
-	// sees no Window.
-	r = call(t, f, console, http.MethodPost, "localhost", "/console/api/list_users", root, ``)
-	if r.status != http.StatusOK || len(r.body["users"].([]any)) != 1 {
-		t.Errorf("list_users as an administrator of the server: %d %s", r.status, r.raw)
-	}
-	r = call(t, f, console, http.MethodPost, "localhost", "/console/api/list_windows", root, ``)
-	if r.status != http.StatusOK || len(r.body["windows"].([]any)) != 0 {
-		t.Errorf("list_windows as an administrator of the server: %d %s", r.status, r.raw)
-	}
-	// The session holds at its domain only.
-	if r := call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/server/list_domains", root, ``); r.status != http.StatusUnauthorized {
-		t.Errorf("list_domains at another domain: %d %s", r.status, r.raw)
-	}
-	if r := call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/list_users", root, ``); r.status != http.StatusUnauthorized {
-		t.Errorf("list_users at another domain: %d %s", r.status, r.raw)
+	if r := call(t, f, f.ts, http.MethodPost, "localhost", "/server/api/cahuts/localhost/list_reports", root, `{}`); r.status != http.StatusOK {
+		t.Errorf("list_reports for the server: %d %s", r.status, r.raw)
 	}
 }
 
@@ -312,7 +298,7 @@ func TestAPIRefusalCodes(t *testing.T) {
 			error: "not allowed: this activation link is unknown, used or expired: ask an administrator of the Cahut for a new one",
 		},
 		{
-			name: "a link of the server", path: "/console/api/server/activate_account", body: `{"code": "used", "password": "` + password + `"}`,
+			name: "a link of the server", path: "/server/api/activate_account", body: `{"code": "used", "password": "` + password + `"}`,
 			status: 403, code: "server_activation_link_gone",
 		},
 		{
@@ -415,7 +401,7 @@ func TestAPIRefusalCodesOfScreens(t *testing.T) {
 			error: "invalid input: this Cahut sends no e-mail: an administrator of the Cahut sets its relay first, on the page E-mail of the console",
 		},
 		{
-			name: "a used link to the first start", path: "/console/api/server/get_setup", body: `{"code": "used"}`,
+			name: "a used link to the first start", path: "/server/api/get_setup", body: `{"code": "used"}`,
 			status: 404, code: "setup_link_gone",
 		},
 	})
@@ -505,14 +491,14 @@ func TestFirstStartOverTheAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	body := `{"code": "` + link.Code + `"}`
-	if r := call(t, f, console, http.MethodPost, "localhost", "/console/api/server/get_setup", "", body); r.status != http.StatusNotFound {
+	if r := call(t, f, console, http.MethodPost, "localhost", "/server/api/get_setup", "", body); r.status != http.StatusNotFound {
 		t.Errorf("get_setup at another Cahut: %d %s", r.status, r.raw)
 	}
-	r := call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/server/get_setup", "", body)
+	r := call(t, f, console, http.MethodPost, "beta.localhost", "/server/api/get_setup", "", body)
 	if r.status != http.StatusOK || r.body["server_admin"] != true {
 		t.Fatalf("get_setup: %d %s", r.status, r.raw)
 	}
-	r = call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/server/set_up", "",
+	r = call(t, f, console, http.MethodPost, "beta.localhost", "/server/api/set_up", "",
 		`{"code": "`+link.Code+`", "handle": "ana", "name": "Ana", "password": "`+password+`"}`)
 	if r.status != http.StatusOK {
 		t.Fatalf("set_up: %d %s", r.status, r.raw)
@@ -521,7 +507,7 @@ func TestFirstStartOverTheAPI(t *testing.T) {
 	if r := call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/get_account", token, ``); r.status != http.StatusOK || r.body["role"] != "admin" {
 		t.Errorf("get_account with the session of the first start: %d %s", r.status, r.raw)
 	}
-	if r := call(t, f, console, http.MethodPost, "beta.localhost", "/console/api/server/set_up", "",
+	if r := call(t, f, console, http.MethodPost, "beta.localhost", "/server/api/set_up", "",
 		`{"code": "`+link.Code+`", "handle": "eve", "name": "Eve", "password": "`+password+`"}`); r.status != http.StatusNotFound {
 		t.Errorf("set_up again: %d %s", r.status, r.raw)
 	}

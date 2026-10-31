@@ -184,7 +184,7 @@ func TestReadsAreLoggedForAIsOnly(t *testing.T) {
 // rules copies the rules of an operation, not its name or its Run.
 func rules(op *Op[roomIn, roomOut], from Op[roomIn, roomOut]) {
 	op.Level, op.PeopleOnly, op.Visitors, op.KnockFirst = from.Level, from.PeopleOnly, from.Visitors, from.KnockFirst
-	op.Services = from.Services
+	op.Services, op.ForServer = from.Services, from.ForServer
 }
 
 func TestRefusals(t *testing.T) {
@@ -302,6 +302,39 @@ func TestAdmission(t *testing.T) {
 			}
 			if got[0].Via != tt.actor.Via || got[0].Client != tt.actor.Client {
 				t.Errorf("entry via %q, client %q", got[0].Via, got[0].Client)
+			}
+		})
+	}
+}
+
+// An administrator of the server calls in a registry what serves the
+// server only, while the command line calls everything. See
+// docs/adr/0058-a-console-for-the-server.md.
+func TestAServerAdministratorCallsWhatServesTheServer(t *testing.T) {
+	root := Actor{Kind: Admin, Via: "api", Handle: "root", Session: 1}
+	tests := []struct {
+		name  string
+		rules Op[roomIn, roomOut]
+		calls bool
+	}{
+		{name: "for any person", calls: false},
+		{name: "for Cahut administrators", rules: Op[roomIn, roomOut]{Level: CahutAdmin}, calls: false},
+		{name: "for server administrators", rules: Op[roomIn, roomOut]{Level: ServerAdmin}, calls: true},
+		{name: "for Cahut administrators, and for the server", rules: Op[roomIn, roomOut]{Level: CahutAdmin, ForServer: true}, calls: true},
+		{name: "for visitors", rules: Op[roomIn, roomOut]{Visitors: true}, calls: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, _ := testRegistry(t)
+			op := createRoom(nil)
+			rules(op, tt.rules)
+			Register(r, op)
+			_, err := Do(context.Background(), r, op, root, roomIn{Name: "Team"})
+			if tt.calls && err != nil || !tt.calls && !errors.Is(err, ErrForbidden) {
+				t.Errorf("as an administrator of the server: err = %v, want calls %v", err, tt.calls)
+			}
+			if _, err := Do(context.Background(), r, op, admin, roomIn{Name: "Other"}); err != nil {
+				t.Errorf("from the command line: %v", err)
 			}
 		})
 	}

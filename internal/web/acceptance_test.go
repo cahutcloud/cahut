@@ -128,7 +128,12 @@ func setupAcceptance(t *testing.T) *acceptance {
 func (a *acceptance) api(t *testing.T, route string, in, out any) int {
 	t.Helper()
 	body, _ := json.Marshal(in)
-	req, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, a.console+"api/"+route, strings.NewReader(string(body)))
+	// The operations of the server answer at the API of its console.
+	url := a.console + "api/" + route
+	if op, ok := strings.CutPrefix(route, "server/"); ok {
+		url = a.base + "server/api/" + op
+	}
+	req, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, url, strings.NewReader(string(body)))
 	if a.session != "" {
 		req.Header.Set("Authorization", "Bearer "+a.session)
 	}

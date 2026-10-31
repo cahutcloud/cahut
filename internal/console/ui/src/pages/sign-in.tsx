@@ -1,10 +1,9 @@
-// Sign-in, for the people of this Cahut and for the administrators of the
-// server, who sign in at the console of any Cahut. Each sign-in keeps the
-// other session that the browser holds. See
-// docs/adr/0043-the-console-holds-two-sessions.md. The sign-in of a person
-// does not show the way to that of the server, which its administrators
-// reach at /server/sign-in, or from the page of their account; that of the
-// server takes the theme of the server, the inverse of that of a person.
+// Sign-in, for the people of this Cahut in its console, and for the
+// administrators of the server in the console of the server, at /server/ of
+// any domain. Each sign-in keeps the other session that the browser holds,
+// and neither shows the way to the other console. That of the server takes
+// the theme of the server, the inverse of that of a person. See
+// docs/adr/0058-a-console-for-the-server.md.
 // Behind the card, the Windows of the open house come out, and go back in
 // once signed in.
 import { useEffect, useRef, useState } from "preact/hooks";
@@ -13,7 +12,6 @@ import type { LegalLinks } from "../api.gen";
 import { AuthLogo, describeSignIn, Languages, Legal, LegalBeforeSignIn } from "../components";
 import { words } from "../i18n";
 import { Logo } from "../logo";
-import { Link } from "../router";
 import { type SceneMotion, SignInScene } from "../sign-in-scene";
 import type { Session } from "../session";
 import { useServerTheme } from "../theme";
@@ -42,9 +40,6 @@ const t = words({
 		handleOrEmail: "Handle or e-mail address",
 		sendLink: "Send me a link",
 		back: "Back to sign in",
-		keepsPerson: " Your session as a person stays open.",
-		keepsAdmin: " Your session as an administrator of the server stays open.",
-		backToConsole: "Back to the console",
 	},
 	fr: {
 		administer: "Administrer ce serveur",
@@ -70,20 +65,15 @@ const t = words({
 		handleOrEmail: "Identifiant ou adresse e-mail",
 		sendLink: "M'envoyer un lien",
 		back: "Retour à la connexion",
-		keepsPerson: " Votre session de personne reste ouverte.",
-		keepsAdmin: " Votre session d'administrateur du serveur reste ouverte.",
-		backToConsole: "Retour à la console",
 	},
 });
 
 export function SignIn(props: {
 	kind: Session["kind"];
 	purpose?: string;
-	/** Whether the browser holds the session of the other kind, which stays open. */
-	beside?: boolean;
 	onSignIn: (s: Session) => void;
 }) {
-	const { kind, purpose, beside, onSignIn } = props;
+	const { kind, purpose, onSignIn } = props;
 	const theme = useServerTheme(kind === "admin");
 	const [forgot, setForgot] = useState(false);
 	// A person who forgot their password gets a link by e-mail only where
@@ -129,7 +119,7 @@ export function SignIn(props: {
 		}
 	};
 
-	if (suspended && kind === "person") return <Suspended beside={beside} />;
+	if (suspended && kind === "person") return <Suspended />;
 	if (forgot) return <Forgot who={handle} onBack={() => setForgot(false)} />;
 	return (
 		<main class="auth auth--scene">
@@ -140,7 +130,6 @@ export function SignIn(props: {
 					<h1 class="c-h3">{kind === "admin" ? t.administer : t.signIn}</h1>
 					<p class="c-small c-muted">
 						{kind === "admin" ? t.asAdmin(location.hostname) : t.to(location.hostname, purpose)}
-						{beside && (kind === "admin" ? t.keepsPerson : t.keepsAdmin)}
 					</p>
 				</div>
 				<form onSubmit={submit}>
@@ -192,13 +181,6 @@ export function SignIn(props: {
 							</p>
 						) : (
 							<p class="c-small c-muted">{t.askAdmin}</p>
-						)}
-						{beside && (
-							<p class="c-small">
-								<Link class="c-link" href="/">
-									{t.backToConsole}
-								</Link>
-							</p>
 						)}
 					</div>
 				)}

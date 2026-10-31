@@ -8,15 +8,15 @@ import { useConsole } from "../context";
 import { que, words } from "../i18n";
 import { LimitBanner } from "../limit-banner";
 import { useLoad } from "../load";
-import { Away, Link } from "../router";
+import { Link } from "../router";
 import { RoomCards } from "./rooms";
 import { Usage } from "./usage";
 
 const t = words({
 	en: {
 		overview: "Overview",
-		signedInAs: (name: string, admin: boolean, server: boolean) =>
-			`Signed in as ${name}, ${admin ? "an administrator of this Cahut" : "a member of this Cahut"}${server ? (admin ? " and of the server" : ", and an administrator of the server") : ""}.`,
+		signedInAs: (name: string, admin: boolean) =>
+			`Signed in as ${name}, ${admin ? "an administrator of this Cahut" : "a member of this Cahut"}.`,
 		connectFirst: "Connect your first AI",
 		connectText: "Your AI publishes on Cahut over MCP. Connect it, then ask it to make a document, a deck or a dashboard.",
 		latestWindows: "Latest Windows",
@@ -29,8 +29,8 @@ const t = words({
 	},
 	fr: {
 		overview: "Vue d'ensemble",
-		signedInAs: (name, admin, server) =>
-			`Connecté en tant ${que(name)}, ${admin ? "administrateur" : "membre"} de cette Cahut${server ? (admin ? " et du serveur" : " et administrateur du serveur") : ""}.`,
+		signedInAs: (name, admin) =>
+			`Connecté en tant ${que(name)}, ${admin ? "administrateur" : "membre"} de cette Cahut.`,
 		connectFirst: "Connectez votre première IA",
 		connectText:
 			"Votre IA publie sur Cahut par MCP. Connectez-la, puis demandez-lui un document, une présentation ou un tableau de bord.",
@@ -46,10 +46,6 @@ const t = words({
 });
 
 export function Overview() {
-	return useConsole().session.kind === "admin" ? <Away to="/server/cahuts" /> : <PersonOverview />;
-}
-
-function PersonOverview() {
 	const api = useConsole();
 	const { data, error, reload } = useLoad(() =>
 		Promise.all([
@@ -69,7 +65,7 @@ function PersonOverview() {
 	return (
 		<>
 			<PageHead label={t.overview} title={<Domain name={location.hostname} />}>
-				{t.signedInAs(account.name, account.role === "admin", api.serverSession !== null)}
+				{t.signedInAs(account.name, account.role === "admin")}
 			</PageHead>
 			<LimitBanner settings={about} />
 			{noAI && (

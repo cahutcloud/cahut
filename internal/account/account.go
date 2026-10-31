@@ -290,6 +290,17 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 	},
 }
 
+// CreateFirstAdmin is create_user for an administrator of the server who
+// declares a Cahut with its first administrator: it starts the Cahut, as a
+// link of first start does. No registry holds it, so that add_domain alone
+// calls it; every other person of a Cahut is for its administrators. See
+// docs/adr/0058-a-console-for-the-server.md.
+var CreateFirstAdmin = func() *operation.Op[CreateUserInput, NewUser] {
+	op := *CreateUser
+	op.ForServer = true
+	return &op
+}()
+
 // ListUsersInput is the input of list_users.
 type ListUsersInput struct{}
 

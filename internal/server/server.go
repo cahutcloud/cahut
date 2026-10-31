@@ -214,7 +214,7 @@ func (s *Server) addDomain(ctx context.Context, c *operation.Call, in AddDomainI
 	if in.Admin != nil {
 		// The administrator of the server creates the person, in the
 		// Logbook of the new Cahut.
-		u, err := operation.Do(ctx, created.Registry, account.CreateUser, c.Actor,
+		u, err := operation.Do(ctx, created.Registry, account.CreateFirstAdmin, c.Actor,
 			account.CreateUserInput{Handle: in.Admin.Handle, Name: in.Admin.Name, Admin: true})
 		if err != nil {
 			created.Close()

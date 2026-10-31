@@ -160,15 +160,15 @@ func TestWindowsStayInTheirRoom(t *testing.T) {
 		t.Errorf("list_windows by the owner = %+v, %v", out, err)
 	}
 
-	// An administrator of the server manages people, not content; the
-	// command line reaches everything.
+	// An administrator of the server calls in a Cahut what serves the
+	// server only; the command line reaches everything. See
+	// docs/adr/0058-a-console-for-the-server.md.
 	serverAdmin := operation.Actor{Kind: operation.Admin, Via: "api", Domain: "cahut.example.com", Handle: "root", Session: 1}
-	out, err = f.invoke(t, serverAdmin, "list_windows", ``)
-	if err != nil || len(out.(List).Windows) != 0 {
-		t.Errorf("list_windows by an administrator of the server = %+v, %v", out, err)
+	if _, err := f.invoke(t, serverAdmin, "list_windows", ``); !errors.Is(err, operation.ErrForbidden) {
+		t.Errorf("list_windows by an administrator of the server: err = %v, want ErrForbidden", err)
 	}
-	if _, err := f.invoke(t, serverAdmin, "get_window", `{"window": "`+url+`"}`); !errors.Is(err, operation.ErrNotFound) {
-		t.Errorf("get_window by an administrator of the server: err = %v, want ErrNotFound", err)
+	if _, err := f.invoke(t, serverAdmin, "get_window", `{"window": "`+url+`"}`); !errors.Is(err, operation.ErrForbidden) {
+		t.Errorf("get_window by an administrator of the server: err = %v, want ErrForbidden", err)
 	}
 	out, err = f.invoke(t, operation.Actor{Kind: operation.Admin, Via: "cli"}, "list_windows", ``)
 	if err != nil || len(out.(List).Windows) != 1 {
