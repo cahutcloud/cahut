@@ -6,7 +6,7 @@ import { Check } from "lucide-preact";
 import { useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Activation, Answer, Knock } from "../api.gen";
-import { CopyField, Failure, Notice, PageHead, useArmed } from "../components";
+import { CopyField, Failure, PageHead, useArmed } from "../components";
 import { useConsole } from "../context";
 import { de, locale, words } from "../i18n";
 import { useLoad } from "../load";
@@ -58,7 +58,6 @@ const t = words({
 		waitingForYou: "Waiting for you",
 		nothingWaits: "Nothing waits for you.",
 		past: "Answered, expired or canceled",
-		onlyThePerson: "The person an AI acts for answers its Knocks. Sign in to this Cahut as that person.",
 		asked: (client: string, when: string, user: string) => `${client} asked on ${when}, on behalf of ${user}.`,
 		allKnocks: "All Knocks",
 		theCall: "The call",
@@ -113,8 +112,6 @@ const t = words({
 		waitingForYou: "En attente de votre réponse",
 		nothingWaits: "Rien ne vous attend.",
 		past: "Répondus, expirés ou annulés",
-		onlyThePerson:
-			"C'est la personne pour qui une IA agit qui répond à ses Knocks. Connectez-vous à cette Cahut en tant que cette personne.",
 		asked: (client, when, user) => `${client} a demandé le ${when}, pour ${user}.`,
 		allKnocks: "Tous les Knocks",
 		theCall: "L'appel",
@@ -338,9 +335,6 @@ export function KnockPage({ id }: { id: number }) {
 	const api = useConsole();
 	const { data, error, reload } = useLoad(() => api.cahut("get_knock", { knock: id }), [id]);
 	const [output, setOutput] = useState<unknown>(undefined);
-	if (api.session.kind !== "person") {
-		return <Notice>{t.onlyThePerson}</Notice>;
-	}
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
 	const k = data;

@@ -4,8 +4,7 @@
 import { ArrowRight, ArrowUpRight } from "lucide-preact";
 import { useMemo, useState } from "preact/hooks";
 import { explain } from "../api";
-import { CopyField, Domain, Failure, originOf, PageHead } from "../components";
-import { ipAddress } from "../connect";
+import { CopyField, Domain, Failure, ipAddress, originOf, PageHead } from "../components";
 import { words } from "../i18n";
 import { useLoad } from "../load";
 import { useQuery } from "../router";

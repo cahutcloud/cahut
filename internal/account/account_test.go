@@ -83,6 +83,23 @@ func (f *fixture) entries(t *testing.T) []logbook.Entry {
 
 var visitor = operation.Actor{Kind: operation.Visitor, Via: "api"}
 
+// TestCreateFirstAdmin checks that an administrator of the server makes the
+// first administrator of a Cahut while it has nobody only: every other
+// person is for its administrators. See
+// docs/adr/0058-a-console-for-the-server.md.
+func TestCreateFirstAdmin(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	root := operation.Actor{Kind: operation.Admin, Via: "api", Handle: "root"}
+	u, err := operation.Do(ctx, f.r, CreateFirstAdmin, root, CreateUserInput{Handle: "olivier", Name: "Olivier", Admin: true})
+	if err != nil || u.Role != "admin" {
+		t.Fatalf("the first administrator = %+v, %v", u.User, err)
+	}
+	if _, err := operation.Do(ctx, f.r, CreateFirstAdmin, root, CreateUserInput{Handle: "ana", Name: "Ana", Admin: true}); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("a first administrator in a Cahut that has people: %v, want ErrInvalid", err)
+	}
+}
+
 func TestCreateUser(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()

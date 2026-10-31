@@ -269,7 +269,7 @@ function NewAdmin({ onCreated, onClose }: { onCreated: () => void; onClose: () =
 					<Check class="i" size={16} aria-hidden="true" />
 					<div>{t.created(created.name)}</div>
 				</div>
-				<ActivationResult name={created.name} activation={created.activation} page="/activate" />
+				<ActivationResult name={created.name} activation={created.activation} />
 				<div class="dialog__foot">
 					<button class="c-btn c-btn--secondary" type="button" onClick={again}>
 						{t.addAnother}
@@ -382,7 +382,7 @@ function ManageAdmin(props: { admin: Admin; self: boolean; onChanged: () => void
 						action={t.newLink}
 						onAct={async () => {
 							const link = await run(() => api.server("create_activation_link", { admin: a.handle }));
-							return <ActivationResult name={a.name} activation={link} page="/activate" />;
+							return <ActivationResult name={a.name} activation={link} />;
 						}}
 					/>
 				)}

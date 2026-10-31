@@ -316,44 +316,6 @@
 	justify-content: space-between;
 	gap: var(--space-4);
 }
-.setup__steps {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--space-4);
-	margin: 0;
-	padding: 0;
-	list-style: none;
-	font-size: var(--text-sm);
-	color: var(--color-text-muted);
-}
-.setup__steps li {
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-}
-.setup__steps li[aria-current="step"] {
-	color: var(--color-text);
-	font-weight: 600;
-}
-.setup__number {
-	display: inline-grid;
-	place-items: center;
-	width: 24px;
-	height: 24px;
-	border-radius: var(--radius-pill);
-	border: 1px solid var(--color-border-strong);
-	font-size: var(--text-xs);
-}
-.setup__steps li[aria-current="step"] .setup__number {
-	background: var(--color-primary);
-	border-color: var(--color-primary);
-	color: var(--color-on-primary);
-}
-.setup__steps li[data-done] .setup__number {
-	background: var(--color-success-bg);
-	border-color: var(--color-success-border);
-	color: var(--color-success);
-}
 .setup__card {
 	padding: var(--space-8);
 }
@@ -413,31 +375,6 @@
 }
 .connect__panel p {
 	margin: 0;
-}
-.connect__status {
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-	margin: 0;
-	font-size: var(--text-sm);
-	color: var(--color-text-muted);
-}
-.connect__status--done {
-	color: var(--color-success);
-	font-weight: 600;
-}
-.connect__spin {
-	animation: connect-spin 1.2s linear infinite;
-}
-@keyframes connect-spin {
-	to {
-		transform: rotate(360deg);
-	}
-}
-@media (prefers-reduced-motion: reduce) {
-	.connect__spin {
-		animation: none;
-	}
 }
 
 /* The updates of the server */

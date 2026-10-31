@@ -293,11 +293,22 @@ var CreateUser = &operation.Op[CreateUserInput, NewUser]{
 // CreateFirstAdmin is create_user for an administrator of the server who
 // declares a Cahut with its first administrator: it starts the Cahut, as a
 // link of first start does. No registry holds it, so that add_domain alone
-// calls it; every other person of a Cahut is for its administrators. See
+// calls it, and it makes nobody in a Cahut that has people already: every
+// other person of a Cahut is for its administrators. See
 // docs/adr/0058-a-console-for-the-server.md.
 var CreateFirstAdmin = func() *operation.Op[CreateUserInput, NewUser] {
 	op := *CreateUser
 	op.ForServer = true
+	op.Run = func(ctx context.Context, c *operation.Call, in CreateUserInput) (NewUser, error) {
+		var people bool
+		if err := c.Tx.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM users)").Scan(&people); err != nil {
+			return NewUser{}, err
+		}
+		if people {
+			return NewUser{}, operation.Invalidf("this Cahut has people already: its administrators add the others")
+		}
+		return CreateUser.Run(ctx, c, in)
+	}
 	return &op
 }()
 

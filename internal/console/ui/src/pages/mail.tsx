@@ -21,9 +21,7 @@ const t = words({
 		howTitle: "How e-mail goes out",
 		lastSent: (ago: string) => `A message last went out ${ago}.`,
 		lastError: (ago: string | undefined, error: string) => `The last message that failed, ${ago ?? "lately"}: ${error}`,
-		testTo: "Send a test to",
 		testYours: "Send a test to your address",
-		test: "Send a test",
 		through: (host: string, port: number, security: string, from: string) => `Through ${host}:${port}, with ${security}, from ${from}.`,
 		development:
 			"This Cahut has no relay. The server runs for development: it writes the messages of this Cahut to disk, in the mail folder of its data.",
@@ -62,9 +60,7 @@ const t = words({
 		howTitle: "Comment partent les e-mails",
 		lastSent: (ago) => `Le dernier message est parti ${ago}.`,
 		lastError: (ago, error) => `Le dernier message en échec, ${ago ?? "récemment"} : ${error}`,
-		testTo: "Envoyer un test à",
 		testYours: "Envoyer un test à votre adresse",
-		test: "Envoyer un test",
 		through: (host, port, security, from) => `Par ${host}:${port}, en ${security}, depuis ${from}.`,
 		development:
 			"Cette Cahut n'a pas de relais. Le serveur tourne pour le développement : il écrit les messages de cette Cahut sur le disque, dans le dossier mail de ses données.",
@@ -101,10 +97,6 @@ export function MailPage() {
 	const { data, error, reload } = useLoad(() => api.cahut("get_mail_relay", {}));
 	const [failure, setFailure] = useState("");
 	const [said, setSaid] = useState("");
-	// An administrator of the server has no address: their test goes where
-	// they say.
-	const [to, setTo] = useState("");
-	const own = api.session.kind === "person";
 	if (!api.isAdmin) return <Notice>{t.onlyAdmins}</Notice>;
 	if (error) return <Failure message={error} />;
 	if (!data) return null;
@@ -121,7 +113,7 @@ export function MailPage() {
 	};
 	const test = (e: Event) => {
 		e.preventDefault();
-		act(async () => t.testSent((await api.cahut("send_test_mail", own ? {} : { to })).to));
+		act(async () => t.testSent((await api.cahut("send_test_mail", {})).to));
 	};
 	const changed = () => (reload(), api.reloadCahut());
 	return (
@@ -140,16 +132,10 @@ export function MailPage() {
 				)}
 				{data.relay && (
 					<form class="form" onSubmit={test}>
-						{!own && (
-							<label class="c-field">
-								<span class="c-field__label">{t.testTo}</span>
-								<input class="c-input" type="email" required autocomplete="email" value={to} onInput={(e) => setTo(e.currentTarget.value)} />
-							</label>
-						)}
 						<div>
 							<button class="c-btn c-btn--secondary" type="submit">
 								<Send class="i" size={16} aria-hidden="true" />
-								{own ? t.testYours : t.test}
+								{t.testYours}
 							</button>
 						</div>
 					</form>

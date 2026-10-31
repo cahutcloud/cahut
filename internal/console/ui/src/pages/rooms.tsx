@@ -46,10 +46,8 @@ const t = words({
 		newTeamRoom: "New team Room",
 		title: "Title",
 		name: "Name, in its address",
-		nameHelpIndividual: (handle?: string) =>
-			`From the title when empty, after ${handle === undefined ? "the handle of its owner" : `${handle}-`}. It cannot change later.`,
+		nameHelpIndividual: (handle: string) => `From the title when empty, after ${handle}-. It cannot change later.`,
 		nameHelp: "From the title when empty. It cannot change later.",
-		ownerLabel: "Owner",
 		choosePerson: "Choose a person",
 		createRoom: "Create the Room",
 		personalRoom: "Personal Room",
@@ -167,10 +165,8 @@ const t = words({
 		newTeamRoom: "Nouvelle Room d'équipe",
 		title: "Titre",
 		name: "Nom, dans son adresse",
-		nameHelpIndividual: (handle) =>
-			`Tiré du titre s'il est vide, après ${handle === undefined ? "l'identifiant de son propriétaire" : `${handle}-`}. Il ne pourra plus changer.`,
+		nameHelpIndividual: (handle) => `Tiré du titre s'il est vide, après ${handle}-. Il ne pourra plus changer.`,
 		nameHelp: "Tiré du titre s'il est vide. Il ne pourra plus changer.",
-		ownerLabel: "Propriétaire",
 		choosePerson: "Choisir une personne",
 		createRoom: "Créer la Room",
 		personalRoom: "Room personnelle",
@@ -341,15 +337,12 @@ function NewRoom() {
 	const api = useConsole();
 	const [title, setTitle] = useState("");
 	const [name, setName] = useState("");
-	const [owner, setOwner] = useState("");
 	const [error, setError] = useState("");
-	// The administrator of the server is no person of the Cahut: they name the owner.
-	const people = useLoad(() => (api.session.kind === "admin" ? api.cahut("list_users", {}) : Promise.resolve(null)));
 	const submit = async (e: Event) => {
 		e.preventDefault();
 		setError("");
 		try {
-			const r = await api.cahut("create_room", { title, name: name || undefined, owner: owner || undefined });
+			const r = await api.cahut("create_room", { title, name: name || undefined });
 			api.reloadRooms();
 			navigate(`/rooms/${r.name}`);
 		} catch (err) {
@@ -369,23 +362,10 @@ function NewRoom() {
 						<span class="c-field__label">{t.name}</span>
 						<input class="c-input c-mono" placeholder="marketing" autocapitalize="none" value={name} onInput={(e) => setName(e.currentTarget.value)} />
 						<span class="c-field__help">
-							{api.individual ? t.nameHelpIndividual(api.session.kind === "admin" ? undefined : api.session.handle) : t.nameHelp}
+							{api.individual ? t.nameHelpIndividual(api.session.handle) : t.nameHelp}
 						</span>
 					</label>
 				</div>
-				{people.data && (
-					<label class="c-field">
-						<span class="c-field__label">{t.ownerLabel}</span>
-						<select class="c-input" required value={owner} onChange={(e) => setOwner(e.currentTarget.value)}>
-							<option value="">{t.choosePerson}</option>
-							{people.data.users.map((u) => (
-								<option key={u.handle} value={u.handle}>
-									{u.name} ({u.handle})
-								</option>
-							))}
-						</select>
-					</label>
-				)}
 				{error && <Failure message={error} />}
 				<div>
 					<button class="c-btn c-btn--primary" type="submit">
