@@ -23,11 +23,11 @@ const t = words({
 		suspendedOn: (date: string, reason: string) => `Since ${date}: ${reason}`,
 		reportsWait: (n: number) => (n === 1 ? "1 report waits" : `${n} reports wait`),
 		address: "Its address",
-		addressOf: (domain: string) => `The address of ${domain}`,
+		addressOf: (domain: string) => `Its address: ${domain}`,
 		moveToDomain: "Move to a domain",
-		moveToDomainOf: (domain: string) => `Move ${domain} to a domain`,
+		moveToDomainOf: (domain: string) => `Move to a domain: ${domain}`,
 		changeDomain: "Change its domain",
-		changeDomainOf: (domain: string) => `Change the domain of ${domain}`,
+		changeDomainOf: (domain: string) => `Change its domain: ${domain}`,
 		moveText: (domain: string) => (
 			<>
 				Point the DNS record of the new domain to this server first. Everything in the Cahut stays, but the links that name{" "}
@@ -60,11 +60,11 @@ const t = words({
 		suspendedOn: (date, reason) => `Depuis le ${date} : ${reason}`,
 		reportsWait: (n) => (n === 1 ? "1 signalement attend" : `${n} signalements attendent`),
 		address: "Son adresse",
-		addressOf: (domain) => `L'adresse de ${domain}`,
+		addressOf: (domain) => `Son adresse : ${domain}`,
 		moveToDomain: "Passer à un domaine",
-		moveToDomainOf: (domain) => `Passer ${domain} à un domaine`,
+		moveToDomainOf: (domain) => `Passer à un domaine : ${domain}`,
 		changeDomain: "Changer de domaine",
-		changeDomainOf: (domain) => `Changer le domaine de ${domain}`,
+		changeDomainOf: (domain) => `Changer de domaine : ${domain}`,
 		moveText: (domain) => (
 			<>
 				Faites d'abord pointer l'enregistrement DNS du nouveau domaine vers ce serveur. Tout ce que contient la Cahut reste, mais
