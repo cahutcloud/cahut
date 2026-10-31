@@ -50,8 +50,10 @@ Open this link to start your Cahut. It works once, until 2026-10-25, and is show
 
   https://cahut.example.com/console/setup#k7n3…
 
-It creates your account and connects your first AI.
+It creates your account, and that of the administrator of this server
+while it has none, with the same password.
 For a new link: sudo -u cahut /usr/local/bin/cahut setup
+Then, the console of the server: https://cahut.example.com/server/
 ```
 
 Open the link in your browser: [The first start](/install/first-start/) walks through it.
@@ -72,7 +74,7 @@ The Cahut then answers at `https://203.0.113.7/`, with a certificate of Let's En
 
 ChatGPT does not connect to a Cahut at an IP address: move the Cahut to a domain before you add it to ChatGPT.
 
-When you have a domain, point it to the server, then move the Cahut there, in the console of the administrator of the server or on the command line:
+When you have a domain, point it to the server, then move the Cahut there, in the [console of the server](/admin/console/#the-console-of-the-server) or on the command line:
 
 ```bash
 sudo -u cahut /usr/local/bin/cahut domain rename 203.0.113.7 cahut.example.com

@@ -54,7 +54,7 @@ Cahut keeps the password of a relay sealed with AES-256-GCM, under a key of the 
 
 ## Test
 
-**Send a test to your address**, on the page **E-mail**, sends a message to the address of your account, and says whether the relay took it. An administrator of the server, who has no address, names one there. On the command line, name the address too:
+**Send a test to your address**, on the page **E-mail**, sends a message to the address of your account, and says whether the relay took it. On the command line, which has no address, name one:
 
 ```bash
 sudo -u cahut /usr/local/bin/cahut mail test --domain cahut.example.com --to you@example.com

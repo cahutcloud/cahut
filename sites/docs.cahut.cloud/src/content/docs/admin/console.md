@@ -1,9 +1,9 @@
 ---
 title: The console
-description: Sign in to the web console of a Cahut, under /console/ of its domain, and what each person and each administrator finds there.
+description: Sign in to the web console of a Cahut, under /console/ of its domain, and to that of the server, under /server/, and what each person and each administrator finds there.
 ---
 
-Each Cahut has a web console, under `/console/` of its domain: `https://cahut.example.com/console/`. The root of the domain, `https://cahut.example.com/`, and `/admin` lead there too: the console opens on its overview once you have signed in, and on its page of sign-in until then. People sign in there, see their Rooms and Windows, connect their AIs and read the Logbook; administrators manage people, Rooms and the server. The console uses the same [API](/reference/http-api/) as the AIs, and nothing else.
+Each Cahut has a web console, under `/console/` of its domain: `https://cahut.example.com/console/`. The root of the domain, `https://cahut.example.com/`, and `/admin` lead there too: the console opens on its overview once you have signed in, and on its page of sign-in until then. People sign in there, see their Rooms and Windows, connect their AIs and read the Logbook; its administrators manage its people and its Rooms. The administrators of the server have [a console of their own](#the-console-of-the-server), under `/server/`. The console uses the same [API](/reference/http-api/) as the AIs, and nothing else.
 
 Port 443 keeps the Windows and MCP. Some company networks let only port 443 out: from there, the console is out of reach, the Windows are not.
 
@@ -46,33 +46,38 @@ The same screens, and:
 - **Rooms**: every Room of the Cahut, whose people they manage. They open the Windows of the Rooms they are in only.
 - **Logbook**: every entry of the Cahut, from people and from AIs.
 - **AIs and access**: the connected AIs and the tokens of others too, which they can disconnect and revoke.
-- **Kind and limits**: whether the Cahut is collaborative or individual, its [limits](/concepts/cahuts/#limits) with what it holds, and the links to its [legal pages](/concepts/cahuts/#legal-pages). The administrators of the server set them.
+- **Kind and limits**: whether the Cahut is collaborative or individual, its [limits](/concepts/cahuts/#limits) with what it holds, and the links to its [legal pages](/concepts/cahuts/#legal-pages), which they read: the administrators of the server set them, in [their console](#the-console-of-the-server).
 - **Moderation**: the reports that anyone makes about the Windows of the Cahut, those that wait first, which the menu counts, and its public Windows; a reported Window opens there whatever its access, and is withdrawn or left as it is. See [Moderation](/admin/moderation/).
 
 In an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), the page of a Room no longer adds or removes people, and the access of a Window no longer offers Internal.
 
-## Administrators of the server
+## The console of the server
 
-The administrators of the server have accounts of their own, apart from the people of the Cahuts: see [Administrators of the server](/admin/commands/#administrators-of-the-server). They sign in at `/console/server/sign-in` of any Cahut, which its sign-in page does not link, so that the people of the Cahut are not shown the way to the server. Their first link opens at `/console/server/activate#...`.
+The administrators of the server have accounts of their own, apart from the people of the Cahuts: see [Administrators of the server](/admin/commands/#administrators-of-the-server). They have a console of their own too, under `/server/` of any domain of the server: `https://cahut.example.com/server/`. Its top bar is Ink, Paper in the dark theme, and says **Server**. The console of a Cahut does not link to it, so that its people are not shown the way to the server. Its first link opens at `/server/activate#...`, and its administrators sign in at `/server/sign-in`.
 
-A person who also administers the server holds both accounts in the same browser. **Sign in to the server**, on the **Account** page of a Cahut administrator, keeps the session of the person, and the pages of the server join their console under **This server**. The pages of the Cahut act as the person, but for its kind, its limits and its legal pages, which act as the administrator of the server. An administrator of the server who signs in alone finds **Sign in as a person** in the top bar and on their **Account** page.
+From the domain where they signed in, they look after every Cahut of the server, without signing in again. They find:
 
-While the browser holds the session of an administrator of the server, the bar of the server sits above the top bar, on every page. It says **Server administration**, names the Cahut of the domain and the administrator, and holds **Sign out of the server**. The domain of the Cahut opens the list of the Cahuts of the server: another one opens at its own console, where you sign in to the server again. The top bar below is that of the Cahut, and says who acts in it: the person, with **Sign out**, or, without one, the administrator of the server. Each bar signs out of its own session, and the console stays open with the other one.
+- **Cahuts**: the Cahuts of the server, with their kind, how many reports wait in each, and their suspension, since when and why; a form that declares one with its first administrator, whose link the console shows; and on each Cahut **Move to a domain** or **Change its domain**. When the Cahut of the domain where you signed in moves, the console sends you to sign in again at its new address.
+- **The page of a Cahut**, from that list:
+  - its kind and its [limits](/concepts/cahuts/#limits), with what it holds: a field left empty lifts a limit, and the disk counts in gigabytes of a billion bytes;
+  - the addresses of its [legal pages](/concepts/cahuts/#legal-pages), each with another address in French where the page in French differs; a field left empty removes its link;
+  - its address of moderation;
+  - its [suspension](/concepts/cahuts/#suspension), with a reason, which they change, and its resumption;
+  - its [moderation](/admin/moderation/): the reports that wait, its public Windows, the preview of a reported Window, its withdrawal and its reinstatement;
+  - its service tokens, which a program on the server uses for the [admin API](/reference/http-api/#admin-api): **Create a token** shows it once, and **Revoke** ends its access at once;
+  - while the Cahut has nobody, a link of [first start](/install/first-start/).
 
-They find:
-
-- **Overview**, or **Cahuts** beside the console of a person: the Cahuts of the server, how many reports wait in each, a form that declares one with its first administrator, whose link the console shows, and on each Cahut **Move to a domain** or **Change its domain**. When the Cahut of the console moves, the console sends you to sign in again at its new address. A suspended Cahut says so, since when and why.
-- **Server administrators**: the list, with the day each was added and their state. **New administrator** adds one and gives their link. **Manage** changes the name of an administrator, theirs or one's own, gives another administrator a new link, or disables and enables them; disabling asks to confirm first. A disabled administrator loses their sessions and cannot sign in; the server keeps at least one who is not disabled. The screen reminds that an administrator of one Cahut only is made under **People**.
-- **Logbook of the server**: the Cahuts declared and moved, the administrators and their sign-ins, and the updates.
+  Each change goes to the Logbook of the Cahut.
+- **Administrators**: the list, with the day each was added and their state. **New administrator** adds one and gives their link. **Manage** changes the name of an administrator, theirs or one's own, gives another administrator a new link, or disables and enables them; disabling asks to confirm first. A disabled administrator loses their sessions and cannot sign in; the server keeps at least one who is not disabled.
+- **Logbook**: the Cahuts declared and moved, the administrators and their sign-ins, and the updates.
 - **Updates**: the version running, the newest release, the last update and how it ended, with **Check now** and **Update**. See [Updates](/admin/updates/).
-- In the Cahut of the domain where they signed in, **People**, **Rooms**, its **Logbook** and **Moderation**, as its administrators have them, without its Windows.
-- **Kind and limits**, where they make the Cahut collaborative or individual and set its limits: a field left empty lifts a limit, and the disk counts in gigabytes of a billion bytes. Under **Legal pages**, they give the addresses of its legal notice, terms, privacy policy and support, each with another address in French where the page in French differs; a field left empty removes its link. Under **Suspension**, they [suspend the Cahut](/concepts/cahuts/#suspension) with a reason, change the reason, and resume it; while it is suspended, a notice on every page says so, and a person who also administers the server acts in it as the administrator of the server. Each change goes to the Logbook of the Cahut.
+- **Account**: the language of the console, the password of the server, and signing out of the server.
 
-A session holds at the domain where it opened: to look after another Cahut, sign in at its own console.
+The people, the Rooms, the e-mail and the Logbook of a Cahut are for its own administrators: an administrator of the server who looks after them needs an account of a person there, as one of its administrators. Someone alone on their server has both accounts, which the first start makes with one password.
 
 ## Sessions
 
-A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. A browser holds at most two sessions at a Cahut, that of a person and that of an administrator of the server, and a session that ends asks to sign in again with its own account. Signing out also ends the reader sessions that the console opened in that browser, and **Sign out** on the pages of the Cahut ends the session of the console that opened them.
+A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. A browser holds the session of a person, for the console of the Cahut, and that of an administrator of the server, for the console of the server: each console signs out of its own, and a session that ends asks to sign in again with its own account. Signing out also ends the reader sessions that the console opened in that browser, and **Sign out** on the pages of the Cahut ends the session of the console that opened them.
 
 After 10 refused sign-ins to one handle from one address in 15 minutes, that address must wait; after 100 from everywhere, the handle waits everywhere. An address that tries too often must wait too, and an IPv6 address counts with its whole /64. The Logbook keeps the address of every sign-in.
 

@@ -3,7 +3,7 @@ title: Moderation
 description: How anyone reports a Window of a Cahut, and how its moderators read the reports, open the Window, withdraw it and reinstate it.
 ---
 
-Anyone reports a Window of a Cahut to its moderators, without an account. The moderators of a Cahut are its administrators and the administrators of its server. They read the reports in its console, and decide.
+Anyone reports a Window of a Cahut to its moderators, without an account. The moderators of a Cahut are its administrators and the administrators of its server. They read the reports in the console of the Cahut, or of the server, and decide.
 
 ## Reporting a Window
 
@@ -23,7 +23,7 @@ The page then says that the report was received, and nothing about the Window. R
 
 ## Reading the reports
 
-The administrators of a Cahut, and the administrators of its server from their session in its console, find its reports under **Moderation**. The menu counts those that wait, and so does the list of the Cahuts of the server, in its console and in [`cahut domain list`](/admin/commands/#declare-a-cahut). Each report gives its number, what is wrong, the Window it names with its Room and its access, the explanation, and the name and address of whoever reported, if they gave them.
+The administrators of a Cahut find its reports under **Moderation**, in its console, and the administrators of its server on the page of the Cahut in the [console of the server](/admin/console/#the-console-of-the-server). The menu of the console of the Cahut counts those that wait, and so does the list of the Cahuts of the server, in the console of the server and in [`cahut domain list`](/admin/commands/#declare-a-cahut). Each report gives its number, what is wrong, the Window it names with its Room and its access, the explanation, and the name and address of whoever reported, if they gave them.
 
 ## Opening a reported Window
 
@@ -41,7 +41,7 @@ Cahut then forgets the name and the address of whoever reported. Decided reports
 
 ## Reinstating
 
-**Reinstate**, on a decided report whose Window is still withdrawn, gives the Window back as it was: its access, its Key, its share links until their end. A Window that the administrators of the server withdrew is theirs: only they change its reason or reinstate it, and the administrators of the Cahut are refused with the code `window_withdrawn_by_host`.
+**Reinstate**, on a decided report whose Window is still withdrawn, gives the Window back as it was: its access, its Key, its share links until their end. A Window that the administrators of the server withdrew is theirs: only they change its reason or reinstate it, from the console of the server; the console of the Cahut shows it withdrawn by the server, without **Reinstate**.
 
 For a person who publishes abuse again and again, disable them or delete them for good under **People**, or have the administrators of the server [suspend the Cahut](/concepts/cahuts/#suspension). Disabling a person leaves their public Windows open: withdraw them too.
 
@@ -51,7 +51,7 @@ Moderation is for people: no AI and no service is offered its operations, [`repo
 
 When the Cahut sends e-mail, through its [relay](/admin/mail/):
 
-- **Each report** goes to its administrators who have an address, and to its **address of moderation**, which the administrators of the server set on the page **Kind and limits**, or with [`cahut settings moderation-address`](/admin/commands/#set-the-address-of-moderation-of-a-cahut): an abuse mailbox of the host, since they have no address of their own. The message gives the number of the report, what is wrong and the address of the Window, and links **Moderation**. The explanation stays in the console.
+- **Each report** goes to its administrators who have an address, and to its **address of moderation**, which the administrators of the server set on the page of the Cahut in the [console of the server](/admin/console/#the-console-of-the-server), or with [`cahut settings moderation-address`](/admin/commands/#set-the-address-of-moderation-of-a-cahut): an abuse mailbox of the host, since they have no address of their own. The message gives the number of the report, what is wrong and the address of the Window, and links **Moderation**. The explanation stays in the console.
 - **Whoever reported** with an address gets a receipt, then the decision: the Window was withdrawn, or the moderators left it as it is. Cahut then forgets their address.
 - **The members of the Room** of a Window, or its author for a Window that is theirs alone, hear that it was withdrawn, with the reason and the link to the support page of the Cahut when it has one, then each new reason that a moderator gives, and that it was reinstated.
 

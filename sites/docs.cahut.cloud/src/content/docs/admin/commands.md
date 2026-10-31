@@ -204,7 +204,7 @@ Only a Cahut has a relay: without one, it sends no e-mail. On a server that hold
 
 ## Administrators of the server
 
-The administrators of the server have accounts of their own, apart from the people of the Cahuts. In the console, they declare Cahuts and read the Logbook of the server, and in each Cahut they manage its people and its Rooms, but do not open its Windows. They sign in at `/console/server/sign-in` of any Cahut: a session holds at the domain where it opened, so an administrator who looks after several Cahuts signs in to each.
+The administrators of the server have accounts of their own, apart from the people of the Cahuts. In the [console of the server](/admin/console/#the-console-of-the-server), under `/server/` of any domain of the server, they declare Cahuts, set what the server sets for each, moderate them, and read the Logbook of the server. From the domain where they signed in, they reach every Cahut. The people and the Rooms of each Cahut are for its own administrators.
 
 ```bash
 sudo -u cahut /usr/local/bin/cahut admin create --handle olivier --name "Olivier Durand"
@@ -217,10 +217,10 @@ Created olivier (Olivier Durand), administrator of this server.
 
 Send olivier this link, where they choose their password. It works once, until 2026-10-29, and is shown only now.
 
-https://cahut.example.com/console/server/activate#...
+https://cahut.example.com/server/activate#...
 ```
 
-The link opens at the console of the first Cahut declared, or of the one `--domain` names. `admin link` gives a new link to an administrator who lost theirs or forgot their password. The command line itself needs no account: whoever runs it on the server acts as an administrator of the server, everywhere.
+The link opens the console of the server, at the domain of the first Cahut declared, or of the one `--domain` names. `admin link` gives a new link to an administrator who lost theirs or forgot their password. The command line itself needs no account: whoever runs it on the server acts as an administrator of the server, everywhere.
 
 An administrator of the server holds every Cahut of the server. To make someone an administrator of one Cahut only, create them as a person of it with [`user create --admin`](#create-a-person), or make them an administrator in its console, under **People**.
 
