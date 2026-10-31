@@ -171,6 +171,10 @@ func (s *Service) callQuery(ctx context.Context, c *operation.Call, in PageDataI
 	if writes {
 		s.copyDaily(w.ID, c.Now)
 	}
+	if r.Columns == nil {
+		// A query that writes and returns no rows still answers lists.
+		r.Columns, r.Rows.Rows = []string{}, [][]json.RawMessage{}
+	}
 	return PageData{Rows: r.Rows, Changes: r.Changes, LastID: r.LastID, Wrote: writes}, nil
 }
 
