@@ -386,7 +386,12 @@
 }
 .updates__spin {
 	vertical-align: -2px;
-	animation: connect-spin 1.2s linear infinite;
+	animation: updates-spin 1.2s linear infinite;
+}
+@keyframes updates-spin {
+	to {
+		transform: rotate(360deg);
+	}
 }
 @media (prefers-reduced-motion: reduce) {
 	.updates__spin {
