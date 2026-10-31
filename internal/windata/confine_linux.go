@@ -12,6 +12,10 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// restrictsThreads says whether this binary can restrict every thread of
+// its process, which a binary built with cgo cannot.
+const restrictsThreads = !raceEnabled
+
 // LandlockABI returns the version of Landlock that the kernel offers, or 0
 // when it offers none.
 func LandlockABI() int {
@@ -83,6 +87,11 @@ func confine(dir string) error {
 	abi := LandlockABI()
 	if abi < 1 {
 		return nil // cahut doctor says that the workers are not confined
+	}
+	if !restrictsThreads {
+		// The race detector needs cgo, under which Go cannot restrict every
+		// thread: make test runs the test of confinement again without it.
+		return nil
 	}
 	attr := rulesetAttr{fs: fsAccess(abi)}
 	size := unsafe.Sizeof(attr.fs)

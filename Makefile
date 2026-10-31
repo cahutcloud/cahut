@@ -41,8 +41,9 @@ console: $(CONSOLE_DEPS) ## Build the console into internal/console/ui/dist
 console-dev: $(CONSOLE_DEPS) ## Serve the console with live reload on http://localhost:5173/console/, next to make dev
 	cd $(CONSOLE_DIR) && npm run dev
 
-test: ## Run the tests with the race detector
+test: ## Run the tests with the race detector, and the confinement of workers without it
 	go test -race ./...
+	CGO_ENABLED=0 go test -count=1 ./internal/windata/|TestPool' ./internal/windata/
 
 lint: ## Check go.mod and run the linters
 	go mod tidy -diff

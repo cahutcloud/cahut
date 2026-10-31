@@ -10,6 +10,9 @@ import (
 	"syscall"
 )
 
+// restrictsThreads is false: nothing restricts a worker outside Linux.
+const restrictsThreads = false
+
 // LandlockABI returns 0: Landlock is a module of Linux.
 func LandlockABI() int { return 0 }
 

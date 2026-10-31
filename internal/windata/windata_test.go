@@ -531,6 +531,9 @@ func TestConfinement(t *testing.T) {
 	if LandlockABI() < 1 {
 		t.Skip("no Landlock on this system")
 	}
+	if !restrictsThreads {
+		t.Skip("built with cgo, for the race detector: make test runs this test again without it")
+	}
 	dir := t.TempDir()
 	outside := filepath.Join(t.TempDir(), "secret")
 	if err := os.WriteFile(outside, []byte("key"), 0o600); err != nil {
