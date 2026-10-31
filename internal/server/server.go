@@ -415,7 +415,7 @@ func (s *Server) OpenCahut(ctx context.Context, domain string) (*cahut.Cahut, er
 	if err != nil {
 		return nil, err
 	}
-	cfg := cahut.Config{Dir: s.dir(id), Domain: domain, Mail: s.Mail, Data: s.Data}
+	cfg := cahut.Config{Dir: s.dir(id), Domain: domain, Mail: s.Mail, Data: s.Data, AdminSessionLasts: s.SessionLasts}
 	if s.cfg.BaseURL != nil {
 		cfg.BaseURL = s.cfg.BaseURL(domain)
 	}

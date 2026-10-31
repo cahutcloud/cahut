@@ -6,9 +6,13 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"cahut.cloud/internal/store"
 )
 
 // petitionWindow is a Window that keeps data: anyone signs, people see
@@ -152,6 +156,91 @@ func TestFramesCallTheirData(t *testing.T) {
 	if status, out := f.post(t, "/-/frame/forged/.data/sql", `{"sql": "SELECT 1"}`); status != http.StatusNotFound || errorCode(out) != "not_found" {
 		t.Errorf("a forged frame = %d %v", status, out)
 	}
+}
+
+// TestModeratorFramesReadWhileTheyOpen checks that the pages of a reported
+// Window, in the frame of a moderator, read its data only while the frame
+// opens the Window: while their session lasts, they moderate the Cahut and
+// the report waits, as its files are served. See
+// docs/adr/0054-reporting-and-withdrawing-a-window.md.
+func TestModeratorFramesReadWhileTheyOpen(t *testing.T) {
+	f := setup(t)
+	olivier := f.person(t, "localhost", "olivier")
+	f.call(t, "localhost", olivier, "publish_window", strings.Replace(petitionWindow, "%s", "", 1))
+	if status, _ := f.sendReport(t, "https://localhost/olivier/save-the-river/", "illegal", "It shows what the law forbids.", ""); status != http.StatusOK {
+		t.Fatalf("report = %d", status)
+	}
+	read := `{"sql": "SELECT count(*) FROM signatures"}`
+	frameOf := func(who, path, token string) string {
+		t.Helper()
+		r := call(t, f, f.ts, http.MethodPost, "localhost", path, token, `{"report": 1}`)
+		frame, _ := r.body["frame"].(string)
+		if r.status != http.StatusOK || frame == "" {
+			t.Fatalf("preview_reported_window as %s: %d %s", who, r.status, r.raw)
+		}
+		if status, out := f.post(t, frame+".data/sql", read); status != http.StatusOK {
+			t.Fatalf("the data in the frame of %s = %d %v", who, status, out)
+		}
+		return frame
+	}
+	closed := func(who, frame string) {
+		t.Helper()
+		if status, out := f.post(t, frame+".data/sql", read); status != http.StatusNotFound || errorCode(out) != "not_found" {
+			t.Errorf("the data in the frame of %s = %d %v, want 404 not_found", who, status, out)
+		}
+	}
+
+	root := serverAdmin(t, f, "root")
+	ana := activate(t, f, f.ts, "ana", true)
+	bob := activate(t, f, f.ts, "bob", true)
+	camille := activate(t, f, f.ts, "camille", true)
+	rootFrame := frameOf("root", "/server/api/cahuts/localhost/preview_reported_window", root)
+	anaFrame := frameOf("ana", "/console/api/preview_reported_window", ana)
+	bobFrame := frameOf("bob", "/console/api/preview_reported_window", bob)
+	camilleFrame := frameOf("camille", "/console/api/preview_reported_window", camille)
+
+	if r := call(t, f, f.ts, http.MethodPost, "localhost", "/server/api/sign_out", root, `{}`); r.status != http.StatusOK {
+		t.Fatalf("sign_out of the server: %d %s", r.status, r.raw)
+	}
+	closed("root once signed out", rootFrame)
+
+	if r := call(t, f, f.ts, http.MethodPost, "localhost", "/console/api/sign_out", ana, `{}`); r.status != http.StatusOK {
+		t.Fatalf("sign_out of ana: %d %s", r.status, r.raw)
+	}
+	closed("ana once signed out", anaFrame)
+
+	f.call(t, "localhost", admin, "set_user_role", `{"user": "camille", "role": "member"}`)
+	closed("camille once a member", camilleFrame)
+
+	// The pages of a frame call at once, more than the reads of the Cahut
+	// take together: the check holds no connection of its own.
+	statuses := make(chan int, 2*store.ReadConnections)
+	var wg sync.WaitGroup
+	for range 2 * store.ReadConnections {
+		wg.Go(func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			req, _ := http.NewRequestWithContext(ctx, http.MethodPost, f.ts.URL+bobFrame+".data/sql", strings.NewReader(read))
+			req.Header.Set("Content-Type", "application/json")
+			resp, err := f.client("localhost", "").Do(req)
+			if err != nil {
+				statuses <- 0
+				return
+			}
+			resp.Body.Close()
+			statuses <- resp.StatusCode
+		})
+	}
+	wg.Wait()
+	close(statuses)
+	for status := range statuses {
+		if status != http.StatusOK {
+			t.Errorf("a read among many at once = %d", status)
+		}
+	}
+
+	f.call(t, "localhost", admin, "dismiss_report", `{"report": 1}`)
+	closed("bob once the report is decided", bobFrame)
 }
 
 func TestWritesClose(t *testing.T) {

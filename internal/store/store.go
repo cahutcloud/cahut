@@ -45,6 +45,12 @@ type DB struct {
 	Read  *sql.DB
 }
 
+// ReadConnections is how many connections read a database at once. A call
+// that holds one in its transaction reads through it, never through the pool
+// beside it: calls that each waited for a second connection would wait on
+// one another.
+const ReadConnections = 4
+
 // Open opens the database file at path, creating it if needed, and applies
 // the migrations of schema that it lacks.
 func Open(ctx context.Context, path string, schema fs.FS) (*DB, error) {
@@ -63,7 +69,7 @@ func Open(ctx context.Context, path string, schema fs.FS) (*DB, error) {
 		write.Close()
 		return nil, err
 	}
-	read.SetMaxOpenConns(4)
+	read.SetMaxOpenConns(ReadConnections)
 	return &DB{Write: write, Read: read}, nil
 }
 

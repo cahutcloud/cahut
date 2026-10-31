@@ -228,7 +228,17 @@ func (s *Service) pageWindow(ctx context.Context, c *operation.Call, in PageData
 				pass = frame.ID
 			}
 		case FrameByModerator, FrameByHost:
-			// A moderator sees what anyone sees, for the time of the frame.
+			// A moderator sees what anyone sees, while the frame opens the
+			// Window.
+			opens := false
+			if s.ModeratorOpens != nil {
+				if opens, err = s.ModeratorOpens(ctx, c.Tx, frame, c.Now); err != nil {
+					return Served{}, pageReader{}, err
+				}
+			}
+			if !opens {
+				return Served{}, pageReader{}, refuse(DataNotFound, operation.ErrNotFound, "this frame no longer opens its Window: open the Window at its address again")
+			}
 			reader.readOnly = true
 		}
 		if !reader.readOnly {

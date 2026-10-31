@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"cahut.cloud/internal/account"
 	"cahut.cloud/internal/operation"
-	"cahut.cloud/internal/store"
 	"cahut.cloud/internal/window"
 )
 
@@ -75,19 +75,47 @@ func previewReported(frameKey []byte) func(ctx context.Context, c *operation.Cal
 	}
 }
 
-// Opens reports whether the frame of a moderator opens the Window id: a
+// FrameOpens reports whether the frame f of a moderator still opens its
+// Window: their session lasts, of the Cahut, or of the server as hostLasts
+// says, they still moderate the Cahut, and a report about the Window waits.
+// It reads the Cahut with q: the transaction of a call, which holds a
+// connection already, or its database.
+func FrameOpens(ctx context.Context, q account.RowQuerier, f window.Frame, now time.Time, hostLasts func(ctx context.Context, id int64, now time.Time) (bool, error)) (bool, error) {
+	var userID int64
+	if f.Kind == window.FrameByHost {
+		if hostLasts == nil {
+			return false, nil
+		}
+		lasts, err := hostLasts(ctx, f.ID, now)
+		if err != nil || !lasts {
+			return false, err
+		}
+	} else {
+		o, err := account.SessionIn(ctx, q, f.ID, false, now)
+		if errors.Is(err, account.ErrInvalidSession) {
+			return false, nil
+		}
+		if err != nil {
+			return false, err
+		}
+		userID = o.UserID
+	}
+	return opens(ctx, q, f.Window, userID)
+}
+
+// opens reports whether the frame of a moderator opens the Window id: a
 // report about it waits, and the person userID still administers the
 // Cahut, when the frame is theirs. A frame of an administrator of the
 // server gives no person: its session is checked in the database of the
 // server.
-func Opens(ctx context.Context, db *store.DB, id, userID int64) (bool, error) {
+func opens(ctx context.Context, q account.RowQuerier, id, userID int64) (bool, error) {
 	var reported bool
-	err := db.Read.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM reports WHERE window_id = ? AND decision IS NULL)", id).Scan(&reported)
+	err := q.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM reports WHERE window_id = ? AND decision IS NULL)", id).Scan(&reported)
 	if err != nil || !reported || userID == 0 {
 		return reported, err
 	}
 	var admin bool
-	err = db.Read.QueryRowContext(ctx, "SELECT role = 'admin' FROM users WHERE id = ? AND disabled_at IS NULL", userID).Scan(&admin)
+	err = q.QueryRowContext(ctx, "SELECT role = 'admin' FROM users WHERE id = ? AND disabled_at IS NULL", userID).Scan(&admin)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
