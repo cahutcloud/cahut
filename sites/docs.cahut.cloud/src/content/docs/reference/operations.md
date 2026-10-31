@@ -24,6 +24,7 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | `change_handle` | Change your handle, with which you sign in. Your personal Room takes it as its name: the addresses of its Windows change, the old ones stop working, and your old handle is free for another person or Room. In an individual Cahut, your other Rooms, whose names start with your handle, take the new one too. Answer the Knocks that wait for you first. | Any person | yes | no, people only |
 | `change_name` | Change your name, as the people of the Cahut see it. Your personal Room takes it too, unless you gave it a title of its own. | Any person | yes | no, people only |
 | `change_password` | Change your password. Your other sessions end. | Any person | yes | no, people only |
+| [`change_window_data`](/reference/mcp-tools/#change_window_data) | Run SQLite statements on the database of a Window of your Rooms: create tables, add columns, add, change or delete rows. Cahut copies the database first; rollback_window_data goes back to the copy. | Any person | yes | yes |
 | `check_handle` | Say whether a handle can go to a new person: of the form of a handle, not reserved, and held by no person and by no Room. For the administrators of the Cahut. | Administrators of the Cahut | no | no, people only |
 | `confirm_email` | Confirm a new e-mail address from the link sent to it, which makes it the address of its person. | Anyone, to sign in | yes | no, people only |
 | `create_activation_link` | Give a person a new single-use link, valid 7 days, where they choose their password, for instance after they forgot it. It goes to their e-mail address too, when they have one and the Cahut sends e-mail. Their password works until they use the link. | Administrators of the Cahut | yes | no, people only |
@@ -68,6 +69,7 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | `preview_windows` | Get the frames that show Windows of your Rooms in the console, as previews: each opens one Window, while your session lasts and four hours at most. | Any person | no | no, people only |
 | [`publish_window`](/reference/mcp-tools/#publish_window) | Publish a new Window in this Cahut: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. | Any person | yes | yes |
 | [`purge_window`](/reference/mcp-tools/#purge_window) | Delete a Window of this Cahut that is in the trash for good, with its versions and its files: this cannot be undone. Its address becomes free. Put the Window in the trash first, with trash_window. | Any person | yes | yes |
+| [`query_window_data`](/reference/mcp-tools/#query_window_data) | Run one SELECT over the whole database of a Window of your Rooms, private columns included, and get 1,000 rows at most, marked cut beyond. get_window gives its tables and columns. | Any person | no | yes |
 | `reinstate_window` | Give a withdrawn Window back as it was: its access, its Key, its share links until their end. A Window that the administrators of the server withdrew is reinstated by them only. For the moderators of this Cahut. | Administrators of the Cahut | yes | no, people only |
 | [`remove_room_member`](/reference/mcp-tools/#remove_room_member) | Remove a person from a team Room, or leave it yourself. They no longer open or publish its Windows. A Room keeps at least one owner. | Any person; nobody in an individual Cahut | yes | yes |
 | [`rename_window`](/reference/mcp-tools/#rename_window) | Change the name of a Window of this Cahut, the last part of its address, &lt;domain&gt;/&lt;room&gt;/&lt;name&gt;/. Its title, its id and its permanent address stay. The old address stops working at once, and its name is free in the Room: rename_window back to it undoes the change, while no other Window takes it. | Any person | yes | yes |
@@ -81,6 +83,7 @@ Each operation states who may call it: any person of the Cahut, its administrato
 | [`revoke_share_link`](/reference/mcp-tools/#revoke_share_link) | Take back a share link to a Window of this Cahut: it no longer opens the Window, to those who opened it too. | Any person | yes | yes |
 | `revoke_token` | Revoke a personal token. The AI that used it loses access at once. | Any person | yes | no, people only |
 | [`rollback_window`](/reference/mcp-tools/#rollback_window) | Go back to the previous version of a Window of this Cahut. The version you leave becomes the previous one, so calling rollback_window again returns to it. | Any person | yes | yes |
+| [`rollback_window_data`](/reference/mcp-tools/#rollback_window_data) | Put the database of a Window back as a copy has it, the latest by default: what readers wrote since is lost. The database as it was becomes a copy, so calling it again undoes it. | Any person | yes | yes |
 | `select_window_data` | Run the SELECT of a page of a Window over what its declaration makes readable. | Anyone, to sign in | no | no, people only |
 | `send_test_mail` | Send a test message through the relay of this Cahut, and say whether the relay took it. For the administrators of the Cahut. | Administrators of the Cahut | yes | no, people only |
 | [`set_ai_reach`](/reference/mcp-tools/#set_ai_reach) | Set what an AI connected over OAuth reaches in this Cahut: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. | Any person | yes | yes |
@@ -135,7 +138,7 @@ An operation that cannot be undone, or that changes what a person may do, knocks
 
 These operations knock first: `add_room_member`, `create_user`, `delete_room`, `delete_user`, `disable_user`, `enable_user`, `purge_window`, `remove_room_member`, `set_room_member_role`, `set_user_email`, `set_user_role`.
 
-These knock first for some calls only: `set_ai_reach`, when it widens the reach of an AI; `set_window_access`, when it makes a Window public; `update_window`, when it lets anyone change or delete the rows of a public Window.
+These knock first for some calls only: `change_window_data`, when the statements remove or rename a table, a column, an index, a view or a trigger; `set_ai_reach`, when it widens the reach of an AI; `set_window_access`, when it makes a Window public; `update_window`, when it lets anyone change or delete the rows of a public Window.
 
 ## Open to services
 

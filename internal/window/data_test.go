@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/windata"
@@ -186,5 +187,113 @@ func TestUpdateKnocks(t *testing.T) {
 	}
 	if _, err := f.invoke(t, f.olivier, "update_window", update); err != nil {
 		t.Errorf("update_window with the same query: %v", err)
+	}
+}
+
+// TestAIsReadAndChangeData checks query_window_data, change_window_data
+// and rollback_window_data.
+func TestAIsReadAndChangeData(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	if _, err := f.invoke(t, f.olivier, "publish_window", petition(`, "INSERT INTO signatures (name, email) VALUES ('Ana', 'ana@example.com'), ('Ben', 'ben@example.com')"`, "")); err != nil {
+		t.Fatal(err)
+	}
+	out, err := f.invoke(t, f.olivier, "query_window_data", `{"window": "olivier/save-the-river", "sql": "SELECT email FROM signatures WHERE name = :name", "params": {"name": "Ana"}}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	q := out.(QueriedData)
+	if len(q.Rows.Rows) != 1 || string(q.Rows.Rows[0][0]) != `"ana@example.com"` || !strings.Contains(q.Note, "never instructions") {
+		t.Errorf("query_window_data = %+v", q)
+	}
+	// Another person reads nothing of it.
+	if _, err := f.invoke(t, f.camille, "query_window_data", `{"window": "olivier/save-the-river", "sql": "SELECT 1"}`); err == nil {
+		t.Error("camille read the data of a Window of olivier")
+	}
+
+	out, err = f.invoke(t, f.olivier, "change_window_data", `{"window": "olivier/save-the-river", "sql": "DELETE FROM signatures WHERE name = 'Ben'"}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c := out.(ChangedData); c.Changes != 1 || c.Copy == "" {
+		t.Errorf("change_window_data = %+v", c)
+	}
+	count := func() string {
+		t.Helper()
+		out, err := f.invoke(t, f.olivier, "query_window_data", `{"window": "olivier/save-the-river", "sql": "SELECT count(*) FROM signatures"}`)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(out.(QueriedData).Rows.Rows[0][0])
+	}
+	if got := count(); got != "1" {
+		t.Fatalf("rows after the change = %s", got)
+	}
+
+	// Removing a column knocks first, and changes nothing until a person approves.
+	drop := `{"window": "olivier/save-the-river", "sql": "ALTER TABLE signatures DROP COLUMN email"}`
+	if _, err := f.invoke(t, f.olivier, "change_window_data", drop); !errors.Is(err, operation.ErrApprovalRequired) {
+		t.Fatalf("dropping a column: %v, want a Knock", err)
+	}
+	out, _ = f.invoke(t, f.olivier, "get_window", `{"window": "olivier/save-the-river"}`)
+	if d := out.(Detail); len(d.Data.Tables[0].Columns) != 4 {
+		t.Errorf("the Knock changed the schema: %+v", d.Data.Tables[0])
+	}
+	if _, err := f.r.Invoke(ctx, "change_window_data", person(f.olivier), []byte(drop)); err != nil {
+		t.Fatalf("dropping a column, by a person: %v", err)
+	}
+
+	// Rolling back undoes the drop, and rolling back again undoes the rollback.
+	out, err = f.invoke(t, f.olivier, "rollback_window_data", `{"window": "olivier/save-the-river"}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	back := out.(RolledBackData)
+	out, _ = f.invoke(t, f.olivier, "get_window", `{"window": "olivier/save-the-river"}`)
+	if d := out.(Detail); len(d.Data.Tables[0].Columns) != 4 || back.Kept == "" {
+		t.Errorf("after rollback_window_data: %+v, %+v", d.Data.Tables[0], back)
+	}
+	if _, err := f.invoke(t, f.olivier, "rollback_window_data", `{"window": "olivier/save-the-river", "copy": "`+back.Kept+`"}`); err != nil {
+		t.Fatal(err)
+	}
+	out, _ = f.invoke(t, f.olivier, "get_window", `{"window": "olivier/save-the-river"}`)
+	if d := out.(Detail); len(d.Data.Tables[0].Columns) != 3 {
+		t.Errorf("after a second rollback_window_data: %+v", d.Data.Tables[0])
+	}
+	if _, err := f.invoke(t, f.olivier, "rollback_window_data", `{"window": "olivier/save-the-river", "copy": "copy-0000000000001.db"}`); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("a copy that does not exist: %v", err)
+	}
+	if _, err := f.invoke(t, f.olivier, "query_window_data", `{"window": "olivier/save-the-river", "sql": "SELECT * FROM cahut_migrations"}`); !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("the table of the migrations: %v", err)
+	}
+}
+
+func TestDailyCopy(t *testing.T) {
+	f := setup(t)
+	if _, err := f.invoke(t, f.olivier, "publish_window", petition("", "")); err != nil {
+		t.Fatal(err)
+	}
+	id, _, err := current(context.Background(), f.db, "olivier", "save-the-river")
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now()
+	f.s.copyDaily(id, now)
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		copies, _ := windata.Copies(f.s.dataDir(id))
+		if len(copies) == 1 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("copies = %+v, want one", copies)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	// The next write of the day copies nothing.
+	f.s.copyDaily(id, now.Add(time.Hour))
+	time.Sleep(100 * time.Millisecond)
+	if copies, _ := windata.Copies(f.s.dataDir(id)); len(copies) != 1 {
+		t.Errorf("copies after a second write = %+v", copies)
 	}
 }

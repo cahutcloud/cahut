@@ -36,14 +36,15 @@ const t = words({
 		anyName: (host: string) =>
 			`Anyone can register an AI under any name: connect it only if you started this from the AI, and ${host} is where you use it.`,
 		mayDo: "What it may do",
-		write: "Read and publish: everything you can do in your Rooms",
-		read: "Read only: your Rooms, their Windows and the Logbook",
+		write: "Read and publish: everything you can do in your Rooms, the data of their Windows included",
+		read: "Read only: your Rooms, their Windows, their data and the Logbook",
 		where: "Where",
 		allRooms: "All your Rooms, and those you join later",
 		someRooms: "Only these Rooms",
 		personalRoom: "Your personal Room",
 		connect: "Connect",
 		refuse: "Refuse",
+		data: "What the readers of your Windows wrote in their data, the AI reads, and it goes to the company that runs the AI.",
 		logbook: "Every call it makes goes to the Logbook. You can disconnect it at any time, in AIs and access.",
 	},
 	fr: {
@@ -72,14 +73,15 @@ const t = words({
 		anyName: (host) =>
 			`N'importe qui peut enregistrer une IA sous n'importe quel nom : connectez-la seulement si vous avez lancé cette connexion depuis l'IA, et si vous l'utilisez bien sur ${host}.`,
 		mayDo: "Ce qu'elle peut faire",
-		write: "Lecture et publication : tout ce que vous pouvez faire dans vos Rooms",
-		read: "Lecture seule : vos Rooms, leurs Windows et le Logbook",
+		write: "Lecture et publication : tout ce que vous pouvez faire dans vos Rooms, les données de leurs Windows comprises",
+		read: "Lecture seule : vos Rooms, leurs Windows, leurs données et le Logbook",
 		where: "Où",
 		allRooms: "Toutes vos Rooms, et celles que vous rejoindrez plus tard",
 		someRooms: "Seulement ces Rooms",
 		personalRoom: "Votre Room personnelle",
 		connect: "Connecter",
 		refuse: "Refuser",
+		data: "Ce que les lecteurs de vos Windows ont écrit dans leurs données, l'IA le lit, et cela part chez l'entreprise qui la fait tourner.",
 		logbook: "Chacun de ses appels va au Logbook. Vous pouvez la déconnecter à tout moment, sur la page IA et accès.",
 	},
 });
@@ -253,6 +255,7 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 								{t.refuse}
 							</button>
 						</div>
+						<p class="c-small c-muted">{t.data}</p>
 						<p class="c-small c-muted">{t.logbook}</p>
 					</form>
 				)}

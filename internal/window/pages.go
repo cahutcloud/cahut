@@ -168,6 +168,9 @@ func (s *Service) callQuery(ctx context.Context, c *operation.Call, in PageDataI
 	if err != nil {
 		return PageData{}, pageError(err)
 	}
+	if writes {
+		s.copyDaily(w.ID, c.Now)
+	}
 	return PageData{Rows: r.Rows, Changes: r.Changes, LastID: r.LastID, Wrote: writes}, nil
 }
 
