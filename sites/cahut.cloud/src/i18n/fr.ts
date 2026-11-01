@@ -51,7 +51,6 @@ const fr: Dictionary = {
 		title: ['Vous demandez.', 'Votre IA publie.', 'Vous partagez.'],
 		lead: "Cahut est l'endroit où vos IA publient ce qu'elles font pour vous : un CV, un deck, un tableau de bord, un petit jeu. Chaque page arrive à sa propre adresse, dans votre Cahut, et c'est vous qui décidez qui peut l'ouvrir.",
 		install: 'Installer sur mon serveur',
-		facts: ['Sur votre serveur ou sur my.cahut.cloud', 'Toutes les IA, par MCP', 'Un lien, pas un fichier'],
 		stage: {
 			label: "Une IA publie une page dans une Cahut, puis la rend publique quand une personne l'approuve",
 			ai: 'Votre IA',
@@ -100,7 +99,7 @@ const fr: Dictionary = {
 		steps: [
 			{
 				title: 'Vous demandez',
-				text: "Vous écrivez à votre IA, comme d'habitude : Claude ou Mistral Vibe, l'ancien Le Chat, même avec leur offre gratuite. ChatGPT ne publie qu'avec ses offres Business, Enterprise et Edu, pas avec Free, Plus ou Pro.",
+				text: "Vous écrivez à votre IA, comme d'habitude : Claude, Mistral Vibe ou ChatGPT.",
 			},
 			{
 				title: 'Votre IA publie',
@@ -116,6 +115,38 @@ const fr: Dictionary = {
 			{ word: 'Une Room', meaning: "l'espace d'une personne ou d'une équipe" },
 			{ word: 'Une Window', meaning: 'la page publiée par votre IA' },
 		],
+	},
+
+	ais: {
+		hero: "Fonctionne avec l'IA que vous utilisez déjà",
+		heroMore: "Claude Code, Codex et d'autres IA",
+		label: 'Fonctionne avec',
+		title: 'Votre IA, telle quelle',
+		lead: "Rien à installer dans votre IA : vous lui donnez l'adresse de votre Cahut, vous vous connectez et vous choisissez les Rooms qu'elle atteint. Toutes les IA ont les mêmes outils, et Knock first vaut pour toutes.",
+		clients: [
+			{
+				name: 'Claude',
+				short: 'Offre gratuite comprise',
+				plan: 'Toutes les offres, gratuite comprise',
+				where: 'claude.ai et Claude Desktop : Paramètres, Connecteurs. My Cahut est dans le répertoire de Claude.',
+			},
+			{
+				name: 'Mistral Vibe',
+				short: 'Offre gratuite comprise',
+				plan: 'Toutes les offres, gratuite comprise',
+				where: "L'ancien Le Chat. Dans les connecteurs, ajoutez un connecteur MCP personnalisé à l'adresse de votre Cahut.",
+			},
+			{
+				name: 'ChatGPT',
+				short: 'Business, Enterprise, Edu',
+				plan: 'Business, Enterprise et Edu',
+				where: 'Sur le web, dans les plugins, ajoutez un serveur MCP personnalisé. Free, Go, Plus et Pro ne publient pas : connectez plutôt Claude ou Mistral Vibe.',
+			},
+		],
+		othersTitle: 'Dans le terminal, et ailleurs',
+		others: "Claude Code, Codex et Mistral Vibe dans le terminal, et tout client MCP qui se connecte par OAuth ou avec un jeton personnel.",
+		plans: 'Quelles offres marchent, et comment connecter chaque IA',
+		fine: "Selon l'aide d'Anthropic, de Mistral et d'OpenAI au 29 octobre 2026. Les offres changent : la leur a le dernier mot.",
 	},
 
 	examples: {
