@@ -4,6 +4,7 @@
 // typed, the AI publishes the Window, then knocks to make it public.
 import { getImage } from 'astro:assets';
 import Icon from '../Icon.astro';
+import { aiClients } from './ais';
 import { examplesIn, heroScenes, bare } from './examples';
 import { useTranslations, type Lang } from '../../i18n';
 import { signupURL, myCahutURL } from '../../links';
@@ -15,10 +16,11 @@ interface Props {
 }
 
 const { lang } = Astro.props;
-const { hero: t, base, examples: words, vocabulary } = useTranslations(lang);
+const { hero: t, base, examples: words, vocabulary, ais } = useTranslations(lang);
 const account = base.account;
 
-const facts = (['server', 'plug', 'link'] as const).map((icon, index) => ({ icon, text: t.facts[index] }));
+// The AI clients that publish to a Cahut, with the plans that let them.
+const clients = aiClients.map((client, index) => ({ ...client, ...ais.clients[index] }));
 
 // Each word of the title rises in turn, line after line.
 let count = 0;
@@ -88,16 +90,20 @@ const picto = knockPicto
 					<a href={myCahutURL}>{account.member} <Icon name="arrow-up-right" size={14} /></a>
 				</p>
 			</div>
-			<ul class="hero__facts" role="list">
-				{
-					facts.map(({ icon, text }) => (
-						<li>
-							<Icon name={icon} size={16} />
-							{text}
-						</li>
-					))
-				}
-			</ul>
+			<div class="hero__ais">
+				<p class="c-label">{ais.hero}</p>
+				<ul class="hero__ai-list" role="list">
+					{
+						clients.map(({ name, short }) => (
+							<li>
+								<strong>{name}</strong>
+								<span>{short}</span>
+							</li>
+						))
+					}
+				</ul>
+				<a class="hero__ai-more" href="#ais">{ais.heroMore} <Icon name="arrow-down" size={14} /></a>
+			</div>
 		</div>
 
 		<div
@@ -309,21 +315,57 @@ const picto = knockPicto
 		text-underline-offset: 3px;
 	}
 
-	.hero__facts {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-2) var(--space-6);
-		margin: 0;
-		padding: var(--space-2) 0 0;
-		list-style: none;
-		color: var(--color-text-muted);
-		font-size: var(--text-sm);
-		line-height: var(--leading-sm);
+	/* The AIs that publish to a Cahut, under the buttons, each with its plans. */
+	.hero__ais {
+		display: grid;
+		justify-self: stretch;
+		gap: var(--space-3);
+		padding-top: var(--space-5);
+		border-top: var(--border-width) solid var(--color-border);
 	}
-	.hero__facts li {
+	.hero__ais .c-label {
+		margin: 0;
+		color: var(--color-text-muted);
+	}
+	.hero__ai-list {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--space-4);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.hero__ai-list li {
+		display: grid;
+		align-content: start;
+		font-size: var(--text-xs);
+		line-height: var(--leading-xs);
+		color: var(--color-text-muted);
+	}
+	.hero__ai-list li + li {
+		padding-left: var(--space-4);
+		border-left: var(--border-width) solid var(--color-border);
+	}
+	.hero__ai-list strong {
+		color: var(--color-text);
+		font-size: var(--text-xl);
+		line-height: var(--leading-xl);
+		font-weight: var(--weight-bold);
+		letter-spacing: var(--tracking-title);
+	}
+	.hero__ai-more {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--space-2);
+		justify-self: start;
+		gap: var(--space-1);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+		font-weight: var(--weight-semibold);
+		text-decoration: none;
+	}
+	.hero__ai-more:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
 	}
 
 	/* The scene: a browser, the AI that publishes into it, and the access of the Window. */
@@ -657,7 +699,7 @@ const picto = knockPicto
 		:global(.js) .hero__lead,
 		:global(.js) .hero__actions,
 		:global(.js) .hero__under,
-		:global(.js) .hero__facts {
+		:global(.js) .hero__ais {
 			opacity: 0;
 			animation: appear 800ms var(--ease-out) forwards;
 		}
@@ -673,7 +715,7 @@ const picto = knockPicto
 		:global(.js) .hero__under {
 			animation-delay: 880ms;
 		}
-		:global(.js) .hero__facts {
+		:global(.js) .hero__ais {
 			animation-delay: 950ms;
 		}
 		.stage {
@@ -778,6 +820,27 @@ const picto = knockPicto
 		}
 		.hero__actions .c-btn {
 			flex: 1 1 auto;
+		}
+		/* One AI a line: its name, then its plans. */
+		.hero__ai-list {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-2);
+		}
+		.hero__ai-list li {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: baseline;
+			gap: 0 var(--space-3);
+			font-size: var(--text-sm);
+			line-height: var(--leading-sm);
+		}
+		.hero__ai-list li + li {
+			padding-left: 0;
+			border-left: 0;
+		}
+		.hero__ai-list strong {
+			font-size: var(--text-lg);
+			line-height: var(--leading-lg);
 		}
 		.stage__knock {
 			grid-template-columns: auto 1fr;

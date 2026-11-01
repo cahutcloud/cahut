@@ -53,7 +53,6 @@ export default {
 		title: ['You ask.', 'Your AI publishes.', 'You share.'],
 		lead: 'Cahut is where your AIs publish what they make for you: a CV, a deck, a dashboard, a small game. Each page gets its own address, in your Cahut, and you decide who can open it.',
 		install: 'Install on my server',
-		facts: ['On your server or on my.cahut.cloud', 'Any AI, over MCP', 'A link, not a file'],
 		// The scene beside the title: an AI publishes an example, then shares it.
 		stage: {
 			label: 'An AI publishes a page in a Cahut, then makes it public once a person approves',
@@ -103,7 +102,7 @@ export default {
 		steps: [
 			{
 				title: 'You ask',
-				text: 'You write to your AI, as usual: Claude or Mistral Vibe, formerly Le Chat, even on their free plans. ChatGPT publishes on its Business, Enterprise and Edu plans only, not on Free, Plus or Pro.',
+				text: 'You write to your AI, as usual: Claude, Mistral Vibe or ChatGPT.',
 			},
 			{ title: 'Your AI publishes', text: 'It makes a Window: a living page at its own address, in one of your Rooms.' },
 			{
@@ -117,6 +116,41 @@ export default {
 			{ word: 'A Room', meaning: 'the space of a person or a team' },
 			{ word: 'A Window', meaning: 'the page your AI published' },
 		],
+	},
+
+	// The AI clients that publish to a Cahut, in the order of
+	// src/components/home/ais.ts: under the buttons of the hero, then in their
+	// own section, after the steps.
+	ais: {
+		hero: 'Works with the AI you already use',
+		heroMore: 'Claude Code, Codex and other AIs',
+		label: 'Works with',
+		title: 'Your AI, as it is',
+		lead: 'Nothing to install in your AI: give it the address of your Cahut, sign in, and choose the Rooms it reaches. Every AI gets the same tools, and Knock first holds for all of them.',
+		clients: [
+			{
+				name: 'Claude',
+				short: 'Free plan included',
+				plan: 'Every plan, Free included',
+				where: 'claude.ai and Claude Desktop: Settings, Connectors. My Cahut is in the directory of Claude.',
+			},
+			{
+				name: 'Mistral Vibe',
+				short: 'Free plan included',
+				plan: 'Every plan, Free included',
+				where: 'Formerly Le Chat. Connectors, Add Connector, then the address of your Cahut.',
+			},
+			{
+				name: 'ChatGPT',
+				short: 'Business, Enterprise, Edu',
+				plan: 'Business, Enterprise and Edu',
+				where: 'On the web: Plugins, Add custom MCP server. Free, Go, Plus and Pro cannot publish: connect Claude or Mistral Vibe instead.',
+			},
+		],
+		othersTitle: 'In the terminal, and elsewhere',
+		others: 'Claude Code, Codex and Mistral Vibe in the terminal, and any MCP client that signs in with OAuth or with a personal token.',
+		plans: 'Which plans work, and how to connect each AI',
+		fine: 'As the help of Anthropic, Mistral and OpenAI says on 29 October 2026. Plans change: theirs has the last word.',
 	},
 
 	// The demos of demo.cahut.cloud, in the order of src/components/home/examples.ts.

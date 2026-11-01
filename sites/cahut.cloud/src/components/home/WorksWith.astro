@@ -1,0 +1,166 @@
+---
+// The AIs that publish to a Cahut: the three that people use on the web, with
+// the plans that let them publish and where to add a Cahut, then the others.
+import Icon from '../Icon.astro';
+import { aiClients, plansURL } from './ais';
+import { useTranslations, type Lang } from '../../i18n';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang).ais;
+
+const clients = aiClients.map((client, index) => ({ ...client, ...t.clients[index] }));
+---
+
+<section id="ais" class="section section--muted" aria-labelledby="ais-title">
+	<div class="container">
+		<header class="section__head" data-reveal>
+			<p class="c-label">{t.label}</p>
+			<h2 id="ais-title" class="c-h1">{t.title}</h2>
+			<p class="lead">{t.lead}</p>
+		</header>
+		<ul class="ais" role="list" data-reveal-group>
+			{
+				clients.map(({ name, plan, where, free }) => (
+					<li class="ai" data-reveal>
+						<h3 class="c-h3">{name}</h3>
+						<p class:list={['c-badge', free ? 'c-badge--success' : 'c-badge--neutral']}>
+							<Icon name={free ? 'check' : 'info'} size={14} />
+							{plan}
+						</p>
+						<p class="c-muted c-small">{where}</p>
+					</li>
+				))
+			}
+		</ul>
+		<div class="others" data-reveal>
+			<span class="others__icon">
+				<Icon name="terminal" size={20} />
+			</span>
+			<div class="others__text">
+				<h3 class="c-h4">{t.othersTitle}</h3>
+				<p class="c-muted c-small">{t.others}</p>
+			</div>
+			<a class="more" href={plansURL}>
+				{t.plans}
+				<Icon name="arrow-up-right" size={16} />
+			</a>
+		</div>
+		<p class="fine c-small c-muted" data-reveal>{t.fine}</p>
+	</div>
+</section>
+
+<style>
+	p {
+		margin: 0;
+	}
+	.section {
+		padding-block: var(--space-24);
+	}
+	.section--muted {
+		background: var(--color-surface-muted);
+	}
+	.section__head {
+		display: grid;
+		gap: var(--space-4);
+		max-width: var(--measure);
+		margin-bottom: var(--space-12);
+	}
+	.lead {
+		font-size: var(--text-lg);
+		line-height: var(--leading-lg);
+	}
+
+	.ais {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--space-6);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.ai {
+		display: grid;
+		align-content: start;
+		justify-items: start;
+		gap: var(--space-3);
+		padding: var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+	.others {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		align-items: center;
+		gap: var(--space-6);
+		margin-top: var(--space-6);
+		padding: var(--space-6);
+		border: var(--border-width) solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+	.others__icon {
+		display: grid;
+		place-items: center;
+		width: var(--space-10);
+		height: var(--space-10);
+		border-radius: var(--radius-md);
+		background: var(--color-surface-muted);
+		color: var(--color-text);
+	}
+	.others__text {
+		display: grid;
+		gap: var(--space-1);
+	}
+	.more {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		font-size: var(--text-sm);
+		line-height: var(--leading-sm);
+		font-weight: var(--weight-semibold);
+		text-decoration: none;
+	}
+	.more:hover {
+		text-decoration: underline;
+	}
+	.fine {
+		margin-top: var(--space-4);
+	}
+
+	/* In the dark, the muted band would be lighter than the cards it holds. */
+	@media (prefers-color-scheme: dark) {
+		:global(:root:not([data-theme='light'])) .section--muted {
+			background: none;
+			border-block: var(--border-width) solid var(--color-border);
+		}
+	}
+	:global(:root[data-theme='dark']) .section--muted {
+		background: none;
+		border-block: var(--border-width) solid var(--color-border);
+	}
+
+	@media (max-width: 960px) {
+		.ais {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.others {
+			grid-template-columns: auto minmax(0, 1fr);
+		}
+		.more {
+			grid-column: 1 / -1;
+		}
+	}
+	@media (max-width: 640px) {
+		.section {
+			padding-block: var(--space-16);
+		}
+		.section__head {
+			margin-bottom: var(--space-10);
+		}
+	}
+</style>
