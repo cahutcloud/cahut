@@ -173,6 +173,21 @@ func (s *Service) Register(r *operation.Registry) {
 		ReadOnly:   true,
 		Run:        s.checkAccountDeletion,
 	})
+	operation.Register(r, &operation.Op[account.DeleteAccountInput, DeletedUser]{
+		Name:  "delete_account",
+		Title: "Delete your account for good",
+		Description: "Delete your own account for good: your account, your address, your sessions, this one included, " +
+			"your tokens and the AIs you connected, your personal Room and the team Rooms you are the only member of, " +
+			"with the Windows of these Rooms and their files, and the Windows you kept for yourself in the other Rooms. " +
+			"This cannot be undone. The team Rooms that have another owner stay, without you, and so do the Windows you published in them, " +
+			"without an author. Your handle becomes free. Give your current password, and type your handle. " +
+			"Being the only owner of a team Room that has other members stops it, until you give that Room another owner or delete it, " +
+			"and so does being the last administrator of the Cahut; its administrators may turn it off. " +
+			"check_account_deletion says what would go, what would stay and what stops it.",
+		PeopleOnly: true,
+		Prepare:    account.PrepareLeaving,
+		Run:        s.deleteAccount,
+	})
 	operation.Register(r, &operation.Op[AccessInput, AccessSet]{
 		Name:  "set_window_access",
 		Title: "Set who opens a Window",

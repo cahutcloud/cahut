@@ -430,6 +430,13 @@ export interface Declaration {
   data?: Data;
 }
 
+export interface DeleteAccountInput {
+  /** your current password */
+  password: string;
+  /** your handle, typed in full */
+  handle: string;
+}
+
 export interface DeleteRoomInput {
   /** the name of the team Room */
   room: string;
@@ -1703,6 +1710,11 @@ export interface ShareLinkOpening {
   expires_at: string;
 }
 
+export interface SharedRooms {
+  /** the names of the Rooms, joined by commas */
+  rooms: string;
+}
+
 export interface SignInInput {
   handle: string;
   password: string;
@@ -2051,6 +2063,8 @@ export interface CahutOperations {
   create_token: { input: CreateTokenInput; output: NewToken };
   /** Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. */
   create_user: { input: CreateUserInput; output: NewUser };
+  /** Delete your own account for good: your account, your address, your sessions, this one included, your tokens and the AIs you connected, your personal Room and the team Rooms you are the only member of, with the Windows of these Rooms and their files, and the Windows you kept for yourself in the other Rooms. This cannot be undone. The team Rooms that have another owner stay, without you, and so do the Windows you published in them, without an author. Your handle becomes free. Give your current password, and type your handle. Being the only owner of a team Room that has other members stops it, until you give that Room another owner or delete it, and so does being the last administrator of the Cahut; its administrators may turn it off. check_account_deletion says what would go, what would stay and what stops it. */
+  delete_account: { input: DeleteAccountInput; output: DeletedUser };
   /** Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. */
   delete_room: { input: DeleteRoomInput; output: DeletedRoom };
   /** Delete a person for good: their account, their tokens and the AIs they connected, their personal Room and the team Rooms they are the only owner of, with the Windows of these Rooms and their files. This cannot be undone. The Windows they published in other Rooms stay, without an author. Their handle becomes free. No one deletes themself, nor the last administrator of the Cahut; disable_user stops a person and keeps what is theirs. */
@@ -2246,8 +2260,14 @@ export type ServerCahutOperations = Pick<CahutOperations, "create_service_token"
 
 /** The refusals that the console says in the language of its person, by code, each with its values. */
 export interface Refusals {
+  /** the administrators of this Cahut keep accounts: ask one of them to delete yours */
+  account_deletion_off: null;
   /** this account is disabled: an administrator of the Cahut can enable it */
   account_disabled: null;
+  /** this is not your handle: type it as you sign in with it */
+  account_handle_mismatch: null;
+  /** you are the only owner of {rooms}, which have other members: give each another owner, or delete it, first */
+  account_rooms_shared: SharedRooms;
   /** this activation link is unknown, used or expired: ask an administrator of the Cahut for a new one */
   activation_link_gone: null;
   /** the Cahut needs an administrator: make another person one first */

@@ -3,8 +3,11 @@ package window
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"cahut.cloud/internal/account"
+	"cahut.cloud/internal/mail"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/settings"
@@ -143,4 +146,72 @@ func (s *Service) leaving(ctx context.Context, tx *sql.Tx, userID int64) (Accoun
 	}
 	out.Windows += out.Drafts
 	return out, ids, nil
+}
+
+// The refusals of a person who deletes their own account, which the
+// console says in their language.
+var (
+	errAccountDeletionOff = operation.NewRefusal("account_deletion_off", operation.ErrForbidden,
+		"the administrators of this Cahut keep accounts: ask one of them to delete yours")
+	roomsShared = operation.NewRefusalOf[SharedRooms]("account_rooms_shared", operation.ErrInvalid,
+		"you are the only owner of {rooms}, which have other members: give each another owner, or delete it, first")
+)
+
+// SharedRooms fills the refusal of a person who is the only owner of team
+// Rooms that others are in.
+type SharedRooms struct {
+	Rooms string `json:"rooms" jsonschema:"the names of the Rooms, joined by commas"`
+}
+
+// deleteAccount deletes the account of the person who calls, with the Rooms
+// that are theirs alone and the Windows they kept for themself, once
+// account.PrepareLeaving checked their password. The Logbook keeps their
+// entries; a message tells them, at their address.
+func (s *Service) deleteAccount(ctx context.Context, c *operation.Call, in account.DeleteAccountInput) (DeletedUser, error) {
+	u, err := account.Leaving(ctx, c, in)
+	if err != nil {
+		return DeletedUser{}, err
+	}
+	allowed, err := settings.AccountDeletion(ctx, c.Tx)
+	if err != nil {
+		return DeletedUser{}, err
+	}
+	if !allowed {
+		return DeletedUser{}, errAccountDeletionOff
+	}
+	d, rooms, err := s.leaving(ctx, c.Tx, u.ID)
+	if err != nil {
+		return DeletedUser{}, err
+	}
+	if len(d.Shared) > 0 {
+		names := make([]string, len(d.Shared))
+		for i, r := range d.Shared {
+			names[i] = r.Room
+		}
+		return DeletedUser{}, roomsShared(SharedRooms{Rooms: strings.Join(names, ", ")})
+	}
+	// The letter is written while the person is there to address it.
+	outbox := mail.OutboxOf(c)
+	letter, err := outbox.Prepare(ctx, c.Tx, u.ID, mail.Always, account.DeletedLetter)
+	if err != nil {
+		return DeletedUser{}, err
+	}
+	ids, err := s.erase(ctx, c, u, rooms, true)
+	if err != nil {
+		return DeletedUser{}, err
+	}
+	if letter != nil {
+		outbox.Post(c, *letter)
+	}
+	out := DeletedUser{User: u.Handle, Name: u.Name, Rooms: make([]string, len(d.Rooms)), Windows: len(ids)}
+	for i, r := range d.Rooms {
+		out.Rooms[i] = r.Room
+	}
+	c.Log(u.Handle, fmt.Sprintf("%q, Rooms %s, %d Windows", u.Name, strings.Join(out.Rooms, " "), len(ids)))
+	c.AfterCommit(func() {
+		for _, id := range ids {
+			s.remove(id)
+		}
+	})
+	return out, nil
 }

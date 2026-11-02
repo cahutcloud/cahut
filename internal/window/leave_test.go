@@ -3,12 +3,20 @@ package window
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	netmail "net/mail"
 	"reflect"
+	"strings"
 	"testing"
+	"time"
 
+	"cahut.cloud/internal/credential"
+	"cahut.cloud/internal/mail"
+	"cahut.cloud/internal/mail/mailtest"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
+	"cahut.cloud/internal/store"
 )
 
 // publishIn publishes a Window titled title in the Room name, for the
@@ -23,9 +31,10 @@ func (f *fixture) publishIn(t *testing.T, actor operation.Actor, name, title, ac
 	}
 }
 
-func TestCheckAccountDeletion(t *testing.T) {
-	f := setup(t)
-	cli := operation.Actor{Kind: operation.Admin, Via: "cli"}
+// leaver gives Camille the Rooms and the Windows of a person who leaves:
+// Rooms that go, one that stops her, one that stays, and drafts.
+func (f *fixture) leaver(t *testing.T) {
+	t.Helper()
 	olivier, camille := person(f.olivier), person(f.camille)
 	for _, step := range []struct {
 		actor      operation.Actor
@@ -52,6 +61,13 @@ func TestCheckAccountDeletion(t *testing.T) {
 	if _, err := f.invoke(t, f.camille, "trash_window", `{"window": "camille/q3"}`); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestCheckAccountDeletion(t *testing.T) {
+	f := setup(t)
+	cli := operation.Actor{Kind: operation.Admin, Via: "cli"}
+	olivier, camille := person(f.olivier), person(f.camille)
+	f.leaver(t)
 
 	check := func(actor operation.Actor) (AccountDeletion, error) {
 		t.Helper()
@@ -211,5 +227,194 @@ func TestLeaving(t *testing.T) {
 	}
 	if d, rooms, _ := leave(); d.Allowed || len(rooms) != 0 || len(d.Rooms) != 0 {
 		t.Errorf("leaving when it is off = %+v, %v", d, rooms)
+	}
+}
+
+// mailer gives the Cahut of f the e-mail of its server, and a relay in
+// memory as its relay, as the tests of account do. It returns the relay.
+// Before it, the Cahut sends no e-mail.
+func (f *fixture) mailer(t *testing.T) *mailtest.Relay {
+	t.Helper()
+	ctx := context.Background()
+	svc := mail.New(mail.Config{DataDir: t.TempDir()})
+	t.Cleanup(func() { svc.Close(ctx) })
+	relay := mailtest.Start(t, mailtest.Options{})
+	svc.UseRoots(relay.Roots)
+	svc.DialAnywhere()
+	_, err := f.db.Write.ExecContext(ctx, `INSERT INTO mail_relay (id, host, port, security, sender, set_at)
+		VALUES (1, '127.0.0.1', ?, 'starttls', 'cahut@example.com', ?)`, relay.Port, store.FormatTime(time.Now()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	mail.Provide(f.r, &mail.Outbox{Service: svc, DB: f.db, Domain: "example.com", Console: "https://example.com/console/"})
+	return relay
+}
+
+func TestDeleteAccount(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	cli := operation.Actor{Kind: operation.Admin, Via: "cli"}
+	f.leaver(t)
+	const password, wrong = "a password of Camille's own", "not the password of Camille"
+	hash, err := credential.HashPassword(ctx, password)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.db.Write.ExecContext(ctx, "UPDATE users SET password_hash = ?, email = 'camille@example.org' WHERE handle = 'camille'", hash); err != nil {
+		t.Fatal(err)
+	}
+	var id int64
+	if err := f.db.Read.QueryRowContext(ctx, "SELECT id FROM users WHERE handle = 'camille'").Scan(&id); err != nil {
+		t.Fatal(err)
+	}
+	// Camille signs in to the console: this session goes with her account.
+	visitor := operation.Actor{Kind: operation.Visitor, Via: "api"}
+	if _, err := f.invoke(t, visitor, "sign_in", `{"handle": "camille", "password": "`+password+`"}`); err != nil {
+		t.Fatal(err)
+	}
+	camille := person(f.camille)
+	if err := f.db.Read.QueryRowContext(ctx, "SELECT id FROM sessions WHERE user_id = ?", id).Scan(&camille.Session); err != nil {
+		t.Fatal(err)
+	}
+
+	// The Windows that go: those of her personal Room, of marketing, and of
+	// launch once it is hers alone, and her draft in design.
+	rows, err := f.db.Read.QueryContext(ctx, `
+		SELECT w.id FROM windows w JOIN rooms r ON r.id = w.room_id
+		WHERE r.name IN ('camille', 'marketing', 'launch') OR r.name = 'design' AND w.name = 'draft'`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var gone []int64
+	for rows.Next() {
+		var w int64
+		if err := rows.Scan(&w); err != nil {
+			t.Fatal(err)
+		}
+		gone = append(gone, w)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil || len(gone) != 5 {
+		t.Fatalf("the Windows that would go: %v, %v", gone, err)
+	}
+
+	deleteAccount := func(actor operation.Actor, password, handle string) (any, error) {
+		t.Helper()
+		args, err := json.Marshal(map[string]string{"password": password, "handle": handle})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return f.invoke(t, actor, "delete_account", string(args))
+	}
+	refusal := func(err error) *operation.Refusal {
+		var r *operation.Refusal
+		if errors.As(err, &r) {
+			return r
+		}
+		return &operation.Refusal{}
+	}
+	kept := func(why string) {
+		t.Helper()
+		if f.count(t, "SELECT count(*) FROM users WHERE id = ?", id) != 1 {
+			t.Fatalf("delete_account %s deleted Camille", why)
+		}
+		for _, w := range gone {
+			if !f.files(w) || f.count(t, "SELECT count(*) FROM windows WHERE id = ?", w) != 1 {
+				t.Fatalf("delete_account %s deleted Window %d", why, w)
+			}
+		}
+	}
+
+	if _, err := deleteAccount(f.camille, password, "camille"); !errors.Is(err, operation.ErrForbidden) {
+		t.Errorf("delete_account by an AI: err = %v, want ErrForbidden", err)
+	}
+	kept("by an AI")
+	if _, err := deleteAccount(camille, wrong, "camille"); !errors.Is(err, credential.ErrWrongCurrentPassword) {
+		t.Errorf("delete_account with a wrong password: err = %v, want wrong_current_password", err)
+	}
+	kept("with a wrong password")
+	if _, err := deleteAccount(camille, password, "olivier"); refusal(err).Code != "account_handle_mismatch" || !errors.Is(err, operation.ErrInvalid) {
+		t.Errorf("delete_account with the handle of another: err = %v, want account_handle_mismatch", err)
+	}
+	kept("with the handle of another")
+	_, err = deleteAccount(camille, password, "camille")
+	if r := refusal(err); r.Code != "account_rooms_shared" || !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "launch") {
+		t.Errorf("delete_account with launch shared: err = %v, want account_rooms_shared", err)
+	} else if values, _ := json.Marshal(r.Values); string(values) != `{"rooms":"launch"}` {
+		t.Errorf("account_rooms_shared gives %s", values)
+	}
+	kept("with launch shared")
+
+	// launch becomes hers alone; then the administrators turn it off.
+	if _, err := f.invoke(t, camille, "remove_room_member", `{"room": "launch", "user": "olivier"}`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.db.Write.ExecContext(ctx, "UPDATE settings SET account_deletion = 0"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := deleteAccount(camille, password, "camille"); refusal(err).Code != "account_deletion_off" || !errors.Is(err, operation.ErrForbidden) {
+		t.Errorf("delete_account when it is off: err = %v, want account_deletion_off", err)
+	}
+	kept("when it is off")
+	if _, err := f.db.Write.ExecContext(ctx, "UPDATE settings SET account_deletion = 1"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.invoke(t, cli, "set_user_role", `{"user": "camille", "role": "admin"}`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := deleteAccount(camille, password, "camille"); refusal(err).Code != "cahut_needs_an_admin" {
+		t.Errorf("delete_account by the only administrator: err = %v, want cahut_needs_an_admin", err)
+	}
+	kept("by the only administrator")
+
+	if _, err := f.invoke(t, cli, "set_user_role", `{"user": "olivier", "role": "admin"}`); err != nil {
+		t.Fatal(err)
+	}
+	relay := f.mailer(t)
+	out, err := deleteAccount(camille, password, "Camille ")
+	if err != nil {
+		t.Fatalf("delete_account: %v", err)
+	}
+	want := DeletedUser{User: "camille", Name: "camille", Rooms: []string{"camille", "launch", "marketing"}, Windows: 5}
+	if d := out.(DeletedUser); !reflect.DeepEqual(d, want) {
+		t.Fatalf("delete_account = %+v, want %+v", d, want)
+	}
+	for _, q := range []string{"SELECT count(*) FROM users WHERE id = ?", "SELECT count(*) FROM sessions WHERE user_id = ?",
+		"SELECT count(*) FROM tokens WHERE user_id = ?", "SELECT count(*) FROM room_members WHERE user_id = ?"} {
+		if n := f.count(t, q, id); n != 0 {
+			t.Errorf("%s = %d after delete_account", q, n)
+		}
+	}
+	for _, w := range gone {
+		if f.files(w) || f.count(t, "SELECT count(*) FROM windows WHERE id = ?", w) != 0 {
+			t.Errorf("Window %d stays", w)
+		}
+	}
+	// The Window she published in design stays, without an author.
+	got, err := f.invoke(t, person(f.olivier), "get_window", `{"window": "design/q3"}`)
+	if err != nil {
+		t.Fatalf("get_window: %v", err)
+	}
+	if d := got.(Detail); d.CreatedBy != "" || len(d.Versions) != 1 || d.Versions[0].PublishedBy != "" {
+		t.Errorf("design/q3 = %+v", d)
+	}
+	// The Logbook keeps the call under her id, and never a password.
+	if n := f.count(t, "SELECT count(*) FROM logbook WHERE operation = 'delete_account' AND outcome = 'ok' AND user_id = ?", id); n != 1 {
+		t.Errorf("the Logbook keeps %d deletions of Camille's account", n)
+	}
+	for _, p := range []string{password, wrong} {
+		if n := f.count(t, "SELECT count(*) FROM logbook WHERE detail LIKE ? OR error LIKE ? OR target LIKE ?",
+			"%"+p+"%", "%"+p+"%", "%"+p+"%"); n != 0 {
+			t.Errorf("the Logbook holds a password in %d entries", n)
+		}
+	}
+	// A message tells her, at her address.
+	m := relay.Wait(t, 1)[0]
+	parsed, err := netmail.ReadMessage(m.Reader())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.To[0] != "camille@example.org" || parsed.Header.Get("Subject") != "Your account is deleted" {
+		t.Errorf("message to %v: %q", m.To, parsed.Header.Get("Subject"))
 	}
 }
