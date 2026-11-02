@@ -146,7 +146,7 @@ const fr: Dictionary = {
 		othersTitle: 'Dans le terminal, et ailleurs',
 		others: "Claude Code, Codex et Mistral Vibe dans le terminal, et tout client MCP qui se connecte par OAuth ou avec un jeton personnel.",
 		plans: 'Quelles offres marchent, et comment connecter chaque IA',
-		fine: "Selon l'aide d'Anthropic, de Mistral et d'OpenAI au 29 octobre 2026. Les offres changent : la leur a le dernier mot.",
+		fine: "Selon l'aide d'Anthropic, de Mistral et d'OpenAI au 29 octobre 2026. Les offres changent : la leur a le dernier mot. Claude, Mistral Vibe, ChatGPT et leurs logos appartiennent à Anthropic, à Mistral AI et à OpenAI. Cahut est indépendante de ces trois entreprises.",
 	},
 
 	examples: {

@@ -1,7 +1,9 @@
 ---
 // The AIs that publish to a Cahut: the three that people use on the web, with
-// the plans that let them publish and where to add a Cahut, then the others.
+// their marks, the plans that let them publish and where to add a Cahut, then
+// the others.
 import Icon from '../Icon.astro';
+import AiMark from './AiMark.astro';
 import { aiClients, plansURL } from './ais';
 import { useTranslations, type Lang } from '../../i18n';
 
@@ -24,8 +26,9 @@ const clients = aiClients.map((client, index) => ({ ...client, ...t.clients[inde
 		</header>
 		<ul class="ais" role="list" data-reveal-group>
 			{
-				clients.map(({ name, plan, where, free }) => (
+				clients.map(({ id, mark, name, plan, where, free }) => (
 					<li class="ai" data-reveal>
+						<AiMark id={id} mark={mark} />
 						<h3 class="c-h3">{name}</h3>
 						<p class:list={['c-badge', free ? 'c-badge--success' : 'c-badge--neutral']}>
 							<Icon name={free ? 'check' : 'info'} size={14} />
@@ -75,6 +78,7 @@ const clients = aiClients.map((client, index) => ({ ...client, ...t.clients[inde
 	}
 
 	.ais {
+		--mark: var(--space-10);
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: var(--space-6);
@@ -91,6 +95,9 @@ const clients = aiClients.map((client, index) => ({ ...client, ...t.clients[inde
 		border: var(--border-width) solid var(--color-border);
 		border-radius: var(--radius-lg);
 		background: var(--color-surface);
+	}
+	.ai :global(.mark) {
+		margin-bottom: var(--space-2);
 	}
 	.others {
 		display: grid;
@@ -129,6 +136,7 @@ const clients = aiClients.map((client, index) => ({ ...client, ...t.clients[inde
 		text-decoration: underline;
 	}
 	.fine {
+		max-width: var(--measure);
 		margin-top: var(--space-4);
 	}
 
