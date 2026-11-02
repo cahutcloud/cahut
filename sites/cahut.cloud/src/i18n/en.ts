@@ -150,7 +150,7 @@ export default {
 		othersTitle: 'In the terminal, and elsewhere',
 		others: 'Claude Code, Codex and Mistral Vibe in the terminal, and any MCP client that signs in with OAuth or with a personal token.',
 		plans: 'Which plans work, and how to connect each AI',
-		fine: 'As the help of Anthropic, Mistral and OpenAI says on 29 October 2026. Plans change: theirs has the last word.',
+		fine: 'As the help of Anthropic, Mistral and OpenAI says on 29 October 2026. Plans change: theirs has the last word. Claude, Mistral Vibe, ChatGPT and their logos belong to Anthropic, Mistral AI and OpenAI. Cahut is independent of all three.',
 	},
 
 	// The demos of demo.cahut.cloud, in the order of src/components/home/examples.ts.
