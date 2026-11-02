@@ -45,13 +45,13 @@ Cahut installs with one command on a Linux server. Claude, ChatGPT, Mistral Vibe
 If Cahut is useful to you, a star helps others find it.
 
 > [!WARNING]
-> Cahut is young: its first release came out on 21 October 2026. What [Features](#features) marks as available works in the latest release; apps, comments, export, single sign-on and backups come next. There are no backups yet, so keep snapshots of your server.
+> Cahut is young: its first release came out on 21 October 2026. It does not run the code of a Window on the server, take comments, export to PDF or PowerPoint, sign people in through single sign-on, or make backups. Keep snapshots of your server.
 
 ## Why Cahut
 
 Today, what your AIs make stays at the AI's place. A Claude link, a ChatGPT link, a Gamma deck: each lives on the service of the AI that made it. To publish it, share it or work on it with others, you turn it back into a file.
 
-The file is going away. Word, PowerPoint and Excel were designed for humans who write, lay out and calculate by hand. When an AI makes the content, a page at its own address does better: it updates, takes comments, keeps its versions, and exports to PDF or PowerPoint for whoever still needs a file.
+Word, PowerPoint and Excel were designed for humans who write, lay out and calculate by hand. When an AI makes the content, a page at its own address does better: it updates, keeps its previous version, opens to the people you choose, and keeps what its readers write.
 
 Publish, share, work together: today, all three are hard.
 
@@ -71,8 +71,8 @@ Cahut does not create content, it hosts it. It does not compete with AIs or crea
 
 | Layer | Who handles it | What it brings |
 | --- | --- | --- |
-| Create | The AIs (Claude, ChatGPT, Mistral, Copilot...) | The content: documents, decks, dashboards, apps |
-| Publish, share, work together | Cahut, on your server | A page at your address, a link opened to the right people, Rooms where the team and its AIs work, versions, comments, search, export, Logbook |
+| Create | The AIs (Claude, ChatGPT, Mistral...) | The content: documents, decks, dashboards, apps |
+| Publish, share, work together | Cahut, on your server | A page at your address, a link opened to the right people, Rooms where the team and its AIs work, versions, search, the data of each page, Logbook |
 
 ## How it works
 
@@ -106,35 +106,28 @@ flowchart LR
 
 ## Features
 
-What is marked available works in the latest release. The rest comes next, in about the order of the [roadmap](#roadmap).
+Everything below works in the latest release.
 
-| Area | What it does | Status |
-| --- | --- | --- |
-| Installation | One command on a fresh VPS or dedicated server (AlmaLinux or Ubuntu), a guided first start in the browser, and `cahut doctor` to check the server | Available |
-| AI access | A native MCP server over HTTP, with OAuth or a personal token, for claude.ai, Claude Desktop, Claude Code, ChatGPT, Mistral Vibe and any MCP client | Available |
-| Skill for Claude | A skill that teaches Claude to make Windows and publish them, packaged as a plugin for Claude Code | Available |
-| Pages | Documents, decks, dashboards and static sites, each at its own address in its Room, in a sandbox that holds it to what its AI declares it loads and calls | Available |
-| Sharing | Window by Window: its Room only, internal (everyone in the Cahut), a Key (a password) or public, with an optional end date; share links that open a Window without an account, until they end | Available |
-| Invitations | A Window sent by e-mail, to people of the Cahut or outside it, with a personal link in place of its Key | Available |
-| Versions | Two versions kept per Window, a rollback in one gesture, and a trash | Available |
-| Search | Find any page, deck or dashboard of your Rooms by a word of it or a tag | Available |
-| Data | A SQLite database for each Window, on your server: polls, forms, petitions and trackers keep what their readers write | Available |
-| Users and Rooms | The people of each Cahut and its admins, a personal Room for each person, team Rooms with owners and members | Available |
-| Sign-in | Accounts of each Cahut, with a link by e-mail for a forgotten password | Available |
-| Knock first | What an AI cannot undo waits for its person, who approves or declines it in the console | Available |
-| Web console | In English and French: Knocks, Rooms, Windows, people, connected AIs and the Logbook under `/console/` of each Cahut, and a console for the administrators of the server under `/server/` | Available |
-| Domains and TLS | Several Cahuts per server, each at its own domain or subdomain, no wildcard needed, automatic certificates | Available |
-| Limits | People, Rooms, Windows and disk for each Cahut, set by the administrators of the server, and Cahuts where each person works alone | Available |
-| Moderation | Reports of Windows from anyone, without an account; the administrators of the Cahut and of its server withdraw a Window with a reason, and reinstate it | Available |
-| Logbook | History of every action: who, which AI, on whose behalf, with what result | Available |
-| Updates | Daily, from the signed releases on GitHub, with a snapshot of the databases and a rollback | Available |
-| Comments | Reader feedback directly on the pages | Coming |
-| Single sign-on | OpenID Connect: Google, Microsoft Entra, Okta... | Coming |
-| Backups | Optional, to external S3 or SFTP storage, restore from the console | Coming |
-| Apps | Predefined runtimes (Node, Python...) and an advanced Dockerfile mode, variables and secrets, PostgreSQL or SQLite databases, runtime logs, resource limits | Coming |
-| Export | PDF and PowerPoint, for recipients still on Office | Coming |
-| SSH access | The same operations over forced-command SSH, for terminal AIs | Coming |
-| More AI clients | Copilot and others, with a skill packaged for each client that allows it | Coming |
+| Area | What it does |
+| --- | --- |
+| Installation | One command on a fresh VPS or dedicated server (AlmaLinux or Ubuntu), a guided first start in the browser, and `cahut doctor` to check the server |
+| AI access | A native MCP server over HTTP, with OAuth or a personal token, for claude.ai, Claude Desktop, Claude Code, ChatGPT, Mistral Vibe and any MCP client |
+| Skill for Claude | A skill that teaches Claude to make Windows and publish them, packaged as a plugin for Claude Code |
+| Pages | Documents, decks, dashboards and static sites, each at its own address in its Room, in a sandbox that holds it to what its AI declares it loads and calls |
+| Sharing | Window by Window: its Room only, internal (everyone in the Cahut), a Key (a password) or public, with an optional end date; share links that open a Window without an account, until they end |
+| Invitations | A Window sent by e-mail, to people of the Cahut or outside it, with a personal link in place of its Key |
+| Versions | Two versions kept per Window, a rollback in one gesture, and a trash |
+| Search | Find any page, deck or dashboard of your Rooms by a word of it or a tag |
+| Data | A SQLite database for each Window, on your server: polls, forms, petitions and trackers keep what their readers write |
+| Users and Rooms | The people of each Cahut and its admins, a personal Room for each person, team Rooms with owners and members |
+| Sign-in | Accounts of each Cahut, with a link by e-mail for a forgotten password |
+| Knock first | What an AI cannot undo waits for its person, who approves or declines it in the console |
+| Web console | In English and French: Knocks, Rooms, Windows, people, connected AIs and the Logbook under `/console/` of each Cahut, and a console for the administrators of the server under `/server/` |
+| Domains and TLS | Several Cahuts per server, each at its own domain or subdomain, no wildcard needed, automatic certificates |
+| Limits | People, Rooms, Windows and disk for each Cahut, set by the administrators of the server, and Cahuts where each person works alone |
+| Moderation | Reports of Windows from anyone, without an account; the administrators of the Cahut and of its server withdraw a Window with a reason, and reinstate it |
+| Logbook | History of every action: who, which AI, on whose behalf, with what result |
+| Updates | Daily, from the signed releases on GitHub, with a snapshot of the databases and a rollback |
 
 What Cahut does **not** do:
 
@@ -148,23 +141,21 @@ What Cahut does **not** do:
 
 The AI is the intended operator of Cahut, but never without guardrails.
 
-1. **Bounded operations.** The AI acts through typed operations (publish a page, create a database, share a link), never through a free shell, over MCP as over SSH.
+1. **Bounded operations.** The AI acts through typed operations over MCP (publish a Window, change its data, make a share link), never through a free shell.
 2. **Reversible or approved.** What can be undone, the AI does alone. What cannot waits for a human to approve it in the console, with a notification and an expiry.
-3. **The AI declares what it publishes.** Each publication states what it contains and what it does (an app that collects data, calls out, opens a form).
-4. **Per-agent permissions.** Each AI acts on behalf of a person, with the scope that person grants, revocable at any time.
+3. **The AI declares what it publishes.** Each version of a Window states whether its pages run scripts, the origins they load from and call, where their forms send, and the data they keep.
+4. **Per-agent permissions.** Each AI acts on behalf of a person, with the Rooms and the scope that person grants, revocable at any time.
 5. **Everything is logged.** Which AI, on whose behalf, which action, which result: the Logbook is readable in the console.
-6. **Data stays home.** Everything lives on your server. Backups only go to the external storage you choose.
-7. **Isolation.** Each Window runs in a sandbox: its scripts cannot read the other Windows, the console or the reader's session. Each app runs in an unprivileged container with its own resource limits. The Cahuts of one server share nothing but the machine.
+6. **Data stays home.** Windows, their data and the Logbook live on your server.
+7. **Isolation.** Each Window runs in a sandbox: its scripts cannot read the other Windows, the console or the reader's session. The SQL of its data runs in a worker process of its own, confined by Landlock on Linux. The Cahuts of one server share nothing but the machine.
 
 | The AI does it alone (reversible) | A human approves (irreversible) |
 | --- | --- |
-| Publish or update a Window (the previous version is kept) | Permanently delete a Window, an app or a database |
-| Restrict access, extend a lifetime | Make a Window public |
-| Deploy an app within the set limits | Add a person to a Cahut |
-| Roll back to the previous version | Change the permissions of a user or an AI |
-| Run a backup | Erase backups or change their destination |
-
-Apps and backups are coming: their rows say the rule they will follow.
+| Publish or update a Window (the previous version is kept) | Purge a Window from the trash, or delete a team Room |
+| Open a Window to its Room, its Cahut or a Key, until a date | Make a Window public |
+| Put a Window in the trash, and restore it | Add a person to a Cahut, or delete one |
+| Roll back to the previous version | Change the role of a person, the members of a Room or their roles, or widen the reach of an AI |
+| Change the data of a Window, after a copy it goes back to | Remove a table or a column from the data of a Window |
 
 ## FAQ
 
@@ -182,7 +173,7 @@ They deploy sites for developers, from a repository or a command line. In Cahut,
 
 ### Why not Coolify, Dokku or another self-hosted PaaS?
 
-They run the apps that developers deploy, from Git and in containers. Cahut hosts the pages that AIs publish themselves, through typed operations that never give them a shell, and lets people share each one by link. It does not run apps yet: they are on the [roadmap](#roadmap).
+They run the apps that developers deploy, from Git and in containers. Cahut hosts the pages that AIs publish themselves, through typed operations that never give them a shell, and lets people share each one by link. It does not run apps on the server.
 
 ### Why not Nextcloud?
 
@@ -256,21 +247,19 @@ Cahut is written in **Go**: a new, clean codebase built for Cahut, which one per
 
 ### Technical choices
 
-| Topic | Choice | Status |
-| --- | --- | --- |
-| Nature | A platform on a standard Linux, not an operating system | Decided |
-| Hosting | One server holds one or more Cahuts, each with its own domain, people and data | Decided |
-| Language | Go | Decided |
-| AI interface | MCP over HTTP with OAuth, forced-command SSH for the same operations | Decided |
-| Web console | A Preact app embedded in the binary, served under `/console/` of each Cahut, and under `/server/` for the administrators of the server, using the same API as the AIs: no capability is reserved for it | Decided |
-| Web and TLS | Built into the binary, automatic certificates with CertMagic, Windows at paths of their Cahut's domain, each in a CSP sandbox | Decided |
-| Database | SQLite in pure Go, so the binary stays static, one database per Cahut, and one per Window for its data, run in a confined process | Decided |
-| Authorization | Cahut's own minimal OAuth 2.1 server, built for MCP clients | Decided |
-| Updates | Automatic, latest version checked on GitHub, rollback possible | Decided |
-| Backups | Optional, to external S3 or SFTP | Decided |
-| Website and docs | Astro sites in this repository, built on the brand guidelines, served from the project's own server | Decided |
-| Apps | Predefined runtimes and Dockerfile mode, on an unprivileged container engine (Podman or Docker) | Open |
-| License | AGPL-3.0 for the repository; the name and the logo stay apart | Decided |
+| Topic | Choice |
+| --- | --- |
+| Nature | A platform on a standard Linux, not an operating system |
+| Hosting | One server holds one or more Cahuts, each with its own domain, people and data |
+| Language | Go |
+| AI interface | MCP over HTTP, with OAuth or a personal token |
+| Web console | A Preact app embedded in the binary, served under `/console/` of each Cahut, and under `/server/` for the administrators of the server, using the same API as the AIs: no capability is reserved for it |
+| Web and TLS | Built into the binary, automatic certificates with CertMagic, Windows at paths of their Cahut's domain, each in a CSP sandbox |
+| Database | SQLite in pure Go, so the binary stays static, one database per Cahut, and one per Window for its data, run in a confined process |
+| Authorization | Cahut's own minimal OAuth 2.1 server, built for MCP clients |
+| Updates | Daily, from the signed releases on GitHub, with a rollback |
+| Website and docs | Astro sites in this repository, built on the brand guidelines, served from the project's own server |
+| License | AGPL-3.0 for the repository; the name and the logo stay apart |
 
 The reasons behind each choice are in the [architecture decision records](docs/adr/README.md).
 
@@ -280,7 +269,7 @@ The reasons behind each choice are in the [architecture decision records](docs/a
 cmd/cahut/   Entry point of the cahut binary
 internal/    The code of Cahut, private to this module
 install.sh   Installs Cahut on a server as a systemd service
-docs/        Project documents: architecture decision records in English; the brief, the V0 plan and the brand guidelines in French for now
+docs/        Project documents: architecture decision records in English; the brief, the V0 plan and the brand guidelines in French
 sites/       The website and the documentation, Astro sites built on the brand guidelines
 ```
 
@@ -290,7 +279,7 @@ Building Cahut needs Go 1.27 or later, make, and Node.js at the version of `.nvm
 
 Releases are static binaries for linux/amd64 and linux/arm64, built by GoReleaser when a version tag is pushed.
 
-## Roadmap
+## Where Cahut stands
 
 Batches 0 to 11 are done. On 27 October 2026, the first version met its five success criteria on a fresh Ubuntu server, with Claude and ChatGPT ([acceptance](docs/recette-v0.md), in French):
 
@@ -301,12 +290,6 @@ Batches 0 to 11 are done. On 27 October 2026, the first version met its five suc
 | Sharing by a non-technical person | A deck shared by link in a few minutes |
 | Supported AIs | The same Cahut works with at least two different AI clients |
 | Governance | Every AI action is in the Logbook, and is either reversible or was approved |
-
-Next, in about this order:
-
-1. Comments, single sign-on, and backups and restore.
-2. Apps in unprivileged containers: runtimes, a Dockerfile mode, databases, secrets, logs and resource limits.
-3. Export to PDF and PowerPoint, SSH access limited to the same operations, and more AI clients.
 
 The [roadmap on cahut.cloud](https://cahut.cloud/project/roadmap/) tells each batch, and what works today.
 
