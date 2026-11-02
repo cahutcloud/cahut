@@ -557,12 +557,19 @@ var SetUserRole = &operation.Op[SetUserRoleInput, User]{
 var errLastAdmin = operation.NewRefusal("cahut_needs_an_admin", operation.ErrInvalid,
 	"the Cahut needs an administrator: make another person one first")
 
-// keepAnAdmin returns an error wrapping operation.ErrInvalid when the person
-// userID is the last administrator of the Cahut who is not disabled.
-func keepAnAdmin(ctx context.Context, tx *sql.Tx, userID int64) error {
+// otherAdmins counts the administrators of the Cahut who are not disabled,
+// but the person userID.
+func otherAdmins(ctx context.Context, tx *sql.Tx, userID int64) (int, error) {
 	var others int
 	err := tx.QueryRowContext(ctx, "SELECT count(*) FROM users WHERE role = 'admin' AND disabled_at IS NULL AND id != ?",
 		userID).Scan(&others)
+	return others, err
+}
+
+// keepAnAdmin returns an error wrapping operation.ErrInvalid when the person
+// userID is the last administrator of the Cahut who is not disabled.
+func keepAnAdmin(ctx context.Context, tx *sql.Tx, userID int64) error {
+	others, err := otherAdmins(ctx, tx, userID)
 	if err != nil {
 		return err
 	}
@@ -570,6 +577,19 @@ func keepAnAdmin(ctx context.Context, tx *sql.Tx, userID int64) error {
 		return errLastAdmin
 	}
 	return nil
+}
+
+// IsLastAdmin reports whether the person userID is an administrator of the
+// Cahut, not disabled, and the only one: the Cahut would have none without
+// them.
+func IsLastAdmin(ctx context.Context, tx *sql.Tx, userID int64) (bool, error) {
+	var admin bool
+	err := tx.QueryRowContext(ctx, "SELECT role = 'admin' AND disabled_at IS NULL FROM users WHERE id = ?", userID).Scan(&admin)
+	if err != nil || !admin {
+		return false, err
+	}
+	others, err := otherAdmins(ctx, tx, userID)
+	return others == 0, err
 }
 
 // UserInput names a person, by handle.

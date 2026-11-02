@@ -104,6 +104,25 @@ export interface Account {
   rooms: Membership[];
 }
 
+export interface AccountDeletion {
+  /** whether the administrators of the Cahut let people delete their own account; when false, nothing else is listed */
+  allowed: boolean;
+  /** true when the person is the last administrator of the Cahut who is not disabled, which stops the deletion */
+  last_admin?: boolean;
+  /** the Rooms that would be deleted: the personal Room, and the team Rooms the person is the only member of */
+  rooms: LeavingRoom[];
+  /** the team Rooms that the person is the only owner of, and that have other members: they stop the deletion until the person gives each another owner, or deletes it */
+  shared: LeavingRoom[];
+  /** the team Rooms that have another owner: they stay, without the person */
+  left: LeavingRoom[];
+  /** how many Windows the person keeps for themself in the Rooms that stay: they would be deleted */
+  drafts: number;
+  /** how many other Windows the person published in the Rooms that stay: they would stay, without an author */
+  published: number;
+  /** how many Windows would be deleted in all: those of the Rooms that go, and the drafts */
+  windows: number;
+}
+
 export interface AccountDeletionSet {
   /** whether the people of this Cahut delete their own account */
   allowed: boolean;
@@ -279,6 +298,8 @@ export interface Check {
   /** why the releases could not be read */
   error?: string;
 }
+
+export type CheckAccountDeletionInput = Record<string, never>;
 
 export interface CheckHandleInput {
   handle: string;
@@ -695,6 +716,18 @@ export interface KnockListInput {
   waiting?: boolean;
   /** how many Knocks, 50 by default, at most 500 */
   limit?: number;
+}
+
+export interface LeavingRoom {
+  /** the name of the Room */
+  room: string;
+  title: string;
+  /** personal or team */
+  kind: string;
+  /** how many Windows the Room holds, those in its trash included */
+  windows: number;
+  /** for a Room that stops the deletion: how many other members it has */
+  members?: number;
 }
 
 export interface LegalLink {
@@ -2000,6 +2033,8 @@ export interface CahutOperations {
   change_password: { input: ChangePasswordInput; output: PasswordChanged };
   /** Run SQLite statements on the database of a Window of your Rooms: create tables, add columns, add, change or delete rows. Cahut copies the database first; rollback_window_data goes back to the copy. */
   change_window_data: { input: ChangeDataInput; output: ChangedData };
+  /** Say what deleting your own account would delete, what would stay, and what stops it: the Rooms that would go, with how many Windows, the team Rooms to give another owner first, and whether the administrators of the Cahut let people delete their account. It changes nothing. */
+  check_account_deletion: { input: CheckAccountDeletionInput; output: AccountDeletion };
   /** Say whether a handle can go to a new person: of the form of a handle, not reserved, and held by no person and by no Room. For the administrators of the Cahut. */
   check_handle: { input: CheckHandleInput; output: HandleCheck };
   /** Confirm a new e-mail address from the link sent to it, which makes it the address of its person. */

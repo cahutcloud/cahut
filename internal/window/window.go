@@ -163,6 +163,16 @@ func (s *Service) Register(r *operation.Registry) {
 		KnockFirst: true,
 		Run:        s.deleteUser,
 	})
+	operation.Register(r, &operation.Op[CheckAccountDeletionInput, AccountDeletion]{
+		Name:  "check_account_deletion",
+		Title: "Check what deleting your account deletes",
+		Description: "Say what deleting your own account would delete, what would stay, and what stops it: " +
+			"the Rooms that would go, with how many Windows, the team Rooms to give another owner first, " +
+			"and whether the administrators of the Cahut let people delete their account. It changes nothing.",
+		PeopleOnly: true,
+		ReadOnly:   true,
+		Run:        s.checkAccountDeletion,
+	})
 	operation.Register(r, &operation.Op[AccessInput, AccessSet]{
 		Name:  "set_window_access",
 		Title: "Set who opens a Window",

@@ -145,6 +145,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/change_name` | Any person | yes |
 | `POST /console/api/change_password` | Any person | yes |
 | `POST /console/api/change_window_data` | Any person | yes |
+| `POST /console/api/check_account_deletion` | Any person | yes |
 | `POST /console/api/check_handle` | Administrators of the Cahut | yes |
 | `POST /console/api/confirm_email` | Anyone, to sign in | no |
 | `POST /console/api/create_activation_link` | Administrators of the Cahut | yes |

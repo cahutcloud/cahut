@@ -396,6 +396,43 @@ func TestActivationLinks(t *testing.T) {
 	}
 }
 
+func TestIsLastAdmin(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	for handle, isAdmin := range map[string]bool{"olivier": true, "camille": true, "bruno": false} {
+		f.person(t, handle, isAdmin)
+	}
+	is := func(handle string) bool {
+		t.Helper()
+		tx, err := f.db.Read.BeginTx(ctx, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer func() { _ = tx.Rollback() }() // a read changes nothing
+		var id int64
+		if err := tx.QueryRowContext(ctx, "SELECT id FROM users WHERE handle = ?", handle).Scan(&id); err != nil {
+			t.Fatal(err)
+		}
+		last, err := IsLastAdmin(ctx, tx, id)
+		if err != nil {
+			t.Fatalf("IsLastAdmin %s: %v", handle, err)
+		}
+		return last
+	}
+
+	// With two administrators, neither is the last, and a member never is.
+	if is("olivier") || is("camille") || is("bruno") {
+		t.Error("someone is the last administrator among two")
+	}
+	// A disabled administrator does not count, and is not the last herself.
+	if _, err := operation.Do(ctx, f.r, DisableUser, admin, UserInput{User: "camille"}); err != nil {
+		t.Fatal(err)
+	}
+	if !is("olivier") || is("camille") || is("bruno") {
+		t.Errorf("with camille disabled: olivier = %v, camille = %v, bruno = %v; want true, false, false", is("olivier"), is("camille"), is("bruno"))
+	}
+}
+
 func TestRolesAndDisabling(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
