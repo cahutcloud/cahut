@@ -1,6 +1,6 @@
 # 53. A Window can open to its author alone, and a share link that opens once gives it a single reader
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 59](0059-people-delete-their-own-account.md) (the Windows for their author alone go with a person who deletes their own account)
 - Date: 2026-10-30
 
 ## Context
