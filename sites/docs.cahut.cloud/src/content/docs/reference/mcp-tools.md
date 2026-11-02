@@ -1284,6 +1284,7 @@ This tool takes no arguments.
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
+| `account_deletion` | boolean | yes | whether the people of this Cahut delete their own account; its administrators turn it off |
 | `domain` | string | yes |  |
 | `kind` | string | yes | collaborative, where people share team Rooms, or individual, where each person works alone and does not see the others |
 | `legal` | object | yes | the links to the legal pages of the Cahut, which its host publishes elsewhere, and which the console and the pages for readers show at their foot; empty when it links none |
@@ -1332,6 +1333,10 @@ This tool takes no arguments.
 {
   "additionalProperties": false,
   "properties": {
+    "account_deletion": {
+      "description": "whether the people of this Cahut delete their own account; its administrators turn it off",
+      "type": "boolean"
+    },
     "domain": {
       "type": "string"
     },
@@ -1573,7 +1578,8 @@ This tool takes no arguments.
     "sends_mail",
     "kind",
     "limits",
-    "legal"
+    "legal",
+    "account_deletion"
   ],
   "type": "object"
 }

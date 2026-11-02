@@ -21,6 +21,48 @@ var settingsCommands = []command{
 	{name: "set", summary: "Change the kind or limits of a Cahut; what you leave out stays as it is", run: runSettingsSet},
 	{name: "links", summary: "Link the legal pages of a Cahut, or print its links; what you leave out stays as it is", run: runSettingsLinks},
 	{name: "moderation-address", summary: "Set the address that receives the reports of a Cahut, or print it", run: runSettingsModeration},
+	{name: "account-deletion", summary: "Let the people of a Cahut delete their own account, or not, or print which", run: runSettingsAccountDeletion},
+}
+
+// runSettingsAccountDeletion lets the people of a Cahut delete their own
+// account, or not, or prints which. See
+// docs/adr/0059-people-delete-their-own-account.md.
+func runSettingsAccountDeletion(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("settings account-deletion", stderr)
+	data := dataFlag(fs)
+	domain := domainFlag(fs)
+	on := fs.Bool("on", false, "let the people of the Cahut delete their own account")
+	off := fs.Bool("off", false, "the people of the Cahut ask an administrator to delete their account")
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	if *on && *off {
+		fmt.Fprintln(stderr, "cahut settings account-deletion: give --on or --off, not both")
+		return exitError
+	}
+	set := *on || *off
+	allowed, at, ok := withCahut(*data, *domain, stderr, func(ctx context.Context, c *cahut.Cahut) (bool, error) {
+		if !set {
+			about, err := operation.Do(ctx, c.Registry, c.About, admin, cahut.GetCahutInput{})
+			return about.AccountDeletion, err
+		}
+		s, err := operation.Do(ctx, c.Registry, settings.SetAccountDeletion, admin, settings.SetAccountDeletionInput{Allowed: *on})
+		return s.Allowed, err
+	})
+	if !ok {
+		return exitError
+	}
+	switch {
+	case allowed && set:
+		fmt.Fprintf(stdout, "The people of %s now delete their own account.\n", at)
+	case allowed:
+		fmt.Fprintf(stdout, "The people of %s delete their own account.\n", at)
+	case set:
+		fmt.Fprintf(stdout, "The people of %s no longer delete their own account: they ask an administrator to delete their account.\n", at)
+	default:
+		fmt.Fprintf(stdout, "The people of %s do not delete their own account: they ask an administrator to delete their account.\n", at)
+	}
+	return exitOK
 }
 
 // runSettingsModeration sets or prints the address of moderation of a

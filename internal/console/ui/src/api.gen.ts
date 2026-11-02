@@ -21,6 +21,8 @@ export interface About {
   legal: LegalLinks;
   /** since when and why the administrators of the server suspended the Cahut; absent while it is active */
   suspension?: Suspension;
+  /** whether the people of this Cahut delete their own account; its administrators turn it off */
+  account_deletion: boolean;
   /** the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators */
   moderation_email?: string;
 }
@@ -100,6 +102,11 @@ export interface Account {
   email_change?: EmailChange;
   /** the Rooms of the person, their personal Room first */
   rooms: Membership[];
+}
+
+export interface AccountDeletionSet {
+  /** whether the people of this Cahut delete their own account */
+  allowed: boolean;
 }
 
 export interface AccountSession {
@@ -1468,6 +1475,11 @@ export interface SetAIReachInput {
   rooms?: string[];
 }
 
+export interface SetAccountDeletionInput {
+  /** whether the people of this Cahut delete their own account; false turns it off */
+  allowed: boolean;
+}
+
 export interface SetCahutSettingsInput {
   /** collaborative or individual; the kind stays when empty. A Cahut becomes individual only when no Room has more than one member and no Window opens to the whole Cahut */
   kind?: string;
@@ -1565,6 +1577,8 @@ export interface Settings {
   legal: LegalLinks;
   /** since when and why the administrators of the server suspended the Cahut; absent while it is active */
   suspension?: Suspension;
+  /** whether the people of this Cahut delete their own account; its administrators turn it off */
+  account_deletion: boolean;
   /** the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators */
   moderation_email?: string;
 }
@@ -2108,6 +2122,8 @@ export interface CahutOperations {
   select_window_data: { input: PageDataInput; output: PageData };
   /** Send a test message through the relay of this Cahut, and say whether the relay took it. For the administrators of the Cahut. */
   send_test_mail: { input: SendTestMailInput; output: TestSent };
+  /** Let the people of this Cahut delete their own account, or not. It is allowed by default. When it is off, a person who wants to leave asks an administrator, who deletes the account. For the administrators of the Cahut. */
+  set_account_deletion: { input: SetAccountDeletionInput; output: AccountDeletionSet };
   /** Set what an AI connected over OAuth reaches in this Cahut: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. */
   set_ai_reach: { input: SetAIReachInput; output: Connection };
   /** Set the kind of this Cahut, collaborative or individual, and its limits: how many people, administrators, Rooms and Windows it may have, how many Windows each Room may hold, how many bytes it may keep, and, in an individual Cahut, how many Rooms, Windows and bytes each person may have. Give every limit: a limit left out is lifted. Lowering a limit deletes nothing: the Cahut keeps what it holds and refuses what would add to it. For the administrators of the server. */

@@ -28,6 +28,7 @@ Run `cahut help` for the list of commands, and add `-h` to a command for its fla
 | [`cahut settings set`](#cahut-settings-set) | Change the kind or limits of a Cahut; what you leave out stays as it is |
 | [`cahut settings links`](#cahut-settings-links) | Link the legal pages of a Cahut, or print its links; what you leave out stays as it is |
 | [`cahut settings moderation-address`](#cahut-settings-moderation-address) | Set the address that receives the reports of a Cahut, or print it |
+| [`cahut settings account-deletion`](#cahut-settings-account-deletion) | Let the people of a Cahut delete their own account, or not, or print which |
 | [`cahut mail show`](#cahut-mail-show) | Print the e-mail relay of a Cahut |
 | [`cahut mail set`](#cahut-mail-set) | Set the e-mail relay of a Cahut, once it answers |
 | [`cahut mail remove`](#cahut-mail-remove) | Remove the e-mail relay of a Cahut, which then sends no e-mail |
@@ -230,6 +231,21 @@ cahut settings moderation-address [flags]
 | `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
 | `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
 | `--email ADDRESS` |  | the ADDRESS that receives each report about the Windows of the Cahut, beside its administrators; none removes it |
+
+### `cahut settings account-deletion`
+
+Let the people of a Cahut delete their own account, or not, or print which.
+
+```text
+cahut settings account-deletion [flags]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--data string` | `/var/lib/cahut` | directory of the server's data, which holds its Cahuts (env CAHUT_DATA) |
+| `--domain string` |  | the Cahut to act in, by its domain; optional when the server holds a single Cahut |
+| `--off` |  | the people of the Cahut ask an administrator to delete their account |
+| `--on` |  | let the people of the Cahut delete their own account |
 
 ## `cahut mail`
 

@@ -202,6 +202,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/rollback_window_data` | Any person | yes |
 | `POST /console/api/select_window_data` | Anyone, to sign in | no |
 | `POST /console/api/send_test_mail` | Administrators of the Cahut | yes |
+| `POST /console/api/set_account_deletion` | Administrators of the Cahut | yes |
 | `POST /console/api/set_ai_reach` | Any person | yes |
 | `POST /console/api/set_mail_notices` | Any person | yes |
 | `POST /console/api/set_mail_relay` | Administrators of the Cahut | yes |

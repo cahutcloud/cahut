@@ -87,6 +87,9 @@ type Settings struct {
 	// Cahut suspended, when only they read its settings. See
 	// docs/adr/0048-suspending-a-cahut.md.
 	Suspension *Suspension `json:"suspension,omitempty" jsonschema:"since when and why the administrators of the server suspended the Cahut; absent while it is active"`
+	// AccountDeletion says whether the people of the Cahut delete their own
+	// account. See docs/adr/0059-people-delete-their-own-account.md.
+	AccountDeletion bool `json:"account_deletion" jsonschema:"whether the people of this Cahut delete their own account; its administrators turn it off"`
 	// ModerationEmail is the address that receives the reports of the
 	// Cahut, which its administrators read. See
 	// docs/adr/0054-reporting-and-withdrawing-a-window.md.
@@ -188,6 +191,9 @@ func Read(ctx context.Context, tx *sql.Tx, userID int64, admin bool) (Settings, 
 		return Settings{}, err
 	}
 	s := Settings{Kind: kind, Limits: l, Legal: legal, Suspension: suspension}
+	if s.AccountDeletion, err = AccountDeletion(ctx, tx); err != nil {
+		return Settings{}, err
+	}
 	if admin {
 		if s.ModerationEmail, err = ModerationAddress(ctx, tx); err != nil {
 			return Settings{}, err
