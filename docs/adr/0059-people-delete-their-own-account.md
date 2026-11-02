@@ -27,7 +27,7 @@ Each refusal has a code, which the console says in its language ([ADR 37](0037-r
 | Code | When |
 | --- | --- |
 | `account_deletion_off` | The administrators of the Cahut turned it off: the person asks one of them |
-| `account_last_admin` | The person is the last administrator of the Cahut who is not disabled |
+| `cahut_needs_an_admin` | The person is the last administrator of the Cahut who is not disabled, as when someone else would take that role from them |
 | `account_rooms_shared` | Team Rooms that the person is the only owner of have other members. The refusal names them: the person gives each another owner, or deletes it, first |
 | `account_handle_mismatch` | The handle typed is not that of the person |
 
