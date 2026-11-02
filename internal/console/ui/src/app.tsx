@@ -103,6 +103,12 @@ export function App() {
 		drop();
 		navigate("/sign-in", true);
 	};
+	// The person deleted their account, and their session went with it: there
+	// is nothing to end. The sign-in page says that the account is deleted.
+	const deleted = () => {
+		drop();
+		navigate("/sign-in?deleted", true);
+	};
 
 	// The pages of the server live in the console of the server, which an
 	// older link or a bookmark reaches with its code. See
@@ -163,6 +169,7 @@ export function App() {
 			onExpired={expired}
 			onSuspended={() => setSuspended(true)}
 			onSignOut={signOut}
+			onDeleted={deleted}
 		/>
 	);
 }
@@ -174,6 +181,7 @@ function SignedIn(props: {
 	onExpired: () => void;
 	onSuspended: () => void;
 	onSignOut: () => void;
+	onDeleted: () => void;
 }) {
 	const { session, path } = props;
 	const api = bind(session, props.onExpired, props.onSuspended);
@@ -226,7 +234,7 @@ function SignedIn(props: {
 	return (
 		<ConsoleProvider value={value}>
 			<Shell path={path} rooms={rooms} onSignOut={props.onSignOut}>
-				<Page path={path} onSignOut={props.onSignOut} />
+				<Page path={path} onSignOut={props.onSignOut} onDeleted={props.onDeleted} />
 			</Shell>
 		</ConsoleProvider>
 	);
@@ -287,7 +295,7 @@ function useWaitingReports(api: ReturnType<typeof bind>, moderates: boolean): { 
 	return { count, reload: () => setRound((n) => n + 1) };
 }
 
-function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
+function Page({ path, onSignOut, onDeleted }: { path: string; onSignOut: () => void; onDeleted: () => void }) {
 	const knock = path.match(/^\/knocks\/([0-9]+)\/?$/);
 	if (knock) return <KnockPage key={path} id={Number(knock[1])} />;
 	const room = path.match(/^\/rooms\/([a-z0-9-]+)\/?$/);
@@ -316,7 +324,7 @@ function Page({ path, onSignOut }: { path: string; onSignOut: () => void }) {
 		case "/access":
 			return <Access />;
 		case "/account":
-			return <Account onSignOut={onSignOut} />;
+			return <Account onSignOut={onSignOut} onDeleted={onDeleted} />;
 	}
 	return (
 		<PageHead label={t.notFound} title={t.nothingHere}>
