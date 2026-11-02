@@ -15,7 +15,7 @@ Create your account at [account.cahut.cloud](https://account.cahut.cloud/en/sign
 
 In claude.ai and Claude Desktop, My Cahut is in the directory of connectors of Claude: there is no address to copy.
 
-1. Open [My Cahut in the directory of Claude](https://claude.ai/directory/my-cahut), or search for My Cahut among the connectors of Claude.
+1. Open [My Cahut in the directory of Claude](https://claude.ai/directory/my-cahut), or search for My Cahut under Customize, Connectors, Discover.
 2. Select **Connect**. Claude sends you to the console of my.cahut.cloud: sign in, then choose the Rooms that Claude reaches and whether it may publish, as [Consent](/connect/ai-clients/#consent) shows.
 3. Ask Claude to make something and publish it on My Cahut.
 
@@ -29,7 +29,7 @@ Other AI clients connect with the address of My Cahut, `https://my.cahut.cloud/m
 
 - **Claude Code**: `claude mcp add --transport http cahut https://my.cahut.cloud/mcp`, or [the Cahut plugin](/connect/claude-plugin/) with the domain `my.cahut.cloud`.
 - **Mistral Vibe**, formerly Le Chat: a new custom connector with that address, under Context, Connectors, on every plan, Free included.
-- **ChatGPT**: a custom MCP server with that address and OAuth, on a Business, Enterprise or Edu plan. ChatGPT Free, Plus and Pro cannot publish to My Cahut: connect Claude or Mistral Vibe instead.
+- **ChatGPT**: a custom MCP server with that address and OAuth, under Plugins, Add, on a Business, Enterprise or Edu plan. ChatGPT Free, Plus and Pro cannot publish to My Cahut: connect Claude or Mistral Vibe instead.
 
 ## What My Cahut holds
 

@@ -132,7 +132,7 @@ export default {
 				name: 'Claude',
 				short: 'Free plan included',
 				plan: 'Every plan, Free included',
-				where: 'claude.ai and Claude Desktop: Settings, Connectors. My Cahut is in the directory of Claude.',
+				where: 'claude.ai and Claude Desktop: Customize, Connectors. My Cahut is in the directory of Claude.',
 			},
 			{
 				name: 'Mistral Vibe',
@@ -144,7 +144,7 @@ export default {
 				name: 'ChatGPT',
 				short: 'Business, Enterprise, Edu',
 				plan: 'Business, Enterprise and Edu',
-				where: 'On the web: Plugins, Add custom MCP server. Free, Go, Plus and Pro cannot publish: connect Claude or Mistral Vibe instead.',
+				where: 'On the web: Plugins, Add, then Add custom MCP server. Free, Go, Plus and Pro cannot publish: connect Claude or Mistral Vibe instead.',
 			},
 		],
 		othersTitle: 'In the terminal, and elsewhere',

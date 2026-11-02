@@ -128,7 +128,7 @@ const fr: Dictionary = {
 				name: 'Claude',
 				short: 'Offre gratuite comprise',
 				plan: 'Toutes les offres, gratuite comprise',
-				where: 'claude.ai et Claude Desktop : Paramètres, Connecteurs. My Cahut est dans le répertoire de Claude.',
+				where: 'claude.ai et Claude Desktop : Personnaliser, Connecteurs. My Cahut est dans le répertoire de Claude.',
 			},
 			{
 				name: 'Mistral Vibe',
@@ -140,7 +140,7 @@ const fr: Dictionary = {
 				name: 'ChatGPT',
 				short: 'Business, Enterprise, Edu',
 				plan: 'Business, Enterprise et Edu',
-				where: 'Sur le web, dans les plugins, ajoutez un serveur MCP personnalisé. Free, Go, Plus et Pro ne publient pas : connectez plutôt Claude ou Mistral Vibe.',
+				where: 'Sur le web : Plugins, Ajouter, puis Ajouter un serveur MCP personnalisé. Free, Go, Plus et Pro ne publient pas : connectez plutôt Claude ou Mistral Vibe.',
 			},
 		],
 		othersTitle: 'Dans le terminal, et ailleurs',
