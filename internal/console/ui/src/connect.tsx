@@ -37,9 +37,9 @@ const t = words({
 			"In ChatGPT on the web, open Plugins, select the plus button, then Add custom MCP server. Give it a name, this address, and OAuth as its authentication, then create it. ChatGPT sends you here to sign in, and you choose the Rooms it reaches. It asks you to confirm the calls that change something.",
 		chatgptPlans:
 			"ChatGPT publishes to a Cahut on its Business, Enterprise and Edu plans only. With Free, Plus or Pro, it cannot: connect Claude or Mistral Vibe, which work on their free plans too.",
-		vibe: "In Mistral Vibe, formerly Le Chat, open Connectors, select Add Connector, then the Custom MCP Connector tab. Give it a name without spaces, such as cahut, and this address. Vibe finds that the Cahut signs in with OAuth and sends you here to sign in.",
+		vibe: "In Mistral Vibe, formerly Le Chat, open Context, then Connectors. Select New connector, then New custom connector. Give it a name without spaces, such as cahut, and this address as its server: Vibe finds by itself that the Cahut signs in with OAuth. Select Add connector: Vibe sends you here to sign in, and you choose the Rooms it reaches.",
 		vibePlans:
-			"Every plan of Mistral Vibe adds custom MCP connectors, Free included. Only an administrator of the account adds one: on the Free and Pro plans, its owner.",
+			"Every plan of Mistral Vibe adds custom connectors, Free included. Only an administrator of the account adds one: on the Free and Pro plans, its owner.",
 		other: (
 			<>
 				Give any MCP client this address, over HTTP. A client that signs in with OAuth sends you here; one that does not takes a
@@ -81,9 +81,9 @@ const t = words({
 			"Dans ChatGPT sur le web, ouvrez les plugins, choisissez le bouton plus, puis l'ajout d'un serveur MCP personnalisé. Donnez-lui un nom, cette adresse, et OAuth comme authentification, puis créez-le. ChatGPT vous envoie ici pour vous connecter, et vous choisissez les Rooms qu'il atteint. Il vous demande de confirmer les appels qui changent quelque chose.",
 		chatgptPlans:
 			"ChatGPT ne publie dans une Cahut qu'avec ses offres Business, Enterprise et Edu. Avec Free, Plus ou Pro, il ne le peut pas : connectez Claude ou Mistral Vibe, qui marchent aussi avec leur offre gratuite.",
-		vibe: "Dans Mistral Vibe, l'ancien Le Chat, ouvrez les connecteurs, choisissez l'ajout d'un connecteur, puis l'onglet du connecteur MCP personnalisé. Donnez-lui un nom sans espace, comme cahut, et cette adresse. Vibe voit que la Cahut se connecte par OAuth et vous envoie ici pour vous connecter.",
+		vibe: "Dans Mistral Vibe, l'ancien Le Chat, ouvrez Contexte, puis Connecteurs. Choisissez Nouveau connecteur, puis Nouveau connecteur personnalisé. Donnez-lui un nom sans espace, comme cahut, et cette adresse comme serveur : Vibe voit seul que la Cahut se connecte par OAuth. Choisissez Ajouter un connecteur : Vibe vous envoie ici pour vous connecter, et vous choisissez les Rooms qu'il atteint.",
 		vibePlans:
-			"Toutes les offres de Mistral Vibe ajoutent des connecteurs MCP personnalisés, Free comprise. Seul un administrateur du compte en ajoute un : avec les offres Free et Pro, son titulaire.",
+			"Toutes les offres de Mistral Vibe ajoutent des connecteurs personnalisés, Free comprise. Seul un administrateur du compte en ajoute un : avec les offres Free et Pro, son titulaire.",
 		other: (
 			<>
 				Donnez cette adresse à tout client MCP, en HTTP. Un client qui se connecte par OAuth vous envoie ici ; un autre prend un

@@ -134,7 +134,7 @@ const fr: Dictionary = {
 				name: 'Mistral Vibe',
 				short: 'Offre gratuite comprise',
 				plan: 'Toutes les offres, gratuite comprise',
-				where: "L'ancien Le Chat. Dans les connecteurs, ajoutez un connecteur MCP personnalisé à l'adresse de votre Cahut.",
+				where: "L'ancien Le Chat. Contexte, Connecteurs, Nouveau connecteur, puis Nouveau connecteur personnalisé, à l'adresse de votre Cahut.",
 			},
 			{
 				name: 'ChatGPT',

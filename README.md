@@ -221,7 +221,7 @@ Then give your AI the address of the MCP server, `https://cahut.example.com/mcp`
 | --- | --- |
 | claude.ai, Claude Desktop | Settings, Connectors, add a custom connector, on every plan |
 | Claude Code | `/plugin marketplace add cahutcloud/cahut`, then `/plugin install cahut@cahut`, which also brings the skill for Claude |
-| Mistral Vibe, formerly Le Chat | Connectors, add a custom MCP connector, on every plan |
+| Mistral Vibe, formerly Le Chat | Context, Connectors, add a new custom connector, on every plan |
 | ChatGPT | On the web, Plugins, Add custom MCP server, with OAuth, on the Business, Enterprise and Edu plans only: not on Free, Plus or Pro |
 | Others | Any MCP client over HTTP, with OAuth or a personal token |
 

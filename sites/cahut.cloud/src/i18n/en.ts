@@ -138,7 +138,7 @@ export default {
 				name: 'Mistral Vibe',
 				short: 'Free plan included',
 				plan: 'Every plan, Free included',
-				where: 'Formerly Le Chat. Connectors, Add Connector, then the address of your Cahut.',
+				where: 'Formerly Le Chat. Context, Connectors, New connector, then New custom connector, with the address of your Cahut.',
 			},
 			{
 				name: 'ChatGPT',

@@ -31,7 +31,7 @@ In the console of your Cahut, the overview gives the address of its MCP server, 
 | --- | --- |
 | Claude Code | The [Cahut plugin](/connect/claude-plugin/), which also gives Claude the skill to make Windows, or `claude mcp add` then `claude mcp login`. See [Claude Code](/connect/claude-code/) |
 | Claude apps | A custom connector with the address, in the settings of claude.ai or of the Claude app, and the skill for Claude to upload beside it |
-| Mistral Vibe | Connectors, then a custom MCP connector with the address |
+| Mistral Vibe | A new custom connector with the address, under Context, Connectors |
 | ChatGPT | On the web, Plugins, then Add custom MCP server, with the address and OAuth, on a Business, Enterprise or Edu plan. See [Which plans work](/connect/ai-clients/#which-plans-work) |
 | Others | The address, with OAuth, or a [personal token](/connect/tokens/) |
 
