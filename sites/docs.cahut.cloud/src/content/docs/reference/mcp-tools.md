@@ -871,9 +871,9 @@ Title: Delete a person for good. Annotations: `readOnlyHint: false`, `destructiv
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
 | `name` | string | yes |  |
-| `rooms` | array of strings or null | yes | the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of |
+| `rooms` | array of strings or null | yes | the Rooms deleted with the person: their personal Room and the team Rooms that were theirs alone |
 | `user` | string | yes | the handle of the person, now free |
-| `windows` | integer | yes | how many Windows were deleted with these Rooms, those in their trash included |
+| `windows` | integer | yes | how many Windows were deleted, those in a trash included |
 
 <details>
 <summary>JSON Schema</summary>
@@ -886,7 +886,7 @@ Title: Delete a person for good. Annotations: `readOnlyHint: false`, `destructiv
       "type": "string"
     },
     "rooms": {
-      "description": "the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of",
+      "description": "the Rooms deleted with the person: their personal Room and the team Rooms that were theirs alone",
       "items": {
         "type": "string"
       },
@@ -900,7 +900,7 @@ Title: Delete a person for good. Annotations: `readOnlyHint: false`, `destructiv
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows were deleted with these Rooms, those in their trash included",
+      "description": "how many Windows were deleted, those in a trash included",
       "type": "integer"
     }
   },

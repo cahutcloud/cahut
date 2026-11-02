@@ -23,7 +23,7 @@ type LeavingRoom struct {
 	Room    string `json:"room" jsonschema:"the name of the Room"`
 	Title   string `json:"title"`
 	Kind    string `json:"kind" jsonschema:"personal or team"`
-	Windows int    `json:"windows" jsonschema:"how many Windows the Room holds, those in its trash included"`
+	Windows int    `json:"windows" jsonschema:"how many Windows the Room holds, those in its trash included; in a Room that stays, not those that others keep for themselves, which you do not see"`
 	Members int    `json:"members,omitempty" jsonschema:"for a Room that stops the deletion: how many other members it has"`
 }
 
@@ -72,12 +72,16 @@ func (s *Service) leaving(ctx context.Context, tx *sql.Tx, userID int64) (Accoun
 	}
 
 	// The Rooms of the person, sorted as deleteUser sorts the ones it
-	// deletes, with the others each holds.
+	// deletes, with the others each holds. The Windows of a Room that goes
+	// are all it holds, as deleting it takes every one; those of a Room that
+	// stays are those that the person sees there, as room.seen counts them:
+	// all but what others keep for themselves, which ADR 53 hides.
 	rows, err := tx.QueryContext(ctx, `
 		SELECT r.id, r.name, r.title, r.kind, m.role = 'owner',
 			(SELECT count(*) FROM room_members o WHERE o.room_id = r.id AND o.user_id != m.user_id),
 			(SELECT count(*) FROM room_members o WHERE o.room_id = r.id AND o.role = 'owner' AND o.user_id != m.user_id),
-			(SELECT count(*) FROM windows w WHERE w.room_id = r.id)
+			(SELECT count(*) FROM windows w WHERE w.room_id = r.id),
+			(SELECT count(*) FROM windows w WHERE w.room_id = r.id AND (w.access != 'author' OR w.created_by = m.user_id))
 		FROM rooms r JOIN room_members m ON m.room_id = r.id AND m.user_id = ?
 		ORDER BY r.kind = 'personal' DESC, r.name`, userID)
 	if err != nil {
@@ -92,12 +96,15 @@ func (s *Service) leaving(ctx context.Context, tx *sql.Tx, userID int64) (Accoun
 			l                   LeavingRoom
 			owner               bool
 			others, otherOwners int
+			every, seen         int
 		)
-		if err := rows.Scan(&id, &l.Room, &l.Title, &l.Kind, &owner, &others, &otherOwners, &l.Windows); err != nil {
+		if err := rows.Scan(&id, &l.Room, &l.Title, &l.Kind, &owner, &others, &otherOwners, &every, &seen); err != nil {
 			return AccountDeletion{}, nil, err
 		}
+		l.Windows = seen
 		switch {
 		case l.Kind == room.Personal, owner && otherOwners == 0 && others == 0:
+			l.Windows = every
 			out.Rooms = append(out.Rooms, l)
 			out.Windows += l.Windows
 			ids = append(ids, id)
@@ -116,8 +123,8 @@ func (s *Service) leaving(ctx context.Context, tx *sql.Tx, userID int64) (Accoun
 	rows.Close()
 
 	// The Windows of the person in the other Rooms: the drafts they keep for
-	// themself go, as no one else has seen them; what they published stays,
-	// without an author.
+	// themself go, as their Room does not see them; what they published
+	// stays, without an author.
 	rows, err = tx.QueryContext(ctx, `
 		SELECT room_id, access = 'author', count(*) FROM windows WHERE created_by = ? GROUP BY room_id, access = 'author'`, userID)
 	if err != nil {
@@ -154,13 +161,14 @@ var (
 	errAccountDeletionOff = operation.NewRefusal("account_deletion_off", operation.ErrForbidden,
 		"the administrators of this Cahut keep accounts: ask one of them to delete yours")
 	roomsShared = operation.NewRefusalOf[SharedRooms]("account_rooms_shared", operation.ErrInvalid,
-		"you are the only owner of {rooms}, which have other members: give each another owner, or delete it, first")
+		"other people are members of {count} of the Rooms that you alone own, {rooms}: make another person an owner of each, or delete it, first")
 )
 
 // SharedRooms fills the refusal of a person who is the only owner of team
 // Rooms that others are in.
 type SharedRooms struct {
 	Rooms string `json:"rooms" jsonschema:"the names of the Rooms, joined by commas"`
+	Count int    `json:"count" jsonschema:"how many Rooms there are"`
 }
 
 // deleteAccount deletes the account of the person who calls, with the Rooms
@@ -188,7 +196,7 @@ func (s *Service) deleteAccount(ctx context.Context, c *operation.Call, in accou
 		for i, r := range d.Shared {
 			names[i] = r.Room
 		}
-		return DeletedUser{}, roomsShared(SharedRooms{Rooms: strings.Join(names, ", ")})
+		return DeletedUser{}, roomsShared(SharedRooms{Rooms: strings.Join(names, ", "), Count: len(names)})
 	}
 	// The letter is written while the person is there to address it.
 	outbox := mail.OutboxOf(c)

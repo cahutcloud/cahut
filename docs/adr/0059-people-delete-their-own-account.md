@@ -36,7 +36,7 @@ A wrong password is refused as `change_password` refuses it.
 ### What goes and what stays
 
 - With the person go, as ADR 47 has it, their account, their address, their sessions, this one included, their tokens, the AIs they connected and their Knocks. Their personal Room goes, and each team Room whose only member they are, with the Windows of these Rooms, those in their trash included, and their versions, files and data. In an individual Cahut, every Room of the person is such a Room. A Window that its moderators withdrew ([ADR 54](0054-reporting-and-withdrawing-a-window.md)) goes as any other, with its reports, as when its members purge it.
-- The Windows they kept for themselves (`author`, ADR 53) in the Rooms that stay go with them too, rather than open to their Room: no one else has seen them.
+- The Windows they kept for themselves (`author`, ADR 53) in the Rooms that stay go with them too, rather than open to their Room: their Room does not see them.
 - The team Rooms that have another owner stay, without the person. What they published in them stays, without an author, and so do their invitations and share links, without their name, as ADR 47 has it.
 - The Logbook keeps every entry of the person, with their id and their handle as they were. Their handle becomes free.
 - When the Cahut sends e-mail, a message tells the person, at their address, that their account is deleted.
@@ -53,13 +53,13 @@ A wrong password is refused as `change_password` refuses it.
 - A team does not lose a Room because one person left: its only owner names another first, or deletes it knowingly.
 - A deleted account does not come back. The password, the typed handle and what the console shows before are the only guards, as for a Room or a Window deleted for good.
 - Every Cahut allows it after the update that brings it. A host or an organization that deletes accounts its own way turns it off right after the update.
-- An app that keeps the accounts of a Cahut beside it, such as a sign-up app, learns of a deletion from the Logbook only, unless its Cahut turns it off.
+- An app that keeps the accounts of a Cahut beside it, such as a sign-up app, is not told of a deletion: it finds the person gone, unless its Cahut turns it off.
 
 ## Alternatives considered
 
 - **A delay of grace**: the account disabled at once, and deleted after 30 days unless the person signs in again. It forgives a mistake, but it needs a new state of the account, Windows closed while they wait, and a task that runs every hour. A host that promises one keeps it in its own app, with `disable_user` then `delete_user`.
 - **Deleting the team Rooms that the person owns alone, members and all**, as ADR 47 does. A team would lose its work by the decision of one of its people.
-- **Opening the Windows kept for themselves to their Room**, as ADR 47 and ADR 53 do. The team would see drafts that the person never shared.
+- **Opening the Windows kept for themselves to their Room**, as ADR 47 and ADR 53 do. The team would see drafts that the person kept from it.
 - **`delete_user` on oneself, with a password.** It is an operation of the administrators, offered to AIs with a Knock, and its refusals are not those of a person who leaves.
 - **Always allowed, without a setting.** An organization could not keep the Windows of the people who leave.
 - **A setting of the administrators of the server**, beside the kind and the limits ([ADR 30](0030-kind-and-limits-of-each-cahut.md)). Who may leave, and with what, is the business of the Cahut, not of its host.

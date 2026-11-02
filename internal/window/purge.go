@@ -107,12 +107,12 @@ func (s *Service) deleteRoom(ctx context.Context, c *operation.Call, in DeleteRo
 	return DeletedRoom{Room: a.Name, Title: a.Title, Windows: len(ids)}, nil
 }
 
-// DeletedUser is the output of delete_user.
+// DeletedUser is the output of delete_user and of delete_account.
 type DeletedUser struct {
 	User    string   `json:"user" jsonschema:"the handle of the person, now free"`
 	Name    string   `json:"name"`
-	Rooms   []string `json:"rooms" jsonschema:"the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of"`
-	Windows int      `json:"windows" jsonschema:"how many Windows were deleted with these Rooms, those in their trash included"`
+	Rooms   []string `json:"rooms" jsonschema:"the Rooms deleted with the person: their personal Room and the team Rooms that were theirs alone"`
+	Windows int      `json:"windows" jsonschema:"how many Windows were deleted, those in a trash included"`
 }
 
 // deleteUser deletes a person, their personal Room and the team Rooms they
@@ -167,7 +167,7 @@ func (s *Service) deleteUser(ctx context.Context, c *operation.Call, in account.
 // in their trash included, for delete_user and delete_account. It returns
 // the ids of the Windows it deleted, whose files the caller removes once
 // the call commits. With drafts, the Windows that u kept for themself in
-// the Rooms that stay go too, as no one else has seen them; without, they
+// the Rooms that stay go too, as their Room does not see them; without, they
 // open to their Room. See docs/adr/0059-people-delete-their-own-account.md.
 func (s *Service) erase(ctx context.Context, c *operation.Call, u account.User, rooms []int64, drafts bool) ([]int64, error) {
 	var ids []int64

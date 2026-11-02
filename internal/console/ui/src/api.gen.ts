@@ -454,9 +454,9 @@ export interface DeletedUser {
   /** the handle of the person, now free */
   user: string;
   name: string;
-  /** the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of */
+  /** the Rooms deleted with the person: their personal Room and the team Rooms that were theirs alone */
   rooms: string[];
-  /** how many Windows were deleted with these Rooms, those in their trash included */
+  /** how many Windows were deleted, those in a trash included */
   windows: number;
 }
 
@@ -731,7 +731,7 @@ export interface LeavingRoom {
   title: string;
   /** personal or team */
   kind: string;
-  /** how many Windows the Room holds, those in its trash included */
+  /** how many Windows the Room holds, those in its trash included; in a Room that stays, not those that others keep for themselves, which you do not see */
   windows: number;
   /** for a Room that stops the deletion: how many other members it has */
   members?: number;
@@ -1713,6 +1713,8 @@ export interface ShareLinkOpening {
 export interface SharedRooms {
   /** the names of the Rooms, joined by commas */
   rooms: string;
+  /** how many Rooms there are */
+  count: number;
 }
 
 export interface SignInInput {
@@ -2266,7 +2268,7 @@ export interface Refusals {
   account_disabled: null;
   /** this is not your handle: type it as you sign in with it */
   account_handle_mismatch: null;
-  /** you are the only owner of {rooms}, which have other members: give each another owner, or delete it, first */
+  /** other people are members of {count} of the Rooms that you alone own, {rooms}: make another person an owner of each, or delete it, first */
   account_rooms_shared: SharedRooms;
   /** this activation link is unknown, used or expired: ask an administrator of the Cahut for a new one */
   activation_link_gone: null;

@@ -143,6 +143,74 @@ func TestCheckAccountDeletion(t *testing.T) {
 	}
 }
 
+// TestCheckAccountDeletionLeavesOutWhatOthersKeep checks that the number of
+// Windows of a Room that stays, or that stops the deletion, is the number that
+// the person sees there: ADR 53 leaves out what others keep for themselves.
+// The Rooms that go count every Window, as deleting them takes every one.
+func TestCheckAccountDeletionLeavesOutWhatOthersKeep(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	olivier, camille := person(f.olivier), person(f.camille)
+	for _, step := range []struct {
+		actor      operation.Actor
+		name, args string
+	}{
+		// Camille is the only owner of launch with Olivier in it, a member
+		// of design, which Olivier owns, and the only member of marketing,
+		// where Olivier was.
+		{camille, "create_room", `{"title": "Launch"}`},
+		{camille, "add_room_member", `{"room": "launch", "user": "olivier"}`},
+		{olivier, "create_room", `{"title": "Design"}`},
+		{olivier, "add_room_member", `{"room": "design", "user": "camille"}`},
+		{camille, "create_room", `{"title": "Marketing"}`},
+		{camille, "add_room_member", `{"room": "marketing", "user": "olivier"}`},
+	} {
+		if _, err := f.invoke(t, step.actor, step.name, step.args); err != nil {
+			t.Fatalf("%s: %v", step.name, err)
+		}
+	}
+	// Olivier keeps a draft for himself in each Room, beside what he
+	// shares; Camille keeps one of her own in launch and in design.
+	for _, name := range []string{"launch", "design", "marketing"} {
+		f.publishIn(t, f.olivier, name, "Secret", "author")
+		f.publishIn(t, f.olivier, name, "Plan", "")
+	}
+	f.publishIn(t, f.camille, "launch", "Mine", "author")
+	f.publishIn(t, f.camille, "design", "Mine", "author")
+	// Olivier leaves marketing: his Windows stay in it. Even one that he kept
+	// for himself would go with the Room, as every Window of it does.
+	if _, err := f.invoke(t, camille, "remove_room_member", `{"room": "marketing", "user": "olivier"}`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.db.Write.ExecContext(ctx, `UPDATE windows SET access = 'author'
+		WHERE name = 'secret' AND room_id = (SELECT id FROM rooms WHERE name = 'marketing')`); err != nil {
+		t.Fatal(err)
+	}
+
+	out, err := f.invoke(t, camille, "check_account_deletion", `{}`)
+	if err != nil {
+		t.Fatalf("check_account_deletion: %v", err)
+	}
+	got := out.(AccountDeletion)
+	want := AccountDeletion{
+		Allowed: true,
+		Rooms: []LeavingRoom{
+			{Room: "camille", Title: "camille", Kind: "personal"},
+			{Room: "marketing", Title: "Marketing", Kind: "team", Windows: 2},
+		},
+		// Olivier's draft is not in the number of launch and design:
+		// Camille sees Plan, and her own draft.
+		Shared: []LeavingRoom{{Room: "launch", Title: "Launch", Kind: "team", Windows: 2, Members: 1}},
+		Left:   []LeavingRoom{{Room: "design", Title: "Design", Kind: "team", Windows: 2}},
+		// Her draft in design goes. The one in launch, a Room that stops
+		// her, goes with it once she gives it another owner or deletes it.
+		Drafts: 1, Windows: 3,
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("check_account_deletion = %+v\nwant %+v", got, want)
+	}
+}
+
 func TestCheckAccountDeletionInAnIndividualCahut(t *testing.T) {
 	f := setup(t)
 	if _, err := f.db.Write.ExecContext(context.Background(), "UPDATE settings SET kind = 'individual'"); err != nil {
@@ -250,6 +318,43 @@ func (f *fixture) mailer(t *testing.T) *mailtest.Relay {
 	return relay
 }
 
+// TestDeleteAccountNamesEverySharedRoom checks that the refusal names all the
+// Rooms that stop the deletion, and counts them, for the console to say one
+// Room and several each in its language.
+func TestDeleteAccountNamesEverySharedRoom(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	camille := person(f.camille)
+	const password = "a password of Camille's own"
+	hash, err := credential.HashPassword(ctx, password)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.db.Write.ExecContext(ctx, "UPDATE users SET password_hash = ? WHERE handle = 'camille'", hash); err != nil {
+		t.Fatal(err)
+	}
+	for _, title := range []string{"Offsite", "Launch"} {
+		if _, err := f.invoke(t, camille, "create_room", `{"title": "`+title+`"}`); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := f.invoke(t, camille, "add_room_member", `{"room": "`+strings.ToLower(title)+`", "user": "olivier"}`); err != nil {
+			t.Fatal(err)
+		}
+	}
+	_, err = f.invoke(t, camille, "delete_account", `{"password": "`+password+`", "handle": "camille"}`)
+	var r *operation.Refusal
+	if !errors.As(err, &r) || r.Code != "account_rooms_shared" {
+		t.Fatalf("delete_account with two Rooms shared: err = %v, want account_rooms_shared", err)
+	}
+	// The Rooms come in the order of their names, as the check lists them.
+	if values, _ := json.Marshal(r.Values); string(values) != `{"rooms":"launch, offsite","count":2}` {
+		t.Errorf("account_rooms_shared gives %s", values)
+	}
+	if !strings.Contains(err.Error(), "2 of the Rooms") || !strings.Contains(err.Error(), "launch, offsite") {
+		t.Errorf("the message of account_rooms_shared = %q", err)
+	}
+}
+
 func TestDeleteAccount(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
@@ -340,7 +445,7 @@ func TestDeleteAccount(t *testing.T) {
 	_, err = deleteAccount(camille, password, "camille")
 	if r := refusal(err); r.Code != "account_rooms_shared" || !errors.Is(err, operation.ErrInvalid) || !strings.Contains(err.Error(), "launch") {
 		t.Errorf("delete_account with launch shared: err = %v, want account_rooms_shared", err)
-	} else if values, _ := json.Marshal(r.Values); string(values) != `{"rooms":"launch"}` {
+	} else if values, _ := json.Marshal(r.Values); string(values) != `{"rooms":"launch","count":1}` {
 		t.Errorf("account_rooms_shared gives %s", values)
 	}
 	kept("with launch shared")

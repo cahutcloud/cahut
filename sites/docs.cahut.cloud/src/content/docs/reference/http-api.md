@@ -59,7 +59,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `account_deletion_off` |  | The administrators of this Cahut keep accounts: ask one of them to delete yours |
 | `account_disabled` |  | This account is disabled: an administrator of the Cahut can enable it |
 | `account_handle_mismatch` |  | This is not your handle: type it as you sign in with it |
-| `account_rooms_shared` | `rooms` | You are the only owner of {rooms}, which have other members: give each another owner, or delete it, first |
+| `account_rooms_shared` | `rooms`, `count` | Other people are members of {count} of the Rooms that you alone own, {rooms}: make another person an owner of each, or delete it, first |
 | `activation_link_gone` |  | This activation link is unknown, used or expired: ask an administrator of the Cahut for a new one |
 | `cahut_needs_an_admin` |  | The Cahut needs an administrator: make another person one first |
 | `cahut_not_on_server` | `domain` | No Cahut at {domain} on this server: list_domains gives them |

@@ -4,7 +4,7 @@
 // the account.
 import { LogOut } from "lucide-preact";
 import type { ComponentChildren } from "preact";
-import { useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { explain } from "../api";
 import type { AccountDeletion, EmailChange, LeavingRoom } from "../api.gen";
 import { ConfirmButton, Failure, PageHead } from "../components";
@@ -585,7 +585,9 @@ function LeavingRooms(props: {
  * says what would go, what would stay and what stops it, from
  * check_account_deletion; the form comes only when nothing stops it, and asks
  * for the password and the handle, typed in full. The password and the handle
- * live in this component only. Once the account is deleted its session is
+ * live in this component only. Opening it moves the focus to the password, or
+ * to the heading when something stops it; closing it gives the focus back to
+ * the button that opened it. Once the account is deleted its session is
  * gone too: the console forgets it. See
  * docs/adr/0059-people-delete-their-own-account.md.
  */
@@ -602,11 +604,27 @@ function DeleteAccount({ onDeleted }: { onDeleted: () => void }) {
 	const [typed, setTyped] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	const stopped = d?.last_admin === true || (d?.shared.length ?? 0) > 0;
+	// Opening the section removes the button that had the focus: the focus
+	// goes to the password, or to the heading when something stops the
+	// deletion, and back to the button once the section closes.
+	const heading = useRef<HTMLHeadingElement>(null);
+	const passwordField = useRef<HTMLInputElement>(null);
+	const opener = useRef<HTMLButtonElement>(null);
+	const wasOpen = useRef(false);
+	useEffect(() => {
+		if (open) {
+			wasOpen.current = true;
+			(stopped ? heading.current : passwordField.current)?.focus();
+		} else if (wasOpen.current) {
+			wasOpen.current = false;
+			opener.current?.focus();
+		}
+	}, [open, stopped]);
 	if (!d?.allowed) return null;
 
 	const handle = api.session.handle;
 	const typedHandle = typed.trim().toLowerCase();
-	const stopped = d.last_admin === true || d.shared.length > 0;
 	const ready = password !== "" && typedHandle === handle;
 	// A Room fixed in another tab counts: the section reads again as it opens.
 	const show = () => {
@@ -631,17 +649,23 @@ function DeleteAccount({ onDeleted }: { onDeleted: () => void }) {
 			setPassword("");
 			setError(explain(err));
 			setBusy(false);
+			passwordField.current?.focus();
+			// A Room or an administrator may have changed since the page
+			// loaded: what stops the deletion replaces the form.
+			check.reload();
 		}
 	};
 	const kind = (r: LeavingRoom) => (r.kind === "personal" ? t.personalRoom : api.individual ? t.room : t.teamRoom);
 
 	return (
 		<section class="section c-card panel narrow">
-			<h2 class="c-h4">{t.deleteTitle}</h2>
+			<h2 class="c-h4" ref={heading} tabIndex={-1}>
+				{t.deleteTitle}
+			</h2>
 			<p class="c-small c-muted">{t.deleteIntro}</p>
 			{!open && (
 				<div class="actions">
-					<button class="c-btn c-btn--secondary" type="button" onClick={show}>
+					<button class="c-btn c-btn--secondary" type="button" ref={opener} onClick={show}>
 						{t.deleteOpen}
 					</button>
 				</div>
@@ -702,6 +726,7 @@ function DeleteAccount({ onDeleted }: { onDeleted: () => void }) {
 									type="password"
 									autocomplete="current-password"
 									required
+									ref={passwordField}
 									value={password}
 									onInput={(e) => setPassword(e.currentTarget.value)}
 								/>

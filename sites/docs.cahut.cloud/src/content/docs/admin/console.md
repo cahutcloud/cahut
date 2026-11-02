@@ -42,7 +42,7 @@ A change to what someone may do, such as adding a person to a Room, making a Win
 
 The same screens, and:
 
-- **People**: everyone in the Cahut, with their role and state, and their e-mail address when the Cahut sends e-mail. **New person** adds someone and gives their link. **Manage** opens what can change for a person, each with what it does: their e-mail address, making them an administrator or a member, a new link, disabling and enabling. A change of role and disabling ask to confirm first. A disabled person cannot sign in, and their AIs stop at once. Under the table, a switch, **People delete their own account**, lets the people of the Cahut [delete their own account](#delete-your-account), or not; it applies at once.
+- **People**: everyone in the Cahut, with their role and state, and their e-mail address when the Cahut sends e-mail. **New person** adds someone and gives their link. **Manage** opens what can change for a person, each with what it does: their e-mail address, making them an administrator or a member, a new link, disabling and enabling, and **Delete for good**, which deletes the person with the Rooms that are theirs alone and asks for their handle first. A change of role and disabling ask to confirm first. A disabled person cannot sign in, and their AIs stop at once. Under the table, a switch, **People delete their own account**, lets the people of the Cahut [delete their own account](#delete-your-account), or not; it applies at once.
 - **Rooms**: every Room of the Cahut, whose people they manage. They open the Windows of the Rooms they are in only.
 - **Logbook**: every entry of the Cahut, from people and from AIs.
 - **AIs and access**: the connected AIs and the tokens of others too, which they can disconnect and revoke.
@@ -91,25 +91,25 @@ A new handle must be free, held by no person and no Room. It becomes the name of
 
 ## Delete your account
 
-Anyone deletes their own account under **Account**, at the foot of the page, without asking an administrator. It is for people: an AI cannot do it. A Cahut allows it until its administrators turn it off, with the switch **People delete their own account**, in the console under **People**, or with [`cahut settings account-deletion`](/admin/commands/#let-people-delete-their-own-account). Where it is off, the section is not there, and a person who wants to leave asks an administrator, who deletes them from **People**.
+Anyone deletes their own account under **Account**, at the foot of the page, without asking an administrator. It is for people: an AI cannot do it. A Cahut allows it until its administrators turn it off, with the switch **People delete their own account**, in the console under **People**, or with [`cahut settings account-deletion`](/admin/commands/#let-people-delete-their-own-account). Where it is off, the section is not there, and a person who wants to leave asks an administrator, who deletes them from **People**, under **Manage**.
 
 **Delete my account** opens on what the deletion would take and what it would leave, before it asks for anything. What goes, for good and at once:
 
 - your account, your address, your sessions, this one included, your tokens, the AIs you connected, and your Knocks;
 - your personal Room, and each team Room whose only member you are, with the Windows of these Rooms, those in their trash included, and their versions, files and data. In an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), every Room of yours is such a Room;
-- the Windows you kept for yourself, [Only you](/concepts/access/#only-you), in the Rooms that stay: no one else has seen them.
+- the Windows you kept for yourself, [Only you](/concepts/access/#only-you), in the Rooms that stay: the Room does not see them.
 
 What stays:
 
 - a team Room that has another owner stays, without you. What you published in it stays, without an author, and so do your invitations and your share links, without your name;
 - the Logbook keeps every entry of yours, with your handle as it was. Your handle becomes free.
 
-Two things stop the deletion, and the section says which, with a link to each Room to change:
+Two things stop the deletion, and the section says which:
 
-- You are the only owner of a team Room that has other members. Give it another owner, or delete it, first.
-- You are the last administrator of the Cahut who is not disabled. Make another person an administrator first.
+- You are the only owner of a team Room that has other members. Give it another owner, or delete it, first. The section links to each of these Rooms.
+- You are the last administrator of the Cahut who is not disabled. Make another person an administrator first. The section links to **People**, where you do it.
 
-To delete the account, give your current password and type your handle in full: the button stays off until the handle is right. The account is deleted at once, and the console shows the page of sign-in, which says so. When the Cahut [sends e-mail](/admin/mail/), a message tells you at your address. A deleted account does not come back.
+To delete the account, give your current password and type your handle in full: the button stays off until the password is filled in and the handle is right. The account is deleted at once, and the console shows the page of sign-in, which says so. When the Cahut [sends e-mail](/admin/mail/), a message tells you at your address. A deleted account does not come back.
 
 ## Language
 
