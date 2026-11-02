@@ -136,6 +136,24 @@ sudo -u cahut /usr/local/bin/cahut settings moderation-address --domain docs.exa
 The reports of docs.example.org now go to abuse@example.org too, when it sends e-mail.
 ```
 
+## Let people delete their own account
+
+Every Cahut lets its people [delete their own account](/admin/console/#delete-your-account) until its administrators turn it off. `settings account-deletion --off` turns it off: a person who wants to leave then asks an administrator. `--on` turns it on again, and without a flag the command prints which it is:
+
+```bash
+sudo -u cahut /usr/local/bin/cahut settings account-deletion --domain docs.example.org --off
+sudo -u cahut /usr/local/bin/cahut settings account-deletion --domain docs.example.org
+sudo -u cahut /usr/local/bin/cahut settings account-deletion --domain docs.example.org --on
+```
+
+```text
+The people of docs.example.org no longer delete their own account: they ask an administrator to delete their account.
+The people of docs.example.org do not delete their own account: they ask an administrator to delete their account.
+The people of docs.example.org now delete their own account.
+```
+
+The administrators of a Cahut change it in the console too, under **People**. A host or an organization that deletes accounts its own way turns it off right after an update that brings the feature, since every Cahut allows it from then on.
+
 ## Suspend a Cahut
 
 After a decision of moderation, or when its organization stops paying, the administrators of the server [suspend a Cahut](/concepts/cahuts/#suspension), with a reason, and resume it later:

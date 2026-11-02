@@ -32,7 +32,7 @@ An administrator creates accounts in the console, under **People**, or on the co
 | Rooms | A new team Room, of which you become the owner |
 | Logbook | What you did, what your AIs did, and what happened in your Rooms, by day, with filters |
 | AIs and access | The address to give an AI client; your connected AIs, with what they may do and where, Change and Disconnect; your personal tokens: create one, shown once with the command that connects Claude Code, and revoke it in one click |
-| Account | At the foot of the navigation, and behind your name in the top bar: your name and your handle; your e-mail address and notices, when the Cahut sends e-mail; the language of the console; a new password, and signing out |
+| Account | At the foot of the navigation, and behind your name in the top bar: your name and your handle; your e-mail address and notices, when the Cahut sends e-mail; the language of the console; a new password, and signing out; [deleting your account](#delete-your-account), where the Cahut allows it |
 
 The **AIs and access** screen also gives the commands that install the [Cahut plugin](/connect/claude-plugin/) in Claude Code, and the skill as a zip for the Claude apps.
 
@@ -42,7 +42,7 @@ A change to what someone may do, such as adding a person to a Room, making a Win
 
 The same screens, and:
 
-- **People**: everyone in the Cahut, with their role and state, and their e-mail address when the Cahut sends e-mail. **New person** adds someone and gives their link. **Manage** opens what can change for a person, each with what it does: their e-mail address, making them an administrator or a member, a new link, disabling and enabling. A change of role and disabling ask to confirm first. A disabled person cannot sign in, and their AIs stop at once.
+- **People**: everyone in the Cahut, with their role and state, and their e-mail address when the Cahut sends e-mail. **New person** adds someone and gives their link. **Manage** opens what can change for a person, each with what it does: their e-mail address, making them an administrator or a member, a new link, disabling and enabling. A change of role and disabling ask to confirm first. A disabled person cannot sign in, and their AIs stop at once. Under the table, a switch, **People delete their own account**, lets the people of the Cahut [delete their own account](#delete-your-account), or not; it applies at once.
 - **Rooms**: every Room of the Cahut, whose people they manage. They open the Windows of the Rooms they are in only.
 - **Logbook**: every entry of the Cahut, from people and from AIs.
 - **AIs and access**: the connected AIs and the tokens of others too, which they can disconnect and revoke.
@@ -88,6 +88,28 @@ On a Knock, **Approve** and, on the consent screen of an AI, **Connect** become 
 Anyone changes their name and their handle under **Account**. Their personal Room takes the new name as its title, unless they gave it another one.
 
 A new handle must be free, held by no person and no Room. It becomes the name of the personal Room and, in an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), the start of the name of each Room of the person, such as `bob-projects`: the addresses of their Windows change, and the old ones stop working, the links already given out included. The old handle is free for someone else. The console shows the old and the new addresses, and asks again before the change. Answer the Knocks that wait for you first, since they name the old addresses. Your sessions, tokens and connected AIs go on as before, and you sign in with the new handle.
+
+## Delete your account
+
+Anyone deletes their own account under **Account**, at the foot of the page, without asking an administrator. It is for people: an AI cannot do it. A Cahut allows it until its administrators turn it off, with the switch **People delete their own account**, in the console under **People**, or with [`cahut settings account-deletion`](/admin/commands/#let-people-delete-their-own-account). Where it is off, the section is not there, and a person who wants to leave asks an administrator, who deletes them from **People**.
+
+**Delete my account** opens on what the deletion would take and what it would leave, before it asks for anything. What goes, for good and at once:
+
+- your account, your address, your sessions, this one included, your tokens, the AIs you connected, and your Knocks;
+- your personal Room, and each team Room whose only member you are, with the Windows of these Rooms, those in their trash included, and their versions, files and data. In an [individual Cahut](/concepts/cahuts/#collaborative-or-individual), every Room of yours is such a Room;
+- the Windows you kept for yourself, [Only you](/concepts/access/#only-you), in the Rooms that stay: no one else has seen them.
+
+What stays:
+
+- a team Room that has another owner stays, without you. What you published in it stays, without an author, and so do your invitations and your share links, without your name;
+- the Logbook keeps every entry of yours, with your handle as it was. Your handle becomes free.
+
+Two things stop the deletion, and the section says which, with a link to each Room to change:
+
+- You are the only owner of a team Room that has other members. Give it another owner, or delete it, first.
+- You are the last administrator of the Cahut who is not disabled. Make another person an administrator first.
+
+To delete the account, give your current password and type your handle in full: the button stays off until the handle is right. The account is deleted at once, and the console shows the page of sign-in, which says so. When the Cahut [sends e-mail](/admin/mail/), a message tells you at your address. A deleted account does not come back.
 
 ## Language
 
