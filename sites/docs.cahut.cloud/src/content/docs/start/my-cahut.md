@@ -19,6 +19,8 @@ In claude.ai and Claude Desktop, My Cahut is in the directory of connectors of C
 2. Select **Connect**. Claude sends you to the console of my.cahut.cloud: sign in, then choose the Rooms that Claude reaches and whether it may publish, as [Consent](/connect/ai-clients/#consent) shows.
 3. Ask Claude to make something and publish it on My Cahut.
 
+A film of 45 seconds on YouTube shows these steps: [Connect Claude to My Cahut](https://www.youtube.com/watch?v=JMhOVCx-L74), and in French, [Connecter Claude à My Cahut](https://www.youtube.com/watch?v=XYfDC_bodZo).
+
 Claude shows My Cahut with the Community label, which it gives to the connectors that passed its automated review.
 
 To give Claude the skill that teaches it to make Windows, upload the skill beside the connector: `https://my.cahut.cloud/-/cahut-skill.zip`, as [The Cahut plugin for Claude](/connect/claude-plugin/#in-claudeai-and-claude-desktop) shows.
