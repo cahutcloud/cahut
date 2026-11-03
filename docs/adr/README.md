@@ -50,18 +50,19 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [44](0044-two-bars-for-the-server-and-the-cahut.md) | The console shows the server and the Cahut in two bars, and each signs out of its own session | Superseded by 58 |
 | [45](0045-windows-fetch-the-blob-and-data-urls-they-make.md) | The pages of a Window fetch the blob: and data: URLs they make | Accepted |
 | [46](0046-styled-notes-in-invitations.md) | The note of an invitation carries bold, italics and lists | Accepted |
-| [47](0047-deleting-a-person.md) | The administrators of a Cahut delete a person for good, with the Rooms that are theirs alone | Accepted |
+| [47](0047-deleting-a-person.md) | The administrators of a Cahut delete a person for good, with the Rooms that are theirs alone | Accepted, superseded in part by 59 |
 | [48](0048-suspending-a-cahut.md) | The administrators of the server suspend a Cahut, which keeps everything and serves nothing until they resume it | Accepted |
 | [49](0049-no-house-style.md) | Cahut has no house style, until a module of skills brings the brand of an organization | Accepted |
 | [50](0050-window-ids-permanent-addresses-and-names.md) | Each Window has an id that never changes and a permanent address, and its people change its name, its title and its description | Accepted, extended by 52 |
 | [51](0051-sharing-a-window-and-its-preview.md) | People share a Window by its permanent address, which shows the robots of previews a card of Cahut | Accepted, extended by 52 |
 | [52](0052-share-links.md) | A share link opens a Window to whoever holds it, without an account or a Key, until it ends | Accepted, extended by 53 and 54 |
-| [53](0053-windows-for-their-author-alone.md) | A Window can open to its author alone, and a share link that opens once gives it a single reader | Accepted |
+| [53](0053-windows-for-their-author-alone.md) | A Window can open to its author alone, and a share link that opens once gives it a single reader | Accepted, extended by 59 |
 | [54](0054-reporting-and-withdrawing-a-window.md) | Anyone reports a Window, and the moderators of its Cahut open it and withdraw it | Accepted, extended by 56, superseded in part by 58 |
 | [55](0055-tags-and-search-of-windows.md) | Windows carry tags, and people and AIs search them | Accepted |
 | [56](0056-a-database-for-each-window.md) | Each Window has a database of its own, which its pages read and write as its declaration says | Accepted |
 | [57](0057-the-list-of-tools-under-40-kb.md) | The list of tools stays under 40 KB | Accepted |
 | [58](0058-a-console-for-the-server.md) | The administrators of the server have a console of their own, under `/server/` | Accepted |
+| [59](0059-people-delete-their-own-account.md) | People delete their own account, unless the administrators of their Cahut turn it off | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

@@ -46,7 +46,13 @@ function when(at: string): string {
 
 const said = words<Sentences>({
 	en: {
+		account_deletion_off: "The administrators of this Cahut keep accounts: ask one of them to delete yours.",
 		account_disabled: "This account is disabled: an administrator of the Cahut can enable it.",
+		account_handle_mismatch: "This is not your handle.",
+		account_rooms_shared: (v) =>
+			v.count === 1
+				? `You are the only owner of the Room ${v.rooms}, which has other members: give it another owner, or delete it, first.`
+				: `You are the only owner of ${plural(v.count, "Room", "Rooms")} that have other members (${v.rooms}): give each another owner, or delete it, first.`,
 		activation_link_gone: "This activation link is unknown, used or expired: ask an administrator of the Cahut for a new one.",
 		cahut_needs_an_admin: "The Cahut needs an administrator: make another person one first.",
 		cahut_not_on_server: (v) => `This server holds no Cahut at ${v.domain}: it may have moved to another domain.`,
@@ -142,7 +148,13 @@ const said = words<Sentences>({
 		wrong_handle_or_password: "Wrong handle or password.",
 	},
 	fr: {
+		account_deletion_off: "Les administrateurs de cette Cahut gardent les comptes : demandez à l'un d'eux de supprimer le vôtre.",
 		account_disabled: "Ce compte est désactivé : un administrateur de la Cahut peut le réactiver.",
+		account_handle_mismatch: "Ce n'est pas votre identifiant.",
+		account_rooms_shared: (v) =>
+			v.count === 1
+				? `Vous êtes la seule personne propriétaire de la Room ${v.rooms}, qui a d'autres membres : donnez-lui d'abord une autre personne propriétaire, ou supprimez-la.`
+				: `Vous êtes la seule personne propriétaire de ${plural(v.count, "Room", "Rooms")} qui ont d'autres membres (${v.rooms}) : donnez d'abord à chacune une autre personne propriétaire, ou supprimez-la.`,
 		activation_link_gone:
 			"Ce lien d'activation est inconnu, déjà utilisé ou expiré : demandez-en un nouveau à un administrateur de la Cahut.",
 		cahut_needs_an_admin: "La Cahut a besoin d'un administrateur : faites d'abord d'une autre personne un administrateur.",

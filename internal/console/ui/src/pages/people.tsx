@@ -1,7 +1,8 @@
-// People, for the administrators of the Cahut: who is in it, and two
-// dialogs. One adds a person and gives the link where they choose their
-// password; the other manages a person: their e-mail address, their role, a
-// new link, disabling, and deleting them for good.
+// People, for the administrators of the Cahut: who is in it, whether they
+// delete their own account, and two dialogs. One adds a person and gives the
+// link where they choose their password; the other manages a person: their
+// e-mail address, their role, a new link, disabling, and deleting them for
+// good.
 import { Check, Plus } from "lucide-preact";
 import { useId, useState } from "preact/hooks";
 import { explain } from "../api";
@@ -102,6 +103,9 @@ const t = words({
 		emailRemoved: "E-mail address removed.",
 		emailSettingHelp: "Their links and notices go there. Leave it empty to remove it.",
 		save: "Save",
+		accountDeletion: "Account deletion",
+		accountDeletionLabel: "People delete their own account",
+		accountDeletionHelp: "With their password, from their Account page. What they published in the Rooms that stay, stays.",
 	},
 	fr: {
 		member: "Membre",
@@ -191,6 +195,9 @@ const t = words({
 		emailRemoved: "Adresse e-mail retirée.",
 		emailSettingHelp: "Ses liens et ses notifications y sont envoyés. Laissez le champ vide pour la retirer.",
 		save: "Enregistrer",
+		accountDeletion: "Suppression des comptes",
+		accountDeletionLabel: "Les personnes suppriment leur propre compte",
+		accountDeletionHelp: "Avec leur mot de passe, depuis leur page Compte. Ce qu'elles ont publié dans les Rooms qui restent, reste.",
 	},
 });
 
@@ -291,9 +298,56 @@ export function People() {
 					</table>
 				</div>
 			</section>
+			<AccountDeletionSwitch />
 			{adding && <NewPerson onCreated={reload} onClose={() => setAdding(false)} />}
 			{managed && <ManagePerson user={managed} self={isSelf(managed)} onChanged={reload} onClose={() => setManaging("")} />}
 		</>
+	);
+}
+
+/**
+ * Whether the people of this Cahut delete their own account, which its
+ * administrators turn on or off at once. See
+ * docs/adr/0059-people-delete-their-own-account.md.
+ */
+function AccountDeletionSwitch() {
+	const api = useConsole();
+	const help = useId();
+	const { data, error: loadError, reload } = useLoad(() => api.cahut("get_cahut", {}));
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	if (loadError) return <Failure message={loadError} />;
+	if (!data) return null;
+	const change = async (allowed: boolean) => {
+		setBusy(true);
+		setError("");
+		try {
+			await api.cahut("set_account_deletion", { allowed });
+			reload();
+		} catch (err) {
+			setError(explain(err));
+		} finally {
+			setBusy(false);
+		}
+	};
+	return (
+		<section class="section c-card panel narrow">
+			<h2 class="c-h4">{t.accountDeletion}</h2>
+			<label class="c-check">
+				<input
+					type="checkbox"
+					checked={data.account_deletion}
+					disabled={busy}
+					aria-describedby={help}
+					onChange={(e) => change(e.currentTarget.checked)}
+				/>
+				{t.accountDeletionLabel}
+			</label>
+			<p id={help} class="c-small c-muted">
+				{t.accountDeletionHelp}
+			</p>
+			{error && <Failure message={error} />}
+		</section>
 	);
 }
 

@@ -56,7 +56,10 @@ A refusal that people meet in the console gives its code too, which never change
 
 | Code | Values | Message |
 | --- | --- | --- |
+| `account_deletion_off` |  | The administrators of this Cahut keep accounts: ask one of them to delete yours |
 | `account_disabled` |  | This account is disabled: an administrator of the Cahut can enable it |
+| `account_handle_mismatch` |  | This is not your handle: type it as you sign in with it |
+| `account_rooms_shared` | `rooms`, `count` | Other people are members of {count} of the Rooms that you alone own, {rooms}: make another person an owner of each, or delete it, first |
 | `activation_link_gone` |  | This activation link is unknown, used or expired: ask an administrator of the Cahut for a new one |
 | `cahut_needs_an_admin` |  | The Cahut needs an administrator: make another person one first |
 | `cahut_not_on_server` | `domain` | No Cahut at {domain} on this server: list_domains gives them |
@@ -145,6 +148,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/change_name` | Any person | yes |
 | `POST /console/api/change_password` | Any person | yes |
 | `POST /console/api/change_window_data` | Any person | yes |
+| `POST /console/api/check_account_deletion` | Any person | yes |
 | `POST /console/api/check_handle` | Administrators of the Cahut | yes |
 | `POST /console/api/confirm_email` | Anyone, to sign in | no |
 | `POST /console/api/create_activation_link` | Administrators of the Cahut | yes |
@@ -152,6 +156,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/create_share_link` | Any person | yes |
 | `POST /console/api/create_token` | Any person | yes |
 | `POST /console/api/create_user` | Administrators of the Cahut | yes |
+| `POST /console/api/delete_account` | Any person | yes |
 | `POST /console/api/delete_room` | Any person | yes |
 | `POST /console/api/delete_user` | Administrators of the Cahut | yes |
 | `POST /console/api/deny_authorization` | Any person | yes |
@@ -202,6 +207,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/rollback_window_data` | Any person | yes |
 | `POST /console/api/select_window_data` | Anyone, to sign in | no |
 | `POST /console/api/send_test_mail` | Administrators of the Cahut | yes |
+| `POST /console/api/set_account_deletion` | Administrators of the Cahut | yes |
 | `POST /console/api/set_ai_reach` | Any person | yes |
 | `POST /console/api/set_mail_notices` | Any person | yes |
 | `POST /console/api/set_mail_relay` | Administrators of the Cahut | yes |

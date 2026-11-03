@@ -871,9 +871,9 @@ Title: Delete a person for good. Annotations: `readOnlyHint: false`, `destructiv
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
 | `name` | string | yes |  |
-| `rooms` | array of strings or null | yes | the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of |
+| `rooms` | array of strings or null | yes | the Rooms deleted with the person: their personal Room and the team Rooms that were theirs alone |
 | `user` | string | yes | the handle of the person, now free |
-| `windows` | integer | yes | how many Windows were deleted with these Rooms, those in their trash included |
+| `windows` | integer | yes | how many Windows were deleted, those in a trash included |
 
 <details>
 <summary>JSON Schema</summary>
@@ -886,7 +886,7 @@ Title: Delete a person for good. Annotations: `readOnlyHint: false`, `destructiv
       "type": "string"
     },
     "rooms": {
-      "description": "the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of",
+      "description": "the Rooms deleted with the person: their personal Room and the team Rooms that were theirs alone",
       "items": {
         "type": "string"
       },
@@ -900,7 +900,7 @@ Title: Delete a person for good. Annotations: `readOnlyHint: false`, `destructiv
       "type": "string"
     },
     "windows": {
-      "description": "how many Windows were deleted with these Rooms, those in their trash included",
+      "description": "how many Windows were deleted, those in a trash included",
       "type": "integer"
     }
   },
@@ -1284,6 +1284,7 @@ This tool takes no arguments.
 
 | Field | Type | Always present | Description |
 | --- | --- | --- | --- |
+| `account_deletion` | boolean | yes | whether the people of this Cahut delete their own account; its administrators turn it off |
 | `domain` | string | yes |  |
 | `kind` | string | yes | collaborative, where people share team Rooms, or individual, where each person works alone and does not see the others |
 | `legal` | object | yes | the links to the legal pages of the Cahut, which its host publishes elsewhere, and which the console and the pages for readers show at their foot; empty when it links none |
@@ -1332,6 +1333,10 @@ This tool takes no arguments.
 {
   "additionalProperties": false,
   "properties": {
+    "account_deletion": {
+      "description": "whether the people of this Cahut delete their own account; its administrators turn it off",
+      "type": "boolean"
+    },
     "domain": {
       "type": "string"
     },
@@ -1573,7 +1578,8 @@ This tool takes no arguments.
     "sends_mail",
     "kind",
     "limits",
-    "legal"
+    "legal",
+    "account_deletion"
   ],
   "type": "object"
 }

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"cahut.cloud/internal/account"
+	"cahut.cloud/internal/logbook"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/settings"
@@ -81,9 +82,87 @@ func TestGetCahut(t *testing.T) {
 	ai := operation.Actor{Kind: operation.AI, Via: "mcp", UserID: u.ID, Handle: "olivier", TokenID: 1, Client: "Claude"}
 	out, err := c.Registry.Invoke(ctx, "get_cahut", ai, nil)
 	want := About{Domain: "cahut.example.com", URL: "https://cahut.example.com/", MCP: "https://cahut.example.com/mcp",
-		Settings: settings.Settings{Kind: settings.Collaborative, Usage: &settings.Usage{People: 1}}}
+		Settings: settings.Settings{Kind: settings.Collaborative, Usage: &settings.Usage{People: 1}, AccountDeletion: true}}
 	if err != nil || !reflect.DeepEqual(out, want) {
 		t.Errorf("get_cahut = %+v, %v; want %+v", out, err, want)
+	}
+}
+
+// TestSetAccountDeletion checks that the administrators of a Cahut turn the
+// deletion of accounts off and on, that every reader of get_cahut sees it,
+// and that no one else, and no AI, sets it. See
+// docs/adr/0059-people-delete-their-own-account.md.
+func TestSetAccountDeletion(t *testing.T) {
+	ctx := context.Background()
+	c, err := Open(ctx, Config{Dir: t.TempDir(), Domain: "cahut.example.com"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Close()
+	cli := operation.Actor{Kind: operation.Admin, Via: "cli"}
+	people := map[string]operation.Actor{}
+	for _, handle := range []string{"olivier", "camille"} {
+		u, err := operation.Do(ctx, c.Registry, account.CreateUser, cli, account.CreateUserInput{Handle: handle, Name: handle, Admin: handle == "olivier"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		people[handle] = operation.Actor{Kind: operation.Person, Via: "api", UserID: u.ID, Handle: handle, Session: 1}
+	}
+	allowed := func(who operation.Actor) bool {
+		t.Helper()
+		about, err := operation.Do(ctx, c.Registry, c.About, who, GetCahutInput{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return about.AccountDeletion
+	}
+	set := func(who operation.Actor, on bool) error {
+		_, err := operation.Do(ctx, c.Registry, settings.SetAccountDeletion, who, settings.SetAccountDeletionInput{Allowed: on})
+		return err
+	}
+	if !allowed(people["camille"]) {
+		t.Error("a new Cahut does not let people delete their own account")
+	}
+	if err := set(people["camille"], false); !errors.Is(err, operation.ErrForbidden) {
+		t.Errorf("set_account_deletion by a person who is not an administrator: %v, want ErrForbidden", err)
+	}
+	ai := operation.Actor{Kind: operation.AI, Via: "mcp", UserID: people["olivier"].UserID, Handle: "olivier", TokenID: 1, Client: "Claude"}
+	if err := set(ai, false); !errors.Is(err, operation.ErrForbidden) {
+		t.Errorf("set_account_deletion by an AI: %v, want ErrForbidden", err)
+	}
+	if !allowed(people["camille"]) {
+		t.Error("a refused call turned the deletion of accounts off")
+	}
+	if err := set(people["olivier"], false); err != nil {
+		t.Fatal(err)
+	}
+	for _, who := range []string{"olivier", "camille"} {
+		if allowed(people[who]) {
+			t.Errorf("get_cahut tells %s that people delete their own account, after an administrator turned it off", who)
+		}
+	}
+	if allowed(cli) {
+		t.Error("get_cahut tells the command line that people delete their own account, after an administrator turned it off")
+	}
+	if err := set(cli, true); err != nil {
+		t.Fatal(err)
+	}
+	if !allowed(people["camille"]) {
+		t.Error("get_cahut tells a person that people no longer delete their own account, after the command line turned it on")
+	}
+	page, err := operation.Do(ctx, c.Registry, ListLogbook, people["olivier"], ListLogbookInput{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var details []string
+	for _, e := range page.Entries {
+		if e.Operation == "set_account_deletion" && e.Outcome == logbook.OK {
+			details = append(details, e.Detail)
+		}
+	}
+	slices.Sort(details)
+	if want := []string{"from off to on", "from on to off"}; !slices.Equal(details, want) {
+		t.Errorf("the Logbook records %q, want %q", details, want)
 	}
 }
 

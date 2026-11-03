@@ -1,14 +1,17 @@
 // The account: who is signed in, their name and handle, their e-mail
 // address and notices, the language of the console, a new password, the
-// other account that the console holds or adds, and signing out.
+// other account that the console holds or adds, signing out, and deleting
+// the account.
 import { LogOut } from "lucide-preact";
-import { useState } from "preact/hooks";
+import type { ComponentChildren } from "preact";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { explain } from "../api";
-import type { EmailChange } from "../api.gen";
+import type { AccountDeletion, EmailChange, LeavingRoom } from "../api.gen";
 import { ConfirmButton, Failure, PageHead } from "../components";
 import { useConsole } from "../context";
-import { lang, langs, locale, setLang, words } from "../i18n";
+import { lang, langs, locale, plural, setLang, words } from "../i18n";
 import { useLoad } from "../load";
+import { Link } from "../router";
 
 const minPassword = 15;
 
@@ -83,6 +86,50 @@ const t = words({
 		handleQuestion: "The old links stop working.",
 		changeIt: "Change it",
 		handleChanged: (handle: string) => `Your handle is now ${handle}: sign in with it from now on.`,
+		deleteTitle: "Delete your account",
+		deleteIntro:
+			"Your account, your sessions, your tokens and the AIs you connected go for good, and your handle becomes free. This cannot be undone.",
+		deleteOpen: "Delete my account…",
+		goes: "What goes",
+		goesTeam: "Your personal Room and the team Rooms where you are the only member, with their Windows, files and data.",
+		goesRooms: "Your Rooms, with their Windows, files and data.",
+		personalRoom: "Personal Room",
+		teamRoom: "Team Room",
+		room: "Room",
+		drafts: "Windows you keep for yourself, in other Rooms",
+		stays: "What stays",
+		staysRooms: (n: number): string =>
+			n === 1 ? "A team Room that has another owner stays, without you." : "Team Rooms that have another owner stay, without you.",
+		staysPublished: (n: number) =>
+			`What you published in other Rooms stays, without an author: ${plural(n, "Window", "Windows")}.`,
+		lastAdmin: (link: boolean) => (
+			<>
+				You are the last administrator of this Cahut. Make another person an administrator first.
+				{link && (
+					<>
+						{" "}
+						Do it in{" "}
+						<Link class="c-link" href="/people">
+							People
+						</Link>
+						.
+					</>
+				)}
+			</>
+		),
+		sharedRooms: (n: number): string =>
+			n === 1
+				? "You are the only owner of a team Room that has other members. Give it another owner, or delete it, first."
+				: "You are the only owner of team Rooms that have other members. Give each another owner, or delete it, first.",
+		otherMembers: (n: number) => plural(n, "other member", "other members"),
+		typeHandle: (handle: string) => (
+			<>
+				Type <span class="c-mono">{handle}</span> to confirm
+			</>
+		),
+		deleteForGood: "Delete my account for good",
+		cancel: "Cancel",
+		close: "Close",
 	},
 	fr: {
 		differ: "Les deux nouveaux mots de passe diffèrent.",
@@ -157,10 +204,57 @@ const t = words({
 		handleQuestion: "Les anciens liens ne marcheront plus.",
 		changeIt: "Changer",
 		handleChanged: (handle) => `Votre identifiant est désormais ${handle} : connectez-vous avec lui à partir de maintenant.`,
+		deleteTitle: "Supprimer votre compte",
+		deleteIntro:
+			"Votre compte, vos sessions, vos jetons et les IA que vous avez connectées sont supprimés définitivement, et votre identifiant redevient libre. Cela ne s'annule pas.",
+		deleteOpen: "Supprimer mon compte…",
+		goes: "Ce qui part",
+		goesTeam:
+			"Votre Room personnelle et les Rooms d'équipe dont vous êtes l'unique membre, avec leurs Windows, leurs fichiers et leurs données.",
+		goesRooms: "Vos Rooms, avec leurs Windows, leurs fichiers et leurs données.",
+		personalRoom: "Room personnelle",
+		teamRoom: "Room d'équipe",
+		room: "Room",
+		drafts: "Windows que vous gardez pour vous, dans d'autres Rooms",
+		stays: "Ce qui reste",
+		staysRooms: (n) =>
+			n === 1
+				? "Une Room d'équipe qui a une autre personne propriétaire reste, sans vous."
+				: "Les Rooms d'équipe qui ont une autre personne propriétaire restent, sans vous.",
+		staysPublished: (n) =>
+			`Ce que vous avez publié dans d'autres Rooms reste, sans auteur : ${plural(n, "Window", "Windows")}.`,
+		lastAdmin: (link) => (
+			<>
+				Vous êtes le dernier administrateur de cette Cahut. Faites d'abord d'une autre personne un administrateur.
+				{link && (
+					<>
+						{" "}
+						Faites-le dans{" "}
+						<Link class="c-link" href="/people">
+							Personnes
+						</Link>
+						.
+					</>
+				)}
+			</>
+		),
+		sharedRooms: (n) =>
+			n === 1
+				? "Vous êtes la seule personne propriétaire d'une Room d'équipe qui a d'autres membres. Donnez-lui d'abord une autre personne propriétaire, ou supprimez-la."
+				: "Vous êtes la seule personne propriétaire de Rooms d'équipe qui ont d'autres membres. Donnez d'abord à chacune une autre personne propriétaire, ou supprimez-la.",
+		otherMembers: (n) => plural(n, "autre membre", "autres membres"),
+		typeHandle: (handle) => (
+			<>
+				Tapez <span class="c-mono">{handle}</span> pour confirmer
+			</>
+		),
+		deleteForGood: "Supprimer mon compte définitivement",
+		cancel: "Annuler",
+		close: "Fermer",
 	},
 });
 
-export function Account({ onSignOut }: { onSignOut: () => void }) {
+export function Account({ onSignOut, onDeleted }: { onSignOut: () => void; onDeleted: () => void }) {
 	const api = useConsole();
 	return (
 		<>
@@ -188,6 +282,7 @@ export function Account({ onSignOut }: { onSignOut: () => void }) {
 					</button>
 				</div>
 			</section>
+			<DeleteAccount onDeleted={onDeleted} />
 		</>
 	);
 }
@@ -454,6 +549,213 @@ function EmailSection() {
 				</div>
 			)}
 			{error && <Failure message={error} />}
+		</section>
+	);
+}
+
+/** The Rooms of an account deletion, one row each: the Room, and what it says of it. */
+function LeavingRooms(props: {
+	rooms: LeavingRoom[];
+	detail: (r: LeavingRoom) => string;
+	link?: boolean;
+	children?: ComponentChildren;
+}) {
+	return (
+		<ul class="leaving">
+			{props.rooms.map((r) => (
+				<li key={r.room} class="leaving__row">
+					{props.link ? (
+						<Link class="c-link" href={`/rooms/${r.room}`}>
+							{r.title || r.room}
+						</Link>
+					) : (
+						<span>{r.title || r.room}</span>
+					)}
+					<span class="c-muted">{props.detail(r)}</span>
+				</li>
+			))}
+			{props.children}
+		</ul>
+	);
+}
+
+/**
+ * Deletes the account of the person for good. It is closed at first, and
+ * shown only where the Cahut lets people delete their own account. Opened, it
+ * says what would go, what would stay and what stops it, from
+ * check_account_deletion; the form comes only when nothing stops it, and asks
+ * for the password and the handle, typed in full. The password and the handle
+ * live in this component only. Opening it moves the focus to the password, or
+ * to the heading when something stops it; closing it gives the focus back to
+ * the button that opened it. Once the account is deleted its session is
+ * gone too: the console forgets it. See
+ * docs/adr/0059-people-delete-their-own-account.md.
+ */
+function DeleteAccount({ onDeleted }: { onDeleted: () => void }) {
+	const api = useConsole();
+	const check = useLoad(() => api.cahut("check_account_deletion", {}));
+	// A load that fails after the section opened keeps what the person read:
+	// the server checks everything again when they delete.
+	const seen = useRef<AccountDeletion | undefined>(undefined);
+	if (check.data) seen.current = check.data;
+	const d = seen.current;
+	const [open, setOpen] = useState(false);
+	const [password, setPassword] = useState("");
+	const [typed, setTyped] = useState("");
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	const stopped = d?.last_admin === true || (d?.shared.length ?? 0) > 0;
+	// Opening the section removes the button that had the focus: the focus
+	// goes to the password, or to the heading when something stops the
+	// deletion, and back to the button once the section closes.
+	const heading = useRef<HTMLHeadingElement>(null);
+	const passwordField = useRef<HTMLInputElement>(null);
+	const opener = useRef<HTMLButtonElement>(null);
+	const wasOpen = useRef(false);
+	useEffect(() => {
+		if (open) {
+			wasOpen.current = true;
+			(stopped ? heading.current : passwordField.current)?.focus();
+		} else if (wasOpen.current) {
+			wasOpen.current = false;
+			opener.current?.focus();
+		}
+	}, [open, stopped]);
+	if (!d?.allowed) return null;
+
+	const handle = api.session.handle;
+	const typedHandle = typed.trim().toLowerCase();
+	const ready = password !== "" && typedHandle === handle;
+	// A Room fixed in another tab counts: the section reads again as it opens.
+	const show = () => {
+		check.reload();
+		setOpen(true);
+	};
+	const close = () => {
+		setOpen(false);
+		setPassword("");
+		setTyped("");
+		setError("");
+	};
+	const remove = async (e: Event) => {
+		e.preventDefault();
+		if (!ready) return;
+		setBusy(true);
+		setError("");
+		try {
+			await api.cahut("delete_account", { password, handle: typedHandle });
+			onDeleted();
+		} catch (err) {
+			setPassword("");
+			setError(explain(err));
+			setBusy(false);
+			passwordField.current?.focus();
+			// A Room or an administrator may have changed since the page
+			// loaded: what stops the deletion replaces the form.
+			check.reload();
+		}
+	};
+	const kind = (r: LeavingRoom) => (r.kind === "personal" ? t.personalRoom : api.individual ? t.room : t.teamRoom);
+
+	return (
+		<section class="section c-card panel narrow">
+			<h2 class="c-h4" ref={heading} tabIndex={-1}>
+				{t.deleteTitle}
+			</h2>
+			<p class="c-small c-muted">{t.deleteIntro}</p>
+			{!open && (
+				<div class="actions">
+					<button class="c-btn c-btn--secondary" type="button" ref={opener} onClick={show}>
+						{t.deleteOpen}
+					</button>
+				</div>
+			)}
+			{open && (
+				<>
+					{(d.rooms.length > 0 || d.drafts > 0) && (
+						<div class="leaving__block">
+							<h3 class="leaving__title">{t.goes}</h3>
+							<p class="c-small c-muted">{api.individual ? t.goesRooms : t.goesTeam}</p>
+							<LeavingRooms rooms={d.rooms} detail={(r) => `${kind(r)} · ${plural(r.windows, "Window", "Windows")}`}>
+								{d.drafts > 0 && (
+									<li class="leaving__row">
+										<span>{t.drafts}</span>
+										<span class="c-muted">{plural(d.drafts, "Window", "Windows")}</span>
+									</li>
+								)}
+							</LeavingRooms>
+						</div>
+					)}
+					{(d.left.length > 0 || d.published > 0) && (
+						<div class="leaving__block">
+							<h3 class="leaving__title">{t.stays}</h3>
+							{d.left.length > 0 && (
+								<>
+									<p class="c-small c-muted">{t.staysRooms(d.left.length)}</p>
+									<LeavingRooms rooms={d.left} detail={kind} />
+								</>
+							)}
+							{d.published > 0 && <p class="c-small c-muted">{t.staysPublished(d.published)}</p>}
+						</div>
+					)}
+					{d.last_admin && (
+						<div class="c-alert c-alert--warning" role="status">
+							<div>{t.lastAdmin(api.isAdmin)}</div>
+						</div>
+					)}
+					{d.shared.length > 0 && (
+						<div class="c-alert c-alert--warning" role="status">
+							<div class="leaving__block">
+								<p>{t.sharedRooms(d.shared.length)}</p>
+								<LeavingRooms rooms={d.shared} link detail={(r) => t.otherMembers(r.members ?? 0)} />
+							</div>
+						</div>
+					)}
+					{stopped ? (
+						<div class="actions">
+							<button class="c-btn c-btn--ghost" type="button" onClick={close}>
+								{t.close}
+							</button>
+						</div>
+					) : (
+						<form class="form" onSubmit={remove}>
+							<label class="c-field">
+								<span class="c-field__label">{t.current}</span>
+								<input
+									class="c-input"
+									type="password"
+									autocomplete="current-password"
+									required
+									ref={passwordField}
+									value={password}
+									onInput={(e) => setPassword(e.currentTarget.value)}
+								/>
+							</label>
+							<label class="c-field">
+								<span class="c-field__label">{t.typeHandle(handle)}</span>
+								<input
+									class="c-input c-mono"
+									type="text"
+									autocomplete="off"
+									autocapitalize="none"
+									spellcheck={false}
+									value={typed}
+									onInput={(e) => setTyped(e.currentTarget.value)}
+								/>
+							</label>
+							{error && <Failure message={error} />}
+							<div class="actions">
+								<button class="c-btn c-btn--danger" type="submit" disabled={busy || !ready}>
+									{t.deleteForGood}
+								</button>
+								<button class="c-btn c-btn--ghost" type="button" disabled={busy} onClick={close}>
+									{t.cancel}
+								</button>
+							</div>
+						</form>
+					)}
+				</>
+			)}
 		</section>
 	);
 }

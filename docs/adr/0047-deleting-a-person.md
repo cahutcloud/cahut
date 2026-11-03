@@ -1,6 +1,6 @@
 # 47. The administrators of a Cahut delete a person for good, with the Rooms that are theirs alone
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 59](0059-people-delete-their-own-account.md) (people delete their own account)
 - Date: 2026-10-29
 
 ## Context

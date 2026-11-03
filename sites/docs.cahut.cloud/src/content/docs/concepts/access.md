@@ -31,7 +31,7 @@ A Window can open to its author alone: the person it was first published for, wh
 - **It counts** in the limits of the Room and of the Cahut, and in their disk, like any Window. Its name stays taken in its Room.
 - **It has no end.** It opens to its author alone until they choose another access.
 
-When its author leaves the Room, or is removed from it, or is deleted, their Windows for themselves open to the Room again, with the access Room only: what is published in a team Room belongs to the Room. The console says how many before. When its author is disabled, they stay as they are. When the Room is deleted, they go with it.
+When its author leaves the Room, or is removed from it, or is deleted by an administrator, their Windows for themselves open to the Room again, with the access Room only: what is published in a team Room belongs to the Room. The console says how many before. When its author deletes their own account, they go with it, since the Room does not see them: see [Delete your account](/admin/console/#delete-your-account). When its author is disabled, they stay as they are. When the Room is deleted, they go with it.
 
 ## Who sees a closed Window
 

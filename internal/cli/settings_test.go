@@ -131,3 +131,26 @@ func TestSettingsModerationAddress(t *testing.T) {
 		}
 	}
 }
+
+func TestSettingsAccountDeletion(t *testing.T) {
+	data := t.TempDir()
+	if code, _, errOut := run(t, data, "domain", "add", "cahut.example.com"); code != exitOK {
+		t.Fatalf("domain add: %d %q", code, errOut)
+	}
+	for _, tt := range []struct {
+		args []string
+		code int
+		want string
+	}{
+		{nil, exitOK, "The people of cahut.example.com delete their own account"},
+		{[]string{"--off"}, exitOK, "no longer delete their own account"},
+		{nil, exitOK, "ask an administrator to delete their account"},
+		{[]string{"--on", "--off"}, exitError, "--on or --off"},
+		{[]string{"--on"}, exitOK, "now delete their own account"},
+	} {
+		code, out, errOut := run(t, data, append([]string{"settings", "account-deletion"}, tt.args...)...)
+		if code != tt.code || !strings.Contains(out+errOut, tt.want) {
+			t.Errorf("settings account-deletion %q: %d %q %q", tt.args, code, out, errOut)
+		}
+	}
+}

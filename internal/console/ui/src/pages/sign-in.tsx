@@ -40,6 +40,7 @@ const t = words({
 		handleOrEmail: "Handle or e-mail address",
 		sendLink: "Send me a link",
 		back: "Back to sign in",
+		deleted: "Your account is deleted.",
 	},
 	fr: {
 		administer: "Administrer ce serveur",
@@ -65,6 +66,7 @@ const t = words({
 		handleOrEmail: "Identifiant ou adresse e-mail",
 		sendLink: "M'envoyer un lien",
 		back: "Retour à la connexion",
+		deleted: "Votre compte est supprimé.",
 	},
 });
 
@@ -119,6 +121,9 @@ export function SignIn(props: {
 		}
 	};
 
+	// A person who just deleted their account lands here, and is told so.
+	const deleted = kind === "person" && new URLSearchParams(location.search).has("deleted");
+
 	if (suspended && kind === "person") return <Suspended />;
 	if (forgot) return <Forgot who={handle} onBack={() => setForgot(false)} />;
 	return (
@@ -132,6 +137,11 @@ export function SignIn(props: {
 						{kind === "admin" ? t.asAdmin(location.hostname) : t.to(location.hostname, purpose)}
 					</p>
 				</div>
+				{deleted && (
+					<div class="c-alert c-alert--success" role="status">
+						{t.deleted}
+					</div>
+				)}
 				<form onSubmit={submit}>
 					<label class="c-field">
 						<span class="c-field__label">{t.handle}</span>

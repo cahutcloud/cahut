@@ -21,6 +21,8 @@ export interface About {
   legal: LegalLinks;
   /** since when and why the administrators of the server suspended the Cahut; absent while it is active */
   suspension?: Suspension;
+  /** whether the people of this Cahut delete their own account; its administrators turn it off */
+  account_deletion: boolean;
   /** the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators */
   moderation_email?: string;
 }
@@ -100,6 +102,30 @@ export interface Account {
   email_change?: EmailChange;
   /** the Rooms of the person, their personal Room first */
   rooms: Membership[];
+}
+
+export interface AccountDeletion {
+  /** whether the administrators of the Cahut let people delete their own account; when false, nothing else is listed */
+  allowed: boolean;
+  /** true when the person is the last administrator of the Cahut who is not disabled, which stops the deletion */
+  last_admin?: boolean;
+  /** the Rooms that would be deleted: the personal Room, and the team Rooms the person is the only member of */
+  rooms: LeavingRoom[];
+  /** the team Rooms that the person is the only owner of, and that have other members: they stop the deletion until the person gives each another owner, or deletes it */
+  shared: LeavingRoom[];
+  /** the team Rooms that have another owner: they stay, without the person */
+  left: LeavingRoom[];
+  /** how many Windows the person keeps for themself in the Rooms that stay: they would be deleted */
+  drafts: number;
+  /** how many other Windows the person published in the Rooms that stay: they would stay, without an author */
+  published: number;
+  /** how many Windows would be deleted in all: those of the Rooms that go, and the drafts */
+  windows: number;
+}
+
+export interface AccountDeletionSet {
+  /** whether the people of this Cahut delete their own account */
+  allowed: boolean;
 }
 
 export interface AccountSession {
@@ -273,6 +299,8 @@ export interface Check {
   error?: string;
 }
 
+export type CheckAccountDeletionInput = Record<string, never>;
+
 export interface CheckHandleInput {
   handle: string;
 }
@@ -402,6 +430,13 @@ export interface Declaration {
   data?: Data;
 }
 
+export interface DeleteAccountInput {
+  /** your current password */
+  password: string;
+  /** your handle, typed in full */
+  handle: string;
+}
+
 export interface DeleteRoomInput {
   /** the name of the team Room */
   room: string;
@@ -419,9 +454,9 @@ export interface DeletedUser {
   /** the handle of the person, now free */
   user: string;
   name: string;
-  /** the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of */
+  /** the Rooms deleted with the person: their personal Room and the team Rooms that were theirs alone */
   rooms: string[];
-  /** how many Windows were deleted with these Rooms, those in their trash included */
+  /** how many Windows were deleted, those in a trash included */
   windows: number;
 }
 
@@ -688,6 +723,18 @@ export interface KnockListInput {
   waiting?: boolean;
   /** how many Knocks, 50 by default, at most 500 */
   limit?: number;
+}
+
+export interface LeavingRoom {
+  /** the name of the Room */
+  room: string;
+  title: string;
+  /** personal or team */
+  kind: string;
+  /** how many Windows the Room holds, those in its trash included; in a Room that stays, not those that others keep for themselves, which you do not see */
+  windows: number;
+  /** for a Room that stops the deletion: how many other members it has */
+  members?: number;
 }
 
 export interface LegalLink {
@@ -1468,6 +1515,11 @@ export interface SetAIReachInput {
   rooms?: string[];
 }
 
+export interface SetAccountDeletionInput {
+  /** whether the people of this Cahut delete their own account; false turns it off */
+  allowed: boolean;
+}
+
 export interface SetCahutSettingsInput {
   /** collaborative or individual; the kind stays when empty. A Cahut becomes individual only when no Room has more than one member and no Window opens to the whole Cahut */
   kind?: string;
@@ -1565,6 +1617,8 @@ export interface Settings {
   legal: LegalLinks;
   /** since when and why the administrators of the server suspended the Cahut; absent while it is active */
   suspension?: Suspension;
+  /** whether the people of this Cahut delete their own account; its administrators turn it off */
+  account_deletion: boolean;
   /** the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators */
   moderation_email?: string;
 }
@@ -1654,6 +1708,13 @@ export interface ShareLinkOpening {
   window: string;
   /** when the pass ends: with the link, or 4 hours after the opening of a link that opens once */
   expires_at: string;
+}
+
+export interface SharedRooms {
+  /** the names of the Rooms, joined by commas */
+  rooms: string;
+  /** how many Rooms there are */
+  count: number;
 }
 
 export interface SignInInput {
@@ -1986,6 +2047,8 @@ export interface CahutOperations {
   change_password: { input: ChangePasswordInput; output: PasswordChanged };
   /** Run SQLite statements on the database of a Window of your Rooms: create tables, add columns, add, change or delete rows. Cahut copies the database first; rollback_window_data goes back to the copy. */
   change_window_data: { input: ChangeDataInput; output: ChangedData };
+  /** Say what deleting your own account would delete, what would stay, and what stops it: the Rooms that would go, with how many Windows, the team Rooms to give another owner first, and whether the administrators of the Cahut let people delete their account. It changes nothing. */
+  check_account_deletion: { input: CheckAccountDeletionInput; output: AccountDeletion };
   /** Say whether a handle can go to a new person: of the form of a handle, not reserved, and held by no person and by no Room. For the administrators of the Cahut. */
   check_handle: { input: CheckHandleInput; output: HandleCheck };
   /** Confirm a new e-mail address from the link sent to it, which makes it the address of its person. */
@@ -2002,6 +2065,8 @@ export interface CahutOperations {
   create_token: { input: CreateTokenInput; output: NewToken };
   /** Create a person, with their personal Room, and the link where they choose their password, which goes to their e-mail address when you give one and the Cahut sends e-mail. */
   create_user: { input: CreateUserInput; output: NewUser };
+  /** Delete your own account for good: your account, your address, your sessions, this one included, your tokens and the AIs you connected, your personal Room and the team Rooms you are the only member of, with the Windows of these Rooms and their files, and the Windows you kept for yourself in the other Rooms. This cannot be undone. The team Rooms that have another owner stay, without you, and so do the Windows you published in them, without an author. Your handle becomes free. Give your current password, and type your handle. Being the only owner of a team Room that has other members stops it, until you give that Room another owner or delete it, and so does being the last administrator of the Cahut; its administrators may turn it off. check_account_deletion says what would go, what would stay and what stops it. */
+  delete_account: { input: DeleteAccountInput; output: DeletedUser };
   /** Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. */
   delete_room: { input: DeleteRoomInput; output: DeletedRoom };
   /** Delete a person for good: their account, their tokens and the AIs they connected, their personal Room and the team Rooms they are the only owner of, with the Windows of these Rooms and their files. This cannot be undone. The Windows they published in other Rooms stay, without an author. Their handle becomes free. No one deletes themself, nor the last administrator of the Cahut; disable_user stops a person and keeps what is theirs. */
@@ -2108,6 +2173,8 @@ export interface CahutOperations {
   select_window_data: { input: PageDataInput; output: PageData };
   /** Send a test message through the relay of this Cahut, and say whether the relay took it. For the administrators of the Cahut. */
   send_test_mail: { input: SendTestMailInput; output: TestSent };
+  /** Let the people of this Cahut delete their own account, or not. It is allowed by default. When it is off, a person who wants to leave asks an administrator, who deletes the account. For the administrators of the Cahut. */
+  set_account_deletion: { input: SetAccountDeletionInput; output: AccountDeletionSet };
   /** Set what an AI connected over OAuth reaches in this Cahut: read or write, and every Room of its person or some of them. A person sets the reach of their AIs. An AI sets its own, leaving out id: narrowing it acts at once, and widening it, such as asking for write or for another Room, waits for its person to approve. */
   set_ai_reach: { input: SetAIReachInput; output: Connection };
   /** Set the kind of this Cahut, collaborative or individual, and its limits: how many people, administrators, Rooms and Windows it may have, how many Windows each Room may hold, how many bytes it may keep, and, in an individual Cahut, how many Rooms, Windows and bytes each person may have. Give every limit: a limit left out is lifted. Lowering a limit deletes nothing: the Cahut keeps what it holds and refuses what would add to it. For the administrators of the server. */
@@ -2195,8 +2262,14 @@ export type ServerCahutOperations = Pick<CahutOperations, "create_service_token"
 
 /** The refusals that the console says in the language of its person, by code, each with its values. */
 export interface Refusals {
+  /** the administrators of this Cahut keep accounts: ask one of them to delete yours */
+  account_deletion_off: null;
   /** this account is disabled: an administrator of the Cahut can enable it */
   account_disabled: null;
+  /** this is not your handle: type it as you sign in with it */
+  account_handle_mismatch: null;
+  /** other people are members of {count} of the Rooms that you alone own, {rooms}: make another person an owner of each, or delete it, first */
+  account_rooms_shared: SharedRooms;
   /** this activation link is unknown, used or expired: ask an administrator of the Cahut for a new one */
   activation_link_gone: null;
   /** the Cahut needs an administrator: make another person one first */

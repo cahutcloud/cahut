@@ -107,12 +107,12 @@ func (s *Service) deleteRoom(ctx context.Context, c *operation.Call, in DeleteRo
 	return DeletedRoom{Room: a.Name, Title: a.Title, Windows: len(ids)}, nil
 }
 
-// DeletedUser is the output of delete_user.
+// DeletedUser is the output of delete_user and of delete_account.
 type DeletedUser struct {
 	User    string   `json:"user" jsonschema:"the handle of the person, now free"`
 	Name    string   `json:"name"`
-	Rooms   []string `json:"rooms" jsonschema:"the Rooms deleted with the person: their personal Room, and the team Rooms they were the only owner of"`
-	Windows int      `json:"windows" jsonschema:"how many Windows were deleted with these Rooms, those in their trash included"`
+	Rooms   []string `json:"rooms" jsonschema:"the Rooms deleted with the person: their personal Room and the team Rooms that were theirs alone"`
+	Windows int      `json:"windows" jsonschema:"how many Windows were deleted, those in a trash included"`
 }
 
 // deleteUser deletes a person, their personal Room and the team Rooms they
@@ -149,43 +149,9 @@ func (s *Service) deleteUser(ctx context.Context, c *operation.Call, in account.
 	if err := rows.Err(); err != nil {
 		return DeletedUser{}, err
 	}
-	var ids []int64
-	for _, room := range roomIDs {
-		rows, err := c.Tx.QueryContext(ctx, "DELETE FROM windows WHERE room_id = ? RETURNING id", room)
-		if err != nil {
-			return DeletedUser{}, err
-		}
-		for rows.Next() {
-			var id int64
-			if err := rows.Scan(&id); err != nil {
-				rows.Close()
-				return DeletedUser{}, err
-			}
-			ids = append(ids, id)
-		}
-		rows.Close()
-		if err := rows.Err(); err != nil {
-			return DeletedUser{}, err
-		}
-		if _, err := c.Tx.ExecContext(ctx, "DELETE FROM rooms WHERE id = ?", room); err != nil {
-			return DeletedUser{}, err
-		}
-	}
-	// What the person did elsewhere stays, without their name: the Windows
-	// and versions they published lose their author with the foreign keys,
-	// and their invitations and share links lose it here. The Windows they
-	// kept for themselves open to their Room, which no author holds any
-	// more. The rest of what is theirs goes with them. See
-	// docs/adr/0053-windows-for-their-author-alone.md.
-	for _, q := range []string{
-		"UPDATE windows SET access = 'room' WHERE created_by = ? AND access = 'author'",
-		"UPDATE invitations SET invited_by = NULL WHERE invited_by = ?",
-		"UPDATE share_links SET created_by = NULL WHERE created_by = ?",
-		"DELETE FROM users WHERE id = ?",
-	} {
-		if _, err := c.Tx.ExecContext(ctx, q, u.ID); err != nil {
-			return DeletedUser{}, err
-		}
+	ids, err := s.erase(ctx, c, u, roomIDs, false)
+	if err != nil {
+		return DeletedUser{}, err
 	}
 	out.Windows = len(ids)
 	c.Log(u.Handle, fmt.Sprintf("%q, Rooms %s, %d Windows", u.Name, strings.Join(out.Rooms, " "), len(ids)))
@@ -195,4 +161,62 @@ func (s *Service) deleteUser(ctx context.Context, c *operation.Call, in account.
 		}
 	})
 	return out, nil
+}
+
+// erase deletes the person u, and the Rooms rooms with their Windows, those
+// in their trash included, for delete_user and delete_account. It returns
+// the ids of the Windows it deleted, whose files the caller removes once
+// the call commits. With drafts, the Windows that u kept for themself in
+// the Rooms that stay go too, as their Room does not see them; without, they
+// open to their Room. See docs/adr/0059-people-delete-their-own-account.md.
+func (s *Service) erase(ctx context.Context, c *operation.Call, u account.User, rooms []int64, drafts bool) ([]int64, error) {
+	var ids []int64
+	// deleted runs a DELETE that returns the ids of the Windows it deleted.
+	deleted := func(query string, arg int64) error {
+		rows, err := c.Tx.QueryContext(ctx, query, arg)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var id int64
+			if err := rows.Scan(&id); err != nil {
+				return err
+			}
+			ids = append(ids, id)
+		}
+		return rows.Err()
+	}
+	for _, room := range rooms {
+		if err := deleted("DELETE FROM windows WHERE room_id = ? RETURNING id", room); err != nil {
+			return nil, err
+		}
+		if _, err := c.Tx.ExecContext(ctx, "DELETE FROM rooms WHERE id = ?", room); err != nil {
+			return nil, err
+		}
+	}
+	// The Windows of the Rooms that go are gone already: the drafts left
+	// are in the Rooms that stay.
+	if drafts {
+		if err := deleted("DELETE FROM windows WHERE created_by = ? AND access = 'author' RETURNING id", u.ID); err != nil {
+			return nil, err
+		}
+	}
+	// What the person did elsewhere stays, without their name: the Windows
+	// and versions they published lose their author with the foreign keys,
+	// and their invitations and share links lose it here. The Windows they
+	// kept for themselves, when they stay, open to their Room, which no
+	// author holds any more. The rest of what is theirs goes with them. See
+	// docs/adr/0053-windows-for-their-author-alone.md.
+	for _, q := range []string{
+		"UPDATE windows SET access = 'room' WHERE created_by = ? AND access = 'author'",
+		"UPDATE invitations SET invited_by = NULL WHERE invited_by = ?",
+		"UPDATE share_links SET created_by = NULL WHERE created_by = ?",
+		"DELETE FROM users WHERE id = ?",
+	} {
+		if _, err := c.Tx.ExecContext(ctx, q, u.ID); err != nil {
+			return nil, err
+		}
+	}
+	return ids, nil
 }
