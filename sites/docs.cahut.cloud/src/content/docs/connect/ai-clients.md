@@ -17,7 +17,7 @@ An AI client publishes to a Cahut when its plan lets it add an MCP server of you
 | Mistral Vibe, formerly Le Chat | Every plan, Free included. Only an administrator of the account adds a connector: on the Free, Pro and Student plans, its owner |
 | ChatGPT | Business, Enterprise and Edu, on the web. Pro adds an MCP server for reading only, so it cannot publish. Free, Go and Plus do not add one |
 
-With ChatGPT Free, Plus or Pro, connect Claude or Mistral Vibe instead. This table follows the help of [Anthropic](https://support.claude.com/en/articles/11175166), [Mistral](https://docs.mistral.ai/le-chat/knowledge-integrations/connectors/mcp-connectors) and [OpenAI](https://help.openai.com/en/articles/12584461) on 29 October 2026. Plans change: the help of each client has the last word.
+With ChatGPT Free, Plus or Pro, connect Claude or Mistral Vibe instead. This table follows the help of [Anthropic](https://support.claude.com/en/articles/11175166), [Mistral](https://docs.mistral.ai/vibe/work/connectors/mcp-connectors) and [OpenAI](https://help.openai.com/en/articles/12584461) on 29 October 2026. Plans change: the help of each client has the last word.
 
 ## Add the Cahut to your client
 
@@ -25,13 +25,13 @@ The address to give is on the **AIs and access** screen of [the console](/admin/
 
 | Client | Where |
 | --- | --- |
-| claude.ai, Claude Desktop | Settings, Connectors, Add custom connector: the address of the Cahut, nothing else |
+| claude.ai, Claude Desktop | Customize, Connectors, Add, then Add custom connector: a name and the address of the Cahut, then Continue. Claude detects OAuth by itself: select Add, then Connect |
 | Claude Code | `claude mcp add --transport http cahut https://cahut.example.com/mcp`, then `/mcp` and Authenticate. See [Connect Claude Code](/connect/claude-code/) |
-| Mistral Vibe | Connectors, Add Connector, the Custom MCP Connector tab: a name without spaces, such as `cahut`, and the address of the Cahut. Vibe finds OAuth by itself |
-| ChatGPT | On the web, Plugins, the plus button, Add custom MCP server: the address of the Cahut, and OAuth as its authentication. On a Business, Enterprise or Edu plan only |
+| Mistral Vibe | Context, Connectors, New connector, then New custom connector: a name without spaces, such as `cahut`, and the address of the Cahut as its server. Vibe finds OAuth by itself, and Add connector sends you to the Cahut |
+| ChatGPT | On the web, Plugins, Add, then Add custom MCP server: a name and the address of the Cahut as its server URL, with OAuth, already chosen. Tick the box that says you understand, then Create as a plugin. On a Business, Enterprise or Edu plan only |
 | Others | The address of the Cahut. The client finds the rest by itself |
 
-A Cahut on my.cahut.cloud needs no address in claude.ai and Claude Desktop: [My Cahut](https://claude.ai/directory/my-cahut) is in the directory of connectors of Claude. Search for it, then select **Connect**. See [Try Cahut on My Cahut](/start/my-cahut/).
+A Cahut on my.cahut.cloud needs no address in claude.ai and Claude Desktop: [My Cahut](https://claude.ai/directory/my-cahut) is in the directory of connectors of Claude, under Customize, Connectors, Discover. Search for it, then select **Connect**. See [Try Cahut on My Cahut](/start/my-cahut/).
 
 The client opens a page of the console in your browser, at `https://<domain>/console/oauth/authorize`. The servers of the client, and your browser, reach the Cahut on port 443 only.
 
@@ -43,7 +43,7 @@ Every client gets the same tools. Each tool has a title, such as *Publish a Wind
 
 If you are not signed in to the console, you sign in first. Then the console shows:
 
-- **Who asks**: the name of the AI client, as it gives it, and the host the browser goes back to once you answer, such as `claude.ai`. Some clients, such as Claude Code, describe themselves in a document on their own site, and the console names that site. A client that registered by itself could have chosen any name: connect it only if you started from it.
+- **Who asks**: the name of the AI client, as it gives it, and the host the browser goes back to once you answer, such as `claude.ai`. Some clients, such as Claude Code, claude.ai and ChatGPT, describe themselves in a document on their own site, and the console names that site. A client that registered by itself could have chosen any name: connect it only if you started from it.
 - **What it may do**: read and publish, which is everything you can do in your Rooms, or read only, which is your Rooms, their Windows and the Logbook. A client that asks for read access cannot get more.
 - **Where**: all your Rooms, including those you join later, or a list of them.
 

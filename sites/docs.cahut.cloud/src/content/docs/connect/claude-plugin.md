@@ -25,7 +25,7 @@ The plugin connects to a Cahut over HTTPS. A Cahut on your machine for developme
 Each Cahut serves the skill as a zip, at `https://<domain>/-/cahut-skill.zip`. The **AIs and access** screen of the console links it.
 
 1. Download the skill.
-2. Upload it in the settings of Claude, where skills are added.
+2. Upload it in Claude, under Customize, Skills.
 3. Add your Cahut as a custom connector, with the address of its MCP endpoint: see [Connect an AI client](/connect/ai-clients/). On my.cahut.cloud, add My Cahut from the directory of Claude instead: see [Try Cahut on My Cahut](/start/my-cahut/#connect-claude).
 
 ## Ask
