@@ -1,14 +1,10 @@
 // The AI clients that publish to a Cahut, in the order of the dictionaries, as
-// the help of their vendors says (docs.cahut.cloud/connect/ai-clients). Each
-// shows the mark of its vendor, from its official files: see assets/ais.
-import claude from '../../assets/ais/claude-spark.svg?raw';
-import mistral from '../../assets/ais/mistral-icon.svg?raw';
-import openai from '../../assets/ais/openai-blossom.svg?raw';
-
+// the help of their vendors says (docs.cahut.cloud/connect/ai-clients). They
+// go by their names alone: their vendors give their logos to partners only.
 export const aiClients = [
-	{ id: 'claude', free: true, mark: claude },
-	{ id: 'mistral', free: true, mark: mistral },
-	{ id: 'chatgpt', free: false, mark: openai },
+	{ id: 'claude', free: true },
+	{ id: 'mistral', free: true },
+	{ id: 'chatgpt', free: false },
 ] as const;
 
 /** Which plans work, and how to connect each AI client. */
