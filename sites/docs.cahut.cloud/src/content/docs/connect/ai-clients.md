@@ -31,6 +31,8 @@ The address to give is on the **AIs and access** screen of [the console](/admin/
 | ChatGPT | On the web, Plugins, Add, then Add custom MCP server: a name and the address of the Cahut as its server URL, with OAuth, already chosen. Tick the box that says you understand, then Create as a plugin. On a Business, Enterprise or Edu plan only |
 | Others | The address of the Cahut. The client finds the rest by itself |
 
+Films of 45 seconds on YouTube show these steps, from the console to the connected AI: [Claude](https://www.youtube.com/watch?v=am2iBk5AX0U) and [Mistral Vibe](https://www.youtube.com/watch?v=I_2rw66sR5s), and in French, [Claude](https://www.youtube.com/watch?v=QtWHG6qjjKw) and [Mistral Vibe](https://www.youtube.com/watch?v=vWm_Wy6qS2Q).
+
 A Cahut on my.cahut.cloud needs no address in claude.ai and Claude Desktop: [My Cahut](https://claude.ai/directory/my-cahut) is in the directory of connectors of Claude, under Customize, Connectors, Discover. Search for it, then select **Connect**. See [Try Cahut on My Cahut](/start/my-cahut/).
 
 The client opens a page of the console in your browser, at `https://<domain>/console/oauth/authorize`. The servers of the client, and your browser, reach the Cahut on port 443 only.

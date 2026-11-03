@@ -143,6 +143,7 @@ const fr: Dictionary = {
 				where: 'Sur le web : Plugins, Ajouter, puis Ajouter un serveur MCP personnalisé. Free, Go, Plus et Pro ne publient pas : connectez plutôt Claude ou Mistral Vibe.',
 			},
 		],
+		watch: 'Voir la vidéo sur YouTube, 45 s',
 		othersTitle: 'Dans le terminal, et ailleurs',
 		others: "Claude Code, Codex et Mistral Vibe dans le terminal, et tout client MCP qui se connecte par OAuth ou avec un jeton personnel.",
 		plans: 'Quelles offres marchent, et comment connecter chaque IA',
@@ -602,6 +603,7 @@ const fr: Dictionary = {
 		hosted: {
 			title: 'Essayer sans serveur',
 			text: 'Créez votre Cahut sur My Cahut et connectez votre IA en deux minutes : Claude ou Mistral Vibe, même avec leur offre gratuite, ou ChatGPT avec une offre Business, Enterprise ou Edu.',
+			film: { title: 'Connecter Claude à My Cahut', where: 'Sur YouTube, 45 s' },
 			fine: ['Gratuit, places limitées. My Cahut est offerte par ', ", qui l'héberge en France pour soutenir le projet."],
 			more: 'Tout sur My Cahut',
 		},

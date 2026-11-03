@@ -147,6 +147,8 @@ export default {
 				where: 'On the web: Plugins, Add, then Add custom MCP server. Free, Go, Plus and Pro cannot publish: connect Claude or Mistral Vibe instead.',
 			},
 		],
+		// The link of each client to its film on YouTube.
+		watch: 'Watch it on YouTube, 45 s',
 		othersTitle: 'In the terminal, and elsewhere',
 		others: 'Claude Code, Codex and Mistral Vibe in the terminal, and any MCP client that signs in with OAuth or with a personal token.',
 		plans: 'Which plans work, and how to connect each AI',
@@ -584,6 +586,8 @@ export default {
 		hosted: {
 			title: 'Try it without a server',
 			text: 'Create your Cahut on My Cahut and connect your AI in two minutes: Claude or Mistral Vibe, even on their free plans, or ChatGPT on a Business, Enterprise or Edu plan.',
+			// The film on YouTube that shows it.
+			film: { title: 'Connect Claude to My Cahut', where: 'On YouTube, 45 s' },
 			// Around the link to Tetra7.
 			fine: ['Free, limited seats. My Cahut is offered by ', ', which hosts it in France to support the project.'],
 			more: 'All about My Cahut',
