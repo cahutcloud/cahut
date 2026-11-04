@@ -217,6 +217,7 @@ sites/                 npm workspace of the sites (ADR 12)
   dependabot.yml       Weekly updates of Go modules, npm packages and actions
 .claude/skills/
   charte-graphique-cahut/   Project skill for the brand
+  tri-des-tickets/          Project skill for triaging the issues, as docs/gouvernance.md says
 GOVERNANCE.md          How the project is run: the public summary of docs/gouvernance.md
 CONTRIBUTING.md        What helps, how a change gets in, the DCO and the rule on AI-assisted work
 CODE_OF_CONDUCT.md     The Contributor Covenant 3.0
@@ -241,4 +242,5 @@ The README sets the tone: short sentences, concrete verbs, no hype. No exclamati
 - `main` is the default branch. Work on a topic branch (`claude/<topic>` for Claude sessions) and open a pull request. CI must be green before merging. Pull requests are merged by squash, the only method the repository allows.
 - Sign off every commit with `git commit -s`, as [CONTRIBUTING.md](CONTRIBUTING.md#sign-your-commits) asks: the DCO app checks it on every pull request. Olivier asks Claude sessions to sign off in his name, with the git identity of this checkout; he answers for what he merges.
 - Commit messages in English: a short imperative subject line, then a body that says what changed and why.
+- Triage the issues with the project skill **`tri-des-tickets`** in [.claude/skills/tri-des-tickets/](.claude/skills/tri-des-tickets/SKILL.md), which applies [docs/gouvernance.md](docs/gouvernance.md). Nothing is commented, labeled or closed on GitHub before Olivier has read it.
 - The repository is public since 24 October 2026, history included. Keep it free of references to other projects, employers or clients, and never commit secrets: secret scanning blocks the pushes that hold one.
