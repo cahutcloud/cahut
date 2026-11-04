@@ -39,6 +39,40 @@ const (
 	scopeSignal             = 0x2
 )
 
+// erratumSignals is the bit of erratum 2 of Landlock in the errata that a
+// kernel has fixed: with the fix, the threads of a process may signal each
+// other whatever their domains.
+const erratumSignals = 1 << (2 - 1)
+
+// landlockErrata returns the bits of the errata of Landlock that the kernel
+// has fixed, or 0 when it reports none, as kernels before Linux 6.15 do
+// unless the fixes were brought back to them.
+func landlockErrata() uint64 {
+	errata, _, errno := unix.Syscall(unix.SYS_LANDLOCK_CREATE_RULESET, 0, 0, unix.LANDLOCK_CREATE_RULESET_ERRATA)
+	if errno != 0 {
+		return 0
+	}
+	return uint64(errata)
+}
+
+// scopes returns the scopes of the ruleset of a worker, from the version abi
+// of Landlock and the errata that the kernel has fixed. Go restricts the
+// threads of the worker one after the other, and has each one but the first
+// restrict itself through a signal from the first: without the fix of
+// erratum 2, the signal scope of the first thread stops that signal, and the
+// worker waits forever. There, the worker may signal the processes of its
+// user, as under Landlock 5.
+func scopes(abi int, errata uint64) uint64 {
+	switch {
+	case abi < 6:
+		return 0
+	case errata&erratumSignals == 0:
+		return scopeAbstractUnixSocket
+	default:
+		return scopeAbstractUnixSocket | scopeSignal
+	}
+}
+
 // fsAccess returns the rights on files that the version abi of Landlock
 // knows, which the ruleset of a worker handles all.
 func fsAccess(abi int) uint64 {
@@ -100,7 +134,7 @@ func confine(dir string) error {
 		size += unsafe.Sizeof(attr.net)
 	}
 	if abi >= 6 {
-		attr.scoped = scopeAbstractUnixSocket | scopeSignal
+		attr.scoped = scopes(abi, landlockErrata())
 		size += unsafe.Sizeof(attr.scoped)
 	}
 	ruleset, _, errno := unix.Syscall(unix.SYS_LANDLOCK_CREATE_RULESET, uintptr(unsafe.Pointer(&attr)), size, 0)

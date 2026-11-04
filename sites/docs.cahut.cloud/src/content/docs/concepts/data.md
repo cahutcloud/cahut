@@ -108,7 +108,7 @@ Making a Window public says, in its confirmation and in its Knock, which queries
 
 ## Isolation
 
-- The SQL of a Window never runs in the process that serves the Cahuts. The binary starts a worker for each database in use, with an empty environment, limits of memory and time, and, on Linux, Landlock, which closes to it every file outside the folder of its database and, from Linux 6.7, the network. [cahut doctor](/admin/doctor/) says whether the workers are confined.
+- The SQL of a Window never runs in the process that serves the Cahuts. The binary starts a worker for each database in use, with an empty environment, limits of memory and time, and, on Linux, Landlock, which closes to it every file outside the folder of its database and, from Linux 6.7, the network. [cahut doctor](/admin/doctor/) starts a worker and says whether the workers are confined.
 - A database holds nothing of the Cahut: no person, session, token or network address.
 - The trash keeps the database and answers nothing; a purge removes it with its copies. A withdrawn Window takes nothing from its readers, and its members still read and change its data. A moderator who opens a reported Window reads what its readers read, and writes nothing.
 - There are no backups yet. The copies are on the same disk as the database: until backups come, a database lost with its disk is lost.

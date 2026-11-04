@@ -539,9 +539,15 @@ func TestConfinement(t *testing.T) {
 	if err := os.WriteFile(outside, []byte("key"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	cmd := exec.CommandContext(t.Context(), os.Args[0], "-test.run=^$") //nolint:gosec // the test binary itself
+	// A worker that cannot restrict its threads waits forever.
+	ctx, cancel := context.WithTimeout(t.Context(), time.Minute)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^$") //nolint:gosec // the test binary itself
 	cmd.Env = []string{"CAHUT_TEST_WORKER=" + dir, "CAHUT_TEST_PROBE=" + outside}
 	out, err := cmd.CombinedOutput()
+	if ctx.Err() != nil {
+		t.Fatalf("the confined worker did not end within a minute: %s", out)
+	}
 	if err != nil {
 		t.Errorf("the confined worker: %v: %s", err, out)
 	}

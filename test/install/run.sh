@@ -60,6 +60,7 @@ cat /tmp/doctor.txt
 for line in "ok    Service" "ok    Data" "ok    Ports" "ok    Updates"; do
 	grep -q "^$line" /tmp/doctor.txt || fail "cahut doctor does not say: $line"
 done
+if grep -q "^fail  Window data" /tmp/doctor.txt; then fail "cahut doctor cannot start a worker of the data of Windows"; fi
 
 step "cahut update --binary $(version "$b")"
 "$bin" update --binary "$b" || fail "the update failed"

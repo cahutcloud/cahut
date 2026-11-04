@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
 	"net"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -151,6 +153,30 @@ func (Machine) Root() bool { return os.Geteuid() == 0 }
 
 // Landlock returns the version of Landlock that the kernel offers, or 0.
 func (Machine) Landlock() int { return windata.LandlockABI() }
+
+// Worker starts this binary as a worker of the data of Windows, in a
+// folder of its own that it removes after, and has it check a migration.
+func (Machine) Worker(ctx context.Context) error {
+	dir, err := os.MkdirTemp("", "cahut-doctor-")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(dir)
+	pool := windata.NewPool(windata.Options{})
+	defer pool.Close()
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	checked, err := pool.Check(ctx, filepath.Join(dir, "data"), windata.Check{Migrations: []string{"CREATE TABLE t (a TEXT)"}})
+	switch {
+	case errors.Is(err, context.DeadlineExceeded) || windata.CodeOf(err) == windata.CodeTimeout:
+		return errors.New("it did not answer within 10 seconds")
+	case err != nil:
+		return err
+	case checked.New != 1:
+		return fmt.Errorf("it found %d migrations to run, not 1", checked.New)
+	}
+	return nil
+}
 
 // Now returns the time.
 func (Machine) Now() time.Time { return time.Now() }
