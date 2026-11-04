@@ -22,7 +22,7 @@ Each line starts with `ok`, `warn` (it works, but look at it), `fail` (it does n
 | Ports | Whether the service listens on ports 80 and 443 |
 | Firewall | Whether firewalld or ufw, when one is active, lets in ports 80 and 443 |
 | SELinux | Its mode, and the label of the binary, which systemd needs |
-| Window data | Whether Landlock, a module of the Linux kernel, confines the workers that run the SQL of the database of each Window to the folder of that database, and closes their network |
+| Window data | Whether a worker that runs the SQL of the database of a Window starts and answers, in a folder of its own, and whether Landlock, a module of the Linux kernel, confines these workers to the folder of their database and closes their network |
 | Proxy | When the service reads the [PROXY protocol](/admin/service/#behind-a-proxy): the proxies it trusts, and whether the last connection of one came without a valid header |
 | Each Cahut | Whether it opens with its migrations, what its domain resolves to, the certificate it serves and its expiry, and whether `https://<domain>/` answers from the server |
 | Let's Encrypt, GitHub | Whether the server reaches them |
@@ -40,6 +40,7 @@ Each line starts with `ok`, `warn` (it works, but look at it), `fail` (it does n
 | `fail Ports Nothing listens on port 443` | Another program may hold the port: `sudo ss -ltnp` |
 | `fail Firewall firewalld does not let in https` | `sudo firewall-cmd --permanent --add-service=http --add-service=https && sudo firewall-cmd --reload` |
 | `fail SELinux … not bin_t` | `sudo restorecon /usr/local/bin/cahut` |
+| `fail Window data A worker that runs the SQL of Windows does not start` | Windows with data cannot be published. The line says why; report it in an [issue](https://github.com/cahutcloud/cahut/issues), with the output of `cahut doctor` and of `uname -r` |
 | `warn Window data This kernel has no Landlock` | The workers keep their limits of memory and time, but read what the `cahut` user reads. A kernel from Linux 5.13 has Landlock when its boot enables it: check `cat /sys/kernel/security/lsm`, and add `landlock` to the `lsm=` parameter of the boot if it is missing |
 | `warn Window data … cannot close their network` | Linux 6.7 or later closes it too |
 | `fail Proxy HTTPS on 127.0.0.1:8443 has refused every connection of 127.0.0.1` | The proxy sends no header of the PROXY protocol, or not a valid one: turn it on in the proxy, with `proxy_protocol on` in nginx, or empty `CAHUT_HTTPS_PROXY_PROTOCOL` and restart the service. The line says why the last connection was refused |

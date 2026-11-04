@@ -32,6 +32,7 @@ type fake struct {
 	health   update.Health
 	cert     *Certificate
 	landlock int
+	worker   error
 }
 
 func healthy() *fake {
@@ -95,6 +96,7 @@ func (f *fake) FreeBytes(string) (uint64, error) { return f.free, nil }
 func (f *fake) LocalAddrs() ([]net.IP, error)    { return f.local, nil }
 func (f *fake) Root() bool                       { return f.root }
 func (f *fake) Landlock() int                    { return f.landlock }
+func (f *fake) Worker(context.Context) error     { return f.worker }
 func (f *fake) Now() time.Time                   { return now }
 func (f *fake) LookupIP(_ context.Context, host string) ([]net.IP, error) {
 	if ips, ok := f.dns[host]; ok {
@@ -217,6 +219,8 @@ func TestProblems(t *testing.T) {
 		{"not root", func(f *fake) { f.root = false }, Info, "Firewall", "as root"},
 		{"no Landlock", func(f *fake) { f.landlock = 0 }, Warn, "Window data", "This kernel has no Landlock"},
 		{"Landlock without network", func(f *fake) { f.landlock = 3 }, Warn, "Window data", "cannot close their network"},
+		{"worker stuck", func(f *fake) { f.worker = errors.New("it did not answer within 10 seconds") }, Fail, "Window data",
+			"does not start: it did not answer within 10 seconds. Windows with data cannot be published"},
 		{"SELinux label", func(f *fake) { f.label = "unconfined_u:object_r:user_tmp_t:s0" }, Fail, "SELinux", "restorecon /usr/local/bin/cahut"},
 		{"Cahut does not open", func(f *fake) {
 			f.health.OK, f.health.Cahuts[0].OK, f.health.Cahuts[0].Error = false, false, "migration 0012: no such table"
@@ -296,4 +300,12 @@ func proxy(taken, refused *time.Time) update.ProxyHealth {
 		p.Refusal = "the connection starts with a TLS handshake, without a header"
 	}
 	return p
+}
+
+func TestMachineWorker(t *testing.T) {
+	// Under go test, the pool runs the worker in this process, without its
+	// confinement: the install test runs a confined one.
+	if err := (Machine{}).Worker(t.Context()); err != nil {
+		t.Errorf("Worker: %v", err)
+	}
 }

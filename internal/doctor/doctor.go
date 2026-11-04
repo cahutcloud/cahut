@@ -66,6 +66,10 @@ type System interface {
 	Now() time.Time
 	// Landlock returns the version of Landlock that the kernel offers, or 0.
 	Landlock() int
+	// Worker starts a worker of the data of Windows, confined as the
+	// service confines it, and has it check a migration. It returns why the
+	// worker did not.
+	Worker(ctx context.Context) error
 }
 
 // Certificate is a certificate that the service serves.
@@ -294,9 +298,15 @@ func (d *doctor) selinux() {
 	d.add(OK, "SELinux", "Enforcing, and the binary has its label.")
 }
 
-// workers says how far Landlock confines the workers that run the SQL of
-// Windows. See docs/adr/0056-a-database-for-each-window.md.
+// workers starts a worker that runs the SQL of Windows, then says how far
+// Landlock confines the workers. See
+// docs/adr/0056-a-database-for-each-window.md.
 func (d *doctor) workers() {
+	if err := d.sys.Worker(d.ctx); err != nil {
+		d.add(Fail, "Window data", "A worker that runs the SQL of Windows does not start: %v. Windows with data cannot be published: "+
+			"report it at https://github.com/cahutcloud/cahut/issues, with the output of cahut doctor and of uname -r.", err)
+		return
+	}
 	switch abi := d.sys.Landlock(); {
 	case abi >= 4:
 		d.add(OK, "Window data", "Landlock %d confines the workers that run the SQL of Windows to the folder of their database, without network.", abi)
