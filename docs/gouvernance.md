@@ -174,6 +174,8 @@ Un jeu court, en anglais, posé dès l'ouverture : le type (`bug`, `feature`, `d
 
 Un créneau fixe par semaine, d'une à deux heures. Chaque nouveau ticket reçoit une réponse dans la semaine : confirmé, besoin de précisions, doublon, hors périmètre, ou accepté et placé dans un jalon. Ce n'est pas un engagement de correction. Un ticket `needs-info` sans réponse pendant trente jours se ferme, et se rouvre d'un commentaire. Pas de robot qui ferme les tickets confirmés pour inactivité : c'est la pratique la plus détestée des communautés, et elle cache le travail au lieu de le faire.
 
+Avec Claude Code, la skill de projet `tri-des-tickets` ([.claude/skills/tri-des-tickets/](../.claude/skills/tri-des-tickets/SKILL.md)) suit ces règles. Elle lit le ticket, l'oriente, reproduit le bug, propose les étiquettes et la réponse. Le mainteneur lit le tout avant que rien ne parte sur GitHub.
+
 ### Les soupapes
 
 Pour un pic : épingler une Discussion de réponses fréquentes, fermer vite ce qui n'est pas reproductible, demander aux trieurs et à la communauté de répondre, verrouiller les fils anciens, plafonner les pull requests ouvertes par auteur (OpenClaw en tolère vingt), et si cela déborde encore, limiter temporairement la création de tickets et de pull requests aux collaborateurs avec un mot d'explication dans le README, comme PocketBase l'a fait. Pour une pause du mainteneur : une ligne dans le README et dans les Discussions, avec la date de retour. Personne ne le reproche à un projet qui le dit.
