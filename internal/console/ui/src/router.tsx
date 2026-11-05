@@ -6,7 +6,7 @@
 // the server under /server/ (see docs/adr/0058-a-console-for-the-server.md).
 // Their pages name their paths without that prefix, such as /logbook: the
 // router adds it to the address and takes it off again.
-import type { AccessibleAnchorHTMLAttributes, TargetedMouseEvent } from "preact";
+import type { AnchorHTMLAttributes, TargetedMouseEvent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 const changed = "cahut:navigate";
@@ -73,7 +73,7 @@ export function useQuery(): URLSearchParams {
 }
 
 /** A link to a page of the console, which opens without reloading it. */
-export function Link(props: AccessibleAnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
+export function Link(props: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
 	const onClick = (e: TargetedMouseEvent<HTMLAnchorElement>) => {
 		if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
 			return;
