@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"image/png"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -409,7 +410,8 @@ func TestLetterLayout(t *testing.T) {
 		}
 	}
 	for _, want := range []string{`href="https://example.com/console/invitation#abc"`, "&lt;script&gt;", "<br>before <strong>Friday</strong>, at *noon*.",
-		"<li>the <em>deck</em></li><li>the notes</li></ul>", "cid:logo@cahut", "#1F2A33"} {
+		"<li>the <em>deck</em></li><li>the notes</li></ul>", "cid:logo@cahut", "#1F2A33",
+		"max-width:600px;border-collapse:separate"} { // or the border of the card stays square
 		if !strings.Contains(html, want) {
 			t.Errorf("the HTML lacks %q", want)
 		}
@@ -466,9 +468,15 @@ func TestBrand(t *testing.T) {
 	if len(colors) != 6 {
 		t.Errorf("e-mail takes %d colors: check each against a token", len(colors))
 	}
-	want, err := os.ReadFile("../../docs/charte-graphique/logos/png/cahut-logo-horizontal-800px.png")
+	want, err := os.ReadFile("../../docs/charte-graphique/logos/png/cahut-logo-horizontal-320px.png")
 	if err != nil || !bytes.Equal(logo, want) {
-		t.Errorf("internal/mail/logo.png differs from cahut-logo-horizontal-800px.png of the brand guidelines: copy it again (%v)", err)
+		t.Errorf("internal/mail/logo.png differs from cahut-logo-horizontal-320px.png of the brand guidelines: copy it again (%v)", err)
+	}
+	// Apple Mail moves an embedded image wider than its view out to the
+	// left edge of the message, and cuts it: the logo stays twice as wide
+	// as the 160 pixels it shows, no wider.
+	if size, err := png.DecodeConfig(bytes.NewReader(logo)); err != nil || size.Width != 320 {
+		t.Errorf("the logo is %d pixels wide, want 320 (%v)", size.Width, err)
 	}
 }
 

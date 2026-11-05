@@ -56,8 +56,12 @@ type Action struct {
 // The brand of Cahut, as e-mail takes it: literal values, since mail
 // clients ignore the variables of CSS. A test keeps them equal to the
 // tokens of docs/charte-graphique/tokens/cahut-tokens.json, and the logo to
-// docs/charte-graphique/logos/png/cahut-logo-horizontal-800px.png. See
+// docs/charte-graphique/logos/png/cahut-logo-horizontal-320px.png. See
 // docs/adr/0012-website-and-docs-as-astro-sites.md.
+//
+// The logo is 320 pixels wide, twice the 160 it shows: Apple Mail moves an
+// embedded image wider than its view out to the left edge, whatever the
+// width the layout gives it, and cuts it.
 var brand = map[string]string{
 	"paper": "#F7F5F0", // color.brand.paper: the background
 	"ink":   "#1F2A33", // color.brand.ink: text, and the button
@@ -74,7 +78,8 @@ var logo []byte
 const logoID = "logo@cahut"
 
 // The layout of a message, in HTML: tables and inline styles, 600 pixels
-// wide at most, as mail clients read it.
+// wide at most, as mail clients read it. Its table keeps its borders
+// separate, or the border of the card would not follow its rounded corners.
 var htmlLayout = htmltemplate.Must(htmltemplate.New("html").Funcs(htmltemplate.FuncMap{"note": ParseNote}).Parse(colors(`<!doctype html>
 <html lang="en">
 <head>
@@ -86,7 +91,7 @@ var htmlLayout = htmltemplate.Must(htmltemplate.New("html").Funcs(htmltemplate.F
 <body style="margin:0;padding:0;background:{paper}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{paper};border-collapse:collapse">
 <tr><td align="center" style="padding:32px 16px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:collapse;font-family:'Plus Jakarta Sans',Arial,sans-serif;color:{ink}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;font-family:'Plus Jakarta Sans',Arial,sans-serif;color:{ink}">
 <tr><td style="padding:0 0 24px 0"><img src="cid:` + logoID + `" width="160" height="32" alt="Cahut" style="display:block;border:0;width:160px;height:auto"></td></tr>
 <tr><td style="background:{white};border:1px solid {rule};border-radius:16px;padding:32px">
 {{- range .Lines}}
