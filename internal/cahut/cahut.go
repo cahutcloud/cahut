@@ -125,6 +125,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	operation.Register(r, settings.Set)
 	operation.Register(r, settings.SetLegalLinks)
 	operation.Register(r, settings.SetModerationAddress)
+	operation.Register(r, settings.SetListings)
 	operation.Register(r, settings.SetAccountDeletion)
 	operation.Register(r, settings.Suspend)
 	operation.Register(r, settings.Resume)
@@ -139,7 +140,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 		Name:  "get_cahut",
 		Title: "Describe the Cahut",
 		Description: "Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, " +
-			"whether it sends e-mail, the links to its legal pages, its kind, collaborative or individual, " +
+			"whether it sends e-mail, the links to its legal pages and its listings in the directories of AI clients, its kind, collaborative or individual, " +
 			"and its limits with what it holds: a call that would cross a limit is refused.",
 		ReadOnly:  true,
 		Services:  true,

@@ -89,6 +89,8 @@ const said = words<Sentences>({
 		key_has_spaces: "The Key starts or ends with a space.",
 		legal_link_in_french_only: (v) => `${field(v.link)}: give the address of the page for the other languages too.`,
 		legal_link_invalid: (v) => `${field(v.link)}: give the address of a page, which starts with https://, or leave the field empty.`,
+		listing_invalid: () =>
+			"Give the address of the listing of this Cahut in the directory of Claude, which starts with https://claude.ai/directory/, or leave the field empty.",
 		key_too_long: (v) => `The Key has more than ${plural(v.limit, "character", "characters")}.`,
 		key_too_short: (v) => `The Key has ${plural(v.length, "character", "characters")}: give it ${v.limit} at least, or let Cahut draw one.`,
 		name_empty: "Give a name.",
@@ -192,6 +194,8 @@ const said = words<Sentences>({
 		key_has_spaces: "La Key commence ou finit par un espace.",
 		legal_link_in_french_only: (v) => `${field(v.link)} : donnez aussi l'adresse de la page pour les autres langues.`,
 		legal_link_invalid: (v) => `${field(v.link)} : donnez l'adresse d'une page, qui commence par https://, ou laissez le champ vide.`,
+		listing_invalid: () =>
+			"Donnez l'adresse de la fiche de cette Cahut dans l'annuaire de Claude, qui commence par https://claude.ai/directory/, ou laissez le champ vide.",
 		key_too_long: (v) => `La Key a plus de ${plural(v.limit, "caractère", "caractères")}.`,
 		key_too_short: (v) =>
 			`La Key a ${plural(v.length, "caractère", "caractères")} : il lui en faut ${v.limit} au moins, ou laissez Cahut en tirer une au sort.`,

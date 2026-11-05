@@ -94,6 +94,10 @@ type Settings struct {
 	// Cahut, which its administrators read. See
 	// docs/adr/0054-reporting-and-withdrawing-a-window.md.
 	ModerationEmail string `json:"moderation_email,omitempty" jsonschema:"the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators"`
+	// Listings are where the directories of AI clients list the Cahut,
+	// which the console leads people to. See
+	// docs/adr/0061-a-guide-to-the-first-ai.md.
+	Listings Listings `json:"listings" jsonschema:"the listings of the Cahut in the directories of AI clients, which the administrators of the server set; empty when it has none"`
 }
 
 // querier runs a query, in a transaction or not.
@@ -192,6 +196,9 @@ func Read(ctx context.Context, tx *sql.Tx, userID int64, admin bool) (Settings, 
 	}
 	s := Settings{Kind: kind, Limits: l, Legal: legal, Suspension: suspension}
 	if s.AccountDeletion, err = AccountDeletion(ctx, tx); err != nil {
+		return Settings{}, err
+	}
+	if s.Listings, err = ReadListings(ctx, tx); err != nil {
 		return Settings{}, err
 	}
 	if admin {

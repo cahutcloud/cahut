@@ -136,6 +136,18 @@ sudo -u cahut /usr/local/bin/cahut settings moderation-address --domain docs.exa
 The reports of docs.example.org now go to abuse@example.org too, when it sends e-mail.
 ```
 
+## Set the listing of a Cahut in the directory of Claude
+
+A host that lists its Cahut in the directory of connectors of Claude gives the address of the listing. The first steps of the console then lead people to it, where they connect Claude in one step, rather than to the address of the Cahut. `settings listing` sets it, prints it without a flag, and `none` removes it. The administrators of the server set it on the page of the Cahut in the [console of the server](/admin/console/#the-console-of-the-server) too:
+
+```bash
+sudo -u cahut /usr/local/bin/cahut settings listing --domain docs.example.org --claude https://claude.ai/directory/docs-example
+```
+
+```text
+The console of docs.example.org now leads to its listing in the directory of Claude, https://claude.ai/directory/docs-example.
+```
+
 ## Let people delete their own account
 
 Every Cahut lets its people [delete their own account](/admin/console/#delete-your-account) until its administrators turn it off. `settings account-deletion --off` turns it off: a person who wants to leave then asks an administrator. `--on` turns it on again, and without a flag the command prints which it is:

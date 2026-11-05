@@ -132,6 +132,32 @@ func TestSettingsModerationAddress(t *testing.T) {
 	}
 }
 
+// The administrators of the server set the listing of a Cahut in the
+// directory of connectors of Claude. See
+// docs/adr/0061-a-guide-to-the-first-ai.md.
+func TestSettingsListing(t *testing.T) {
+	data := t.TempDir()
+	if code, _, errOut := run(t, data, "domain", "add", "cahut.example.com"); code != exitOK {
+		t.Fatalf("domain add: %d %q", code, errOut)
+	}
+	for _, tt := range []struct {
+		args []string
+		code int
+		want string
+	}{
+		{nil, exitOK, "cahut.example.com has no listing in the directory of Claude"},
+		{[]string{"--claude", "https://claude.ai/directory/my-cahut"}, exitOK, "now leads to its listing in the directory of Claude, https://claude.ai/directory/my-cahut"},
+		{nil, exitOK, "The console of cahut.example.com leads to its listing"},
+		{[]string{"--claude", "https://example.com/my-cahut"}, exitError, "claude: give the address of the listing"},
+		{[]string{"--claude", "none"}, exitOK, "has no listing in the directory of Claude now"},
+	} {
+		code, out, errOut := run(t, data, append([]string{"settings", "listing"}, tt.args...)...)
+		if code != tt.code || !strings.Contains(out+errOut, tt.want) {
+			t.Errorf("settings listing %q: %d %q %q", tt.args, code, out, errOut)
+		}
+	}
+}
+
 func TestSettingsAccountDeletion(t *testing.T) {
 	data := t.TempDir()
 	if code, _, errOut := run(t, data, "domain", "add", "cahut.example.com"); code != exitOK {

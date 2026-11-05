@@ -64,6 +64,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [58](0058-a-console-for-the-server.md) | The administrators of the server have a console of their own, under `/server/` | Accepted |
 | [59](0059-people-delete-their-own-account.md) | People delete their own account, unless the administrators of their Cahut turn it off | Accepted |
 | [60](0060-signing-in-after-a-forgotten-password.md) | People sign in with their handle or their e-mail address, and a new password ends the wait of refused sign-ins | Accepted |
+| [61](0061-a-guide-to-the-first-ai.md) | The console guides each person to a first AI, a first Window and a first share, and leads to the listing of its Cahut in the directory of Claude | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

@@ -81,6 +81,12 @@ const t = words({
 		noModeration: "This Cahut has no address of moderation.",
 		moderationField: "Address",
 		moderationHelp: "Leave it empty to remove it.",
+		listing: "Listing in the directory of Claude",
+		listingAbout:
+			"The listing of this Cahut in the directory of connectors of Claude, where people connect Claude in one step. The first steps of the console lead to it, rather than to the address of this Cahut.",
+		noListing: "This Cahut has no listing in the directory of Claude.",
+		listingField: "Address of the listing",
+		listingHelp: "It starts with https://claude.ai/directory/. Leave it empty to remove it.",
 		suspension: "Suspension",
 		suspendTitle: "Suspend this Cahut",
 		suspendHelp:
@@ -167,6 +173,12 @@ const t = words({
 		noModeration: "Cette Cahut n'a pas d'adresse de modération.",
 		moderationField: "Adresse",
 		moderationHelp: "Laissez-la vide pour la retirer.",
+		listing: "Fiche dans l'annuaire de Claude",
+		listingAbout:
+			"La fiche de cette Cahut dans l'annuaire des connecteurs de Claude, où l'on branche Claude en une étape. Les premiers pas de la console y mènent, plutôt qu'à l'adresse de cette Cahut.",
+		noListing: "Cette Cahut n'a pas de fiche dans l'annuaire de Claude.",
+		listingField: "Adresse de la fiche",
+		listingHelp: "Elle commence par https://claude.ai/directory/. Laissez-la vide pour la retirer.",
 		suspension: "Suspension",
 		suspendTitle: "Suspendre cette Cahut",
 		suspendHelp:
@@ -254,6 +266,7 @@ export function Settings() {
 				<LegalTable legal={data.legal} />
 			</section>
 			<ModerationAddress email={data.moderation_email ?? ""} />
+			<ClaudeListing url={data.listings.claude ?? ""} />
 		</>
 	);
 }
@@ -283,6 +296,7 @@ export function ServerSettings({ settings, call, onChanged }: { settings: CahutS
 			</section>
 			<LegalForm call={call} legal={settings.legal} onSaved={onChanged} />
 			<ModerationAddress call={call} email={settings.moderation_email ?? ""} onSaved={onChanged} />
+			<ClaudeListing call={call} url={settings.listings.claude ?? ""} onSaved={onChanged} />
 			<SuspensionForm call={call} suspension={settings.suspension} onChanged={onChanged} />
 		</>
 	);
@@ -474,6 +488,68 @@ export function ModerationAddress({ call, email, onSaved }: { call?: CahutCall; 
 							onInput={(e) => setValue(e.currentTarget.value)}
 						/>
 						<span class="c-field__help">{t.moderationHelp}</span>
+					</label>
+					{error && <Failure message={error} />}
+					{saved && (
+						<p class="c-small" role="status">
+							{t.saved}
+						</p>
+					)}
+					<div>
+						<button class="c-btn c-btn--primary" type="submit" disabled={busy}>
+							{t.save}
+						</button>
+					</div>
+				</form>
+			)}
+		</section>
+	);
+}
+
+/**
+ * The listing of this Cahut in the directory of connectors of Claude, which
+ * the administrators of the server set with call, and those of the Cahut
+ * read. See docs/adr/0061-a-guide-to-the-first-ai.md.
+ */
+export function ClaudeListing({ call, url, onSaved }: { call?: CahutCall; url: string; onSaved?: () => void }) {
+	const [value, setValue] = useState(url);
+	const [error, setError] = useState("");
+	const [saved, setSaved] = useState(false);
+	const [busy, setBusy] = useState(false);
+	const submit = async (e: Event) => {
+		e.preventDefault();
+		if (!call) return;
+		setBusy(true);
+		setError("");
+		setSaved(false);
+		try {
+			await call("set_listings", { claude: value.trim() });
+			setSaved(true);
+			onSaved?.();
+		} catch (err) {
+			setError(explain(err));
+		}
+		setBusy(false);
+	};
+	return (
+		<section class="section c-card panel">
+			<h2 class="c-h4">{t.listing}</h2>
+			<p class="c-small c-muted">{t.listingAbout}</p>
+			{!call && (url ? <p class="c-mono c-small">{url}</p> : <Notice>{t.noListing}</Notice>)}
+			{call && (
+				<form class="form" onSubmit={submit}>
+					<label class="c-field">
+						<span class="c-field__label">{t.listingField}</span>
+						<input
+							class="c-input"
+							type="url"
+							autocomplete="off"
+							spellcheck={false}
+							placeholder="https://claude.ai/directory/my-cahut"
+							value={value}
+							onInput={(e) => setValue(e.currentTarget.value)}
+						/>
+						<span class="c-field__help">{t.listingHelp}</span>
 					</label>
 					{error && <Failure message={error} />}
 					{saved && (
