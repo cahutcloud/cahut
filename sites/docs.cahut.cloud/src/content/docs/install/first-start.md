@@ -25,7 +25,7 @@ You become the first person of the Cahut, and its administrator. While the serve
 
 ## Your first AI
 
-In the console of your Cahut, the overview gives the address of its MCP server, `https://cahut.example.com/mcp`, and the steps for each client:
+In the console of your Cahut, **First steps** asks which AI you want to connect, then gives its steps one at a time, with the address of its MCP server, `https://cahut.example.com/mcp`, ready to copy:
 
 | Client | Steps |
 | --- | --- |
@@ -37,9 +37,9 @@ In the console of your Cahut, the overview gives the address of its MCP server, 
 
 ChatGPT does not connect to a Cahut at the IP address of its server: the console of the server says how to move the Cahut to a domain, as does [Without a domain](/install/server/#without-a-domain).
 
-The AI sends you to the console to sign in and choose the Rooms it reaches. The overview shows it as soon as it connects. Then ask it to publish something: [Publish a Window](/connect/publish/).
+The AI sends you to the console to sign in and choose the Rooms it reaches. The first steps see it as soon as it connects, and give requests to copy into it for a first Window. Once it has published, they show the Window and share it. See [First steps](/admin/console/#first-steps).
 
-These steps stay on the overview until you connect an AI, and under AIs and access.
+Until your AI has published, the overview keeps a card that leads back to the first steps, unless you hide it. The steps of every client stay under AIs and access.
 
 ## When the link does not work
 

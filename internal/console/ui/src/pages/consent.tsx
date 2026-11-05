@@ -1,6 +1,7 @@
 // The consent screen of OAuth: an AI client sends the person here to connect
 // to this Cahut, and the person grants it a scope and some Rooms, or refuses.
 // See docs/adr/0016-oauth-for-ai-clients.md.
+import { Check } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
 import { ApiError, cahut, explain } from "../api";
 import type { Authorization, Request as AuthRequest, LegalLinks } from "../api.gen";
@@ -8,6 +9,10 @@ import { Failure, Languages, Legal, useArmed } from "../components";
 import { de, words } from "../i18n";
 import { Logo } from "../logo";
 import type { Session } from "../session";
+import { firstRequests, Request } from "./start";
+
+/** How long the screen of a first AI waits before it sends the browser back, within the five minutes of its code. */
+const backWithin = 4 * 60_000;
 
 const t = words({
 	en: {
@@ -46,6 +51,10 @@ const t = words({
 		refuse: "Refuse",
 		data: "What the readers of your Windows wrote in their data, the AI reads, and it goes to the company that runs the AI.",
 		logbook: "Every call it makes goes to the Logbook. You can disconnect it at any time, in AIs and access.",
+		connected: (client: string) => `${client} is connected`,
+		firstAsk: (client: string) => `Back in ${client}, ask it for your first Window. For example:`,
+		opensToRoom: "The Window opens to its Room only, until you share it.",
+		backTo: (host: string) => `Back to ${host}`,
 	},
 	fr: {
 		sendingBack: "Redirection…",
@@ -83,6 +92,10 @@ const t = words({
 		refuse: "Refuser",
 		data: "Ce que les lecteurs de vos Windows ont écrit dans leurs données, l'IA le lit, et cela part chez l'entreprise qui la fait tourner.",
 		logbook: "Chacun de ses appels va au Logbook. Vous pouvez la déconnecter à tout moment, sur la page IA et accès.",
+		connected: (client) => `${client} est branché`,
+		firstAsk: (client) => `De retour dans ${client}, demandez-lui votre première Window. Par exemple :`,
+		opensToRoom: "La Window ne s'ouvre qu'à sa Room, tant que vous ne la partagez pas.",
+		backTo: (host) => `Retourner sur ${host}`,
 	},
 });
 
@@ -150,6 +163,28 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 		}, handle);
 	}, []);
 
+	// The first AI of the person, once approved, gives a first request to
+	// copy before the browser goes back to it: on a phone, the person lands
+	// in the AI with nothing that says what to ask. The client exchanges its
+	// code within five minutes, so the screen goes back by itself after
+	// four. See docs/adr/0061-a-guide-to-the-first-ai.md.
+	const [first, setFirst] = useState(false);
+	const [done, setDone] = useState<{ redirect: string; client: string; host: string } | null>(null);
+	useEffect(() => {
+		Promise.all([
+			cahut("list_connected_ais", { user: session.handle }, session.token),
+			cahut("list_tokens", { user: session.handle }, session.token),
+		]).then(
+			([c, k]) => setFirst(!c.connections.some((x) => x.status === "active") && !k.tokens.some((x) => !x.revoked_at)),
+			() => undefined,
+		);
+	}, []);
+	useEffect(() => {
+		if (!done) return;
+		const timer = setTimeout(() => leave(done.redirect), backWithin);
+		return () => clearTimeout(timer);
+	}, [done]);
+
 	const approve = async (e: Event) => {
 		e.preventDefault();
 		if (!armed) return; // Enter in the form, before the page armed
@@ -157,7 +192,12 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 		setLeaving(true);
 		try {
 			const r = await cahut("approve_authorization", { request: req, scope, all_rooms: allRooms, rooms: allRooms ? [] : rooms }, session.token);
-			leave(r.redirect);
+			if (first && auth) {
+				setDone({ redirect: r.redirect, client: auth.client, host: auth.redirect_host });
+				setLeaving(false);
+			} else {
+				leave(r.redirect);
+			}
 		} catch (err) {
 			handle(err);
 		}
@@ -173,6 +213,32 @@ export function Consent({ session, onExpired }: { session: Session; onExpired: (
 		}
 	};
 	const toggle = (name: string, on: boolean) => setRooms((list) => (on ? [...list, name] : list.filter((r) => r !== name)));
+
+	if (done) {
+		return (
+			<main class="auth">
+				<div class="c-card auth__card consent">
+					<Logo height={32} />
+					<div class="auth__head">
+						<span class="consent__ok" aria-hidden="true">
+							<Check class="i" size={26} />
+						</span>
+						<h1 class="c-h3">{t.connected(done.client)}</h1>
+						<p class="c-small c-muted">{t.firstAsk(done.client)}</p>
+					</div>
+					<Request text={firstRequests[0].text} />
+					<p class="c-small c-muted">{t.opensToRoom}</p>
+					<div class="consent__actions">
+						<button class="c-btn c-btn--primary" type="button" disabled={leaving} onClick={() => leave(done.redirect)}>
+							{t.backTo(done.host)}
+						</button>
+					</div>
+				</div>
+				<Languages />
+				<Legal links={legal} />
+			</main>
+		);
+	}
 
 	return (
 		<main class="auth">

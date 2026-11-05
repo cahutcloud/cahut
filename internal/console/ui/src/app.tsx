@@ -24,6 +24,7 @@ import { SearchPage } from "./pages/search";
 import { Setup } from "./pages/setup";
 import { Settings } from "./pages/settings";
 import { SignIn } from "./pages/sign-in";
+import { Start } from "./pages/start";
 import { Suspended } from "./pages/suspended";
 import { WindowPage } from "./pages/window";
 import { Away, navigate, Redirect, usePath } from "./router";
@@ -120,7 +121,18 @@ export function App() {
 		case "/sign-in":
 			return <SignIn kind="person" onSignIn={signIn} />;
 		case "/activate":
-			return <Activate kind="person" onSignIn={signIn} />;
+			// A person who has just chosen their first password goes on to
+			// their first steps; one who chose a new one goes home. See
+			// docs/adr/0061-a-guide-to-the-first-ai.md.
+			return (
+				<Activate
+					kind="person"
+					onSignIn={(s) => {
+						hold(s);
+						navigate(new URLSearchParams(location.search).has("reset") ? "/" : "/start", true);
+					}}
+				/>
+			);
 		case "/confirm-email":
 			return <ConfirmEmail />;
 		case "/invitation":
@@ -231,6 +243,14 @@ function SignedIn(props: {
 			setRoomsVersion((n) => n + 1);
 		},
 	};
+	// The first steps take the whole screen, without the navigation.
+	if (path === "/start" || path.startsWith("/start/")) {
+		return (
+			<ConsoleProvider value={value}>
+				<Start path={path} />
+			</ConsoleProvider>
+		);
+	}
 	return (
 		<ConsoleProvider value={value}>
 			<Shell path={path} rooms={rooms} onSignOut={props.onSignOut}>

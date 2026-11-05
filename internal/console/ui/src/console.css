@@ -377,6 +377,439 @@
 	margin: 0;
 }
 
+/* The steps of a client, one action per step, numbered down a line. See
+   docs/adr/0061-a-guide-to-the-first-ai.md. */
+.steps {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	counter-reset: step;
+	display: grid;
+}
+.steps > li {
+	position: relative;
+	display: grid;
+	grid-template-columns: 28px minmax(0, 1fr);
+	gap: var(--space-3);
+	padding-bottom: var(--space-5);
+}
+.steps > li::before {
+	counter-increment: step;
+	content: counter(step);
+	box-sizing: border-box;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 2px solid var(--color-text);
+	background: var(--color-surface);
+	display: grid;
+	place-items: center;
+	font-size: var(--text-sm);
+	font-weight: 700;
+}
+.steps > li::after {
+	content: "";
+	position: absolute;
+	left: 13px;
+	top: 32px;
+	bottom: var(--space-1);
+	width: 2px;
+	background: var(--color-border);
+}
+.steps > li:last-child {
+	padding-bottom: 0;
+}
+.steps > li:last-child::after {
+	display: none;
+}
+.steps__body {
+	display: grid;
+	gap: var(--space-2);
+	min-width: 0;
+	padding-top: 3px;
+}
+.steps__body p {
+	margin: 0;
+}
+.steps__more {
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-surface);
+	padding: var(--space-3) var(--space-4);
+	font-size: var(--text-sm);
+}
+.steps__more summary {
+	cursor: pointer;
+	font-weight: 600;
+}
+.steps__more[open] {
+	display: grid;
+	gap: var(--space-3);
+}
+.steps__more p {
+	margin: 0;
+}
+.steps__extra {
+	display: grid;
+	gap: var(--space-2);
+}
+.steps__extra p {
+	margin: 0;
+}
+.film {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	justify-self: start;
+	font-size: var(--text-sm);
+	font-weight: 600;
+	color: var(--color-link);
+}
+
+/* First steps: the guide to a first AI, a first Window and a first share,
+   made for a phone first: a head, a column, and a foot under the thumb. */
+.start {
+	min-height: 100vh;
+	min-height: 100dvh;
+	display: grid;
+	grid-template-rows: auto 1fr auto;
+	background: var(--color-bg);
+}
+.start__head {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	min-height: 56px;
+	padding: var(--space-2) var(--space-4);
+	background: var(--color-surface);
+	border-bottom: 1px solid var(--color-border);
+}
+.start__head .c-label {
+	flex: 1;
+}
+.start__logo {
+	display: flex;
+	color: var(--color-text);
+}
+.start__main {
+	width: min(100%, 640px);
+	margin: 0 auto;
+	padding: var(--space-6) var(--space-4) var(--space-10);
+	display: grid;
+	gap: var(--space-5);
+	align-content: start;
+	min-width: 0;
+}
+.start__main > * {
+	min-width: 0;
+}
+.start__main p {
+	margin: 0;
+}
+.start__bar {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 6px;
+}
+.start__bar span {
+	height: 4px;
+	border-radius: 2px;
+	background: var(--color-border);
+}
+.start__bar span[data-on] {
+	background: var(--color-text);
+}
+.start__head-text {
+	display: grid;
+	gap: var(--space-2);
+	justify-items: start;
+}
+.start__head-text h1 {
+	text-wrap: balance;
+}
+.start__head-text p {
+	margin: 0;
+}
+.start__dock {
+	position: sticky;
+	bottom: 0;
+	z-index: 2;
+	background: var(--color-surface);
+	border-top: 1px solid var(--color-border);
+	padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+}
+.start__dock-inner {
+	width: min(100%, 608px);
+	margin: 0 auto;
+	display: grid;
+	gap: var(--space-2);
+}
+.start__address {
+	display: grid;
+	gap: var(--space-1);
+	padding: var(--space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-surface);
+}
+.start__address code {
+	font-size: var(--text-sm);
+	overflow-wrap: anywhere;
+}
+.start__group {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	margin-top: var(--space-1);
+}
+.start__done {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-2);
+	margin: 0;
+	font-size: var(--text-sm);
+}
+.start__done .i {
+	color: var(--color-success);
+	margin-top: 1px;
+}
+.start__share {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2);
+}
+.start__anyway {
+	justify-self: start;
+}
+.start__ai {
+	display: grid;
+	gap: var(--space-3);
+}
+.start__ai p {
+	margin: 0;
+}
+.start .cards--windows {
+	grid-template-columns: minmax(0, 1fr);
+}
+.plan {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	counter-reset: plan;
+	display: grid;
+	gap: var(--space-3);
+}
+.plan li {
+	display: grid;
+	grid-template-columns: 28px minmax(0, 1fr);
+	column-gap: var(--space-3);
+}
+.plan li::before {
+	counter-increment: plan;
+	content: counter(plan);
+	grid-row: span 2;
+	box-sizing: border-box;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 1px solid var(--color-border-strong);
+	background: var(--color-surface-muted);
+	display: grid;
+	place-items: center;
+	font-size: var(--text-sm);
+	font-weight: 700;
+}
+.plan span {
+	font-size: var(--text-sm);
+	color: var(--color-text-muted);
+}
+/* The choices of an AI, each a row that one touches. */
+.ai-choices {
+	display: grid;
+	gap: var(--space-2);
+}
+.ai-choice {
+	display: grid;
+	grid-template-columns: 40px minmax(0, 1fr) 20px;
+	align-items: center;
+	gap: var(--space-3);
+	min-height: 64px;
+	padding: var(--space-2) var(--space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-surface);
+	color: var(--color-text);
+	text-decoration: none;
+}
+.ai-choice:hover {
+	border-color: var(--color-border-strong);
+}
+.ai-choice__text b {
+	display: block;
+}
+.ai-choice__text small {
+	display: block;
+	font-size: var(--text-xs);
+	line-height: var(--leading-xs);
+	color: var(--color-text-muted);
+}
+.ai-choice > .i {
+	color: var(--color-text-muted);
+}
+/* The initials of a client, in place of its mark. */
+.mark {
+	width: 40px;
+	height: 40px;
+	border-radius: var(--radius-sm);
+	display: grid;
+	place-items: center;
+	font-family: var(--font-mono);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	background: var(--color-surface-muted);
+	border: 1px solid var(--color-border);
+	color: var(--color-text);
+}
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	font-size: var(--text-sm);
+	font-weight: 700;
+}
+.chip .mark {
+	width: 28px;
+	height: 28px;
+	font-size: 11px;
+}
+.options {
+	display: grid;
+	gap: var(--space-2);
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+.option {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	min-height: 48px;
+	padding: var(--space-2) var(--space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-surface);
+	font-size: var(--text-sm);
+	cursor: pointer;
+}
+.option:has(input:checked) {
+	border-color: var(--color-text);
+}
+.option input {
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	accent-color: var(--color-text);
+}
+/* What the guide waits for. */
+.live {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	font-size: var(--text-sm);
+	font-weight: 600;
+}
+.live small {
+	display: block;
+	font-weight: 400;
+	font-size: var(--text-xs);
+	line-height: var(--leading-xs);
+	color: var(--color-text-muted);
+}
+.live__dot {
+	flex: none;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--color-text-muted);
+	animation: live-dot 1.6s var(--ease-out) infinite;
+}
+@keyframes live-dot {
+	50% {
+		opacity: 0.25;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.live__dot {
+		animation: none;
+	}
+}
+/* A request to copy into an AI. */
+.requests {
+	display: grid;
+	gap: var(--space-3);
+}
+.request {
+	display: grid;
+	gap: var(--space-2);
+	padding: var(--space-3) var(--space-4);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-surface);
+}
+.request__text {
+	font-size: var(--text-sm);
+	line-height: var(--leading-sm);
+}
+:lang(fr) .request__text {
+	quotes: "«\00a0" "\00a0»";
+}
+.request__actions {
+	display: flex;
+	justify-content: flex-end;
+}
+/* The card of the first steps, on the overview. */
+.first-steps {
+	display: grid;
+	gap: var(--space-3);
+	justify-items: start;
+}
+.first-steps .start__bar {
+	width: 100%;
+	max-width: 320px;
+}
+.first-steps h2,
+.first-steps p {
+	margin: 0;
+}
+.first-steps__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2);
+}
+/* On a phone, the buttons of the foot of the guide take its width, and the
+   height of a thumb. */
+@media (max-width: 760px) {
+	.start__dock .c-btn {
+		width: 100%;
+		height: 48px;
+		font-size: var(--text-base);
+	}
+	.start__dock .c-btn--ghost {
+		height: 40px;
+		font-size: var(--text-sm);
+	}
+}
+@media (min-width: 761px) {
+	.start__dock-inner {
+		grid-auto-flow: column;
+		justify-content: start;
+		align-items: center;
+	}
+}
+
 /* The updates of the server */
 .updates__actions {
 	display: flex;
@@ -421,6 +854,34 @@
 .consent__actions {
 	display: flex;
 	gap: var(--space-3);
+}
+.consent__ok {
+	width: 52px;
+	height: 52px;
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	background: var(--color-success-bg);
+	color: var(--color-success);
+}
+/* On a phone, the buttons of the consent sit at the foot of the screen,
+   across its width. */
+@media (max-width: 560px) {
+	.consent__actions {
+		position: sticky;
+		bottom: 0;
+		flex-direction: column;
+		gap: var(--space-2);
+		margin-inline: calc(-1 * var(--space-8));
+		padding: var(--space-3) var(--space-8) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+		background: var(--color-surface);
+		border-top: 1px solid var(--color-border);
+	}
+	.consent__actions .c-btn {
+		width: 100%;
+		height: 48px;
+		font-size: var(--text-base);
+	}
 }
 
 /* The top bar, above the navigation and the page: that of the Cahut, or
