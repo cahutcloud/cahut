@@ -366,17 +366,7 @@ var RequestPasswordLink = &operation.Op[RequestPasswordLinkInput, PasswordLinkRe
 			return PasswordLinkRequested{}, errors.Join(err, errNoPasswordLink)
 		}
 		answer := PasswordLinkRequested{Message: passwordLinkAnswer}
-		who := strings.TrimSpace(in.Who)
-		handle := strings.ToLower(who)
-		if strings.Contains(who, "@") {
-			err := c.Tx.QueryRowContext(ctx, "SELECT handle FROM users WHERE email = ? COLLATE NOCASE", who).Scan(&handle)
-			if errors.Is(err, sql.ErrNoRows) {
-				handle = ""
-			} else if err != nil {
-				return PasswordLinkRequested{}, err
-			}
-		}
-		p, err := findUser(ctx, c.Tx, handle)
+		p, err := findByHandleOrEmail(ctx, c.Tx, in.Who)
 		if errors.Is(err, operation.ErrNotFound) {
 			// What a visitor typed is not logged: it may be anyone's address.
 			c.Log("", "unknown account")

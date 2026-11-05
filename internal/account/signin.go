@@ -181,32 +181,37 @@ type SignInInput struct {
 	Password string `json:"password"`
 }
 
-// SignIn opens a session for a person who gives their handle and password.
-// The password is checked before the call's transaction opens, so that a
-// burst of sign-ins does not hold the Cahut's writes behind its hashes.
+// SignIn opens a session for a person who gives their handle, or the e-mail
+// address of their account, and their password. The password is checked
+// before the call's transaction opens, so that a burst of sign-ins does not
+// hold the Cahut's writes behind its hashes. The refusals before the
+// person's password last changed do not count: they were for another
+// password, and a person who chose a new one from a link signs in with it at
+// once. See docs/adr/0060-signing-in-after-a-forgotten-password.md.
 var SignIn = &operation.Op[SignInInput, Session]{
-	Name:        "sign_in",
-	Title:       "Sign in",
-	Description: "Sign in with a handle and a password, and open a session.",
-	PeopleOnly:  true,
-	Visitors:    true,
+	Name:  "sign_in",
+	Title: "Sign in",
+	Description: "Sign in with a handle, or the e-mail address of the account, and a password, " +
+		"and open a session.",
+	PeopleOnly: true,
+	Visitors:   true,
 	Prepare: func(ctx context.Context, c *operation.Call, in SignInInput) error {
-		handle := strings.ToLower(strings.TrimSpace(in.Handle))
 		var p person
 		attempt := credential.SignIn{Password: in.Password}
 		// A call without an address, from a test, counts as one address.
 		address := sql.NullString{String: c.Actor.Address, Valid: c.Actor.Address != ""}
+		since := store.FormatTime(c.Now.Add(-credential.RefusalWindow))
 		err := c.Read(ctx, func(tx *sql.Tx) error {
 			var err error
-			p, err = findUser(ctx, tx, handle)
+			p, err = findByHandleOrEmail(ctx, tx, in.Handle)
 			if errors.Is(err, operation.ErrNotFound) {
-				// An unknown handle is not logged: it may be a password
-				// typed in the wrong field. Its refusals count at the
-				// address, as those of a handle that exists do.
+				// An unknown handle or address is not logged: it may be a
+				// password typed in the wrong field. Its refusals count at
+				// the address, as those of a person who exists do.
 				return tx.QueryRowContext(ctx, `
 					SELECT count(*) FROM logbook
 					WHERE operation = 'sign_in' AND outcome = 'refused' AND user_id IS NULL AND address IS ? AND at > ?`,
-					address, store.FormatTime(c.Now.Add(-credential.RefusalWindow))).Scan(&attempt.RefusedHere)
+					address, since).Scan(&attempt.RefusedHere)
 			}
 			if err != nil {
 				return err
@@ -214,14 +219,17 @@ var SignIn = &operation.Op[SignInInput, Session]{
 			attempt.Hash = p.passwordHash
 			return tx.QueryRowContext(ctx, `
 				SELECT count(*), count(*) FILTER (WHERE address IS ?) FROM logbook
-				WHERE operation = 'sign_in' AND outcome = 'refused' AND user_id = ? AND at > ?`,
-				address, p.ID, store.FormatTime(c.Now.Add(-credential.RefusalWindow))).Scan(&attempt.RefusedAll, &attempt.RefusedHere)
+				WHERE operation = 'sign_in' AND outcome = 'refused' AND user_id = ? AND at > ?
+				AND id > coalesce((
+					SELECT max(id) FROM logbook
+					WHERE operation IN ('activate_account', 'change_password') AND outcome = 'ok' AND user_id = ? AND at > ?), 0)`,
+				address, p.ID, since, p.ID, since).Scan(&attempt.RefusedAll, &attempt.RefusedHere)
 		})
 		if err != nil {
 			return err
 		}
 		if p.ID == 0 {
-			c.Log("", "unknown handle")
+			c.Log("", "unknown account")
 			return credential.CheckSignIn(ctx, attempt)
 		}
 		c.Identify(operation.Person, p.ID, p.Handle)
@@ -236,7 +244,7 @@ var SignIn = &operation.Op[SignInInput, Session]{
 		return nil
 	},
 	Run: func(ctx context.Context, c *operation.Call, in SignInInput) (Session, error) {
-		p, err := findUser(ctx, c.Tx, strings.ToLower(strings.TrimSpace(in.Handle)))
+		p, err := findByHandleOrEmail(ctx, c.Tx, in.Handle)
 		if errors.Is(err, operation.ErrNotFound) {
 			return Session{}, credential.ErrWrongPassword // deleted since its password was checked
 		}

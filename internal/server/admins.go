@@ -402,6 +402,7 @@ var SignIn = &operation.Op[account.SignInInput, Session]{
 		var a adminRecord
 		attempt := credential.SignIn{Password: in.Password}
 		address := sql.NullString{String: c.Actor.Address, Valid: c.Actor.Address != ""}
+		since := store.FormatTime(c.Now.Add(-credential.RefusalWindow))
 		err := c.Read(ctx, func(tx *sql.Tx) error {
 			var err error
 			a, err = findAdmin(ctx, tx, strings.ToLower(strings.TrimSpace(in.Handle)))
@@ -411,16 +412,22 @@ var SignIn = &operation.Op[account.SignInInput, Session]{
 				return tx.QueryRowContext(ctx, `
 					SELECT count(*) FROM logbook
 					WHERE operation = 'sign_in' AND outcome = 'refused' AND user_handle IS NULL AND address IS ? AND at > ?`,
-					address, store.FormatTime(c.Now.Add(-credential.RefusalWindow))).Scan(&attempt.RefusedHere)
+					address, since).Scan(&attempt.RefusedHere)
 			}
 			if err != nil {
 				return err
 			}
+			// The refusals before the administrator's password last changed
+			// do not count, as for the people of a Cahut. See
+			// docs/adr/0060-signing-in-after-a-forgotten-password.md.
 			attempt.Hash = a.passwordHash
 			return tx.QueryRowContext(ctx, `
 				SELECT count(*), count(*) FILTER (WHERE address IS ?) FROM logbook
-				WHERE operation = 'sign_in' AND outcome = 'refused' AND user_handle = ? AND at > ?`,
-				address, a.Handle, store.FormatTime(c.Now.Add(-credential.RefusalWindow))).Scan(&attempt.RefusedAll, &attempt.RefusedHere)
+				WHERE operation = 'sign_in' AND outcome = 'refused' AND user_handle = ? AND at > ?
+				AND id > coalesce((
+					SELECT max(id) FROM logbook
+					WHERE operation IN ('activate_account', 'change_password') AND outcome = 'ok' AND user_handle = ? AND at > ?), 0)`,
+				address, a.Handle, since, a.Handle, since).Scan(&attempt.RefusedAll, &attempt.RefusedHere)
 		})
 		if err != nil {
 			return err

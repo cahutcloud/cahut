@@ -17,7 +17,7 @@ https://cahut.example.com/console/activate#...
 
 The person opens it, chooses a password of 15 characters at least, and is signed in, on the [first steps](#first-steps). The code of the link stays in the browser: it never reaches the server's logs, and the console takes it out of the address once read.
 
-An administrator creates accounts in the console, under **People**, or on the command line with [`cahut user create`](/admin/commands/#create-a-person). When the Cahut [sends e-mail](/admin/mail/) and the person has an address, the link goes there too. In a Cahut that sends e-mail, a person who forgot their password asks for a link from **Forgot your password?**, on the page of sign-in: it goes to the address of their account and works for one hour. Without an address, or without e-mail, an administrator gives a new link: **Manage**, then **Give a new link**, in People, or `cahut user link`. The password works until the new link is used, and using it ends the other sessions.
+An administrator creates accounts in the console, under **People**, or on the command line with [`cahut user create`](/admin/commands/#create-a-person). When the Cahut [sends e-mail](/admin/mail/) and the person has an address, the link goes there too. In a Cahut that sends e-mail, a person who forgot their password asks for a link from **Forgot your password?**, on the page of sign-in: it goes to the address of their account and works for one hour. Without an address, or without e-mail, an administrator gives a new link: **Manage**, then **Give a new link**, in People, or `cahut user link`. The password works until the new link is used, and using it ends the other sessions. A person signs in with their handle, or with the address of their account.
 
 ## First steps
 
@@ -93,7 +93,7 @@ The people, the Rooms, the e-mail and the Logbook of a Cahut are for its own adm
 
 A session ends 7 days after its last use, and 30 days after it opened in any case. The console keeps it in the storage of its own address and sends it with every call; it sets no cookie. A browser holds the session of a person, for the console of the Cahut, and that of an administrator of the server, for the console of the server: each console signs out of its own, and a session that ends asks to sign in again with its own account. Signing out also ends the reader sessions that the console opened in that browser, and **Sign out** on the pages of the Cahut ends the session of the console that opened them.
 
-After 10 refused sign-ins to one handle from one address in 15 minutes, that address must wait; after 100 from everywhere, the handle waits everywhere. An address that tries too often must wait too, and an IPv6 address counts with its whole /64. The Logbook keeps the address of every sign-in.
+After 10 refused sign-ins to one handle from one address in 15 minutes, that address must wait; after 100 from everywhere, the handle waits everywhere. A sign-in with the address of an account counts for its handle. A new password, from a link or under **Account**, ends the wait: the refusals before it no longer count. An address that tries too often must wait too, and an IPv6 address counts with its whole /64. The Logbook keeps the address of every sign-in.
 
 On a Knock, **Approve** and, on the consent screen of an AI, **Connect** become active once the page has been in front for a moment and you have moved the pointer or pressed a key: a page that would slip them under a double-click gets nowhere.
 
