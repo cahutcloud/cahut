@@ -15,15 +15,29 @@ The first person of a Cahut starts from the link that the installation prints, a
 https://cahut.example.com/console/activate#...
 ```
 
-The person opens it, chooses a password of 15 characters at least, and is signed in. The code of the link stays in the browser: it never reaches the server's logs, and the console takes it out of the address once read.
+The person opens it, chooses a password of 15 characters at least, and is signed in, on the [first steps](#first-steps). The code of the link stays in the browser: it never reaches the server's logs, and the console takes it out of the address once read.
 
 An administrator creates accounts in the console, under **People**, or on the command line with [`cahut user create`](/admin/commands/#create-a-person). When the Cahut [sends e-mail](/admin/mail/) and the person has an address, the link goes there too. In a Cahut that sends e-mail, a person who forgot their password asks for a link from **Forgot your password?**, on the page of sign-in: it goes to the address of their account and works for one hour. Without an address, or without e-mail, an administrator gives a new link: **Manage**, then **Give a new link**, in People, or `cahut user link`. The password works until the new link is used, and using it ends the other sessions.
+
+## First steps
+
+Once a person has chosen their password, the console opens **First steps**, at `/console/start`, a guide made for a phone first:
+
+1. **Connect your AI.** It asks which AI: Claude, the app and claude.ai together, Mistral Vibe, ChatGPT, Claude Code or another MCP client. Each has its steps, one action at a time, with the address to copy and a link to the page of the client. ChatGPT asks for the plan first, since only its Business, Enterprise and Edu plans publish. On a phone, Claude Code and ChatGPT come under **On a computer**, where the guide opens at the same step once the person signs in.
+2. **Ask it for a Window.** As soon as the AI connects, the guide moves on by itself, and gives requests to copy into it.
+3. **Share it.** As soon as the AI publishes, the guide shows the Window, its address and its button **Share**.
+
+The guide reads where the person is from the Cahut: their connected AIs, their tokens and their Windows. A person who begins on a phone finds it at the same step on a computer. **Skip**, or **Hide** on the card of the overview, dismisses it in that browser only.
+
+When the administrators of the server give the [listing of the Cahut](/admin/commands/#set-the-listing-of-a-cahut-in-the-directory-of-claude) in the directory of Claude, the steps of Claude open the listing, with nothing to copy.
+
+When a person approves their first AI on the [consent screen](#consent), the screen says that it is connected and gives a first request to copy, before it sends them back to the AI.
 
 ## What a person finds
 
 | Screen | What it shows |
 | --- | --- |
-| Overview | The latest Windows of your Rooms, each with a preview and a button **Share**, your Rooms, and the limits of the Cahut, or yours in an individual Cahut, when there are some |
+| Overview | The latest Windows of your Rooms, each with a preview and a button **Share**, your Rooms, and the limits of the Cahut, or yours in an individual Cahut, when there are some. Until your AI has published, a card leads to the [first steps](#first-steps) |
 | Search | From the field at the head of every page, or of the menu on a narrow screen: the Windows of your Rooms whose title, description, tags or pages hold your words, the best first, each with the words of its pages around them, and their tags, which narrow them. See [Search](/concepts/rooms-and-windows/#search) |
 | Knocks | What your AIs asked that waits for you, with Approve and Decline, then what you answered and what expired; the navigation counts those that wait |
 | A Knock | Where the link of an AI leads: what it asks, the details of the call, when it expires, Approve and Decline, then what the call gave back |

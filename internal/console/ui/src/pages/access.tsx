@@ -164,7 +164,7 @@ export function Access() {
 			<section class="section c-card panel">
 				<h2 class="c-h4">{t.connect}</h2>
 				<p class="c-small">{t.connectHelp}</p>
-				<ConnectSteps mcp={about.mcp ?? ""} />
+				<ConnectSteps mcp={about.mcp ?? ""} listing={about.listings.claude} />
 			</section>
 			<section class="section">
 				<h2 class="c-h4">{t.yourAIs}</h2>
