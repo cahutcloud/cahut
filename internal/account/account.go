@@ -106,6 +106,26 @@ func findUser(ctx context.Context, tx *sql.Tx, handle string) (person, error) {
 	return p, nil
 }
 
+// findByHandleOrEmail finds the person whom who names: their handle, or the
+// e-mail address of their account, which no handle holds since handles have
+// no @. Case and the spaces around do not matter. The error of an unknown
+// address does not quote it: it may be anyone's.
+func findByHandleOrEmail(ctx context.Context, tx *sql.Tx, who string) (person, error) {
+	who = strings.TrimSpace(who)
+	if !strings.Contains(who, "@") {
+		return findUser(ctx, tx, strings.ToLower(who))
+	}
+	var handle string
+	err := tx.QueryRowContext(ctx, "SELECT handle FROM users WHERE email = ? COLLATE NOCASE", who).Scan(&handle)
+	if errors.Is(err, sql.ErrNoRows) {
+		return person{}, operation.NotFoundf("no person with this e-mail address in this Cahut")
+	}
+	if err != nil {
+		return person{}, err
+	}
+	return findUser(ctx, tx, handle)
+}
+
 func status(passwordHash, disabledAt sql.NullString) string {
 	switch {
 	case disabledAt.Valid:

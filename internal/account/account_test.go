@@ -271,6 +271,105 @@ func TestSignInLimit(t *testing.T) {
 	}
 }
 
+// TestSignInLimitAfterNewPassword checks that a new password, from a link
+// or changed, lets its person sign in at once: the refusals before it were
+// for another password. Those after it count as before.
+func TestSignInLimitAfterNewPassword(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	f.active(t, "olivier", true)
+	refuse := func(n int) {
+		t.Helper()
+		for range n {
+			if _, err := operation.Do(ctx, f.r, SignIn, visitor, SignInInput{Handle: "olivier", Password: "wrong"}); !errors.Is(err, operation.ErrForbidden) {
+				t.Fatalf("wrong password: err = %v", err)
+			}
+		}
+	}
+	signIn := func(password string) error {
+		f.now = f.now.Add(time.Second)
+		_, err := operation.Do(ctx, f.r, SignIn, visitor, SignInInput{Handle: "olivier", Password: password})
+		return err
+	}
+
+	// A link that a forgotten password sends.
+	refuse(credential.MaxRefusals)
+	if err := signIn(password); !errors.Is(err, operation.ErrTooMany) {
+		t.Fatalf("sign_in after %d refusals: err = %v, want ErrTooMany", credential.MaxRefusals, err)
+	}
+	f.now = f.now.Add(time.Second)
+	link, err := operation.Do(ctx, f.r, CreateActivationLink, admin, ActivationLinkInput{User: "olivier"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	const fromLink = "a password chosen from a link"
+	if _, err := operation.Do(ctx, f.r, ActivateAccount, visitor, ActivateInput{Code: link.Code, Password: fromLink}); err != nil {
+		t.Fatalf("activate_account: %v", err)
+	}
+	if err := signIn(fromLink); err != nil {
+		t.Errorf("sign_in with the password of the link, after %d refusals before it: %v", credential.MaxRefusals, err)
+	}
+	refuse(credential.MaxRefusals)
+	if err := signIn(fromLink); !errors.Is(err, operation.ErrTooMany) {
+		t.Errorf("sign_in after %d refusals since the link: err = %v, want ErrTooMany", credential.MaxRefusals, err)
+	}
+
+	// A password changed in the console, from a session opened before.
+	f.now = f.now.Add(time.Second)
+	elsewhere := visitor
+	elsewhere.Address = "192.0.2.9"
+	s, err := operation.Do(ctx, f.r, SignIn, elsewhere, SignInInput{Handle: "olivier", Password: fromLink})
+	if err != nil {
+		t.Fatalf("sign_in from another address: %v", err)
+	}
+	me := f.signedIn(t, s.Token)
+	f.now = f.now.Add(time.Second)
+	const changed = "a password changed in the console"
+	if _, err := operation.Do(ctx, f.r, ChangePassword, me, ChangePasswordInput{Password: fromLink, NewPassword: changed}); err != nil {
+		t.Fatalf("change_password: %v", err)
+	}
+	if err := signIn(changed); err != nil {
+		t.Errorf("sign_in with the changed password, after %d refusals before it: %v", credential.MaxRefusals, err)
+	}
+}
+
+// TestSignInWithEmail checks that a person signs in with the e-mail address
+// of their account as with their handle, and that an unknown address
+// answers as a wrong password does.
+func TestSignInWithEmail(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	f.active(t, "olivier", true)
+	if _, err := operation.Do(ctx, f.r, SetUserEmail, admin, SetUserEmailInput{User: "olivier", Email: "olivier@example.org"}); err != nil {
+		t.Fatal(err)
+	}
+	s, err := operation.Do(ctx, f.r, SignIn, visitor, SignInInput{Handle: " Olivier@Example.org ", Password: password})
+	if err != nil {
+		t.Fatalf("sign_in with the e-mail address: %v", err)
+	}
+	if s.User.Handle != "olivier" {
+		t.Errorf("sign_in with the e-mail address opened a session for %q", s.User.Handle)
+	}
+	for _, in := range []SignInInput{
+		{Handle: "olivier@example.org", Password: "wrong"},
+		{Handle: "nobody@example.org", Password: password},
+	} {
+		if _, err := operation.Do(ctx, f.r, SignIn, visitor, in); !errors.Is(err, credential.ErrWrongPassword) {
+			t.Errorf("sign_in %q: err = %v, want the refusal of a wrong password", in.Handle, err)
+		}
+	}
+	// A refusal for the address counts for its person, as one for the handle.
+	refused := 0
+	for _, e := range f.entries(t) {
+		if e.Operation == "sign_in" && e.Outcome == logbook.Refused && e.UserHandle == "olivier" {
+			refused++
+		}
+	}
+	if refused != 1 {
+		t.Errorf("the Logbook keeps %d refused sign-ins for olivier, want 1", refused)
+	}
+}
+
 // TestSignInLimitByAddress checks that wrong passwords from one address
 // make that address wait, not the person, until they come from everywhere;
 // and that an unknown handle answers as a known one does.

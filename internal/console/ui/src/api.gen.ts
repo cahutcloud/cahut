@@ -2217,7 +2217,7 @@ export interface CahutOperations {
   set_user_role: { input: SetUserRoleInput; output: User };
   /** Set who opens a Window: author, its author alone, for themself; room, the members of its Room (the default); internal, everyone signed in to the Cahut, except in an individual Cahut; key, anyone who types its Key; or public, anyone with its address. The access may end at a date, after which the Window opens to its Room only. For key, Cahut draws a Key unless you give one, and returns it once: give it to the person. Making a Window public waits for the approval of a person. */
   set_window_access: { input: AccessInput; output: AccessSet };
-  /** Sign in with a handle and a password, and open a session. */
+  /** Sign in with a handle, or the e-mail address of the account, and a password, and open a session. */
   sign_in: { input: SignInInput; output: AccountSession };
   /** Get a single-use code, valid one minute, that signs you in to read the Windows of this Cahut at its address: the browser takes it to /-/session. */
   sign_in_to_windows: { input: SignInToWindowsInput; output: ReaderCode };

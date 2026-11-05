@@ -9,7 +9,7 @@ My Cahut is offered by [Tetra7](https://www.tetra7.io/), which hosts it in Franc
 
 ## Sign up
 
-Create your account at [account.cahut.cloud](https://account.cahut.cloud/en/signup), with an e-mail address and a handle. It is free during the discovery phase, without a credit card, and seats are limited. Your handle names your personal Room, the start of the address of your Windows. You sign in to the console at [my.cahut.cloud/console/](https://my.cahut.cloud/console/).
+Create your account at [account.cahut.cloud](https://account.cahut.cloud/en/signup), with an e-mail address and a handle. It is free during the discovery phase, without a credit card, and seats are limited. Your handle names your personal Room, the start of the address of your Windows. You sign in to the console at [my.cahut.cloud/console/](https://my.cahut.cloud/console/), with your handle or your e-mail address.
 
 ## Connect Claude
 
