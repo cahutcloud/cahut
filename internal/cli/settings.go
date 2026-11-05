@@ -21,6 +21,7 @@ var settingsCommands = []command{
 	{name: "set", summary: "Change the kind or limits of a Cahut; what you leave out stays as it is", run: runSettingsSet},
 	{name: "links", summary: "Link the legal pages of a Cahut, or print its links; what you leave out stays as it is", run: runSettingsLinks},
 	{name: "moderation-address", summary: "Set the address that receives the reports of a Cahut, or print it", run: runSettingsModeration},
+	{name: "listing", summary: "Set the listing of a Cahut in the directory of connectors of Claude, or print it", run: runSettingsListing},
 	{name: "account-deletion", summary: "Let the people of a Cahut delete their own account, or not, or print which", run: runSettingsAccountDeletion},
 }
 
@@ -100,6 +101,46 @@ func runSettingsModeration(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stdout, "The reports of %s now go to %s too, when it sends e-mail.\n", at, out)
 	default:
 		fmt.Fprintf(stdout, "The reports of %s go to %s too, when it sends e-mail.\n", at, out)
+	}
+	return exitOK
+}
+
+// runSettingsListing sets or prints the listing of a Cahut in the
+// directory of connectors of Claude. See
+// docs/adr/0061-a-guide-to-the-first-ai.md.
+func runSettingsListing(args []string, stdout, stderr io.Writer) int {
+	fs := newFlags("settings listing", stderr)
+	data := dataFlag(fs)
+	domain := domainFlag(fs)
+	claude := fs.String("claude", "", "the `URL` of the listing of the Cahut in the directory of connectors of Claude, which starts with https://claude.ai/directory/; none removes it")
+	if code, ok := parse(fs, args); !ok {
+		return code
+	}
+	set := *claude != ""
+	out, at, ok := withCahut(*data, *domain, stderr, func(ctx context.Context, c *cahut.Cahut) (string, error) {
+		if !set {
+			about, err := operation.Do(ctx, c.Registry, c.About, admin, cahut.GetCahutInput{})
+			return about.Listings.Claude, err
+		}
+		in := settings.SetListingsInput{Claude: *claude}
+		if in.Claude == "none" {
+			in.Claude = ""
+		}
+		l, err := operation.Do(ctx, c.Registry, settings.SetListings, admin, in)
+		return l.Claude, err
+	})
+	if !ok {
+		return exitError
+	}
+	switch {
+	case out == "" && set:
+		fmt.Fprintf(stdout, "%s has no listing in the directory of Claude now: its console gives its address.\n", at)
+	case out == "":
+		fmt.Fprintf(stdout, "%s has no listing in the directory of Claude: its console gives its address.\n", at)
+	case set:
+		fmt.Fprintf(stdout, "The console of %s now leads to its listing in the directory of Claude, %s.\n", at, out)
+	default:
+		fmt.Fprintf(stdout, "The console of %s leads to its listing in the directory of Claude, %s.\n", at, out)
 	}
 	return exitOK
 }

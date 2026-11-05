@@ -184,7 +184,7 @@ func TestOperationsThatServeTheServer(t *testing.T) {
 	}
 	want := []string{"create_service_token", "dismiss_report", "get_cahut", "list_public_windows", "list_reports",
 		"list_service_tokens", "preview_reported_window", "reinstate_window", "resume_cahut", "revoke_service_token",
-		"set_cahut_settings", "set_legal_links", "set_moderation_address", "suspend_cahut", "withdraw_window"}
+		"set_cahut_settings", "set_legal_links", "set_listings", "set_moderation_address", "suspend_cahut", "withdraw_window"}
 	if !slices.Equal(got, want) {
 		t.Errorf("the operations that serve the server = %q, want %q", got, want)
 	}

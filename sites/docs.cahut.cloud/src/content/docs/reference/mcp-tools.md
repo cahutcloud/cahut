@@ -48,7 +48,7 @@ The Cahut gives these instructions to the AI when it connects:
 | [`disable_user`](#disable_user) | Disable a person: their sessions end, and neither they nor their AIs can act until a person enables them again. Their Rooms and Windows stay. Knock first: a person approves the call before it runs. |
 | [`enable_user`](#enable_user) | Enable a disabled person again: they can sign in, and their AIs can act with their tokens. Knock first: a person approves the call before it runs. |
 | [`get_account`](#get_account) | Describe the person you act for: their handle, name, role in the Cahut and Rooms. |
-| [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. |
+| [`get_cahut`](#get_cahut) | Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages and its listings in the directories of AI clients, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. |
 | [`get_knock`](#get_knock) | Check a Knock of this Cahut, a call of an AI that waits for a person to approve it: whether it waits, was approved and run, failed, was denied, expired or was canceled. Call it to learn what became of a call that knocked. |
 | [`get_room`](#get_room) | Describe a Room of this Cahut: its title, its owners and members, and how many Windows it holds. |
 | [`get_window`](#get_window) | Describe a Window of this Cahut and list its files, optionally with their contents. |
@@ -1260,7 +1260,7 @@ This tool takes no arguments.
 
 ## `get_cahut`
 
-Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused.
+Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages and its listings in the directories of AI clients, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused.
 
 Title: Describe the Cahut. Annotations: `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`.
 
@@ -1308,6 +1308,8 @@ This tool takes no arguments.
 | `limits.windows` | integer or null | no | how many Windows out of the trash the Cahut may hold |
 | `limits.windows_per_person` | integer or null | no | in an individual Cahut, how many Windows out of the trash each person may hold, over their Rooms |
 | `limits.windows_per_room` | integer or null | no | how many Windows out of the trash each Room may hold, personal Rooms included |
+| `listings` | object | yes | the listings of the Cahut in the directories of AI clients, which the administrators of the server set; empty when it has none |
+| `listings.claude` | string | no | the address of the listing of the Cahut in the directory of connectors of Claude, where a person connects it in one step; absent when it has none |
 | `sends_mail` | boolean | yes | whether this Cahut sends e-mail, through the relay that its administrators set; without one, nothing that would send e-mail works, such as invitations |
 | `mcp` | string | no | the address of its MCP endpoint, where AI clients connect |
 | `moderation_email` | string | no | the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators |
@@ -1470,6 +1472,17 @@ This tool takes no arguments.
       },
       "type": "object"
     },
+    "listings": {
+      "additionalProperties": false,
+      "description": "the listings of the Cahut in the directories of AI clients, which the administrators of the server set; empty when it has none",
+      "properties": {
+        "claude": {
+          "description": "the address of the listing of the Cahut in the directory of connectors of Claude, where a person connects it in one step; absent when it has none",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "mcp": {
       "description": "the address of its MCP endpoint, where AI clients connect",
       "type": "string"
@@ -1579,7 +1592,8 @@ This tool takes no arguments.
     "kind",
     "limits",
     "legal",
-    "account_deletion"
+    "account_deletion",
+    "listings"
   ],
   "type": "object"
 }

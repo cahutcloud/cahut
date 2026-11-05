@@ -25,6 +25,8 @@ export interface About {
   account_deletion: boolean;
   /** the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators */
   moderation_email?: string;
+  /** the listings of the Cahut in the directories of AI clients, which the administrators of the server set; empty when it has none */
+  listings: Listings;
 }
 
 export interface AccessInput {
@@ -890,6 +892,15 @@ export interface ListTokensInput {
 
 export type ListUsersInput = Record<string, never>;
 
+export interface Listing {
+  listing: string;
+}
+
+export interface Listings {
+  /** the address of the listing of the Cahut in the directory of connectors of Claude, where a person connects it in one step; absent when it has none */
+  claude?: string;
+}
+
 export interface LogbookPage {
   entries: Entry[];
 }
@@ -1547,6 +1558,11 @@ export interface SetLegalLinksInput {
   fr?: LegalPages;
 }
 
+export interface SetListingsInput {
+  /** the address of the listing of this Cahut in the directory of connectors of Claude, which starts with https://claude.ai/directory/; empty removes it */
+  claude?: string;
+}
+
 export interface SetMailNoticesInput {
   /** true turns off the notices that are neither about your account nor about a Knock, such as being added to a Room; false turns them on again */
   off: boolean;
@@ -1621,6 +1637,8 @@ export interface Settings {
   account_deletion: boolean;
   /** the address that receives each report about the Windows of the Cahut, beside its administrators, which the administrators of the server set; absent when it has none, and for anyone but its administrators */
   moderation_email?: string;
+  /** the listings of the Cahut in the directories of AI clients, which the administrators of the server set; empty when it has none */
+  listings: Listings;
 }
 
 export interface Setup {
@@ -2089,7 +2107,7 @@ export interface CahutOperations {
   enable_user: { input: UserInput; output: User };
   /** Describe the person you act for: their handle, name, role in the Cahut and Rooms. */
   get_account: { input: GetAccountInput; output: Account };
-  /** Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. */
+  /** Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages and its listings in the directories of AI clients, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. */
   get_cahut: { input: GetCahutInput; output: About };
   /** Describe the invitation of a personal link: the Window, who invites, and their note. */
   get_invitation: { input: InvitationCodeInput; output: InvitationPage };
@@ -2181,6 +2199,8 @@ export interface CahutOperations {
   set_cahut_settings: { input: SetCahutSettingsInput; output: Settings };
   /** Set the links to the legal pages of this Cahut, which its host publishes elsewhere: its legal notice, terms, privacy policy and support. Each is the address of a page, which starts with https://; fr gives another address for a page in French, where it differs, which the console links when it speaks French. The console and the pages for readers link them at their foot. Give every link: a link left out is removed. For the administrators of the server. */
   set_legal_links: { input: SetLegalLinksInput; output: LegalLinks };
+  /** Set the address of the listing of this Cahut in the directory of connectors of Claude, which starts with https://claude.ai/directory/, or remove it with an empty address. The console then leads people to the listing, where they connect Claude in one step. For the administrators of the server. */
+  set_listings: { input: SetListingsInput; output: Listings };
   /** Turn off, or on again, the e-mail notices that are neither about your account nor about a Knock, such as being added to a Room or the end of the access of a Window. */
   set_mail_notices: { input: SetMailNoticesInput; output: MailNotices };
   /** Set the SMTP relay that sends the e-mail of this Cahut, such as activation links, from an address of its own. The relay is at a public address and speaks TLS. Cahut connects to it and signs in before it keeps it. An empty host removes it: the Cahut then sends no e-mail, and its console offers nothing that would. For the administrators of the Cahut. */
@@ -2258,7 +2278,7 @@ export interface ServerOperations {
 }
 
 /** The operations of a Cahut that serve the server, at POST /server/api/cahuts/<domain>/<operation>, for its administrators. */
-export type ServerCahutOperations = Pick<CahutOperations, "create_service_token" | "dismiss_report" | "get_cahut" | "list_public_windows" | "list_reports" | "list_service_tokens" | "preview_reported_window" | "reinstate_window" | "resume_cahut" | "revoke_service_token" | "set_cahut_settings" | "set_legal_links" | "set_moderation_address" | "suspend_cahut" | "withdraw_window">;
+export type ServerCahutOperations = Pick<CahutOperations, "create_service_token" | "dismiss_report" | "get_cahut" | "list_public_windows" | "list_reports" | "list_service_tokens" | "preview_reported_window" | "reinstate_window" | "resume_cahut" | "revoke_service_token" | "set_cahut_settings" | "set_legal_links" | "set_listings" | "set_moderation_address" | "suspend_cahut" | "withdraw_window">;
 
 /** The refusals that the console says in the language of its person, by code, each with its values. */
 export interface Refusals {
@@ -2326,6 +2346,8 @@ export interface Refusals {
   legal_link_in_french_only: LinkInFrenchOnly;
   /** {link}: give the address of a page, which starts with https://, such as https://example.org/terms, or leave it out to remove the link */
   legal_link_invalid: LegalLink;
+  /** {listing}: give the address of the listing of this Cahut in the directory, such as https://claude.ai/directory/my-cahut, or leave it out to remove it */
+  listing_invalid: Listing;
   /** name is empty */
   name_empty: null;
   /** name is longer than 200 bytes */
