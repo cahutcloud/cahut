@@ -1,6 +1,6 @@
 # Cahut · Charte graphique
 
-Version 1.10 · 30 octobre 2026 · Olivier Durand
+Version 1.11 · 5 novembre 2026 · Olivier Durand
 
 ![Cahut, la maison ouverte](illustrations/maison-ouverte.png)
 
@@ -95,6 +95,8 @@ Un nuage dessiné d'un seul trait, dont la base s'ouvre sur une porte. Le nuage 
 **La porte éclairée.** Sur l'icône d'application et l'avatar des réseaux, la porte s'allume en Soft Yellow : quelqu'un est là, comme dans les illustrations. Le jaune remplit l'arche sous le trait, jusqu'à la ligne de base. C'est le seul remplissage du symbole : le logo, le symbole seul et le logo horizontal gardent leur porte vide. Le fond est Paper, qui laisse au trait Ink 13,4:1 de contraste ; le blanc sur Sky n'en avait que 2,6:1.
 
 Les exports PNG transparents sont dans [`logos/png/`](logos/png/), en plusieurs largeurs. Le logo horizontal utilise le symbole renforcé, aligné sur la ligne de base du logotype, à 1,2 fois la hauteur des ascendantes.
+
+Les e-mails prennent le logo horizontal de 320 px, [`cahut-logo-horizontal-320px.png`](logos/png/cahut-logo-horizontal-320px.png), affiché sur 160 px de large : le double suffit aux écrans haute densité. Pas plus large : Apple Mail sort vers le bord gauche, et coupe, une image jointe plus large que sa fenêtre, quelle que soit la largeur que lui donne l'e-mail.
 
 ### Zone de protection et tailles minimales
 
@@ -444,5 +446,6 @@ charte-graphique/
 | 1.8 | 29 octobre 2026 | Cahut n'a plus de *house style* ([ADR 49](../adr/0049-no-house-style.md)) : le mot quitte le vocabulaire, avec son pictogramme `house-style.svg` et son pictogramme de navigation. Une Window porte l'apparence que son IA lui a donnée, jamais la marque de Cahut, qui vaut pour ses propres écrans : la console, les pages d'une Cahut, ses e-mails et ses sites (§ 12, *Les Windows*, à la place de *Cahut chez les autres*). La valeur Accueillante prend le pictogramme de la Key. La planche des pictogrammes, la maquette de la console et leurs rendus sont refaits |
 | 1.9 | 29 octobre 2026 | La carte d'une Window, que chaque Cahut dessine pour les aperçus de ses liens ([ADR 51](../adr/0051-sharing-a-window-and-its-preview.md)), rejoint les applications (§ 10), avec son rendu `carte-window.png` |
 | 1.10 | 30 octobre 2026 | Un pictogramme de navigation pour la modération, [`moderation.svg`](icones/navigation/moderation.svg) : un drapeau, celui qu'on lève pour signaler une Window ([ADR 54](../adr/0054-reporting-and-withdrawing-a-window.md)). La planche des pictogrammes le montre |
+| 1.11 | 5 novembre 2026 | Un export du logo horizontal de 320 px, [`cahut-logo-horizontal-320px.png`](logos/png/cahut-logo-horizontal-320px.png), pour les e-mails, à la place de celui de 800 px, qu'Apple Mail décalait et coupait sur un écran étroit (§ 2, *Les versions*) |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.

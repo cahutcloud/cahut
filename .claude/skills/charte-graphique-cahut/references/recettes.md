@@ -57,8 +57,10 @@ Les clients de messagerie ignorent les variables CSS, les SVG et souvent les pol
 
 - Valeurs littérales prises dans les jetons : fond `#F7F5F0`, texte `#1F2A33`, texte secondaire `#5C6872` (Ink 600), liens `#245D83` (Sky 700), filets `#D9DCDF`, accent `#5FA8D3`.
 - Mise en page en tableaux, styles en ligne, 600 px de large au plus.
+- Une carte à coins arrondis garde `border-collapse:separate` sur son tableau : avec `collapse`, sa bordure reste carrée autour du fond arrondi.
 - `font-family:'Plus Jakarta Sans',Arial,sans-serif` et `'IBM Plex Mono',Consolas,monospace` : la police de secours doit suffire.
-- Logo et images en PNG (`charte/logos/png/`) servis depuis une adresse publique, jamais en SVG ni en chemin local.
+- Logo : `charte/logos/png/cahut-logo-horizontal-320px.png`, affiché sur 160 px de large. Jamais un PNG plus large : Apple Mail sort vers le bord gauche, et coupe, une image jointe plus large que sa fenêtre.
+- Images en PNG (`charte/logos/png/`), jointes à l'e-mail ou servies depuis une adresse publique, jamais en SVG ni en chemin local.
 - Signature : partir de `charte/applications/gabarits/signature-email.html`, remplacer nom, rôle et adresse de l'image.
 - E-mails envoyés par une Cahut (demande *knock first* par exemple) : dire quelle IA, quelle action, au nom de qui, quelle échéance, comme la carte `c-knock` de la console.
 
