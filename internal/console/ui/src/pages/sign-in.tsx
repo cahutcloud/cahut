@@ -144,7 +144,10 @@ export function SignIn(props: {
 				)}
 				<form onSubmit={submit}>
 					<label class="c-field">
-						<span class="c-field__label">{t.handle}</span>
+						{/* A person signs in with their handle, or the address of their
+						account, which they see where the Cahut sends e-mail. See
+						docs/adr/0060-signing-in-after-a-forgotten-password.md. */}
+						<span class="c-field__label">{kind === "person" && sendsMail ? t.handleOrEmail : t.handle}</span>
 						<input
 							class="c-input"
 							name="username"

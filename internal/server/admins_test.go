@@ -190,8 +190,31 @@ func TestServerAdminLinksAndLimits(t *testing.T) {
 	if _, err := operation.Do(ctx, s.Registry, SignIn, visitor, account.SignInInput{Handle: "olivier", Password: password}); !errors.Is(err, operation.ErrTooMany) {
 		t.Errorf("sign_in after %d refusals: err = %v, want ErrTooMany", credential.MaxRefusals, err)
 	}
+	// A new link lets the administrator sign in at once: the refusals before
+	// it were for another password.
+	*now = now.Add(time.Second)
+	again, err := operation.Do(ctx, s.Registry, CreateActivationLink, admin, AdminInput{Admin: "olivier"})
+	if err != nil {
+		t.Fatalf("create_activation_link: %v", err)
+	}
+	const fromLink = "a password chosen from a link"
+	if _, err := operation.Do(ctx, s.Registry, ActivateAccount, visitor, account.ActivateInput{Code: again.Code, Password: fromLink}); err != nil {
+		t.Fatalf("activate_account: %v", err)
+	}
+	*now = now.Add(time.Second)
+	if _, err := operation.Do(ctx, s.Registry, SignIn, visitor, account.SignInInput{Handle: "olivier", Password: fromLink}); err != nil {
+		t.Errorf("sign_in with the password of a new link, after %d refusals before it: %v", credential.MaxRefusals, err)
+	}
+	for range credential.MaxRefusals {
+		if _, err := operation.Do(ctx, s.Registry, SignIn, visitor, account.SignInInput{Handle: "olivier", Password: "wrong"}); !errors.Is(err, operation.ErrForbidden) {
+			t.Fatalf("wrong password: err = %v", err)
+		}
+	}
+	if _, err := operation.Do(ctx, s.Registry, SignIn, visitor, account.SignInInput{Handle: "olivier", Password: fromLink}); !errors.Is(err, operation.ErrTooMany) {
+		t.Errorf("sign_in after %d refusals since the link: err = %v, want ErrTooMany", credential.MaxRefusals, err)
+	}
 	*now = now.Add(credential.RefusalWindow + time.Minute)
-	if _, err := operation.Do(ctx, s.Registry, SignIn, visitor, account.SignInInput{Handle: "olivier", Password: password}); err != nil {
+	if _, err := operation.Do(ctx, s.Registry, SignIn, visitor, account.SignInInput{Handle: "olivier", Password: fromLink}); err != nil {
 		t.Errorf("sign_in once the refusals are old: %v", err)
 	}
 
