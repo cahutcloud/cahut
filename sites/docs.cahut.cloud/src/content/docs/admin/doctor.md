@@ -15,7 +15,7 @@ Each line starts with `ok`, `warn` (it works, but look at it), `fail` (it does n
 
 | Topic | What it looks at |
 | --- | --- |
-| System | The system and its version: Cahut is tested on AlmaLinux 9 and 10, and Ubuntu 22.04 and 24.04 |
+| System | The system and its version: Cahut is tested on AlmaLinux 9 and 10, and Ubuntu 22.04, 24.04 and 26.04 |
 | Clock | Whether the clock is synchronized: certificates need the right time |
 | Service | Whether the `cahut` service runs and starts at boot, and the version that answers, against the binary on disk |
 | Data | The owner of `/var/lib/cahut`, and its free space |

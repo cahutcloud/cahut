@@ -119,13 +119,16 @@ func (d *doctor) add(s Status, topic, format string, args ...any) {
 	d.results = append(d.results, Result{Status: s, Topic: topic, Text: fmt.Sprintf(format, args...)})
 }
 
-// Supported systems, by the ID and the major VERSION_ID of os-release.
-var supported = map[string][]string{"almalinux": {"9", "10"}, "ubuntu": {"22.04", "24.04"}}
+// Supported systems, by the ID and the major VERSION_ID of os-release, and
+// the sentence that names them.
+var supported = map[string][]string{"almalinux": {"9", "10"}, "ubuntu": {"22.04", "24.04", "26.04"}}
+
+const testedOn = "Cahut is tested on AlmaLinux 9 and 10, and Ubuntu 22.04, 24.04 and 26.04"
 
 func (d *doctor) system() {
 	data, err := d.sys.ReadFile("/etc/os-release")
 	if err != nil {
-		d.add(Warn, "System", "Cannot read /etc/os-release: Cahut is tested on AlmaLinux 9 and 10, and Ubuntu 22.04 and 24.04.")
+		d.add(Warn, "System", "Cannot read /etc/os-release: %s.", testedOn)
 		return
 	}
 	os := map[string]string{}
@@ -147,7 +150,7 @@ func (d *doctor) system() {
 		d.add(OK, "System", "%s, %s.", name, runtime.GOARCH)
 		return
 	}
-	d.add(Warn, "System", "%s, %s: Cahut is tested on AlmaLinux 9 and 10, and Ubuntu 22.04 and 24.04. It should work, untested.", name, runtime.GOARCH)
+	d.add(Warn, "System", "%s, %s: %s. It should work, untested.", name, runtime.GOARCH, testedOn)
 }
 
 func (d *doctor) clock() {
