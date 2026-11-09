@@ -188,6 +188,29 @@ func TestHealthyServer(t *testing.T) {
 	}
 }
 
+func TestSystems(t *testing.T) {
+	for _, tt := range []struct {
+		osRelease string
+		status    Status
+		text      string
+	}{
+		{"ID=\"almalinux\"\nVERSION_ID=\"9.6\"\nPRETTY_NAME=\"AlmaLinux 9.6 (Sage Margay)\"\n", OK, "AlmaLinux 9.6 (Sage Margay), "},
+		{"ID=\"almalinux\"\nVERSION_ID=\"10.2\"\nPRETTY_NAME=\"AlmaLinux 10.2 (Lavender Lion)\"\n", OK, "AlmaLinux 10.2 (Lavender Lion), "},
+		{"ID=ubuntu\nVERSION_ID=\"22.04\"\nPRETTY_NAME=\"Ubuntu 22.04.5 LTS\"\n", OK, "Ubuntu 22.04.5 LTS, "},
+		{"ID=ubuntu\nVERSION_ID=\"24.04\"\nPRETTY_NAME=\"Ubuntu 24.04.3 LTS\"\n", OK, "Ubuntu 24.04.3 LTS, "},
+		{"ID=ubuntu\nVERSION_ID=\"26.04\"\nPRETTY_NAME=\"Ubuntu 26.04.1 LTS\"\n", OK, "Ubuntu 26.04.1 LTS, "},
+		{"ID=ubuntu\nVERSION_ID=\"25.10\"\nPRETTY_NAME=\"Ubuntu 25.10\"\n", Warn, "Ubuntu 22.04, 24.04 and 26.04. It should work, untested."},
+		{"ID=\"almalinux\"\nVERSION_ID=\"8.10\"\n", Warn, "almalinux 8.10, "},
+	} {
+		f := healthy()
+		f.files["/etc/os-release"] = tt.osRelease
+		results := run(t, f, managed(t, update.Status{}))
+		if r, ok := find(results, "System", tt.text); !ok || r.Status != tt.status {
+			t.Errorf("%q: want %s System saying %q; got %s %q", tt.osRelease, tt.status, tt.text, r.Status, r.Text)
+		}
+	}
+}
+
 func TestProblems(t *testing.T) {
 	for _, tt := range []struct {
 		name   string
