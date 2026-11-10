@@ -17,7 +17,7 @@ An AI client publishes to a Cahut when its plan lets it add an MCP server of you
 | Mistral Vibe, formerly Le Chat | Every plan, Free included. Only an administrator of the account adds a connector: on the Free, Pro and Student plans, its owner |
 | ChatGPT | Business, Enterprise and Edu, on the web. Pro adds an MCP server for reading only, so it cannot publish. Free, Go and Plus do not add one |
 
-With ChatGPT Free, Plus or Pro, connect Claude or Mistral Vibe instead. This table follows the help of [Anthropic](https://support.claude.com/en/articles/11175166), [Mistral](https://docs.mistral.ai/vibe/work/connectors/mcp-connectors) and [OpenAI](https://help.openai.com/en/articles/12584461) on 29 October 2026. Plans change: the help of each client has the last word.
+With ChatGPT Free, Go, Plus or Pro, connect Claude or Mistral Vibe instead. This table follows the help of [Anthropic](https://support.claude.com/en/articles/11175166), [Mistral](https://docs.mistral.ai/vibe/work/connectors/mcp-connectors) and [OpenAI](https://help.openai.com/en/articles/12584461) on 7 November 2026. Plans change: the help of each client has the last word.
 
 ## Add the Cahut to your client
 
