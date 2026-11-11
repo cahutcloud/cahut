@@ -12,8 +12,8 @@
 		"node": ">=24"
 	},
 	"dependencies": {
-		"lucide-preact": "1.63.0",
-		"preact": "11.1.0"
+		"lucide-preact": "1.68.0",
+		"preact": "11.1.1"
 	},
 	"devDependencies": {
 		"@preact/preset-vite": "2.10.6",
