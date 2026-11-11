@@ -8,9 +8,9 @@
 		"preview": "astro preview"
 	},
 	"dependencies": {
-		"@astrojs/starlight": "0.42.7",
+		"@astrojs/starlight": "0.42.8",
 		"@cahut/brand": "0.0.0",
-		"astro": "7.4.3",
+		"astro": "7.4.5",
 		"sharp": "0.35.5"
 	}
 }
