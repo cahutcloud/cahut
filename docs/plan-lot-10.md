@@ -8,7 +8,7 @@ Le lot 10 donne à chaque Window une base SQLite à elle, comme le décide l'[AD
 
 Sondages, formulaires de contact, pétitions, listes d'inscription et suivis d'équipe deviennent des Windows, sans service extérieur.
 
-Le lot compte sept pull requests. Sa fin fait **Cahut 1.0**, publiée aussitôt. Pour le Show HN du 17 novembre, la version est gelée 48 heures avant : aucune release n'est publiée ni installée en production à partir du 15 novembre, quel que soit son numéro.
+Le lot compte sept pull requests. Sa fin fait **Cahut 1.0**, publiée aussitôt. Pour le Show HN, reporté du 17 novembre au 8 décembre 2026, la version est gelée 48 heures avant : aucune release n'est publiée ni installée en production à partir du 6 décembre, quel que soit son numéro.
 
 **Fin de lot**, sur le staging :
 
