@@ -2,7 +2,7 @@ module cahut.cloud
 
 go 1.27.0
 
-toolchain go1.27.3
+toolchain go1.27.4
 
 require (
 	github.com/caddyserver/certmagic v0.25.6
