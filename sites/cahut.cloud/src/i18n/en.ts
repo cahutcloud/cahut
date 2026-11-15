@@ -123,7 +123,7 @@ export default {
 	// own section, after the steps.
 	ais: {
 		hero: 'Works with the AI you already use',
-		heroMore: 'Claude Code, Codex and other AIs',
+		heroMore: 'Gemini, Claude Code, Codex and other AIs',
 		label: 'Works with',
 		title: 'Your AI, as it is',
 		lead: 'Nothing to install in your AI: give it the address of your Cahut, sign in, and choose the Rooms it reaches. Every AI gets the same tools, and Knock first holds for all of them.',
@@ -142,17 +142,17 @@ export default {
 			},
 			{
 				name: 'ChatGPT',
-				short: 'Business, Enterprise, Edu',
-				plan: 'Business, Enterprise and Edu',
-				where: 'On the web: Plugins, Add, then Add custom MCP server. Free, Go, Plus and Pro cannot publish: connect Claude or Mistral Vibe instead.',
+				short: 'Free plan included',
+				plan: 'Every plan, Free included',
+				where: 'On the web: Plugins, Add, then Add custom MCP server, with the address of your Cahut.',
 			},
 		],
 		// The link of each client to its film on YouTube.
 		watch: 'Watch it on YouTube, 45 s',
 		othersTitle: 'In the terminal, and elsewhere',
-		others: 'Claude Code, Codex and Mistral Vibe in the terminal, and any MCP client that signs in with OAuth or with a personal token.',
+		others: 'Gemini on the web, in the United States. Claude Code, Codex and Mistral Vibe in the terminal. And any MCP client that signs in with OAuth or with a personal token.',
 		plans: 'Which plans work, and how to connect each AI',
-		fine: 'As the help of Anthropic, Mistral and OpenAI says on 7 November 2026. Plans change: theirs has the last word. Claude, Mistral Vibe and ChatGPT belong to Anthropic, Mistral AI and OpenAI. Cahut is independent of all three.',
+		fine: 'As the help of Anthropic, Mistral, OpenAI and Google says on 15 November 2026. Plans change: theirs has the last word. Claude, Mistral Vibe, ChatGPT and Gemini belong to Anthropic, Mistral AI, OpenAI and Google. Cahut is independent of all four.',
 	},
 
 	// The demos of demo.cahut.cloud, in the order of src/components/home/examples.ts.
@@ -585,7 +585,7 @@ export default {
 		lead: 'Cahut is free and open source. Try it without a server, or install it on yours.',
 		hosted: {
 			title: 'Try it without a server',
-			text: 'Create your Cahut on My Cahut and connect your AI in two minutes: Claude or Mistral Vibe, even on their free plans, or ChatGPT on a Business, Enterprise or Edu plan.',
+			text: 'Create your Cahut on My Cahut and connect your AI in two minutes: Claude, Mistral Vibe or ChatGPT, even on their free plans.',
 			// The film on YouTube that shows it.
 			film: { title: 'Connect Claude to My Cahut', where: 'On YouTube, 45 s' },
 			// Around the link to Tetra7.

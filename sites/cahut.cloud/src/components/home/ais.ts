@@ -5,7 +5,7 @@
 export const aiClients = [
 	{ id: 'claude', free: true, film: 'claude' },
 	{ id: 'mistral', free: true, film: 'mistral' },
-	{ id: 'chatgpt', free: false, film: null },
+	{ id: 'chatgpt', free: true, film: null },
 ] as const;
 
 /** Which plans work, and how to connect each AI client. */

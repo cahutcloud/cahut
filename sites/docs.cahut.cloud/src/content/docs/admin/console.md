@@ -23,7 +23,7 @@ An administrator creates accounts in the console, under **People**, or on the co
 
 Once a person has chosen their password, the console opens **First steps**, at `/console/start`, a guide made for a phone first:
 
-1. **Connect your AI.** It asks which AI: Claude, the app and claude.ai together, Mistral Vibe, ChatGPT, Claude Code or another MCP client. Each has its steps, one action at a time, with the address to copy and a link to the page of the client. ChatGPT asks for the plan first, since only its Business, Enterprise and Edu plans publish. On a phone, Claude Code and ChatGPT come under **On a computer**, where the guide opens at the same step once the person signs in.
+1. **Connect your AI.** It asks which AI: Claude, the app and claude.ai together, Mistral Vibe, ChatGPT, Claude Code or another MCP client. Each has its steps, one action at a time, with the address to copy and a link to the page of the client. On a phone, Claude Code and ChatGPT come under **On a computer**, where the guide opens at the same step once the person signs in.
 2. **Ask it for a Window.** As soon as the AI connects, the guide moves on by itself, and gives requests to copy into it.
 3. **Share it.** As soon as the AI publishes, the guide shows the Window, its address and its button **Share**.
 

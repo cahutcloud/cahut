@@ -119,7 +119,7 @@ const fr: Dictionary = {
 
 	ais: {
 		hero: "Fonctionne avec l'IA que vous utilisez déjà",
-		heroMore: "Claude Code, Codex et d'autres IA",
+		heroMore: "Gemini, Claude Code, Codex et d'autres IA",
 		label: 'Fonctionne avec',
 		title: 'Votre IA, telle quelle',
 		lead: "Rien à installer dans votre IA : vous lui donnez l'adresse de votre Cahut, vous vous connectez et vous choisissez les Rooms qu'elle atteint. Toutes les IA ont les mêmes outils, et Knock first vaut pour toutes.",
@@ -138,16 +138,16 @@ const fr: Dictionary = {
 			},
 			{
 				name: 'ChatGPT',
-				short: 'Business, Enterprise, Edu',
-				plan: 'Business, Enterprise et Edu',
-				where: 'Sur le web : Plugins, Ajouter, puis Ajouter un serveur MCP personnalisé. Free, Go, Plus et Pro ne publient pas : connectez plutôt Claude ou Mistral Vibe.',
+				short: 'Offre gratuite comprise',
+				plan: 'Toutes les offres, gratuite comprise',
+				where: "Sur le web : Plugins, Ajouter, puis Ajouter un serveur MCP personnalisé, à l'adresse de votre Cahut.",
 			},
 		],
 		watch: 'Voir la vidéo sur YouTube, 45 s',
 		othersTitle: 'Dans le terminal, et ailleurs',
-		others: "Claude Code, Codex et Mistral Vibe dans le terminal, et tout client MCP qui se connecte par OAuth ou avec un jeton personnel.",
+		others: "Gemini sur le web, aux États-Unis. Claude Code, Codex et Mistral Vibe dans le terminal. Et tout client MCP qui se connecte par OAuth ou avec un jeton personnel.",
 		plans: 'Quelles offres marchent, et comment connecter chaque IA',
-		fine: "Selon l'aide d'Anthropic, de Mistral et d'OpenAI au 7 novembre 2026. Les offres changent : la leur a le dernier mot. Claude, Mistral Vibe et ChatGPT appartiennent à Anthropic, à Mistral AI et à OpenAI. Cahut est indépendante de ces trois entreprises.",
+		fine: "Selon l'aide d'Anthropic, de Mistral, d'OpenAI et de Google au 15 novembre 2026. Les offres changent : la leur a le dernier mot. Claude, Mistral Vibe, ChatGPT et Gemini appartiennent à Anthropic, à Mistral AI, à OpenAI et à Google. Cahut est indépendante de ces quatre entreprises.",
 	},
 
 	examples: {
@@ -602,7 +602,7 @@ const fr: Dictionary = {
 		lead: 'Cahut est libre et open source. Essayez-la sans serveur, ou installez-la sur le vôtre.',
 		hosted: {
 			title: 'Essayer sans serveur',
-			text: 'Créez votre Cahut sur My Cahut et connectez votre IA en deux minutes : Claude ou Mistral Vibe, même avec leur offre gratuite, ou ChatGPT avec une offre Business, Enterprise ou Edu.',
+			text: 'Créez votre Cahut sur My Cahut et connectez votre IA en deux minutes : Claude, Mistral Vibe ou ChatGPT, même avec leur offre gratuite.',
 			film: { title: 'Connecter Claude à My Cahut', where: 'Sur YouTube, 45 s' },
 			fine: ['Gratuit, places limitées. My Cahut est offerte par ', ", qui l'héberge en France pour soutenir le projet."],
 			more: 'Tout sur My Cahut',

@@ -33,7 +33,7 @@ Cahut installs with one command on a Linux server. Claude, ChatGPT, Mistral Vibe
 ## Try it
 
 - **See what AIs published, without an account.** [demo.cahut.cloud/examples](https://demo.cahut.cloud/examples/) holds Windows that AIs made and published, each with the prompt that made it: a small shop, a deck the team comments on, a CV, a team report, a travel journal.
-- **Without a server, in two minutes.** [Sign up for My Cahut](https://account.cahut.cloud/en/signup), a free Cahut at `my.cahut.cloud` with limited seats, and connect Claude or Mistral Vibe, even on their free plans, or ChatGPT on a Business, Enterprise or Edu plan. [All about My Cahut](https://docs.cahut.cloud/start/my-cahut/).
+- **Without a server, in two minutes.** [Sign up for My Cahut](https://account.cahut.cloud/en/signup), a free Cahut at `my.cahut.cloud` with limited seats, and connect Claude, Mistral Vibe or ChatGPT, even on their free plans. [All about My Cahut](https://docs.cahut.cloud/start/my-cahut/).
 - **On your own server, in one command.** On a fresh Ubuntu or AlmaLinux server, with ports 80 and 443 open and a domain that points to it:
 
   ```bash
@@ -222,7 +222,8 @@ Then give your AI the address of the MCP server, `https://cahut.example.com/mcp`
 | claude.ai, Claude Desktop | Customize, Connectors, add a custom connector, on every plan |
 | Claude Code | `/plugin marketplace add cahutcloud/cahut`, then `/plugin install cahut@cahut`, which also brings the skill for Claude |
 | Mistral Vibe, formerly Le Chat | Context, Connectors, add a new custom connector, on every plan |
-| ChatGPT | On the web, Plugins, Add, then Add custom MCP server, with OAuth, on the Business, Enterprise and Edu plans only: not on Free, Go, Plus or Pro |
+| ChatGPT | On the web, Plugins, Add, then Add custom MCP server, with OAuth, on every plan, Free included |
+| Gemini | On the web, Settings & help, Connected Apps, then Add a custom app, in the United States and with a personal Google Account |
 | Others | Any MCP client over HTTP, with OAuth or a personal token |
 
 Ask it for a deck: it publishes a Window and gives you its address. You choose who opens it in the console.
