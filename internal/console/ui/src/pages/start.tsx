@@ -10,7 +10,7 @@ import { ArrowLeft, Check, ChevronRight, CircleCheck, Copy, ExternalLink, Monito
 import type { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import type { About, Connection, TokenInfo, Window } from "../api.gen";
-import { CopyField, Notice, WindowCards } from "../components";
+import { CopyField, WindowCards } from "../components";
 import { type ClientId, ClientSteps, clientNames, Film } from "../connect";
 import { useConsole } from "../context";
 import { words } from "../i18n";
@@ -43,7 +43,7 @@ const t = words({
 		onComputer: "On a computer",
 		claudeHelp: "The app or claude.ai · free plan included",
 		vibeHelp: "Formerly Le Chat · free plan included",
-		chatgptHelp: "Business, Enterprise and Edu plans",
+		chatgptHelp: "On the web · free plan included",
 		claudeCodeHelp: "In a terminal",
 		otherName: "Another AI",
 		otherHelp: "Any client that speaks MCP",
@@ -52,16 +52,6 @@ const t = words({
 		listed: "This Cahut is in the directory of connectors of Claude: nothing to copy.",
 		waitingFor: (client: string) => `Waiting for ${client}`,
 		comeBack: "Come back to this tab once it is connected: the next step waits for you here.",
-		plan: "Which plan of ChatGPT do you have?",
-		planLead: "ChatGPT publishes to a Cahut on some plans only.",
-		planOrg: "Business, Enterprise or Edu",
-		planOwn: "Free, Go, Plus or Pro",
-		planUnsure: "I am not sure",
-		planCannot: "With this plan, ChatGPT cannot publish. Claude and Mistral Vibe can, on their free plans too.",
-		planWhich:
-			"Business, Enterprise and Edu are plans of organizations, which an administrator of the workspace manages. A plan you pay for yourself, or the free one, is one of the others.",
-		connectClaude: "Connect Claude",
-		connectVibe: "Connect Mistral Vibe",
 		computer: "This step is done on a computer",
 		computerWhy: (client: string) =>
 			client === "ChatGPT" ? "ChatGPT adds an MCP server on its website, from a computer." : `${client} runs in a terminal, on a computer.`,
@@ -123,7 +113,7 @@ const t = words({
 		onComputer: "Sur un ordinateur",
 		claudeHelp: "L'appli ou claude.ai · offre gratuite comprise",
 		vibeHelp: "L'ancien Le Chat · offre gratuite comprise",
-		chatgptHelp: "Offres Business, Enterprise et Edu",
+		chatgptHelp: "Sur le web · offre gratuite comprise",
 		claudeCodeHelp: "Dans un terminal",
 		otherName: "Une autre IA",
 		otherHelp: "Tout client qui parle MCP",
@@ -132,16 +122,6 @@ const t = words({
 		listed: "Cette Cahut est dans l'annuaire des connecteurs de Claude : rien à copier.",
 		waitingFor: (client) => `En attente de ${client}`,
 		comeBack: "Revenez sur cet onglet une fois connecté : la suite vous y attend.",
-		plan: "Quelle offre ChatGPT avez-vous ?",
-		planLead: "ChatGPT ne publie dans une Cahut qu'avec certaines offres.",
-		planOrg: "Business, Enterprise ou Edu",
-		planOwn: "Free, Go, Plus ou Pro",
-		planUnsure: "Je ne sais pas",
-		planCannot: "Avec cette offre, ChatGPT ne peut pas publier. Claude et Mistral Vibe le peuvent, même avec leur offre gratuite.",
-		planWhich:
-			"Business, Enterprise et Edu sont des offres d'organisation, qu'un administrateur de l'espace de travail gère. Une offre que vous payez vous-même, ou l'offre gratuite, est l'une des autres.",
-		connectClaude: "Brancher Claude",
-		connectVibe: "Brancher Mistral Vibe",
 		computer: "Cette étape se fait sur un ordinateur",
 		computerWhy: (client) =>
 			client === "ChatGPT"
@@ -515,12 +495,11 @@ function Choose({ onSkip }: { onSkip: () => void }) {
 	);
 }
 
-/** C, H and I: the steps of one client, with the plan of ChatGPT first, and on a phone the clients that need a computer. */
+/** C and I: the steps of one client, and on a phone the clients that need a computer. */
 function Client({ client, mcp, listing, onSkip }: { client: ClientId; mcp: string; listing?: string; onSkip: () => void }) {
 	const name = clientNames[client];
 	// Another client is the person's own AI, which the guide cannot name.
 	const ai = client === "other" ? t.yourAI : name;
-	const [plan, setPlan] = useState<"org" | "own" | "unsure">();
 	const [anyway, setAnyway] = useState(false);
 	const dock = <Waiting what={t.waitingFor(ai)} help={t.comeBack} />;
 	const head = (
@@ -533,51 +512,6 @@ function Client({ client, mcp, listing, onSkip }: { client: ClientId; mcp: strin
 			{client === "claude" && listing && <p class="c-muted">{t.listed}</p>}
 		</div>
 	);
-
-	if (client === "chatgpt" && plan !== "org") {
-		const option = (value: "org" | "own" | "unsure", label: string) => (
-			<label class="option">
-				<input type="radio" name="plan" checked={plan === value} onChange={() => setPlan(value)} />
-				<span>{label}</span>
-			</label>
-		);
-		return (
-			<Frame
-				step={1}
-				back="/start/ai"
-				onSkip={onSkip}
-				dock={
-					plan === "own" && (
-						<>
-							<Link class="c-btn c-btn--primary" href="/start/claude">
-								{t.connectClaude}
-							</Link>
-							<Link class="c-btn c-btn--secondary" href="/start/vibe">
-								{t.connectVibe}
-							</Link>
-						</>
-					)
-				}
-			>
-				<div class="start__head-text">
-					<span class="chip">
-						<Mark client="chatgpt" />
-						ChatGPT
-					</span>
-					<h1 class="c-h2">{t.plan}</h1>
-					<p class="c-muted">{t.planLead}</p>
-				</div>
-				<fieldset class="options">
-					<legend class="visually-hidden">{t.plan}</legend>
-					{option("org", t.planOrg)}
-					{option("own", t.planOwn)}
-					{option("unsure", t.planUnsure)}
-				</fieldset>
-				{plan === "own" && <Notice>{t.planCannot}</Notice>}
-				{plan === "unsure" && <Notice>{t.planWhich}</Notice>}
-			</Frame>
-		);
-	}
 
 	if (phone && computerOnly.includes(client) && !anyway) {
 		return (

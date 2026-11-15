@@ -1,23 +1,24 @@
 ---
 title: Connect an AI client
-description: Give an AI client the address of your Cahut, sign in, and choose the Rooms it reaches and whether it may publish. For claude.ai, Claude Desktop, Mistral Vibe, ChatGPT and other MCP clients with OAuth.
+description: Give an AI client the address of your Cahut, sign in, and choose the Rooms it reaches and whether it may publish. For claude.ai, Claude Desktop, Mistral Vibe, ChatGPT, Gemini and other MCP clients with OAuth.
 ---
 
 An AI client connects to a Cahut with its address alone: `https://cahut.example.com/mcp`. The client sends you to the console of the Cahut, where you sign in and choose what it may do. Then it acts for you, within what you granted, and every call it makes goes to the Logbook.
 
-This works with the MCP clients that sign in with OAuth: claude.ai, Claude Desktop, Claude Code, Mistral Vibe, ChatGPT and others. For a client that cannot, such as a script, use a [personal token](/connect/tokens/).
+This works with the MCP clients that sign in with OAuth: claude.ai, Claude Desktop, Claude Code, Mistral Vibe, ChatGPT, Gemini and others. For a client that cannot, such as a script, use a [personal token](/connect/tokens/).
 
 ## Which plans work
 
-An AI client publishes to a Cahut when its plan lets it add an MCP server of your choice and call the tools that change something. Claude and Mistral Vibe do on their free plans. ChatGPT does on its Business, Enterprise and Edu plans only.
+An AI client publishes to a Cahut when its plan lets it add an MCP server of your choice and call the tools that change something. Claude, Mistral Vibe and ChatGPT do on every plan, their free plans included. Gemini does in the United States, with a personal Google Account.
 
 | Client | Plans |
 | --- | --- |
 | Claude | Every plan, Free included. The Free plan holds one custom connector |
 | Mistral Vibe, formerly Le Chat | Every plan, Free included. Only an administrator of the account adds a connector: on the Free, Pro and Student plans, its owner |
-| ChatGPT | Business, Enterprise and Edu, on the web. Pro adds an MCP server for reading only, so it cannot publish. Free, Go and Plus do not add one |
+| ChatGPT | Every plan, Free included, on the web. In a workspace of Business, Enterprise or Edu, its administrators choose who adds a custom MCP server |
+| Gemini | In the United States, from 18, with a personal Google Account: not a work or school one. Google opens custom apps little by little |
 
-With ChatGPT Free, Go, Plus or Pro, connect Claude or Mistral Vibe instead. This table follows the help of [Anthropic](https://support.claude.com/en/articles/11175166), [Mistral](https://docs.mistral.ai/vibe/work/connectors/mcp-connectors) and [OpenAI](https://help.openai.com/en/articles/12584461) on 7 November 2026. Plans change: the help of each client has the last word.
+This table follows the help of [Anthropic](https://support.claude.com/en/articles/11175166), [Mistral](https://docs.mistral.ai/vibe/work/connectors/mcp-connectors), [OpenAI](https://developers.openai.com/api/docs/guides/custom-mcp-server) and [Google](https://support.google.com/gemini/answer/17209137) on 15 November 2026. Plans change: the help of each client has the last word.
 
 ## Add the Cahut to your client
 
@@ -28,7 +29,8 @@ The address to give is on the **AIs and access** screen of [the console](/admin/
 | claude.ai, Claude Desktop | Customize, Connectors, Add, then Add custom connector: a name and the address of the Cahut, then Continue. Claude detects OAuth by itself: select Add, then Connect |
 | Claude Code | `claude mcp add --transport http cahut https://cahut.example.com/mcp`, then `/mcp` and Authenticate. See [Connect Claude Code](/connect/claude-code/) |
 | Mistral Vibe | Context, Connectors, New connector, then New custom connector: a name without spaces, such as `cahut`, and the address of the Cahut as its server. Vibe finds OAuth by itself, and Add connector sends you to the Cahut |
-| ChatGPT | On the web, Plugins, Add, then Add custom MCP server: a name and the address of the Cahut as its server URL, with OAuth, already chosen. Tick the box that says you understand, then Create as a plugin. On a Business, Enterprise or Edu plan only |
+| ChatGPT | On the web, Plugins, Add, then Add custom MCP server: a name and the address of the Cahut as its server URL, with OAuth, already chosen. Tick the box that says you understand, then Create as a plugin. If Add custom MCP server is missing, turn on Developer mode under Settings, Security and login, then come back |
+| Gemini | On the web, Settings & help, Connected Apps, then Add a custom app: the address of the Cahut as its MCP server URL. Gemini registers with the Cahut by itself: leave its advanced settings empty. Once added, the app serves on phones too |
 | Others | The address of the Cahut. The client finds the rest by itself |
 
 Films of 45 seconds on YouTube show these steps, from the console to the connected AI: [Claude](https://www.youtube.com/watch?v=am2iBk5AX0U) and [Mistral Vibe](https://www.youtube.com/watch?v=I_2rw66sR5s), and in French, [Claude](https://www.youtube.com/watch?v=QtWHG6qjjKw) and [Mistral Vibe](https://www.youtube.com/watch?v=vWm_Wy6qS2Q).

@@ -48,7 +48,7 @@ const t = words({
 			</>
 		),
 		chatgptPlans:
-			"ChatGPT publishes to a Cahut on its Business, Enterprise and Edu plans only. With Free, Go, Plus or Pro, it cannot: connect Claude or Mistral Vibe, which work on their free plans too.",
+			"Every plan of ChatGPT adds a custom MCP server, Free included. If Add custom MCP server is missing, turn on Developer mode under Settings, Security and login. In a workspace, its administrators choose who adds one.",
 		chatgptOpen: "In ChatGPT on the web, open Plugins",
 		chatgptHow:
 			"Select Add, then Add custom MCP server. Give it a name and paste the address as its server URL: OAuth is its authentication already. Tick the box that says you understand, then select Create as a plugin.",
@@ -113,7 +113,7 @@ const t = words({
 			</>
 		),
 		chatgptPlans:
-			"ChatGPT ne publie dans une Cahut qu'avec ses offres Business, Enterprise et Edu. Avec Free, Go, Plus ou Pro, il ne le peut pas : connectez Claude ou Mistral Vibe, qui marchent aussi avec leur offre gratuite.",
+			"Toutes les offres de ChatGPT ajoutent un serveur MCP personnalisé, Free comprise. Si Ajouter un serveur MCP personnalisé manque, activez le mode développeur dans Paramètres, Sécurité et connexion. Dans un espace de travail, ses administrateurs choisissent qui en ajoute un.",
 		chatgptOpen: "Dans ChatGPT sur le web, ouvrez Plugins",
 		chatgptHow:
 			"Choisissez Ajouter, puis Ajouter un serveur MCP personnalisé. Donnez-lui un nom et collez l'adresse comme URL du serveur : son authentification est déjà OAuth. Cochez la case qui dit que vous comprenez, puis choisissez Créer en tant que plugin.",
@@ -308,20 +308,18 @@ function ChatGPT({ mcp }: { mcp: string }) {
 		return <Notice>{t.chatgptIP}</Notice>;
 	}
 	return (
-		<>
-			<Notice>{t.chatgptPlans}</Notice>
-			<ol class="steps">
-				<Step title={t.copyAddress}>
-					<CopyField label={t.address} value={mcp} />
-				</Step>
-				<Step title={t.chatgptOpen}>
-					<p class="c-small c-muted">{t.chatgptHow}</p>
-				</Step>
-				<Step title={t.approve("ChatGPT")}>
-					<p class="c-small c-muted">{t.chatgptApproveHelp}</p>
-				</Step>
-			</ol>
-		</>
+		<ol class="steps">
+			<Step title={t.copyAddress}>
+				<CopyField label={t.address} value={mcp} />
+			</Step>
+			<Step title={t.chatgptOpen}>
+				<p class="c-small c-muted">{t.chatgptHow}</p>
+				<p class="c-small c-muted">{t.chatgptPlans}</p>
+			</Step>
+			<Step title={t.approve("ChatGPT")}>
+				<p class="c-small c-muted">{t.chatgptApproveHelp}</p>
+			</Step>
+		</ol>
 	);
 }
 

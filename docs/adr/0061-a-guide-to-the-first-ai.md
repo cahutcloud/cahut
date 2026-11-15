@@ -1,6 +1,6 @@
 # 61. The console guides each person to a first AI, a first Window and a first share, and leads to the listing of its Cahut in the directory of Claude
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 63](0063-chatgpt-on-every-plan.md) (the first steps no longer ask for the plan of ChatGPT, which publishes on every plan)
 - Date: 2026-11-05
 
 ## Context
