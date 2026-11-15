@@ -65,7 +65,8 @@ func apiPage(s sample) page {
 		{status(http.StatusRequestEntityTooLarge), "The body is larger than " + mebibytes(web.MaxAPIRequestSize)},
 		{status(http.StatusMisdirectedRequest), "The domain is not that of a Cahut of the server"},
 		{status(http.StatusTooManyRequests), fmt.Sprintf("Too many sign-ins: from one address, %d at once, then one every %d seconds; "+
-			"for one handle, %d refused from one address or %d from everywhere in %d minutes. An IPv6 address counts with its /64",
+			"for one handle, %d refused from one address or %d from everywhere in %d minutes, where a sign-in refused during a wait does not count. "+
+			"An IPv6 address counts with its /64",
 			web.SignInBurst, int(web.SignInEvery.Seconds()), credential.MaxRefusals, credential.MaxHandleRefusals, int(credential.RefusalWindow.Minutes()))},
 		{status(http.StatusInternalServerError), "Anything else"},
 	})

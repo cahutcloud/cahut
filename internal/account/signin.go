@@ -187,7 +187,10 @@ type SignInInput struct {
 // hold the Cahut's writes behind its hashes. The refusals before the
 // person's password last changed do not count: they were for another
 // password, and a person who chose a new one from a link signs in with it at
-// once. See docs/adr/0060-signing-in-after-a-forgotten-password.md.
+// once. See docs/adr/0060-signing-in-after-a-forgotten-password.md. Nor do
+// those that checked no password, such as the refusals of a wait: trying
+// again does not prolong it. See
+// docs/adr/0062-a-sign-in-refused-during-a-wait-does-not-prolong-it.md.
 var SignIn = &operation.Op[SignInInput, Session]{
 	Name:  "sign_in",
 	Title: "Sign in",
@@ -197,10 +200,11 @@ var SignIn = &operation.Op[SignInInput, Session]{
 	Visitors:   true,
 	Prepare: func(ctx context.Context, c *operation.Call, in SignInInput) error {
 		var p person
-		attempt := credential.SignIn{Password: in.Password}
+		attempt := credential.SignIn{Password: in.Password, Now: c.Now}
 		// A call without an address, from a test, counts as one address.
 		address := sql.NullString{String: c.Actor.Address, Valid: c.Actor.Address != ""}
 		since := store.FormatTime(c.Now.Add(-credential.RefusalWindow))
+		var here, all sql.NullString
 		err := c.Read(ctx, func(tx *sql.Tx) error {
 			var err error
 			p, err = findByHandleOrEmail(ctx, tx, in.Handle)
@@ -209,23 +213,37 @@ var SignIn = &operation.Op[SignInInput, Session]{
 				// password typed in the wrong field. Its refusals count at
 				// the address, as those of a person who exists do.
 				return tx.QueryRowContext(ctx, `
-					SELECT count(*) FROM logbook
-					WHERE operation = 'sign_in' AND outcome = 'refused' AND user_id IS NULL AND address IS ? AND at > ?`,
-					address, since).Scan(&attempt.RefusedHere)
+					SELECT (SELECT at FROM logbook
+						WHERE operation = 'sign_in' AND outcome = 'refused' AND user_id IS NULL AND address IS ? AND at > ?
+						AND error NOT LIKE ?
+						ORDER BY id DESC LIMIT 1 OFFSET ?)`,
+					address, since, credential.Unchecked, credential.MaxRefusals-1).Scan(&here)
 			}
 			if err != nil {
 				return err
 			}
 			attempt.Hash = p.passwordHash
 			return tx.QueryRowContext(ctx, `
-				SELECT count(*), count(*) FILTER (WHERE address IS ?) FROM logbook
-				WHERE operation = 'sign_in' AND outcome = 'refused' AND user_id = ? AND at > ?
-				AND id > coalesce((
-					SELECT max(id) FROM logbook
-					WHERE operation IN ('activate_account', 'change_password') AND outcome = 'ok' AND user_id = ? AND at > ?), 0)`,
-				address, p.ID, since, p.ID, since).Scan(&attempt.RefusedAll, &attempt.RefusedHere)
+				WITH refused AS (
+					SELECT id, at, address FROM logbook
+					WHERE operation = 'sign_in' AND outcome = 'refused' AND user_id = ? AND at > ?
+					AND error NOT LIKE ?
+					AND id > coalesce((
+						SELECT max(id) FROM logbook
+						WHERE operation IN ('activate_account', 'change_password') AND outcome = 'ok' AND user_id = ? AND at > ?), 0))
+				SELECT
+					(SELECT at FROM refused WHERE address IS ? ORDER BY id DESC LIMIT 1 OFFSET ?),
+					(SELECT at FROM refused ORDER BY id DESC LIMIT 1 OFFSET ?)`,
+				p.ID, since, credential.Unchecked, p.ID, since,
+				address, credential.MaxRefusals-1, credential.MaxHandleRefusals-1).Scan(&here, &all)
 		})
 		if err != nil {
+			return err
+		}
+		if attempt.OldestHere, err = credential.RefusedAt(here); err != nil {
+			return err
+		}
+		if attempt.OldestAll, err = credential.RefusedAt(all); err != nil {
 			return err
 		}
 		if p.ID == 0 {

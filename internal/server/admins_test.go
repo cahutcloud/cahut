@@ -160,6 +160,48 @@ func TestServerAdmins(t *testing.T) {
 	}
 }
 
+// TestServerAdminWaitEnds checks that the sign-ins of an administrator
+// refused during a wait do not prolong it, as for the people of a Cahut, and
+// that each says how many minutes are left. See
+// docs/adr/0062-a-sign-in-refused-during-a-wait-does-not-prolong-it.md.
+func TestServerAdminWaitEnds(t *testing.T) {
+	s := setup(t)
+	now := clock(s)
+	ctx := context.Background()
+	a, err := operation.Do(ctx, s.Registry, CreateAdmin, admin, CreateAdminInput{Handle: "olivier", Name: "Olivier"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := operation.Do(ctx, s.Registry, ActivateAccount, visitor, account.ActivateInput{Code: a.Activation.Code, Password: password}); err != nil {
+		t.Fatalf("activate_account: %v", err)
+	}
+	*now = now.Add(time.Second)
+	start := *now
+	signIn := func(at time.Duration, password string) error {
+		*now = start.Add(at)
+		_, err := operation.Do(ctx, s.Registry, SignIn, visitor, account.SignInInput{Handle: "olivier", Password: password})
+		return err
+	}
+	for range credential.MaxRefusals {
+		if err := signIn(0, "wrong"); !errors.Is(err, operation.ErrForbidden) {
+			t.Fatalf("wrong password: err = %v", err)
+		}
+	}
+	for minute := range 14 {
+		var r *operation.Refusal
+		err := signIn(time.Duration(minute)*time.Minute, password)
+		if !errors.As(err, &r) || r.Code != "too_many_refused_sign_ins" {
+			t.Fatalf("sign_in after %d minutes: err = %v, want the refusal of a wait", minute, err)
+		}
+		if got, want := r.Values.(credential.Wait).Minutes, 15-minute; got != want {
+			t.Errorf("sign_in after %d minutes: waits %d minutes, want %d", minute, got, want)
+		}
+	}
+	if err := signIn(credential.RefusalWindow+time.Second, password); err != nil {
+		t.Errorf("sign_in once the refusals that checked a password are old: %v", err)
+	}
+}
+
 func TestServerAdminLinksAndLimits(t *testing.T) {
 	s := setup(t)
 	now := clock(s)
