@@ -49,7 +49,7 @@ A failed call answers with a status and a body such as `{"error": "invalid input
 | 409 Conflict | The operation needs the approval of a person, which only AIs meet |
 | 413 Request Entity Too Large | The body is larger than 1 MiB |
 | 421 Misdirected Request | The domain is not that of a Cahut of the server |
-| 429 Too Many Requests | Too many sign-ins: from one address, 10 at once, then one every 6 seconds; for one handle, 10 refused from one address or 100 from everywhere in 15 minutes. An IPv6 address counts with its /64 |
+| 429 Too Many Requests | Too many sign-ins: from one address, 10 at once, then one every 6 seconds; for one handle, 10 refused from one address or 100 from everywhere in 15 minutes, where a sign-in refused during a wait does not count. An IPv6 address counts with its /64 |
 | 500 Internal Server Error | Anything else |
 
 A refusal that people meet in the console gives its code too, which never changes, and the values of its message, as in `{"error": "invalid input: the password has 9 characters: use at least 15", "code": "password_too_short", "values": {"length": 9, "limit": 15}}`. The console says it in the language of its person. A program tells these refusals apart by their code: the wording of a message may change.
@@ -121,7 +121,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `title_too_long` |  | Title is longer than 200 bytes: shorten it |
 | `too_many_attempts_from_address` |  | Too many attempts from this address: wait a minute |
 | `too_many_invitations` | `sent`, `handle`, `limit` | {sent} invitations went out for {handle} in the last 24 hours, and {limit} is the most: send the rest later |
-| `too_many_refused_sign_ins` | `minutes` | Too many refused sign-ins for this handle: try again in {minutes} minutes |
+| `too_many_refused_sign_ins` | `minutes` | Too many refused sign-ins for this account: try again in {minutes} minutes |
 | `too_many_share_links` | `room`, `window`, `limit` | {room}/{window} has {limit} share links that stand, the most: take one back before you make another |
 | `too_many_share_links_today` | `made`, `handle`, `limit` | {made} share links were made for {handle} in the last 24 hours, and {limit} is the most: make the rest later |
 | `too_many_sign_ins_at_once` |  | Too many sign-ins at once: try again in a few seconds |

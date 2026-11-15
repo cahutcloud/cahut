@@ -2412,7 +2412,7 @@ export interface Refusals {
   too_many_attempts_from_address: null;
   /** {sent} invitations went out for {handle} in the last 24 hours, and {limit} is the most: send the rest later */
   too_many_invitations: Sent;
-  /** too many refused sign-ins for this handle: try again in {minutes} minutes */
+  /** too many refused sign-ins for this account: try again in {minutes} minutes */
   too_many_refused_sign_ins: Wait;
   /** {room}/{window} has {limit} share links that stand, the most: take one back before you make another */
   too_many_share_links: LinksOn;

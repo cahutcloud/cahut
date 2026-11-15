@@ -7,7 +7,7 @@
 // Behind the card, the Windows of the open house come out, and go back in
 // once signed in.
 import { useEffect, useRef, useState } from "preact/hooks";
-import { cahut, explain, server } from "../api";
+import { ApiError, cahut, explain, server } from "../api";
 import type { LegalLinks } from "../api.gen";
 import { AuthLogo, describeSignIn, Languages, Legal, LegalBeforeSignIn } from "../components";
 import { words } from "../i18n";
@@ -33,6 +33,8 @@ const t = words({
 		),
 		forgot: "Forgot your password?",
 		askAdmin: "Forgot your password? An administrator of the Cahut can give you a new link.",
+		endsWait: "A new password ends the wait at once.",
+		chooseNew: "Choose a new password",
 		newPassword: "Choose a new password",
 		giveHandle:
 			"Give your handle, or the e-mail address of your account. A link to choose a new password goes to that address. If your account has none, an administrator of the Cahut can give you a link.",
@@ -57,6 +59,8 @@ const t = words({
 		),
 		forgot: "Mot de passe oublié ?",
 		askAdmin: "Mot de passe oublié ? Un administrateur de la Cahut peut vous donner un nouveau lien.",
+		endsWait: "Un nouveau mot de passe met fin à l'attente tout de suite.",
+		chooseNew: "Choisir un nouveau mot de passe",
 		newPassword: "Choisissez un nouveau mot de passe",
 		giveHandle:
 			"Donnez votre identifiant, ou l'adresse e-mail de votre compte. Un lien pour choisir un nouveau mot de passe part à cette adresse. Si votre compte n'en a pas, un administrateur de la Cahut peut vous donner un lien.",
@@ -96,6 +100,9 @@ export function SignIn(props: {
 	const [handle, setHandle] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
+	// A sign-in that must wait says that a new password ends the wait. See
+	// docs/adr/0062-a-sign-in-refused-during-a-wait-does-not-prolong-it.md.
+	const [waiting, setWaiting] = useState(false);
 	const [busy, setBusy] = useState(false);
 	const card = useRef<HTMLDivElement>(null);
 	const scene = useRef<SceneMotion | undefined>(undefined);
@@ -104,6 +111,7 @@ export function SignIn(props: {
 		e.preventDefault();
 		setBusy(true);
 		setError("");
+		setWaiting(false);
 		try {
 			if (kind === "admin") {
 				const s = await server("sign_in", { handle, password });
@@ -116,6 +124,7 @@ export function SignIn(props: {
 			}
 		} catch (err) {
 			setError(explain(err));
+			setWaiting(err instanceof ApiError && err.code === "too_many_refused_sign_ins");
 			setBusy(false);
 			scene.current?.startle();
 		}
@@ -173,7 +182,22 @@ export function SignIn(props: {
 					</label>
 					{error && (
 						<div class="c-alert c-alert--danger" role="alert">
-							{error}
+							<div class="auth__alert">
+								<p>{error}</p>
+								{waiting && (
+									<p>
+										{t.endsWait}
+										{kind === "person" && sendsMail && (
+											<>
+												{" "}
+												<button class="c-link link-button" type="button" onClick={() => setForgot(true)}>
+													{t.chooseNew}
+												</button>
+											</>
+										)}
+									</p>
+								)}
+							</div>
 						</div>
 					)}
 					<button class="c-btn c-btn--primary" type="submit" disabled={busy}>

@@ -129,7 +129,7 @@ const said = words<Sentences>({
 		too_many_invitations: (v) =>
 			`You and your AIs sent ${plural(v.sent, "invitation", "invitations")} in the last 24 hours, and ${v.limit} is the most: send the rest later.`,
 		too_many_refused_sign_ins: (v) =>
-			`Too many refused sign-ins for this handle: try again in ${plural(v.minutes, "minute", "minutes")}.`,
+			`Too many refused sign-ins for this account: try again in ${plural(v.minutes, "minute", "minutes")}.`,
 		too_many_share_links: (v) =>
 			`This Window has ${v.limit} share links that stand, the most: take one back before you make another.`,
 		too_many_share_links_today: (v) =>
@@ -235,7 +235,7 @@ const said = words<Sentences>({
 		too_many_invitations: (v) =>
 			`Vous et vos IA avez envoyé ${plural(v.sent, "invitation", "invitations")} ces dernières 24 heures, et ${v.limit} est le maximum : envoyez les autres plus tard.`,
 		too_many_refused_sign_ins: (v) =>
-			`Trop de connexions refusées pour cet identifiant : réessayez dans ${plural(v.minutes, "minute", "minutes")}.`,
+			`Trop de connexions refusées pour ce compte : réessayez dans ${plural(v.minutes, "minute", "minutes")}.`,
 		too_many_share_links: (v) =>
 			`Cette Window a ${v.limit} liens de partage actifs, le maximum : retirez-en un avant d'en créer un autre.`,
 		too_many_share_links_today: (v) =>

@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
+	"database/sql"
 	"encoding/base32"
 	"encoding/base64"
 	"errors"
@@ -20,6 +21,7 @@ import (
 	"golang.org/x/crypto/argon2"
 
 	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/store"
 )
 
 // Limits of a password. NIST SP 800-63B asks for 15 characters at least when
@@ -50,10 +52,13 @@ const (
 	SessionIdle   = 7 * 24 * time.Hour  // a session ends this long after its last use
 	SessionMax    = 30 * 24 * time.Hour // and this long after it opened in any case
 
-	// MaxRefusals refused sign-ins to one handle, from one address, make
-	// that address wait; MaxHandleRefusals, from everywhere, make everyone
-	// wait. A stranger who knows a handle cannot lock its person out from
-	// a few addresses, and guessing a password from many takes years.
+	// MaxRefusals refused sign-ins to one handle, from one address, within
+	// RefusalWindow make that address wait; MaxHandleRefusals, from
+	// everywhere, make everyone wait. Only the refusals that checked a
+	// password count, so that trying again during a wait does not prolong
+	// it. A stranger who knows a handle cannot lock its person out from a
+	// few addresses, and guessing a password from many takes years. See
+	// docs/adr/0062-a-sign-in-refused-during-a-wait-does-not-prolong-it.md.
 	MaxRefusals       = 10
 	MaxHandleRefusals = 100
 	RefusalWindow     = 15 * time.Minute
@@ -70,7 +75,7 @@ var ErrWrongCurrentPassword = operation.NewRefusal("wrong_current_password", ope
 // The refusals of a sign-in that must wait.
 var (
 	tooManyRefused = operation.NewRefusalOf[Wait]("too_many_refused_sign_ins", operation.ErrTooMany,
-		"too many refused sign-ins for this handle: try again in {minutes} minutes")
+		"too many refused sign-ins for this account: try again in {minutes} minutes")
 	errTooManyAtOnce = operation.NewRefusal("too_many_sign_ins_at_once", operation.ErrTooMany,
 		"too many sign-ins at once: try again in a few seconds")
 )
@@ -80,17 +85,51 @@ type Wait struct {
 	Minutes int `json:"minutes" jsonschema:"how long to wait, in minutes"`
 }
 
+// Unchecked matches, with LIKE, the error that the Logbook keeps for a
+// sign-in refused before its password was checked: one that had to wait, or
+// came with too many others at once. Such a refusal does not count towards a
+// wait.
+var Unchecked = operation.ErrTooMany.Error() + ":%"
+
 // SignIn is an attempt to sign in, as CheckSignIn checks it.
 type SignIn struct {
 	// Hash is the password hash of the account, empty when it has none or
 	// the handle is unknown.
 	Hash     string
 	Password string
-	// RefusedHere counts the refused sign-ins of the last RefusalWindow to
-	// this handle from this address, or, for an unknown handle, to unknown
-	// handles from this address; RefusedAll counts those to this handle
-	// from everywhere.
-	RefusedHere, RefusedAll int
+	// Now is when the attempt is made.
+	Now time.Time
+	// OldestHere is when the oldest of the last MaxRefusals refused sign-ins
+	// to this handle from this address was made, or, for an unknown handle,
+	// of those to unknown handles from this address; OldestAll is the same
+	// for the last MaxHandleRefusals to this handle from everywhere. Each
+	// is zero when fewer came within RefusalWindow. Only the refusals that
+	// checked a password count: see Unchecked.
+	OldestHere, OldestAll time.Time
+}
+
+// RefusedAt reads the time of a refused sign-in as the Logbook keeps it, or
+// zero for NULL: there were fewer refusals than a limit.
+func RefusedAt(at sql.NullString) (time.Time, error) {
+	if !at.Valid {
+		return time.Time{}, nil
+	}
+	return store.ParseTime(at.String)
+}
+
+// waitEnds returns when the wait of in ends: RefusalWindow after the
+// oldest of the refusals that make it wait, or after the later of the two
+// when both limits are reached. It is zero, or before in.Now, when the
+// attempt need not wait.
+func waitEnds(in SignIn) time.Time {
+	oldest := in.OldestHere
+	if in.OldestAll.After(oldest) {
+		oldest = in.OldestAll
+	}
+	if oldest.IsZero() {
+		return time.Time{}
+	}
+	return oldest.Add(RefusalWindow)
 }
 
 // CheckSignIn checks the password of someone who signs in. A refusal for a
@@ -98,9 +137,10 @@ type SignIn struct {
 // times do not tell why it came; a sign-in that must wait costs nothing.
 // Sign-ins wait their turn, a few at a time.
 func CheckSignIn(ctx context.Context, in SignIn) error {
-	switch {
-	case in.RefusedHere >= MaxRefusals || in.RefusedAll >= MaxHandleRefusals:
-		return tooManyRefused(Wait{Minutes: int(RefusalWindow.Minutes())})
+	switch end := waitEnds(in); {
+	case end.After(in.Now):
+		// The minutes left, rounded up: a wait of 30 seconds says 1.
+		return tooManyRefused(Wait{Minutes: int((end.Sub(in.Now) + time.Minute - 1) / time.Minute)})
 	case utf8.RuneCountInString(in.Password) > MaxPassword:
 		return ErrWrongPassword // no password is this long: nothing to hash
 	}

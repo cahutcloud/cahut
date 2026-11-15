@@ -1,6 +1,6 @@
 # 60. People sign in with their handle or their e-mail address, and a new password ends the wait of refused sign-ins
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 62](0062-a-sign-in-refused-during-a-wait-does-not-prolong-it.md) (a sign-in refused during a wait no longer counts, and its refusal says when the wait ends)
 - Date: 2026-11-05
 
 ## Context

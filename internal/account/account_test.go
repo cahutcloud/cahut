@@ -271,6 +271,85 @@ func TestSignInLimit(t *testing.T) {
 	}
 }
 
+// waitMinutes gives the minutes that the refusal of a sign-in that must wait
+// says are left, or -1 for any other error.
+func waitMinutes(err error) int {
+	var r *operation.Refusal
+	if !errors.As(err, &r) || r.Code != "too_many_refused_sign_ins" {
+		return -1
+	}
+	return r.Values.(credential.Wait).Minutes
+}
+
+// TestSignInWaitEnds checks that the sign-ins refused during a wait do not
+// prolong it, for a person and for an unknown handle, and that each says how
+// many minutes are left. See
+// docs/adr/0062-a-sign-in-refused-during-a-wait-does-not-prolong-it.md.
+func TestSignInWaitEnds(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	f.active(t, "olivier", true)
+	for _, handle := range []string{"olivier", "nobody"} {
+		start := f.now
+		signIn := func(at time.Duration, password string) error {
+			f.now = start.Add(at)
+			_, err := operation.Do(ctx, f.r, SignIn, visitor, SignInInput{Handle: handle, Password: password})
+			return err
+		}
+		for range credential.MaxRefusals {
+			if err := signIn(0, "wrong"); !errors.Is(err, operation.ErrForbidden) {
+				t.Fatalf("%s, wrong password: err = %v", handle, err)
+			}
+		}
+		// Trying again every minute, the right password waits as long as the
+		// first refusals say, and no longer.
+		for minute := range 14 {
+			if got, want := waitMinutes(signIn(time.Duration(minute)*time.Minute, password)), 15-minute; got != want {
+				t.Errorf("%s, sign_in after %d minutes: waits %d minutes, want %d", handle, minute, got, want)
+			}
+		}
+		if got := waitMinutes(signIn(14*time.Minute+30*time.Second, password)); got != 1 {
+			t.Errorf("%s, sign_in 30 seconds before the end: waits %d minutes, want 1", handle, got)
+		}
+		err := signIn(credential.RefusalWindow+time.Second, password)
+		switch handle {
+		case "olivier":
+			if err != nil {
+				t.Errorf("sign_in once the refusals that checked a password are old: %v", err)
+			}
+		default:
+			if !errors.Is(err, credential.ErrWrongPassword) {
+				t.Errorf("sign_in as nobody once the refusals are old: err = %v, want the refusal of a wrong password", err)
+			}
+		}
+	}
+}
+
+// TestSignInStrangerCannotLockOut checks that an address that keeps guessing
+// makes itself wait, not the person everywhere: the sign-ins refused during
+// its wait check no password, and do not count.
+func TestSignInStrangerCannotLockOut(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	f.active(t, "olivier", true)
+	stranger := visitor
+	stranger.Address = "203.0.113.7"
+	for i := range credential.MaxHandleRefusals + credential.MaxRefusals {
+		want := operation.ErrTooMany
+		if i < credential.MaxRefusals {
+			want = operation.ErrForbidden
+		}
+		if _, err := operation.Do(ctx, f.r, SignIn, stranger, SignInInput{Handle: "olivier", Password: "wrong"}); !errors.Is(err, want) {
+			t.Fatalf("guess %d: err = %v, want %v", i+1, err, want)
+		}
+	}
+	person := visitor
+	person.Address = "192.0.2.4"
+	if _, err := operation.Do(ctx, f.r, SignIn, person, SignInInput{Handle: "olivier", Password: password}); err != nil {
+		t.Errorf("sign_in from another address while a stranger guesses: %v", err)
+	}
+}
+
 // TestSignInLimitAfterNewPassword checks that a new password, from a link
 // or changed, lets its person sign in at once: the refusals before it were
 // for another password. Those after it count as before.
