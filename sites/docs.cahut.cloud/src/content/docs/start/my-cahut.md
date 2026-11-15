@@ -31,7 +31,7 @@ Other AI clients connect with the address of My Cahut, `https://my.cahut.cloud/m
 
 - **Claude Code**: `claude mcp add --transport http cahut https://my.cahut.cloud/mcp`, or [the Cahut plugin](/connect/claude-plugin/) with the domain `my.cahut.cloud`.
 - **Mistral Vibe**, formerly Le Chat: a new custom connector with that address, under Context, Connectors, on every plan, Free included.
-- **ChatGPT**: a custom MCP server with that address and OAuth, under Plugins, Add, on a Business, Enterprise or Edu plan. ChatGPT Free, Plus and Pro cannot publish to My Cahut: connect Claude or Mistral Vibe instead.
+- **ChatGPT**: a custom MCP server with that address and OAuth, under Plugins, Add, on a Business, Enterprise or Edu plan. ChatGPT Free, Go, Plus and Pro cannot publish to My Cahut: connect Claude or Mistral Vibe instead.
 
 ## What My Cahut holds
 
