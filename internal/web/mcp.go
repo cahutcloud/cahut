@@ -20,6 +20,7 @@ import (
 	"cahut.cloud/internal/oauth"
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/settings"
+	"cahut.cloud/internal/skill"
 	"cahut.cloud/internal/version"
 )
 
@@ -83,39 +84,87 @@ const (
 	BigRequestWait = time.Minute
 )
 
+// mcpKey names an MCP server of a Cahut: a set of tools, those of a member
+// or of an administrator, who may change things or only read, in a Cahut
+// that is individual or not, and the revision of the catalog of skills
+// that the description of find_skills carries.
+type mcpKey struct {
+	individual, admin, readOnly bool
+	revision                    int64
+}
+
+// mcpServers keeps the MCP servers of a Cahut, each made when a session or
+// a request first needs it. The tools of a session follow the role its
+// person had, the kind the Cahut had and its catalog of skills when it
+// began; those of a request without a session, the role, the kind and the
+// catalog of the moment. Should one change, the registry still checks
+// every call. See docs/adr/0064-the-skills-of-a-cahut.md.
+type mcpServers struct {
+	mu     sync.Mutex
+	latest int64 // the latest revision of the catalog
+	m      map[mcpKey]*mcp.Server
+	// make returns the server of k, and an error when it could not read
+	// the catalog: that server, without it, serves the request and is not
+	// kept.
+	make func(ctx context.Context, k mcpKey) (*mcp.Server, error)
+}
+
+// get returns the server of k. A new revision of the catalog forgets the
+// servers of the others, whose sessions keep theirs; a request that read
+// the revision before a write is served by the latest.
+func (ss *mcpServers) get(ctx context.Context, k mcpKey) *mcp.Server {
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
+	switch {
+	case k.revision > ss.latest:
+		clear(ss.m)
+		ss.latest = k.revision
+	case k.revision < ss.latest:
+		k.revision = ss.latest
+	}
+	if srv := ss.m[k]; srv != nil {
+		return srv
+	}
+	srv, err := ss.make(ctx, k)
+	if err != nil {
+		return srv
+	}
+	ss.m[k] = srv
+	return srv
+}
+
+// newMCPServers returns the servers of the Cahut c, none made yet.
+func (s *Server) newMCPServers(c *cahut.Cahut) *mcpServers {
+	return &mcpServers{m: map[mcpKey]*mcp.Server{}, make: func(ctx context.Context, k mcpKey) (*mcp.Server, error) {
+		// The request may end while it reads: the server it makes serves
+		// others.
+		catalog, _, err := skill.Catalog(context.WithoutCancel(ctx), c.DB.Read, skill.CatalogBytes)
+		if err != nil {
+			s.log.Error("read the catalog of skills", "cahut", c.Domain, "error", err)
+		}
+		return s.mcpServer(c, k, catalog), err
+	}}
+}
+
 // mcpHandler returns the MCP endpoint (Streamable HTTP) of the Cahut c, which
 // asks for a personal token of c. It offers an AI the operations of c that
-// its person may call, as tools.
-func (s *Server) mcpHandler(c *cahut.Cahut) http.Handler {
-	// One server for each set of tools: those of a member or of an
-	// administrator, who may change things or only read, in a Cahut that is
-	// individual or not. Each is made when a session first needs it. The
-	// tools of a session follow the role its person had and the kind the
-	// Cahut had when it began, and those of a request without a session,
-	// the role and the kind of the moment. Should either change, the
-	// registry still checks every call.
-	var mu sync.Mutex
-	servers := map[[3]bool]*mcp.Server{}
-	serverFor := func(individual, admin, readOnly bool) *mcp.Server {
-		mu.Lock()
-		defer mu.Unlock()
-		k := [3]bool{individual, admin, readOnly}
-		if servers[k] == nil {
-			servers[k] = s.mcpServer(c, individual, admin, readOnly)
-		}
-		return servers[k]
-	}
+// its person may call, as tools, from the servers of c.
+func (s *Server) mcpHandler(c *cahut.Cahut, servers *mcpServers) http.Handler {
 	server := func(r *http.Request) *mcp.Server {
-		individual, err := settings.IsIndividual(r.Context(), c.DB.Read)
-		if err != nil {
-			individual = true // the narrower set of tools
+		k := mcpKey{readOnly: true}
+		var err error
+		if k.individual, err = settings.IsIndividual(r.Context(), c.DB.Read); err != nil {
+			k.individual = true // the narrower set of tools
+		}
+		if k.revision, err = skill.Revision(r.Context(), c.DB.Read); err != nil {
+			k.revision = 0 // the latest that the Cahut served
 		}
 		if info := auth.TokenInfoFromContext(r.Context()); info != nil {
 			if owner, ok := info.Extra["owner"].(account.Owner); ok {
-				return serverFor(individual, owner.Admin, owner.ReadOnly)
+				k.admin, k.readOnly = owner.Admin, owner.ReadOnly
 			}
 		}
-		return serverFor(individual, false, true)
+		return servers.get(r.Context(), k)
 	}
 	handler := mcp.NewStreamableHTTPHandler(server,
 		&mcp.StreamableHTTPOptions{
@@ -214,19 +263,23 @@ func sessionKey(c *cahut.Cahut, r *http.Request) string {
 
 // mcpServer returns an MCP server that offers, as tools, the operations of c
 // for the AIs of a person who administers c or not, when they may change
-// things or only read, in a Cahut that is individual or not.
-func (s *Server) mcpServer(c *cahut.Cahut, individual, admin, readOnly bool) *mcp.Server {
+// things or only read, in a Cahut that is individual or not. The
+// description of find_skills carries catalog, when there is one.
+func (s *Server) mcpServer(c *cahut.Cahut, k mcpKey, catalog string) *mcp.Server {
 	base := s.cfg.BaseURL(c.Domain)
 	srv := mcp.NewServer(&mcp.Implementation{Name: "cahut", Title: "Cahut", Version: version.Get().Version,
 		WebsiteURL: base, Icons: mcpIcons(base)},
 		&mcp.ServerOptions{Instructions: instructions})
 	for _, info := range c.Registry.Ops() {
-		if !info.ForAIsIn(individual, admin, readOnly) {
+		if !info.ForAIsIn(k.individual, k.admin, k.readOnly) {
 			continue
 		}
 		tool, err := toolFor(info)
 		if err != nil {
 			panic(err) // a type the schema library cannot describe: a programming error
+		}
+		if info.Name == skill.FindSkills.Name && catalog != "" {
+			tool.Description += "\n" + catalog
 		}
 		srv.AddTool(tool, s.callTool(c, info.Name))
 	}

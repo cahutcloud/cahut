@@ -168,6 +168,9 @@ type site struct {
 	id    int64 // of the Cahut, which stays when its domain changes
 	cahut *cahut.Cahut
 	mcp   http.Handler
+	// servers are the MCP servers that mcp serves, one for each set of
+	// tools and the latest catalog of skills.
+	servers *mcpServers
 }
 
 // New returns a web server for the Cahuts of srv.
@@ -380,7 +383,8 @@ func (s *Server) site(ctx context.Context, domain string) (*site, error) {
 	if err != nil {
 		return nil, err
 	}
-	st = &site{id: id, cahut: c, mcp: s.mcpHandler(c)}
+	servers := s.newMCPServers(c)
+	st = &site{id: id, cahut: c, mcp: s.mcpHandler(c, servers), servers: servers}
 	s.sites[domain] = st
 	return st, nil
 }
