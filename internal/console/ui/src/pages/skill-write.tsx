@@ -7,7 +7,7 @@ import { FileArchive, FilePlus, FileUp, X } from "lucide-preact";
 import { useId, useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Skill, SkillFileInfo } from "../api.gen";
-import { bytes, Failure, PageHead } from "../components";
+import { bytes, Failure, Notice, PageHead } from "../components";
 import { useConsole } from "../context";
 import { words } from "../i18n";
 import { useLoad } from "../load";
@@ -51,6 +51,7 @@ const t = words({
 		chooseZip: "Choose a zip",
 		noZip: "No zip chosen yet.",
 		importButton: "Import",
+		allSkills: "All skills",
 	},
 	fr: {
 		scopes: { cahut: "Skills de cette Cahut", personal: "Mes skills" },
@@ -90,6 +91,7 @@ const t = words({
 		chooseZip: "Choisir un zip",
 		noZip: "Aucun zip choisi pour l'instant.",
 		importButton: "Importer",
+		allSkills: "Tous les skills",
 	},
 });
 
@@ -146,8 +148,42 @@ interface Added {
 /** The last id given to a file added on the page. */
 let lastId = 0;
 
+/**
+ * Says why the person may not write in scope, or nothing: an individual
+ * Cahut has no skills of the Cahut, and only its administrators write them.
+ * The API judges all the same.
+ */
+function barred(api: { individual: boolean; isAdmin: boolean }, scope: string): string | undefined {
+	if (scope !== "cahut") return undefined;
+	if (api.individual) return say("skill_scope_individual", null);
+	if (!api.isAdmin) return say("skill_admins_only", null);
+	return undefined;
+}
+
+/** The head of a page that writes in scope, with why the person may not, in place of its form. */
+function Barred(props: { scope: string; title: string; why: string }) {
+	return (
+		<>
+			<PageHead label={t.scopes[props.scope] ?? props.scope} title={props.title} />
+			<Notice>{props.why}</Notice>
+			<p class="c-small">
+				<Link class="c-link" href="/skills">
+					{t.allSkills}
+				</Link>
+			</p>
+		</>
+	);
+}
+
 /** Writes a new skill in scope, or a new version of the skill name. */
 export function SkillWritePage({ scope, name }: { scope: string; name?: string }) {
+	const api = useConsole();
+	const why = barred(api, scope);
+	if (why) return <Barred scope={scope} title={name ? t.editTitle(name) : t.newTitle} why={why} />;
+	return <Write scope={scope} name={name} />;
+}
+
+function Write({ scope, name }: { scope: string; name?: string }) {
 	const api = useConsole();
 	const ref = name && `${scope}:${name}`;
 	const { data, error } = useLoad<Skill | string[]>(
@@ -183,9 +219,22 @@ function Editor(props: { scope: string; name?: string; skill?: Skill; taken?: st
 	const submit = async (e: Event) => {
 		e.preventDefault();
 		setFailure("");
+		// A new skill takes its name from its header: without one that the
+		// page reads, the header is what to fix.
+		if (!props.name && header.name === undefined) {
+			setFailure(say("skill_header_invalid", { problem: "" }) ?? "");
+			return;
+		}
 		const skill = props.name ?? header.name ?? "";
 		if (!props.name && props.taken?.includes(skill)) {
 			setFailure(t.nameTaken(skill));
+			return;
+		}
+		// Files go as base64, a third larger: a call that cannot pass is
+		// stopped before the browser reads them.
+		const estimate = new TextEncoder().encode(text).length + added.reduce((n, a) => n + Math.ceil(a.file.size / 3) * 4 + a.path.length + 64, 0);
+		if (estimate > maxCall) {
+			setFailure(t.tooLargeForPage);
 			return;
 		}
 		setBusy(true);
@@ -325,6 +374,13 @@ function Editor(props: { scope: string; name?: string; skill?: Skill; taken?: st
 /** Imports the zip of a skill into scope. */
 export function SkillImportPage({ scope }: { scope: string }) {
 	const api = useConsole();
+	const why = barred(api, scope);
+	if (why) return <Barred scope={scope} title={t.importTitle} why={why} />;
+	return <Import scope={scope} />;
+}
+
+function Import({ scope }: { scope: string }) {
+	const api = useConsole();
 	const id = useId();
 	const [zip, setZip] = useState<File | null>(null);
 	const [busy, setBusy] = useState(false);
@@ -333,6 +389,10 @@ export function SkillImportPage({ scope }: { scope: string }) {
 		e.preventDefault();
 		if (!zip) return;
 		setFailure("");
+		if (Math.ceil(zip.size / 3) * 4 > maxImport) {
+			setFailure(say("skill_too_large", null) ?? "");
+			return;
+		}
 		setBusy(true);
 		try {
 			const input = { scope, zip: await base64Of(zip) };
