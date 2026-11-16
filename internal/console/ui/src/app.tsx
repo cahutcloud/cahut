@@ -23,6 +23,7 @@ import { RoomPage, RoomsPage } from "./pages/rooms";
 import { SearchPage } from "./pages/search";
 import { Setup } from "./pages/setup";
 import { Settings } from "./pages/settings";
+import { SkillsPage } from "./pages/skills";
 import { SignIn } from "./pages/sign-in";
 import { Start } from "./pages/start";
 import { Suspended } from "./pages/suspended";
@@ -341,6 +342,8 @@ function Page({ path, onSignOut, onDeleted }: { path: string; onSignOut: () => v
 			return <MailPage />;
 		case "/moderation":
 			return <Moderation />;
+		case "/skills":
+			return <SkillsPage />;
 		case "/access":
 			return <Access />;
 		case "/account":

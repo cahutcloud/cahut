@@ -33,6 +33,7 @@ const t = words({
 		kindAndLimits: "Kind and limits",
 		email: "E-mail",
 		moderation: "Moderation",
+		skills: "Skills",
 		access: "AIs and access",
 		account: "Account",
 		yourAccount: "Your account",
@@ -54,6 +55,7 @@ const t = words({
 		kindAndLimits: "Type et limites",
 		email: "E-mail",
 		moderation: "Modération",
+		skills: "Skills",
 		access: "IA et accès",
 		account: "Compte",
 		yourAccount: "Votre compte",
@@ -135,6 +137,7 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 				{isAdmin && nav("/settings", <Pictogram name="limits" />, t.kindAndLimits)}
 				{isAdmin && nav("/mail", <Pictogram name="email" />, t.email)}
 				{isAdmin && nav("/moderation", <Pictogram name="moderation" />, t.moderation, true, reports)}
+				{nav("/skills", <Pictogram name="skills" />, t.skills, false)}
 				{nav("/access", <Pictogram name="aiAccess" />, t.access)}
 				<div class="sidebar-foot">
 					{nav("/account", <Pictogram name="account" />, t.account)}
