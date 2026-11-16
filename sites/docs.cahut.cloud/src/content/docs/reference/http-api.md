@@ -208,6 +208,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/open_invitation` | Anyone, to sign in | no |
 | `POST /console/api/open_share_link` | Anyone, to sign in | no |
 | `POST /console/api/preview_reported_window` | Administrators of the Cahut | yes |
+| `POST /console/api/preview_skill_catalog` | Administrators of the Cahut | yes |
 | `POST /console/api/preview_windows` | Any person | yes |
 | `POST /console/api/publish_window` | Any person | yes |
 | `POST /console/api/purge_window` | Any person | yes |

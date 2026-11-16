@@ -165,7 +165,7 @@ func TestPublishOverMCP(t *testing.T) {
 	for _, tool := range tools.Tools {
 		names = append(names, tool.Name)
 	}
-	if want := []string{"add_room_member", "change_window_data", "create_room", "create_share_link", "delete_room", "get_account", "get_cahut", "get_knock", "get_room", "get_window",
+	if want := []string{"add_room_member", "change_window_data", "create_room", "create_share_link", "delete_room", "find_skills", "get_account", "get_cahut", "get_knock", "get_room", "get_skill", "get_window",
 		"invite_to_window", "list_invitations", "list_knocks", "list_logbook", "list_rooms", "list_users", "list_windows", "publish_window",
 		"purge_window", "query_window_data", "remove_room_member", "rename_window", "restore_window", "retitle_window", "revoke_invitation", "revoke_share_link", "rollback_window",
 		"rollback_window_data", "set_ai_reach", "set_room_home",
@@ -388,8 +388,8 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 			t.Errorf("%s is marked open world: %v", tool.Name, open)
 		}
 	}
-	want := []string{"add_room_member", "change_window_data", "create_room", "create_share_link", "create_user", "delete_room", "delete_user", "disable_user", "enable_user", "get_account", "get_cahut",
-		"get_knock", "get_room", "get_window", "invite_to_window", "list_invitations", "list_knocks", "list_logbook", "list_rooms",
+	want := []string{"add_room_member", "change_window_data", "create_room", "create_share_link", "create_user", "delete_room", "delete_user", "disable_user", "enable_user", "find_skills", "get_account", "get_cahut",
+		"get_knock", "get_room", "get_skill", "get_window", "invite_to_window", "list_invitations", "list_knocks", "list_logbook", "list_rooms",
 		"list_users", "list_windows", "publish_window", "purge_window", "query_window_data", "remove_room_member", "rename_window", "restore_window", "retitle_window", "revoke_invitation", "revoke_share_link",
 		"rollback_window", "rollback_window_data", "set_ai_reach", "set_room_home", "set_room_member_role", "set_user_email",
 		"set_user_role", "set_window_access", "trash_window", "update_room", "update_window"}
@@ -787,13 +787,34 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 
 // TestInstructionsStartWithWhatToPublish checks that the first 512
 // characters of the instructions, all that some clients keep, tell an AI
-// how to publish (ADR 29).
+// how to publish (ADR 29), whether the Cahut has skills or not.
 func TestInstructionsStartWithWhatToPublish(t *testing.T) {
-	head := instructions[:512]
-	for _, want := range []string{"publish_window", "relative paths", "declaration", "address", "Knock"} {
-		if !strings.Contains(head, want) {
-			t.Errorf("the first 512 characters of the instructions do not say %q: %q", want, head)
+	for _, skills := range []bool{false, true} {
+		head := instructionsFor(skills)[:512]
+		for _, want := range []string{"publish_window", "relative paths", "declaration", "address", "Knock"} {
+			if !strings.Contains(head, want) {
+				t.Errorf("the first 512 characters of the instructions do not say %q: %q", want, head)
+			}
 		}
+	}
+}
+
+// TestInstructionsPointToSkills checks that the instructions of a Cahut
+// with skills send an AI to find_skills before a task, within the 2,048
+// characters that claude.ai keeps, at the start of their second paragraph
+// (ADR 64). Those of a Cahut without, individual or not, speak of the
+// person's own skills, and send no AI to the Cahut before each task.
+func TestInstructionsPointToSkills(t *testing.T) {
+	with := instructionsFor(true)
+	_, second, _ := strings.Cut(with, "\n\n")
+	if !strings.HasPrefix(second, "Cahut also keeps the skills of the user's team") || !strings.Contains(with[:2048], "call find_skills") {
+		t.Errorf("the second paragraph of the instructions does not open with the skills: %.200q", second)
+	}
+	without := instructionsFor(false)
+	_, second, _ = strings.Cut(without, "\n\n")
+	if !strings.HasPrefix(second, "Cahut also keeps the user's own skills: when the user names one, read it with get_skill") ||
+		strings.Contains(without, "find_skills") || strings.Contains(without, "skills of the user's team") {
+		t.Errorf("the second paragraph of the instructions without skills: %.200q", second)
 	}
 }
 

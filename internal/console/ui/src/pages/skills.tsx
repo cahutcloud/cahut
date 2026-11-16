@@ -4,12 +4,12 @@
 // person, which no one else reads; and the skill of the plugin, which comes
 // with Cahut. An individual Cahut has no skills of the Cahut. See
 // docs/adr/0064-the-skills-of-a-cahut.md.
-import { Download, FileUp, PenLine } from "lucide-preact";
+import { ChevronRight, Download, Eye, FileUp, PenLine } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import type { Summary } from "../api.gen";
 import { agoInText, CopyField, Failure, PageHead } from "../components";
 import { useConsole } from "../context";
-import { words } from "../i18n";
+import { locale, plural, words } from "../i18n";
 import { useLoad } from "../load";
 import { Link } from "../router";
 
@@ -40,6 +40,11 @@ const t = words({
 		pasteLine: "Before each task, call the find_skills tool of Cahut to see whether my team has a skill that applies to it, then follow it.",
 		pasteLineIndividual: "Before each task, call the find_skills tool of Cahut to see whether one of my skills applies to it, then follow it.",
 		theLine: "the line",
+		aisSee: "What AIs see",
+		shown: (n: number, of: number) => `${n} of ${plural(of, "skill", "skills")}`,
+		aisSeeHelp: (bytes: string, budget: string) =>
+			`Every AI connected to this Cahut receives these lines in the description of find_skills, from the start of each conversation. They take ${bytes} of ${budget} bytes.`,
+		left: (names: string) => `Left out, for lack of room: ${names}. AIs still find them with find_skills.`,
 	},
 	fr: {
 		label: "Cette Cahut",
@@ -68,6 +73,11 @@ const t = words({
 		pasteLine: "Avant chaque tâche, appelle l'outil find_skills de Cahut pour voir si mon équipe a un skill qui s'y applique, puis suis-le.",
 		pasteLineIndividual: "Avant chaque tâche, appelle l'outil find_skills de Cahut pour voir si l'un de mes skills s'y applique, puis suis-le.",
 		theLine: "la ligne",
+		aisSee: "Ce que voient les IA",
+		shown: (n, of) => `${n} sur ${plural(of, "skill", "skills")}`,
+		aisSeeHelp: (bytes, budget) =>
+			`Chaque IA branchée sur cette Cahut reçoit ces lignes dans la description de find_skills, dès le début de chaque conversation. Elles prennent ${bytes} octets sur ${budget}.`,
+		left: (names) => `Laissés de côté, faute de place : ${names}. Les IA les trouvent quand même avec find_skills.`,
 	},
 });
 
@@ -101,16 +111,24 @@ export function SkillsPage() {
 					writes={api.isAdmin}
 					skills={of("cahut")}
 					none={api.isAdmin ? t.noneOfTheCahut : t.noneOfTheCahutMember}
-				/>
+				>
+					{api.isAdmin && of("cahut").length > 0 && <WhatAIsSee />}
+				</Part>
 			)}
 			<Part title={t.mine} help={t.mineHelp} scope="personal" writes skills={of("personal")} none={t.noneOfMine} />
 			{of("builtin").length > 0 && (
-				<Part title={t.builtin} help={t.builtinHelp} scope="builtin" skills={of("builtin")}>
-					<a class="c-btn c-btn--secondary c-btn--sm" href="/-/cahut-skill.zip" download>
-						<Download class="i" size={14} aria-hidden="true" />
-						{t.downloadZip}
-					</a>
-				</Part>
+				<Part
+					title={t.builtin}
+					help={t.builtinHelp}
+					scope="builtin"
+					skills={of("builtin")}
+					actions={
+						<a class="c-btn c-btn--secondary c-btn--sm" href="/-/cahut-skill.zip" download>
+							<Download class="i" size={14} aria-hidden="true" />
+							{t.downloadZip}
+						</a>
+					}
+				/>
 			)}
 			<section class="section c-card panel">
 				<p class="c-small">{t.nameIt(example)}</p>
@@ -129,6 +147,9 @@ function Part(props: {
 	writes?: boolean;
 	skills: Summary[];
 	none?: string;
+	/** More buttons, beside those to write and import. */
+	actions?: ComponentChildren;
+	/** What comes after its skills. */
 	children?: ComponentChildren;
 }) {
 	return (
@@ -151,7 +172,7 @@ function Part(props: {
 							</Link>
 						</>
 					)}
-					{props.children}
+					{props.actions}
 				</div>
 			</div>
 			{props.skills.length === 0 ? (
@@ -181,6 +202,30 @@ function Part(props: {
 					))}
 				</ul>
 			)}
+			{props.children}
 		</section>
+	);
+}
+
+/** The catalog of the skills of the Cahut, as AIs receive it in the description of find_skills, for its administrators. */
+function WhatAIsSee() {
+	const api = useConsole();
+	const { data, error } = useLoad(() => api.cahut("preview_skill_catalog", {}));
+	if (error) return <Failure message={error} />;
+	if (!data) return null;
+	const total = data.catalog.split("\n- ").length - 1 + data.left.length;
+	return (
+		<details class="ais-see">
+			<summary>
+				<ChevronRight class="i ais-see__chevron" size={14} aria-hidden="true" />
+				<Eye class="i" size={14} aria-hidden="true" />
+				{t.aisSee} · {t.shown(total - data.left.length, total)}
+			</summary>
+			<div class="ais-see__body">
+				<p class="c-small c-muted">{t.aisSeeHelp(data.bytes.toLocaleString(locale), data.budget.toLocaleString(locale))}</p>
+				<pre class="skill-text">{data.catalog}</pre>
+				{data.left.length > 0 && <p class="c-small c-muted">{t.left(data.left.join(", "))}</p>}
+			</div>
+		</details>
 	);
 }

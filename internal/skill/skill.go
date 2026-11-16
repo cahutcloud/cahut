@@ -1,6 +1,7 @@
 package skill
 
 import (
+	"bytes"
 	"cmp"
 	"context"
 	"encoding/base64"
@@ -36,6 +37,7 @@ func Register(r *operation.Registry, builtin fs.FS) {
 	operation.Register(r, ExportSkill)
 	operation.Register(r, RollbackSkill)
 	operation.Register(r, DeleteSkill)
+	operation.Register(r, PreviewSkillCatalog)
 }
 
 // The note that get_skill gives with each skill: the rule of priority.
@@ -152,11 +154,11 @@ type Deleted struct {
 var FindSkills = &operation.Op[FindInput, Found]{
 	Name:  "find_skills",
 	Title: "Find skills",
-	Description: "List the skills that the user reads: those of this Cahut, their own, and the skill of the plugin, " +
-		"each with its name, its scope, its description and its version. With query, find those whose name, description or text hold some words.",
-	ReadOnly:   true,
-	PeopleOnly: true,
-	Run:        find,
+	Description: "The skills of this Cahut: how the user's team wants some tasks done, whatever the task, such as an e-mail, a report or a deck. " +
+		"Before a task, read with get_skill the skill whose description fits it, and follow it. " +
+		"Without query, list every skill that the user reads, their own included; with query, those whose name, description or text hold some words.",
+	ReadOnly: true,
+	Run:      find,
 }
 
 // GetSkill gives a skill, or one of its files.
@@ -165,9 +167,8 @@ var GetSkill = &operation.Op[GetInput, Skill]{
 	Title: "Read a skill",
 	Description: "Read a skill whole: its SKILL.md, its version, who wrote it, and the list of its files. " +
 		"With file, read that file.",
-	ReadOnly:   true,
-	PeopleOnly: true,
-	Run:        get,
+	ReadOnly: true,
+	Run:      get,
 }
 
 // WriteSkill writes a skill, as a new version.
@@ -367,7 +368,10 @@ func resolve(ctx context.Context, c *operation.Call, ref string) (target, error)
 	switch Scope(scope) {
 	case "", ScopeCahut, ScopePersonal, ScopeBuiltin:
 	default:
-		return target{}, operation.Invalidf("%q: give the name of a skill, alone or after cahut:, personal: or builtin:", ref)
+		// The Logbook, which administrators read, keeps neither the name nor
+		// the prefix that an AI tried.
+		return target{}, operation.LogAs(operation.Invalidf("%q: give the name of a skill, alone or after cahut:, personal: or builtin:", ref),
+			"invalid input: an unknown scope")
 	}
 	individual, err := settings.IsIndividual(ctx, c.Tx)
 	if err != nil {
@@ -401,7 +405,10 @@ func resolve(ctx context.Context, c *operation.Call, ref string) (target, error)
 	case 1:
 		return found[0], nil
 	}
-	return target{}, operation.Invalidf("%s names a skill of this Cahut and one of your own: give cahut:%s or personal:%s", name, name, name)
+	// The Logbook does not tell administrators that a person has a skill of
+	// the name of one of the Cahut.
+	return target{}, operation.LogAs(operation.Invalidf("%s names a skill of this Cahut and one of your own: give cahut:%s or personal:%s", name, name, name),
+		"invalid input: a name in two scopes")
 }
 
 // writable returns an error unless the person who acts may change the skill
@@ -707,23 +714,33 @@ func get(ctx context.Context, c *operation.Call, in GetInput) (Skill, error) {
 		return Skill{}, err
 	}
 	if !ok {
-		return Skill{}, operation.NotFoundf("this skill has no file %q: get_skill without file lists its files", in.File)
+		return Skill{}, private(t.scope(), operation.NotFoundf("this skill has no file %q: get_skill without file lists its files", in.File))
 	}
 	s := Skill{Skill: t.name(), File: f.Path, Content: string(f.Content), Encoding: "utf-8"}
-	if !utf8.Valid(f.Content) || !textual(f.Type) {
+	if !textual(f) {
 		s.Content, s.Encoding = base64.StdEncoding.EncodeToString(f.Content), "base64"
 	}
 	return s, nil
 }
 
-// textual reports whether a file of the media type t reads as text.
-func textual(t string) bool {
-	t, _, _ = strings.Cut(t, ";")
-	switch t {
-	case "application/json", "application/javascript", "application/xml", "image/svg+xml":
+// textual reports whether the file f reads as text: its bytes are UTF-8,
+// without a NUL byte, and its type is not that of an image, but SVG, of a
+// sound, a video or a font. Its bytes decide, since the media types that
+// each server knows differ: .yaml and .py have none on some.
+func textual(f File) bool {
+	if !utf8.Valid(f.Content) || bytes.IndexByte(f.Content, 0) >= 0 {
+		return false
+	}
+	t, _, _ := strings.Cut(f.Type, ";")
+	if t == "image/svg+xml" {
 		return true
 	}
-	return strings.HasPrefix(t, "text/")
+	family, _, _ := strings.Cut(t, "/")
+	switch family {
+	case "image", "audio", "video", "font":
+		return false
+	}
+	return true
 }
 
 func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {

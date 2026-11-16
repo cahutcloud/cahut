@@ -564,15 +564,13 @@ func TestTheLogbookKeepsNoQuery(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
 	f.write(t, f.camille, WriteInput{Scope: ScopePersonal, Skill: "plan-de-licenciement", Text: textOf("plan-de-licenciement", "Le plan.", "")})
-	r, find := asAI(t, f, FindSkills)
-	if _, err := operation.Do(ctx, r, find, ai(f.camille), FindInput{Query: "licenciement"}); err != nil {
+	if _, err := operation.Do(ctx, f.r, FindSkills, ai(f.camille), FindInput{Query: "licenciement"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := operation.Do(ctx, r, find, ai(f.camille), FindInput{Query: "licenciement \"("}); err != nil {
+	if _, err := operation.Do(ctx, f.r, FindSkills, ai(f.camille), FindInput{Query: "licenciement \"("}); err != nil {
 		t.Fatal(err)
 	}
-	r, get := asAI(t, f, GetSkill)
-	if _, err := operation.Do(ctx, r, get, ai(f.bruno), GetInput{Skill: "cahut", File: "references/formats.md"}); err != nil {
+	if _, err := operation.Do(ctx, f.r, GetSkill, ai(f.bruno), GetInput{Skill: "cahut", File: "references/formats.md"}); err != nil {
 		t.Fatal(err)
 	}
 	entries, err := logbook.List(ctx, f.db.Read, 50)
@@ -582,12 +580,12 @@ func TestTheLogbookKeepsNoQuery(t *testing.T) {
 	var searches, reads int
 	for _, e := range entries {
 		switch e.Operation {
-		case "find_skills_by_ai":
+		case "find_skills":
 			searches++
 			if e.Detail != "a search, 1 found" {
 				t.Errorf("the entry of a search says %q, want a search, 1 found", e.Detail)
 			}
-		case "get_skill_by_ai":
+		case "get_skill":
 			reads++
 			if e.Target != "cahut" || e.Detail != "builtin, references/formats.md" {
 				t.Errorf("the entry of a read = %q, %q", e.Target, e.Detail)
@@ -893,8 +891,7 @@ func TestTheLogbookKeepsNoPersonalName(t *testing.T) {
 	if _, err := operation.Do(ctx, f.r, RollbackSkill, f.camille, RollbackInput{Skill: "licenciement-bruno"}); err != nil {
 		t.Fatal(err)
 	}
-	r, get := asAI(t, f, GetSkill)
-	if _, err := operation.Do(ctx, r, get, ai(f.camille), GetInput{Skill: "licenciement-bruno"}); err != nil {
+	if _, err := operation.Do(ctx, f.r, GetSkill, ai(f.camille), GetInput{Skill: "licenciement-bruno"}); err != nil {
 		t.Fatal(err)
 	}
 	r, export := asAI(t, f, ExportSkill)
@@ -1034,5 +1031,70 @@ func TestWritingBackWhatGetSkillGivesChangesNothing(t *testing.T) {
 	s := f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "relance-facture", Text: g.Text})
 	if s.Number != 2 || s.Previous != 1 || s.Version != g.Version {
 		t.Errorf("write_skill of its own text = number %d, previous %d, version %s; want 2, 1 and %s", s.Number, s.Previous, s.Version, g.Version)
+	}
+}
+
+// AIs read a file of text as text, whatever its extension, which the
+// media types of each server know or not, and anything else in base64.
+func TestGetSkillGivesTextAsText(t *testing.T) {
+	f := setup(t)
+	png := []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR")
+	files := []FileInput{
+		{Path: "data/rates.yaml", Content: "rate: 0.2\nlabel: é\n"},
+		{Path: "data/clients.csv", Content: "name;city\nBertin;Lyon\n"},
+		{Path: "tools/check.py", Content: "print('ok')\n"},
+		{Path: "assets/logo.png", Content: base64.StdEncoding.EncodeToString(png), Encoding: "base64"},
+		{Path: "assets/dot.png", Content: "GIF", Encoding: "utf-8"},
+		{Path: "data/nul.bin", Content: base64.StdEncoding.EncodeToString([]byte("a\x00b")), Encoding: "base64"},
+	}
+	f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "relance-facture", Text: relance, Files: files})
+	for p, want := range map[string]string{
+		"data/rates.yaml": "utf-8", "data/clients.csv": "utf-8", "tools/check.py": "utf-8",
+		"assets/logo.png": "base64", "assets/dot.png": "base64", "data/nul.bin": "base64",
+	} {
+		got, err := operation.Do(context.Background(), f.r, GetSkill, ai(f.camille), GetInput{Skill: "relance-facture", File: p})
+		if err != nil {
+			t.Fatalf("get_skill %s: %v", p, err)
+		}
+		if got.Encoding != want {
+			t.Errorf("%s comes as %s, want %s", p, got.Encoding, want)
+		}
+	}
+}
+
+// The refusals that an AI meets when it reads a skill leave nothing in the
+// Logbook that would tell administrators of a personal skill: that it
+// shadows a skill of the Cahut, the prefix that the AI tried, or the path
+// of one of its files.
+func TestTheLogbookKeepsNoShadowedName(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "relance-facture", Text: relance})
+	f.write(t, f.camille, WriteInput{Scope: ScopePersonal, Skill: "relance-facture", Text: relance})
+	for _, in := range []GetInput{
+		{Skill: "relance-facture"},
+		{Skill: "mine:licenciement-bruno"},
+		{Skill: "personal:relance-facture", File: "licenciement-bruno.md"},
+	} {
+		if _, err := operation.Do(ctx, f.r, GetSkill, ai(f.camille), in); err == nil {
+			t.Fatalf("get_skill %+v passed", in)
+		}
+	}
+	entries, err := logbook.List(ctx, f.db.Read, 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	failed := 0
+	for _, e := range entries {
+		if e.Operation != "get_skill" {
+			continue
+		}
+		failed++
+		if s := strings.ToLower(e.Target + " " + e.Detail + " " + e.Error); strings.Contains(s, "relance") || strings.Contains(s, "licenciement") || strings.Contains(s, "mine") {
+			t.Errorf("the Logbook tells of a personal skill: %q %q %q", e.Target, e.Detail, e.Error)
+		}
+	}
+	if failed != 3 {
+		t.Errorf("%d failed reads in the Logbook, want 3", failed)
 	}
 }
