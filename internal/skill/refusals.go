@@ -31,3 +31,16 @@ var (
 		"{path} is under scripts/, and a skill of a Cahut holds no scripts: some AI clients run them on the computer of each person, "+
 			"and a script would be code that someone changes from afar. Leave out scripts/, and say in SKILL.md what the AI should do instead")
 )
+
+// ZipProblem is the value of the refusal of a zip: what is wrong with it,
+// in English, which the console leaves out.
+type ZipProblem struct {
+	Problem string `json:"problem"`
+}
+
+var (
+	errZipInvalid = operation.NewRefusalOf[ZipProblem]("skill_zip_invalid", operation.ErrInvalid,
+		"the zip {problem}: give the zip of a skill, with its SKILL.md at its root or in a single folder, as AI clients export them")
+	errTooLarge = operation.NewRefusal("skill_too_large", operation.ErrInvalid,
+		"this skill is too large: a SKILL.md holds 64 KiB at most, each of its files 2 MiB, and a skill 100 files and 4 MiB in all")
+)
