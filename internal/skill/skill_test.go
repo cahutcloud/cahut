@@ -906,3 +906,46 @@ func TestTheLogbookKeepsNoPersonalName(t *testing.T) {
 		}
 	}
 }
+
+// What a person meets on the page that writes a skill in the console has a
+// code, which the console says in its language: a header that names
+// another skill, the path of a file, and two files that clash.
+func TestTheRefusalsOfAWriteHaveACode(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "relance-facture", Text: relance,
+		Files: []FileInput{{Path: "references/exemples.md", Content: "x"}}})
+	in := func(text string, files []FileInput, remove ...string) WriteInput {
+		return WriteInput{Scope: ScopeCahut, Skill: "relance-facture", Text: text, Files: files, Remove: remove}
+	}
+	file := func(paths ...string) []FileInput {
+		var files []FileInput
+		for _, p := range paths {
+			files = append(files, FileInput{Path: p, Content: "x"})
+		}
+		return files
+	}
+	for what, c := range map[string]struct {
+		in   WriteInput
+		code string
+	}{
+		"another name":         {in(textOf("relance-client", "Another.", ""), nil), "skill_name_differs"},
+		"an empty path":        {in("", file("")), "skill_path_invalid"},
+		"a parent":             {in("", file("../x.md")), "skill_path_invalid"},
+		"an absolute path":     {in("", file("/x.md")), "skill_path_invalid"},
+		"a hidden part":        {in("", file("references/.env")), "skill_path_invalid"},
+		"a backslash":          {in("", file(`references\x.md`)), "skill_path_invalid"},
+		"a long path":          {in("", file(strings.Repeat("a", 256))), "skill_path_invalid"},
+		"SKILL.md as a file":   {in("", file("SKILL.md")), "skill_path_invalid"},
+		"twice":                {in("", file("a.md", "a.md")), "skill_path_conflict"},
+		"twice in other case":  {in("", file("a.md", "A.md")), "skill_path_conflict"},
+		"written and removed":  {in("", file("references/exemples.md"), "references/exemples.md"), "skill_path_conflict"},
+		"a file and a folder":  {in("", file("references/exemples.md/x.md")), "skill_path_conflict"},
+		"scripts keeps a code": {in("", file("scripts/run.sh")), "skill_has_scripts"},
+	} {
+		_, err := operation.Do(ctx, f.r, WriteSkill, f.olivier, c.in)
+		if refusal(err) != c.code || !errors.Is(err, operation.ErrInvalid) {
+			t.Errorf("%s: err = %v, want the refusal %s", what, err, c.code)
+		}
+	}
+}

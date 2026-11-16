@@ -1845,6 +1845,10 @@ export interface SkillGetInput {
   file?: string;
 }
 
+export interface SkillPath {
+  path: string;
+}
+
 export interface Started {
   /** the domain of the Cahut */
   domain: string;
@@ -2552,10 +2556,16 @@ export interface Refusals {
   skill_has_scripts: ScriptPath;
   /** the header of SKILL.md {problem}: a SKILL.md opens with a line ---, then name and description on lines of their own, then a line ---, as Agent Skills have it */
   skill_header_invalid: HeaderProblem;
+  /** the name in the header of SKILL.md is not the name of this skill: keep its name in the header, or write a new skill under the other one */
+  skill_name_differs: null;
   /** the name of the skill is not valid: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, without a hyphen at either end or two in a row */
   skill_name_invalid: null;
   /** the name cahut is kept for the skill of the plugin for Claude, which every AI of this Cahut reads: give your skill another name */
   skill_name_reserved: null;
+  /** {path} clashes with another file of the skill: give each path once, whatever its case, never as both a file and a folder, and never as both written and removed */
+  skill_path_conflict: SkillPath;
+  /** {path} is not the path of a file of a skill: use a relative path of printable characters with / between folders, such as references/deck.md, of 255 bytes at most, with no part that starts with a dot, and not SKILL.md, which is the text of the skill */
+  skill_path_invalid: SkillPath;
   /** this Cahut is individual, and has no skills of the Cahut: its people share the Cahut, not their work. Write the skill among your own, with the scope personal */
   skill_scope_individual: null;
   /** this skill is too large: a SKILL.md holds 64 KiB at most, each of its files 2 MiB, and a skill 100 files and 4 MiB in all */

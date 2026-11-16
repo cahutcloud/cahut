@@ -501,7 +501,7 @@ func apply(ctx context.Context, c *operation.Call, ch change) (Skill, error) {
 		return Skill{}, err
 	}
 	if h.Name != ch.name {
-		return Skill{}, operation.Invalidf("the name in the header of SKILL.md is not the name of this skill: give the same name in both")
+		return Skill{}, errNameDiffers
 	}
 	if files, err = merge(files, ch.files, ch.remove); err != nil {
 		return Skill{}, err
@@ -625,9 +625,9 @@ func merge(held, added []File, remove []string) ([]File, error) {
 		key := strings.ToLower(f.Path)
 		switch {
 		case removed[key]:
-			return nil, operation.Invalidf("file %q is both written and removed", f.Path)
+			return nil, errPathConflict(pathOf(f.Path))
 		case seen[key]:
-			return nil, operation.Invalidf("file %q appears twice", f.Path)
+			return nil, errPathConflict(pathOf(f.Path))
 		}
 		seen[key] = true
 		byPath[key] = f
@@ -640,7 +640,7 @@ func merge(held, added []File, remove []string) ([]File, error) {
 	for _, f := range files {
 		for dir := path.Dir(f.Path); dir != "."; dir = path.Dir(dir) {
 			if _, ok := byPath[strings.ToLower(dir)]; ok {
-				return nil, operation.Invalidf("%q would be both a file and the folder of %q", dir, f.Path)
+				return nil, errPathConflict(pathOf(dir))
 			}
 		}
 	}

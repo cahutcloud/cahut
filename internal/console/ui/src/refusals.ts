@@ -125,9 +125,14 @@ const said = words<Sentences>({
 			`"${v.path}" is under scripts/, and a skill of a Cahut holds no scripts: some AIs would run them on the computer of each person. Leave out scripts/, and say in SKILL.md what to do instead.`,
 		skill_header_invalid: () =>
 			"The header of SKILL.md is not valid: it opens with a line ---, gives name and description, each on a line of its own, then closes with a line ---.",
+		skill_name_differs: "The name in the header of SKILL.md is not the name of this skill: keep its name, or write a new skill under the other one.",
 		skill_name_invalid:
 			"This cannot be the name of a skill: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, without a hyphen at either end or two in a row.",
 		skill_name_reserved: "The name cahut is kept for the skill of the plugin for Claude: give your skill another name.",
+		skill_path_conflict: (v) =>
+			`"${v.path}" clashes with another file of the skill: give each file once, whatever its case, and never a file where a folder goes.`,
+		skill_path_invalid: (v) =>
+			`"${v.path}" cannot be the path of a file of a skill: use a relative path such as references/deck.md, with / between folders, no part that starts with a dot, and not SKILL.md.`,
 		skill_scope_individual: "This Cahut is individual, and has no skills of the Cahut: write the skill among your own.",
 		skill_too_large: "This skill is too large: a SKILL.md holds 64 KiB at most, each of its files 2 MiB, and a skill 100 files and 4 MiB in all.",
 		skill_too_many: "There are 50 skills here already, the most there may be: delete one before you add another.",
@@ -243,9 +248,14 @@ const said = words<Sentences>({
 			`« ${v.path} » est sous scripts/, et un skill d'une Cahut ne contient pas de scripts : certaines IA les exécuteraient sur l'ordinateur de chaque personne. Retirez scripts/, et dites dans le SKILL.md quoi faire à la place.`,
 		skill_header_invalid: () =>
 			"L'en-tête du SKILL.md n'est pas valable : il s'ouvre sur une ligne ---, donne name et description, chacun sur sa ligne, puis se ferme sur une ligne ---.",
+		skill_name_differs: "Le nom dans l'en-tête du SKILL.md n'est pas celui de ce skill : gardez son nom, ou écrivez un nouveau skill sous l'autre.",
 		skill_name_invalid:
 			"Ce ne peut pas être le nom d'un skill : utilisez de 1 à 64 lettres minuscules, chiffres et tirets, comme charte-acme, sans tiret au début, à la fin ni deux de suite.",
 		skill_name_reserved: "Le nom cahut est réservé au skill du plugin pour Claude : donnez un autre nom à votre skill.",
+		skill_path_conflict: (v) =>
+			`« ${v.path} » se heurte à un autre fichier du skill : donnez chaque fichier une fois, quelle que soit sa casse, et jamais un fichier là où va un dossier.`,
+		skill_path_invalid: (v) =>
+			`« ${v.path} » ne peut pas être le chemin d'un fichier d'un skill : utilisez un chemin relatif comme references/deck.md, avec / entre les dossiers, sans partie qui commence par un point, et autre que SKILL.md.`,
 		skill_scope_individual: "Cette Cahut est individuelle, et n'a pas de skills de la Cahut : écrivez le skill parmi les vôtres.",
 		skill_too_large: "Ce skill est trop gros : un SKILL.md fait 64 Kio au plus, chacun de ses fichiers 2 Mio, et un skill 100 fichiers et 4 Mio en tout.",
 		skill_too_many: "Il y a déjà 50 skills ici, le maximum : supprimez-en un avant d'en ajouter un autre.",

@@ -365,18 +365,15 @@ func quote(s string) string {
 // as separator and no hidden part, neither SKILL.md nor under scripts/.
 func CheckPath(p string) error {
 	switch {
-	case p == "":
-		return operation.Invalidf("a file has an empty path")
-	case len(p) > 255:
-		return operation.Invalidf("path %.40q... is longer than 255 bytes", p)
-	case !utf8.ValidString(p) || strings.ContainsFunc(p, unicode.IsControl) || strings.Contains(p, `\`):
-		return operation.Invalidf("path %q: use printable characters and / as separator", p)
-	case path.IsAbs(p) || path.Clean(p) != p:
-		return operation.Invalidf("path %q: use a clean relative path, such as references/deck.md", p)
+	case p == "",
+		len(p) > 255,
+		!utf8.ValidString(p) || strings.ContainsFunc(p, unicode.IsControl) || strings.Contains(p, `\`),
+		path.IsAbs(p) || path.Clean(p) != p:
+		return errPathInvalid(pathOf(p))
 	}
 	for _, part := range strings.Split(p, "/") {
 		if strings.HasPrefix(part, ".") {
-			return operation.Invalidf("path %q: no part may start with a dot", p)
+			return errPathInvalid(pathOf(p))
 		}
 	}
 	lower := strings.ToLower(p)
@@ -384,7 +381,7 @@ func CheckPath(p string) error {
 	case lower == "scripts" || strings.HasPrefix(lower, "scripts/"):
 		return errHasScripts(ScriptPath{Path: operation.Quoted(p)})
 	case lower == "skill.md":
-		return operation.Invalidf("SKILL.md is the text of the skill, given apart from its files")
+		return errPathInvalid(pathOf(p))
 	}
 	return nil
 }
