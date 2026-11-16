@@ -23,6 +23,7 @@ import { RoomPage, RoomsPage } from "./pages/rooms";
 import { SearchPage } from "./pages/search";
 import { Setup } from "./pages/setup";
 import { Settings } from "./pages/settings";
+import { SkillPage } from "./pages/skill";
 import { SkillsPage } from "./pages/skills";
 import { SignIn } from "./pages/sign-in";
 import { Start } from "./pages/start";
@@ -323,6 +324,8 @@ function Page({ path, onSignOut, onDeleted }: { path: string; onSignOut: () => v
 	if (room) return <RoomPage name={room[1]} />;
 	const win = path.match(/^\/rooms\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
 	if (win) return <WindowPage key={path} room={win[1]} name={win[2]} />;
+	const skill = path.match(/^\/skills\/(cahut|personal|builtin)\/([a-z0-9-]+)\/?$/);
+	if (skill) return <SkillPage key={path} scope={skill[1]} name={skill[2]} />;
 	switch (path) {
 		case "/":
 			return <Overview />;
