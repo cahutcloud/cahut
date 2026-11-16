@@ -368,7 +368,10 @@ func resolve(ctx context.Context, c *operation.Call, ref string) (target, error)
 	switch Scope(scope) {
 	case "", ScopeCahut, ScopePersonal, ScopeBuiltin:
 	default:
-		return target{}, operation.Invalidf("%q: give the name of a skill, alone or after cahut:, personal: or builtin:", ref)
+		// The Logbook, which administrators read, keeps neither the name nor
+		// the prefix that an AI tried.
+		return target{}, operation.LogAs(operation.Invalidf("%q: give the name of a skill, alone or after cahut:, personal: or builtin:", ref),
+			"invalid input: an unknown scope")
 	}
 	individual, err := settings.IsIndividual(ctx, c.Tx)
 	if err != nil {
@@ -402,7 +405,10 @@ func resolve(ctx context.Context, c *operation.Call, ref string) (target, error)
 	case 1:
 		return found[0], nil
 	}
-	return target{}, operation.Invalidf("%s names a skill of this Cahut and one of your own: give cahut:%s or personal:%s", name, name, name)
+	// The Logbook does not tell administrators that a person has a skill of
+	// the name of one of the Cahut.
+	return target{}, operation.LogAs(operation.Invalidf("%s names a skill of this Cahut and one of your own: give cahut:%s or personal:%s", name, name, name),
+		"invalid input: a name in two scopes")
 }
 
 // writable returns an error unless the person who acts may change the skill
@@ -708,7 +714,7 @@ func get(ctx context.Context, c *operation.Call, in GetInput) (Skill, error) {
 		return Skill{}, err
 	}
 	if !ok {
-		return Skill{}, operation.NotFoundf("this skill has no file %q: get_skill without file lists its files", in.File)
+		return Skill{}, private(t.scope(), operation.NotFoundf("this skill has no file %q: get_skill without file lists its files", in.File))
 	}
 	s := Skill{Skill: t.name(), File: f.Path, Content: string(f.Content), Encoding: "utf-8"}
 	if !textual(f) {

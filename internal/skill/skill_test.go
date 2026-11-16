@@ -1061,3 +1061,40 @@ func TestGetSkillGivesTextAsText(t *testing.T) {
 		}
 	}
 }
+
+// The refusals that an AI meets when it reads a skill leave nothing in the
+// Logbook that would tell administrators of a personal skill: that it
+// shadows a skill of the Cahut, the prefix that the AI tried, or the path
+// of one of its files.
+func TestTheLogbookKeepsNoShadowedName(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "relance-facture", Text: relance})
+	f.write(t, f.camille, WriteInput{Scope: ScopePersonal, Skill: "relance-facture", Text: relance})
+	for _, in := range []GetInput{
+		{Skill: "relance-facture"},
+		{Skill: "mine:licenciement-bruno"},
+		{Skill: "personal:relance-facture", File: "licenciement-bruno.md"},
+	} {
+		if _, err := operation.Do(ctx, f.r, GetSkill, ai(f.camille), in); err == nil {
+			t.Fatalf("get_skill %+v passed", in)
+		}
+	}
+	entries, err := logbook.List(ctx, f.db.Read, 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	failed := 0
+	for _, e := range entries {
+		if e.Operation != "get_skill" {
+			continue
+		}
+		failed++
+		if s := strings.ToLower(e.Target + " " + e.Detail + " " + e.Error); strings.Contains(s, "relance") || strings.Contains(s, "licenciement") || strings.Contains(s, "mine") {
+			t.Errorf("the Logbook tells of a personal skill: %q %q %q", e.Target, e.Detail, e.Error)
+		}
+	}
+	if failed != 3 {
+		t.Errorf("%d failed reads in the Logbook, want 3", failed)
+	}
+}
