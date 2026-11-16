@@ -1572,11 +1572,15 @@
 	padding-top: var(--space-4);
 	border-top: 1px solid var(--color-border);
 }
-.ais-see[open] {
+/* The content of a details element is one box: its own grid spaces its
+   parts. */
+.ais-see__body {
 	display: grid;
 	gap: var(--space-3);
+	margin-top: var(--space-3);
 }
-.ais-see p {
+.ais-see__body p,
+.ais-see__body pre {
 	margin: 0;
 }
 .trash > summary,

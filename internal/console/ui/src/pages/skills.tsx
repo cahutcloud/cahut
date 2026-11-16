@@ -221,9 +221,11 @@ function WhatAIsSee() {
 				<Eye class="i" size={14} aria-hidden="true" />
 				{t.aisSee} · {t.shown(total - data.left.length, total)}
 			</summary>
-			<p class="c-small c-muted">{t.aisSeeHelp(data.bytes.toLocaleString(locale), data.budget.toLocaleString(locale))}</p>
-			<pre class="skill-text">{data.catalog}</pre>
-			{data.left.length > 0 && <p class="c-small c-muted">{t.left(data.left.join(", "))}</p>}
+			<div class="ais-see__body">
+				<p class="c-small c-muted">{t.aisSeeHelp(data.bytes.toLocaleString(locale), data.budget.toLocaleString(locale))}</p>
+				<pre class="skill-text">{data.catalog}</pre>
+				{data.left.length > 0 && <p class="c-small c-muted">{t.left(data.left.join(", "))}</p>}
+			</div>
 		</details>
 	);
 }
