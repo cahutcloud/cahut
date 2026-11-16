@@ -787,23 +787,34 @@ func TestCahutAtAnAddressMovesToADomain(t *testing.T) {
 
 // TestInstructionsStartWithWhatToPublish checks that the first 512
 // characters of the instructions, all that some clients keep, tell an AI
-// how to publish (ADR 29).
+// how to publish (ADR 29), whether the Cahut has skills or not.
 func TestInstructionsStartWithWhatToPublish(t *testing.T) {
-	head := instructions[:512]
-	for _, want := range []string{"publish_window", "relative paths", "declaration", "address", "Knock"} {
-		if !strings.Contains(head, want) {
-			t.Errorf("the first 512 characters of the instructions do not say %q: %q", want, head)
+	for _, skills := range []bool{false, true} {
+		head := instructionsFor(skills)[:512]
+		for _, want := range []string{"publish_window", "relative paths", "declaration", "address", "Knock"} {
+			if !strings.Contains(head, want) {
+				t.Errorf("the first 512 characters of the instructions do not say %q: %q", want, head)
+			}
 		}
 	}
 }
 
-// TestInstructionsPointToSkills checks that the instructions send an AI to
-// find_skills before a task, within the 2,048 characters that claude.ai
-// keeps, at the start of their second paragraph (ADR 64).
+// TestInstructionsPointToSkills checks that the instructions of a Cahut
+// with skills send an AI to find_skills before a task, within the 2,048
+// characters that claude.ai keeps, at the start of their second paragraph
+// (ADR 64). Those of a Cahut without, individual or not, speak of the
+// person's own skills, and send no AI to the Cahut before each task.
 func TestInstructionsPointToSkills(t *testing.T) {
-	_, second, _ := strings.Cut(instructions, "\n\n")
-	if !strings.HasPrefix(second, "Cahut also keeps the skills of the user's team") || !strings.Contains(instructions[:2048], "call find_skills") {
+	with := instructionsFor(true)
+	_, second, _ := strings.Cut(with, "\n\n")
+	if !strings.HasPrefix(second, "Cahut also keeps the skills of the user's team") || !strings.Contains(with[:2048], "call find_skills") {
 		t.Errorf("the second paragraph of the instructions does not open with the skills: %.200q", second)
+	}
+	without := instructionsFor(false)
+	_, second, _ = strings.Cut(without, "\n\n")
+	if !strings.HasPrefix(second, "Cahut also keeps the user's own skills: when the user names one, read it with get_skill") ||
+		strings.Contains(without, "find_skills") || strings.Contains(without, "skills of the user's team") {
+		t.Errorf("the second paragraph of the instructions without skills: %.200q", second)
 	}
 }
 

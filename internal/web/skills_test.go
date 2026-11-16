@@ -99,6 +99,12 @@ func TestTheCatalogFollowsTheSkills(t *testing.T) {
 	description := func() string {
 		return f.toolsWithoutSession(t, "localhost", f.token)["find_skills"].Description
 	}
+	pointed := func() bool {
+		return strings.Contains(f.connect(t, "localhost", f.token).InitializeResult().Instructions, "skills of the user's team")
+	}
+	if pointed() {
+		t.Error("the instructions of a Cahut without skills send AIs to find_skills before each task")
+	}
 	if d := description(); strings.Contains(d, "today:") {
 		t.Errorf("find_skills without skills:\n%s", d)
 	}
@@ -131,6 +137,9 @@ func TestTheCatalogFollowsTheSkills(t *testing.T) {
 	if d := description(); !strings.HasSuffix(d, "\nThe skills of this Cahut today:\n- relance-facture: L'e-mail de relance d'une facture impayée.") {
 		t.Errorf("find_skills after a write:\n%s", d)
 	}
+	if !pointed() {
+		t.Error("the instructions of a Cahut with a skill do not send AIs to find_skills")
+	}
 	// A session opened before keeps the list it had.
 	tools, err = before.ListTools(context.Background(), nil)
 	if err != nil {
@@ -145,6 +154,9 @@ func TestTheCatalogFollowsTheSkills(t *testing.T) {
 	f.call(t, "localhost", camille, "delete_skill", `{"skill": "relance-facture"}`)
 	if d := description(); strings.Contains(d, "relance-facture") || strings.Contains(d, "today:") {
 		t.Errorf("find_skills after a deletion:\n%s", d)
+	}
+	if pointed() {
+		t.Error("the instructions still send AIs to find_skills once the last skill is deleted")
 	}
 }
 

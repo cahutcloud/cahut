@@ -56,8 +56,8 @@ func TestNoHouseStyle(t *testing.T) {
 			t.Errorf("the registry still has %s", name)
 		}
 	}
-	if strings.Contains(instructions, "house style") || strings.Contains(instructions, "/-/") {
-		t.Errorf("the instructions of the MCP server send AIs under /-/: %q", instructions)
+	if i := instructionsFor(true) + instructionsFor(false); strings.Contains(i, "house style") || strings.Contains(i, "/-/") {
+		t.Errorf("the instructions of the MCP server send AIs under /-/: %q", i)
 	}
 }
 
