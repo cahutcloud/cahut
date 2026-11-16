@@ -67,7 +67,7 @@ var namePattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
 // without a hyphen at either end or two in a row.
 func CheckName(name string) error {
 	if len(name) > 64 || !namePattern.MatchString(name) {
-		return errNameInvalid(Named{Name: operation.Quoted(name)})
+		return errNameInvalid(BadName{Name: operation.Quoted(name)})
 	}
 	return nil
 }
@@ -300,7 +300,7 @@ func CheckPath(p string) error {
 	lower := strings.ToLower(p)
 	switch {
 	case lower == "scripts" || strings.HasPrefix(lower, "scripts/"):
-		return errHasScripts(AtPath{Path: operation.Quoted(p)})
+		return errHasScripts(ScriptPath{Path: operation.Quoted(p)})
 	case lower == "skill.md":
 		return operation.Invalidf("SKILL.md is the text of the skill, given apart from its files")
 	}

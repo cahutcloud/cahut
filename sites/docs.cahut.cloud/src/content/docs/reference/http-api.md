@@ -115,6 +115,14 @@ A refusal that people meet in the console gives its code too, which never change
 | `share_link_openings` | `given`, `limit` | Max_openings {given}: give a number from 1 to {limit}, or none for a link that opens to any number of readers |
 | `share_link_public` | `room`, `window` | {room}/{window} is public: its permanent address opens it to anyone, so share that address rather than a link |
 | `share_link_too_long` | `ends_at`, `latest` | Ends_at {ends_at}: a share link lasts 30 days at most, until {latest}: give an end before it, or none for 7 days |
+| `skill_has_scripts` | `path` | {path} is under scripts/, and a skill of a Cahut holds no scripts: some AI clients run them on the computer of each person, and a script would be code that someone changes from afar. Leave out scripts/, and say in SKILL.md what the AI should do instead |
+| `skill_header_invalid` | `problem` | The header of SKILL.md {problem}: a SKILL.md opens with a line ---, then name and description on lines of their own, then a line ---, as Agent Skills have it |
+| `skill_name_invalid` | `name` | {name} is not the name of a skill: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, without a hyphen at either end or two in a row |
+| `skill_name_reserved` |  | The name cahut is kept for the skill of the plugin for Claude, which every AI of this Cahut reads: give your skill another name |
+| `skill_scope_individual` |  | This Cahut is individual, and has no skills of the Cahut: its people share the Cahut, not their work. Write the skill among your own, with the scope personal |
+| `skill_too_large` |  | This skill is too large: a SKILL.md holds 64 KiB at most, each of its files 2 MiB, and a skill 100 files and 4 MiB in all |
+| `skill_too_many` |  | This scope holds 50 skills, the most it may: delete one before you add another |
+| `skill_zip_invalid` | `problem` | The zip {problem}: give the zip of a skill, with its SKILL.md at its root or in a single folder, as AI clients export them |
 | `tag_invalid` | `tag` | Tag {tag}: use 1 to 32 letters, digits and hyphens, such as q3-review |
 | `tags_too_many` | `count`, `limit` | {count} tags: give a Window {limit} at most |
 | `title_empty` |  | Title is empty: give one |
@@ -159,6 +167,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/create_user` | Administrators of the Cahut | yes |
 | `POST /console/api/delete_account` | Any person | yes |
 | `POST /console/api/delete_room` | Any person | yes |
+| `POST /console/api/delete_skill` | Any person | yes |
 | `POST /console/api/delete_user` | Administrators of the Cahut | yes |
 | `POST /console/api/deny_authorization` | Any person | yes |
 | `POST /console/api/deny_knock` | Any person | yes |
@@ -168,14 +177,18 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/disconnect_ai` | Any person | yes |
 | `POST /console/api/dismiss_report` | Administrators of the Cahut | yes |
 | `POST /console/api/enable_user` | Administrators of the Cahut | yes |
+| `POST /console/api/export_skill` | Any person | yes |
+| `POST /console/api/find_skills` | Any person | yes |
 | `POST /console/api/get_account` | Any person | yes |
 | `POST /console/api/get_cahut` | Any person | yes |
 | `POST /console/api/get_invitation` | Anyone, to sign in | no |
 | `POST /console/api/get_knock` | Any person | yes |
 | `POST /console/api/get_mail_relay` | Administrators of the Cahut | yes |
 | `POST /console/api/get_room` | Any person | yes |
+| `POST /console/api/get_skill` | Any person | yes |
 | `POST /console/api/get_user` | Administrators of the Cahut | yes |
 | `POST /console/api/get_window` | Any person | yes |
+| `POST /console/api/import_skill` | Any person | yes |
 | `POST /console/api/invite_to_window` | Any person | yes |
 | `POST /console/api/list_connected_ais` | Any person | yes |
 | `POST /console/api/list_invitations` | Any person | yes |
@@ -204,6 +217,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/revoke_invitation` | Any person | yes |
 | `POST /console/api/revoke_share_link` | Any person | yes |
 | `POST /console/api/revoke_token` | Any person | yes |
+| `POST /console/api/rollback_skill` | Any person | yes |
 | `POST /console/api/rollback_window` | Any person | yes |
 | `POST /console/api/rollback_window_data` | Any person | yes |
 | `POST /console/api/select_window_data` | Anyone, to sign in | no |
@@ -224,6 +238,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `POST /console/api/update_room` | Any person | yes |
 | `POST /console/api/update_window` | Any person | yes |
 | `POST /console/api/withdraw_window` | Administrators of the Cahut | yes |
+| `POST /console/api/write_skill` | Any person | yes |
 
 ## Operations of the server
 

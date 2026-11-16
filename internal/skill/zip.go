@@ -123,7 +123,7 @@ func rootOf(entries []*zip.File) (string, error) {
 // readAtMost reads the entry f, refusing it when it holds more than limit
 // bytes, whatever its header says: a zip bomb stops at the limit.
 func readAtMost(f *zip.File, limit int64) ([]byte, error) {
-	if f.UncompressedSize64 > uint64(limit) {
+	if f.UncompressedSize64 > uint64(limit) { //nolint:gosec // limit is a size of a skill, never negative
 		return nil, errTooLarge
 	}
 	rc, err := f.Open()

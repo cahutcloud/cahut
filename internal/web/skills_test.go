@@ -1,8 +1,8 @@
 package web
 
 import (
+	"crypto/rand"
 	"encoding/base64"
-	"math/rand/v2"
 	"net/http"
 	"strings"
 	"testing"
@@ -19,12 +19,9 @@ func TestImportSkillTakesALargeCall(t *testing.T) {
 	ada := activate(t, f, console, "ada", true)
 
 	// 3 MiB of bytes that do not compress, in two files.
-	random := rand.New(rand.NewChaCha8([32]byte{}))
 	files := []skill.File{{Path: "assets/a.bin", Content: make([]byte, 3<<19)}, {Path: "assets/b.bin", Content: make([]byte, 3<<19)}}
 	for _, f := range files {
-		for i := range f.Content {
-			f.Content[i] = byte(random.Uint32())
-		}
+		_, _ = rand.Read(f.Content) // crypto/rand never fails
 	}
 	text := "---\nname: charte-acme\ndescription: The brand of Acme.\n---\n# Acme\n"
 	zip, err := skill.WriteZip("charte-acme", text, files)

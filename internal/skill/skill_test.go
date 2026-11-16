@@ -99,7 +99,7 @@ func (f *fixture) find(t *testing.T, who operation.Actor, query string) []string
 func (f *fixture) revision(t *testing.T) int64 {
 	t.Helper()
 	var n int64
-	if err := f.db.Read.QueryRow("SELECT revision FROM skill_catalog").Scan(&n); err != nil {
+	if err := f.db.Read.QueryRowContext(context.Background(), "SELECT revision FROM skill_catalog").Scan(&n); err != nil {
 		t.Fatal(err)
 	}
 	return n
@@ -280,7 +280,7 @@ func TestRollBackASkill(t *testing.T) {
 		t.Errorf("a write after a rollback = %+v, want version 3, then 2", w)
 	}
 	var versions int
-	if err := f.db.Read.QueryRow("SELECT count(*) FROM skill_versions").Scan(&versions); err != nil || versions != 2 {
+	if err := f.db.Read.QueryRowContext(context.Background(), "SELECT count(*) FROM skill_versions").Scan(&versions); err != nil || versions != 2 {
 		t.Errorf("%d versions kept, %v; want 2", versions, err)
 	}
 }
@@ -303,7 +303,7 @@ func TestDeleteASkill(t *testing.T) {
 	}
 	for _, table := range []string{"skills", "skill_versions", "skill_files", "skill_search"} {
 		var n int
-		if err := f.db.Read.QueryRow("SELECT count(*) FROM " + table).Scan(&n); err != nil || n != 0 {
+		if err := f.db.Read.QueryRowContext(context.Background(), "SELECT count(*) FROM "+table).Scan(&n); err != nil || n != 0 {
 			t.Errorf("%s holds %d rows, %v", table, n, err)
 		}
 	}
@@ -833,7 +833,7 @@ func TestDeletingAPersonTakesTheirSkills(t *testing.T) {
 		t.Fatal(err)
 	}
 	var skills, search, files int
-	if err := f.db.Read.QueryRow("SELECT (SELECT count(*) FROM skills), (SELECT count(*) FROM skill_search), (SELECT count(*) FROM skill_files)").
+	if err := f.db.Read.QueryRowContext(context.Background(), "SELECT (SELECT count(*) FROM skills), (SELECT count(*) FROM skill_search), (SELECT count(*) FROM skill_files)").
 		Scan(&skills, &search, &files); err != nil {
 		t.Fatal(err)
 	}

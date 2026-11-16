@@ -1300,8 +1300,8 @@ This tool takes no arguments.
 | `limits` | object | yes | the limits that the administrators of the server set; a limit that is absent counts nothing. A member of an individual Cahut gets the limits per person only |
 | `limits.admins` | integer or null | no | how many of them may be administrators of the Cahut |
 | `limits.data_per_window` | integer or null | no | how many bytes the data of each Window may hold, its copies apart, up to 100 MiB |
-| `limits.disk` | integer or null | no | how many bytes the Cahut may keep: every version of every Window, those in the trash included, and their data with its copies |
-| `limits.disk_per_person` | integer or null | no | in an individual Cahut, how many bytes the Windows of each person may keep, every version included |
+| `limits.disk` | integer or null | no | how many bytes the Cahut may keep: every version of every Window, those in the trash included, their data with its copies, and both versions of every skill |
+| `limits.disk_per_person` | integer or null | no | in an individual Cahut, how many bytes the Windows and the skills of each person may keep, every version included |
 | `limits.people` | integer or null | no | how many people the Cahut may have, active or waiting for their activation, administrators included; disabled people do not count |
 | `limits.rooms` | integer or null | no | how many team Rooms the Cahut may have, or in an individual Cahut how many Rooms beside the personal ones; personal Rooms come with their person and do not count |
 | `limits.rooms_per_person` | integer or null | no | in an individual Cahut, how many Rooms each person may have beside their personal Room |
@@ -1319,12 +1319,12 @@ This tool takes no arguments.
 | `url` | string | no | the address of the Cahut, under which its Rooms and Windows open |
 | `usage` | object or null | no | what the Cahut holds, as its limits count it; absent for a member of an individual Cahut |
 | `usage.admins` | integer | yes | administrators who are not disabled |
-| `usage.disk` | integer | yes | bytes of every version of every Window, those in the trash included, and of their data |
+| `usage.disk` | integer | yes | bytes of every version of every Window, those in the trash included, of their data, and of both versions of every skill |
 | `usage.people` | integer | yes | people who are not disabled, administrators included |
 | `usage.rooms` | integer | yes | team Rooms, or in an individual Cahut the Rooms beside the personal ones |
 | `usage.windows` | integer | yes | Windows out of the trash |
 | `yours` | object or null | no | in an individual Cahut, what the person you act for holds, as the limits per person count it |
-| `yours.disk` | integer | yes | bytes of every version of the Windows of their Rooms, those in the trash included, and of their data |
+| `yours.disk` | integer | yes | bytes of every version of the Windows of their Rooms, those in the trash included, of their data, and of their skills |
 | `yours.rooms` | integer | yes | Rooms beside the personal one |
 | `yours.windows` | integer | yes | Windows out of the trash, over their Rooms |
 
@@ -1414,14 +1414,14 @@ This tool takes no arguments.
           ]
         },
         "disk": {
-          "description": "how many bytes the Cahut may keep: every version of every Window, those in the trash included, and their data with its copies",
+          "description": "how many bytes the Cahut may keep: every version of every Window, those in the trash included, their data with its copies, and both versions of every skill",
           "type": [
             "null",
             "integer"
           ]
         },
         "disk_per_person": {
-          "description": "in an individual Cahut, how many bytes the Windows of each person may keep, every version included",
+          "description": "in an individual Cahut, how many bytes the Windows and the skills of each person may keep, every version included",
           "type": [
             "null",
             "integer"
@@ -1530,7 +1530,7 @@ This tool takes no arguments.
           "type": "integer"
         },
         "disk": {
-          "description": "bytes of every version of every Window, those in the trash included, and of their data",
+          "description": "bytes of every version of every Window, those in the trash included, of their data, and of both versions of every skill",
           "type": "integer"
         },
         "people": {
@@ -1563,7 +1563,7 @@ This tool takes no arguments.
       "description": "in an individual Cahut, what the person you act for holds, as the limits per person count it",
       "properties": {
         "disk": {
-          "description": "bytes of every version of the Windows of their Rooms, those in the trash included, and of their data",
+          "description": "bytes of every version of the Windows of their Rooms, those in the trash included, of their data, and of their skills",
           "type": "integer"
         },
         "rooms": {
