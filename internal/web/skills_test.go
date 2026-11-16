@@ -119,6 +119,13 @@ func TestTheCatalogFollowsTheSkills(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	seen := false
+	for _, tool := range tools.Tools {
+		seen = seen || tool.Name == "find_skills" && !strings.Contains(tool.Description, "today:")
+	}
+	if !seen {
+		t.Fatal("the session does not see find_skills without a catalog")
+	}
 
 	writeSkill(t, f, camille, skill.ScopeCahut, "relance-facture", "L'e-mail de relance d'une facture impayée.")
 	if d := description(); !strings.HasSuffix(d, "\nThe skills of this Cahut today:\n- relance-facture: L'e-mail de relance d'une facture impayée.") {
