@@ -2,11 +2,6 @@ package skill
 
 import "cahut.cloud/internal/operation"
 
-// BadName is the value of the refusal of the name of a skill.
-type BadName struct {
-	Name operation.Quoted `json:"name"`
-}
-
 // HeaderProblem is the value of the refusal of a header: what is wrong
 // with it, in English, which the console leaves out.
 type HeaderProblem struct {
@@ -21,8 +16,8 @@ type ScriptPath struct {
 // The refusals that people meet when they write or import a skill. See
 // docs/adr/0037-refusals-with-a-code-for-the-console.md.
 var (
-	errNameInvalid = operation.NewRefusalOf[BadName]("skill_name_invalid", operation.ErrInvalid,
-		"{name} is not the name of a skill: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, "+
+	errNameInvalid = operation.NewRefusal("skill_name_invalid", operation.ErrInvalid,
+		"the name of the skill is not valid: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, "+
 			"without a hyphen at either end or two in a row")
 	errHeaderInvalid = operation.NewRefusalOf[HeaderProblem]("skill_header_invalid", operation.ErrInvalid,
 		"the header of SKILL.md {problem}: a SKILL.md opens with a line ---, then name and description on lines of their own, "+

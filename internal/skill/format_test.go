@@ -188,3 +188,67 @@ func TestDigest(t *testing.T) {
 		}
 	}
 }
+
+// Whatever header ParseText accepts, RenderText writes a header that strict
+// YAML reads, with the same name, description and keys, and rendering it
+// again changes nothing.
+func TestRenderTextReadsBack(t *testing.T) {
+	for _, head := range []string{
+		"name: a\ndescription: \"abc\ndef\"\n",
+		"name: a\ndescription: \"abc\nfoo: ghi\"\nlicense: MIT\n",
+		"name: a\ndescription: The brand.\nlicense: See: LICENSE.txt\n",
+		"name: a\ndescription: Use it for: decks\nlicense: See: LICENSE.txt\n",
+		"name: a\ndescription: \"a\u007fb\u0085c\"\n",
+		"name: a\ndescription: \"a\\x7fb\\u0085c\\uFFFEd\"\n",
+		"name: a\ndescription: 'it''s: fine'\n# a comment\nlicense: MIT\n",
+		"name: a\n\ndescription: >-\n  folded\n\n  twice\n\n# the end\n",
+		"description: Last comes the name.\nname: a\n",
+		"name: a\r\ndescription: Use it for: decks\r\nlicense: MIT\r\n",
+	} {
+		text := "---\n" + head + "---\nBody\n"
+		h, err := ParseText(text)
+		if err != nil {
+			continue // refused: nothing is stored that would not render
+		}
+		got, err := RenderText(text)
+		if err != nil {
+			t.Errorf("RenderText(%q): %v, though ParseText accepts it", head, err)
+			continue
+		}
+		var want, have yaml.Node
+		rendered := strings.TrimSuffix(strings.TrimPrefix(got, "---\n"), "---\nBody\n")
+		if err := yaml.Unmarshal([]byte(rendered), &have); err != nil {
+			t.Errorf("RenderText(%q) = %q, which strict YAML refuses: %v", head, rendered, err)
+			continue
+		}
+		if back, err := ParseText(got); err != nil || back != h {
+			t.Errorf("RenderText(%q) reads back as %+v, %v; want %+v", head, back, err, h)
+		}
+		if again, err := RenderText(got); err != nil || again != got {
+			t.Errorf("rendering %q twice = %q, %v; want %q", head, again, err, got)
+		}
+		lenient, _ := quotePlain(head)
+		if yaml.Unmarshal([]byte(head), &want) != nil {
+			_ = yaml.Unmarshal([]byte(lenient), &want)
+		}
+		if k, w := keysIn(&have), keysIn(&want); k != w {
+			t.Errorf("RenderText(%q) has the keys %s, want %s", head, k, w)
+		}
+		if !strings.HasSuffix(got, "---\nBody\n") {
+			t.Errorf("RenderText(%q) = %q, without its body", head, got)
+		}
+	}
+}
+
+func keysIn(doc *yaml.Node) string {
+	if len(doc.Content) == 0 {
+		return ""
+	}
+	var keys []string
+	for i, n := range doc.Content[0].Content {
+		if i%2 == 0 {
+			keys = append(keys, n.Value)
+		}
+	}
+	return strings.Join(keys, " ")
+}

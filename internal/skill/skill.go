@@ -232,7 +232,7 @@ var ExportSkill = &operation.Op[ExportInput, Export]{
 		if err != nil {
 			return Export{}, err
 		}
-		c.Log(t.name(), "")
+		logSkill(c, t.scope(), t.name(), "")
 		text, files := "", []File(nil)
 		if t.builtin != nil {
 			text, files = t.builtin.text, t.builtin.files
@@ -269,9 +269,9 @@ var RollbackSkill = &operation.Op[RollbackInput, Skill]{
 			return Skill{}, err
 		}
 		r := t.row
-		c.Log(r.name, string(r.scope))
+		logSkill(c, r.scope, r.name, "")
 		if r.previous == 0 {
-			return Skill{}, operation.Invalidf("%s has one version: there is none to go back to", r.name)
+			return Skill{}, operation.Invalidf("this skill has one version: there is none to go back to")
 		}
 		if _, err := c.Tx.ExecContext(ctx, "UPDATE skills SET current_version = previous_version, previous_version = current_version WHERE id = ?", r.id); err != nil {
 			return Skill{}, err
@@ -282,7 +282,7 @@ var RollbackSkill = &operation.Op[RollbackInput, Skill]{
 		r.current, r.previous = r.previous, r.current
 		s, err := describe(ctx, c, t, false)
 		if err == nil {
-			c.Log(r.name, fmt.Sprintf("%s, back to version %d", r.scope, s.Number))
+			logSkill(c, r.scope, r.name, fmt.Sprintf("back to version %d", s.Number))
 		}
 		return s, err
 	},
@@ -304,7 +304,7 @@ var DeleteSkill = &operation.Op[DeleteInput, Deleted]{
 			return Deleted{}, err
 		}
 		r := t.row
-		c.Log(r.name, string(r.scope)+", both versions")
+		logSkill(c, r.scope, r.name, "both versions")
 		if _, err := c.Tx.ExecContext(ctx, "DELETE FROM skills WHERE id = ?", r.id); err != nil {
 			return Deleted{}, err
 		}
@@ -322,6 +322,28 @@ var DeleteSkill = &operation.Op[DeleteInput, Deleted]{
 type target struct {
 	row     *row
 	builtin *builtin
+}
+
+func (t target) scope() Scope {
+	if t.builtin != nil {
+		return ScopeBuiltin
+	}
+	return t.row.scope
+}
+
+// logSkill sets what the Logbook keeps of a call on the skill name of
+// scope: its name, its scope and detail. It never names a personal skill:
+// the administrators read the whole Logbook, and do not read the skills of
+// others.
+func logSkill(c *operation.Call, scope Scope, name, detail string) {
+	switch {
+	case scope == ScopePersonal:
+		c.Log("a personal skill", detail)
+	case detail == "":
+		c.Log(name, string(scope))
+	default:
+		c.Log(name, string(scope)+", "+detail)
+	}
 }
 
 func (t target) name() string {
@@ -432,7 +454,7 @@ type change struct {
 
 // apply writes ch as a new version of its skill, or as a new skill.
 func apply(ctx context.Context, c *operation.Call, ch change) (Skill, error) {
-	c.Log(ch.name, string(ch.scope))
+	logSkill(c, ch.scope, ch.name, "")
 	owner, err := ownerFor(ctx, c, ch.scope)
 	if err != nil {
 		return Skill{}, err
@@ -465,7 +487,7 @@ func apply(ctx context.Context, c *operation.Call, ch change) (Skill, error) {
 	text := ch.text
 	if text == "" {
 		if current == nil {
-			return Skill{}, operation.Invalidf("%s is a new skill: give its text, a SKILL.md whose header gives its name and its description", ch.name)
+			return Skill{}, operation.Invalidf("this is a new skill: give its text, a SKILL.md whose header gives its name and its description")
 		}
 		text = current.text
 	}
@@ -477,9 +499,9 @@ func apply(ctx context.Context, c *operation.Call, ch change) (Skill, error) {
 		return Skill{}, err
 	}
 	if h.Name != ch.name {
-		return Skill{}, operation.Invalidf("the header of SKILL.md names the skill %s, and this skill is %s: give the same name in both", h.Name, ch.name)
+		return Skill{}, operation.Invalidf("the name in the header of SKILL.md is not the name of this skill: give the same name in both")
 	}
-	if files, err = merge(ch.name, files, ch.files, ch.remove); err != nil {
+	if files, err = merge(files, ch.files, ch.remove); err != nil {
 		return Skill{}, err
 	}
 	size := int64(len(text))
@@ -492,7 +514,7 @@ func apply(ctx context.Context, c *operation.Call, ch change) (Skill, error) {
 
 	digest := Digest(text, files)
 	if current != nil && digest == current.digest {
-		c.Log(ch.name, string(ch.scope)+", unchanged")
+		logSkill(c, ch.scope, ch.name, "unchanged")
 		return describe(ctx, c, target{row: r}, false)
 	}
 	number, added := 1, size
@@ -535,7 +557,7 @@ func apply(ctx context.Context, c *operation.Call, ch change) (Skill, error) {
 	if err := changed(ctx, c, r); err != nil {
 		return Skill{}, err
 	}
-	c.Log(ch.name, fmt.Sprintf("%s, version %d, %d files, %s", ch.scope, number, len(files), settings.Bytes(size)))
+	logSkill(c, ch.scope, ch.name, fmt.Sprintf("version %d, %d files, %s", number, len(files), settings.Bytes(size)))
 	return describe(ctx, c, target{row: r}, false)
 }
 
@@ -582,7 +604,7 @@ func decodeFiles(in []FileInput) ([]File, error) {
 // merge returns the files of a skill once added and remove apply to those
 // it holds, by path. Paths match whatever their case, as on the disks where
 // clients install skills.
-func merge(name string, held, added []File, remove []string) ([]File, error) {
+func merge(held, added []File, remove []string) ([]File, error) {
 	byPath := map[string]File{}
 	for _, f := range held {
 		byPath[strings.ToLower(f.Path)] = f
@@ -591,7 +613,7 @@ func merge(name string, held, added []File, remove []string) ([]File, error) {
 	for _, p := range remove {
 		key := strings.ToLower(p)
 		if _, ok := byPath[key]; !ok {
-			return nil, operation.NotFoundf("%s has no file %q to remove", name, p)
+			return nil, operation.NotFoundf("the skill has no file %q to remove", p)
 		}
 		removed[key] = true
 		delete(byPath, key)
@@ -660,7 +682,11 @@ func get(ctx context.Context, c *operation.Call, in GetInput) (Skill, error) {
 	if err != nil {
 		return Skill{}, err
 	}
-	c.Log(t.name(), in.File)
+	file := in.File
+	if file != "" && t.scope() == ScopePersonal {
+		file = "a file"
+	}
+	logSkill(c, t.scope(), t.name(), file)
 	if in.File == "" {
 		s, err := describe(ctx, c, t, true)
 		s.Note = note
@@ -674,7 +700,7 @@ func get(ctx context.Context, c *operation.Call, in GetInput) (Skill, error) {
 		return Skill{}, err
 	}
 	if !ok {
-		return Skill{}, operation.NotFoundf("%s has no file %q: get_skill without file lists its files", t.name(), in.File)
+		return Skill{}, operation.NotFoundf("this skill has no file %q: get_skill without file lists its files", in.File)
 	}
 	s := Skill{Skill: t.name(), File: f.Path, Content: string(f.Content), Encoding: "utf-8"}
 	if !utf8.Valid(f.Content) || !textual(f.Type) {

@@ -10,6 +10,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path"
 	"regexp"
@@ -67,7 +68,7 @@ var namePattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
 // without a hyphen at either end or two in a row.
 func CheckName(name string) error {
 	if len(name) > 64 || !namePattern.MatchString(name) {
-		return errNameInvalid(BadName{Name: operation.Quoted(name)})
+		return errNameInvalid
 	}
 	return nil
 }
@@ -75,17 +76,20 @@ func CheckName(name string) error {
 // ParseText reads the name and the description from the front matter of a
 // SKILL.md, with go.yaml.in/yaml/v3. A value that holds a colon and a space
 // unquoted, which strict YAML refuses and Claude accepts, is read as text.
+// It refuses a header that RenderText could not write again.
 func ParseText(text string) (Header, error) {
 	t, err := split(text)
 	if err != nil {
 		return Header{}, err
 	}
-	return parseHead(t.head)
+	h, err := parseHead(t.head)
+	return h.header, err
 }
 
 // RenderText returns the SKILL.md text with name and description in double
 // quotes, and the rest of its header and its body as they are: Mistral Vibe
-// drops a skill whose description holds a colon and a space unquoted.
+// drops a skill whose description holds a colon and a space unquoted. A
+// header that strict YAML refuses comes back with each such value quoted.
 func RenderText(text string) (string, error) {
 	t, err := split(text)
 	if err != nil {
@@ -95,34 +99,19 @@ func RenderText(text string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	lines := strings.Split(t.head, "\n")
-	out := make([]string, 0, len(lines))
-	for i := 0; i < len(lines); i++ {
-		key := topKey(lines[i])
-		if key != "name" && key != "description" {
-			out = append(out, lines[i])
-			continue
-		}
-		end := valueEnd(lines, i)
-		value := h.Name
-		if key == "description" {
-			value = h.Description
-		}
-		cr := ""
-		if strings.HasSuffix(lines[i], "\r") {
-			cr = "\r"
-		}
-		out = append(out, key+": "+quote(value)+cr)
-		i = end - 1
-	}
-	return t.open + strings.Join(out, "\n") + t.close + t.body, nil
+	return t.open + h.rendered + t.close + t.body, nil
 }
 
 // text is a SKILL.md cut at its header: the line that opens it, the header,
 // the line that closes it, and the body.
 type text struct{ open, head, close, body string }
 
+// byteOrderMark is what some editors write at the start of a text in
+// UTF-8, which a SKILL.md does without.
+const byteOrderMark = "\ufeff"
+
 func split(s string) (text, error) {
+	s = strings.TrimPrefix(s, byteOrderMark)
 	var t text
 	switch {
 	case strings.HasPrefix(s, "---\n"):
@@ -149,29 +138,88 @@ func split(s string) (text, error) {
 	}
 }
 
-func parseHead(head string) (Header, error) {
-	var doc yaml.Node
-	if err := yaml.Unmarshal([]byte(head), &doc); err != nil {
-		lenient, changed := quotePlain(head)
-		if !changed || yaml.Unmarshal([]byte(lenient), &doc) != nil {
-			return Header{}, errHeaderInvalid(HeaderProblem{Problem: "is not valid YAML"})
+// head is a header that Cahut read: its name and description, and the
+// header written again with both in double quotes.
+type head struct {
+	header   Header
+	rendered string
+}
+
+func parseHead(s string) (head, error) {
+	used := s
+	m, err := mapping(s)
+	if err != nil {
+		lenient, changed := quotePlain(s)
+		if !changed {
+			return head{}, err
+		}
+		if m, err = mapping(lenient); err != nil {
+			return head{}, err
+		}
+		used = lenient
+	}
+	h, err := headerOf(m)
+	if err != nil {
+		return head{}, err
+	}
+	rendered, err := render(used, h, m)
+	if err != nil {
+		return head{}, err
+	}
+	// What Cahut gives must read as it came, in strict YAML.
+	again, err := mapping(rendered)
+	if err == nil {
+		var h2 Header
+		if h2, err = headerOf(again); err == nil && (h2 != h || !slices.Equal(keysOf(again), keysOf(m))) {
+			err = errors.New("changed")
 		}
 	}
-	if doc.Kind != yaml.DocumentNode || len(doc.Content) != 1 || doc.Content[0].Kind != yaml.MappingNode {
-		return Header{}, errHeaderInvalid(HeaderProblem{Problem: "is not a list of keys and values"})
+	if err != nil {
+		return head{}, errHeaderInvalid(HeaderProblem{Problem: "cannot be written again with name and description in double quotes: give each on a line of its own"})
 	}
-	m := doc.Content[0]
+	return head{header: h, rendered: rendered}, nil
+}
+
+// mapping reads s as YAML and returns the mapping it holds.
+func mapping(s string) (*yaml.Node, error) {
+	var doc yaml.Node
+	if err := yaml.Unmarshal([]byte(s), &doc); err != nil {
+		return nil, errHeaderInvalid(HeaderProblem{Problem: "is not valid YAML"})
+	}
+	if doc.Kind != yaml.DocumentNode || len(doc.Content) != 1 || doc.Content[0].Kind != yaml.MappingNode {
+		return nil, errHeaderInvalid(HeaderProblem{Problem: "is not a list of keys and values"})
+	}
+	return doc.Content[0], nil
+}
+
+// keysOf returns the keys of the mapping m, in order.
+func keysOf(m *yaml.Node) []string {
+	var keys []string
+	for i := 0; i+1 < len(m.Content); i += 2 {
+		keys = append(keys, m.Content[i].Value)
+	}
+	return keys
+}
+
+// headerOf reads name and description from the mapping m, each on a line
+// of its own.
+func headerOf(m *yaml.Node) (Header, error) {
 	var h Header
 	seen := map[string]bool{}
+	lines := map[int]bool{}
 	for i := 0; i+1 < len(m.Content); i += 2 {
 		k, v := m.Content[i], m.Content[i+1]
 		if k.Kind != yaml.ScalarNode {
 			return Header{}, errHeaderInvalid(HeaderProblem{Problem: "has a key that is not a word"})
 		}
 		if seen[k.Value] {
-			return Header{}, errHeaderInvalid(HeaderProblem{Problem: fmt.Sprintf("gives %s twice", k.Value)})
+			return Header{}, errHeaderInvalid(HeaderProblem{Problem: "gives a key twice"})
 		}
 		seen[k.Value] = true
+		if k.Column != 1 || lines[k.Line] {
+			return Header{}, errHeaderInvalid(HeaderProblem{Problem: "does not give each key on a line of its own"})
+		}
+		lines[k.Line] = true
 		if k.Value != "name" && k.Value != "description" {
 			continue
 		}
@@ -192,32 +240,54 @@ func parseHead(head string) (Header, error) {
 	case utf8.RuneCountInString(h.Description) > MaxDescription:
 		return Header{}, errHeaderInvalid(HeaderProblem{Problem: fmt.Sprintf("has a description longer than %d characters", MaxDescription)})
 	}
-	if err := CheckName(h.Name); err != nil {
-		return Header{}, err
-	}
-	// RenderText quotes name and description where they stand: each must
-	// open a line of its own.
-	var keys []string
-	for _, line := range strings.Split(head, "\n") {
-		if k := topKey(line); k == "name" || k == "description" {
-			keys = append(keys, k)
-		}
-	}
-	if slices.Sort(keys); !slices.Equal(keys, []string{"description", "name"}) {
-		return Header{}, errHeaderInvalid(HeaderProblem{Problem: "does not give name and description each on a line of its own"})
-	}
-	return h, nil
+	return h, CheckName(h.Name)
 }
 
-var keyLine = regexp.MustCompile(`^([A-Za-z0-9_][A-Za-z0-9_.-]*)[ \t]*:([ \t]|$)`)
-
-// topKey returns the key that a line of a header opens at its first
-// column, or "".
-func topKey(line string) string {
-	if m := keyLine.FindStringSubmatch(strings.TrimSuffix(line, "\r")); m != nil {
-		return m[1]
+// render writes the header s, whose mapping is m, with the lines of name
+// and description in its place, each in double quotes. A value runs from
+// its key to the next key, but for the blank lines and comments before it.
+func render(s string, h Header, m *yaml.Node) (string, error) {
+	lines := strings.Split(s, "\n")
+	type span struct {
+		start, end int
+		line       string
 	}
-	return ""
+	var spans []span
+	for i := 0; i+1 < len(m.Content); i += 2 {
+		k := m.Content[i]
+		if k.Value != "name" && k.Value != "description" {
+			continue
+		}
+		start, end := k.Line-1, len(lines)
+		if i+2 < len(m.Content) {
+			end = m.Content[i+2].Line - 1
+		}
+		for end > start+1 {
+			l := strings.TrimSuffix(lines[end-1], "\r")
+			if strings.TrimSpace(l) != "" && !strings.HasPrefix(l, "#") {
+				break
+			}
+			end--
+		}
+		if start < 0 || start >= len(lines) || end > len(lines) {
+			return "", errHeaderInvalid(HeaderProblem{Problem: "cannot be read line by line"})
+		}
+		value := h.Name
+		if k.Value == "description" {
+			value = h.Description
+		}
+		line := k.Value + ": " + quote(value)
+		if strings.HasSuffix(lines[start], "\r") {
+			line += "\r"
+		}
+		spans = append(spans, span{start, end, line})
+	}
+	// From the last, so that each span keeps its lines.
+	slices.SortFunc(spans, func(a, b span) int { return cmp.Compare(b.start, a.start) })
+	for _, sp := range spans {
+		lines = slices.Replace(lines, sp.start, sp.end, sp.line)
+	}
+	return strings.Join(lines, "\n"), nil
 }
 
 // valueEnd returns the index of the first line after the value of the key
@@ -262,7 +332,11 @@ func quotePlain(head string) (string, bool) {
 				parts = append(parts, l)
 			}
 		}
-		out = append(out, m[1]+": "+quote(strings.Join(parts, " ")))
+		cr := ""
+		if strings.HasSuffix(lines[i], "\r") {
+			cr = "\r"
+		}
+		out = append(out, m[1]+": "+quote(strings.Join(parts, " "))+cr)
 		changed = true
 		i = end - 1
 	}
@@ -270,13 +344,21 @@ func quotePlain(head string) (string, bool) {
 }
 
 // quote writes s as a double-quoted scalar: a string of JSON, which YAML
-// reads.
+// reads, with the characters that YAML does not print escaped too.
 func quote(s string) string {
 	var b bytes.Buffer
 	enc := json.NewEncoder(&b)
 	enc.SetEscapeHTML(false)
 	_ = enc.Encode(s) // a string always encodes
-	return strings.TrimSuffix(b.String(), "\n")
+	var out strings.Builder
+	for _, r := range strings.TrimSuffix(b.String(), "\n") {
+		if r == 0x7f || r >= 0x80 && r <= 0x9f || r == 0xfffe || r == 0xffff {
+			fmt.Fprintf(&out, `\u%04x`, r)
+			continue
+		}
+		out.WriteRune(r)
+	}
+	return out.String()
 }
 
 // CheckPath accepts the path of a file of a skill: clean, relative, with /

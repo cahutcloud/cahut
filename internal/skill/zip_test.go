@@ -161,3 +161,46 @@ func TestWriteZipReadsBack(t *testing.T) {
 		t.Errorf("files = %v", back)
 	}
 }
+
+// zip -r lists the entries of a folder in the order of the folder, where
+// SKILL.md may come last.
+func TestReadZipFindsSKILLmdAfterOtherEntries(t *testing.T) {
+	data := makeZip(t,
+		entry{name: "references/a.md", content: []byte("a")},
+		entry{name: "assets/b.txt", content: []byte("b")},
+		entry{name: "SKILL.md", content: []byte(acmeText)},
+	)
+	text, files, err := ReadZip(data)
+	if err != nil || text != acmeText || len(files) != 2 {
+		t.Errorf("ReadZip = %q, %v, %v", text, files, err)
+	}
+	data = makeZip(t,
+		entry{name: "charte-acme/references/a.md", content: []byte("a")},
+		entry{name: "charte-acme/SKILL.md", content: []byte(acmeText)},
+	)
+	if _, files, err := ReadZip(data); err != nil || len(files) != 1 {
+		t.Errorf("ReadZip in a folder = %v, %v", files, err)
+	}
+}
+
+// What a person imports from an ordinary file is read, or refused with a
+// reason: a corrupt entry, a SKILL.md that is not UTF-8, or one that a
+// Windows editor saved with a byte order mark.
+func TestReadZipOfOrdinaryFiles(t *testing.T) {
+	data := makeZip(t, entry{name: "SKILL.md", content: []byte(acmeText)}, entry{name: "references/a.md", content: bytes.Repeat([]byte("abcdefgh"), 1000)})
+	// The deflated bytes of the second entry follow its name in its local
+	// header: 0xff opens a block of a type that deflate does not have.
+	corrupt := bytes.Clone(data)
+	corrupt[bytes.Index(data, []byte("references/a.md"))+len("references/a.md")] = 0xff
+	if _, _, err := ReadZip(corrupt); refusal(err) != "skill_zip_invalid" {
+		t.Errorf("a corrupt entry: err = %v, want skill_zip_invalid", err)
+	}
+	latin1 := []byte("---\nname: charte-acme\ndescription: Caf\xe9.\n---\n")
+	if _, _, err := ReadZip(makeZip(t, entry{name: "SKILL.md", content: latin1})); refusal(err) != "skill_zip_invalid" {
+		t.Errorf("a SKILL.md in Latin-1: err = %v, want skill_zip_invalid", err)
+	}
+	text, _, err := ReadZip(makeZip(t, entry{name: "SKILL.md", content: []byte("\ufeff" + acmeText)}))
+	if err != nil || text != acmeText {
+		t.Errorf("a SKILL.md with a byte order mark = %q, %v; want it without", text, err)
+	}
+}

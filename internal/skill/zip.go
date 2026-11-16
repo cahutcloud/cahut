@@ -4,13 +4,13 @@ import (
 	"archive/zip"
 	"bytes"
 	"cmp"
-	"errors"
 	"io"
 	"mime"
 	"path"
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // ReadZip reads a skill from a zip, with its SKILL.md at the root or in a
@@ -67,7 +67,10 @@ func ReadZip(data []byte) (text string, files []File, err error) {
 		}
 		size += int64(len(content))
 		if rel == "SKILL.md" {
-			text, found = string(content), true
+			if !utf8.Valid(content) {
+				return "", nil, errZipInvalid(ZipProblem{Problem: "holds a SKILL.md that is not text in UTF-8"})
+			}
+			text, found = strings.TrimPrefix(string(content), byteOrderMark), true
 			continue
 		}
 		files = append(files, File{Path: rel, Type: TypeOf(rel), Content: content})
@@ -98,11 +101,13 @@ func leftByFinder(name string) bool {
 // rootOf returns the folder of the zip where its SKILL.md is: "" at the
 // root, or the single folder that holds every entry.
 func rootOf(entries []*zip.File) (string, error) {
-	var top string
-	for i, f := range entries {
+	for _, f := range entries {
 		if f.Name == "SKILL.md" {
 			return "", nil
 		}
+	}
+	var top string
+	for i, f := range entries {
 		first, _, _ := strings.Cut(f.Name, "/")
 		if i > 0 && first != top {
 			top = ""
@@ -133,10 +138,8 @@ func readAtMost(f *zip.File, limit int64) ([]byte, error) {
 	defer rc.Close()
 	content, err := io.ReadAll(io.LimitReader(rc, limit+1))
 	if err != nil {
-		if errors.Is(err, zip.ErrChecksum) || errors.Is(err, zip.ErrFormat) || errors.Is(err, io.ErrUnexpectedEOF) {
-			return nil, errZipInvalid(ZipProblem{Problem: "holds an entry that cannot be read"})
-		}
-		return nil, err
+		// The zip is in memory: only its bytes fail to read.
+		return nil, errZipInvalid(ZipProblem{Problem: "holds an entry that cannot be read"})
 	}
 	if int64(len(content)) > limit {
 		return nil, errTooLarge

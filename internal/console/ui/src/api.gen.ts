@@ -238,10 +238,6 @@ export interface Authorization {
   error?: string;
 }
 
-export interface BadName {
-  name: string;
-}
-
 export interface ByAuthor {
   /** the Room of the Window */
   room: string;
@@ -2554,8 +2550,8 @@ export interface Refusals {
   skill_has_scripts: ScriptPath;
   /** the header of SKILL.md {problem}: a SKILL.md opens with a line ---, then name and description on lines of their own, then a line ---, as Agent Skills have it */
   skill_header_invalid: HeaderProblem;
-  /** {name} is not the name of a skill: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, without a hyphen at either end or two in a row */
-  skill_name_invalid: BadName;
+  /** the name of the skill is not valid: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, without a hyphen at either end or two in a row */
+  skill_name_invalid: null;
   /** the name cahut is kept for the skill of the plugin for Claude, which every AI of this Cahut reads: give your skill another name */
   skill_name_reserved: null;
   /** this Cahut is individual, and has no skills of the Cahut: its people share the Cahut, not their work. Write the skill among your own, with the scope personal */

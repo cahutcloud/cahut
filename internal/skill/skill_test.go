@@ -573,11 +573,11 @@ func TestTheLogbookKeepsNoQuery(t *testing.T) {
 			}
 		case "get_skill_by_ai":
 			reads++
-			if e.Target != "cahut" || e.Detail != "references/formats.md" {
+			if e.Target != "cahut" || e.Detail != "builtin, references/formats.md" {
 				t.Errorf("the entry of a read = %q, %q", e.Target, e.Detail)
 			}
 		}
-		if strings.Contains(e.Detail+e.Target+e.Error, "licenciement") && e.Operation != "write_skill" {
+		if strings.Contains(e.Detail+e.Target+e.Error, "licenciement") {
 			t.Errorf("the Logbook keeps the words of a search: %+v", e)
 		}
 	}
@@ -842,5 +842,57 @@ func TestDeletingAPersonTakesTheirSkills(t *testing.T) {
 	}
 	if g := f.get(t, f.bruno, "charte-acme"); g.WrittenBy != "" {
 		t.Errorf("the skill of the Cahut keeps %q as its author", g.WrittenBy)
+	}
+}
+
+// The administrators read the whole Logbook: it never names the personal
+// skill of a person, nor holds a word of its header, whatever the call.
+func TestTheLogbookKeepsNoPersonalName(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	text := textOf("licenciement-bruno", "Le plan de licenciement.", "")
+	f.write(t, f.camille, WriteInput{Scope: ScopePersonal, Skill: "licenciement-bruno", Text: text, Files: []FileInput{{Path: "a.md", Content: "a"}}})
+	f.write(t, f.camille, WriteInput{Scope: ScopePersonal, Skill: "licenciement-bruno", Text: textOf("licenciement-bruno", "Le plan, encore.", "")})
+	for _, in := range []WriteInput{
+		{Scope: ScopePersonal, Skill: "Licenciement de Bruno", Text: text},
+		{Scope: ScopePersonal, Skill: "licenciement-bruno", Text: "---\nname: licenciement-bruno\nlicenciement: a\nlicenciement: b\ndescription: X.\n---\n"},
+		{Scope: ScopePersonal, Skill: "licenciement-bruno", Text: textOf("licenciement-autre", "Un autre.", "")},
+	} {
+		if _, err := operation.Do(ctx, f.r, WriteSkill, f.camille, in); err == nil {
+			t.Fatalf("write_skill %+v passed", in)
+		}
+	}
+	zip, err := WriteZip("licenciement-bruno", text, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := operation.Do(ctx, f.r, ImportSkill, f.camille, ImportInput{Scope: ScopePersonal, Zip: base64.StdEncoding.EncodeToString(zip)}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := operation.Do(ctx, f.r, RollbackSkill, f.camille, RollbackInput{Skill: "licenciement-bruno"}); err != nil {
+		t.Fatal(err)
+	}
+	r, get := asAI(t, f, GetSkill)
+	if _, err := operation.Do(ctx, r, get, ai(f.camille), GetInput{Skill: "licenciement-bruno"}); err != nil {
+		t.Fatal(err)
+	}
+	r, export := asAI(t, f, ExportSkill)
+	if _, err := operation.Do(ctx, r, export, ai(f.camille), ExportInput{Skill: "licenciement-bruno"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := operation.Do(ctx, f.r, DeleteSkill, f.camille, DeleteInput{Skill: "licenciement-bruno"}); err != nil {
+		t.Fatal(err)
+	}
+	entries, err := logbook.List(ctx, f.db.Read, 100)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) < 9 {
+		t.Errorf("%d entries in the Logbook, want 9 at least", len(entries))
+	}
+	for _, e := range entries {
+		if strings.Contains(strings.ToLower(e.Target+" "+e.Detail+" "+e.Error), "licenciement") {
+			t.Errorf("the Logbook names a personal skill: %s %q %q %q", e.Operation, e.Target, e.Detail, e.Error)
+		}
 	}
 }

@@ -117,7 +117,7 @@ A refusal that people meet in the console gives its code too, which never change
 | `share_link_too_long` | `ends_at`, `latest` | Ends_at {ends_at}: a share link lasts 30 days at most, until {latest}: give an end before it, or none for 7 days |
 | `skill_has_scripts` | `path` | {path} is under scripts/, and a skill of a Cahut holds no scripts: some AI clients run them on the computer of each person, and a script would be code that someone changes from afar. Leave out scripts/, and say in SKILL.md what the AI should do instead |
 | `skill_header_invalid` | `problem` | The header of SKILL.md {problem}: a SKILL.md opens with a line ---, then name and description on lines of their own, then a line ---, as Agent Skills have it |
-| `skill_name_invalid` | `name` | {name} is not the name of a skill: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, without a hyphen at either end or two in a row |
+| `skill_name_invalid` |  | The name of the skill is not valid: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, without a hyphen at either end or two in a row |
 | `skill_name_reserved` |  | The name cahut is kept for the skill of the plugin for Claude, which every AI of this Cahut reads: give your skill another name |
 | `skill_scope_individual` |  | This Cahut is individual, and has no skills of the Cahut: its people share the Cahut, not their work. Write the skill among your own, with the scope personal |
 | `skill_too_large` |  | This skill is too large: a SKILL.md holds 64 KiB at most, each of its files 2 MiB, and a skill 100 files and 4 MiB in all |
