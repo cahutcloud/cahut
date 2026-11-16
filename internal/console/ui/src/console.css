@@ -1301,6 +1301,16 @@
 	white-space: normal;
 	overflow-wrap: anywhere;
 }
+/* On a narrow screen, a sentence to copy takes the width, its button under it. */
+@media (max-width: 560px) {
+	.copy:has(> .copy__value--wrap) {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	.copy:has(> .copy__value--wrap) > .c-btn {
+		align-self: flex-start;
+	}
+}
 .confirm {
 	display: inline-flex;
 	flex-wrap: wrap;
@@ -2445,4 +2455,33 @@ select.c-input {
 	line-height: 1.6;
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
+}
+.skill-form {
+	align-content: start;
+}
+.skill-editor {
+	width: 100%;
+	font-family: var(--font-mono);
+	min-height: 18rem;
+	resize: vertical;
+	font-size: var(--text-sm);
+	line-height: 1.6;
+}
+.skill-path {
+	flex: 1 1 240px;
+	font-family: var(--font-mono);
+	min-width: 0;
+	font-size: var(--text-sm);
+}
+.skill-file--gone {
+	color: var(--color-text-muted);
+	text-decoration: line-through;
+}
+/* The button that adds files holds their field, hidden: it shows the
+   focus of the field. */
+.skill-add {
+	cursor: pointer;
+}
+.skill-add:has(:focus-visible) {
+	box-shadow: var(--ring);
 }
