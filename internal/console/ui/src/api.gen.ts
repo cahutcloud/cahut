@@ -439,9 +439,19 @@ export interface DeleteAccountInput {
   handle: string;
 }
 
+export interface DeleteInput {
+  /** the name of the skill, with its scope as a prefix if need be */
+  skill: string;
+}
+
 export interface DeleteRoomInput {
   /** the name of the team Room */
   room: string;
+}
+
+export interface Deleted {
+  skill: string;
+  deleted: boolean;
 }
 
 export interface DeletedRoom {
@@ -550,6 +560,17 @@ export interface Entry {
   address?: string;
 }
 
+export interface Export {
+  name: string;
+  /** the zip of the skill in base64, in a folder of its name, as AI clients install it */
+  zip: string;
+}
+
+export interface ExportInput {
+  /** the name of the skill, with its scope as a prefix if need be */
+  skill: string;
+}
+
 export interface File {
   /** relative path with / as separator, such as index.html or img/logo.svg */
   path: string;
@@ -558,19 +579,26 @@ export interface File {
   encoding?: string;
 }
 
-export interface FileInfo {
+export interface FileInput {
+  /** relative path with / as separator, such as references/deck.md or assets/logo.svg */
   path: string;
-  size: number;
-  /** media type */
-  type: string;
-  content?: string;
-  /** utf-8 or base64 */
+  content: string;
+  /** utf-8 (the default) or base64, for binary files */
   encoding?: string;
+}
+
+export interface FindInput {
+  /** words that the name, the description or the text of the skills hold, whatever their case and accents; every skill without it */
+  query?: string;
 }
 
 export interface FirstAdmin {
   handle: string;
   name: string;
+}
+
+export interface Found {
+  skills: Summary[];
 }
 
 export type GetAccountInput = Record<string, never>;
@@ -600,6 +628,17 @@ export interface HandleCheck {
   available: boolean;
   /** why it cannot: invalid, reserved or taken */
   reason?: string;
+}
+
+export interface HeaderProblem {
+  problem: string;
+}
+
+export interface ImportInput {
+  /** cahut for a skill of the team, which the administrators of the Cahut write, or personal for one of your own */
+  scope: string;
+  /** the zip of the skill in base64, with its SKILL.md at its root or in a single folder; it replaces every file of a skill of the same name */
+  zip: string;
 }
 
 export interface Info {
@@ -790,7 +829,7 @@ export interface Limits {
   windows?: number;
   /** how many Windows out of the trash each Room may hold, personal Rooms included */
   windows_per_room?: number;
-  /** how many bytes the Cahut may keep: every version of every Window, those in the trash included, and their data with its copies */
+  /** how many bytes the Cahut may keep: every version of every Window, those in the trash included, their data with its copies, and both versions of every skill */
   disk?: number;
   /** how many bytes the data of each Window may hold, its copies apart, up to 100 MiB */
   data_per_window?: number;
@@ -798,7 +837,7 @@ export interface Limits {
   rooms_per_person?: number;
   /** in an individual Cahut, how many Windows out of the trash each person may hold, over their Rooms */
   windows_per_person?: number;
-  /** in an individual Cahut, how many bytes the Windows of each person may keep, every version included */
+  /** in an individual Cahut, how many bytes the Windows and the skills of each person may keep, every version included */
   disk_per_person?: number;
 }
 
@@ -1095,7 +1134,7 @@ export interface PersonUsage {
   rooms: number;
   /** Windows out of the trash, over their Rooms */
   windows: number;
-  /** bytes of every version of the Windows of their Rooms, those in the trash included, and of their data */
+  /** bytes of every version of the Windows of their Rooms, those in the trash included, of their data, and of their skills */
   disk: number;
 }
 
@@ -1402,6 +1441,11 @@ export interface RollbackDataInput {
   copy?: string;
 }
 
+export interface RollbackInput {
+  /** the name of the skill, with its scope as a prefix if need be */
+  skill: string;
+}
+
 export interface RolledBackData {
   /** the copy the database went back to */
   restored: DataCopy;
@@ -1477,6 +1521,10 @@ export interface Run {
   result: string;
   /** why it did not update */
   reason?: string;
+}
+
+export interface ScriptPath {
+  path: string;
 }
 
 export interface SendTestMailInput {
@@ -1755,9 +1803,66 @@ export type SignOutInput = Record<string, never>;
 
 export type SignedOut = Record<string, never>;
 
+export interface Skill {
+  skill: string;
+  /** cahut for a skill of the team, personal for one of the person, builtin for the skill of the plugin */
+  scope?: string;
+  description?: string;
+  /** the digest of its current version */
+  version?: string;
+  /** the number of its current version */
+  number?: number;
+  /** the number of its previous version, which rollback_skill brings back */
+  previous?: number;
+  /** the handle of the person who wrote the current version, empty once that person is deleted */
+  written_by?: string;
+  written_at?: string;
+  /** console or import: how the current version came */
+  via?: string;
+  /** whether every Window of this Cahut follows it */
+  every_window?: boolean;
+  /** its SKILL.md */
+  text?: string;
+  files?: SkillFileInfo[];
+  note?: string;
+  file?: string;
+  content?: string;
+  /** utf-8 for text, base64 for anything else */
+  encoding?: string;
+}
+
+export interface SkillFileInfo {
+  path: string;
+  size: number;
+  /** its media type */
+  type: string;
+}
+
+export interface SkillGetInput {
+  /** the name of the skill as find_skills gives it, such as relance-facture, with its scope as a prefix if need be, such as cahut:charte-acme */
+  skill: string;
+  /** the path of one of its files, such as references/deck.md, to read that file */
+  file?: string;
+}
+
 export interface Started {
   /** the domain of the Cahut */
   domain: string;
+}
+
+export interface Summary {
+  /** its name, to give to get_skill; with its scope as a prefix, such as cahut:charte-acme, when the person has a skill of the same name in another scope */
+  skill: string;
+  /** cahut for a skill of the team, personal for one of the person, builtin for the skill of the plugin */
+  scope: string;
+  /** what the skill does, and when to follow it */
+  description: string;
+  /** the digest of its current version */
+  version: string;
+  /** the number of its current version */
+  number: number;
+  /** whether every Window of this Cahut follows it */
+  every_window?: boolean;
 }
 
 export interface SuspendCahutInput {
@@ -1852,7 +1957,7 @@ export interface Usage {
   rooms: number;
   /** Windows out of the trash */
   windows: number;
-  /** bytes of every version of every Window, those in the trash included, and of their data */
+  /** bytes of every version of every Window, those in the trash included, of their data, and of both versions of every skill */
   disk: number;
 }
 
@@ -1981,13 +2086,23 @@ export interface WindowDetail {
   /** the current version, then the previous one if there is one */
   versions: Version[];
   /** the files of the current version */
-  files: FileInfo[];
+  files: WindowFileInfo[];
   /** how many share links open the Window to someone new, besides its access */
   share_links: number;
   /** its share links, the latest first, without the links themselves */
   links: ShareLink[];
   /** its database, when its declaration keeps data: its tables, their columns and rows counted, and its copies */
   data?: DataInfo;
+}
+
+export interface WindowFileInfo {
+  path: string;
+  size: number;
+  /** media type */
+  type: string;
+  content?: string;
+  /** utf-8 or base64 */
+  encoding?: string;
 }
 
 export interface WindowGetInput {
@@ -2043,6 +2158,23 @@ export interface WithdrawnWindow {
   reason: string;
 }
 
+export interface WriteInput {
+  /** cahut for a skill of the team, which the administrators of the Cahut write, or personal for one of your own */
+  scope: string;
+  /** its name: 1 to 64 lowercase letters, digits and hyphens, the name in the header of its SKILL.md */
+  skill: string;
+  /** its SKILL.md; a new skill needs one, and a skill keeps its text without it */
+  text?: string;
+  /** the files to add or replace; the skill keeps those it does not name */
+  files?: FileInput[];
+  /** the paths of the files to remove */
+  remove?: string[];
+}
+
+export interface ZipProblem {
+  problem: string;
+}
+
 /** The operations of a Cahut, at POST /console/api/<operation> of its domain. */
 export interface CahutOperations {
   /** Choose a password from a single-use activation link, and sign in. */
@@ -2087,6 +2219,8 @@ export interface CahutOperations {
   delete_account: { input: DeleteAccountInput; output: DeletedUser };
   /** Delete a team Room for good, with its members and its Windows, those in its trash included, and their files: this cannot be undone. Its address becomes free. Its owners and the administrators of the Cahut delete it; a personal Room is never deleted. */
   delete_room: { input: DeleteRoomInput; output: DeletedRoom };
+  /** Delete a skill for good, both of its versions. */
+  delete_skill: { input: DeleteInput; output: Deleted };
   /** Delete a person for good: their account, their tokens and the AIs they connected, their personal Room and the team Rooms they are the only owner of, with the Windows of these Rooms and their files. This cannot be undone. The Windows they published in other Rooms stay, without an author. Their handle becomes free. No one deletes themself, nor the last administrator of the Cahut; disable_user stops a person and keeps what is theirs. */
   delete_user: { input: UserInput; output: DeletedUser };
   /** Refuse the request of an AI client to connect to this Cahut. Returns the address that tells the client so. */
@@ -2105,6 +2239,10 @@ export interface CahutOperations {
   dismiss_report: { input: DismissInput; output: Report };
   /** Enable a disabled person again: they can sign in, and their AIs can act with their tokens. */
   enable_user: { input: UserInput; output: User };
+  /** Export a skill as a zip, in a folder of its name, as AI clients install it. */
+  export_skill: { input: ExportInput; output: Export };
+  /** List the skills that the user reads: those of this Cahut, their own, and the skill of the plugin, each with its name, its scope, its description and its version. With query, find those whose name, description or text hold some words. */
+  find_skills: { input: FindInput; output: Found };
   /** Describe the person you act for: their handle, name, role in the Cahut and Rooms. */
   get_account: { input: GetAccountInput; output: Account };
   /** Describe this Cahut: its domain, the address where its Rooms and Windows open, that of its MCP endpoint, whether it sends e-mail, the links to its legal pages and its listings in the directories of AI clients, its kind, collaborative or individual, and its limits with what it holds: a call that would cross a limit is refused. */
@@ -2117,10 +2255,14 @@ export interface CahutOperations {
   get_mail_relay: { input: GetMailRelayInput; output: Delivery };
   /** Describe a Room of this Cahut: its title, its owners and members, and how many Windows it holds. */
   get_room: { input: RoomGetInput; output: RoomDetail };
+  /** Read a skill whole: its SKILL.md, its version, who wrote it, and the list of its files. With file, read that file. */
+  get_skill: { input: SkillGetInput; output: Skill };
   /** Describe one person of the Cahut, as list_users does, with their e-mail address. For the administrators of the Cahut. */
   get_user: { input: UserInput; output: User };
   /** Describe a Window of this Cahut and list its files, optionally with their contents. */
   get_window: { input: WindowGetInput; output: WindowDetail };
+  /** Import a skill from its zip, as AI clients export them, into the skills of the Cahut, for its administrators, or among your own. A skill of the same name gets a new version, with the files of the zip only. */
+  import_skill: { input: ImportInput; output: Skill };
   /** Send the address of a Window by e-mail, with a note: to people of the Cahut, named by handle, who sign in to read it, or to anyone else, named by address, when the Window opens with its Key or to the public. For a Window with a Key, each address gets a personal link that opens it for them alone, until revoke_invitation takes it back; the Key itself never goes. 20 people a call, and 100 invitations a day. get_cahut says whether the Cahut sends e-mail. */
   invite_to_window: { input: InviteInput; output: Invited };
   /** List the AIs connected over OAuth, newest first, with the person each acts for, its scope and its Rooms. */
@@ -2183,6 +2325,8 @@ export interface CahutOperations {
   revoke_share_link: { input: RevokeShareLinkInput; output: ShareLink };
   /** Revoke a personal token. The AI that used it loses access at once. */
   revoke_token: { input: RevokeTokenInput; output: TokenInfo };
+  /** Bring back the previous version of a skill, which keeps the current one as its previous version. */
+  rollback_skill: { input: RollbackInput; output: Skill };
   /** Go back to the previous version of a Window of this Cahut. The version you leave becomes the previous one, so calling rollback_window again returns to it. */
   rollback_window: { input: RefInput; output: Window };
   /** Put the database of a Window back as a copy has it, the latest by default: what readers wrote since is lost. The database as it was becomes a copy, so calling it again undoes it. */
@@ -2233,6 +2377,8 @@ export interface CahutOperations {
   update_window: { input: UpdateInput; output: Window };
   /** Withdraw a Window of this Cahut that a report names, or a public Window, with a reason for the members of its Room. It keeps everything, and serves nothing to its readers until reinstate_window: its addresses and its share links say that it was withdrawn. It decides the reports that wait about it. Withdrawing a withdrawn Window changes its reason. For the moderators of this Cahut. */
   withdraw_window: { input: WithdrawInput; output: Moderated };
+  /** Write a skill of the Cahut, for its administrators, or one of your own, as a new version: its SKILL.md, the files to add or replace, and those to remove. The previous version stays, and rollback_skill brings it back. */
+  write_skill: { input: WriteInput; output: Skill };
 }
 
 /** The operations of the server, at POST /server/api/<operation>, for its administrators. */
@@ -2400,6 +2546,22 @@ export interface Refusals {
   share_link_public: At;
   /** ends_at {ends_at}: a share link lasts 30 days at most, until {latest}: give an end before it, or none for 7 days */
   share_link_too_long: LinkEnd;
+  /** {path} is under scripts/, and a skill of a Cahut holds no scripts: some AI clients run them on the computer of each person, and a script would be code that someone changes from afar. Leave out scripts/, and say in SKILL.md what the AI should do instead */
+  skill_has_scripts: ScriptPath;
+  /** the header of SKILL.md {problem}: a SKILL.md opens with a line ---, then name and description on lines of their own, then a line ---, as Agent Skills have it */
+  skill_header_invalid: HeaderProblem;
+  /** the name of the skill is not valid: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, without a hyphen at either end or two in a row */
+  skill_name_invalid: null;
+  /** the name cahut is kept for the skill of the plugin for Claude, which every AI of this Cahut reads: give your skill another name */
+  skill_name_reserved: null;
+  /** this Cahut is individual, and has no skills of the Cahut: its people share the Cahut, not their work. Write the skill among your own, with the scope personal */
+  skill_scope_individual: null;
+  /** this skill is too large: a SKILL.md holds 64 KiB at most, each of its files 2 MiB, and a skill 100 files and 4 MiB in all */
+  skill_too_large: null;
+  /** this scope holds 50 skills, the most it may: delete one before you add another */
+  skill_too_many: null;
+  /** the zip {problem}: give the zip of a skill, with its SKILL.md at its root or in a single folder, as AI clients export them */
+  skill_zip_invalid: ZipProblem;
   /** tag {tag}: use 1 to 32 letters, digits and hyphens, such as q3-review */
   tag_invalid: GivenTag;
   /** {count} tags: give a Window {limit} at most */

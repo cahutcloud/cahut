@@ -133,6 +133,10 @@ type Op[In, Out any] struct {
 	PeopleOnly bool
 	// Visitors may call the operation before they sign in: it signs them in.
 	Visitors bool
+	// LargeRequest operations take a larger call on the API of the console,
+	// such as import_skill, whose zip is 4 MiB at most. See
+	// docs/adr/0064-the-skills-of-a-cahut.md.
+	LargeRequest bool
 	// KnockFirst operations cannot be undone, or change what a person may
 	// do. An AI needs the approval of a person to run one: its call makes a
 	// Knock. See docs/adr/0021-ais-knock-first.md.
@@ -193,6 +197,7 @@ type Info struct {
 	InIndividual Level
 	PeopleOnly   bool
 	Visitors     bool
+	LargeRequest bool
 	KnockFirst   bool
 	KnocksWhen   string
 	Destructive  bool
@@ -511,6 +516,7 @@ func (op *Op[In, Out]) info() Info {
 		InIndividual:   op.InIndividual,
 		PeopleOnly:     op.PeopleOnly,
 		Visitors:       op.Visitors,
+		LargeRequest:   op.LargeRequest,
 		KnockFirst:     op.KnockFirst,
 		KnocksWhen:     op.KnocksWhen,
 		Destructive:    op.Destructive,

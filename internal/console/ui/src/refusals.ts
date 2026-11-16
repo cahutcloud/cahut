@@ -121,6 +121,18 @@ const said = words<Sentences>({
 		share_link_openings: (v) => `Give a number of readers from 1 to ${v.limit}, or none for any number.`,
 		share_link_public: () => "This Window is public: its permanent address opens it to anyone. Copy that link instead.",
 		share_link_too_long: (v) => `A share link lasts 30 days at most: give an end before ${when(v.latest)}.`,
+		skill_has_scripts: (v) =>
+			`"${v.path}" is under scripts/, and a skill of a Cahut holds no scripts: some AIs would run them on the computer of each person. Leave out scripts/, and say in SKILL.md what to do instead.`,
+		skill_header_invalid: () =>
+			"The header of SKILL.md is not valid: it opens with a line ---, gives name and description, each on a line of its own, then closes with a line ---.",
+		skill_name_invalid:
+			"This cannot be the name of a skill: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, without a hyphen at either end or two in a row.",
+		skill_name_reserved: "The name cahut is kept for the skill of the plugin for Claude: give your skill another name.",
+		skill_scope_individual: "This Cahut is individual, and has no skills of the Cahut: write the skill among your own.",
+		skill_too_large: "This skill is too large: a SKILL.md holds 64 KiB at most, each of its files 2 MiB, and a skill 100 files and 4 MiB in all.",
+		skill_too_many: "There are 50 skills here already, the most there may be: delete one before you add another.",
+		skill_zip_invalid: () =>
+			"This is not the zip of a skill: it holds a SKILL.md at its root or in a single folder, as AI clients export them, and no link or path that leaves it.",
 		tag_invalid: (v) => `"${v.tag}" cannot be a tag: use 1 to 32 letters, digits and hyphens, such as q3-review.`,
 		tags_too_many: (v) => `${v.count} tags, and a Window carries ${v.limit} at most: remove some.`,
 		title_empty: "The title is empty: give one.",
@@ -227,6 +239,18 @@ const said = words<Sentences>({
 		share_link_openings: (v) => `Donnez un nombre de lecteurs de 1 à ${v.limit}, ou aucun pour un nombre sans limite.`,
 		share_link_public: () => "Cette Window est publique : son adresse permanente l'ouvre à tous. Copiez plutôt ce lien.",
 		share_link_too_long: (v) => `Un lien de partage dure 30 jours au plus : donnez une fin avant le ${when(v.latest)}.`,
+		skill_has_scripts: (v) =>
+			`« ${v.path} » est sous scripts/, et un skill d'une Cahut ne contient pas de scripts : certaines IA les exécuteraient sur l'ordinateur de chaque personne. Retirez scripts/, et dites dans le SKILL.md quoi faire à la place.`,
+		skill_header_invalid: () =>
+			"L'en-tête du SKILL.md n'est pas valable : il s'ouvre sur une ligne ---, donne name et description, chacun sur sa ligne, puis se ferme sur une ligne ---.",
+		skill_name_invalid:
+			"Ce ne peut pas être le nom d'un skill : utilisez de 1 à 64 lettres minuscules, chiffres et tirets, comme charte-acme, sans tiret au début, à la fin ni deux de suite.",
+		skill_name_reserved: "Le nom cahut est réservé au skill du plugin pour Claude : donnez un autre nom à votre skill.",
+		skill_scope_individual: "Cette Cahut est individuelle, et n'a pas de skills de la Cahut : écrivez le skill parmi les vôtres.",
+		skill_too_large: "Ce skill est trop gros : un SKILL.md fait 64 Kio au plus, chacun de ses fichiers 2 Mio, et un skill 100 fichiers et 4 Mio en tout.",
+		skill_too_many: "Il y a déjà 50 skills ici, le maximum : supprimez-en un avant d'en ajouter un autre.",
+		skill_zip_invalid: () =>
+			"Ce n'est pas le zip d'un skill : il contient un SKILL.md à sa racine ou dans un seul dossier, comme les clients d'IA les exportent, sans lien ni chemin qui en sorte.",
 		tag_invalid: (v) => `« ${v.tag} » ne peut pas être un tag : utilisez de 1 à 32 lettres, chiffres et tirets, comme q3-bilan.`,
 		tags_too_many: (v) => `${v.count} tags, et une Window en porte ${v.limit} au plus : retirez-en.`,
 		title_empty: "Le titre est vide : donnez-en un.",

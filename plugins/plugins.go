@@ -66,3 +66,14 @@ func makeZip() ([]byte, error) {
 	}
 	return b.Bytes(), nil
 }
+
+// SkillFS returns the files of the skill for Claude, with its SKILL.md at
+// the root: each Cahut gives it to every AI as its skill of the plugin.
+// See docs/adr/0064-the-skills-of-a-cahut.md.
+func SkillFS() fs.FS {
+	sub, err := fs.Sub(skill, "cahut/skills/"+SkillName)
+	if err != nil {
+		panic(err) // the folder is embedded: only a programming error fails
+	}
+	return sub
+}
