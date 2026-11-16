@@ -1,6 +1,6 @@
 # Cahut · Charte graphique
 
-Version 1.11 · 5 novembre 2026 · Olivier Durand
+Version 1.12 · 16 novembre 2026 · Olivier Durand
 
 ![Cahut, la maison ouverte](illustrations/maison-ouverte.png)
 
@@ -234,6 +234,7 @@ En secours : `ui-sans-serif, system-ui, "Segoe UI", sans-serif` et `ui-monospace
 | Type et limites | [`limits.svg`](icones/navigation/limits.svg) | Kind and limits |
 | E-mail | [`email.svg`](icones/navigation/email.svg) | E-mail |
 | Modération | [`moderation.svg`](icones/navigation/moderation.svg) | Moderation : un drapeau, celui qu'on lève pour signaler |
+| Skills | [`skills.svg`](icones/navigation/skills.svg) | Skills : un livre ouvert, ce que l'équipe sait faire et que ses IA suivent |
 | Administrateurs du serveur | [`server-admins.svg`](icones/navigation/server-admins.svg) | Server administrators |
 | Mises à jour | [`updates.svg`](icones/navigation/updates.svg) | Updates |
 
@@ -447,5 +448,6 @@ charte-graphique/
 | 1.9 | 29 octobre 2026 | La carte d'une Window, que chaque Cahut dessine pour les aperçus de ses liens ([ADR 51](../adr/0051-sharing-a-window-and-its-preview.md)), rejoint les applications (§ 10), avec son rendu `carte-window.png` |
 | 1.10 | 30 octobre 2026 | Un pictogramme de navigation pour la modération, [`moderation.svg`](icones/navigation/moderation.svg) : un drapeau, celui qu'on lève pour signaler une Window ([ADR 54](../adr/0054-reporting-and-withdrawing-a-window.md)). La planche des pictogrammes le montre |
 | 1.11 | 5 novembre 2026 | Un export du logo horizontal de 320 px, [`cahut-logo-horizontal-320px.png`](logos/png/cahut-logo-horizontal-320px.png), pour les e-mails, à la place de celui de 800 px, qu'Apple Mail décalait et coupait sur un écran étroit (§ 2, *Les versions*) |
+| 1.12 | 16 novembre 2026 | Un pictogramme de navigation pour les skills, [`skills.svg`](icones/navigation/skills.svg) : un livre ouvert, sa page de gauche en Sky 300, ce que l'équipe sait faire et que ses IA suivent ([ADR 64](../adr/0064-the-skills-of-a-cahut.md)). La planche des pictogrammes le montre |
 
 **Crédits.** Polices Plus Jakarta Sans (Tokotype) et IBM Plex Mono (IBM), licence SIL Open Font License 1.1. Icônes d'interface Lucide, licence ISC. Photos Unsplash, licence Unsplash, crédits ci-dessus.
