@@ -33,7 +33,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [27](0027-previews-of-windows-in-the-console.md) | The console shows each Window in a live preview | Accepted, extended by 32, superseded in part by 50 |
 | [28](0028-ip-address-of-a-cahut-is-ipv4.md) | The IP address of a Cahut is an IPv4 address, for now | Accepted |
 | [29](0029-chatgpt-second-ai-client.md) | ChatGPT is the second AI client of the V0, through the same tools as Claude | Accepted, superseded in part by 49 and 57 |
-| [30](0030-kind-and-limits-of-each-cahut.md) | Each Cahut has a kind and limits, set by the administrators of its server | Accepted, extended by 42, 48 and 56, superseded in part by 49 |
+| [30](0030-kind-and-limits-of-each-cahut.md) | Each Cahut has a kind and limits, set by the administrators of its server | Accepted, extended by 42, 48, 56 and 64, superseded in part by 49 |
 | [31](0031-e-mail-through-a-relay.md) | Each Cahut sends e-mail through its own relay or that of its server | Accepted, superseded in part by 34 and 46, extended by 60 |
 | [32](0032-the-page-of-a-room.md) | The page of a Room shows its Windows in previews, or a Window that its owners choose, in the brand of Cahut until the house style | Accepted, extended by 33, superseded in part by 38 and 49 |
 | [33](0033-the-brand-of-cahut-until-the-house-style-has-a-look.md) | The pages of Cahut carry its brand until the house style has a look of its own | Superseded by 49 |
@@ -52,7 +52,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [46](0046-styled-notes-in-invitations.md) | The note of an invitation carries bold, italics and lists | Accepted |
 | [47](0047-deleting-a-person.md) | The administrators of a Cahut delete a person for good, with the Rooms that are theirs alone | Accepted, superseded in part by 59 |
 | [48](0048-suspending-a-cahut.md) | The administrators of the server suspend a Cahut, which keeps everything and serves nothing until they resume it | Accepted |
-| [49](0049-no-house-style.md) | Cahut has no house style, until a module of skills brings the brand of an organization | Accepted |
+| [49](0049-no-house-style.md) | Cahut has no house style, until a module of skills brings the brand of an organization | Accepted, extended by 64 |
 | [50](0050-window-ids-permanent-addresses-and-names.md) | Each Window has an id that never changes and a permanent address, and its people change its name, its title and its description | Accepted, extended by 52 |
 | [51](0051-sharing-a-window-and-its-preview.md) | People share a Window by its permanent address, which shows the robots of previews a card of Cahut | Accepted, extended by 52 |
 | [52](0052-share-links.md) | A share link opens a Window to whoever holds it, without an account or a Key, until it ends | Accepted, extended by 53 and 54 |
@@ -67,6 +67,7 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [61](0061-a-guide-to-the-first-ai.md) | The console guides each person to a first AI, a first Window and a first share, and leads to the listing of its Cahut in the directory of Claude | Accepted, superseded in part by 63 |
 | [62](0062-a-sign-in-refused-during-a-wait-does-not-prolong-it.md) | A sign-in refused during a wait does not prolong it, and its refusal says when the wait ends | Accepted |
 | [63](0063-chatgpt-on-every-plan.md) | ChatGPT publishes on every plan, and the first steps no longer ask for its plan | Accepted |
+| [64](0064-the-skills-of-a-cahut.md) | A Cahut keeps the skills of its team and of each person, and every AI connected to it finds them in its list of tools | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

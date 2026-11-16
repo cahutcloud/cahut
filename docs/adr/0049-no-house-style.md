@@ -1,6 +1,6 @@
 # 49. Cahut has no house style, until a module of skills brings the brand of an organization
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 64](0064-the-skills-of-a-cahut.md) (the skills of a Cahut bring the brand of an organization to its Windows)
 - Date: 2026-10-29
 
 ## Context
