@@ -759,6 +759,24 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 		return Found{}, err
 	}
 
+	if b := builtinOf(c); b != nil && b.matches(words) {
+		skills = append(skills, Summary{Skill: BuiltinName, Scope: ScopeBuiltin, Description: b.description, Version: b.digest, Number: 1})
+	}
+	// The skills of each scope go by their names, before any takes the
+	// prefix of its scope, those for every Window first.
+	rank := map[Scope]int{ScopeCahut: 0, ScopePersonal: 1, ScopeBuiltin: 2}
+	slices.SortStableFunc(skills, func(a, b Summary) int {
+		if d := cmp.Compare(rank[a.Scope], rank[b.Scope]); d != 0 {
+			return d
+		}
+		if a.EveryWindow != b.EveryWindow {
+			if a.EveryWindow {
+				return -1
+			}
+			return 1
+		}
+		return cmp.Compare(a.Skill, b.Skill)
+	})
 	// A name that the person reads in two scopes takes its scope as a
 	// prefix, though the other may not hold the words of the query.
 	twice := make([]bool, len(skills))
@@ -774,22 +792,6 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 			skills[i].Skill = string(s.Scope) + ":" + s.Skill
 		}
 	}
-	if b := builtinOf(c); b != nil && b.matches(words) {
-		skills = append(skills, Summary{Skill: BuiltinName, Scope: ScopeBuiltin, Description: b.description, Version: b.digest, Number: 1})
-	}
-	rank := map[Scope]int{ScopeCahut: 0, ScopePersonal: 1, ScopeBuiltin: 2}
-	slices.SortStableFunc(skills, func(a, b Summary) int {
-		if d := cmp.Compare(rank[a.Scope], rank[b.Scope]); d != 0 {
-			return d
-		}
-		if a.EveryWindow != b.EveryWindow {
-			if a.EveryWindow {
-				return -1
-			}
-			return 1
-		}
-		return cmp.Compare(a.Skill, b.Skill)
-	})
 	// The Logbook keeps that a search took place, never its words: the
 	// administrators read it all.
 	if len(words) > 0 {

@@ -427,6 +427,11 @@ func TestTheSameNameInTwoScopes(t *testing.T) {
 	if got := f.find(t, f.bruno, "relance"); !slices.Equal(got, []string{"cahut relance-facture"}) {
 		t.Errorf("find_skills by bruno = %q", got)
 	}
+	// The skills of a scope go by their names, whatever the prefix of some.
+	f.write(t, f.camille, WriteInput{Scope: ScopePersonal, Skill: "plan-de-charge", Text: textOf("plan-de-charge", "Mon plan de charge.", "")})
+	if got := f.find(t, f.camille, ""); !slices.Equal(got, []string{"cahut cahut:relance-facture", "personal plan-de-charge", "personal personal:relance-facture", "builtin cahut"}) {
+		t.Errorf("find_skills by camille = %q", got)
+	}
 }
 
 func TestAnAmbiguousNameIsRefused(t *testing.T) {
