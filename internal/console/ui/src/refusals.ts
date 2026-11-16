@@ -121,6 +121,7 @@ const said = words<Sentences>({
 		share_link_openings: (v) => `Give a number of readers from 1 to ${v.limit}, or none for any number.`,
 		share_link_public: () => "This Window is public: its permanent address opens it to anyone. Copy that link instead.",
 		share_link_too_long: (v) => `A share link lasts 30 days at most: give an end before ${when(v.latest)}.`,
+		skill_admins_only: "Only the administrators of this Cahut write its skills: write this one among your own.",
 		skill_has_scripts: (v) =>
 			`"${v.path}" is under scripts/, and a skill of a Cahut holds no scripts: some AIs would run them on the computer of each person. Leave out scripts/, and say in SKILL.md what to do instead.`,
 		skill_header_invalid: () =>
@@ -129,6 +130,7 @@ const said = words<Sentences>({
 		skill_name_invalid:
 			"This cannot be the name of a skill: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, without a hyphen at either end or two in a row.",
 		skill_name_reserved: "The name cahut is kept for the skill of the plugin for Claude: give your skill another name.",
+		skill_not_found: "There is no skill of this name that you may read: it may have been deleted.",
 		skill_path_conflict: (v) =>
 			`"${v.path}" clashes with another file of the skill: give each file once, whatever its case, and never a file where a folder goes.`,
 		skill_path_invalid: (v) =>
@@ -244,6 +246,7 @@ const said = words<Sentences>({
 		share_link_openings: (v) => `Donnez un nombre de lecteurs de 1 à ${v.limit}, ou aucun pour un nombre sans limite.`,
 		share_link_public: () => "Cette Window est publique : son adresse permanente l'ouvre à tous. Copiez plutôt ce lien.",
 		share_link_too_long: (v) => `Un lien de partage dure 30 jours au plus : donnez une fin avant le ${when(v.latest)}.`,
+		skill_admins_only: "Seuls les administrateurs de cette Cahut écrivent ses skills : écrivez celui-ci parmi les vôtres.",
 		skill_has_scripts: (v) =>
 			`« ${v.path} » est sous scripts/, et un skill d'une Cahut ne contient pas de scripts : certaines IA les exécuteraient sur l'ordinateur de chaque personne. Retirez scripts/, et dites dans le SKILL.md quoi faire à la place.`,
 		skill_header_invalid: () =>
@@ -252,6 +255,7 @@ const said = words<Sentences>({
 		skill_name_invalid:
 			"Ce ne peut pas être le nom d'un skill : utilisez de 1 à 64 lettres minuscules, chiffres et tirets, comme charte-acme, sans tiret au début, à la fin ni deux de suite.",
 		skill_name_reserved: "Le nom cahut est réservé au skill du plugin pour Claude : donnez un autre nom à votre skill.",
+		skill_not_found: "Il n'y a pas de skill de ce nom que vous puissiez lire : il a peut-être été supprimé.",
 		skill_path_conflict: (v) =>
 			`« ${v.path} » se heurte à un autre fichier du skill : donnez chaque fichier une fois, quelle que soit sa casse, et jamais un fichier là où va un dossier.`,
 		skill_path_invalid: (v) =>

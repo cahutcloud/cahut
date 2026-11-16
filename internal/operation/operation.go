@@ -369,6 +369,25 @@ func Forbiddenf(format string, args ...any) error {
 	return fmt.Errorf("%w: %s", ErrForbidden, fmt.Sprintf(format, args...))
 }
 
+// loggedAs is an error that its caller reads whole, and that the Logbook
+// keeps as another message.
+type loggedAs struct {
+	error
+	logged string
+}
+
+func (e loggedAs) Unwrap() error { return e.error }
+
+// LogAs returns err, which its caller reads as it is, and which the Logbook
+// keeps as logged: a refusal that names what the administrators who read
+// the Logbook must not read, such as a file of a personal skill.
+func LogAs(err error, logged string) error {
+	if err == nil {
+		return nil
+	}
+	return loggedAs{error: err, logged: logged}
+}
+
 // Public reports whether the message of err may be shown to the caller.
 func Public(err error) bool {
 	return errors.Is(err, ErrInvalid) || errors.Is(err, ErrNotFound) ||
@@ -696,6 +715,9 @@ func (r *Registry) entry(info Info, c *Call, err error) logbook.Entry {
 			e.Outcome = logbook.Refused
 		}
 		e.Error = err.Error()
+		if l, ok := errors.AsType[loggedAs](err); ok {
+			e.Error = l.logged
+		}
 	}
 	return e
 }

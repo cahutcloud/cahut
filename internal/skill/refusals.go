@@ -1,6 +1,7 @@
 package skill
 
 import (
+	"errors"
 	"unicode/utf8"
 
 	"cahut.cloud/internal/operation"
@@ -83,4 +84,32 @@ func pathOf(p string) FilePath {
 		p = p[:cut] + "..."
 	}
 	return FilePath{Path: operation.Quoted(p)}
+}
+
+var (
+	errNotFound = operation.NewRefusal("skill_not_found", operation.ErrNotFound,
+		"there is no skill of this name that you may read: find_skills lists them")
+	errNotAdmin = operation.NewRefusal("skill_admins_only", operation.ErrForbidden,
+		"only the administrators of this Cahut write its skills: write the skill among your own, with the scope personal")
+)
+
+// private returns err, the refusal of a write or an import in scope, which
+// the Logbook keeps without its message for a personal skill: the message
+// may name a file of the skill, and the administrators read the whole
+// Logbook. The person reads it whole.
+func private(scope Scope, err error) error {
+	if scope != ScopePersonal || !operation.Public(err) {
+		return err
+	}
+	logged := "refused"
+	for _, kind := range []error{operation.ErrInvalid, operation.ErrNotFound, operation.ErrForbidden, operation.ErrTooMany} {
+		if errors.Is(err, kind) {
+			logged = kind.Error()
+			break
+		}
+	}
+	if r, ok := errors.AsType[*operation.Refusal](err); ok {
+		logged += ": " + r.Code
+	}
+	return operation.LogAs(err, logged+", about a personal skill")
 }

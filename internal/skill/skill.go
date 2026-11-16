@@ -180,9 +180,10 @@ var WriteSkill = &operation.Op[WriteInput, Skill]{
 	Run: func(ctx context.Context, c *operation.Call, in WriteInput) (Skill, error) {
 		files, err := decodeFiles(in.Files)
 		if err != nil {
-			return Skill{}, err
+			return Skill{}, private(in.Scope, err)
 		}
-		return apply(ctx, c, change{scope: in.Scope, name: in.Skill, text: in.Text, files: files, remove: in.Remove, via: "console"})
+		s, err := apply(ctx, c, change{scope: in.Scope, name: in.Skill, text: in.Text, files: files, remove: in.Remove, via: "console"})
+		return s, private(in.Scope, err)
 	},
 }
 
@@ -207,18 +208,19 @@ var ImportSkill = &operation.Op[ImportInput, Skill]{
 		}
 		text, files, err := ReadZip(data)
 		if err != nil {
-			return err
+			return private(in.Scope, err)
 		}
 		h, err := ParseText(text)
 		if err != nil {
-			return err
+			return private(in.Scope, err)
 		}
 		c.Keep(imported{name: h.Name, text: text, files: files})
 		return nil
 	},
 	Run: func(ctx context.Context, c *operation.Call, in ImportInput) (Skill, error) {
 		z := c.Kept().(imported)
-		return apply(ctx, c, change{scope: in.Scope, name: z.name, text: z.text, files: z.files, replace: true, via: "import"})
+		s, err := apply(ctx, c, change{scope: in.Scope, name: z.name, text: z.text, files: z.files, replace: true, via: "import"})
+		return s, private(in.Scope, err)
 	},
 }
 
@@ -395,7 +397,7 @@ func resolve(ctx context.Context, c *operation.Call, ref string) (target, error)
 	}
 	switch len(found) {
 	case 0:
-		return target{}, operation.NotFoundf("no skill %q that you may read: find_skills lists them", ref)
+		return target{}, errNotFound
 	case 1:
 		return found[0], nil
 	}
@@ -413,8 +415,6 @@ func writable(c *operation.Call, t target) error {
 	}
 	return nil
 }
-
-var errNotAdmin = operation.Forbiddenf("only the administrators of this Cahut write its skills: write the skill among your own, with the scope personal")
 
 // ownerFor returns the person whose skill a write in scope makes, zero for
 // the Cahut, or an error when the person who acts may not write there.
@@ -502,6 +502,11 @@ func apply(ctx context.Context, c *operation.Call, ch change) (Skill, error) {
 	}
 	if h.Name != ch.name {
 		return Skill{}, errNameDiffers
+	}
+	// Cahut keeps the text that AIs read, its name and description in
+	// double quotes: the same text written back makes no new version.
+	if text, err = RenderText(text); err != nil {
+		return Skill{}, err
 	}
 	if files, err = merge(files, ch.files, ch.remove); err != nil {
 		return Skill{}, err

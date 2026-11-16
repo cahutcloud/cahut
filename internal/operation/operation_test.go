@@ -487,3 +487,25 @@ func TestRegister(t *testing.T) {
 		}()
 	}
 }
+
+// An error that LogAs wraps reaches its caller whole, and the Logbook keeps
+// the other message: a refusal about what an administrator must not read.
+func TestAFailureLoggedAsAnotherMessage(t *testing.T) {
+	r, db := testRegistry(t)
+	refusal := NewRefusalOf[struct {
+		Path Quoted `json:"path"`
+	}]("test_path", ErrInvalid, "{path} is not a path")
+	op := createRoom(LogAs(refusal(struct {
+		Path Quoted `json:"path"`
+	}{Path: "secret.md"}), "invalid input: test_path"))
+	Register(r, op)
+	_, err := Do(context.Background(), r, op, admin, roomIn{Name: "Team"})
+	var re *Refusal
+	if !errors.Is(err, ErrInvalid) || !errors.As(err, &re) || re.Code != "test_path" || !strings.Contains(err.Error(), "secret.md") {
+		t.Fatalf("err = %v, want the refusal test_path with its path", err)
+	}
+	got := entries(t, db)
+	if len(got) != 1 || got[0].Error != "invalid input: test_path" {
+		t.Errorf("entries = %+v", got)
+	}
+}

@@ -2552,6 +2552,8 @@ export interface Refusals {
   share_link_public: At;
   /** ends_at {ends_at}: a share link lasts 30 days at most, until {latest}: give an end before it, or none for 7 days */
   share_link_too_long: LinkEnd;
+  /** only the administrators of this Cahut write its skills: write the skill among your own, with the scope personal */
+  skill_admins_only: null;
   /** {path} is under scripts/, and a skill of a Cahut holds no scripts: some AI clients run them on the computer of each person, and a script would be code that someone changes from afar. Leave out scripts/, and say in SKILL.md what the AI should do instead */
   skill_has_scripts: ScriptPath;
   /** the header of SKILL.md {problem}: a SKILL.md opens with a line ---, then name and description on lines of their own, then a line ---, as Agent Skills have it */
@@ -2562,6 +2564,8 @@ export interface Refusals {
   skill_name_invalid: null;
   /** the name cahut is kept for the skill of the plugin for Claude, which every AI of this Cahut reads: give your skill another name */
   skill_name_reserved: null;
+  /** there is no skill of this name that you may read: find_skills lists them */
+  skill_not_found: null;
   /** {path} clashes with another file of the skill: give each path once, whatever its case, never as both a file and a folder, and never as both written and removed */
   skill_path_conflict: FilePath;
   /** {path} is not the path of a file of a skill: use a relative path of printable characters with / between folders, such as references/deck.md, of 255 bytes at most, with no part that starts with a dot, and not SKILL.md, which is the text of the skill */
