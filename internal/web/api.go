@@ -31,9 +31,12 @@ import (
 // MaxAPIRequestSize bounds the body of a request to the API. The console
 // does not publish: Windows come from AIs, over MCP. The calls of visitors,
 // who sign in, take a handle, a password or a code: MaxVisitorRequestSize.
+// The operations that take a large call, such as import_skill and its zip
+// of 4 MiB in base64, take MaxLargeAPIRequestSize.
 const (
-	MaxAPIRequestSize     = 1 << 20
-	MaxVisitorRequestSize = 16 << 10
+	MaxAPIRequestSize      = 1 << 20
+	MaxVisitorRequestSize  = 16 << 10
+	MaxLargeAPIRequestSize = 6 << 20
 )
 
 // The calls that sign in, which take no session, are limited by address: a
@@ -144,8 +147,11 @@ func (s *Server) callAPI(w http.ResponseWriter, r *http.Request, reg *operation.
 		return
 	}
 	limit := int64(MaxAPIRequestSize)
-	if info.Visitors {
+	switch {
+	case info.Visitors:
 		limit = MaxVisitorRequestSize
+	case info.LargeRequest:
+		limit = MaxLargeAPIRequestSize
 	}
 	body, ok := readCall(w, r, limit)
 	if !ok {

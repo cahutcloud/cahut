@@ -196,7 +196,8 @@ var ImportSkill = &operation.Op[ImportInput, Skill]{
 	Title: "Import a skill",
 	Description: "Import a skill from its zip, as AI clients export them, into the skills of the Cahut, for its administrators, or among your own. " +
 		"A skill of the same name gets a new version, with the files of the zip only.",
-	PeopleOnly: true,
+	PeopleOnly:   true,
+	LargeRequest: true,
 	Prepare: func(_ context.Context, c *operation.Call, in ImportInput) error {
 		data, err := base64.StdEncoding.DecodeString(in.Zip)
 		if err != nil {
