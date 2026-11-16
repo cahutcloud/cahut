@@ -252,6 +252,17 @@ export interface CahutDomain {
   domain: string;
 }
 
+export interface CatalogPreview {
+  /** what the description of find_skills carries after its own words; empty when the Cahut has no skills, or is individual */
+  catalog: string;
+  /** the bytes of JSON that it takes in the list of tools */
+  bytes: number;
+  /** the bytes that it may take */
+  budget: number;
+  /** the names of the skills that do not fit, which AIs find with find_skills */
+  left: string[];
+}
+
 export interface ChangeDataInput {
   /** the Window's id or address, or room/name */
   window: string;
@@ -1150,6 +1161,8 @@ export interface Preview {
   /** when the frame stops showing the Window, if the session has not ended before */
   expires_at: string;
 }
+
+export type PreviewCatalogInput = Record<string, never>;
 
 export interface PreviewInput {
   /** the Windows to preview, by their address or as room/name, at most 100 */
@@ -2247,7 +2260,7 @@ export interface CahutOperations {
   enable_user: { input: UserInput; output: User };
   /** Export a skill as a zip, in a folder of its name, as AI clients install it. */
   export_skill: { input: ExportInput; output: Export };
-  /** List the skills that the user reads: those of this Cahut, their own, and the skill of the plugin, each with its name, its scope, its description and its version. With query, find those whose name, description or text hold some words. */
+  /** The skills of this Cahut: how the user's team wants some tasks done, whatever the task, such as an e-mail, a report or a deck. Before a task, read with get_skill the skill whose description fits it, and follow it. Without query, list every skill that the user reads, their own included; with query, those whose name, description or text hold some words. */
   find_skills: { input: FindInput; output: Found };
   /** Describe the person you act for: their handle, name, role in the Cahut and Rooms. */
   get_account: { input: GetAccountInput; output: Account };
@@ -2299,6 +2312,8 @@ export interface CahutOperations {
   open_share_link: { input: OpenShareLinkInput; output: ShareLinkOpening };
   /** Get the frame that shows, in the console, the Window of a report that waits, whatever its access, for four hours at most. The members of its Room read in the Logbook that a moderator opened it. For the moderators of this Cahut. */
   preview_reported_window: { input: PreviewReportedInput; output: ReportedPreview };
+  /** Show the catalog of the skills of this Cahut as AIs receive it in the description of find_skills, the bytes it takes, its budget, and the skills that do not fit. For the administrators of the Cahut. */
+  preview_skill_catalog: { input: PreviewCatalogInput; output: CatalogPreview };
   /** Get the frames that show Windows of your Rooms in the console, as previews: each opens one Window, while your session lasts and four hours at most. */
   preview_windows: { input: PreviewInput; output: Previews };
   /** Publish a new Window in this Cahut: a document, deck, dashboard or site made of HTML and its files, in a Room of the person you act for, by default their personal Room. Returns the address where it opens. */

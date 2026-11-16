@@ -7,6 +7,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/settings"
 )
 
@@ -126,4 +127,38 @@ func moreSkills(n int) string {
 func jsonBytes(s string) int {
 	b, _ := json.Marshal(s) // a string always encodes
 	return len(b) - 2
+}
+
+// PreviewCatalogInput is the input of preview_skill_catalog.
+type PreviewCatalogInput struct{}
+
+// CatalogPreview is the catalog as AIs receive it.
+type CatalogPreview struct {
+	Catalog string   `json:"catalog" jsonschema:"what the description of find_skills carries after its own words; empty when the Cahut has no skills, or is individual"`
+	Bytes   int      `json:"bytes" jsonschema:"the bytes of JSON that it takes in the list of tools"`
+	Budget  int      `json:"budget" jsonschema:"the bytes that it may take"`
+	Left    []string `json:"left" jsonschema:"the names of the skills that do not fit, which AIs find with find_skills"`
+}
+
+// PreviewSkillCatalog shows the administrators of a Cahut the catalog of
+// its skills as AIs receive it. See docs/adr/0064-the-skills-of-a-cahut.md.
+var PreviewSkillCatalog = &operation.Op[PreviewCatalogInput, CatalogPreview]{
+	Name:  "preview_skill_catalog",
+	Title: "Preview what AIs see of skills",
+	Description: "Show the catalog of the skills of this Cahut as AIs receive it in the description of find_skills, " +
+		"the bytes it takes, its budget, and the skills that do not fit. For the administrators of the Cahut.",
+	Level:      operation.CahutAdmin,
+	ReadOnly:   true,
+	PeopleOnly: true,
+	Run: func(ctx context.Context, c *operation.Call, _ PreviewCatalogInput) (CatalogPreview, error) {
+		cat, err := buildCatalog(ctx, c.Tx, CatalogBytes)
+		if err != nil {
+			return CatalogPreview{}, err
+		}
+		left := cat.left
+		if left == nil {
+			left = []string{}
+		}
+		return CatalogPreview{Catalog: cat.text, Bytes: cat.bytes, Budget: CatalogBytes, Left: left}, nil
+	},
 }

@@ -37,6 +37,7 @@ func Register(r *operation.Registry, builtin fs.FS) {
 	operation.Register(r, ExportSkill)
 	operation.Register(r, RollbackSkill)
 	operation.Register(r, DeleteSkill)
+	operation.Register(r, PreviewSkillCatalog)
 }
 
 // The note that get_skill gives with each skill: the rule of priority.

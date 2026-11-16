@@ -3,6 +3,7 @@ package skill
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -145,5 +146,36 @@ func TestCatalogLeavesOutPersonalSkills(t *testing.T) {
 	}
 	if revision != before+1 {
 		t.Errorf("revision = %d, want %d", revision, before+1)
+	}
+}
+
+func TestPreviewTheCatalog(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	for i := range 50 {
+		name := fmt.Sprintf("skill-%02d", i)
+		f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: name, Text: textOf(name, strings.Repeat("A skill to follow. ", 20), "")})
+	}
+	f.write(t, f.camille, WriteInput{Scope: ScopePersonal, Skill: "notes", Text: textOf("notes", "My notes.", "")})
+	p, err := operation.Do(ctx, f.r, PreviewSkillCatalog, f.olivier, PreviewCatalogInput{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	lines, _ := f.catalog(t, CatalogBytes)
+	if p.Catalog != lines || p.Budget != CatalogBytes || p.Bytes != jsonBytes(lines) || p.Bytes > p.Budget {
+		t.Errorf("preview = %d bytes of %d, %q", p.Bytes, p.Budget, p.Catalog)
+	}
+	shown := strings.Count(p.Catalog, "\n- ")
+	if len(p.Left) != 50-shown || p.Left[0] != fmt.Sprintf("skill-%02d", shown) || p.Left[len(p.Left)-1] != "skill-49" {
+		t.Errorf("%d shown, left out = %q", shown, p.Left)
+	}
+	if _, err := operation.Do(ctx, f.r, PreviewSkillCatalog, f.camille, PreviewCatalogInput{}); !errors.Is(err, operation.ErrForbidden) {
+		t.Errorf("preview_skill_catalog by a member: err = %v, want ErrForbidden", err)
+	}
+
+	f = setup(t)
+	p, err = operation.Do(ctx, f.r, PreviewSkillCatalog, f.olivier, PreviewCatalogInput{})
+	if err != nil || p.Catalog != "" || p.Bytes != 0 || p.Left == nil || len(p.Left) != 0 {
+		t.Errorf("preview without skills = %+v, %v", p, err)
 	}
 }
