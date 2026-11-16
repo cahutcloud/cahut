@@ -54,8 +54,8 @@ var (
 			"Write the skill among your own, with the scope personal")
 )
 
-// SkillPath is the value of a refusal about the path of a file of a skill.
-type SkillPath struct {
+// FilePath is the value of a refusal about the path of a file of a skill.
+type FilePath struct {
 	Path operation.Quoted `json:"path"`
 }
 
@@ -65,16 +65,16 @@ type SkillPath struct {
 var (
 	errNameDiffers = operation.NewRefusal("skill_name_differs", operation.ErrInvalid,
 		"the name in the header of SKILL.md is not the name of this skill: keep its name in the header, or write a new skill under the other one")
-	errPathInvalid = operation.NewRefusalOf[SkillPath]("skill_path_invalid", operation.ErrInvalid,
+	errPathInvalid = operation.NewRefusalOf[FilePath]("skill_path_invalid", operation.ErrInvalid,
 		"{path} is not the path of a file of a skill: use a relative path of printable characters with / between folders, such as references/deck.md, "+
 			"of 255 bytes at most, with no part that starts with a dot, and not SKILL.md, which is the text of the skill")
-	errPathConflict = operation.NewRefusalOf[SkillPath]("skill_path_conflict", operation.ErrInvalid,
+	errPathConflict = operation.NewRefusalOf[FilePath]("skill_path_conflict", operation.ErrInvalid,
 		"{path} clashes with another file of the skill: give each path once, whatever its case, never as both a file and a folder, "+
 			"and never as both written and removed")
 )
 
 // pathOf is the path p as a refusal names it: a long path is cut.
-func pathOf(p string) SkillPath {
+func pathOf(p string) FilePath {
 	if len(p) > 64 {
 		cut := 60
 		for cut > 0 && !utf8.RuneStart(p[cut]) {
@@ -82,5 +82,5 @@ func pathOf(p string) SkillPath {
 		}
 		p = p[:cut] + "..."
 	}
-	return SkillPath{Path: operation.Quoted(p)}
+	return FilePath{Path: operation.Quoted(p)}
 }

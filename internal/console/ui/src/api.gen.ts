@@ -587,6 +587,10 @@ export interface FileInput {
   encoding?: string;
 }
 
+export interface FilePath {
+  path: string;
+}
+
 export interface FindInput {
   /** words that the name, the description or the text of the skills hold, whatever their case and accents; every skill without it */
   query?: string;
@@ -1845,10 +1849,6 @@ export interface SkillGetInput {
   file?: string;
 }
 
-export interface SkillPath {
-  path: string;
-}
-
 export interface Started {
   /** the domain of the Cahut */
   domain: string;
@@ -2563,9 +2563,9 @@ export interface Refusals {
   /** the name cahut is kept for the skill of the plugin for Claude, which every AI of this Cahut reads: give your skill another name */
   skill_name_reserved: null;
   /** {path} clashes with another file of the skill: give each path once, whatever its case, never as both a file and a folder, and never as both written and removed */
-  skill_path_conflict: SkillPath;
+  skill_path_conflict: FilePath;
   /** {path} is not the path of a file of a skill: use a relative path of printable characters with / between folders, such as references/deck.md, of 255 bytes at most, with no part that starts with a dot, and not SKILL.md, which is the text of the skill */
-  skill_path_invalid: SkillPath;
+  skill_path_invalid: FilePath;
   /** this Cahut is individual, and has no skills of the Cahut: its people share the Cahut, not their work. Write the skill among your own, with the scope personal */
   skill_scope_individual: null;
   /** this skill is too large: a SKILL.md holds 64 KiB at most, each of its files 2 MiB, and a skill 100 files and 4 MiB in all */
