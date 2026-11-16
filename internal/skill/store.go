@@ -9,8 +9,8 @@ import (
 	"cahut.cloud/internal/store"
 )
 
-// querier reads, in a transaction or out of one.
-type querier interface {
+// Querier reads, in a transaction or out of one.
+type Querier interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
@@ -41,7 +41,7 @@ type version struct {
 
 // lookup returns the skill name of the Cahut, when owner is zero, or of the
 // person owner; nil when there is none.
-func lookup(ctx context.Context, q querier, owner int64, name string) (*row, error) {
+func lookup(ctx context.Context, q Querier, owner int64, name string) (*row, error) {
 	where, args := "owner_id IS NULL AND name = ?", []any{name}
 	if owner != 0 {
 		where, args = "owner_id = ? AND name = ?", []any{owner, name}
@@ -61,7 +61,7 @@ func lookup(ctx context.Context, q querier, owner int64, name string) (*row, err
 }
 
 // versionOf returns the version id.
-func versionOf(ctx context.Context, q querier, id int64) (version, error) {
+func versionOf(ctx context.Context, q Querier, id int64) (version, error) {
 	var v version
 	var at string
 	err := q.QueryRowContext(ctx, `
@@ -76,14 +76,14 @@ func versionOf(ctx context.Context, q querier, id int64) (version, error) {
 }
 
 // numberOf returns the number of the version id, and its size.
-func numberOf(ctx context.Context, q querier, id int64) (number int, size int64, err error) {
+func numberOf(ctx context.Context, q Querier, id int64) (number int, size int64, err error) {
 	err = q.QueryRowContext(ctx, "SELECT number, size FROM skill_versions WHERE id = ?", id).Scan(&number, &size)
 	return number, size, err
 }
 
 // filesOf returns the files of the version id, by path, with their
 // contents.
-func filesOf(ctx context.Context, q querier, id int64) ([]File, error) {
+func filesOf(ctx context.Context, q Querier, id int64) ([]File, error) {
 	rows, err := q.QueryContext(ctx, "SELECT path, type, content FROM skill_files WHERE version_id = ? ORDER BY path", id)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func filesOf(ctx context.Context, q querier, id int64) ([]File, error) {
 }
 
 // infosOf describes the files of the version id, by path.
-func infosOf(ctx context.Context, q querier, id int64) ([]FileInfo, error) {
+func infosOf(ctx context.Context, q Querier, id int64) ([]FileInfo, error) {
 	rows, err := q.QueryContext(ctx, "SELECT path, length(content), type FROM skill_files WHERE version_id = ? ORDER BY path", id)
 	if err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func infosOf(ctx context.Context, q querier, id int64) ([]FileInfo, error) {
 }
 
 // fileOf returns the file at path of the version id, or false.
-func fileOf(ctx context.Context, q querier, id int64, path string) (File, bool, error) {
+func fileOf(ctx context.Context, q Querier, id int64, path string) (File, bool, error) {
 	f := File{Path: path}
 	err := q.QueryRowContext(ctx, "SELECT type, content FROM skill_files WHERE version_id = ? AND path = ?", id, path).Scan(&f.Type, &f.Content)
 	if errors.Is(err, sql.ErrNoRows) {
