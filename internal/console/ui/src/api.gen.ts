@@ -1861,6 +1861,8 @@ export interface Summary {
   version: string;
   /** the number of its current version */
   number: number;
+  /** when its current version was written */
+  written_at?: string;
   /** whether every Window of this Cahut follows it */
   every_window?: boolean;
 }

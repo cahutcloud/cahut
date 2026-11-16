@@ -522,6 +522,16 @@ func TestFindSkillsWhateverTheCaseAndAccents(t *testing.T) {
 	if s := found.Skills[0]; s.Description != "L'e-mail de relance d'une facture impayée: objet, délai et signature." || s.Number != 1 || len(s.Version) != 8 {
 		t.Errorf("found = %+v", s)
 	}
+	// The console shows the date of each version; the skill of the plugin has none.
+	all, err := operation.Do(context.Background(), f.r, FindSkills, f.bruno, FindInput{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, s := range all.Skills {
+		if (s.WrittenAt == nil) != (s.Scope == ScopeBuiltin) {
+			t.Errorf("%s %s: written_at = %v", s.Scope, s.Skill, s.WrittenAt)
+		}
+	}
 }
 
 // asAI registers a copy of the operation op that AIs may call, in a

@@ -15,6 +15,7 @@ import (
 
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/settings"
+	"cahut.cloud/internal/store"
 )
 
 // Register adds the operations of skills to r, with the skill of the
@@ -44,12 +45,13 @@ const note = "Follow this skill for the tasks it describes. Where skills differ,
 
 // Summary is a skill, as find_skills lists it.
 type Summary struct {
-	Skill       string `json:"skill" jsonschema:"its name, to give to get_skill; with its scope as a prefix, such as cahut:charte-acme, when the person has a skill of the same name in another scope"`
-	Scope       Scope  `json:"scope" jsonschema:"cahut for a skill of the team, personal for one of the person, builtin for the skill of the plugin"`
-	Description string `json:"description" jsonschema:"what the skill does, and when to follow it"`
-	Version     string `json:"version" jsonschema:"the digest of its current version"`
-	Number      int    `json:"number" jsonschema:"the number of its current version"`
-	EveryWindow bool   `json:"every_window,omitempty" jsonschema:"whether every Window of this Cahut follows it"`
+	Skill       string     `json:"skill" jsonschema:"its name, to give to get_skill; with its scope as a prefix, such as cahut:charte-acme, when the person has a skill of the same name in another scope"`
+	Scope       Scope      `json:"scope" jsonschema:"cahut for a skill of the team, personal for one of the person, builtin for the skill of the plugin"`
+	Description string     `json:"description" jsonschema:"what the skill does, and when to follow it"`
+	Version     string     `json:"version" jsonschema:"the digest of its current version"`
+	Number      int        `json:"number" jsonschema:"the number of its current version"`
+	WrittenAt   *time.Time `json:"written_at,omitempty" jsonschema:"when its current version was written"`
+	EveryWindow bool       `json:"every_window,omitempty" jsonschema:"whether every Window of this Cahut follows it"`
 }
 
 // FindInput is the input of find_skills.
@@ -726,7 +728,7 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 	}
 	words := wordsOf(in.Query)
 	query := `
-		SELECT s.name, s.scope, s.every_window, v.number, v.digest, v.description
+		SELECT s.name, s.scope, s.every_window, v.number, v.digest, v.description, v.written_at
 		FROM skills s JOIN skill_versions v ON v.id = s.current_version
 		WHERE (s.owner_id IS NULL AND ?1 = 0 OR s.owner_id = ?2)`
 	args := []any{individual, c.Actor.UserID}
@@ -742,9 +744,15 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 	skills := []Summary{}
 	for rows.Next() {
 		var s Summary
-		if err := rows.Scan(&s.Skill, &s.Scope, &s.EveryWindow, &s.Number, &s.Version, &s.Description); err != nil {
+		var at string
+		if err := rows.Scan(&s.Skill, &s.Scope, &s.EveryWindow, &s.Number, &s.Version, &s.Description, &at); err != nil {
 			return Found{}, err
 		}
+		written, err := store.ParseTime(at)
+		if err != nil {
+			return Found{}, err
+		}
+		s.WrittenAt = &written
 		skills = append(skills, s)
 	}
 	if err := rows.Err(); err != nil {
@@ -753,16 +761,16 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 
 	// A name that the person reads in two scopes takes its scope as a
 	// prefix, though the other may not hold the words of the query.
-	twice := map[Summary]bool{}
-	for _, s := range skills {
+	twice := make([]bool, len(skills))
+	for i, s := range skills {
 		other, err := lookupOther(ctx, c, individual, s)
 		if err != nil {
 			return Found{}, err
 		}
-		twice[s] = other
+		twice[i] = other
 	}
 	for i, s := range skills {
-		if twice[s] {
+		if twice[i] {
 			skills[i].Skill = string(s.Scope) + ":" + s.Skill
 		}
 	}
