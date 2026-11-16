@@ -99,14 +99,16 @@ func buildCatalog(ctx context.Context, q Querier, budget int) (catalog, error) {
 }
 
 // cutDescription returns a description on one line, cut at CatalogLine
-// characters at the end of a word.
+// characters at the end of a word, or within one when the words are long.
 func cutDescription(d string) string {
 	d = strings.Join(strings.Fields(d), " ")
 	if utf8.RuneCountInString(d) <= CatalogLine {
 		return d
 	}
 	cut := string([]rune(d)[:CatalogLine+1])
-	if i := strings.LastIndexByte(cut, ' '); i > 0 {
+	// A description without spaces, in Japanese or with a long address,
+	// keeps its first characters, not what comes before its first space.
+	if i := strings.LastIndexByte(cut, ' '); i > 0 && utf8.RuneCountInString(cut[:i]) >= CatalogLine/2 {
 		cut = cut[:i]
 	} else {
 		cut = string([]rune(cut)[:CatalogLine])

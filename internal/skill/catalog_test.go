@@ -73,6 +73,14 @@ func TestCatalogCutsDescriptionsOnAWord(t *testing.T) {
 	if got["folded"] != "The brand of Acme." {
 		t.Errorf("a description over lines = %q, want it on one line", got["folded"])
 	}
+	// A description without spaces, such as one in Japanese, or with a
+	// long address, keeps its 160 characters: a cut on a word would keep
+	// only what comes before its first space.
+	for _, d := range []string{"Acme " + strings.Repeat("請求書の督促", 40), "See https://example.com/" + strings.Repeat("a", 300)} {
+		if got := cutDescription(d); utf8.RuneCountInString(got) != CatalogLine+1 || !strings.HasPrefix(d, strings.TrimSuffix(got, "…")) {
+			t.Errorf("cutDescription(%.20q…) = %q, want its first %d characters", d, got, CatalogLine)
+		}
+	}
 	for name, d := range got {
 		if n := utf8.RuneCountInString(d); n > 161 {
 			t.Errorf("%s: %d characters", name, n)
