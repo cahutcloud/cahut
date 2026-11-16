@@ -329,8 +329,8 @@ export function useArmed(): boolean {
 	return armed;
 }
 
-/** A value to copy, such as a link or a command, with its button. */
-export function CopyField({ value, label }: { value: string; label: string }) {
+/** A value to copy, such as a link or a command, with its button; a sentence wraps on several lines. */
+export function CopyField({ value, label, wrap }: { value: string; label: string; wrap?: boolean }) {
 	const [copied, setCopied] = useState(false);
 	const copy = async () => {
 		await navigator.clipboard.writeText(value);
@@ -339,7 +339,7 @@ export function CopyField({ value, label }: { value: string; label: string }) {
 	};
 	return (
 		<div class="copy">
-			<code class="copy__value c-mono">{value}</code>
+			<code class={`copy__value c-mono${wrap ? " copy__value--wrap" : ""}`}>{value}</code>
 			<button class="c-btn c-btn--secondary c-btn--sm" type="button" onClick={copy} aria-label={t.copyLabel(label)}>
 				{copied ? <Check class="i" size={14} aria-hidden="true" /> : <Copy class="i" size={14} aria-hidden="true" />}
 				{copied ? t.copied : t.copy}

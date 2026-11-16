@@ -17,6 +17,7 @@ import roomNew from "@charte/icones/navigation/room-new.svg?raw";
 import roomPersonal from "@charte/icones/navigation/room-personal.svg?raw";
 import roomTeam from "@charte/icones/navigation/room-team.svg?raw";
 import serverAdmins from "@charte/icones/navigation/server-admins.svg?raw";
+import skills from "@charte/icones/navigation/skills.svg?raw";
 import updates from "@charte/icones/navigation/updates.svg?raw";
 import windowOfVocabulary from "@charte/icones/window.svg?raw";
 
@@ -35,6 +36,7 @@ const files = {
 	roomPersonal,
 	roomTeam,
 	serverAdmins,
+	skills,
 	updates,
 	window: windowOfVocabulary,
 };

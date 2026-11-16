@@ -15,6 +15,7 @@ import (
 
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/settings"
+	"cahut.cloud/internal/store"
 )
 
 // Register adds the operations of skills to r, with the skill of the
@@ -44,12 +45,13 @@ const note = "Follow this skill for the tasks it describes. Where skills differ,
 
 // Summary is a skill, as find_skills lists it.
 type Summary struct {
-	Skill       string `json:"skill" jsonschema:"its name, to give to get_skill; with its scope as a prefix, such as cahut:charte-acme, when the person has a skill of the same name in another scope"`
-	Scope       Scope  `json:"scope" jsonschema:"cahut for a skill of the team, personal for one of the person, builtin for the skill of the plugin"`
-	Description string `json:"description" jsonschema:"what the skill does, and when to follow it"`
-	Version     string `json:"version" jsonschema:"the digest of its current version"`
-	Number      int    `json:"number" jsonschema:"the number of its current version"`
-	EveryWindow bool   `json:"every_window,omitempty" jsonschema:"whether every Window of this Cahut follows it"`
+	Skill       string     `json:"skill" jsonschema:"its name, to give to get_skill; with its scope as a prefix, such as cahut:charte-acme, when the person has a skill of the same name in another scope"`
+	Scope       Scope      `json:"scope" jsonschema:"cahut for a skill of the team, personal for one of the person, builtin for the skill of the plugin"`
+	Description string     `json:"description" jsonschema:"what the skill does, and when to follow it"`
+	Version     string     `json:"version" jsonschema:"the digest of its current version"`
+	Number      int        `json:"number" jsonschema:"the number of its current version"`
+	WrittenAt   *time.Time `json:"written_at,omitempty" jsonschema:"when its current version was written"`
+	EveryWindow bool       `json:"every_window,omitempty" jsonschema:"whether every Window of this Cahut follows it"`
 }
 
 // FindInput is the input of find_skills.
@@ -178,9 +180,10 @@ var WriteSkill = &operation.Op[WriteInput, Skill]{
 	Run: func(ctx context.Context, c *operation.Call, in WriteInput) (Skill, error) {
 		files, err := decodeFiles(in.Files)
 		if err != nil {
-			return Skill{}, err
+			return Skill{}, private(in.Scope, err)
 		}
-		return apply(ctx, c, change{scope: in.Scope, name: in.Skill, text: in.Text, files: files, remove: in.Remove, via: "console"})
+		s, err := apply(ctx, c, change{scope: in.Scope, name: in.Skill, text: in.Text, files: files, remove: in.Remove, via: "console"})
+		return s, private(in.Scope, err)
 	},
 }
 
@@ -205,18 +208,19 @@ var ImportSkill = &operation.Op[ImportInput, Skill]{
 		}
 		text, files, err := ReadZip(data)
 		if err != nil {
-			return err
+			return private(in.Scope, err)
 		}
 		h, err := ParseText(text)
 		if err != nil {
-			return err
+			return private(in.Scope, err)
 		}
 		c.Keep(imported{name: h.Name, text: text, files: files})
 		return nil
 	},
 	Run: func(ctx context.Context, c *operation.Call, in ImportInput) (Skill, error) {
 		z := c.Kept().(imported)
-		return apply(ctx, c, change{scope: in.Scope, name: z.name, text: z.text, files: z.files, replace: true, via: "import"})
+		s, err := apply(ctx, c, change{scope: in.Scope, name: z.name, text: z.text, files: z.files, replace: true, via: "import"})
+		return s, private(in.Scope, err)
 	},
 }
 
@@ -393,7 +397,7 @@ func resolve(ctx context.Context, c *operation.Call, ref string) (target, error)
 	}
 	switch len(found) {
 	case 0:
-		return target{}, operation.NotFoundf("no skill %q that you may read: find_skills lists them", ref)
+		return target{}, errNotFound
 	case 1:
 		return found[0], nil
 	}
@@ -411,8 +415,6 @@ func writable(c *operation.Call, t target) error {
 	}
 	return nil
 }
-
-var errNotAdmin = operation.Forbiddenf("only the administrators of this Cahut write its skills: write the skill among your own, with the scope personal")
 
 // ownerFor returns the person whose skill a write in scope makes, zero for
 // the Cahut, or an error when the person who acts may not write there.
@@ -499,7 +501,12 @@ func apply(ctx context.Context, c *operation.Call, ch change) (Skill, error) {
 		return Skill{}, err
 	}
 	if h.Name != ch.name {
-		return Skill{}, operation.Invalidf("the name in the header of SKILL.md is not the name of this skill: give the same name in both")
+		return Skill{}, errNameDiffers
+	}
+	// Cahut keeps the text that AIs read, its name and description in
+	// double quotes: the same text written back makes no new version.
+	if text, err = RenderText(text); err != nil {
+		return Skill{}, err
 	}
 	if files, err = merge(files, ch.files, ch.remove); err != nil {
 		return Skill{}, err
@@ -623,9 +630,9 @@ func merge(held, added []File, remove []string) ([]File, error) {
 		key := strings.ToLower(f.Path)
 		switch {
 		case removed[key]:
-			return nil, operation.Invalidf("file %q is both written and removed", f.Path)
+			return nil, errPathConflict(pathOf(f.Path))
 		case seen[key]:
-			return nil, operation.Invalidf("file %q appears twice", f.Path)
+			return nil, errPathConflict(pathOf(f.Path))
 		}
 		seen[key] = true
 		byPath[key] = f
@@ -638,7 +645,7 @@ func merge(held, added []File, remove []string) ([]File, error) {
 	for _, f := range files {
 		for dir := path.Dir(f.Path); dir != "."; dir = path.Dir(dir) {
 			if _, ok := byPath[strings.ToLower(dir)]; ok {
-				return nil, operation.Invalidf("%q would be both a file and the folder of %q", dir, f.Path)
+				return nil, errPathConflict(pathOf(dir))
 			}
 		}
 	}
@@ -726,7 +733,7 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 	}
 	words := wordsOf(in.Query)
 	query := `
-		SELECT s.name, s.scope, s.every_window, v.number, v.digest, v.description
+		SELECT s.name, s.scope, s.every_window, v.number, v.digest, v.description, v.written_at
 		FROM skills s JOIN skill_versions v ON v.id = s.current_version
 		WHERE (s.owner_id IS NULL AND ?1 = 0 OR s.owner_id = ?2)`
 	args := []any{individual, c.Actor.UserID}
@@ -742,33 +749,26 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 	skills := []Summary{}
 	for rows.Next() {
 		var s Summary
-		if err := rows.Scan(&s.Skill, &s.Scope, &s.EveryWindow, &s.Number, &s.Version, &s.Description); err != nil {
+		var at string
+		if err := rows.Scan(&s.Skill, &s.Scope, &s.EveryWindow, &s.Number, &s.Version, &s.Description, &at); err != nil {
 			return Found{}, err
 		}
+		written, err := store.ParseTime(at)
+		if err != nil {
+			return Found{}, err
+		}
+		s.WrittenAt = &written
 		skills = append(skills, s)
 	}
 	if err := rows.Err(); err != nil {
 		return Found{}, err
 	}
 
-	// A name that the person reads in two scopes takes its scope as a
-	// prefix, though the other may not hold the words of the query.
-	twice := map[Summary]bool{}
-	for _, s := range skills {
-		other, err := lookupOther(ctx, c, individual, s)
-		if err != nil {
-			return Found{}, err
-		}
-		twice[s] = other
-	}
-	for i, s := range skills {
-		if twice[s] {
-			skills[i].Skill = string(s.Scope) + ":" + s.Skill
-		}
-	}
 	if b := builtinOf(c); b != nil && b.matches(words) {
 		skills = append(skills, Summary{Skill: BuiltinName, Scope: ScopeBuiltin, Description: b.description, Version: b.digest, Number: 1})
 	}
+	// The skills of each scope go by their names, before any takes the
+	// prefix of its scope, those for every Window first.
 	rank := map[Scope]int{ScopeCahut: 0, ScopePersonal: 1, ScopeBuiltin: 2}
 	slices.SortStableFunc(skills, func(a, b Summary) int {
 		if d := cmp.Compare(rank[a.Scope], rank[b.Scope]); d != 0 {
@@ -782,6 +782,21 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 		}
 		return cmp.Compare(a.Skill, b.Skill)
 	})
+	// A name that the person reads in two scopes takes its scope as a
+	// prefix, though the other may not hold the words of the query.
+	twice := make([]bool, len(skills))
+	for i, s := range skills {
+		other, err := lookupOther(ctx, c, individual, s)
+		if err != nil {
+			return Found{}, err
+		}
+		twice[i] = other
+	}
+	for i, s := range skills {
+		if twice[i] {
+			skills[i].Skill = string(s.Scope) + ":" + s.Skill
+		}
+	}
 	// The Logbook keeps that a search took place, never its words: the
 	// administrators read it all.
 	if len(words) > 0 {

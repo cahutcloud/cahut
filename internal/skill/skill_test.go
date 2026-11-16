@@ -121,8 +121,10 @@ func TestWriteAndGetASkill(t *testing.T) {
 		{Path: "references/deck.md", Content: "# Deck\n"},
 		{Path: "assets/logo.png", Content: base64.StdEncoding.EncodeToString([]byte{0x89, 'P', 'N', 'G', 0xff}), Encoding: "base64"},
 	}
+	// Cahut keeps the text that AIs read, and digests it.
+	rendered, _ := RenderText(text)
 	w := f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "charte-acme", Text: text, Files: files})
-	digest := Digest(text, []File{
+	digest := Digest(rendered, []File{
 		{Path: "references/deck.md", Content: []byte("# Deck\n")},
 		{Path: "assets/logo.png", Content: []byte{0x89, 'P', 'N', 'G', 0xff}},
 	})
@@ -132,7 +134,6 @@ func TestWriteAndGetASkill(t *testing.T) {
 
 	// Every person of the Cahut reads it.
 	g := f.get(t, f.camille, "charte-acme")
-	rendered, _ := RenderText(text)
 	if g.Text != rendered || g.Number != 1 || g.Version != digest || g.WrittenBy != "olivier" || g.Via != "console" ||
 		g.WrittenAt == nil || g.Description != "The brand of Acme: for every deck." || g.Note == "" {
 		t.Errorf("get_skill = %+v", g)
@@ -427,6 +428,11 @@ func TestTheSameNameInTwoScopes(t *testing.T) {
 	if got := f.find(t, f.bruno, "relance"); !slices.Equal(got, []string{"cahut relance-facture"}) {
 		t.Errorf("find_skills by bruno = %q", got)
 	}
+	// The skills of a scope go by their names, whatever the prefix of some.
+	f.write(t, f.camille, WriteInput{Scope: ScopePersonal, Skill: "plan-de-charge", Text: textOf("plan-de-charge", "Mon plan de charge.", "")})
+	if got := f.find(t, f.camille, ""); !slices.Equal(got, []string{"cahut cahut:relance-facture", "personal plan-de-charge", "personal personal:relance-facture", "builtin cahut"}) {
+		t.Errorf("find_skills by camille = %q", got)
+	}
 }
 
 func TestAnAmbiguousNameIsRefused(t *testing.T) {
@@ -521,6 +527,16 @@ func TestFindSkillsWhateverTheCaseAndAccents(t *testing.T) {
 	}
 	if s := found.Skills[0]; s.Description != "L'e-mail de relance d'une facture impayée: objet, délai et signature." || s.Number != 1 || len(s.Version) != 8 {
 		t.Errorf("found = %+v", s)
+	}
+	// The console shows the date of each version; the skill of the plugin has none.
+	all, err := operation.Do(context.Background(), f.r, FindSkills, f.bruno, FindInput{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, s := range all.Skills {
+		if (s.WrittenAt == nil) != (s.Scope == ScopeBuiltin) {
+			t.Errorf("%s %s: written_at = %v", s.Scope, s.Skill, s.WrittenAt)
+		}
 	}
 }
 
@@ -784,16 +800,21 @@ func TestTheDiskCountsSkills(t *testing.T) {
 		}
 		return u.Disk
 	}
+	// The disk counts the text that Cahut keeps, as AIs read it.
+	size := func(s string) int64 {
+		r, _ := RenderText(s)
+		return int64(len(r))
+	}
 	text := textOf("charte-acme", "The brand of Acme.", "")
 	f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "charte-acme", Text: text, Files: []FileInput{{Path: "a.md", Content: "12345"}}})
 	f.write(t, f.camille, WriteInput{Scope: ScopePersonal, Skill: "notes", Text: textOf("notes", "N.", "")})
-	want := int64(len(text)+5) + int64(len(textOf("notes", "N.", "")))
+	want := size(text) + 5 + size(textOf("notes", "N.", ""))
 	if got := use(); got != want {
 		t.Errorf("the disk counts %d bytes, want %d", got, want)
 	}
 	// Both versions count.
 	f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "charte-acme", Files: []FileInput{{Path: "b.md", Content: "123"}}})
-	want += int64(len(text) + 5 + 3)
+	want += size(text) + 5 + 3
 	if got := use(); got != want {
 		t.Errorf("the disk counts %d bytes after a second version, want %d", got, want)
 	}
@@ -813,7 +834,7 @@ func TestTheDiskCountsSkills(t *testing.T) {
 	if _, err := operation.Do(ctx, f.r, DeleteSkill, f.olivier, DeleteInput{Skill: "charte-acme"}); err != nil {
 		t.Fatal(err)
 	}
-	if got := use(); got != int64(len(textOf("notes", "N.", ""))) {
+	if got := use(); got != size(textOf("notes", "N.", "")) {
 		t.Errorf("after the deletion, the disk counts %d bytes", got)
 	}
 }
@@ -894,5 +915,124 @@ func TestTheLogbookKeepsNoPersonalName(t *testing.T) {
 		if strings.Contains(strings.ToLower(e.Target+" "+e.Detail+" "+e.Error), "licenciement") {
 			t.Errorf("the Logbook names a personal skill: %s %q %q %q", e.Operation, e.Target, e.Detail, e.Error)
 		}
+	}
+}
+
+// What a person meets on the page that writes a skill in the console has a
+// code, which the console says in its language: a header that names
+// another skill, the path of a file, and two files that clash.
+func TestTheRefusalsOfAWriteHaveACode(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "relance-facture", Text: relance,
+		Files: []FileInput{{Path: "references/exemples.md", Content: "x"}}})
+	in := func(text string, files []FileInput, remove ...string) WriteInput {
+		return WriteInput{Scope: ScopeCahut, Skill: "relance-facture", Text: text, Files: files, Remove: remove}
+	}
+	file := func(paths ...string) []FileInput {
+		var files []FileInput
+		for _, p := range paths {
+			files = append(files, FileInput{Path: p, Content: "x"})
+		}
+		return files
+	}
+	for what, c := range map[string]struct {
+		in   WriteInput
+		code string
+	}{
+		"another name":         {in(textOf("relance-client", "Another.", ""), nil), "skill_name_differs"},
+		"an empty path":        {in("", file("")), "skill_path_invalid"},
+		"a parent":             {in("", file("../x.md")), "skill_path_invalid"},
+		"an absolute path":     {in("", file("/x.md")), "skill_path_invalid"},
+		"a hidden part":        {in("", file("references/.env")), "skill_path_invalid"},
+		"a backslash":          {in("", file(`references\x.md`)), "skill_path_invalid"},
+		"a long path":          {in("", file(strings.Repeat("a", 256))), "skill_path_invalid"},
+		"SKILL.md as a file":   {in("", file("SKILL.md")), "skill_path_invalid"},
+		"twice":                {in("", file("a.md", "a.md")), "skill_path_conflict"},
+		"twice in other case":  {in("", file("a.md", "A.md")), "skill_path_conflict"},
+		"written and removed":  {in("", file("references/exemples.md"), "references/exemples.md"), "skill_path_conflict"},
+		"a file and a folder":  {in("", file("references/exemples.md/x.md")), "skill_path_conflict"},
+		"scripts keeps a code": {in("", file("scripts/run.sh")), "skill_has_scripts"},
+	} {
+		_, err := operation.Do(ctx, f.r, WriteSkill, f.olivier, c.in)
+		if refusal(err) != c.code || !errors.Is(err, operation.ErrInvalid) {
+			t.Errorf("%s: err = %v, want the refusal %s", what, err, c.code)
+		}
+	}
+}
+
+// The refusals of a write or an import of a personal skill tell the person
+// which file is wrong, and the Logbook, which administrators read, keeps
+// their code without the path. A name that does not exist stays out too.
+func TestTheLogbookKeepsNoPathOfAPersonalSkill(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	text := textOf("notes", "Mes notes.", "")
+	f.write(t, f.camille, WriteInput{Scope: ScopePersonal, Skill: "notes", Text: text})
+	file := func(paths ...string) []FileInput {
+		var files []FileInput
+		for _, p := range paths {
+			files = append(files, FileInput{Path: p, Content: "x"})
+		}
+		return files
+	}
+	for what, in := range map[string]WriteInput{
+		"a hidden part":    {Files: file("licenciement/.env")},
+		"twice":            {Files: file("licenciement.md", "licenciement.md")},
+		"scripts":          {Files: file("scripts/licenciement.sh")},
+		"a missing file":   {Remove: []string{"licenciement.md"}},
+		"a bad encoding":   {Files: []FileInput{{Path: "licenciement.md", Content: "x", Encoding: "latin-1"}}},
+		"not base64":       {Files: []FileInput{{Path: "licenciement.md", Content: "%%%", Encoding: "base64"}}},
+		"a file, a folder": {Files: file("licenciement", "licenciement/a.md")},
+	} {
+		in.Scope, in.Skill = ScopePersonal, "notes"
+		_, err := operation.Do(ctx, f.r, WriteSkill, f.camille, in)
+		if err == nil || !strings.Contains(err.Error(), "licenciement") {
+			t.Errorf("%s: err = %v, want a refusal that names the file", what, err)
+		}
+	}
+	for what, zip := range map[string][]byte{
+		"scripts":  makeZip(t, entry{name: "SKILL.md", content: []byte(text)}, entry{name: "scripts/licenciement.sh", content: []byte("x")}),
+		"twice":    makeZip(t, entry{name: "SKILL.md", content: []byte(text)}, entry{name: "licenciement.md", content: []byte("x")}, entry{name: "Licenciement.md", content: []byte("y")}),
+		"a hidden": makeZip(t, entry{name: "SKILL.md", content: []byte(text)}, entry{name: "licenciement/.env", content: []byte("x")}),
+	} {
+		if _, err := operation.Do(ctx, f.r, ImportSkill, f.camille, ImportInput{Scope: ScopePersonal, Zip: base64.StdEncoding.EncodeToString(zip)}); err == nil {
+			t.Errorf("import %s passed", what)
+		}
+	}
+	if _, err := operation.Do(ctx, f.r, RollbackSkill, f.camille, RollbackInput{Skill: "personal:licenciement-bruno"}); refusal(err) != "skill_not_found" {
+		t.Errorf("rollback_skill of a missing skill: err = %v, want skill_not_found", err)
+	}
+	if _, err := operation.Do(ctx, f.r, DeleteSkill, f.camille, DeleteInput{Skill: "licenciement-bruno"}); refusal(err) != "skill_not_found" {
+		t.Errorf("delete_skill of a missing skill: err = %v, want skill_not_found", err)
+	}
+	entries, err := logbook.List(ctx, f.db.Read, 100)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) < 12 {
+		t.Errorf("%d entries in the Logbook, want 12 at least", len(entries))
+	}
+	for _, e := range entries {
+		if strings.Contains(strings.ToLower(e.Target+" "+e.Detail+" "+e.Error), "licenciement") {
+			t.Errorf("the Logbook names what a personal skill holds: %s %q %q %q", e.Operation, e.Target, e.Detail, e.Error)
+		}
+	}
+}
+
+// The console writes back the SKILL.md that get_skill gives, its name and
+// description in double quotes: a write that changes nothing else makes no
+// version, and keeps the previous one.
+func TestWritingBackWhatGetSkillGivesChangesNothing(t *testing.T) {
+	f := setup(t)
+	f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "relance-facture", Text: relance})
+	f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "relance-facture", Text: relance + "Signe l'atelier.\n"})
+	g := f.get(t, f.olivier, "relance-facture")
+	if !strings.Contains(g.Text, `name: "relance-facture"`) {
+		t.Fatalf("get_skill text = %q, want it rendered", g.Text)
+	}
+	s := f.write(t, f.olivier, WriteInput{Scope: ScopeCahut, Skill: "relance-facture", Text: g.Text})
+	if s.Number != 2 || s.Previous != 1 || s.Version != g.Version {
+		t.Errorf("write_skill of its own text = number %d, previous %d, version %s; want 2, 1 and %s", s.Number, s.Previous, s.Version, g.Version)
 	}
 }

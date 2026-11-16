@@ -587,6 +587,10 @@ export interface FileInput {
   encoding?: string;
 }
 
+export interface FilePath {
+  path: string;
+}
+
 export interface FindInput {
   /** words that the name, the description or the text of the skills hold, whatever their case and accents; every skill without it */
   query?: string;
@@ -1861,6 +1865,8 @@ export interface Summary {
   version: string;
   /** the number of its current version */
   number: number;
+  /** when its current version was written */
+  written_at?: string;
   /** whether every Window of this Cahut follows it */
   every_window?: boolean;
 }
@@ -2546,14 +2552,24 @@ export interface Refusals {
   share_link_public: At;
   /** ends_at {ends_at}: a share link lasts 30 days at most, until {latest}: give an end before it, or none for 7 days */
   share_link_too_long: LinkEnd;
+  /** only the administrators of this Cahut write its skills: write the skill among your own, with the scope personal */
+  skill_admins_only: null;
   /** {path} is under scripts/, and a skill of a Cahut holds no scripts: some AI clients run them on the computer of each person, and a script would be code that someone changes from afar. Leave out scripts/, and say in SKILL.md what the AI should do instead */
   skill_has_scripts: ScriptPath;
   /** the header of SKILL.md {problem}: a SKILL.md opens with a line ---, then name and description on lines of their own, then a line ---, as Agent Skills have it */
   skill_header_invalid: HeaderProblem;
+  /** the name in the header of SKILL.md is not the name of this skill: keep its name in the header, or write a new skill under the other one */
+  skill_name_differs: null;
   /** the name of the skill is not valid: use 1 to 64 lowercase letters, digits and hyphens, such as charte-acme, without a hyphen at either end or two in a row */
   skill_name_invalid: null;
   /** the name cahut is kept for the skill of the plugin for Claude, which every AI of this Cahut reads: give your skill another name */
   skill_name_reserved: null;
+  /** there is no skill of this name that you may read: find_skills lists them */
+  skill_not_found: null;
+  /** {path} clashes with another file of the skill: give each path once, whatever its case, never as both a file and a folder, and never as both written and removed */
+  skill_path_conflict: FilePath;
+  /** {path} is not the path of a file of a skill: use a relative path of printable characters with / between folders, such as references/deck.md, of 255 bytes at most, with no part that starts with a dot, and not SKILL.md, which is the text of the skill */
+  skill_path_invalid: FilePath;
   /** this Cahut is individual, and has no skills of the Cahut: its people share the Cahut, not their work. Write the skill among your own, with the scope personal */
   skill_scope_individual: null;
   /** this skill is too large: a SKILL.md holds 64 KiB at most, each of its files 2 MiB, and a skill 100 files and 4 MiB in all */

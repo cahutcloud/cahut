@@ -1,6 +1,11 @@
 package skill
 
-import "cahut.cloud/internal/operation"
+import (
+	"errors"
+	"unicode/utf8"
+
+	"cahut.cloud/internal/operation"
+)
 
 // HeaderProblem is the value of the refusal of a header: what is wrong
 // with it, in English, which the console leaves out.
@@ -49,3 +54,62 @@ var (
 		"this Cahut is individual, and has no skills of the Cahut: its people share the Cahut, not their work. "+
 			"Write the skill among your own, with the scope personal")
 )
+
+// FilePath is the value of a refusal about the path of a file of a skill.
+type FilePath struct {
+	Path operation.Quoted `json:"path"`
+}
+
+// The refusals that people meet on the page of the console that writes a
+// skill: the header of a SKILL.md that names another skill, and the paths
+// of its files.
+var (
+	errNameDiffers = operation.NewRefusal("skill_name_differs", operation.ErrInvalid,
+		"the name in the header of SKILL.md is not the name of this skill: keep its name in the header, or write a new skill under the other one")
+	errPathInvalid = operation.NewRefusalOf[FilePath]("skill_path_invalid", operation.ErrInvalid,
+		"{path} is not the path of a file of a skill: use a relative path of printable characters with / between folders, such as references/deck.md, "+
+			"of 255 bytes at most, with no part that starts with a dot, and not SKILL.md, which is the text of the skill")
+	errPathConflict = operation.NewRefusalOf[FilePath]("skill_path_conflict", operation.ErrInvalid,
+		"{path} clashes with another file of the skill: give each path once, whatever its case, never as both a file and a folder, "+
+			"and never as both written and removed")
+)
+
+// pathOf is the path p as a refusal names it: a long path is cut.
+func pathOf(p string) FilePath {
+	if len(p) > 64 {
+		cut := 60
+		for cut > 0 && !utf8.RuneStart(p[cut]) {
+			cut--
+		}
+		p = p[:cut] + "..."
+	}
+	return FilePath{Path: operation.Quoted(p)}
+}
+
+var (
+	errNotFound = operation.NewRefusal("skill_not_found", operation.ErrNotFound,
+		"there is no skill of this name that you may read: find_skills lists them")
+	errNotAdmin = operation.NewRefusal("skill_admins_only", operation.ErrForbidden,
+		"only the administrators of this Cahut write its skills: write the skill among your own, with the scope personal")
+)
+
+// private returns err, the refusal of a write or an import in scope, which
+// the Logbook keeps without its message for a personal skill: the message
+// may name a file of the skill, and the administrators read the whole
+// Logbook. The person reads it whole.
+func private(scope Scope, err error) error {
+	if scope != ScopePersonal || !operation.Public(err) {
+		return err
+	}
+	logged := "refused"
+	for _, kind := range []error{operation.ErrInvalid, operation.ErrNotFound, operation.ErrForbidden, operation.ErrTooMany} {
+		if errors.Is(err, kind) {
+			logged = kind.Error()
+			break
+		}
+	}
+	if r, ok := errors.AsType[*operation.Refusal](err); ok {
+		logged += ": " + r.Code
+	}
+	return operation.LogAs(err, logged+", about a personal skill")
+}
