@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -99,5 +100,18 @@ func TestSkillZip(t *testing.T) {
 	front := regexp.MustCompile(`(?s)^---\nname: cahut\ndescription: (.+?)\n---\n`).FindSubmatch(skill)
 	if front == nil || len(front[1]) > 1024 || !strings.Contains(string(front[1]), "Cahut") {
 		t.Errorf("the front matter of SKILL.md does not name the skill or describe it in 1024 characters: %.200s", skill)
+	}
+}
+
+// SkillFS gives the files of the skill at its root, as each Cahut reads
+// them for its skill of the plugin. See
+// docs/adr/0064-the-skills-of-a-cahut.md.
+func TestSkillFS(t *testing.T) {
+	text, err := fs.ReadFile(SkillFS(), "SKILL.md")
+	if err != nil || !strings.HasPrefix(string(text), "---\nname: cahut\n") {
+		t.Fatalf("SKILL.md = %.40q, %v", text, err)
+	}
+	if _, err := fs.Stat(SkillFS(), "references/formats.md"); err != nil {
+		t.Errorf("references/formats.md: %v", err)
 	}
 }

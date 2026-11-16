@@ -150,6 +150,23 @@ func CheckWindow(ctx context.Context, c *operation.Call, roomID int64, room stri
 // limit of its disk. A call that adds nothing, or frees bytes, always
 // passes.
 func CheckDisk(ctx context.Context, c *operation.Call, roomID, added int64) error {
+	return checkDisk(ctx, c, added, "purge Windows from the trash, since they still count",
+		func() (int64, error) { return ownerOf(ctx, c, roomID) })
+}
+
+// CheckSkillDisk returns an error wrapping operation.ErrForbidden when
+// adding added bytes to a skill would take the Cahut past a limit of its
+// disk. owner is the person of a personal skill, zero for a skill of the
+// Cahut. See docs/adr/0064-the-skills-of-a-cahut.md.
+func CheckSkillDisk(ctx context.Context, c *operation.Call, owner, added int64) error {
+	return checkDisk(ctx, c, added, "delete a skill, or purge Windows from the trash, since both count",
+		func() (int64, error) { return owner, nil })
+}
+
+// checkDisk checks the limits of the disk for added bytes, with what frees
+// some in advice, and the person whose limit counts in an individual Cahut,
+// if any, from ownerOf.
+func checkDisk(ctx context.Context, c *operation.Call, added int64, advice string, ownerOf func() (int64, error)) error {
 	if added <= 0 {
 		return nil
 	}
@@ -163,16 +180,19 @@ func CheckDisk(ctx context.Context, c *operation.Call, roomID, added int64) erro
 			return err
 		}
 		if used+added > *l.Disk {
-			return operation.Forbiddenf("%s: purge Windows from the trash, since they still count, or %s",
+			return operation.Forbiddenf("%s: %s, or %s",
 				full(c, kind, Bytes(added)+" more",
 					fmt.Sprintf("this Cahut keeps %s, and %s more would take it past its limit of %s", Bytes(used), Bytes(added), Bytes(*l.Disk))),
-				askForMore(c))
+				advice, askForMore(c))
 		}
 	}
 	if kind == Individual && l.DiskPerPerson != nil {
-		owner, err := ownerOf(ctx, c, roomID)
+		owner, err := ownerOf()
 		if err != nil {
 			return err
+		}
+		if owner == 0 {
+			return nil
 		}
 		u, err := UseOf(ctx, c.Tx, owner)
 		if err != nil {
@@ -184,8 +204,8 @@ func CheckDisk(ctx context.Context, c *operation.Call, roomID, added int64) erro
 				return err
 			}
 			return operation.Forbiddenf("%s %s, and %s more would take %s past the limit of each person in this Cahut, %s: "+
-				"purge Windows from the trash, since they still count, or %s",
-				who.keeps, Bytes(u.Disk), Bytes(added), who.them, Bytes(*l.DiskPerPerson), askForMore(c))
+				"%s, or %s",
+				who.keeps, Bytes(u.Disk), Bytes(added), who.them, Bytes(*l.DiskPerPerson), advice, askForMore(c))
 		}
 	}
 	return nil

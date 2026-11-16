@@ -23,9 +23,11 @@ import (
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/settings"
+	"cahut.cloud/internal/skill"
 	"cahut.cloud/internal/store"
 	"cahut.cloud/internal/windata"
 	"cahut.cloud/internal/window"
+	"cahut.cloud/plugins"
 )
 
 // Config says where a Cahut keeps its data and how it is reached.
@@ -110,6 +112,7 @@ func Open(ctx context.Context, cfg Config) (*Cahut, error) {
 	}
 	w.Register(r)
 	moderation.Register(r, frameKey)
+	skill.Register(r, plugins.SkillFS())
 	auth := oauth.New(db, r, oauth.Config{
 		Issuer:    strings.TrimSuffix(cfg.BaseURL, "/"),
 		Authorize: cfg.ConsoleURL + "oauth/authorize",

@@ -44,3 +44,13 @@ var (
 	errTooLarge = operation.NewRefusal("skill_too_large", operation.ErrInvalid,
 		"this skill is too large: a SKILL.md holds 64 KiB at most, each of its files 2 MiB, and a skill 100 files and 4 MiB in all")
 )
+
+var (
+	errNameReserved = operation.NewRefusal("skill_name_reserved", operation.ErrInvalid,
+		"the name cahut is kept for the skill of the plugin for Claude, which every AI of this Cahut reads: give your skill another name")
+	errTooMany = operation.NewRefusal("skill_too_many", operation.ErrForbidden,
+		"this scope holds 50 skills, the most it may: delete one before you add another")
+	errScopeIndividual = operation.NewRefusal("skill_scope_individual", operation.ErrForbidden,
+		"this Cahut is individual, and has no skills of the Cahut: its people share the Cahut, not their work. "+
+			"Write the skill among your own, with the scope personal")
+)

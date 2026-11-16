@@ -35,11 +35,11 @@ type Limits struct {
 	Rooms            *int64 `json:"rooms,omitempty" jsonschema:"how many team Rooms the Cahut may have, or in an individual Cahut how many Rooms beside the personal ones; personal Rooms come with their person and do not count"`
 	Windows          *int64 `json:"windows,omitempty" jsonschema:"how many Windows out of the trash the Cahut may hold"`
 	WindowsPerRoom   *int64 `json:"windows_per_room,omitempty" jsonschema:"how many Windows out of the trash each Room may hold, personal Rooms included"`
-	Disk             *int64 `json:"disk,omitempty" jsonschema:"how many bytes the Cahut may keep: every version of every Window, those in the trash included, and their data with its copies"`
+	Disk             *int64 `json:"disk,omitempty" jsonschema:"how many bytes the Cahut may keep: every version of every Window, those in the trash included, their data with its copies, and both versions of every skill"`
 	DataPerWindow    *int64 `json:"data_per_window,omitempty" jsonschema:"how many bytes the data of each Window may hold, its copies apart, up to 100 MiB"`
 	RoomsPerPerson   *int64 `json:"rooms_per_person,omitempty" jsonschema:"in an individual Cahut, how many Rooms each person may have beside their personal Room"`
 	WindowsPerPerson *int64 `json:"windows_per_person,omitempty" jsonschema:"in an individual Cahut, how many Windows out of the trash each person may hold, over their Rooms"`
-	DiskPerPerson    *int64 `json:"disk_per_person,omitempty" jsonschema:"in an individual Cahut, how many bytes the Windows of each person may keep, every version included"`
+	DiskPerPerson    *int64 `json:"disk_per_person,omitempty" jsonschema:"in an individual Cahut, how many bytes the Windows and the skills of each person may keep, every version included"`
 }
 
 // NearPercent is the share of a limit, in percent, from which a Cahut warns
@@ -65,7 +65,7 @@ type Usage struct {
 	Admins  int64 `json:"admins" jsonschema:"administrators who are not disabled"`
 	Rooms   int64 `json:"rooms" jsonschema:"team Rooms, or in an individual Cahut the Rooms beside the personal ones"`
 	Windows int64 `json:"windows" jsonschema:"Windows out of the trash"`
-	Disk    int64 `json:"disk" jsonschema:"bytes of every version of every Window, those in the trash included, and of their data"`
+	Disk    int64 `json:"disk" jsonschema:"bytes of every version of every Window, those in the trash included, of their data, and of both versions of every skill"`
 }
 
 // PersonUsage is what a person of an individual Cahut holds, as the limits
@@ -73,7 +73,7 @@ type Usage struct {
 type PersonUsage struct {
 	Rooms   int64 `json:"rooms" jsonschema:"Rooms beside the personal one"`
 	Windows int64 `json:"windows" jsonschema:"Windows out of the trash, over their Rooms"`
-	Disk    int64 `json:"disk" jsonschema:"bytes of every version of the Windows of their Rooms, those in the trash included, and of their data"`
+	Disk    int64 `json:"disk" jsonschema:"bytes of every version of the Windows of their Rooms, those in the trash included, of their data, and of their skills"`
 }
 
 // Settings are the settings of a Cahut, with what it holds.
@@ -172,7 +172,8 @@ func UseOf(ctx context.Context, tx *sql.Tx, userID int64) (PersonUsage, error) {
 		  (SELECT count(*) FROM windows w JOIN room_members m ON m.room_id = w.room_id WHERE w.trashed_at IS NULL AND m.user_id = ?1),
 		  (SELECT coalesce(sum(v.size), 0) FROM window_versions v JOIN windows w ON w.id = v.window_id
 		     JOIN room_members m ON m.room_id = w.room_id WHERE m.user_id = ?1)
-		  + (SELECT coalesce(sum(w.data_size), 0) FROM windows w JOIN room_members m ON m.room_id = w.room_id WHERE m.user_id = ?1)`, userID).
+		  + (SELECT coalesce(sum(w.data_size), 0) FROM windows w JOIN room_members m ON m.room_id = w.room_id WHERE m.user_id = ?1)
+		  + (SELECT coalesce(sum(v.size), 0) FROM skill_versions v JOIN skills s ON s.id = v.skill_id WHERE s.owner_id = ?1)`, userID).
 		Scan(&u.Rooms, &u.Windows, &u.Disk)
 	return u, err
 }
@@ -227,11 +228,13 @@ func Read(ctx context.Context, tx *sql.Tx, userID int64, admin bool) (Settings, 
 
 // disk returns the bytes that the Cahut keeps, as the limit of its disk
 // counts them: the sizes that the database records for each version of a
-// Window, and for its data with its copies.
+// Window, for its data with its copies, and for each version of a skill.
+// See docs/adr/0064-the-skills-of-a-cahut.md.
 func disk(ctx context.Context, tx *sql.Tx) (int64, error) {
 	var n int64
 	err := tx.QueryRowContext(ctx, `SELECT (SELECT coalesce(sum(size), 0) FROM window_versions)
-		+ (SELECT coalesce(sum(data_size), 0) FROM windows)`).Scan(&n)
+		+ (SELECT coalesce(sum(data_size), 0) FROM windows)
+		+ (SELECT coalesce(sum(size), 0) FROM skill_versions)`).Scan(&n)
 	return n, err
 }
 
