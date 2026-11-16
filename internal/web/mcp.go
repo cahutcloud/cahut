@@ -26,7 +26,9 @@ import (
 
 // instructions guide the AIs that connect. What an AI needs to publish
 // comes first, within the 512 characters that some clients, such as Codex,
-// are sure to keep (docs/adr/0029-chatgpt-second-ai-client.md).
+// are sure to keep (docs/adr/0029-chatgpt-second-ai-client.md). The skills
+// open the second paragraph, within the 2,048 that claude.ai keeps
+// (docs/adr/0064-the-skills-of-a-cahut.md).
 const instructions = `Cahut keeps what you make on the user's own server, as Windows. ` +
 	`To publish a document, deck, dashboard or site: call publish_window ` +
 	`with a complete index.html and all its files, linked by relative paths (css/deck.css, never /css/deck.css), ` +
@@ -34,6 +36,8 @@ const instructions = `Cahut keeps what you make on the user's own server, as Win
 	`A call that cannot be undone makes a Knock: give the user its link to approve it.
 
 ` +
+	`Cahut also keeps the skills of the user's team, for any task, even one that publishes nothing here: ` +
+	`before a task, call find_skills and follow the skill that fits it. ` +
 	`Make each Window in the style the user asks for, with its own CSS, fonts and scripts among its files: ` +
 	`Cahut serves no style sheet for Windows, and a Window is served under the address of its Room. ` +
 	`Pages can load and call nothing that their declaration does not list, and send forms only where it says. ` +

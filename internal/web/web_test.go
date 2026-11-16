@@ -797,6 +797,16 @@ func TestInstructionsStartWithWhatToPublish(t *testing.T) {
 	}
 }
 
+// TestInstructionsPointToSkills checks that the instructions send an AI to
+// find_skills before a task, within the 2,048 characters that claude.ai
+// keeps, at the start of their second paragraph (ADR 64).
+func TestInstructionsPointToSkills(t *testing.T) {
+	_, second, _ := strings.Cut(instructions, "\n\n")
+	if !strings.HasPrefix(second, "Cahut also keeps the skills of the user's team") || !strings.Contains(instructions[:2048], "call find_skills") {
+		t.Errorf("the second paragraph of the instructions does not open with the skills: %.200q", second)
+	}
+}
+
 // The MCP server of a Cahut gives AI clients the app icon of Cahut, at the
 // origin of the Cahut, to show beside its connector. See
 // docs/adr/0040-the-icon-of-a-cahut.md.
