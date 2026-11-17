@@ -3,7 +3,7 @@
 // back, export it as a zip, or delete it. See
 // docs/adr/0064-the-skills-of-a-cahut.md.
 import { Download, FileArchive, PenLine } from "lucide-preact";
-import { useState } from "preact/hooks";
+import { useId, useState } from "preact/hooks";
 import { explain } from "../api";
 import type { Skill, SkillFileInfo } from "../api.gen";
 import { agoInText, bytes, ConfirmButton, Failure, PageHead } from "../components";
@@ -44,6 +44,9 @@ const t = words({
 		adminsChange: "The administrators of this Cahut change its skills.",
 		comesWith: "It comes with this version of Cahut, and changes with its updates.",
 		allSkills: "All skills",
+		everyWindow: "For every Window",
+		everyWindowHelp: "AIs must read this skill before they publish or update a Window.",
+		everyWindowLimits: "Three skills of this Cahut at most, each with a SKILL.md of 16 KiB at most.",
 	},
 	fr: {
 		scopes: { cahut: "Skill de cette Cahut", personal: "Mon skill", builtin: "Fourni avec Cahut" },
@@ -76,6 +79,9 @@ const t = words({
 		adminsChange: "Les administrateurs de cette Cahut changent ses skills.",
 		comesWith: "Il vient avec cette version de Cahut, et change avec ses mises à jour.",
 		allSkills: "Tous les skills",
+		everyWindow: "Pour chaque Window",
+		everyWindowHelp: "Les IA doivent lire ce skill avant de publier ou de modifier une Window.",
+		everyWindowLimits: "Trois skills de cette Cahut au plus, chacun avec un SKILL.md de 16 Kio au plus.",
 	},
 });
 
@@ -149,6 +155,12 @@ export function SkillPage({ scope, name }: { scope: string; name: string }) {
 					<Files skill={ref} files={s.files ?? []} onFailure={setFailure} />
 				</section>
 				<aside class="aside">
+					{scope === "cahut" && api.isAdmin && (
+						<EveryWindow
+							on={!!s.every_window}
+							onChange={(on) => act(async () => (await api.cahut("write_skill", { scope: "cahut", skill: name, every_window: on }), reload()))}
+						/>
+					)}
 					{writes && (
 						<div class="c-card panel aside">
 							<h2 class="c-h4">{t.versions}</h2>
@@ -213,6 +225,34 @@ export function SkillPage({ scope, name }: { scope: string; name: string }) {
 				</aside>
 			</div>
 		</>
+	);
+}
+
+/** The mark of a skill of the Cahut for every Window, which its administrators give or take off. */
+function EveryWindow(props: { on: boolean; onChange: (on: boolean) => Promise<void> }) {
+	const help = useId();
+	const [busy, setBusy] = useState(false);
+	return (
+		<div class="c-card panel aside">
+			<label class="c-check">
+				<input
+					type="checkbox"
+					checked={props.on}
+					disabled={busy}
+					aria-describedby={help}
+					onChange={async (e) => {
+						setBusy(true);
+						await props.onChange(e.currentTarget.checked);
+						setBusy(false);
+					}}
+				/>
+				{t.everyWindow}
+			</label>
+			<div id={help}>
+				<p class="c-small">{t.everyWindowHelp}</p>
+				<p class="c-small c-muted">{t.everyWindowLimits}</p>
+			</div>
+		</div>
 	);
 }
 

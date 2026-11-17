@@ -1149,7 +1149,6 @@ Title: Find skills. Annotations: `readOnlyHint: true`, `destructiveHint: false`,
 | `skills[].number` | integer | yes | the number of its current version |
 | `skills[].scope` | string | yes | cahut for a skill of the team, personal for one of the person, builtin for the skill of the plugin |
 | `skills[].skill` | string | yes | its name, to give to get_skill; with its scope as a prefix, such as cahut:charte-acme, when the person has a skill of the same name in another scope |
-| `skills[].version` | string | yes | the digest of its current version |
 | `skills[].every_window` | boolean | no | whether every Window of this Cahut follows it |
 | `skills[].written_at` | string or null | no | when its current version was written |
 
@@ -1184,10 +1183,6 @@ Title: Find skills. Annotations: `readOnlyHint: true`, `destructiveHint: false`,
             "description": "its name, to give to get_skill; with its scope as a prefix, such as cahut:charte-acme, when the person has a skill of the same name in another scope",
             "type": "string"
           },
-          "version": {
-            "description": "the digest of its current version",
-            "type": "string"
-          },
           "written_at": {
             "description": "when its current version was written",
             "type": [
@@ -1200,7 +1195,6 @@ Title: Find skills. Annotations: `readOnlyHint: true`, `destructiveHint: false`,
           "skill",
           "scope",
           "description",
-          "version",
           "number"
         ],
         "type": "object"
@@ -3950,13 +3944,15 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `files` | array of objects or null | yes | the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css |
-| `files[].content` | string | yes |  |
 | `files[].path` | string | yes | relative path with / as separator, such as index.html or img/logo.svg |
+| `files[].content` | string | no | what the file holds, unless from_skill gives it |
 | `files[].encoding` | string | no | utf-8 (the default) or base64, for binary files |
+| `files[].from_skill` | string | no | a file of a skill to copy here in place of content, such as charte-acme/assets/logo.svg |
 | `kind` | string | yes | one of document, deck, dashboard or site |
 | `title` | string | yes | title of the Window, also used in its address |
 | `access` | string | no | room, the members of its Room (the default), or author, the person you act for alone: a draft, or a Window that one reader opens once with create_share_link and max_openings 1 |
 | `description` | string | no | what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window |
+| `follows` | array of strings or null | no | the skills of this Cahut that the Window follows, each as its name and the version that get_skill gives, such as charte-acme@3f9a2c1b |
 | `name` | string | no | its name in its address, 1 to 63 lowercase letters, digits and hyphens; from the title when empty |
 | `room` | string | no | name of the Room to publish in; the personal Room of the person you act for when empty |
 | `tags` | array of strings or null | no | 10 at most, such as q3 or sales, which help find it among many: reuse those that list_windows gives |
@@ -4085,10 +4081,15 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
         "additionalProperties": false,
         "properties": {
           "content": {
+            "description": "what the file holds, unless from_skill gives it",
             "type": "string"
           },
           "encoding": {
             "description": "utf-8 (the default) or base64, for binary files",
+            "type": "string"
+          },
+          "from_skill": {
+            "description": "a file of a skill to copy here in place of content, such as charte-acme/assets/logo.svg",
             "type": "string"
           },
           "path": {
@@ -4097,10 +4098,19 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
           }
         },
         "required": [
-          "path",
-          "content"
+          "path"
         ],
         "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "follows": {
+      "description": "the skills of this Cahut that the Window follows, each as its name and the version that get_skill gives, such as charte-acme@3f9a2c1b",
+      "items": {
+        "type": "string"
       },
       "type": [
         "null",
@@ -8112,11 +8122,13 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `files` | array of objects or null | yes | every file of the new version, as for publish_window; files left out are not in it |
-| `files[].content` | string | yes |  |
 | `files[].path` | string | yes | relative path with / as separator, such as index.html or img/logo.svg |
+| `files[].content` | string | no | what the file holds, unless from_skill gives it |
 | `files[].encoding` | string | no | utf-8 (the default) or base64, for binary files |
+| `files[].from_skill` | string | no | a file of a skill to copy here in place of content, such as charte-acme/assets/logo.svg |
 | `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 | `description` | string or null | no | a new description, a sentence or two of plain text; empty to remove it, and it stays when absent |
+| `follows` | array of strings or null | no | the skills of this Cahut that the Window follows, as for publish_window |
 | `title` | string | no | a new title; the title stays when empty. The address does not change |
 
 <details>
@@ -8242,10 +8254,15 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
         "additionalProperties": false,
         "properties": {
           "content": {
+            "description": "what the file holds, unless from_skill gives it",
             "type": "string"
           },
           "encoding": {
             "description": "utf-8 (the default) or base64, for binary files",
+            "type": "string"
+          },
+          "from_skill": {
+            "description": "a file of a skill to copy here in place of content, such as charte-acme/assets/logo.svg",
             "type": "string"
           },
           "path": {
@@ -8254,10 +8271,19 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
           }
         },
         "required": [
-          "path",
-          "content"
+          "path"
         ],
         "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "follows": {
+      "description": "the skills of this Cahut that the Window follows, as for publish_window",
+      "items": {
+        "type": "string"
       },
       "type": [
         "null",

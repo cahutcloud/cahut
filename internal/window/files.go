@@ -1,6 +1,7 @@
 package window
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"unicode/utf8"
 
 	"cahut.cloud/internal/operation"
+	"cahut.cloud/internal/skill"
 )
 
 // MinFreeSpace is the space that a publication leaves free on the disk of
@@ -69,56 +71,86 @@ type decoded struct {
 	data []byte
 }
 
-// decode checks the files of a publication and decodes their contents.
-func decode(files []File) ([]decoded, int64, error) {
+// copier returns the bytes of the file of a skill that a file of a
+// publication copies with from_skill, and what the Logbook keeps of it.
+type copier func(ref string) ([]byte, string, error)
+
+// fromSkills is the copier of the call c, which reads the skills that the
+// person it acts for reads. See docs/adr/0064-the-skills-of-a-cahut.md.
+func fromSkills(ctx context.Context, c *operation.Call) copier {
+	return func(ref string) ([]byte, string, error) {
+		f, logged, err := skill.FileOf(ctx, c, ref)
+		return f.Content, logged, err
+	}
+}
+
+// decode checks the files of a publication and decodes their contents,
+// with from for those that copy a file of a skill. It returns too what the
+// Logbook keeps of the files copied.
+func decode(files []File, from copier) ([]decoded, int64, []string, error) {
 	if len(files) == 0 {
-		return nil, 0, operation.Invalidf("files is empty: publish at least index.html")
+		return nil, 0, nil, operation.Invalidf("files is empty: publish at least index.html")
 	}
 	if len(files) > MaxFiles {
-		return nil, 0, operation.Invalidf("%d files, more than the %d allowed", len(files), MaxFiles)
+		return nil, 0, nil, operation.Invalidf("%d files, more than the %d allowed", len(files), MaxFiles)
 	}
+	var copied []string
 	out := make([]decoded, 0, len(files))
 	seen := map[string]bool{} // lowercase paths, so that no two files collide on a case-insensitive disk
 	var size int64
 	for _, f := range files {
 		if err := checkPath(f.Path); err != nil {
-			return nil, 0, err
+			return nil, 0, nil, err
 		}
 		key := strings.ToLower(f.Path)
 		if seen[key] {
-			return nil, 0, operation.Invalidf("file %q appears twice", f.Path)
+			return nil, 0, nil, operation.Invalidf("file %q appears twice", f.Path)
 		}
 		seen[key] = true
 
 		var data []byte
-		switch f.Encoding {
-		case "", "utf-8", "utf8":
-			data = []byte(f.Content)
-		case "base64":
+		switch {
+		case f.FromSkill != "" && f.Content != "":
+			return nil, 0, nil, operation.Invalidf("file %q: give its content or from_skill, not both", f.Path)
+		case f.FromSkill != "":
+			var logged string
 			var err error
-			if data, err = base64.StdEncoding.DecodeString(f.Content); err != nil {
-				return nil, 0, operation.Invalidf("file %q: content is not valid base64", f.Path)
+			if data, logged, err = from(f.FromSkill); err != nil {
+				return nil, 0, nil, fmt.Errorf("file %q: %w", f.Path, err)
 			}
+			copied = append(copied, logged)
+		case f.Content == "":
+			return nil, 0, nil, operation.Invalidf("file %q has no content: give its content, or from_skill to copy a file of a skill, such as charte-acme/assets/logo.svg", f.Path)
 		default:
-			return nil, 0, operation.Invalidf("file %q: encoding %q, use utf-8 or base64", f.Path, f.Encoding)
+			switch f.Encoding {
+			case "", "utf-8", "utf8":
+				data = []byte(f.Content)
+			case "base64":
+				var err error
+				if data, err = base64.StdEncoding.DecodeString(f.Content); err != nil {
+					return nil, 0, nil, operation.Invalidf("file %q: content is not valid base64", f.Path)
+				}
+			default:
+				return nil, 0, nil, operation.Invalidf("file %q: encoding %q, use utf-8 or base64", f.Path, f.Encoding)
+			}
 		}
 		size += int64(len(data))
 		if size > MaxSize {
-			return nil, 0, operation.Invalidf("files total more than %d MiB", MaxSize>>20)
+			return nil, 0, nil, operation.Invalidf("files total more than %d MiB", MaxSize>>20)
 		}
 		out = append(out, decoded{path: f.Path, data: data})
 	}
 	if !seen["index.html"] {
-		return nil, 0, operation.Invalidf("index.html is missing: it is the page that opens")
+		return nil, 0, nil, operation.Invalidf("index.html is missing: it is the page that opens")
 	}
 	for _, f := range out {
 		for dir := path.Dir(f.path); dir != "."; dir = path.Dir(dir) {
 			if seen[strings.ToLower(dir)] {
-				return nil, 0, operation.Invalidf("%q is both a file and the folder of %q", dir, f.path)
+				return nil, 0, nil, operation.Invalidf("%q is both a file and the folder of %q", dir, f.path)
 			}
 		}
 	}
-	return out, size, nil
+	return out, size, copied, nil
 }
 
 // checkPath accepts clean, relative paths with / as separator, and no

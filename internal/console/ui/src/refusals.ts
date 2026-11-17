@@ -63,6 +63,9 @@ const said = words<Sentences>({
 		email_already_yours: (v) => `${v.email} is already your e-mail address.`,
 		email_link_gone: "This link is unknown, used or expired: change your address again from your account.",
 		email_taken: (v) => `${v.email} is already the e-mail address of another person of this Cahut.`,
+		every_window_too_long:
+			"A skill for every Window holds a SKILL.md of 16 KiB at most, since AIs receive it whole when they publish a Window: shorten it, and move the details into its files.",
+		every_window_too_many: "Three skills of this Cahut are for every Window already, the most there may be: take the mark off one of them first.",
 		handle_invalid: (v) =>
 			`"${v.handle}" cannot be a handle: use 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit.`,
 		handle_knocks_waiting:
@@ -187,6 +190,9 @@ const said = words<Sentences>({
 		email_already_yours: (v) => `${v.email} est déjà votre adresse e-mail.`,
 		email_link_gone: "Ce lien est inconnu, déjà utilisé ou expiré : changez à nouveau votre adresse depuis votre compte.",
 		email_taken: (v) => `${v.email} est déjà l'adresse e-mail d'une autre personne de cette Cahut.`,
+		every_window_too_long:
+			"Un skill pour chaque Window tient dans un SKILL.md de 16 Kio au plus, car les IA le reçoivent en entier quand elles publient une Window : raccourcissez-le, et mettez les détails dans ses fichiers.",
+		every_window_too_many: "Trois skills de cette Cahut sont déjà pour chaque Window, le plus qu'il puisse y en avoir : retirez d'abord la marque de l'un d'eux.",
 		handle_invalid: (v) =>
 			`« ${v.handle} » ne peut pas être un identifiant : utilisez de 2 à 32 lettres minuscules, chiffres et tirets, en commençant par une lettre et en finissant par une lettre ou un chiffre.`,
 		handle_knocks_waiting:

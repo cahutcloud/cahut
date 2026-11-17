@@ -45,12 +45,13 @@ const note = "Follow this skill for the tasks it describes. Where skills differ,
 	"then their personal skill, then the skill of the Cahut, then a skill for the same use installed in your client, " +
 	"which is a copy: the skill of the Cahut has the last word over it."
 
-// Summary is a skill, as find_skills lists it.
+// Summary is a skill, as find_skills lists it. It holds no digest: the
+// digest that passes the gate of Windows comes only with the text of the
+// skill, from get_skill or a refusal of the gate.
 type Summary struct {
 	Skill       string     `json:"skill" jsonschema:"its name, to give to get_skill; with its scope as a prefix, such as cahut:charte-acme, when the person has a skill of the same name in another scope"`
 	Scope       Scope      `json:"scope" jsonschema:"cahut for a skill of the team, personal for one of the person, builtin for the skill of the plugin"`
 	Description string     `json:"description" jsonschema:"what the skill does, and when to follow it"`
-	Version     string     `json:"version" jsonschema:"the digest of its current version"`
 	Number      int        `json:"number" jsonschema:"the number of its current version"`
 	WrittenAt   *time.Time `json:"written_at,omitempty" jsonschema:"when its current version was written"`
 	EveryWindow bool       `json:"every_window,omitempty" jsonschema:"whether every Window of this Cahut follows it"`
@@ -114,6 +115,8 @@ type WriteInput struct {
 	Text   string      `json:"text,omitempty" jsonschema:"its SKILL.md; a new skill needs one, and a skill keeps its text without it"`
 	Files  []FileInput `json:"files,omitempty" jsonschema:"the files to add or replace; the skill keeps those it does not name"`
 	Remove []string    `json:"remove,omitempty" jsonschema:"the paths of the files to remove"`
+	// A pointer, so that an absent mark stays as it is.
+	EveryWindow *bool `json:"every_window,omitempty" jsonschema:"for a skill of the Cahut, whether every Window follows it: AIs then read it before they publish or update a Window. Three skills at most, each with a SKILL.md of 16 KiB at most; the mark stays as it is when absent"`
 }
 
 // ImportInput is the input of import_skill.
@@ -183,7 +186,7 @@ var WriteSkill = &operation.Op[WriteInput, Skill]{
 		if err != nil {
 			return Skill{}, private(in.Scope, err)
 		}
-		s, err := apply(ctx, c, change{scope: in.Scope, name: in.Skill, text: in.Text, files: files, remove: in.Remove, via: "console"})
+		s, err := apply(ctx, c, change{scope: in.Scope, name: in.Skill, text: in.Text, files: files, remove: in.Remove, everyWindow: in.EveryWindow, via: "console"})
 		return s, private(in.Scope, err)
 	},
 }
@@ -277,6 +280,15 @@ var RollbackSkill = &operation.Op[RollbackInput, Skill]{
 		logSkill(c, r.scope, r.name, "")
 		if r.previous == 0 {
 			return Skill{}, operation.Invalidf("this skill has one version: there is none to go back to")
+		}
+		if r.everyWindow {
+			previous, err := versionOf(ctx, c.Tx, r.previous)
+			if err != nil {
+				return Skill{}, err
+			}
+			if len(previous.text) > MaxEveryWindowText {
+				return Skill{}, errEveryWindowTooLong
+			}
 		}
 		if _, err := c.Tx.ExecContext(ctx, "UPDATE skills SET current_version = previous_version, previous_version = current_version WHERE id = ?", r.id); err != nil {
 			return Skill{}, err
@@ -458,7 +470,10 @@ type change struct {
 	files   []File   // to add or replace
 	remove  []string // the paths of the files to remove
 	replace bool     // files are every file of the skill, as an import gives them
-	via     string
+	// everyWindow is the mark that the write gives the skill; nil keeps the
+	// mark as it is.
+	everyWindow *bool
+	via         string
 }
 
 // apply writes ch as a new version of its skill, or as a new skill.
@@ -467,6 +482,9 @@ func apply(ctx context.Context, c *operation.Call, ch change) (Skill, error) {
 	owner, err := ownerFor(ctx, c, ch.scope)
 	if err != nil {
 		return Skill{}, err
+	}
+	if ch.everyWindow != nil && *ch.everyWindow && ch.scope != ScopeCahut {
+		return Skill{}, operation.Invalidf("only a skill of the Cahut is for every Window: a personal skill serves you alone")
 	}
 	if err := CheckName(ch.name); err != nil {
 		return Skill{}, err
@@ -526,8 +544,31 @@ func apply(ctx context.Context, c *operation.Call, ch change) (Skill, error) {
 		return Skill{}, errTooLarge
 	}
 
+	// A skill for every Window stays short, since a refusal of the gate
+	// carries its SKILL.md whole, and three skills at most take the mark.
+	marked := r != nil && r.everyWindow
+	mark := marked
+	if ch.everyWindow != nil {
+		mark = *ch.everyWindow
+	}
+	if mark && len(text) > MaxEveryWindowText {
+		return Skill{}, errEveryWindowTooLong
+	}
+	if mark && !marked {
+		n, err := countMarked(ctx, c.Tx)
+		if err != nil {
+			return Skill{}, err
+		}
+		if n >= MaxEveryWindow {
+			return Skill{}, errEveryWindowTooMany
+		}
+	}
+
 	digest := Digest(text, files)
 	if current != nil && digest == current.digest {
+		if mark != marked {
+			return remark(ctx, c, r, mark)
+		}
 		logSkill(c, ch.scope, ch.name, "unchanged")
 		return describe(ctx, c, target{row: r}, false)
 	}
@@ -568,11 +609,42 @@ func apply(ctx context.Context, c *operation.Call, ch change) (Skill, error) {
 		r.previous = r.current
 	}
 	r.current = vid
+	if mark != r.everyWindow {
+		if err := setMark(ctx, c.Tx, r, mark); err != nil {
+			return Skill{}, err
+		}
+	}
 	if err := changed(ctx, c, r); err != nil {
 		return Skill{}, err
 	}
-	logSkill(c, ch.scope, ch.name, fmt.Sprintf("version %d, %d files, %s", number, len(files), settings.Bytes(size)))
+	logSkill(c, ch.scope, ch.name, fmt.Sprintf("version %d, %d files, %s", number, len(files), settings.Bytes(size))+markDetail(mark, marked, ", "))
 	return describe(ctx, c, target{row: r}, false)
+}
+
+// remark gives the skill r of the Cahut the mark, or takes it off, without
+// a new version. The mark orders the lines of the catalog, whose revision
+// it raises.
+func remark(ctx context.Context, c *operation.Call, r *row, mark bool) (Skill, error) {
+	if err := setMark(ctx, c.Tx, r, mark); err != nil {
+		return Skill{}, err
+	}
+	if err := raise(ctx, c.Tx); err != nil {
+		return Skill{}, err
+	}
+	logSkill(c, r.scope, r.name, markDetail(mark, !mark, ""))
+	return describe(ctx, c, target{row: r}, false)
+}
+
+// markDetail is what the Logbook says of a mark that a write changes from
+// was to mark, after sep; nothing when it stays.
+func markDetail(mark, was bool, sep string) string {
+	switch {
+	case mark && !was:
+		return sep + "for every Window"
+	case was && !mark:
+		return sep + "no longer for every Window"
+	}
+	return ""
 }
 
 // changed indexes the current version of the skill r, and raises the
@@ -704,6 +776,12 @@ func get(ctx context.Context, c *operation.Call, in GetInput) (Skill, error) {
 	if in.File == "" {
 		s, err := describe(ctx, c, t, true)
 		s.Note = note
+		if len(s.Files) > 0 {
+			s.Note += fmt.Sprintf(" To put one of its files in a Window, give from_skill: %q in place of its content.", strings.TrimSpace(in.Skill)+"/"+s.Files[0].Path)
+		}
+		if s.EveryWindow {
+			s.Note += fmt.Sprintf(" Every Window of this Cahut follows this skill: give follows: [%q] to publish_window and update_window.", s.Skill+"@"+s.Version)
+		}
 		return s, err
 	}
 	var f File
@@ -750,7 +828,7 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 	}
 	words := wordsOf(in.Query)
 	query := `
-		SELECT s.name, s.scope, s.every_window, v.number, v.digest, v.description, v.written_at
+		SELECT s.name, s.scope, s.every_window, v.number, v.description, v.written_at
 		FROM skills s JOIN skill_versions v ON v.id = s.current_version
 		WHERE (s.owner_id IS NULL AND ?1 = 0 OR s.owner_id = ?2)`
 	args := []any{individual, c.Actor.UserID}
@@ -767,7 +845,7 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 	for rows.Next() {
 		var s Summary
 		var at string
-		if err := rows.Scan(&s.Skill, &s.Scope, &s.EveryWindow, &s.Number, &s.Version, &s.Description, &at); err != nil {
+		if err := rows.Scan(&s.Skill, &s.Scope, &s.EveryWindow, &s.Number, &s.Description, &at); err != nil {
 			return Found{}, err
 		}
 		written, err := store.ParseTime(at)
@@ -782,7 +860,7 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 	}
 
 	if b := builtinOf(c); b != nil && b.matches(words) {
-		skills = append(skills, Summary{Skill: BuiltinName, Scope: ScopeBuiltin, Description: b.description, Version: b.digest, Number: 1})
+		skills = append(skills, Summary{Skill: BuiltinName, Scope: ScopeBuiltin, Description: b.description, Number: 1})
 	}
 	// The skills of each scope go by their names, before any takes the
 	// prefix of its scope, those for every Window first.
