@@ -69,6 +69,8 @@ A refusal that people meet in the console gives its code too, which never change
 | `email_already_yours` | `email` | {email} is already your e-mail address |
 | `email_link_gone` |  | This link is unknown, used or expired: change your address again from your account |
 | `email_taken` | `email` | {email} is already the e-mail address of another person of this Cahut |
+| `every_window_too_long` |  | A skill for every Window holds a SKILL.md of 16 KiB at most, since AIs receive it whole when they publish a Window: shorten it, and move the details into its files, which it names |
+| `every_window_too_many` |  | Three skills of this Cahut are for every Window, the most it may: take the mark off one of them before you give it to another |
 | `handle_invalid` | `handle` | Handle {handle}: use 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit |
 | `handle_knocks_waiting` |  | Knocks wait for you: answer them before you change your handle, since they name the addresses of your personal Room |
 | `handle_reserved` | `handle` | Handle {handle} is reserved: it names a page of every Cahut |

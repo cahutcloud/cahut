@@ -207,6 +207,22 @@ func reindex(ctx context.Context, tx *sql.Tx, id int64) error {
 	return err
 }
 
+// countMarked returns how many skills of the Cahut are for every Window.
+func countMarked(ctx context.Context, tx *sql.Tx) (int, error) {
+	var n int
+	err := tx.QueryRowContext(ctx, "SELECT count(*) FROM skills WHERE owner_id IS NULL AND every_window = 1").Scan(&n)
+	return n, err
+}
+
+// setMark gives the skill r the mark for every Window, or takes it off.
+func setMark(ctx context.Context, tx *sql.Tx, r *row, mark bool) error {
+	if _, err := tx.ExecContext(ctx, "UPDATE skills SET every_window = ? WHERE id = ?", mark, r.id); err != nil {
+		return err
+	}
+	r.everyWindow = mark
+	return nil
+}
+
 // raise raises the revision of the catalog of the Cahut, which AIs see.
 func raise(ctx context.Context, tx *sql.Tx) error {
 	_, err := tx.ExecContext(ctx, "UPDATE skill_catalog SET revision = revision + 1 WHERE id = 1")

@@ -2188,6 +2188,8 @@ export interface WriteInput {
   files?: FileInput[];
   /** the paths of the files to remove */
   remove?: string[];
+  /** for a skill of the Cahut, whether every Window follows it: AIs then read it before they publish or update a Window. Three skills at most, each with a SKILL.md of 16 KiB at most; the mark stays as it is when absent */
+  every_window?: boolean;
 }
 
 export interface ZipProblem {
@@ -2475,6 +2477,10 @@ export interface Refusals {
   email_link_gone: null;
   /** {email} is already the e-mail address of another person of this Cahut */
   email_taken: TakenEmail;
+  /** a skill for every Window holds a SKILL.md of 16 KiB at most, since AIs receive it whole when they publish a Window: shorten it, and move the details into its files, which it names */
+  every_window_too_long: null;
+  /** three skills of this Cahut are for every Window, the most it may: take the mark off one of them before you give it to another */
+  every_window_too_many: null;
   /** handle {handle}: use 2 to 32 lowercase letters, digits and hyphens, starting with a letter and ending with a letter or a digit */
   handle_invalid: Handle;
   /** Knocks wait for you: answer them before you change your handle, since they name the addresses of your personal Room */

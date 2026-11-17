@@ -86,6 +86,16 @@ func pathOf(p string) FilePath {
 	return FilePath{Path: operation.Quoted(p)}
 }
 
+// The refusals of the mark for every Window, which administrators meet on
+// the page of a skill of the Cahut.
+var (
+	errEveryWindowTooMany = operation.NewRefusal("every_window_too_many", operation.ErrForbidden,
+		"three skills of this Cahut are for every Window, the most it may: take the mark off one of them before you give it to another")
+	errEveryWindowTooLong = operation.NewRefusal("every_window_too_long", operation.ErrInvalid,
+		"a skill for every Window holds a SKILL.md of 16 KiB at most, since AIs receive it whole when they publish a Window: "+
+			"shorten it, and move the details into its files, which it names")
+)
+
 var (
 	errNotFound = operation.NewRefusal("skill_not_found", operation.ErrNotFound,
 		"there is no skill of this name that you may read: find_skills lists them")
