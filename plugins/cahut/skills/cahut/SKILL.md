@@ -21,8 +21,8 @@ The Cahut keeps the skills of the user's team, and their own: how they want some
 
 - Before a task, look at the skills that the description of `find_skills` names, or call `find_skills`. Read with `get_skill` the one whose description fits the task, and follow it. When the user names a skill, read it with `get_skill`.
 - Where skills differ, what the user asks in the conversation comes first, then their personal skill, then the skill of the Cahut, then a skill installed in your client: it is a copy, and the skill of the Cahut has the last word.
-- To put a file of a skill in a Window, such as a logo or a font, give `from_skill` in place of `content`, such as `charte-acme/assets/logo.svg`: Cahut copies its bytes.
-- Some skills are for every Window, such as the brand of the team. Give each of them in `follows` to `publish_window` and `update_window`, as its name and the version that `get_skill` gives: `charte-acme@3f9a2c1b`. A call without them is refused, and the refusal gives the skill: make the Window again as it says.
+- To put a file of a skill in a Window, such as a logo or a font, give `from_skill` in place of `content`, such as `team-brand/assets/logo.svg`: Cahut copies its bytes.
+- Some skills are for every Window, such as the brand of the team. Give each of them in `follows` to `publish_window` and `update_window`, as its name and the version that `get_skill` gives: `team-brand@3f9a2c1b`. A call without them is refused, and the refusal gives the skill: make the Window again as it says.
 
 ## Declare what the pages do
 
