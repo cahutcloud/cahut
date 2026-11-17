@@ -3,7 +3,7 @@ title: The Cahut plugin for Claude
 description: Install the Cahut plugin in Claude Code, which connects your Cahut and gives Claude the skill to make Windows there, or upload the skill in the Claude apps.
 ---
 
-The Cahut plugin gives Claude two things: the connection to your Cahut over MCP, and a skill that teaches it to make Windows there. The skill carries the formats of documents, decks, dashboards and sites, the sandbox of Windows, sharing them and Knock first. Claude makes each Window in the style you ask for, with its CSS among its own files. Other AI clients find the same rules, shorter, in the instructions of the MCP server.
+The Cahut plugin gives Claude two things: the connection to your Cahut over MCP, and a skill that teaches it to make Windows there. The skill carries the formats of documents, decks, dashboards and sites, the sandbox of Windows, sharing them, the skills of the Cahut and Knock first. Claude makes each Window in the style you ask for, with its CSS among its own files. Other AI clients find the same rules, shorter, in the instructions of the MCP server.
 
 ## In Claude Code
 
@@ -19,6 +19,8 @@ Claude Code asks for the domain of your Cahut, such as `cahut.example.com`, with
 If you added your Cahut with `claude mcp add` before, as [Connect Claude Code](/connect/claude-code/) shows, remove that server with `claude mcp remove cahut`, or its tools show twice.
 
 The plugin connects to a Cahut over HTTPS. A Cahut on your machine for development, at `http://localhost:8080`, connects with `claude mcp add` instead; the skill still helps there, with `--plugin-dir` pointing to `plugins/cahut` of the repository.
+
+Every Cahut gives the same skill to every AI connected to it, whatever its client: it is the skill `cahut`, under **Comes with Cahut** on the **Skills** screen of the console, which `get_skill` reads. The plugin installs it in Claude Code too, where Claude reads it without a call. The other [skills of your Cahut](/concepts/skills/), those of your team and your own, need no plugin: Claude finds them through the tools of the Cahut.
 
 ## In claude.ai and Claude Desktop
 
@@ -44,7 +46,7 @@ The plugin lives in [`plugins/cahut`](https://github.com/cahutcloud/cahut/tree/m
 
 | File | What it is |
 | --- | --- |
-| `skills/cahut/SKILL.md` | The skill: how to make, publish, change and share a Window |
+| `skills/cahut/SKILL.md` | The skill: how to make, publish, change and share a Window, and follow the skills of the Cahut |
 | `skills/cahut/references/formats.md` | What makes a good document, deck, dashboard and site |
 | `.mcp.json` | The MCP server of your Cahut, at the domain you give |
 | `.claude-plugin/plugin.json` | The manifest, which asks for the domain |

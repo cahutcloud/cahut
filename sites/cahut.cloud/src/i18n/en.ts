@@ -309,7 +309,7 @@ export default {
 	features: {
 		label: 'Features',
 		title: 'What ships at launch',
-		lead: 'The full scope ships at launch, with no reduced trial version. Today, the first version works: it installs on a server, connects Claude and ChatGPT, publishes and shares documents, decks, dashboards and sites, keeps what their readers write, finds them by tag or by word, and gathers a team in Rooms. Apps, comments, export, single sign-on and backups are the target.',
+		lead: 'The full scope ships at launch, with no reduced trial version. Today, the first version works: it installs on a server, connects Claude and ChatGPT, publishes and shares documents, decks, dashboards and sites, keeps what their readers write, finds them by tag or by word, gathers a team in Rooms, and gives every AI the skills of the team. Apps, comments, export, single sign-on and backups are the target.',
 		groups: [
 			{
 				title: 'Publish',
@@ -339,6 +339,10 @@ export default {
 					{
 						area: 'AI access',
 						text: 'A native MCP server (HTTP, OAuth) and one skill per AI client, packaged as a plugin where the client allows it: Claude first, then ChatGPT, Mistral, Copilot and others. SSH access limited to the same operations, for terminal AIs.',
+					},
+					{
+						area: 'Skills',
+						text: 'The skills of a team, such as its brand or its reminders, written once in the Cahut and read by the AI of each person, whatever the AI.',
 					},
 				],
 			},
@@ -546,10 +550,14 @@ export default {
 					title: 'A console for the server',
 					text: 'The administrators of the server look after every Cahut from a console of their own, under /server/ of any domain, and the console of each Cahut keeps to its people.',
 				},
+				{
+					title: 'The skills of a Cahut',
+					text: 'Each Cahut keeps the skills of its team and of each person, such as its brand or the reminder of an invoice, which every AI connected to it reads, whatever the AI.',
+				},
 			],
 			milestones: 'The milestones on GitHub',
 			todayTitle: 'What works today',
-			todayLead: 'Batches 0 to 11 are done, and the first version met the success criteria on a fresh server. In a Cahut, today:',
+			todayLead: 'Batches 0 to 12 are done, and the first version met the success criteria on a fresh server. In a Cahut, today:',
 			today: [
 				'One command that installs a Linux server, a first start in the browser, and daily updates from signed releases, with a rollback.',
 				'One service on a Linux server, holding one or more Cahuts, each at its own domain with its certificate, or at the IPv4 address of the server until it has one.',
@@ -564,6 +572,7 @@ export default {
 				'Reports of Windows, from anyone, without an account, and moderators who withdraw a Window with a reason for its Room, then reinstate it.',
 				'Knock first: what an AI cannot undo, or what changes what a person may do, waits for its person, who approves or declines it in the console.',
 				'E-mail through the SMTP relay of each Cahut: links to choose a password, invitations to read a Window, and notices of Knocks, of the account and of limits.',
+				'The skills of the team and of each person, written or imported in the console, which every AI connected to the Cahut reads, whatever the AI. An AI reads those for every Window, such as the brand, before it publishes a Window.',
 				'A plugin for Claude Code, and a skill for the Claude apps, that teach Claude to make Windows and publish them.',
 				'The Logbook of every call, every change and every sign-in.',
 			],

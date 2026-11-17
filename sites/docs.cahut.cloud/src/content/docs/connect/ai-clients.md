@@ -43,6 +43,12 @@ ChatGPT does not connect to a Cahut at the IP address of its server: its servers
 
 Every client gets the same tools. Each tool has a title, such as *Publish a Window*, and says whether it only reads: ChatGPT shows the title when it asks you to confirm a call that changes something, and Mistral Vibe lets you allow each tool always or ask each time. That confirmation comes on top of [Knock first](/concepts/knock-first-and-logbook/#knock-first), which no client can skip.
 
+## Skills in each client
+
+The [skills](/concepts/skills/) of a Cahut reach every client through two tools, `find_skills` and `get_skill`, and the description of `find_skills` names them. Whether an AI reads the skill that fits a task by itself depends on its client: in the trials of November 2026, Claude Code and Mistral Vibe in the terminal did, and ChatGPT did when the app of Cahut was picked in the message. claude.ai and Codex wrote without calling Cahut.
+
+With those, name the skill, as in "Follow the skill relance-facture", or paste in the instructions of your AI the line that the **Skills** screen of the console gives. The skills for every Window need neither: an AI that has not read them cannot publish a Window.
+
 ## Consent
 
 If you are not signed in to the console, you sign in first. Then the console shows:
