@@ -407,7 +407,9 @@ func TestMCPToolsFollowTheRole(t *testing.T) {
 			t.Errorf("%s has an output schema", tool.Name)
 		}
 	}
-	if list, _ := json.Marshal(tools); len(list) > 48<<10 {
+	list, _ := json.Marshal(tools)
+	t.Logf("the list of tools of an administrator weighs %d bytes for %d tools", len(list), len(tools.Tools))
+	if len(list) > 48<<10 {
 		t.Errorf("the list of tools weighs %d bytes, more than 48 KB", len(list))
 	}
 
