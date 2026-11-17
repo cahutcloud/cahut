@@ -1,6 +1,6 @@
 ---
 title: What Cahut can and cannot do
-description: What a Window holds and does, the sandbox it runs in, its sizes, the limits of a Cahut, and what an AI does alone or once a person approves. To read before you try.
+description: What a Window holds and does, the sandbox it runs in, its sizes, the limits of a Cahut, the skills that AIs read, and what an AI does alone or once a person approves. To read before you try.
 ---
 
 Cahut hosts what your AIs make, as Windows: pages that open by link, on your server. This page says what a Window can hold and do, and what it cannot, so that you know before you ask your AI for it. Each part links to the page that says more.
@@ -16,6 +16,7 @@ Cahut hosts what your AIs make, as Windows: pages that open by link, on your ser
 | Send a form to a service that the Window declares, or keep its answers in the data of the Window | Read who a reader of a public Window is |
 | Publish up to 500 files and 32 MiB in a Window | Publish or edit a Window in the console: Windows come from AIs |
 | Let your AI publish, update, share and put in the trash | Let your AI delete for good, make public or change who does what without your approval |
+| Write skills that every AI of your team can read, whatever AI each person uses | Let an AI write or change a skill: people write them |
 
 ## A Window is HTML and its files
 
@@ -71,6 +72,10 @@ See [What a Window declares](/concepts/rooms-and-windows/#what-a-window-declares
 | People in one invitation | 20 |
 | Invitations a day, for a person and their AIs | 100 |
 | Note of an invitation | 500 characters |
+| Skills of a Cahut, or of each person | 50 |
+| `SKILL.md` of a skill | 64 KiB, or 16 KiB for a skill for every Window |
+| Files of a skill | 100, and 4 MiB in all, 2 MiB each |
+| Skills for every Window | 3 |
 
 An AI publishes a Window in one call, with all its files: text as it is, and binary files, such as images, in base64, which makes them a third larger in the call. The 32 MiB count once decoded. A Cahut also refuses a publication that would leave less than 1 GiB free on the disk of its server, which all its Cahuts share.
 
@@ -84,6 +89,17 @@ A Cahut that you install has no limit until the administrators of its server set
 A call that would cross a limit is refused, with a message that says what to do. The Windows in the trash still count on the disk, but not among the Windows: deleting them for good frees the space. `get_cahut` gives the limits and what the Cahut holds, to people and to AIs. See [Limits](/concepts/cahuts/#limits).
 
 [My Cahut](/start/my-cahut/) is an individual Cahut, without team Rooms, and with limits on the disk and the number of Rooms and Windows.
+
+## Skills
+
+A skill tells an AI how to do a task, such as the brand of the team or the reminder of an invoice. The administrators of a Cahut write its skills in the console, and each person writes their own. Every AI connected to the Cahut finds those of the Cahut in its list of tools, lists them all with `find_skills`, and can read the one that fits, whatever the AI. Some clients think of a skill by themselves, and others need you to name it, or a line in their instructions that the console gives.
+
+- A skill is a `SKILL.md` and its files, in the format that AI clients install: Cahut imports and exports them as zips.
+- Up to three skills of the Cahut are for every Window, such as its brand: an AI publishes or updates a Window only once it has read them.
+- A Window copies the files of a skill, such as a logo or a font, with `from_skill`.
+- AIs read skills, and never write them.
+
+See [Skills](/concepts/skills/).
 
 ## What an AI does alone, and what waits for you
 
@@ -113,6 +129,7 @@ An AI never does these, even with your approval:
 
 - approve a Knock, its own or another's;
 - sign in, connect another AI, or create a token;
+- write, import, roll back or delete a skill: it may draft a `SKILL.md`, which you paste in **Write a skill**;
 - manage the server: its Cahuts and their domains, the kind and limits of a Cahut, its e-mail relay, its updates.
 
 See [Knock first and the Logbook](/concepts/knock-first-and-logbook/), and the [operations reference](/reference/operations/), which says which operations are offered to AIs.

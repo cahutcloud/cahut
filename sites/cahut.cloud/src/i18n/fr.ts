@@ -304,7 +304,7 @@ const fr: Dictionary = {
 	features: {
 		label: 'Fonctionnalités',
 		title: 'Ce qui sort au lancement',
-		lead: "Le périmètre complet sort au lancement, sans version d'essai réduite. Aujourd'hui, la première version fonctionne : elle s'installe sur un serveur, connecte Claude et ChatGPT, publie et partage documents, présentations, tableaux de bord et sites, garde ce qu'écrivent leurs lecteurs, les retrouve par tag ou par mot, et réunit une équipe dans des Rooms. Les applis, les commentaires, l'export, l'authentification unique et les sauvegardes sont la cible.",
+		lead: "Le périmètre complet sort au lancement, sans version d'essai réduite. Aujourd'hui, la première version fonctionne : elle s'installe sur un serveur, connecte Claude et ChatGPT, publie et partage documents, présentations, tableaux de bord et sites, garde ce qu'écrivent leurs lecteurs, les retrouve par tag ou par mot, réunit une équipe dans des Rooms, et donne à chaque IA les skills de l'équipe. Les applis, les commentaires, l'export, l'authentification unique et les sauvegardes sont la cible.",
 		groups: [
 			{
 				title: 'Publier',
@@ -337,6 +337,10 @@ const fr: Dictionary = {
 					{
 						area: 'Accès des IA',
 						text: "Un serveur MCP natif (HTTP, OAuth) et une skill par client d'IA, en plugin quand le client le permet : Claude d'abord, puis ChatGPT, Mistral, Copilot et d'autres. Un accès SSH limité aux mêmes opérations, pour les IA en terminal.",
+					},
+					{
+						area: 'Skills',
+						text: "Les skills d'une équipe, comme sa charte ou ses relances, écrites une fois dans la Cahut, que peut lire l'IA de chaque personne, quelle que soit l'IA.",
 					},
 				],
 			},
@@ -562,10 +566,14 @@ const fr: Dictionary = {
 					title: 'Une console pour le serveur',
 					text: "Les administrateurs du serveur s'occupent de chaque Cahut depuis une console à eux, sous /server/ de n'importe quel domaine, et la console de chaque Cahut reste à ses personnes.",
 				},
+				{
+					title: "Les skills d'une Cahut",
+					text: "Chaque Cahut garde les skills de son équipe et de chaque personne, comme sa charte ou la relance d'une facture, que peut lire chaque IA branchée sur elle, quelle que soit l'IA.",
+				},
 			],
 			milestones: 'Les jalons sur GitHub',
 			todayTitle: "Ce qui marche aujourd'hui",
-			todayLead: "Les lots 0 à 11 sont faits, et la première version a rempli les critères de réussite sur un serveur vierge. Aujourd'hui, dans une Cahut :",
+			todayLead: "Les lots 0 à 12 sont faits, et la première version a rempli les critères de réussite sur un serveur vierge. Aujourd'hui, dans une Cahut :",
 			today: [
 				"Une commande qui installe un serveur Linux, un premier démarrage dans le navigateur, et des mises à jour quotidiennes depuis les releases signées, avec retour arrière.",
 				"Un service sur un serveur Linux, qui porte une ou plusieurs Cahuts, chacune à son domaine avec son certificat, ou à l'adresse IPv4 du serveur tant qu'elle n'en a pas.",
@@ -580,6 +588,7 @@ const fr: Dictionary = {
 				'Des signalements de Windows, par tout le monde, sans compte, et des modérateurs qui retirent une Window avec un motif pour sa Room, puis la rétablissent.',
 				"Knock first : ce qu'une IA ne peut pas défaire, ou ce qui change ce qu'une personne peut faire, attend sa personne, qui l'approuve ou le refuse dans la console.",
 				'Les e-mails, par le relais SMTP de chaque Cahut : des liens pour choisir un mot de passe, des invitations à lire une Window, et les notifications des Knocks, du compte et des limites.',
+				"Les skills de l'équipe et de chaque personne, écrites ou importées dans la console, que peut lire chaque IA branchée sur la Cahut, quelle que soit l'IA. Une IA lit celles pour chaque Window, comme la charte, avant d'en publier une.",
 				'Un plugin pour Claude Code, et une skill pour les applications Claude, qui apprennent à Claude à faire des Windows et à les publier.',
 				'Le Logbook de chaque appel, de chaque changement et de chaque connexion.',
 			],

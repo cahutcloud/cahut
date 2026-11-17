@@ -54,6 +54,7 @@ export default defineConfig({
 						'concepts/cahuts',
 						'concepts/rooms-and-windows',
 						'concepts/data',
+						'concepts/skills',
 						'concepts/access',
 						'concepts/sharing',
 						'concepts/knock-first-and-logbook',
