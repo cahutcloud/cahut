@@ -3950,9 +3950,10 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `files` | array of objects or null | yes | the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css |
-| `files[].content` | string | yes |  |
 | `files[].path` | string | yes | relative path with / as separator, such as index.html or img/logo.svg |
+| `files[].content` | string | no | what the file holds, unless from_skill gives it |
 | `files[].encoding` | string | no | utf-8 (the default) or base64, for binary files |
+| `files[].from_skill` | string | no | a file of a skill to copy here in place of content, such as charte-acme/assets/logo.svg |
 | `kind` | string | yes | one of document, deck, dashboard or site |
 | `title` | string | yes | title of the Window, also used in its address |
 | `access` | string | no | room, the members of its Room (the default), or author, the person you act for alone: a draft, or a Window that one reader opens once with create_share_link and max_openings 1 |
@@ -4086,10 +4087,15 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
         "additionalProperties": false,
         "properties": {
           "content": {
+            "description": "what the file holds, unless from_skill gives it",
             "type": "string"
           },
           "encoding": {
             "description": "utf-8 (the default) or base64, for binary files",
+            "type": "string"
+          },
+          "from_skill": {
+            "description": "a file of a skill to copy here in place of content, such as charte-acme/assets/logo.svg",
             "type": "string"
           },
           "path": {
@@ -4098,8 +4104,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
           }
         },
         "required": [
-          "path",
-          "content"
+          "path"
         ],
         "type": "object"
       },
@@ -8123,9 +8128,10 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `declaration.forms` | array of strings or null | no | the origins that the forms of the pages send to, if any |
 | `declaration.origins` | array of strings or null | no | every origin the pages load anything from or call, in the browser of their readers, such as https://cdn.jsdelivr.net or https://fonts.gstatic.com; https://\*.example.com for the subdomains of example.com. The files of the Window need none, nor do the blob: and data: URLs that the pages make |
 | `files` | array of objects or null | yes | every file of the new version, as for publish_window; files left out are not in it |
-| `files[].content` | string | yes |  |
 | `files[].path` | string | yes | relative path with / as separator, such as index.html or img/logo.svg |
+| `files[].content` | string | no | what the file holds, unless from_skill gives it |
 | `files[].encoding` | string | no | utf-8 (the default) or base64, for binary files |
+| `files[].from_skill` | string | no | a file of a skill to copy here in place of content, such as charte-acme/assets/logo.svg |
 | `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 | `description` | string or null | no | a new description, a sentence or two of plain text; empty to remove it, and it stays when absent |
 | `follows` | array of strings or null | no | the skills of this Cahut that the Window follows, as for publish_window |
@@ -8254,10 +8260,15 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
         "additionalProperties": false,
         "properties": {
           "content": {
+            "description": "what the file holds, unless from_skill gives it",
             "type": "string"
           },
           "encoding": {
             "description": "utf-8 (the default) or base64, for binary files",
+            "type": "string"
+          },
+          "from_skill": {
+            "description": "a file of a skill to copy here in place of content, such as charte-acme/assets/logo.svg",
             "type": "string"
           },
           "path": {
@@ -8266,8 +8277,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
           }
         },
         "required": [
-          "path",
-          "content"
+          "path"
         ],
         "type": "object"
       },

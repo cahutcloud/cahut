@@ -345,9 +345,10 @@ type PublishInput struct {
 
 // File is a file of a publication.
 type File struct {
-	Path     string `json:"path" jsonschema:"relative path with / as separator, such as index.html or img/logo.svg"`
-	Content  string `json:"content"`
-	Encoding string `json:"encoding,omitempty" jsonschema:"utf-8 (the default) or base64, for binary files"`
+	Path      string `json:"path" jsonschema:"relative path with / as separator, such as index.html or img/logo.svg"`
+	Content   string `json:"content,omitempty" jsonschema:"what the file holds, unless from_skill gives it"`
+	Encoding  string `json:"encoding,omitempty" jsonschema:"utf-8 (the default) or base64, for binary files"`
+	FromSkill string `json:"from_skill,omitempty" jsonschema:"a file of a skill to copy here in place of content, such as charte-acme/assets/logo.svg"`
 }
 
 func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInput) (Window, error) {
@@ -378,7 +379,7 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if access != AccessRoom && access != AccessAuthor {
 		return Window{}, operation.Invalidf("access %q: publish for the Room, room, or for yourself alone, author; set_window_access opens the Window to more", in.Access)
 	}
-	files, size, err := decode(in.Files)
+	files, size, copied, err := decode(in.Files, fromSkills(ctx, c))
 	if err != nil {
 		return Window{}, err
 	}
@@ -459,12 +460,8 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if w.Access == AccessAuthor {
 		detail += "; for its author alone"
 	}
-	followed, err := skill.Followed(ctx, c, in.Follows)
-	if err != nil {
+	if detail, err = skillsDetail(ctx, c, detail, in.Follows, copied); err != nil {
 		return Window{}, err
-	}
-	if followed != "" {
-		detail += "; " + followed
 	}
 	c.Log(w.Room+"/"+w.Name, detail)
 
@@ -507,7 +504,7 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 			return Window{}, err
 		}
 	}
-	files, size, err := decode(in.Files)
+	files, size, copied, err := decode(in.Files, fromSkills(ctx, c))
 	if err != nil {
 		return Window{}, err
 	}
@@ -572,12 +569,8 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 		return Window{}, err
 	}
 	detail := fmt.Sprintf("version %d, %q, %d files, %d bytes; %s", w.Version, w.Title, w.FileCount, w.Size, w.Declaration)
-	followed, err := skill.Followed(ctx, c, in.Follows)
-	if err != nil {
+	if detail, err = skillsDetail(ctx, c, detail, in.Follows, copied); err != nil {
 		return Window{}, err
-	}
-	if followed != "" {
-		detail += "; " + followed
 	}
 	c.Log(w.Room+"/"+w.Name, detail)
 
@@ -594,6 +587,21 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 		c.AfterCommit(func() { os.RemoveAll(s.Dir(w.id, dropped)) })
 	}
 	return w.Window, nil
+}
+
+// skillsDetail adds to detail what the Logbook keeps of the skills that a
+// publication follows, and of the files it copied from skills.
+func skillsDetail(ctx context.Context, c *operation.Call, detail string, follows, copied []string) (string, error) {
+	followed, err := skill.Followed(ctx, c, follows)
+	if err != nil {
+		return "", err
+	}
+	for _, d := range []string{followed, skill.Copied(copied)} {
+		if d != "" {
+			detail += "; " + d
+		}
+	}
+	return detail, nil
 }
 
 // subset reports whether every item of a is in b.

@@ -585,9 +585,12 @@ export interface ExportInput {
 export interface File {
   /** relative path with / as separator, such as index.html or img/logo.svg */
   path: string;
-  content: string;
+  /** what the file holds, unless from_skill gives it */
+  content?: string;
   /** utf-8 (the default) or base64, for binary files */
   encoding?: string;
+  /** a file of a skill to copy here in place of content, such as charte-acme/assets/logo.svg */
+  from_skill?: string;
 }
 
 export interface FileInput {

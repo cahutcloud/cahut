@@ -775,6 +775,9 @@ func get(ctx context.Context, c *operation.Call, in GetInput) (Skill, error) {
 	if in.File == "" {
 		s, err := describe(ctx, c, t, true)
 		s.Note = note
+		if len(s.Files) > 0 {
+			s.Note += fmt.Sprintf(" To put one of its files in a Window, give from_skill: %q in place of its content.", strings.TrimSpace(in.Skill)+"/"+s.Files[0].Path)
+		}
 		if s.EveryWindow {
 			s.Note += fmt.Sprintf(" Every Window of this Cahut follows this skill: give follows: [%q] to publish_window and update_window.", s.Skill+"@"+s.Version)
 		}

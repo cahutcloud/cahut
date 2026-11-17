@@ -208,8 +208,10 @@ func TestOldServersAreForgotten(t *testing.T) {
 
 // TestToolListWithAFullCatalog checks that the list of tools of an
 // administrator who may write stays under 48 KB with fifty skills of the
-// Cahut, each with the longest description, and 700 bytes to spare for
-// follows and from_skill (ADR 64, ADR 65).
+// Cahut, each with the longest description, less the 700 bytes that ADR 65
+// kept for follows and from_skill. They are in the list now, and weigh 740
+// bytes with the description of content that from_skill calls for: the
+// bound stays, and what is left under it is room for the next tool.
 func TestToolListWithAFullCatalog(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
