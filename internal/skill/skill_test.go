@@ -525,7 +525,7 @@ func TestFindSkillsWhateverTheCaseAndAccents(t *testing.T) {
 	if err != nil || len(found.Skills) != 1 {
 		t.Fatalf("find_skills relance = %+v, %v", found, err)
 	}
-	if s := found.Skills[0]; s.Description != "L'e-mail de relance d'une facture impayée: objet, délai et signature." || s.Number != 1 || len(s.Version) != 8 {
+	if s := found.Skills[0]; s.Description != "L'e-mail de relance d'une facture impayée: objet, délai et signature." || s.Number != 1 {
 		t.Errorf("found = %+v", s)
 	}
 	// The console shows the date of each version; the skill of the plugin has none.

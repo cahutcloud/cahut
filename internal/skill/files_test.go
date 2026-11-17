@@ -250,3 +250,54 @@ func TestGetSkillSaysHowToCopyAFile(t *testing.T) {
 		t.Errorf("the note of get_skill is %q, want it to say %q", got.Note, want)
 	}
 }
+
+// A from_skill that names a personal skill and no file, or a file the skill
+// does not have, tells the AI which file of the Window is wrong; the
+// Logbook, which the administrators read, keeps neither the name nor the
+// path.
+func TestTheLogbookKeepsNoMalformedPersonalRef(t *testing.T) {
+	g := setupGate(t)
+	ctx := context.Background()
+	if _, err := operation.Do(ctx, g.r, skill.WriteSkill, g.camille, skill.WriteInput{
+		Scope: skill.ScopePersonal, Skill: "plan-social", Text: "---\nname: plan-social\ndescription: My plan.\n---\nMine.\n",
+		Files: []skill.FileInput{{Path: "lettre.html", Content: "<p>mine</p>"}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	refs := []string{"personal:plan-social", "plan-social", "plan-social/", "/plan-social/lettre.html", "plan-social/autre.html", "personal:plan-social/autre.html"}
+	for _, ref := range refs {
+		_, err := g.publishFiles(g.ai, []window.File{page, {Path: "lettre.html", FromSkill: ref}})
+		if err == nil {
+			t.Errorf("from_skill %q: published", ref)
+		}
+	}
+	entries, err := logbook.List(ctx, g.db.Read, len(refs))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range entries {
+		if strings.Contains(e.Target+e.Detail+e.Error, "plan-social") || strings.Contains(e.Target+e.Detail+e.Error, "autre.html") {
+			t.Errorf("the Logbook names a personal skill: %+v", e)
+		}
+	}
+}
+
+// With several files copied from skills, the refusal names the one that
+// is wrong.
+func TestFromSkillSaysWhichFileIsWrong(t *testing.T) {
+	g := setupGate(t)
+	g.fonts(t)
+	for _, ref := range []string{"polices/assets/none.woff2", "nothing/assets/a.woff2", "polices"} {
+		_, err := g.publishFiles(g.ai, []window.File{page,
+			{Path: "fonts/inter.woff2", FromSkill: "polices/assets/inter.woff2"},
+			{Path: "fonts/other.woff2", FromSkill: ref},
+		})
+		if err == nil || !strings.Contains(err.Error(), "fonts/other.woff2") || !strings.Contains(err.Error(), ref) {
+			t.Errorf("from_skill %q: %v, want a refusal that names fonts/other.woff2 and %s", ref, err, ref)
+		}
+	}
+	// Spaces around the reference do not count.
+	if _, err := g.publishFiles(g.ai, []window.File{page, {Path: "inter.woff2", FromSkill: " polices/assets/inter.woff2 "}}); err != nil {
+		t.Errorf("from_skill with spaces: %v", err)
+	}
+}

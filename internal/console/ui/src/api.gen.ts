@@ -1879,8 +1879,6 @@ export interface Summary {
   scope: string;
   /** what the skill does, and when to follow it */
   description: string;
-  /** the digest of its current version */
-  version: string;
   /** the number of its current version */
   number: number;
   /** when its current version was written */

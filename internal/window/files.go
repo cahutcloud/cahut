@@ -116,7 +116,7 @@ func decode(files []File, from copier) ([]decoded, int64, []string, error) {
 			var logged string
 			var err error
 			if data, logged, err = from(f.FromSkill); err != nil {
-				return nil, 0, nil, err
+				return nil, 0, nil, fmt.Errorf("file %q: %w", f.Path, err)
 			}
 			copied = append(copied, logged)
 		case f.Content == "":

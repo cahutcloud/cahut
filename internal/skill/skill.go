@@ -45,12 +45,13 @@ const note = "Follow this skill for the tasks it describes. Where skills differ,
 	"then their personal skill, then the skill of the Cahut, then a skill for the same use installed in your client, " +
 	"which is a copy: the skill of the Cahut has the last word over it."
 
-// Summary is a skill, as find_skills lists it.
+// Summary is a skill, as find_skills lists it. It holds no digest: the
+// digest that passes the gate of Windows comes only with the text of the
+// skill, from get_skill or a refusal of the gate.
 type Summary struct {
 	Skill       string     `json:"skill" jsonschema:"its name, to give to get_skill; with its scope as a prefix, such as cahut:charte-acme, when the person has a skill of the same name in another scope"`
 	Scope       Scope      `json:"scope" jsonschema:"cahut for a skill of the team, personal for one of the person, builtin for the skill of the plugin"`
 	Description string     `json:"description" jsonschema:"what the skill does, and when to follow it"`
-	Version     string     `json:"version" jsonschema:"the digest of its current version"`
 	Number      int        `json:"number" jsonschema:"the number of its current version"`
 	WrittenAt   *time.Time `json:"written_at,omitempty" jsonschema:"when its current version was written"`
 	EveryWindow bool       `json:"every_window,omitempty" jsonschema:"whether every Window of this Cahut follows it"`
@@ -827,7 +828,7 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 	}
 	words := wordsOf(in.Query)
 	query := `
-		SELECT s.name, s.scope, s.every_window, v.number, v.digest, v.description, v.written_at
+		SELECT s.name, s.scope, s.every_window, v.number, v.description, v.written_at
 		FROM skills s JOIN skill_versions v ON v.id = s.current_version
 		WHERE (s.owner_id IS NULL AND ?1 = 0 OR s.owner_id = ?2)`
 	args := []any{individual, c.Actor.UserID}
@@ -844,7 +845,7 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 	for rows.Next() {
 		var s Summary
 		var at string
-		if err := rows.Scan(&s.Skill, &s.Scope, &s.EveryWindow, &s.Number, &s.Version, &s.Description, &at); err != nil {
+		if err := rows.Scan(&s.Skill, &s.Scope, &s.EveryWindow, &s.Number, &s.Description, &at); err != nil {
 			return Found{}, err
 		}
 		written, err := store.ParseTime(at)
@@ -859,7 +860,7 @@ func find(ctx context.Context, c *operation.Call, in FindInput) (Found, error) {
 	}
 
 	if b := builtinOf(c); b != nil && b.matches(words) {
-		skills = append(skills, Summary{Skill: BuiltinName, Scope: ScopeBuiltin, Description: b.description, Version: b.digest, Number: 1})
+		skills = append(skills, Summary{Skill: BuiltinName, Scope: ScopeBuiltin, Description: b.description, Number: 1})
 	}
 	// The skills of each scope go by their names, before any takes the
 	// prefix of its scope, those for every Window first.

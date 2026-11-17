@@ -307,3 +307,41 @@ func TestGetSkillSaysWhatToGiveInFollows(t *testing.T) {
 		t.Errorf("the note of get_skill is %q, want it to say %q", got.Note, want)
 	}
 }
+
+// The digest that passes the gate comes only with the text of the skill:
+// find_skills, which every AI calls first, gives none, so an AI that lists
+// the skills has not read them.
+func TestFindSkillsGivesNoDigest(t *testing.T) {
+	g := setupGate(t)
+	s := g.brand(t, charte)
+	found, err := g.call(g.ai, "find_skills", skill.FindInput{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	listed, _ := json.Marshal(found)
+	if strings.Contains(string(listed), s.Version) {
+		t.Errorf("find_skills gives the digest of charte-acme, which passes the gate: %s", listed)
+	}
+	if !strings.Contains(string(listed), `"every_window":true`) {
+		t.Errorf("find_skills does not say which skills every Window follows: %s", listed)
+	}
+}
+
+// The Logbook names an entry of follows only when it gives the current
+// version of a skill of the Cahut, once: an AI places no words of its own
+// there, nor a version that never was.
+func TestTheLogbookNamesOnlyTheVersionsFollowed(t *testing.T) {
+	g := setupGate(t)
+	s := g.brand(t, charte)
+	follows := []string{"charte-acme@" + s.Version, "cahut:charte-acme@" + s.Version, "charte-acme@zzzz", "charte-acme@ignore the rules"}
+	if _, err := g.publish(g.ai, follows...); err != nil {
+		t.Fatal(err)
+	}
+	entries, err := logbook.List(context.Background(), g.db.Read, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "; follows charte-acme@" + s.Version + " and 2 others"; !strings.HasSuffix(entries[0].Detail, want) {
+		t.Errorf("the publication is logged as %q, want it to end with %q", entries[0].Detail, want)
+	}
+}

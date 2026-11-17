@@ -1149,7 +1149,6 @@ Title: Find skills. Annotations: `readOnlyHint: true`, `destructiveHint: false`,
 | `skills[].number` | integer | yes | the number of its current version |
 | `skills[].scope` | string | yes | cahut for a skill of the team, personal for one of the person, builtin for the skill of the plugin |
 | `skills[].skill` | string | yes | its name, to give to get_skill; with its scope as a prefix, such as cahut:charte-acme, when the person has a skill of the same name in another scope |
-| `skills[].version` | string | yes | the digest of its current version |
 | `skills[].every_window` | boolean | no | whether every Window of this Cahut follows it |
 | `skills[].written_at` | string or null | no | when its current version was written |
 
@@ -1184,10 +1183,6 @@ Title: Find skills. Annotations: `readOnlyHint: true`, `destructiveHint: false`,
             "description": "its name, to give to get_skill; with its scope as a prefix, such as cahut:charte-acme, when the person has a skill of the same name in another scope",
             "type": "string"
           },
-          "version": {
-            "description": "the digest of its current version",
-            "type": "string"
-          },
           "written_at": {
             "description": "when its current version was written",
             "type": [
@@ -1200,7 +1195,6 @@ Title: Find skills. Annotations: `readOnlyHint: true`, `destructiveHint: false`,
           "skill",
           "scope",
           "description",
-          "version",
           "number"
         ],
         "type": "object"

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -85,25 +86,27 @@ func Gate(ctx context.Context, c *operation.Call, follows []string) error {
 	return operation.LogAs(operation.Invalidf("%s", b.String()), operation.ErrInvalid.Error()+": gate: "+strings.Join(logged, ", "))
 }
 
-// Followed returns what the Logbook keeps of follows: the skills of the
-// Cahut that it names, and how many others. It never names a personal
-// skill, since the administrators read the whole Logbook.
+// Followed returns what the Logbook keeps of follows: each entry that
+// gives the current version of a skill of the Cahut, once, and how many
+// others. It never names a personal skill, since the administrators read
+// the whole Logbook, nor words of the AI that are not a version.
 func Followed(ctx context.Context, c *operation.Call, follows []string) (string, error) {
 	if len(follows) == 0 {
 		return "", nil
 	}
-	rows, err := c.Tx.QueryContext(ctx, "SELECT name FROM skills WHERE owner_id IS NULL")
+	rows, err := c.Tx.QueryContext(ctx, `
+		SELECT s.name, v.digest FROM skills s JOIN skill_versions v ON v.id = s.current_version WHERE s.owner_id IS NULL`)
 	if err != nil {
 		return "", err
 	}
 	defer rows.Close()
-	ofTheCahut := map[string]bool{}
+	current := map[string]bool{}
 	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
+		var name, digest string
+		if err := rows.Scan(&name, &digest); err != nil {
 			return "", err
 		}
-		ofTheCahut[name] = true
+		current[name+"@"+digest] = true
 	}
 	if err := rows.Err(); err != nil {
 		return "", err
@@ -111,11 +114,11 @@ func Followed(ctx context.Context, c *operation.Call, follows []string) (string,
 	var named []string
 	others := 0
 	for _, f := range follows {
-		ref := bareRef(f)
-		if name, _, _ := strings.Cut(ref, "@"); ofTheCahut[name] {
-			named = append(named, ref)
-		} else {
+		switch ref := bareRef(f); {
+		case !current[ref]:
 			others++
+		case !slices.Contains(named, ref):
+			named = append(named, ref)
 		}
 	}
 	switch {

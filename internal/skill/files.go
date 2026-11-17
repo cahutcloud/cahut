@@ -2,6 +2,7 @@ package skill
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -20,12 +21,18 @@ const aPersonalFile = "a file of a personal skill"
 // keeps of ref, which never names a file of a personal skill, for Copied.
 // See docs/adr/0064-the-skills-of-a-cahut.md.
 func FileOf(ctx context.Context, c *operation.Call, ref string) (File, string, error) {
+	ref = strings.TrimSpace(ref)
 	name, file, _ := strings.Cut(ref, "/")
 	if name == "" || file == "" {
-		return File{}, "", operation.Invalidf("from_skill %q: give the name of a skill, then the path of one of its files, such as charte-acme/assets/logo.svg", ref)
+		return File{}, "", refused(operation.Invalidf("from_skill %q: give the name of a skill, then the path of one of its files, such as charte-acme/assets/logo.svg", ref))
 	}
 	t, err := resolve(ctx, c, name)
-	if err != nil {
+	switch {
+	case errors.Is(err, errNotFound):
+		return File{}, "", refused(operation.NotFoundf("from_skill %q: there is no skill %s that you may read: find_skills lists them", ref, name))
+	case err != nil && operation.Public(err):
+		return File{}, "", refused(fmt.Errorf("from_skill %q: %w", ref, err))
+	case err != nil:
 		return File{}, "", err
 	}
 	var f File
@@ -36,12 +43,23 @@ func FileOf(ctx context.Context, c *operation.Call, ref string) (File, string, e
 		return File{}, "", err
 	}
 	if !found {
-		return File{}, "", private(t.scope(), operation.NotFoundf("the skill %s has no file %q: get_skill gives the list of its files", t.name(), file))
+		return File{}, "", refused(operation.NotFoundf("from_skill %q: the skill %s has no file %q: get_skill gives the list of its files", ref, t.name(), file))
 	}
 	if t.scope() == ScopePersonal {
 		return f, aPersonalFile, nil
 	}
 	return f, t.name() + "/" + f.Path, nil
+}
+
+// refused returns err, a refusal of from_skill, which the AI reads whole
+// and the Logbook keeps without the reference: it may name a personal
+// skill, and the administrators read the whole Logbook.
+func refused(err error) error {
+	kind := operation.ErrInvalid
+	if errors.Is(err, operation.ErrNotFound) {
+		kind = operation.ErrNotFound
+	}
+	return operation.LogAs(err, kind.Error()+": from_skill names no file of a skill that the person reads")
 }
 
 // Copied returns what the Logbook keeps of the files that a publication
