@@ -1,9 +1,9 @@
 ---
 title: Skills
-description: The skills of a Cahut tell every AI connected to it how the team does some tasks, such as its brand or the reminder of an invoice. People write them once in the console, and each person's AI reads them, whatever AI it is.
+description: The skills of a Cahut tell every AI connected to it how the team does some tasks, such as its brand or the reminder of an invoice. People write them once in the console, and each person's AI can read them, whatever AI it is.
 ---
 
-A skill tells an AI how to do a task: the brand of a team, the reminder of an unpaid invoice, a way to check a contract. Each Cahut keeps the skills of its team, and those of each person, and gives them to every AI connected to it over MCP: Claude, ChatGPT, Mistral Vibe or another. Nobody installs anything in their AI, and a change reaches the next conversation. See [ADR 64](https://github.com/cahutcloud/cahut/blob/main/docs/adr/0064-the-skills-of-a-cahut.md).
+A skill tells an AI how to do a task: the brand of a team, the reminder of an unpaid invoice, a way to check a contract. Each Cahut keeps the skills of its team, and those of each person, and gives them to every AI connected to it over MCP: Claude, ChatGPT, Mistral Vibe or another. Nobody installs anything in their AI, and the tools give the current version of each skill at once. See [ADR 64](https://github.com/cahutcloud/cahut/blob/main/docs/adr/0064-the-skills-of-a-cahut.md).
 
 ## What a skill is
 
@@ -41,34 +41,38 @@ The same name may live in two parts, such as a skill `charte-acme` of the Cahut 
 
 ## Write, import and export
 
-On the **Skills** screen:
+On the **Skills** screen, for the skills of the Cahut if you administer it, and for your own:
 
 - **Write a skill** takes its `SKILL.md`, typed in the page, and its files, added from your computer: what the AI reads in `references/`, and what it copies, such as fonts or a logo, in `assets/`. The page sends 1 MiB at most: import a larger skill as a zip.
-- **Import a zip** takes a skill as AI clients export them, with its `SKILL.md` at the root of the zip or in a single folder. A skill exported from Claude imports as it is.
-- Each write or import makes a new version. Cahut keeps two, the current one and the one before, and the page of a skill rolls back to the previous one.
+- **Import a zip** takes a skill as AI clients export them, with its `SKILL.md` at the root of the zip or in a single folder. A skill exported from Claude imports as it is, unless it holds a `scripts/` folder or hidden files.
+- Each write or import that changes the skill makes a new version. Cahut keeps two, the current one and the one before.
+
+On the page of a skill:
+
+- **Write a new version**, and the button that rolls back to the previous one.
 - **Export** gives a zip of the skill, in a folder of its name, which installs as it is in Claude Code, Mistral Vibe and the other clients that read Agent Skills.
 - **Delete** takes the skill and both its versions, for good.
 
-AIs read skills, and never write them. A skill is a lasting instruction, which every AI of a person, or of a whole Cahut, then follows: an AI misled by a Window, a web page or an e-mail must not leave one behind. Ask your AI to draft a `SKILL.md`, then import it yourself.
+AIs read skills, and never write them. A skill is a lasting instruction, which every AI of a person, or of a whole Cahut, then follows: an AI misled by a Window, a web page or an e-mail must not leave one behind. Ask your AI to draft a `SKILL.md`, then paste it in **Write a skill**, or import it in a zip.
 
 ## How AIs find them
 
 Every AI connected to a Cahut gets two tools, both read only: `find_skills` lists the skills that its person reads, and finds them by their words, and `get_skill` reads one whole, or one of its files.
 
-- **The catalogue.** The description of `find_skills` carries a line for each skill of the Cahut: its name, then its description cut at 160 characters. AIs receive it from the start of each conversation, before they call anything. The skills for every Window come first, then the others by name, within 6,000 bytes: about thirty skills. Those that do not fit give way to a line that says how many more `find_skills` lists.
+- **The catalogue.** The description of `find_skills` carries a line for each skill of the Cahut: its name, then its description cut at 160 characters. Their client receives it from the start of each conversation, before they call anything. The skills for every Window come first, then the others by name, within 6,000 bytes: about thirty skills. Those that do not fit give way to a line that says how many more `find_skills` lists.
 - **What AIs see.** On the **Skills** screen, administrators unfold **What AIs see**: the lines as AIs receive them, the bytes they take, and the skills left out.
 - The catalogue names the skills of the Cahut only. `find_skills` lists the personal skills, and the skill that comes with Cahut.
-- The instructions of the MCP server send each AI to `find_skills` before a task, any task, even one that publishes nothing.
-- A change to a skill of the Cahut reaches each AI at its next conversation. A conversation keeps the list of tools it began with.
+- In a Cahut that has skills of its own, the instructions of the MCP server send each AI to `find_skills` before a task, any task, even one that publishes nothing. Elsewhere, they tell it to read a skill when the person names one.
+- `find_skills`, `get_skill` and the gate give the current version of each skill at once. The catalogue follows a change at the next session of the client: a conversation keeps the list of tools it began with. ChatGPT keeps its own copy of the list of tools: a new skill may wait in its catalogue until you refresh the app of Cahut in its settings, though `find_skills` lists it already.
 
 Two ways work in every AI, whatever it does by itself:
 
 - **Name the skill.** "Follow the skill relance-facture": the AI reads it with `get_skill`.
-- **Paste a line in the instructions of your AI**, which the **Skills** screen gives, ready to copy: "Before each task, call the find_skills tool of Cahut to see whether my team has a skill that applies to it, then follow it."
+- **Paste a line in the instructions of your AI**, which the **Skills** screen gives, ready to copy: "Before each task, call the find_skills tool of Cahut to see whether my team has a skill that applies to it, then follow it." In an individual Cahut, the line names your own skills.
 
 ## What each AI does
 
-Whether an AI thinks of a skill by itself, for a task that does not name Cahut, depends on its client. In November 2026, with a Cahut that held fifty skills and a request to write the reminder of an unpaid invoice, which one of them describes:
+Whether an AI thinks of a skill by itself, for a task that does not name Cahut, depends on its client. In November 2026, with a Cahut that held fifty skills and a request to write the reminder of an unpaid invoice, which one of them describes. The catalogue of that trial named 48 of the fifty, where the catalogue of 6,000 bytes names about thirty: an AI finds the others only if it calls `find_skills`.
 
 | Client | Without naming the skill |
 | --- | --- |
@@ -100,7 +104,7 @@ The administrators of a Cahut mark up to three of its skills **For every Window*
 - The gate stops AIs only. A person who publishes is never stopped, and an individual Cahut has no gate.
 - A marked skill holds a `SKILL.md` of 16 KiB at most, since the refusal carries it whole.
 
-The gate makes sure that the AI had the skill in front of it, not that the Window follows it. In a trial of 40 decks with Claude Code and Mistral Vibe, against the brand of a cooperative marked for every Window, no Window was published without `follows`, and each deck carried the colours, the fonts, the footer and the last slide of the brand. Claude Code read the brand first each time. Mistral Vibe published without it in 19 tries of 25, was stopped, and made the deck again as the brand says. One of its decks left out the logo.
+The gate makes sure that the AI had the skill in front of it, not that the Window follows it. In a trial of 40 decks with Claude Code and Mistral Vibe, against the brand of a cooperative marked for every Window, no Window was published without `follows`, and each deck carried the five marks of the brand that the trial counted: its green, its background, the font of its titles, its footer and its last slide. Claude Code read the brand first each time. Mistral Vibe called `publish_window` without it in 19 tries of 25, was stopped, and made the deck again as the brand says. One of its decks left out the logo.
 
 ## The files of a skill in a Window
 

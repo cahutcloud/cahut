@@ -342,7 +342,7 @@ export default {
 					},
 					{
 						area: 'Skills',
-						text: 'The skills of a team, such as its brand or its reminders, written once in the Cahut and read by the AI of each person, whatever the AI.',
+						text: 'The skills of a team, such as its brand or its reminders, written once in the Cahut, which the AI of each person can read, whatever the AI.',
 					},
 				],
 			},
@@ -552,7 +552,7 @@ export default {
 				},
 				{
 					title: 'The skills of a Cahut',
-					text: 'Each Cahut keeps the skills of its team and of each person, such as its brand or the reminder of an invoice, which every AI connected to it reads, whatever the AI.',
+					text: 'Each Cahut keeps the skills of its team and of each person, such as its brand or the reminder of an invoice, which every AI connected to it can read, whatever the AI.',
 				},
 			],
 			milestones: 'The milestones on GitHub',
@@ -572,7 +572,7 @@ export default {
 				'Reports of Windows, from anyone, without an account, and moderators who withdraw a Window with a reason for its Room, then reinstate it.',
 				'Knock first: what an AI cannot undo, or what changes what a person may do, waits for its person, who approves or declines it in the console.',
 				'E-mail through the SMTP relay of each Cahut: links to choose a password, invitations to read a Window, and notices of Knocks, of the account and of limits.',
-				'The skills of the team and of each person, written or imported in the console, which every AI connected to the Cahut reads, whatever the AI. An AI reads those for every Window, such as the brand, before it publishes a Window.',
+				'The skills of the team and of each person, written or imported in the console, which every AI connected to the Cahut can read, whatever the AI. An AI reads those for every Window, such as the brand, before it publishes one.',
 				'A plugin for Claude Code, and a skill for the Claude apps, that teach Claude to make Windows and publish them.',
 				'The Logbook of every call, every change and every sign-in.',
 			],

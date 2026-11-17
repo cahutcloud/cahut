@@ -45,7 +45,7 @@ Every client gets the same tools. Each tool has a title, such as *Publish a Wind
 
 ## Skills in each client
 
-The [skills](/concepts/skills/) of a Cahut reach every client through two tools, `find_skills` and `get_skill`, and the description of `find_skills` names them. Whether an AI reads the skill that fits a task by itself depends on its client: in the trials of November 2026, Claude Code and Mistral Vibe in the terminal did, and ChatGPT did when the app of Cahut was picked in the message. claude.ai and Codex wrote without calling Cahut.
+The [skills](/concepts/skills/) of a Cahut reach every client through two tools, `find_skills` and `get_skill`, and the description of `find_skills` names the skills of the Cahut. Whether an AI reads the skill that fits a task by itself depends on its client: in the trials of November 2026, Claude Code and Mistral Vibe in the terminal did, and ChatGPT did when the app of Cahut was picked in the message. claude.ai and Codex wrote without calling Cahut.
 
 With those, name the skill, as in "Follow the skill relance-facture", or paste in the instructions of your AI the line that the **Skills** screen of the console gives. The skills for every Window need neither: an AI that has not read them cannot publish a Window.
 

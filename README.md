@@ -113,7 +113,7 @@ Everything below works in the latest release.
 | Installation | One command on a fresh VPS or dedicated server (AlmaLinux or Ubuntu), a guided first start in the browser, and `cahut doctor` to check the server |
 | AI access | A native MCP server over HTTP, with OAuth or a personal token, for claude.ai, Claude Desktop, Claude Code, ChatGPT, Mistral Vibe and any MCP client |
 | Skill for Claude | A skill that teaches Claude to make Windows and publish them, packaged as a plugin for Claude Code |
-| Skills | The skills of a team and of each person, such as its brand or its reminders, written or imported in the console and read by every AI connected to the Cahut, whatever the AI; an AI reads those for every Window before it publishes one |
+| Skills | The skills of a team and of each person, such as its brand or its reminders, written or imported in the console, which every AI connected to the Cahut can read, whatever the AI; an AI reads those for every Window before it publishes one |
 | Pages | Documents, decks, dashboards and static sites, each at its own address in its Room, in a sandbox that holds it to what its AI declares it loads and calls |
 | Sharing | Window by Window: its Room only, internal (everyone in the Cahut), a Key (a password) or public, with an optional end date; share links that open a Window without an account, until they end |
 | Invitations | A Window sent by e-mail, to people of the Cahut or outside it, with a personal link in place of its Key |

@@ -340,7 +340,7 @@ const fr: Dictionary = {
 					},
 					{
 						area: 'Skills',
-						text: "Les skills d'une équipe, comme sa charte ou ses relances, écrites une fois dans la Cahut et lues par l'IA de chaque personne, quelle que soit l'IA.",
+						text: "Les skills d'une équipe, comme sa charte ou ses relances, écrites une fois dans la Cahut, que peut lire l'IA de chaque personne, quelle que soit l'IA.",
 					},
 				],
 			},
@@ -568,7 +568,7 @@ const fr: Dictionary = {
 				},
 				{
 					title: "Les skills d'une Cahut",
-					text: "Chaque Cahut garde les skills de son équipe et de chaque personne, comme sa charte ou la relance d'une facture, que lit chaque IA branchée sur elle, quelle que soit l'IA.",
+					text: "Chaque Cahut garde les skills de son équipe et de chaque personne, comme sa charte ou la relance d'une facture, que peut lire chaque IA branchée sur elle, quelle que soit l'IA.",
 				},
 			],
 			milestones: 'Les jalons sur GitHub',
@@ -588,7 +588,7 @@ const fr: Dictionary = {
 				'Des signalements de Windows, par tout le monde, sans compte, et des modérateurs qui retirent une Window avec un motif pour sa Room, puis la rétablissent.',
 				"Knock first : ce qu'une IA ne peut pas défaire, ou ce qui change ce qu'une personne peut faire, attend sa personne, qui l'approuve ou le refuse dans la console.",
 				'Les e-mails, par le relais SMTP de chaque Cahut : des liens pour choisir un mot de passe, des invitations à lire une Window, et les notifications des Knocks, du compte et des limites.',
-				"Les skills de l'équipe et de chaque personne, écrites ou importées dans la console, que lit chaque IA branchée sur la Cahut, quelle que soit l'IA. Une IA lit celles de chaque Window, comme la charte, avant de publier une Window.",
+				"Les skills de l'équipe et de chaque personne, écrites ou importées dans la console, que peut lire chaque IA branchée sur la Cahut, quelle que soit l'IA. Une IA lit celles pour chaque Window, comme la charte, avant d'en publier une.",
 				'Un plugin pour Claude Code, et une skill pour les applications Claude, qui apprennent à Claude à faire des Windows et à les publier.',
 				'Le Logbook de chaque appel, de chaque changement et de chaque connexion.',
 			],
