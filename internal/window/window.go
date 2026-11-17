@@ -26,6 +26,7 @@ import (
 	"cahut.cloud/internal/operation"
 	"cahut.cloud/internal/room"
 	"cahut.cloud/internal/settings"
+	"cahut.cloud/internal/skill"
 	"cahut.cloud/internal/store"
 	"cahut.cloud/internal/windata"
 )
@@ -339,6 +340,7 @@ type PublishInput struct {
 	Access      string       `json:"access,omitempty" jsonschema:"room, the members of its Room (the default), or author, the person you act for alone: a draft, or a Window that one reader opens once with create_share_link and max_openings 1"`
 	Files       []File       `json:"files" jsonschema:"the files of the Window; index.html at the root is the page that opens. Link them with relative paths, such as css/deck.css"`
 	Declaration *Declaration `json:"declaration" jsonschema:"what the pages do: Cahut lets them load and call the origins listed here, and nothing else"`
+	Follows     []string     `json:"follows,omitempty" jsonschema:"the skills of this Cahut that the Window follows, each as its name and the version that get_skill gives, such as charte-acme@3f9a2c1b"`
 }
 
 // File is a file of a publication.
@@ -350,6 +352,11 @@ type File struct {
 
 func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInput) (Window, error) {
 	c.Log(strings.TrimSpace(in.Title), "")
+	// An AI reads the skills that every Window of the Cahut follows before
+	// it makes one. See docs/adr/0064-the-skills-of-a-cahut.md.
+	if err := skill.Gate(ctx, c, in.Follows); err != nil {
+		return Window{}, err
+	}
 	title, err := room.CheckTitle(in.Title)
 	if err != nil {
 		return Window{}, err
@@ -452,6 +459,13 @@ func (s *Service) publish(ctx context.Context, c *operation.Call, in PublishInpu
 	if w.Access == AccessAuthor {
 		detail += "; for its author alone"
 	}
+	followed, err := skill.Followed(ctx, c, in.Follows)
+	if err != nil {
+		return Window{}, err
+	}
+	if followed != "" {
+		detail += "; " + followed
+	}
 	c.Log(w.Room+"/"+w.Name, detail)
 
 	if err := writeFiles(s.Dir(id, w.Version), files); err != nil {
@@ -469,6 +483,7 @@ type UpdateInput struct {
 	Description *string      `json:"description,omitempty" jsonschema:"a new description, a sentence or two of plain text; empty to remove it, and it stays when absent"`
 	Files       []File       `json:"files" jsonschema:"every file of the new version, as for publish_window; files left out are not in it"`
 	Declaration *Declaration `json:"declaration" jsonschema:"what the pages do: Cahut lets them load and call the origins listed here, and nothing else"`
+	Follows     []string     `json:"follows,omitempty" jsonschema:"the skills of this Cahut that the Window follows, as for publish_window"`
 }
 
 func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput) (Window, error) {
@@ -477,6 +492,9 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 		return Window{}, err
 	}
 	if err := w.changeable(); err != nil {
+		return Window{}, err
+	}
+	if err := skill.Gate(ctx, c, in.Follows); err != nil {
 		return Window{}, err
 	}
 	if strings.TrimSpace(in.Title) != "" {
@@ -553,7 +571,15 @@ func (s *Service) update(ctx context.Context, c *operation.Call, in UpdateInput)
 	if err := reindex(ctx, c.Tx, w.id); err != nil {
 		return Window{}, err
 	}
-	c.Log(w.Room+"/"+w.Name, fmt.Sprintf("version %d, %q, %d files, %d bytes; %s", w.Version, w.Title, w.FileCount, w.Size, w.Declaration))
+	detail := fmt.Sprintf("version %d, %q, %d files, %d bytes; %s", w.Version, w.Title, w.FileCount, w.Size, w.Declaration)
+	followed, err := skill.Followed(ctx, c, in.Follows)
+	if err != nil {
+		return Window{}, err
+	}
+	if followed != "" {
+		detail += "; " + followed
+	}
+	c.Log(w.Room+"/"+w.Name, detail)
 
 	// No version ever had this number, but a crash may have left its files.
 	dir := s.Dir(w.id, w.Version)

@@ -1221,6 +1221,8 @@ export interface PublishInput {
   files: File[];
   /** what the pages do: Cahut lets them load and call the origins listed here, and nothing else */
   declaration: Declaration;
+  /** the skills of this Cahut that the Window follows, each as its name and the version that get_skill gives, such as charte-acme@3f9a2c1b */
+  follows?: string[];
 }
 
 export interface QueriedData {
@@ -1941,6 +1943,8 @@ export interface UpdateInput {
   files: File[];
   /** what the pages do: Cahut lets them load and call the origins listed here, and nothing else */
   declaration: Declaration;
+  /** the skills of this Cahut that the Window follows, as for publish_window */
+  follows?: string[];
 }
 
 export interface UpdateRoomInput {

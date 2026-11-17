@@ -775,6 +775,9 @@ func get(ctx context.Context, c *operation.Call, in GetInput) (Skill, error) {
 	if in.File == "" {
 		s, err := describe(ctx, c, t, true)
 		s.Note = note
+		if s.EveryWindow {
+			s.Note += fmt.Sprintf(" Every Window of this Cahut follows this skill: give follows: [%q] to publish_window and update_window.", s.Skill+"@"+s.Version)
+		}
 		return s, err
 	}
 	var f File

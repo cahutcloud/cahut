@@ -3957,6 +3957,7 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
 | `title` | string | yes | title of the Window, also used in its address |
 | `access` | string | no | room, the members of its Room (the default), or author, the person you act for alone: a draft, or a Window that one reader opens once with create_share_link and max_openings 1 |
 | `description` | string | no | what the Window is, in a sentence or two of plain text, 300 characters at most: readers see it on the page of its Room, and AIs read it to find the Window |
+| `follows` | array of strings or null | no | the skills of this Cahut that the Window follows, each as its name and the version that get_skill gives, such as charte-acme@3f9a2c1b |
 | `name` | string | no | its name in its address, 1 to 63 lowercase letters, digits and hyphens; from the title when empty |
 | `room` | string | no | name of the Room to publish in; the personal Room of the person you act for when empty |
 | `tags` | array of strings or null | no | 10 at most, such as q3 or sales, which help find it among many: reuse those that list_windows gives |
@@ -4101,6 +4102,16 @@ Title: Publish a Window. Annotations: `readOnlyHint: false`, `destructiveHint: f
           "content"
         ],
         "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "follows": {
+      "description": "the skills of this Cahut that the Window follows, each as its name and the version that get_skill gives, such as charte-acme@3f9a2c1b",
+      "items": {
+        "type": "string"
       },
       "type": [
         "null",
@@ -8117,6 +8128,7 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
 | `files[].encoding` | string | no | utf-8 (the default) or base64, for binary files |
 | `window` | string | yes | the Window's id or address, or its Room and its name as room/name |
 | `description` | string or null | no | a new description, a sentence or two of plain text; empty to remove it, and it stays when absent |
+| `follows` | array of strings or null | no | the skills of this Cahut that the Window follows, as for publish_window |
 | `title` | string | no | a new title; the title stays when empty. The address does not change |
 
 <details>
@@ -8258,6 +8270,16 @@ Title: Update a Window. Annotations: `readOnlyHint: false`, `destructiveHint: tr
           "content"
         ],
         "type": "object"
+      },
+      "type": [
+        "null",
+        "array"
+      ]
+    },
+    "follows": {
+      "description": "the skills of this Cahut that the Window follows, as for publish_window",
+      "items": {
+        "type": "string"
       },
       "type": [
         "null",
