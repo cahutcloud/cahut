@@ -1,12 +1,13 @@
 // The frame of every page of the console of the server once signed in: its
 // top bar, Ink, or Paper in the dark theme, which names the server and its
 // administrator, and its navigation, which a button opens on a narrow
-// screen, with the account and the languages at its foot. See
+// screen, with the account, the link to the documentation and the
+// languages at its foot. See
 // docs/adr/0058-a-console-for-the-server.md.
 import { Languages as LanguagesIcon, LogOut, Menu, X } from "lucide-preact";
 import type { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { initials, Languages } from "../components";
+import { DocsLink, initials, Languages } from "../components";
 import { words } from "../i18n";
 import { BarLogo } from "../logo";
 import { Pictogram } from "../pictograms";
@@ -96,6 +97,7 @@ export function ServerShell(props: { path: string; children: ComponentChildren }
 				{nav("/updates", <Pictogram name="updates" />, t.updates)}
 				<div class="sidebar-foot">
 					{nav("/account", <Pictogram name="account" />, t.account)}
+					<DocsLink />
 					<div class="sidebar-languages">
 						<LanguagesIcon class="i" size={16} aria-hidden="true" />
 						<Languages />

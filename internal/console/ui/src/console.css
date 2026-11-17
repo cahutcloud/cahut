@@ -1022,12 +1022,20 @@
 	padding-top: var(--space-4);
 	border-top: 1px solid var(--color-border);
 }
+/* The documentation and the languages, under the account: what is
+   secondary, each with its icon in the color of what is secondary. */
+.sidebar-docs,
 .sidebar-languages {
 	display: flex;
 	align-items: center;
 	gap: 10px;
 	padding: var(--space-2) var(--space-3) 0;
 	color: var(--color-text-muted);
+}
+.sidebar-docs a {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
 }
 .sidebar-languages .languages {
 	justify-content: flex-start;

@@ -129,6 +129,8 @@ To delete the account, give your current password and type your handle in full: 
 
 The console speaks English and French. It follows the languages of the browser, and anyone can choose one at the foot of the navigation, on every page, under **Account**, or under the card of the page of sign-in: the choice stays in that browser, for that Cahut. The words of the house, such as Room, Window and Knock, stay in English, and so do the Logbook, e-mail and most messages of the server. The refusals that people meet most, such as a wrong password, a link that expired, a session that ended, a handle or a name of a Room already taken, a Key too short or an invitation that cannot go, come in the language of the console.
 
+Above the languages, at the foot of the navigation of the console of a Cahut and of that of the server, **Documentation** opens these pages in a new tab. They are in English.
+
 ## Readers
 
 To open a Window that is not public, a reader signs in through the console: the link on the page of a closed Window sends them to `/console/read`, which signs them in if needed, then sends them back to the Window. See [Who can open a Window](/concepts/access/#readers-who-sign-in).

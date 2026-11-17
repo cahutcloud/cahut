@@ -1,6 +1,7 @@
 // The frame of every page once signed in: the top bar of the Cahut, with the
 // person, and the navigation, which a button opens on a narrow screen, with
-// the account and the languages of the console at its foot. The screens of
+// the account, the link to the documentation and the languages of the
+// console at its foot. The screens of
 // the console fill its main area, at whose foot the legal pages of the Cahut
 // are linked. The console of the server has a frame of its own: see
 // server/shell.tsx and docs/adr/0058-a-console-for-the-server.md.
@@ -8,7 +9,7 @@ import { Languages as LanguagesIcon, LogOut, Menu, X } from "lucide-preact";
 import { type ComponentChildren, Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import type { Room } from "./api.gen";
-import { initials, Languages, Legal, SearchForm } from "./components";
+import { DocsLink, initials, Languages, Legal, SearchForm } from "./components";
 import { useConsole } from "./context";
 import { words } from "./i18n";
 import { Logo } from "./logo";
@@ -141,6 +142,7 @@ export function Shell(props: { path: string; rooms: Room[]; onSignOut: () => voi
 				{nav("/access", <Pictogram name="aiAccess" />, t.access)}
 				<div class="sidebar-foot">
 					{nav("/account", <Pictogram name="account" />, t.account)}
+					<DocsLink />
 					<div class="sidebar-languages">
 						<LanguagesIcon class="i" size={16} aria-hidden="true" />
 						<Languages />

@@ -4,6 +4,7 @@ import {
 	ArrowUpRight,
 	ChartColumn,
 	Check,
+	CircleQuestionMark,
 	Copy,
 	FileText,
 	Globe,
@@ -84,6 +85,8 @@ const t = words({
 		privacy: "Privacy",
 		support: "Support",
 		server: "Server",
+		documentation: "Documentation",
+		documentationNote: " (opens in a new tab)",
 	},
 	fr: {
 		copy: "Copier",
@@ -137,6 +140,8 @@ const t = words({
 		privacy: "Confidentialité",
 		support: "Assistance",
 		server: "Serveur",
+		documentation: "Documentation",
+		documentationNote: " (en anglais, dans un nouvel onglet)",
 	},
 });
 
@@ -206,6 +211,28 @@ export function Languages() {
 				),
 			)}
 		</nav>
+	);
+}
+
+/** The documentation of Cahut, which is in English only for now. */
+const documentation = "https://docs.cahut.cloud/";
+
+/**
+ * The link to the documentation of Cahut, at the foot of the navigation of
+ * the console of a Cahut and of that of the server. It opens in a new tab,
+ * so that a form being filled stays, and sends no referrer: the
+ * documentation need not learn the address of a Cahut.
+ */
+export function DocsLink() {
+	return (
+		<div class="sidebar-docs">
+			<CircleQuestionMark class="i" size={16} aria-hidden="true" />
+			<a class="c-link c-small" href={documentation} hreflang="en" target="_blank" rel="noopener noreferrer">
+				{t.documentation}
+				<ArrowUpRight class="i" size={14} aria-hidden="true" />
+				<span class="visually-hidden">{t.documentationNote}</span>
+			</a>
+		</div>
 	);
 }
 
