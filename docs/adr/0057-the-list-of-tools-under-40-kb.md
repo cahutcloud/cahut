@@ -1,6 +1,6 @@
 # 57. The list of tools stays under 40 KB
 
-- Status: Accepted
+- Status: Accepted, superseded in part by [ADR 65](0065-the-list-of-tools-under-48-kb.md) (the list of tools stays under 48 KB)
 - Date: 2026-10-31
 
 ## Context

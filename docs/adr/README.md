@@ -60,14 +60,15 @@ Each record states one architecture decision for Cahut: its context, what was de
 | [54](0054-reporting-and-withdrawing-a-window.md) | Anyone reports a Window, and the moderators of its Cahut open it and withdraw it | Accepted, extended by 56, superseded in part by 58 |
 | [55](0055-tags-and-search-of-windows.md) | Windows carry tags, and people and AIs search them | Accepted |
 | [56](0056-a-database-for-each-window.md) | Each Window has a database of its own, which its pages read and write as its declaration says | Accepted |
-| [57](0057-the-list-of-tools-under-40-kb.md) | The list of tools stays under 40 KB | Accepted |
+| [57](0057-the-list-of-tools-under-40-kb.md) | The list of tools stays under 40 KB | Accepted, superseded in part by 65 |
 | [58](0058-a-console-for-the-server.md) | The administrators of the server have a console of their own, under `/server/` | Accepted |
 | [59](0059-people-delete-their-own-account.md) | People delete their own account, unless the administrators of their Cahut turn it off | Accepted |
 | [60](0060-signing-in-after-a-forgotten-password.md) | People sign in with their handle or their e-mail address, and a new password ends the wait of refused sign-ins | Accepted, superseded in part by 62 |
 | [61](0061-a-guide-to-the-first-ai.md) | The console guides each person to a first AI, a first Window and a first share, and leads to the listing of its Cahut in the directory of Claude | Accepted, superseded in part by 63 |
 | [62](0062-a-sign-in-refused-during-a-wait-does-not-prolong-it.md) | A sign-in refused during a wait does not prolong it, and its refusal says when the wait ends | Accepted |
 | [63](0063-chatgpt-on-every-plan.md) | ChatGPT publishes on every plan, and the first steps no longer ask for its plan | Accepted |
-| [64](0064-the-skills-of-a-cahut.md) | A Cahut keeps the skills of its team and of each person, and every AI connected to it finds them in its list of tools | Accepted |
+| [64](0064-the-skills-of-a-cahut.md) | A Cahut keeps the skills of its team and of each person, and every AI connected to it finds them in its list of tools | Accepted, extended by 65 |
+| [65](0065-the-list-of-tools-under-48-kb.md) | The list of tools stays under 48 KB | Accepted |
 
 Records 1 to 7 call an instance of Cahut a home, and speak of Doors. Since record 8, an instance is a Cahut, and each Window has its own access level, without Doors.
 

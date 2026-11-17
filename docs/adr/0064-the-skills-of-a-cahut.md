@@ -1,6 +1,6 @@
 # 64. A Cahut keeps the skills of its team and of each person, and every AI connected to it finds them in its list of tools
 
-- Status: Accepted
+- Status: Accepted, extended by [ADR 65](0065-the-list-of-tools-under-48-kb.md) (the catalogue takes 6,000 bytes, under a list of 48 KB)
 - Date: 2026-11-15
 
 ## Context

@@ -207,9 +207,9 @@ func TestOldServersAreForgotten(t *testing.T) {
 }
 
 // TestToolListWithAFullCatalog checks that the list of tools of an
-// administrator who may write stays under 40 KB with fifty skills of the
+// administrator who may write stays under 48 KB with fifty skills of the
 // Cahut, each with the longest description, and 700 bytes to spare for
-// follows and from_skill (ADR 57, ADR 64).
+// follows and from_skill (ADR 64, ADR 65).
 func TestToolListWithAFullCatalog(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
@@ -240,8 +240,8 @@ func TestToolListWithAFullCatalog(t *testing.T) {
 		t.Errorf("find_skills does not carry a full catalog:\n%s", find)
 	}
 	list, _ := json.Marshal(tools)
-	if len(list) >= 40<<10-700 {
-		t.Errorf("the list of tools weighs %d bytes with a full catalog, %d or more", len(list), 40<<10-700)
+	if len(list) >= 48<<10-700 {
+		t.Errorf("the list of tools weighs %d bytes with a full catalog, %d or more", len(list), 48<<10-700)
 	}
 	t.Logf("the list of tools weighs %d bytes with a full catalog", len(list))
 }

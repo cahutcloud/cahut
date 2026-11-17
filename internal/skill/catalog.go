@@ -12,8 +12,8 @@ import (
 )
 
 // CatalogBytes is the budget of the lines of the catalog, in bytes of
-// JSON, within the bound of the list of tools (ADR 57).
-const CatalogBytes = 1200
+// JSON, within the bound of the list of tools (ADR 65).
+const CatalogBytes = 6000
 
 // CatalogLine is how many characters of its description a skill keeps in
 // the catalog.
