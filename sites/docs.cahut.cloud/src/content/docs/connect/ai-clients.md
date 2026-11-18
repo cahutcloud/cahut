@@ -49,6 +49,8 @@ The [skills](/concepts/skills/) of a Cahut reach every client through two tools,
 
 With those, name the skill, as in "Follow the skill relance-facture", or paste in the instructions of your AI the line that the **Skills** screen of the console gives. The skills for every Window need neither: an AI that has not read them cannot publish a Window.
 
+ChatGPT keeps its own copy of the list of tools, and so of the catalogue. When a skill is added after you connected Cahut, refresh that copy: in **Settings**, **Plugins**, open the app of Cahut, then **Manage app** and **Refresh tools**.
+
 ## Consent
 
 If you are not signed in to the console, you sign in first. Then the console shows:

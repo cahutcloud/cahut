@@ -593,6 +593,75 @@ Sur une Cahut collaborative de la préproduction, avec claude.ai, Claude Code, C
 
 ---
 
+## Recette
+
+Le 17 novembre 2026, sur `demo.staging.cahut.cloud`, une Cahut collaborative de la préproduction en 1.4.0.
+
+**La mise en place.**
+- Une administratrice importe quatre skills de la Cahut. `relance-facture` est le skill de la tâche 16. `charte-lumen` est la charte de la tâche 23, marquée « pour chaque Window ». `rapport-mensuel` et `mentions-formulaires` servent de leurres.
+- Chaque membre a le skill personnel `compte-rendu-hebdo`. Chaque deck se fait avec une personne neuve.
+- Claude Code (2.1.322), Codex (0.159.0) et Mistral Vibe (2.1.0) tournent en ligne de commande, chaque essai dans un dossier vierge.
+  - Codex tourne de plus avec un home vierge, dans un dossier temporaire du système. Son bac à sable `read-only` lit tout le disque, et un premier essai y a trouvé une copie d'un skill de la recette.
+- claude.ai et ChatGPT, ce dernier sur un compte gratuit, sont branchés en OAuth avec le compte d'un membre. Chaque essai se fait dans une conversation neuve.
+- Un essai passe quand le Logbook montre le skill lu avant d'écrire, et que la réponse porte les marques du skill.
+  - Pour la relance : quatre marques, et la phrase de la version en cours.
+  - Pour le deck : les cinq marques de la charte, `follows`, et le logo copié avec `from_skill`.
+
+**Le poids de la liste.** Avec ces quatre skills, le catalogue pèse 773 octets sur 6 000. La liste des outils, en JSON compact, compte :
+- pour une administratrice, 43 outils et 39 922 octets, sous la borne de 49 152 octets, et 40 386 octets pour la réponse entière ;
+- pour un membre, 37 outils et 35 776 octets.
+
+**Les changements.** La phrase sur le paiement de `relance-facture` change deux fois dans la console :
+- après la première série des clients en ligne de commande, la version 1 passe à la version 2 ;
+- entre deux essais de claude.ai et de ChatGPT, la version 2 passe à la version 3.
+
+**Les résultats**, en essais qui passent sur essais faits :
+
+| Critère | Claude Code | Mistral Vibe | Codex | claude.ai | ChatGPT |
+| --- | --- | --- | --- | --- | --- |
+| 1. Relance, sans nommer ni la Cahut ni le skill | 3/3 | 3/3 | 0/2 | 0/1 | 0/1, et 1/1 avec l'app de Cahut choisie dans le message |
+| 1. La même, avec la ligne de l'écran « Skills » | — | — | 2/2 | 1/1 | 1/1 |
+| 2. Après le changement d'une phrase | 2/2 | non mesuré | 1/1, avec la ligne | 1/1, avec la ligne | 1/1 avec la ligne, et 1/1 avec l'app choisie |
+| 3. Deck, sous la porte | 3/3 | 0/1 | 2/2 | 1/1 | 1/1 |
+| 4. Skill exporté, installé dans le client | 2/2 | non mesuré | — | — | — |
+| 5. Skill personnel nommé | 2/2 | non mesuré | 0/1, et 1/1 avec la ligne | 1/1 | 1/1 |
+| 5. `find_skills` trouve le skill personnel | 1/1 | non mesuré | 1/1 | 1/1 | 1/1 |
+
+Le critère 4 passe aussi dans l'autre sens. Le skill de Claude `tri-des-tickets` s'importe tel quel, son corps et son fichier `references/reponses.md` identiques octet par octet. L'en-tête rendu met seulement `name` et `description` entre guillemets doubles.
+
+**Ce que les essais disent.**
+- **Les clients.** Claude Code et Mistral Vibe lisent le skill d'eux-mêmes, et ChatGPT quand on choisit l'app de Cahut. claude.ai, Codex et ChatGPT écrivent sinon sans appeler la Cahut.
+  - La ligne de l'écran « Skills » suffit alors, et une demande qui nomme la Cahut aussi.
+  - Nommer le skill suffit à claude.ai et à ChatGPT, pas à Codex.
+  - C'est ce que dit la doc.
+- **Codex, sans la ligne.** Il cherche le skill personnel qu'on lui nomme dans ses dossiers, comme `~/.agents/skills` et `~/.codex/skills`, puis demande le chemin du fichier.
+- **claude.ai.** Il suit la version 3, mais ajoute une phrase de son cru, proche de la version 1 : « Si votre virement est déjà parti, ne tenez pas compte de ce message. »
+- **La porte.** Elle n'arrête que Mistral Vibe, une fois. Les autres lisent la charte avant d'écrire.
+  - Après la porte, Vibe lit `references/deck.md` et le logo avec `get_skill`. Il publie un deck aux cinq marques, avec `follows`. Mais il recopie le logo à la main dans ses fichiers, au lieu de le copier avec `from_skill`.
+  - Durée médiane d'un deck en ligne de commande : 48 s pour Claude Code, 50 s pour Vibe, 92 s pour Codex.
+- **Les essais écartés.** Ces essais ne mesuraient pas le critère.
+  - Avec la personne qui avait déjà un deck, Claude Code et Codex ont trouvé ce deck avec `list_windows`. Ils l'ont redonné sans le republier. Ces essais ont été refaits avec une personne neuve.
+  - Vibe, avec la même personne, a publié deux decks neufs, le logo copié avec `from_skill`. Son budget a empêché de les refaire.
+  - Codex a suivi une copie de `compte-rendu-hebdo` trouvée sur le disque. L'essai a été refait dans un dossier vierge.
+
+**ChatGPT et sa copie de la liste des outils**, la question de la tâche 27.
+- Un skill posé une minute et demie après la connexion de ChatGPT manque à son catalogue. `find_skills` le donne déjà.
+- Le skill paraît après **Refresh tools**, dans les réglages de ChatGPT : **Settings**, **Plugins**, l'app de Cahut, **Manage app**.
+- claude.ai a le skill nouveau sans rien rafraîchir.
+- Ce que ChatGPT dit voir ne prouve rien. Interrogé, il dit ne voir aucun skill. Sondé par des noms qu'il ne peut deviner, il les redonne mot pour mot.
+- La doc dit le chemin de **Refresh tools**.
+
+**La recherche de `find_skills`.**
+- ChatGPT cherche « accueillir un nouvel adhérent » et ne trouve rien. Chaque mot de la requête doit commencer un mot du skill, or le skill dit « accueil », pas « accueillir ».
+- ChatGPT ne relance pas la recherche sans requête.
+- Une recherche plus tolérante est à décider hors de ce lot.
+
+**Mistral Vibe.** Le budget de Vibe du compte de la recette s'épuise le 17 novembre vers 16 h 28 UTC, pendant la première série. Il l'est encore de 22 h 21 à 23 h 22 UTC. Les critères 2, 4 et 5 restent non mesurés avec Vibe, et Olivier a choisi de ne pas attendre.
+
+La production passe en 1.4.0 quand Olivier le décide.
+
+---
+
 ## Hors du lot 12
 
 - L'écriture des skills par les IA, avec un Knock qui montre le texte entier et ce qui change.

@@ -63,7 +63,7 @@ Every AI connected to a Cahut gets two tools, both read only: `find_skills` list
 - **What AIs see.** On the **Skills** screen, administrators unfold **What AIs see**: the lines as AIs receive them, the bytes they take, and the skills left out.
 - The catalogue names the skills of the Cahut only. `find_skills` lists the personal skills, and the skill that comes with Cahut.
 - In a Cahut that has skills of its own, the instructions of the MCP server send each AI to `find_skills` before a task, any task, even one that publishes nothing. Elsewhere, they tell it to read a skill when the person names one.
-- `find_skills`, `get_skill` and the gate give the current version of each skill at once. The catalogue follows a change at the next session of the client: a conversation keeps the list of tools it began with. ChatGPT keeps its own copy of the list of tools: a new skill may wait in its catalogue until you refresh the app of Cahut in its settings, though `find_skills` lists it already.
+- `find_skills`, `get_skill` and the gate give the current version of each skill at once. The catalogue follows a change at the next session of the client: a conversation keeps the list of tools it began with. ChatGPT keeps its own copy of the list of tools. A skill added after you connected Cahut stays out of its catalogue until you refresh that copy: in **Settings**, **Plugins**, open the app of Cahut, then **Manage app** and **Refresh tools**. `find_skills` lists it already. In the trials of November 2026, claude.ai had a new skill without a refresh.
 
 Two ways work in every AI, whatever it does by itself:
 
