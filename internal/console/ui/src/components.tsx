@@ -13,6 +13,7 @@ import {
 	Lock,
 	Presentation,
 	Search,
+	Settings,
 	UserLock,
 	Users,
 	X,
@@ -66,6 +67,8 @@ const t = words({
 		roomPage: "Page of the Room",
 		preview: (title: string) => `Preview of ${title}`,
 		openWindow: (title: string) => `Open ${title} in a new tab`,
+		manage: "Manage",
+		manageWindow: (title: string) => `Manage ${title}`,
 		withdrawn: "Withdrawn",
 		tags: "Tags",
 		removeTag: (tag: string) => `Remove the tag ${tag}`,
@@ -121,6 +124,8 @@ const t = words({
 		roomPage: "Page de la Room",
 		preview: (title) => `Aperçu ${de(title)}`,
 		openWindow: (title) => `Ouvrir ${title} dans un nouvel onglet`,
+		manage: "Gérer",
+		manageWindow: (title) => `Gérer ${title}`,
 		withdrawn: "Retirée",
 		tags: "Tags",
 		removeTag: (tag) => `Retirer le tag ${tag}`,
@@ -879,10 +884,10 @@ export function WindowCards({
 }
 
 /**
- * A Window, as a card that leads to its page, with a button that shares it
- * and one that opens the Window itself in a new tab, and its tags; the
- * Window that the address of its Room shows says so. Found by a search, it
- * shows the words of its pages around those of query.
+ * A Window, as a card that leads to its page, with a button that says so,
+ * one that shares it and one that opens the Window itself in a new tab, and
+ * its tags; the Window that the address of its Room shows says so. Found by
+ * a search, it shows the words of its pages around those of query.
  */
 export function WindowCard(props: {
 	window: Window;
@@ -910,6 +915,10 @@ export function WindowCard(props: {
 				)}
 			</Link>
 			<div class="window-actions">
+				<Link class="c-btn c-btn--secondary c-btn--sm" href={windowPage(w)} aria-label={t.manageWindow(w.title)}>
+					<Settings class="i" size={16} aria-hidden="true" />
+					{t.manage}
+				</Link>
 				{!w.withdrawn && <ShareMenu window={w} compact onLinks={props.onChanged} />}
 				<a class="c-btn c-btn--secondary c-btn--sm icon-button" href={w.url} target="_blank" rel="noopener noreferrer" aria-label={t.openWindow(w.title)} title={t.openWindow(w.title)}>
 					<ArrowUpRight class="i" size={16} aria-hidden="true" />

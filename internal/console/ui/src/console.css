@@ -1488,10 +1488,11 @@
 	margin-top: 0;
 	grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
 }
-/* The Window that the address of its Room shows, over its preview. */
+/* The Window that the address of its Room shows, over the foot of its
+   preview, under the buttons of its card. */
 .window-flag {
 	position: absolute;
-	top: var(--space-3);
+	bottom: var(--space-3);
 	left: var(--space-3);
 	z-index: 1;
 	background: var(--color-surface);
@@ -1503,8 +1504,8 @@
 	width: 14px;
 	height: 14px;
 }
-/* The buttons of a card that share its Window and open it in a new tab,
-   over its preview. */
+/* The buttons of a card that lead to the page of its Window, share it and
+   open it in a new tab, over its preview. */
 .window-card {
 	position: relative;
 }
